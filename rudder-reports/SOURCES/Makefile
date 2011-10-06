@@ -25,7 +25,7 @@ localdepends: ./config
 
 ./config:
 	mkdir -p ./config
-	cd $(TMP_DIR) && git clone --depth 1 ssh://git@git.normation.com:5190/rudder.git
+	cd $(TMP_DIR) && git clone --depth 1 git@github.com:Normation/rudder.git
 	cd $(TMP_DIR)/rudder && git checkout $(GIT_BRANCH_RUDDER) || rm -rf $(TMP_DIR)/rudder
 	cp $(TMP_DIR)/rudder/rudder-core/src/main/resources/reportsSchema.sql ./config/
 	cp $(TMP_DIR)/rudder/rudder-core/src/main/resources/reportsBootstrap.sql ./config/

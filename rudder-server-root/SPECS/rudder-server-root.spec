@@ -46,7 +46,7 @@ URL: http://www.rudder-project.org
 
 Group: Applications/System
 
-Source1: policy-templates
+Source1: rudder-policy-templates
 Source2: rudder-init.sh
 Source3: uuid.hive
 

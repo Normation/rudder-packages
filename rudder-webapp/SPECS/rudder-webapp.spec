@@ -76,8 +76,8 @@ cp -rf %{_sourcedir}/source %{_builddir}
 #=================================================
 %build
 
-cd %{_builddir}/source/parent-pom && %{_sourcedir}/maven2/bin/mvn -s %{SOURCE3} -Dmaven.test.skip=true install
-cd %{_builddir}/source/commons && %{_sourcedir}/maven2/bin/mvn -s %{SOURCE3} -Dmaven.test.skip=true install
+cd %{_builddir}/source/rudder-parent-pom && %{_sourcedir}/maven2/bin/mvn -s %{SOURCE3} -Dmaven.test.skip=true install
+cd %{_builddir}/source/rudder-commons && %{_sourcedir}/maven2/bin/mvn -s %{SOURCE3} -Dmaven.test.skip=true install
 cd %{_builddir}/source/scala-ldap && %{_sourcedir}/maven2/bin/mvn -s %{SOURCE3} -Dmaven.test.skip=true install
 cd %{_builddir}/source/ldap-inventory && %{_sourcedir}/maven2/bin/mvn -s %{SOURCE3} -Dmaven.test.skip=true install
 cd %{_builddir}/source/cf-clerk && %{_sourcedir}/maven2/bin/mvn -s %{SOURCE3} -Dmaven.test.skip=true install

@@ -23,8 +23,8 @@ GIT_BRANCH_RUDDER = remotes/origin/master
 localdepends: ./policy-templates
 
 ./policy-templates:
-	cd . && git clone --depth 1 ssh://git@git.normation.com:5190/policy-templates.git
-	cd ./policy-templates && git checkout $(GIT_BRANCH_RUDDER) || rm -rf ./policy-templates
+	cd . && git clone --depth 1 git@github.com:Normation/rudder-policy-templates.git
+	cd ./rudder-policy-templates && git checkout $(GIT_BRANCH_RUDDER) || rm -rf ./rudder-policy-templates
 
 /usr/bin/git:
 	sudo apt-get --assume-yes install git-core
@@ -32,6 +32,6 @@ localdepends: ./policy-templates
 localclean:
 
 veryclean:
-	rm -rf ./policy-templates
+	rm -rf ./rudder-policy-templates
 
 .PHONY: localclean localdepends veryclean

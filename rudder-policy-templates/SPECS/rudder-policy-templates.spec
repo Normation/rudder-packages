@@ -45,7 +45,7 @@ URL: http://www.rudder-project.org
 
 Group: Applications/System
 
-Source1: policy-templates
+Source1: rudder-policy-templates
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 

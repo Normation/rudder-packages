@@ -37,17 +37,17 @@ localdepends: ./source ./maven2/bin/mvn ./rudder-users.xml
 
 ./source:
 	mkdir -p ./source
-	cd ./source && git clone --depth 1 ssh://git@git.normation.com:5190/parent-pom.git
+	cd ./source && git clone --depth 1 git@github.com:Normation/rudder-parent-pom.git
 	cd ./source/parent-pom && git checkout $(GIT_BRANCH_RUDDER) || rm -rf ./source/parent-pom
-	cd ./source && git clone --depth 1 ssh://git@git.normation.com:5190/commons.git
+	cd ./source && git clone --depth 1 git@github.com:Normation/rudder-commons.git
 	cd ./source/commons && git checkout $(GIT_BRANCH_RUDDER) || rm -rf ./source/commons
-	cd ./source && git clone --depth 1 ssh://git@git.normation.com:5190/scala-ldap.git
+	cd ./source && git clone --depth 1 git@github.com:Normation/scala-ldap.git
 	cd ./source/scala-ldap && git checkout $(GIT_BRANCH_RUDDER) || rm -rf ./source/scala-ldap
-	cd ./source && git clone --depth 1 ssh://git@git.normation.com:5190/ldap-inventory.git
+	cd ./source && git clone --depth 1 git@github.com:Normation/ldap-inventory.git
 	cd ./source/ldap-inventory && git checkout $(GIT_BRANCH_RUDDER) || rm -rf ./source/ldap-inventory
-	cd ./source && git clone --depth 1 ssh://git@git.normation.com:5190/cf-clerk.git
+	cd ./source && git clone --depth 1 git@github.com:Normation/cf-clerk.git
 	cd ./source/cf-clerk && git checkout $(GIT_BRANCH_RUDDER) || rm -rf ./source/cf-clerk
-	cd ./source && git clone --depth 1 ssh://git@git.normation.com:5190/rudder.git
+	cd ./source && git clone --depth 1 git@github.com:Normation/rudder.git
 	cd ./source/rudder && git checkout $(GIT_BRANCH_RUDDER) || rm -rf ./source/rudder
 
 ./rudder-users.xml: ./source

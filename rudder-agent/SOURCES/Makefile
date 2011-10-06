@@ -34,9 +34,9 @@ localdepends: ./initial-promises ./files ./fusioninventory-agent ./cfengine-sour
 	mv $(TMP_DIR)/cfengine-$(CFENGINE_RELEASE) ./cfengine-source
 
 ./initial-promises:
-	cd $(TMP_DIR) && git clone --depth 1 ssh://git@git.normation.com:5190/policy-templates.git
-	cd $(TMP_DIR)/policy-templates && git checkout $(GIT_BRANCH_RUDDER) || rm -rf $(TMP_DIR)/policy-templates
-	cp -a $(TMP_DIR)/policy-templates/initial-promises/nodeInitialPromises/ ./initial-promises
+	cd $(TMP_DIR) && git clone --depth 1 git@github.com:Normation/rudder-policy-templates.git
+	cd $(TMP_DIR)/rudder-policy-templates && git checkout $(GIT_BRANCH_RUDDER) || rm -rf $(TMP_DIR)/rudder-policy-templates
+	cp -a $(TMP_DIR)/rudder-policy-templates/initial-promises/nodeInitialPromises/ ./initial-promises
 
 ./fusioninventory-agent: /usr/bin/wget
 	$(WGET) -O $(TMP_DIR)/fusion.tgz http://search.cpan.org/CPAN/authors/id/F/FU/FUSINV/FusionInventory-Agent-$(FUSION_RELEASE).tar.gz

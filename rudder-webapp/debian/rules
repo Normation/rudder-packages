@@ -20,8 +20,8 @@ build: build-stamp
 
 build-stamp: configure-stamp
 	dh_testdir
-	cd $(CURDIR)/SOURCES/source/parent-pom && $(CURDIR)/SOURCES/maven2/bin/mvn -s $(CURDIR)/SOURCES/settings-internal.xml -Dmaven.test.skip=true install
-	cd $(CURDIR)/SOURCES/source/commons && $(CURDIR)/SOURCES/maven2/bin/mvn -s $(CURDIR)/SOURCES/settings-internal.xml -Dmaven.test.skip=true install
+	cd $(CURDIR)/SOURCES/source/rudder-parent-pom && $(CURDIR)/SOURCES/maven2/bin/mvn -s $(CURDIR)/SOURCES/settings-internal.xml -Dmaven.test.skip=true install
+	cd $(CURDIR)/SOURCES/source/rudder-commons && $(CURDIR)/SOURCES/maven2/bin/mvn -s $(CURDIR)/SOURCES/settings-internal.xml -Dmaven.test.skip=true install
 	cd $(CURDIR)/SOURCES/source/scala-ldap && $(CURDIR)/SOURCES/maven2/bin/mvn -s $(CURDIR)/SOURCES/settings-internal.xml -Dmaven.test.skip=true install
 	cd $(CURDIR)/SOURCES/source/ldap-inventory && $(CURDIR)/SOURCES/maven2/bin/mvn -s $(CURDIR)/SOURCES/settings-internal.xml -Dmaven.test.skip=true install
 	cd $(CURDIR)/SOURCES/source/cf-clerk && $(CURDIR)/SOURCES/maven2/bin/mvn -s $(CURDIR)/SOURCES/settings-internal.xml -Dmaven.test.skip=true install
