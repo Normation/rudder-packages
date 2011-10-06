@@ -1,0 +1,251 @@
+#!/bin/bash
+#####################################################################################
+# Copyright 2011 Normation SAS
+#####################################################################################
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, Version 3.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#####################################################################################
+
+#Rudder Script init
+
+#Check if script is executed by root
+if [ ! $(whoami) = 'root' ];then echo "You must be root"; exit; fi
+
+REGEXPCHK1='^[0-9]\{1,3\}.[0-9]\{1,3\}.[0-9]\{1,3\}.[0-9]\{1,3\}\/[0-9]\{1,2\}$'
+REGEXPCHK2='^[0-9]\{1,3\}.[0-9]\{1,3\}.[0-9]\{1,3\}.[0-9]\{1,3\}$'
+
+# VARS
+TMP_DIR=`mktemp -dq`
+TMP_LOG=`mktemp -t rudder.XXXXXXXXXX -q`
+mv $TMP_LOG ${TMP_LOG}.log
+TMP_LOG=${TMP_LOG}.log
+BOOTSTRAP_PATH=$TMP_DIR/bootstrap.ldif
+INITPOLICY_PATH=$TMP_DIR/init-policy-server.ldif
+INITDEMO_PATH=$TMP_DIR/demo-data.ldif
+RUDDER_CONF_FILE=/opt/rudder/etc/rudder-web.properties
+REGEXP='s/^\([0-9]\{1,3\}\)\(.[0-9]\{1,3\}\)\(.[0-9]\{1,3\}\)\(.[0-9]\{1,3\}.[0-9]\{1,2\}\)$/\1\\\2\\\3\\\4/g'
+again="yes"
+cpt=0
+cpt2=0
+
+Pause()
+{
+    key=""
+    echo -n Hit any key to continue....
+    stty -icanon
+    key=`dd count=1 2>/dev/null`
+    stty icanon
+}
+
+ErrorCheck()
+{
+  if [ $? -ne 0 ]
+  then
+    echo "ERROR: Execution failed! Aborting."
+    echo "An error occured. Please check $TMP_LOG for details."
+	exit
+  fi
+}
+
+LDAPInit()
+{
+  cp /opt/rudder/share/bootstrap.ldif $BOOTSTRAP_PATH
+  cp /opt/rudder/share/init-policy-server.ldif $INITPOLICY_PATH
+  cp /opt/rudder/share/demo-data.ldif $INITDEMO_PATH
+  sed -i "s%^base.url.*$%base.url=http://$ANSWER1/rudder%" $RUDDER_CONF_FILE
+  sed -i "s/^\([^#].*\)%%POLICY_SERVER_HOSTNAME%%/\1$ANSWER1/g" $INITPOLICY_PATH
+  sed -i "s#^\([^#].*\)%%POLICY_SERVER_ALLOWED_NETWORKS%%#\1$NET#g" $INITPOLICY_PATH
+  sed -i "s/^\([^#].*\)%%POLICY_SERVER_IP%%/\1$ANSWER3/g" $INITPOLICY_PATH
+  /opt/rudder/sbin/slapadd -l $BOOTSTRAP_PATH &> $TMP_LOG
+  ErrorCheck
+  /opt/rudder/sbin/slapadd -l $INITPOLICY_PATH &> $TMP_LOG
+  ErrorCheck
+}
+
+#Check if arg are used
+if [ $# -gt 0 ]
+then
+  if [ $# -lt 6 ]
+  then
+    echo "usage: rudder-init.sh hostname serverIP DemoData LDAPReset InitialPromisesReset AllowedNetwork1 [AllowedNetwork2]..."
+    exit
+  else
+    ANSWER1=$1 #Hostname
+    ALLOWEDNETWORK[0]=$6 #ServerAllowed
+    ANSWER3=$2 #ServerIp
+    ANSWER4=$3 #DemoSample
+    LDAPRESET=$4 #LDAPRESET
+    LDAPCHK=1
+    ANSWER6=$5 #InitialPromises
+  fi
+else
+	echo
+	echo "Welcome to the Rudder initialization script"
+	echo
+	echo "This script will configure your Rudder root server."
+	echo "It can be run as many times as you want."
+
+	# Menu
+	# 1st Step: Definition HOSTNAME
+	echo
+	echo -n "Please enter the fully qualified domain name that will be used to access the web interface of the Rudder server (i.e rudder.example.com): "
+	read ANSWER1
+	# 2nd Step: Definition SERVER_ALLOWED_NETWORK
+	while [ z$again = "zyes" ]
+	do
+	  again=''
+	  while ! echo "${ALLOWEDNETWORK[$cpt]}" | grep "$REGEXPCHK1"
+	  do
+		echo
+		echo -n "Enter network allowed to access server (i.e 192.168.0.0/24): "
+		read ALLOWEDNETWORK[$cpt]
+	  done
+	  echo "Network(s) added:"
+	  for i in ${ALLOWEDNETWORK[*]}
+	  do
+		echo $i
+	  done
+	  while ! echo "$again" | grep "^\(yes\|no\)$";do echo -n "Add more networks? (yes/no) ";read again;done
+	  ((cpt++))
+	done
+	# 3rd Step: Definition SERVER_IP
+	while ! echo "$ANSWER3" | grep "$REGEXPCHK2"
+	do
+	  echo
+	  echo -n "Enter server IP: "
+	  read ANSWER3
+	done
+	# 4th Step: Demo Sample
+	while ! echo "$ANSWER4" | grep "^\(yes\|no\)$"
+	do
+	  echo
+	  echo -n "Do you want to add sample data (for demos)? (yes/no) "
+	  read ANSWER4
+	done
+	# 5th Step: LDAP Check
+	LDAPDATA_PATH=/var/rudder/ldap/openldap-data/
+	if [ -e ${LDAPDATA_PATH}DB_CONFIG ]
+	then
+	  LDAPCHK=`/opt/rudder/sbin/slapcat  | grep "^dn: " | wc -l`
+	  if [ $LDAPCHK -gt 0 ]
+	  then
+		while ! echo "$LDAPRESET" | grep "^\(yes\|no\)$"
+		do
+		  echo
+		  echo -ne "An LDAP database has been detected.\nDo you want to reinitialize it? (yes/no) "
+		  read LDAPRESET
+		done
+	  fi
+	fi
+	#6th Step: Initial Promises
+	if [ -e /var/cfengine/inputs ] || [ -e /var/rudder/cfengine-comunity/inputs ]
+	then
+	  while ! echo "$ANSWER6" | grep "^\(yes\|no\)$"
+	  do
+		echo
+		echo -n "Do you want to reset initial promises ? (yes/no) "
+		read ANSWER6
+	  done
+	else
+	  ANSWER6="yes"
+	fi
+fi
+# Review
+echo
+echo Hostname: "$ANSWER1"
+echo Allowed networks: "${ALLOWEDNETWORK[*]}"
+echo Server IP: "$ANSWER3"
+echo Add sample data? "$ANSWER4"
+if [ $LDAPCHK -gt 0 ]
+then
+  echo Reinitialize LDAP database? "$LDAPRESET"
+fi
+echo Reset Initial Promises? "$ANSWER6"
+echo
+Pause
+# Set Configuration
+# Formatting allowed network
+# NET will modify init-policy-server.ldif and NET 2 cf-served.cf
+for i in ${ALLOWEDNETWORK[*]}
+do
+  if [ $cpt2 -eq 0 ]
+  then
+    NET=`echo $i | sed $REGEXP`
+    NET2="\"$NET\""
+  else
+    NET="$NET\nrudderPolicyVariables: ALLOWEDNETWORK[$cpt2]: `echo $i | sed $REGEXP`"
+    NET2="$NET2, \"`echo $i | sed $REGEXP`\""
+  fi
+  ((cpt2++))
+done
+# Make fake licenses (HACK!)
+#mkdir -p /opt/rudder/etc/promises-writer/licenses/root/
+#touch /opt/rudder/etc/promises-writer/licenses/root/license.dat
+mkdir -p /opt/rudder/etc/licenses/
+echo "<licenses></licenses>" > /opt/rudder/etc/licenses/licenses.xml
+
+# Configure initial promises
+if [ z$ANSWER6 = "zyes" ]
+then
+  echo -n "Configuring and installing initial Cfengine promises..."
+  cp -r /opt/rudder/share/initial-promises/cfengine-community $TMP_DIR/community
+  cp -r /opt/rudder/share/initial-promises/cfengine-nova $TMP_DIR/nova
+  find $TMP_DIR/nova $TMP_DIR/community -name "cf-served.cf" -type f -exec sed -i "s@%%POLICY_SERVER_ALLOWED_NETWORKS%%@$NET2@g" {} \;
+  find $TMP_DIR/nova $TMP_DIR/community -type f -exec sed -i "s/%%POLICY_SERVER_HOSTNAME%%/$ANSWER1/g" {} \;
+  find $TMP_DIR/nova $TMP_DIR/community -type f -exec sed -i "s#%%POLICY_SERVER_ALLOWED_NETWORKS%%#$NET#g" {} \;
+  find $TMP_DIR/nova $TMP_DIR/community -type f -exec sed -i "s/%%POLICY_SERVER_IP%%/$ANSWER3/g" {} \;
+  rm -rf /var/rudder/cfengine-community/inputs/*
+  rm -rf /var/cfengine/inputs/*
+  cp -r $TMP_DIR/community/* /var/rudder/cfengine-community/inputs/
+  cp -r $TMP_DIR/nova/* /var/cfengine/inputs/
+  echo $ANSWER3 > /var/cfengine/policy_server.dat
+  echo $ANSWER3 > /var/rudder/cfengine-community/policy_server.dat
+  echo " done."
+fi
+# LDAP (re)initialization
+/etc/init.d/slapd stop &> $TMP_LOG
+if [ $LDAPCHK -gt 0 ]
+then
+  if [ z$LDAPRESET = "zyes" ]
+  then
+    echo -n "Initializing LDAP database..."
+    rm -f /var/rudder/ldap/openldap-data/{alock,__db.*,*.bdb,log.*}
+    LDAPInit
+  fi
+else
+  echo -n "Initializing LDAP database..."
+  LDAPInit
+fi
+# Check if Demo sample have to be added
+if [ z$ANSWER4 = "zyes" ]
+then
+    /opt/rudder/sbin/slapadd -l $INITDEMO_PATH &> $TMP_LOG
+fi
+echo " done."
+
+# Delete temp files
+echo -n "Cleaning up..."
+rm -rf $TMP_DIR
+echo " done."
+
+# Restart services
+echo -n "Restarting services..."
+/etc/init.d/cfengine-community restart &> $TMP_LOG
+if [ -e $LDAPDATA_PATH ]; then /etc/init.d/slapd start &> $TMP_LOG; fi
+/etc/init.d/jetty restart &> $TMP_LOG
+echo " done."
+
+echo
+echo "Everything has been set up correctly."
+echo "Rudder is ready to go on http://$ANSWER1/"

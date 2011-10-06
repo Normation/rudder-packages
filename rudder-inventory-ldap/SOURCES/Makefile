@@ -1,0 +1,80 @@
+#####################################################################################
+# Copyright 2011 Normation SAS
+#####################################################################################
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, Version 3.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#####################################################################################
+
+.DEFAULT_GOAL := localdepends
+
+OPENLDAP_RELEASE = 2.4.23
+GIT_BRANCH_RUDDER = remotes/origin/master
+TMP_DIR := $(shell mktemp -dq)
+WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget
+
+localdepends: ./openldap-source ./DB_CONFIG ./rudder.schema ./inventory.schema ./slapd.conf ../debian/rudder-agent.init ../debian/rudder-agent.default
+	rm -rf ./openldap.tgz
+
+./openldap-source: /usr/bin/wget
+	$(WGET) -O ./openldap.tgz ftp://ftp.openldap.org/pub/OpenLDAP/openldap-release/openldap-$(OPENLDAP_RELEASE).tgz
+	tar xvzf ./openldap.tgz -C .
+	mv ./openldap-$(OPENLDAP_RELEASE) ./openldap-source
+
+./config/rudder:
+	mkdir -p ./config
+	cd ./config && git clone --depth 1 ssh://git@git.normation.com:5190/rudder.git || rm -rf ./config/rudder
+	cd ./config/rudder && git checkout $(GIT_BRANCH_RUDDER) || rm -rf ./config/rudder
+
+./config/ldap-inventory:
+	mkdir -p ./config
+	cd ./config && git clone --depth 1 ssh://git@git.normation.com:5190/ldap-inventory.git || rm -rf ./config/ldap-inventory
+	cd ./config/ldap-inventory && git checkout $(GIT_BRANCH_RUDDER) || rm -rf ./config/ldap-inventory
+
+./slapd.conf: ./config/ldap-inventory
+	cp ./config/ldap-inventory/inventory-repository/src/main/resources/ldap/slapd.conf ./slapd.conf
+
+./inventory.schema: ./config/ldap-inventory
+	cp ./config/ldap-inventory/inventory-repository/src/main/resources/ldap/inventory.schema ./inventory.schema
+
+./DB_CONFIG: ./config/ldap-inventory
+	cp ./config/ldap-inventory/inventory-repository/src/main/resources/ldap/DB_CONFIG ./DB_CONFIG
+
+./rudder.schema: ./config/rudder
+	cp ./config/rudder/rudder-core/src/main/resources/ldap/rudder.schema ./rudder.schema
+
+../debian/rudder-agent.init:
+	cp ./rudder-inventory-ldap.init ../debian/slapd.init
+
+../debian/rudder-agent.default:
+	cp ./rudder-inventory-ldap.default ../debian/slapd.default
+
+/usr/bin/wget:
+	sudo apt-get --assume-yes install wget
+
+/usr/bin/git:
+	sudo apt-get --assume-yes install git-core
+
+localclean:
+	rm -rf ./config
+	rm -rf ./openldap-source
+	rm -rf ./slapd.conf
+	rm -rf ../debian/slapd.init
+	rm -rf ../debian/slapd.default
+	rm -rf ./rudder.schema
+	rm -rf ./inventory.schema
+	rm -rf ./DB_CONFIG
+
+veryclean:
+
+.PHONY: localclean localdepends veryclean

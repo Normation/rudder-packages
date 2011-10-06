@@ -1,0 +1,17 @@
+Source: rudder-reports
+Section: misc
+Priority: extra
+Maintainer: Nicolas Perron <nicolas.perron@normation.com>
+Build-Depends: debhelper (>= 7)
+Standards-Version: 3.7.3
+Homepage: http://www.rudder-project.org
+
+Package: rudder-reports
+Architecture: all
+Depends: ${shlibs:Depends}, ${misc:Depends}, postgresql (>=8)
+Description: Configuration management and audit tool - reports database
+ Rudder is an open source configuration management and audit solution.
+ .
+ This packages creates and initializes a PostgreSQL database to receive reports
+ sent from nodes managed with Rudder. These reports are used by rudder-webapp to
+ calculate compliance to given configuration rules.

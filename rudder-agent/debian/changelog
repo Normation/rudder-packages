@@ -1,0 +1,23 @@
+rudder-agent (2.3.0~alpha~git-0) lenny; urgency=low
+
+  * Bump package number to follow git development
+
+ -- Jonathan CLARKE <jonathan.clarke@normation.com>  Mon, 07 Mar 2011 11:47:27 +0000
+
+rudder-agent (2.2.0~beta1-0) lenny; urgency=low
+
+  * Release 2.2.beta1
+
+ -- Jonathan Clarke <jonathan.clarke@normation.com>  Tue, 01 Mar 2011 17:28:31 +0100
+
+rudder-agent (3.1.4-0) lenny; urgency=low
+
+  * Cfengine version number correction
+
+ -- Nicolas Perron <nicolas.perron@normation.com>  Fri, 25 Feb 2011 20:00:18 +0100
+
+rudder-agent (3.1.2-0) lenny; urgency=low
+
+  * New upstream version
+
+ -- Nicolas Perron <nicolas.perrone@normation.com>  Wed, 23 Feb 2011 18:16:27 +0100

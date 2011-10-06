@@ -1,0 +1,53 @@
+rudder-inventory-ldap (2.3.0~alpha~git-0) lenny; urgency=low
+
+  * Bump package number to follow git development
+
+ -- Jonathan CLARKE <jonathan.clarke@normation.com>  Mon, 07 Mar 2011 11:46:57 +0000
+
+rudder-inventory-ldap (2.2.0~beta1-0) lenny; urgency=low
+
+  * Release 2.2.beta1
+
+ -- Jonathan Clarke <jonathan.clarke@normation.com>  Tue, 01 Mar 2011 17:28:38 +0100
+
+rudder-inventory-ldap (2.2.0.beta0-1) lenny; urgency=low
+
+  * Add dependency on rsyslog, fixes #969
+
+ -- Jonathan CLARKE <jonathan.clarke@normation.com>  Fri, 25 Feb 2011 16:29:02 +0000
+
+rudder-inventory-ldap (2.2.0.beta0-0) lenny; urgency=low
+
+  * Bump version number and git branch to test building from 2.2 branch
+
+ -- Jonathan CLARKE <jonathan.clarke@normation.com>  Sat, 19 Feb 2011 13:06:51 +0000
+
+rudder-inventory-ldap (2.2.0.alpha1-0) lenny; urgency=low
+
+  * Releasing first version of 2.2.0-alpha1 packages
+
+ -- Jonathan Clarke <jonathan.clarke@normation.com>  Wed, 16 Feb 2011 16:13:09 +0100
+
+rudder-inventory-ldap (2.4.23-3) lenny; urgency=low
+
+  * Make debian/rules not add several schema lines if run several times
+
+ -- Jonathan Clarke <jonathan.clarke@normation.com>  Thu, 03 Feb 2011 14:54:48 +0100
+
+rudder-inventory-ldap (2.4.23-2) lenny; urgency=low
+
+  * Don't use default configuration file, use our own
+
+ -- Jonathan Clarke <jonathan.clarke@normation.com>  Thu, 03 Feb 2011 13:23:36 +0100
+
+rudder-inventory-ldap (2.4.23-1) lenny; urgency=low
+
+  * Fix various bugs in path names
+
+ -- Jonathan Clarke <jonathan.clarke@normation.com>  Thu, 03 Feb 2011 11:44:24 +0100
+
+rudder-inventory-ldap (2.4.23-0) lenny; urgency=low
+
+  * Initial release
+
+ -- Jonathan Clarke <jonathan.clarke@normation.com>  Sun, 23 Jan 2011 09:45:34 +0000

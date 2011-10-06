@@ -1,0 +1,17 @@
+rudder-policy-templates (2.2.0~beta3~git-0) lenny; urgency=low
+
+  * Bump version number for beta3 continuous builds
+
+ -- Jonathan CLARKE <jonathan.clarke@normation.com>  Sat, 09 Apr 2011 11:46:26 +0200
+
+rudder-policy-templates (2.2.0~beta2-0) lenny; urgency=low
+
+  * Release 2.2.0~beta2
+
+ -- Jonathan CLARKE <jonathan.clarke@normation.com>  Fri, 01 Apr 2011 17:18:57 +0100
+
+rudder-policy-templates (2.2.0~beta2~git-0) lenny; urgency=low
+
+  * Initial release
+
+ -- Nicolas Perron <nicolas.perron@normation.com>  Tue, 15 Mar 2011 15:45:34 +0000

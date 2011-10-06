@@ -1,0 +1,2 @@
+SLES11:gcc cyrus-sasl-devel libdb-4_5-devel libopenssl-devel
+SLES10:gcc cyrus-sasl-devel db42-devel openssl-devel

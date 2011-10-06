@@ -1,0 +1,33 @@
+This package was debianized by:
+
+    Jonathan Clarke <Jonathan Clarke <jonathan.clarke@normation.com>> on Thu, 16 Dec 2010 12:13:26 +0100
+
+It was downloaded from:
+
+    http://www.cfengine.org/ and http://www.fusioninventory.org/
+
+Upstream Author(s):
+
+	Mark Burgess <mark@cfengine.org>
+    Cfengine AS <http://www.cfengine.com>
+	Copyright 2006-2010 OCS Inventory contributors
+	Copyright 2010-2011 FusionInventory Team
+
+Copyright:
+
+    Copyright (C) 2008- Cfengine AS.
+	Copyright 2006-2010 OCS Inventory contributors
+	Copyright 2010-2011 FusionInventory Team
+	Copyright (C) 2010 Normation SAS
+
+License:
+
+    GNU General Public Licence version 3
+
+On Debian systems, the complete text of the GNU General
+Public License can be found in `/usr/share/common-licenses/GPL'.
+
+The Debian packaging is:
+
+    Copyright (C) 2010 Normation SAS
+

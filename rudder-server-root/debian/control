@@ -1,0 +1,17 @@
+Source: rudder-server-root
+Section: web
+Priority: extra
+Maintainer: Nicolas Perron <nicolas.perron@normation.com>
+Build-Depends: debhelper (>= 7)
+Standards-Version: 3.8.0
+Homepage: http://www.rudder-project.org
+
+Package: rudder-server-root
+Architecture: all
+Depends: ${shlibs:Depends}, ${misc:Depends}, rudder-webapp, rudder-cfengine-community, curl
+Description: Configuration management and audit tool - root server base package
+ Rudder is an open source configuration management and audit solution.
+ .
+ This package is essentially a meta-package to install all components required
+ to run a Rudder root server on one machine. It also installs some required
+ files (initial promises).

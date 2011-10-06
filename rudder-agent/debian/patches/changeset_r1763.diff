@@ -1,0 +1,32 @@
+--- a/source/src/runagent.c	(revision 1762)
++++ b/source/src/runagent.c	(revision 1763)
+@@ -537,6 +537,8 @@
+    FatalError("");
+    }
+ 
++
++
+ pp->audit = NULL;
+ pp->lineno = 0;
+ pp->bundle =  strdup("implicit internal bundle for runagent");
+@@ -548,6 +550,7 @@
+ pp->done = false;
+ pp->donep = &(pp->done);
+ pp->ref = NULL;
++pp->agentsubtype = NULL;
+ 
+ pp->this_server = NULL;
+ pp->cache = NULL;
+Index: source/src/server.c
+===================================================================
+--- a/source/src/server.c	(revision 1762)
++++ b/source/src/server.c	(revision 1763)
+@@ -3320,7 +3320,7 @@
+    }
+ 
+ #ifdef HAVE_LIBCFCONSTELLATION
+-if (cf_strncmp(query,"RELAY",5) == 0)
++if (cf_strncmp(query,"relay",5) == 0)
+    {
+    return Constellation_ReturnRelayQueryData(conn,query+5,sendbuffer);
+    }

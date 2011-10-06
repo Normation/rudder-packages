@@ -1,0 +1,22 @@
+Source: rudder-inventory-ldap
+Section: net
+Priority: extra
+Maintainer: Jonathan Clarke <jonathan.clarke@normation.com>
+Build-Depends: quilt, debhelper (>= 7), libdb4.6-dev, libltdl3-dev, libssl-dev, libsasl2-dev
+Standards-Version: 3.8.0
+Homepage: http://www.rudder-project.org
+
+Package: rudder-inventory-ldap
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, rsyslog
+Description: Configuration management and audit tool - OpenLDAP
+ Rudder is an open source configuration management and audit solution.
+ .
+ OpenLDAP Software is an open source implementation of the Lightweight Directory
+ Access Protocol. See http://www.openldap.org/ for more details.
+ .
+ This package bundles a version of the OpenLDAP directory software to simplify
+ installing Rudder. It is required by the rudder-webapp and
+ rudder-inventory-endpoint packages. The LDAP directory is used as storage for
+ inventory information collected from the managed nodes (that have the
+ rudder-agent package installed) and for configuration rules and parameters.

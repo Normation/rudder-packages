@@ -1,0 +1,17 @@
+Source: rudder-agent
+Section: admin
+Priority: extra
+Maintainer: Nicolas Perron <nicolas.perron@normation.com>
+Build-Depends: quilt, debhelper (>= 7), libssl-dev, byacc, bison, gcc, flex, libpcre3-dev, libdb4.6, libdb4.6-dev
+Standards-Version: 3.8.0
+Homepage: http://www.rudder-project.org
+
+Package: rudder-agent
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, uuid-runtime
+Description: Configuration management and audit tool - agent
+ Rudder is an open source configuration management and audit solution.
+ .
+ This package contains the agent that must be installed on all nodes to be
+ managed by Rudder. It is based on two main components: CFEngine Community 3 and
+ FusionInventory.

@@ -1,0 +1,17 @@
+--- a/source/src/cf3.defs.h	2011-01-30 12:28:04.000000000 +0100
++++ b/source/src/cf3.defs.h2	2011-05-27 09:41:28.000000000 +0200
+@@ -39,10 +39,12 @@
+ 
+ #ifdef HAVE_PCRE_H
+ #include <pcre.h>
++#include <regex.h>
+ #endif
+ 
+ #ifdef HAVE_PCRE_PCRE_H
+ #include <pcre/pcre.h>
++#include <regex.h>
+ #endif
+ 
+ 
+
+

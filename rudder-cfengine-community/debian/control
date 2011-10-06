@@ -1,0 +1,16 @@
+Source: rudder-cfengine-community
+Section: admin
+Priority: extra
+Maintainer: Jonathan Clarke <jonathan.clarke@normation.com>
+Build-Depends: quilt, debhelper (>= 7), libssl-dev, byacc, bison, gcc, flex, libpcre3-dev, libdb4.6, libdb4.6-dev
+Standards-Version: 3.8.0
+Homepage: http://www.rudder-project.org
+
+Package: rudder-cfengine-community
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Configuration management and audit tool - CFEngine server component
+ Rudder is an open source configuration management and audit solution.
+ .
+ This package contains CFEngine Community 3 and is used to install a Rudder
+ server, where it provides a policy server for managed nodes.

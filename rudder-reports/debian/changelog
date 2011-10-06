@@ -1,0 +1,35 @@
+rudder-reports (2.3.0~alpha~git-0) lenny; urgency=low
+
+  * Bump package number to follow git development
+
+ -- Jonathan CLARKE <jonathan.clarke@normation.com>  Mon, 07 Mar 2011 11:46:59 +0000
+
+rudder-reports (2.2.0~beta1-0) lenny; urgency=low
+
+  * Release 2.2.beta1
+
+ -- Jonathan Clarke <jonathan.clarke@normation.com>  Tue, 01 Mar 2011 17:28:55 +0100
+
+rudder-reports (2.2.0.beta0-1) lenny; urgency=low
+
+  * PostgresSQL output hidden and check if the database doesn't exist
+
+ -- Nicolas Perron <nicolas.perron@normation.com>  Mon, 21 Feb 2011 12:11:43 +0100
+
+rudder-reports (2.2.0.beta0-0) lenny; urgency=low
+
+  * Bump version number and git branch to test building from 2.2 branch
+
+ -- Jonathan CLARKE <jonathan.clarke@normation.com>  Sat, 19 Feb 2011 13:06:52 +0000
+
+rudder-reports (2.2.0.alpha1-0) lenny; urgency=low
+
+  * Releasing first version of 2.2.0-alpha1 packages
+
+ -- Jonathan Clarke <jonathan.clarke@normation.com>  Wed, 16 Feb 2011 16:15:23 +0100
+
+rudder-reports (0.1-1) unstable; urgency=low
+
+  * Initial release
+
+ -- Nicolas Perron <nicolas.perron@normation.com>  Mon, 25 Jan 2011 17:56:26 -0500

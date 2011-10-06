@@ -1,0 +1,69 @@
+#!/bin/sh
+
+#==============================================
+# Start/stop script for all Rudder components #
+#==============================================
+#
+### BEGIN INIT INFO
+# Provides:			rudder
+# Required-Start:	$local_fs $remote_fs $network $syslog
+# Required-Stop:	$local_fs $remote_fs $network $syslog
+# Default-Start:	2 3 4 5
+# Default-Stop:		0 1 6
+# Short-Description:	Rudder root server
+# Description:		Rudder root server including all components required to run
+### END INIT INFO
+#
+# Copyright (C) 2011 Normation
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# GPL License: http://www.gnu.org/licenses/gpl.txt
+#
+#====================================================================                               
+
+
+start_services()
+{
+/etc/init.d/slapd start
+/etc/init.d/postgresql* start
+/etc/init.d/cfengine-community start
+/etc/init.d/apache2 start
+/etc/init.d/jetty start
+}
+
+stop_services()
+{
+/etc/init.d/apache2 stop
+/etc/init.d/jetty stop
+/etc/init.d/cfengine-community stop
+/etc/init.d/postgresql* stop
+/etc/init.d/slapd stop
+}
+
+case "$1" in
+stop)
+stop_services
+;;
+start)
+start_services
+;;
+restart)
+stop_services
+start_services
+;;
+*)
+  echo "Usage: $0 {start|stop|restart}"
+  exit 1
+;;
+esac
+
+exit 0
