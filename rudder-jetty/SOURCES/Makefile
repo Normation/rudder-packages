@@ -38,13 +38,15 @@ localdepends: ./jetty7
 	# Change jetty's default settings to listen on localhost only
 	sed -i 's/\(<Set\ name=\"host\"><Property\ name=\"jetty.host\"\ \)\(\/>\)/\1default="127.0.0.1"\2/g' ./jetty7/etc/jetty.xml
 
+	# Change jetty.sh before distincts files
+	patch -p0 -s < jetty-init-rudder.patch
+
 	cp ./jetty7/bin/jetty.sh ./jetty7/bin/jetty-debian.sh
 	cp ./jetty7/bin/jetty.sh ./jetty7/bin/jetty-sles.sh
 
 	patch -p0 -s < jetty-init-lsb-fix-debian.patch
 	patch -p0 -s < jetty-init-lsb-fix-sles.patch
 
-	patch -p0 -s < jetty-init-rudder.patch
 
 	# Provide jetty's init script to the debian package's standard location
 	cp ./jetty7/bin/jetty-debian.sh ../debian/jetty.init
