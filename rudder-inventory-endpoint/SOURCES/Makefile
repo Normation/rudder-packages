@@ -38,9 +38,9 @@ localdepends: ./source ./inventory-web.properties ./maven2/bin/mvn
 ./source:
 	mkdir -p ./source
 	cd ./source && git clone --depth 1 git@github.com:Normation/rudder-parent-pom.git
-	cd ./source/parent-pom && git checkout $(GIT_BRANCH_RUDDER) || rm -rf ./source/parent-pom
+	cd ./source/rudder-parent-pom && git checkout $(GIT_BRANCH_RUDDER) || rm -rf ./source/rudder-parent-pom
 	cd ./source && git clone --depth 1 git@github.com:Normation/rudder-commons.git
-	cd ./source/commons && git checkout $(GIT_BRANCH_RUDDER) || rm -rf ./source/commons
+	cd ./source/rudder-commons && git checkout $(GIT_BRANCH_RUDDER) || rm -rf ./source/rudder-commons
 	cd ./source && git clone --depth 1 git@github.com:Normation/scala-ldap.git
 	cd ./source/scala-ldap && git checkout $(GIT_BRANCH_RUDDER) || rm -rf ./source/scala-ldap
 	cd ./source && git clone --depth 1 git@github.com:Normation/ldap-inventory.git
