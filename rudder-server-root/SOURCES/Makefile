@@ -20,7 +20,7 @@
 
 GIT_BRANCH_RUDDER = remotes/origin/master
 
-localdepends: ./policy-templates
+localdepends: ./rudder-policy-templates
 
 ./rudder-policy-templates:
 	cd . && git clone --depth 1 git@github.com:Normation/rudder-policy-templates.git
