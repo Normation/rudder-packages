@@ -29,7 +29,7 @@ localdepends: ./initial-promises ./files ./fusioninventory-agent ./cfengine-sour
 	rm -rf $(TMP_DIR)
 
 ./cfengine-source: /usr/bin/wget
-	$(WGET) -O $(TMP_DIR)/cfengine.tgz http://cfengine.com/source_code/download?file=cfengine-$(CFENGINE_RELEASE).tar.gz
+	$(WGET) -O $(TMP_DIR)/cfengine.tgz http://cfengine.com/source-code/download?file=cfengine-$(CFENGINE_RELEASE).tar.gz
 	tar xvzf $(TMP_DIR)/cfengine.tgz -C $(TMP_DIR)
 	mv $(TMP_DIR)/cfengine-$(CFENGINE_RELEASE) ./cfengine-source
 
