@@ -82,7 +82,6 @@ mkdir -p %{buildroot}%{rudderdir}/etc/postgresql/
 
 # Policy Templates
 cp %{SOURCE1}/reportsSchema.sql %{buildroot}%{rudderdir}/etc/postgresql/
-cp  %{SOURCE1}/reportsBootstrap.sql %{buildroot}%{rudderdir}/etc/postgresql/
 
 %pre -n rudder-reports
 #=================================================
@@ -125,7 +124,6 @@ else
   echo "localhost:5432:rudder:rudder:Normation" > /root/.pgpass
   chmod 600 /root/.pgpass
   psql -q -U rudder -h localhost -d rudder -f %{rudderdir}/etc/postgresql/reportsSchema.sql > /dev/null
-  psql -q -U rudder -h localhost -d rudder -f %{rudderdir}/etc/postgresql/reportsBootstrap.sql > /dev/null
 fi
 
 
@@ -141,7 +139,6 @@ rm -rf %{buildroot}
 %files -n rudder-reports
 %defattr(-, root, root, 0755)
 %{rudderdir}/etc/postgresql/reportsSchema.sql
-%{rudderdir}/etc/postgresql/reportsBootstrap.sql
 
 #=================================================
 # Changelog
