@@ -21,7 +21,7 @@ WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget
 
 .DEFAULT_GOAL := localdepends
 
-GIT_BRANCH_RUDDER = remotes/origin/master
+GIT_BRANCH_RUDDER ?= branches/rudder/2.3
 
 localdepends: ./source ./maven2/bin/mvn ./rudder-users.xml
 
