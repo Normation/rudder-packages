@@ -19,7 +19,7 @@
 .DEFAULT_GOAL := localdepends
 
 OPENLDAP_RELEASE = 2.4.23
-GIT_BRANCH_RUDDER ?= branches/rudder/2.3
+GIT_BRANCH_RUDDER = branches/rudder/2.3
 TMP_DIR := $(shell mktemp -dq)
 WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget
 
