@@ -18,7 +18,7 @@
 
 .DEFAULT_GOAL := localdepends
 
-GIT_BRANCH_RUDDER = branches/rudder/2.3
+GIT_BRANCH_RUDDER = <put branch or tag name here>
 CFENGINE_RELEASE = 3.2.0
 FUSION_RELEASE = 2.1.9
 TMP_DIR := $(shell mktemp -dq)

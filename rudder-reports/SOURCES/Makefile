@@ -19,7 +19,7 @@
 .DEFAULT_GOAL := localdepends
 
 TMP_DIR := $(shell mktemp -dq)
-GIT_BRANCH_RUDDER = branches/rudder/2.3
+GIT_BRANCH_RUDDER = <put branch or tag name here>
 
 localdepends: ./config
 

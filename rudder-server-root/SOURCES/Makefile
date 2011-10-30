@@ -18,7 +18,7 @@
 
 .DEFAULT_GOAL := localdepends
 
-GIT_BRANCH_RUDDER = branches/rudder/2.3
+GIT_BRANCH_RUDDER = <put branch or tag name here>
 
 localdepends: ./rudder-policy-templates
 
