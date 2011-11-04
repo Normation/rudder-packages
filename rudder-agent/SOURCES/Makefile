@@ -32,6 +32,7 @@ localdepends: ./initial-promises ./files ./fusioninventory-agent ./cfengine-sour
 	$(WGET) -O $(TMP_DIR)/cfengine.tgz http://cfengine.com/source-code/download?file=cfengine-$(CFENGINE_RELEASE).tar.gz
 	tar xvzf $(TMP_DIR)/cfengine.tgz -C $(TMP_DIR)
 	mv $(TMP_DIR)/cfengine-$(CFENGINE_RELEASE) ./cfengine-source
+	$(PATCH) -d ./cfengine-source -p0 < ./cfengine-file-edit-section-r3229.patch
 
 ./initial-promises:
 	cd $(TMP_DIR) && git clone --depth 1 git@github.com:Normation/rudder-policy-templates.git
