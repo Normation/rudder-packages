@@ -169,6 +169,9 @@ if [ -d /var/rudder/policy-templates -a ! -d /var/rudder/configuration-repositor
 	cd /var/rudder/configuration-repository/ && git add policy-templates/
 	cd /var/rudder/configuration-repository/ && git commit -m "Move policy-templates into configuration-repository directory"
 
+	sed -i 's%^rudder.dir.policyPackages *= */var/rudder/policy-templates/\?$%rudder.dir.policyPackages=/var/rudder/configuration-repository/policy-templates%' /opt/rudder/etc/rudder-web.properties
+	echo "rudder.dir.gitRoot=/var/rudder/configuration-repository" >> /opt/rudder/etc/rudder-web.properties
+
 	echo "Automatic migration to /var/rudder/configuration-repository/policy-templates done."
 fi
 
