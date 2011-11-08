@@ -9,7 +9,6 @@ Homepage: http://www.rudder-project.org
 Package: rudder-policy-templates
 Architecture: all
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Recommends: git
 Replaces: rudder-webapp (>= 2.2.0~beta1)
 Description: Configuration management and audit tool -  policy templates
  Rudder is an open source configuration management and audit solution.

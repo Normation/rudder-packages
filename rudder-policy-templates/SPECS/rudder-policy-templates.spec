@@ -93,12 +93,6 @@ cp -r %{SOURCE1}/tools/ %{buildroot}%{rudderdir}/share/
 # Post Installation
 #=================================================
 
-# Do this at first install
-if [ $1 -eq 1 ]
-then
-	cp -a /opt/rudder/share/policy-templates /var/rudder/
-fi
-
 
 #=================================================
 # Cleaning
