@@ -22,11 +22,6 @@ case "$1" in
     configure)
     chmod 755 -R /opt/rudder/share/tools
 
-	# If policy-templates work directory has not been initialized yet
-	if [ ! -d /var/rudder/policy-templates/ ] || [ -z "$(ls /var/rudder/policy-templates/)" ]; then
-		cp -a /opt/rudder/share/policy-templates /var/rudder/
-	fi
-
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)

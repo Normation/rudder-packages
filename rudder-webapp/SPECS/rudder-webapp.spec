@@ -54,7 +54,7 @@ Source4: settings-internal.xml
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildRequires: jdk
-Requires: jre rudder-jetty rudder-inventory-ldap rudder-inventory-endpoint rudder-reports rudder-policy-templates apache2 apache2-utils
+Requires: jre rudder-jetty rudder-inventory-ldap rudder-inventory-endpoint rudder-reports rudder-policy-templates apache2 apache2-utils git-core
 
 %description
 Rudder is an open source configuration management and audit solution.
@@ -140,6 +140,10 @@ if [ $1 -eq 1 ]
 then
         echo 'APACHE_MODULES="${APACHE_MODULES} rewrite dav dav_fs proxy proxy_http"' >> /etc/sysconfig/apache2
 		echo 'DAVLockDB /tmp/davlock.db' >> /etc/apache2/conf.d/dav_mod.conf
+
+		mkdir -p /var/rudder/configuration-repository
+		mkdir -p /var/rudder/configuration-repository/shared-files
+		cp -a /opt/rudder/share/policy-templates /var/rudder/configuration-repository/
 fi
 
 chown root:www %{ruddervardir}/inventories/incoming
@@ -148,6 +152,26 @@ chmod 755 -R %{rudderdir}/share/tools
 chmod 655 -R %{rudderdir}/share/load-page
 htpasswd2 -bc %{rudderdir}/etc/htpasswd-webdav rudder rudder
 /etc/init.d/apache2 start
+
+# Migrate from 2.3.0 format policy-template store: /var/rudder/policy-templates
+if [ -d /var/rudder/policy-templates -a ! -d /var/rudder/configuration-repository ]; then
+	echo "***** WARNING *****"
+	echo "The policy template store for Rudder has changed. It will be"
+	echo "automatically moved from /var/rudder/policy-templates to"
+	echo "/var/rudder/configuration-repository/policy-templates."
+
+	cd /var/rudder/policy-templates && git commit -am "Committing all pending policy template changes for automatic migration of the policy template store to /var/rudder/configuration-repository/policy-templates"
+
+	mkdir -p /var/rudder/configuration-repository
+	mv /var/rudder/policy-templates/.git /var/rudder/configuration-repository/
+	mv /var/rudder/policy-templates /var/rudder/configuration-repository/
+	cd /var/rudder/configuration-repository/ && git add -u
+	cd /var/rudder/configuration-repository/ && git add policy-templates/
+	cd /var/rudder/configuration-repository/ && git commit -m "Move policy-templates into configuration-repository directory"
+
+	echo "Automatic migration to /var/rudder/configuration-repository/policy-templates done."
+fi
+
 
 #=================================================
 # Cleaning
