@@ -23,7 +23,7 @@ GIT_BRANCH_RUDDER = <put branch or tag name here>
 localdepends: ./rudder-policy-templates
 
 ./rudder-policy-templates:
-	cd . && git clone --depth 1 git@github.com:Normation/rudder-policy-templates.git
+	cd . && git clone --depth 1 https://github.com/Normation/rudder-policy-templates.git
 	cd ./rudder-policy-templates && git checkout $(GIT_BRANCH_RUDDER) || rm -rf ./rudder-policy-templates
 
 /usr/bin/git:
