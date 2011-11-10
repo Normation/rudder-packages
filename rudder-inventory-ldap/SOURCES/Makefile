@@ -19,7 +19,7 @@
 .DEFAULT_GOAL := localdepends
 
 OPENLDAP_RELEASE = 2.4.23
-GIT_BRANCH_RUDDER = remotes/origin/master
+GIT_BRANCH_RUDDER = <put branch or tag name here>
 TMP_DIR := $(shell mktemp -dq)
 WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget
 
@@ -33,12 +33,12 @@ localdepends: ./openldap-source ./DB_CONFIG ./rudder.schema ./inventory.schema .
 
 ./config/rudder:
 	mkdir -p ./config
-	cd ./config && git clone --depth 1 git@github.com:Normation/rudder.git || rm -rf ./config/rudder
+	cd ./config && git clone --depth 1 https://github.com/Normation/rudder.git || rm -rf ./config/rudder
 	cd ./config/rudder && git checkout $(GIT_BRANCH_RUDDER) || rm -rf ./config/rudder
 
 ./config/ldap-inventory:
 	mkdir -p ./config
-	cd ./config && git clone --depth 1 git@github.com:Normation/ldap-inventory.git || rm -rf ./config/ldap-inventory
+	cd ./config && git clone --depth 1 https://github.com/Normation/ldap-inventory.git || rm -rf ./config/ldap-inventory
 	cd ./config/ldap-inventory && git checkout $(GIT_BRANCH_RUDDER) || rm -rf ./config/ldap-inventory
 
 ./slapd.conf: ./config/ldap-inventory

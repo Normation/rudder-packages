@@ -37,7 +37,6 @@ case "$1" in
     echo "localhost:5432:rudder:rudder:Normation" > /root/.pgpass
     chmod 600 /root/.pgpass
     psql -q -U rudder -h localhost -d rudder -f /opt/rudder/etc/postgresql/reportsSchema.sql > /dev/null
-    psql -q -U rudder -h localhost -d rudder -f /opt/rudder/etc/postgresql/reportsBootstrap.sql > /dev/null
   fi
    ;;
 

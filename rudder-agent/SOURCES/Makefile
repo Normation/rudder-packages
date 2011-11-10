@@ -18,7 +18,7 @@
 
 .DEFAULT_GOAL := localdepends
 
-GIT_BRANCH_RUDDER = remotes/origin/master
+GIT_BRANCH_RUDDER = <put branch or tag name here>
 CFENGINE_RELEASE = 3.2.0
 FUSION_RELEASE = 2.1.9
 TMP_DIR := $(shell mktemp -dq)
@@ -35,7 +35,7 @@ localdepends: ./initial-promises ./files ./fusioninventory-agent ./cfengine-sour
 	$(PATCH) -d ./cfengine-source -p0 < ./cfengine-file-edit-section-r3229.patch
 
 ./initial-promises:
-	cd $(TMP_DIR) && git clone --depth 1 git@github.com:Normation/rudder-policy-templates.git
+	cd $(TMP_DIR) && git clone --depth 1 https://github.com/Normation/rudder-policy-templates.git
 	cd $(TMP_DIR)/rudder-policy-templates && git checkout $(GIT_BRANCH_RUDDER) || rm -rf $(TMP_DIR)/rudder-policy-templates
 	cp -a $(TMP_DIR)/rudder-policy-templates/initial-promises/nodeInitialPromises/ ./initial-promises
 

@@ -21,7 +21,7 @@ WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget
 
 .DEFAULT_GOAL := localdepends
 
-GIT_BRANCH_RUDDER = remotes/origin/master
+GIT_BRANCH_RUDDER = <put branch or tag name here>
 
 localdepends: ./source ./inventory-web.properties ./maven2/bin/mvn
 
@@ -37,13 +37,13 @@ localdepends: ./source ./inventory-web.properties ./maven2/bin/mvn
 
 ./source:
 	mkdir -p ./source
-	cd ./source && git clone --depth 1 git@github.com:Normation/rudder-parent-pom.git
+	cd ./source && git clone --depth 1 https://github.com/Normation/rudder-parent-pom.git
 	cd ./source/rudder-parent-pom && git checkout $(GIT_BRANCH_RUDDER) || rm -rf ./source/rudder-parent-pom
-	cd ./source && git clone --depth 1 git@github.com:Normation/rudder-commons.git
+	cd ./source && git clone --depth 1 https://github.com/Normation/rudder-commons.git
 	cd ./source/rudder-commons && git checkout $(GIT_BRANCH_RUDDER) || rm -rf ./source/rudder-commons
-	cd ./source && git clone --depth 1 git@github.com:Normation/scala-ldap.git
+	cd ./source && git clone --depth 1 https://github.com/Normation/scala-ldap.git
 	cd ./source/scala-ldap && git checkout $(GIT_BRANCH_RUDDER) || rm -rf ./source/scala-ldap
-	cd ./source && git clone --depth 1 git@github.com:Normation/ldap-inventory.git
+	cd ./source && git clone --depth 1 https://github.com/Normation/ldap-inventory.git
 	cd ./source/ldap-inventory && git checkout $(GIT_BRANCH_RUDDER) || rm -rf ./source/ldap-inventory
 
 ./inventory-web.properties: ./source
