@@ -48,14 +48,15 @@ see: http://www.rudder-project.org/foswiki/Main/Installation
 
 You can also build these packages yourself. Each directory in this git
 repository contains the packaging for one package, including the following
-directories:
-  * BUILD - contains temporary files during RPM builds
-  * debian - is the main debian packaging directory as found in all debian packages
-  * RPMS - contains binary RPMs after they are built
-  * SOURCES - contains patches or original sources to package, and is used to
+
+.directories
+* BUILD - contains temporary files during RPM builds
+* debian - is the main debian packaging directory as found in all debian packages
+* RPMS - contains binary RPMs after they are built
+* SOURCES - contains patches or original sources to package, and is used to
     download any other necessary sources
-  * SPECS - contains RPM spec files
-  * SRPMS - contains source RPMs after they are built
+* SPECS - contains RPM spec files
+* SRPMS - contains source RPMs after they are built
 
 Before building any packages, make sure you download the required source files,
 by entering the SOURCES directory and running make:
@@ -63,3 +64,9 @@ by entering the SOURCES directory and running make:
 ----
 $ cd <package name>/SOURCES && make
 ----
+
+IMPORTANT: GIT_BRANCH_RUDDER is not defined by default. You have to replace "<put branch or tag name here>" by a branch or a tag name.
+
+.Branches
+* branches/rudder/2.3 (maintained versions)
+* origin/master (alpha version)
