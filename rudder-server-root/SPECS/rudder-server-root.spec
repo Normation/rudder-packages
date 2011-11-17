@@ -125,7 +125,7 @@ rm -rf %{buildroot}
 %files -n rudder-server-root
 %defattr(-, root, root, 0755)
 %{rudderdir}/share/initial-promises/
-%{rudderdir}/etc/uuid.hive
+%config %{rudderdir}/etc/uuid.hive
 %{rudderdir}/bin/rudder-init.sh
 %{ruddervardir}/cfengine-community/masterfiles
 /var/cfengine/masterfiles
