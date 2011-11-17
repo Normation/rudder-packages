@@ -189,6 +189,8 @@ rm -rf %{buildroot}
 %defattr(-, root, root, 0755)
 
 %{rudderdir}/etc/
+%config %{rudderdir}/etc/rudder-web.properties
+%config %{rudderdir}/etc/rudder-users.xml
 %{rudderdir}/bin/
 %{rudderdir}/jetty7/webapps/
 %{rudderdir}/jetty7/rudder-plugins/
