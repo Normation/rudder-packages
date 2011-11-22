@@ -52,6 +52,7 @@ Source3: settings-external.xml
 Source4: settings-internal.xml
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+BuildArch: noarch
 
 BuildRequires: jdk
 Requires: jre rudder-jetty rudder-inventory-ldap rudder-inventory-endpoint rudder-reports rudder-policy-templates apache2 apache2-utils git-core

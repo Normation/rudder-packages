@@ -57,6 +57,7 @@ Patch2: jetty-default-sles.patch
 Patch3: jetty-init-rudder.patch
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+BuildArch: noarch
 
 # BuildRequires:
 Requires: jre

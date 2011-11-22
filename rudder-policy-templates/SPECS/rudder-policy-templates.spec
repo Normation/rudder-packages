@@ -48,6 +48,7 @@ Group: Applications/System
 Source1: rudder-policy-templates
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+BuildArch: noarch
 
 #BuildRequires: gcc
 

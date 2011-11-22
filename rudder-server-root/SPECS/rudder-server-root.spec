@@ -51,6 +51,7 @@ Source2: rudder-init.sh
 Source3: uuid.hive
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+BuildArch: noarch
 
 Requires: rudder-cfengine-community, rudder-webapp, curl
 
