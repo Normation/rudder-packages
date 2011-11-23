@@ -49,6 +49,7 @@ Group: Applications/System
 Source1: rudder-policy-templates
 Source2: rudder-init.sh
 Source3: uuid.hive
+Source4: rudder.logrotate
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
@@ -95,6 +96,7 @@ cp -r %{SOURCE1}%{init_promises}/nodeInitialPromises %{buildroot}%{ruddervardir}
 # Others
 cp %{SOURCE2} %{buildroot}%{rudderdir}/bin/
 cp %{SOURCE3} %{buildroot}%{rudderdir}/etc/
+cp %{SOURCE4} %{buildroot}/etc/logrotate.d/rudder
 
 %pre -n rudder-server-root
 #=================================================
@@ -127,6 +129,7 @@ rm -rf %{buildroot}
 %defattr(-, root, root, 0755)
 %{rudderdir}/share/initial-promises/
 %config %{rudderdir}/etc/uuid.hive
+%config(noreplace,missingok) %{_sysconfdir}/logrotate.d/rudder
 %{rudderdir}/bin/rudder-init.sh
 %{ruddervardir}/cfengine-community/masterfiles
 /var/cfengine/masterfiles
