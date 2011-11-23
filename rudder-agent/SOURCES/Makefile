@@ -29,13 +29,13 @@ localdepends: ./initial-promises ./files ./fusioninventory-agent ./cfengine-sour
 	rm -rf $(TMP_DIR)
 
 ./cfengine-source: /usr/bin/wget
-	$(WGET) -O $(TMP_DIR)/cfengine.tgz http://cfengine.com/source-code/download?file=cfengine-$(CFENGINE_RELEASE).tar.gz
+	$(WGET) -O $(TMP_DIR)/cfengine.tgz http://www.normation.com/tarball/cfengine-$(CFENGINE_RELEASE).tar.gz
 	tar xvzf $(TMP_DIR)/cfengine.tgz -C $(TMP_DIR)
 	mv $(TMP_DIR)/cfengine-$(CFENGINE_RELEASE) ./cfengine-source
 	$(PATCH) -d ./cfengine-source -p0 < ./cfengine-file-edit-section-r3229.patch
 
 ./initial-promises:
-	cd $(TMP_DIR) && git clone --depth 1 https://github.com/Normation/rudder-policy-templates.git
+	cd $(TMP_DIR) && git clone --depth 1 git://github.com/Normation/rudder-policy-templates.git
 	cd $(TMP_DIR)/rudder-policy-templates && git checkout $(GIT_BRANCH_RUDDER) || rm -rf $(TMP_DIR)/rudder-policy-templates
 	cp -a $(TMP_DIR)/rudder-policy-templates/initial-promises/nodeInitialPromises/ ./initial-promises
 

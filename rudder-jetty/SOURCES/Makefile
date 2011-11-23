@@ -27,7 +27,7 @@ localdepends: ./jetty7
 
 ./jetty7: /usr/bin/wget
 	# Download and uncompress the Jetty distribution
-	$(WGET) -O $(TMP_DIR)/jetty.tgz http://dist.codehaus.org/jetty/jetty-hightide-$(JETTY_RELEASE)/jetty-hightide-$(JETTY_RELEASE).v$(DATE_RELEASE).tar.gz
+	$(WGET) -O $(TMP_DIR)/jetty.tgz http://www.normation.com/tarball/jetty-hightide-$(JETTY_RELEASE).v$(DATE_RELEASE).tar.gz
 	tar xvzf $(TMP_DIR)/jetty.tgz -C $(TMP_DIR)
 	mv $(TMP_DIR)/jetty-hightide-$(JETTY_RELEASE).v$(DATE_RELEASE) ./jetty7
 	rm -rf $(TMP_DIR)

@@ -52,6 +52,7 @@ Source3: settings-external.xml
 Source4: settings-internal.xml
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+BuildArch: noarch
 
 BuildRequires: jdk
 Requires: jre rudder-jetty rudder-inventory-ldap rudder-inventory-endpoint rudder-reports rudder-policy-templates apache2 apache2-utils git-core
@@ -160,7 +161,7 @@ if [ -d /var/rudder/policy-templates -a ! -d /var/rudder/configuration-repositor
 	echo "automatically moved from /var/rudder/policy-templates to"
 	echo "/var/rudder/configuration-repository/policy-templates."
 
-	cd /var/rudder/policy-templates && git commit -am "Committing all pending policy template changes for automatic migration of the policy template store to /var/rudder/configuration-repository/policy-templates"
+	cd /var/rudder/policy-templates && git add . && git add -u && git commit -am "Committing all pending policy template changes for automatic migration of the policy template store to /var/rudder/configuration-repository/policy-templates" || true
 
 	mkdir -p /var/rudder/configuration-repository
 	mv /var/rudder/policy-templates/.git /var/rudder/configuration-repository/
@@ -189,6 +190,8 @@ rm -rf %{buildroot}
 %defattr(-, root, root, 0755)
 
 %{rudderdir}/etc/
+%config(noreplace) %{rudderdir}/etc/rudder-web.properties
+%config(noreplace) %{rudderdir}/etc/rudder-users.xml
 %{rudderdir}/bin/
 %{rudderdir}/jetty7/webapps/
 %{rudderdir}/jetty7/rudder-plugins/

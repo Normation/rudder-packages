@@ -40,7 +40,7 @@ case "$1" in
       echo "automatically moved from /var/rudder/policy-templates to"
       echo "/var/rudder/configuration-repository/policy-templates."
 
-	  cd /var/rudder/policy-templates && git commit -am "Committing all pending policy template changes for automatic migration of the policy template store to /var/rudder/configuration-repository/policy-templates"
+	  cd /var/rudder/policy-templates && git add . && git add -u && git commit -am "Committing all pending policy template changes for automatic migration of the policy template store to /var/rudder/configuration-repository/policy-templates" || true
 
 	  mkdir -p /var/rudder/configuration-repository
 	  mv /var/rudder/policy-templates/.git /var/rudder/configuration-repository/
