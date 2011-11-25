@@ -86,6 +86,7 @@ mkdir -p %{buildroot}%{rudderdir}/bin/
 mkdir -p %{buildroot}%{rudderdir}/etc/
 mkdir -p %{buildroot}%{rudderdir}/share/initial-promises/
 mkdir -p %{buildroot}%{ruddervardir}/cfengine-community/
+mkdir -p %{buildroot}/etc/logrotate.d/
 
 # Initial Promises (root)
 cp -r %{SOURCE1}/%{init_promises}/rootServerInitialPromises/cfengine-nova %{buildroot}%{rudderdir}/share/initial-promises/
