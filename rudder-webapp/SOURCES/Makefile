@@ -29,7 +29,7 @@ localdepends: ./source ./maven2/bin/mvn ./rudder-users.xml
 	sudo aptitude --assume-yes install wget
 
 ./maven2/bin/mvn: /usr/bin/wget
-	$(WGET) -O ./maven.tgz http://apache.multidist.com/maven/binaries/apache-maven-$(MAVEN_RELEASE)-bin.tar.gz
+	$(WGET) -O ./maven.tgz http://www.normation.com/tarball/apache-maven-$(MAVEN_RELEASE)-bin.tar.gz
 	tar -xvzf ./maven.tgz -C .
 	rm -rf ./maven2
 	mv ./apache-maven-$(MAVEN_RELEASE) ./maven2
