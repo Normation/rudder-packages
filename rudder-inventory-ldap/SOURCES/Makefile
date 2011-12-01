@@ -27,7 +27,7 @@ localdepends: ./openldap-source ./DB_CONFIG ./rudder.schema ./inventory.schema .
 	rm -rf ./openldap.tgz
 
 ./openldap-source: /usr/bin/wget
-	$(WGET) -O ./openldap.tgz ftp://ftp.openldap.org/pub/OpenLDAP/openldap-release/openldap-$(OPENLDAP_RELEASE).tgz
+	$(WGET) -O ./openldap.tgz http://www.normation.com/tarball/openldap-$(OPENLDAP_RELEASE).tgz
 	tar xvzf ./openldap.tgz -C .
 	mv ./openldap-$(OPENLDAP_RELEASE) ./openldap-source
 
