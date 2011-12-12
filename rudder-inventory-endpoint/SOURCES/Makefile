@@ -29,6 +29,7 @@ localdepends: ./source ./inventory-web.properties ./maven2/bin/mvn
 	sudo aptitude --assume-yes install wget
 
 ./maven2/bin/mvn: /usr/bin/wget
+	# Original URL: http://apache.multidist.com/maven/binaries/apache-maven-$(MAVEN_RELEASE)-bin.tar.gz
 	$(WGET) -O ./maven.tgz http://www.normation.com/tarball/apache-maven-$(MAVEN_RELEASE)-bin.tar.gz
 	tar -xvzf ./maven.tgz -C .
 	rm -rf ./maven2

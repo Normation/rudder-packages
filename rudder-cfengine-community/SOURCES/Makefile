@@ -25,6 +25,7 @@ WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget
 localdepends: ./cfengine-source ../debian/cfengine-community.default ../debian/cfengine-community.init
 
 ./cfengine-source: /usr/bin/wget
+	# Original URL: http://www.cfengine.com/source-code/download?file=cfengine-$(CFENGINE_RELEASE).tar.gz
 	$(WGET) -O $(TMP_DIR)/cfengine.tgz http://www.normation.com/tarball/cfengine-$(CFENGINE_RELEASE).tar.gz
 	tar xvzf $(TMP_DIR)/cfengine.tgz -C $(TMP_DIR)
 	mv $(TMP_DIR)/cfengine-$(CFENGINE_RELEASE) ./cfengine-source
