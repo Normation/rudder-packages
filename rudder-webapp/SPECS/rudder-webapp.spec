@@ -189,7 +189,7 @@ if [ ! -d /var/rudder/configuration-repository ]; then
 fi
 # Check shared-files folder is set in rudder-web.properties
 ATTRIBUTESET=`grep "rudder.dir.shared.files.folder" /opt/rudder/etc/rudder-web.properties | wc -l`
-if [${ATTRIBUTESET} -gt 0 ]; then
+if [ ${ATTRIBUTESET} -gt 0 ]; then
 	#Idea: when we will be asking for shared files folder path, sed will be used here
 	echo "rudder.dir.shared.files.folder attribute already set in rudder-web.properties"
 else
