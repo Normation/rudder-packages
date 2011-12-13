@@ -48,20 +48,9 @@ case "$1" in
 	  cd /var/rudder/configuration-repository/ && git add -u
 	  cd /var/rudder/configuration-repository/ && git add policy-templates/
 	  cd /var/rudder/configuration-repository/ && git commit -m "Move policy-templates into configuration-repository directory"
-	  mkdir -p /var/rudder/configuration-repository/shared-files
-	  cd /var/rudder/configuration-repository/ && git add -u
-	  cd /var/rudder/configuration-repository/ && git add shared-files/
-	  cd /var/rudder/configuration-repository/ && git commit -m "Add default shared-files directory"
 
 	  sed -i 's%^rudder.dir.policyPackages *= */var/rudder/policy-templates/\?$%rudder.dir.policyPackages=/var/rudder/configuration-repository/policy-templates%' /opt/rudder/etc/rudder-web.properties
 	  echo "rudder.dir.gitRoot=/var/rudder/configuration-repository" >> /opt/rudder/etc/rudder-web.properties
-	  ATTRIBUTESET=`grep "rudder.dir.shared.files.folder" /opt/rudder/etc/rudder-web.properties | wc -l`
-	  if [${ATTRIBUTESET} -gt 0 ]; then
-		#Idea: when we will be asking for shared files folder path, sed will be used here
-		echo "rudder.dir.shared.files.folder attribute already set in rudder-web.properties"
-	  else
-		echo "rudder.dir.shared.files.folder=/var/rudder/configuration-repository/shared-files" >> /opt/rudder/etc/rudder-web.properties
-	  fi
 
 	  echo "Automatic migration to /var/rudder/configuration-repository/policy-templates done."
   fi
@@ -72,6 +61,27 @@ case "$1" in
 	  mkdir -p /var/rudder/configuration-repository/shared-files
 	  cp -a /opt/rudder/share/policy-templates /var/rudder/configuration-repository/
   fi
+
+	# Check default folder for shared-files exists
+	if [ ! -d /var/rudder/configuration-repository ]; then
+		echo "/var/rudder/configuration-repository/shared-files doesn't exist !"
+		mkdir -p /var/rudder/configuration-repository/shared-files
+		if [ ! -d /var/rudder/configuration-repository/.git ]; then
+			cd /var/rudder/configuration-repository/ && git add -u
+			cd /var/rudder/configuration-repository/ && git add shared-files/
+			cd /var/rudder/configuration-repository/ && git commit -m "Add default shared-files directory"
+		fi
+		echo "/var/rudder/configuration-repository/shared-files created"
+	fi
+	# Check shared-files folder is set in rudder-web.properties
+	ATTRIBUTESET=`grep "rudder.dir.shared.files.folder" /opt/rudder/etc/rudder-web.properties | wc -l`
+	if [${ATTRIBUTESET} -gt 0 ]; then
+		#Idea: when we will be asking for shared files folder path, sed will be used here
+		echo "rudder.dir.shared.files.folder attribute already set in rudder-web.properties"
+	else
+		echo "rudder.dir.shared.files.folder=/var/rudder/configuration-repository/shared-files" >> /opt/rudder/etc/rudder-web.properties
+		echo "rudder.dir.shared.files.folder attribute set in rudder-web.properties"
+	fi
 
   # Restart the webapp
   echo "Restarting Rudder webapp and inventory-endpoint"
