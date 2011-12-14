@@ -13,7 +13,6 @@ var/rudder/run
 var/rudder/inventories/incoming
 var/rudder/inventories/received
 var/rudder/inventories/historical
-var/rudder/configuration-repository/shared-files
 var/log/rudder/apache2
 var/log/rudder/ldap
 var/log/rudder/reports
