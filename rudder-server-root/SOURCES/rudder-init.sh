@@ -184,7 +184,7 @@ do
     NET=`echo $i | sed $REGEXP`
     NET2="\"$NET\""
   else
-    NET="$NET\nrudderPolicyVariables: ALLOWEDNETWORK[$cpt2]: `echo $i | sed $REGEXP`"
+    NET="$NET\npolicyInstanceVariable: ALLOWEDNETWORK[$cpt2]: `echo $i | sed $REGEXP`"
     NET2="$NET2, \"`echo $i | sed $REGEXP`\""
   fi
   ((cpt2++))

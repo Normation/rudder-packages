@@ -62,6 +62,36 @@ case "$1" in
 	  cp -a /opt/rudder/share/policy-templates /var/rudder/configuration-repository/
   fi
 
+
+  # Check default folder for shared-files exists
+  if [ ! -d /var/rudder/configuration-repository/shared-files ]; then
+    echo "/var/rudder/configuration-repository/shared-files doesn't exist !"
+    mkdir -p /var/rudder/configuration-repository/shared-files
+    # If this folder doesn't contain files, git won't commit it
+    # To simplify usage, we want that the user can add files simply
+    # So when he will add files into shared-files they will appears in git status
+    # So we force git to add the folder
+    CONTENT=`ls /var/rudder/configuration-repository/shared-files/ | wc -l`
+    if [ ${CONTENT} -eq 0 ]; then
+        touch /var/rudder/configuration-repository/shared-files/.placeholder
+        # Check if git init has been made, if not rudder will do it so we don't have to
+        if [ -d /var/rudder/configuration-repository/.git ]; then
+            cd /var/rudder/configuration-repository/ && git add shared-files/
+            cd /var/rudder/configuration-repository/ && git commit -m "Add default shared-files directory" shared-files/
+        fi
+	fi
+		echo "/var/rudder/configuration-repository/shared-files created"
+	fi
+	# Check shared-files folder is set in rudder-web.properties
+	ATTRIBUTESET=`grep "^rudder.dir.shared.files.folder" /opt/rudder/etc/rudder-web.properties | wc -l`
+	if [ ${ATTRIBUTESET} -gt 0 ]; then
+		#Idea: when we will be asking for shared files folder path, sed will be used here
+		echo "rudder.dir.shared.files.folder attribute already set in rudder-web.properties"
+	else
+		echo "rudder.dir.shared.files.folder=/var/rudder/configuration-repository/shared-files" >> /opt/rudder/etc/rudder-web.properties
+		echo "rudder.dir.shared.files.folder attribute set in rudder-web.properties"
+	fi
+
   # Restart the webapp
   echo "Restarting Rudder webapp and inventory-endpoint"
   /etc/init.d/jetty restart
