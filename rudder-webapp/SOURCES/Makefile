@@ -22,6 +22,7 @@ WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget
 .DEFAULT_GOAL := localdepends
 
 GIT_BRANCH_RUDDER = <put branch or tag name here>
+RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
 
 localdepends: ./source ./maven2/bin/mvn ./rudder-users.xml
 
@@ -36,20 +37,12 @@ localdepends: ./source ./maven2/bin/mvn ./rudder-users.xml
 	mv ./apache-maven-$(MAVEN_RELEASE) ./maven2
 	rm -rf ./maven.tgz
 
-./source:
-	mkdir -p ./source
-	cd ./source && git clone --depth 1 git://github.com/Normation/rudder-parent-pom.git
-	cd ./source/rudder-parent-pom && git checkout $(GIT_BRANCH_RUDDER) || rm -rf ./source/rudder-parent-pom
-	cd ./source && git clone --depth 1 git://github.com/Normation/rudder-commons.git
-	cd ./source/rudder-commons && git checkout $(GIT_BRANCH_RUDDER) || rm -rf ./source/rudder-commons
-	cd ./source && git clone --depth 1 git://github.com/Normation/scala-ldap.git
-	cd ./source/scala-ldap && git checkout $(GIT_BRANCH_RUDDER) || rm -rf ./source/scala-ldap
-	cd ./source && git clone --depth 1 git://github.com/Normation/ldap-inventory.git
-	cd ./source/ldap-inventory && git checkout $(GIT_BRANCH_RUDDER) || rm -rf ./source/ldap-inventory
-	cd ./source && git clone --depth 1 git://github.com/Normation/cf-clerk.git
-	cd ./source/cf-clerk && git checkout $(GIT_BRANCH_RUDDER) || rm -rf ./source/cf-clerk
-	cd ./source && git clone --depth 1 git://github.com/Normation/rudder.git
-	cd ./source/rudder && git checkout $(GIT_BRANCH_RUDDER) || rm -rf ./source/rudder
+./rudder-sources.tar.bz2:
+	$(WGET) -O rudder-sources.tar.bz2 http://www.rudder-project.org/archives/rudder-sources-${RUDDER_VERSION_TO_PACKAGE}.tar.bz2
+
+./source: ./rudder-sources.tar.bz2
+	tar -xjf rudder-sources.tar.bz2
+	mv rudder-sources-${RUDDER_VERSION_TO_PACKAGE}/ source/
 
 ./rudder-users.xml: ./source
 	cp ./source/rudder/rudder-web/src/main/resources/demo-rudder-users.xml ./rudder-users.xml
@@ -59,6 +52,7 @@ localdepends: ./source ./maven2/bin/mvn ./rudder-users.xml
 
 localclean:
 	rm -rf ./source
+	rm -f ./rudder-sources.tar.bz2
 	rm -rf ./rudder-users.xml
 	rm -rf ./maven2/
 

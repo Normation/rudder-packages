@@ -22,6 +22,7 @@ WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget
 .DEFAULT_GOAL := localdepends
 
 GIT_BRANCH_RUDDER = <put branch or tag name here>
+RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
 
 localdepends: ./source ./inventory-web.properties ./maven2/bin/mvn
 
@@ -36,16 +37,12 @@ localdepends: ./source ./inventory-web.properties ./maven2/bin/mvn
 	mv ./apache-maven-$(MAVEN_RELEASE) ./maven2
 	rm -rf ./maven.tgz
 
-./source:
-	mkdir -p ./source
-	cd ./source && git clone --depth 1 git://github.com/Normation/rudder-parent-pom.git
-	cd ./source/rudder-parent-pom && git checkout $(GIT_BRANCH_RUDDER) || rm -rf ./source/rudder-parent-pom
-	cd ./source && git clone --depth 1 git://github.com/Normation/rudder-commons.git
-	cd ./source/rudder-commons && git checkout $(GIT_BRANCH_RUDDER) || rm -rf ./source/rudder-commons
-	cd ./source && git clone --depth 1 git://github.com/Normation/scala-ldap.git
-	cd ./source/scala-ldap && git checkout $(GIT_BRANCH_RUDDER) || rm -rf ./source/scala-ldap
-	cd ./source && git clone --depth 1 git://github.com/Normation/ldap-inventory.git
-	cd ./source/ldap-inventory && git checkout $(GIT_BRANCH_RUDDER) || rm -rf ./source/ldap-inventory
+./rudder-sources.tar.bz2:
+	$(WGET)-O rudder-sources.tar.bz2 http://www.rudder-project.org/archives/rudder-sources-${RUDDER_VERSION_TO_PACKAGE}.tar.bz2
+
+./source: ./rudder-sources.tar.bz2
+	tar -xjf rudder-sources.tar.bz2
+	mv rudder-sources-${RUDDER_VERSION_TO_PACKAGE}/ source/
 
 ./inventory-web.properties: ./source
 	cp ./source/ldap-inventory/inventory-provisioning-web/src/main/resources/configuration.properties ./inventory-web.properties
@@ -55,6 +52,7 @@ localdepends: ./source ./inventory-web.properties ./maven2/bin/mvn
 
 localclean:
 	rm -rf ./maven.tgz
+	rm -f ./rudder-sources.tar.bz2
 	rm -rf ./source
 	rm -rf ./maven2
 	rm -rf ./inventory-web.properties

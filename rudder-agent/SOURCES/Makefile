@@ -19,6 +19,7 @@
 .DEFAULT_GOAL := localdepends
 
 GIT_BRANCH_RUDDER = <put branch or tag name here>
+RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
 CFENGINE_RELEASE = 3.2.0
 FUSION_RELEASE = 2.1.9
 TMP_DIR := $(shell mktemp -dq)
@@ -35,10 +36,15 @@ localdepends: ./initial-promises ./files ./fusioninventory-agent ./cfengine-sour
 	mv $(TMP_DIR)/cfengine-$(CFENGINE_RELEASE) ./cfengine-source
 	$(PATCH) -d ./cfengine-source -p0 < ./cfengine-file-edit-section-r3229.patch
 
-./initial-promises:
-	cd $(TMP_DIR) && git clone --depth 1 git://github.com/Normation/rudder-policy-templates.git
-	cd $(TMP_DIR)/rudder-policy-templates && git checkout $(GIT_BRANCH_RUDDER) || rm -rf $(TMP_DIR)/rudder-policy-templates
-	cp -a $(TMP_DIR)/rudder-policy-templates/initial-promises/nodeInitialPromises/ ./initial-promises
+./rudder-sources.tar.bz2:
+	$(WGET) -O rudder-sources.tar.bz2 http://www.rudder-project.org/archives/rudder-sources-${RUDDER_VERSION_TO_PACKAGE}.tar.bz2
+
+./source: ./rudder-sources.tar.bz2
+	tar -xjf rudder-sources.tar.bz2
+	mv rudder-sources-${RUDDER_VERSION_TO_PACKAGE}/ source/
+
+./initial-promises: ./source
+	cp -a ./source/rudder-policy-templates/initial-promises/nodeInitialPromises/ ./initial-promises
 
 ./fusioninventory-agent: /usr/bin/wget
 	$(WGET) -O $(TMP_DIR)/fusion.tgz http://search.cpan.org/CPAN/authors/id/F/FU/FUSINV/FusionInventory-Agent-$(FUSION_RELEASE).tar.gz
@@ -81,6 +87,7 @@ localdepends: ./initial-promises ./files ./fusioninventory-agent ./cfengine-sour
 
 localclean:
 	rm -rf ./cfengine-source
+	rm -rf ./source
 	rm -rf ./initial-promises
 	rm -f ../debian/rudder-agent.init
 	rm -f ../debian/rudder-agent.default
@@ -90,6 +97,7 @@ localclean:
 	rm -rf ./tmp
 	rm -rf ./perl-custom
 	rm -rf ./files
+	rm -f ./rudder-sources.tar.bz2
 
 veryclean:
 
