@@ -19,6 +19,7 @@
 .DEFAULT_GOAL := localdepends
 
 GIT_BRANCH_RUDDER = <put branch or tag name here>
+RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
 CFENGINE_RELEASE = 3.2.0
 FUSION_RELEASE = 2.1.9
 TMP_DIR := $(shell mktemp -dq)
@@ -34,6 +35,13 @@ localdepends: ./initial-promises ./files ./fusioninventory-agent ./cfengine-sour
 	tar xvzf $(TMP_DIR)/cfengine.tgz -C $(TMP_DIR)
 	mv $(TMP_DIR)/cfengine-$(CFENGINE_RELEASE) ./cfengine-source
 	$(PATCH) -d ./cfengine-source -p0 < ./cfengine-file-edit-section-r3229.patch
+
+./rudder-sources.tar.bz2:
+	$(WGET) -O rudder-sources.tar.bz2 http://www.rudder-project.org/archives/rudder-sources-${RUDDER_VERSION_TO_PACKAGE}.tar.bz2
+
+./rudder-sources: ./rudder-sources.tar.bz2
+	tar -xjf rudder-sources.tar.bz2
+	mv rudder-sources-${RUDDER_VERSION_TO_PACKAGE}/ source/
 
 ./initial-promises:
 	cd $(TMP_DIR) && git clone --depth 1 git://github.com/Normation/rudder-policy-templates.git
@@ -90,6 +98,8 @@ localclean:
 	rm -rf ./tmp
 	rm -rf ./perl-custom
 	rm -rf ./files
+	rm -rf ./rudder-sources
+	rm -f ./rudder-sources.tar.bz2
 
 veryclean:
 
