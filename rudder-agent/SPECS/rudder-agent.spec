@@ -19,7 +19,7 @@
 #=================================================
 # Specification file for rudder-agent
 #
-# Install Cfengine
+# Install CFEngine
 # Install Rudder initial promises
 # Generate a UUID
 #

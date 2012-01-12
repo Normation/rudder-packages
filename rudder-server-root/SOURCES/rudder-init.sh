@@ -198,7 +198,7 @@ echo "<licenses></licenses>" > /opt/rudder/etc/licenses/licenses.xml
 # Configure initial promises
 if [ z$ANSWER6 = "zyes" ]
 then
-  echo -n "Configuring and installing initial Cfengine promises..."
+  echo -n "Configuring and installing initial CFEngine promises..."
   cp -r /opt/rudder/share/initial-promises/cfengine-community $TMP_DIR/community
   cp -r /opt/rudder/share/initial-promises/cfengine-nova $TMP_DIR/nova
   find $TMP_DIR/nova $TMP_DIR/community -name "cf-served.cf" -type f -exec sed -i "s@%%POLICY_SERVER_ALLOWED_NETWORKS%%@$NET2@g" {} \;

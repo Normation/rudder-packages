@@ -1,8 +1,8 @@
 #====================================================================
-# Configuration sample for Cfengine Community init script
+# Configuration sample for CFEngine Community init script
 #====================================================================
 
-# Cfengine Community directory and files
+# CFEngine Community directory and files
 CFENGINE_COMMUNITY_PATH="/opt/rudder"
 CFENGINE_COMMUNITY_VAR_PATH="/var/rudder/${PROG_NAME}"
 CFENGINE_COMMUNITY_RUN[CFEXECD]="1"

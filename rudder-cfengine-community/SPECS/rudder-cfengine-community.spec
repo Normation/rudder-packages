@@ -19,7 +19,7 @@
 #=================================================
 # Specification file for rudder-cfengine-community
 #
-# Install Cfengine Community
+# Install CFEngine Community
 #
 # Copyright (C) 2011 Normation
 #=================================================

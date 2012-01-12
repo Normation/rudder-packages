@@ -1,11 +1,11 @@
 #!/bin/bash
 
 #====================================================================
-# Start/stop script for Cfengine Community
+# Start/stop script for CFEngine Community
 # (http://www.cfengine.org).
 #
 # chkconfig: 2345 85 15
-# description: Cfengine Community
+# description: CFEngine Community
 #
 ### BEGIN INIT INFO
 # Provides:          cfengine-community
@@ -15,8 +15,8 @@
 # Should-Stop:       $network $time
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
-# Short-Description: Cfengine Community
-# Description:       Cfengine Community init script provided by Normation
+# Short-Description: CFEngine Community
+# Description:       CFEngine Community init script provided by Normation
 ### END INIT INFO
 #
 # Copyright (C) 2010 Normation
@@ -62,7 +62,7 @@ MYGID=`id -g`     # For UNIX compatibility => modify this command
 PS_COMMAND="ps -efww"	# This ensures full width for ps output but doesn't work on Solaris - use "ps -ef"
 SYSLOG_FACILITY="local6"
 
-# Cfengine Community directory and files
+# CFEngine Community directory and files
 CFENGINE_COMMUNITY_PATH="/usr/local/cfengine"
 CFENGINE_COMMUNITY_VAR_PATH="/var/cfengine"
 CFENGINE_COMMUNITY_RUN[$CFEXECD]="1"
@@ -146,12 +146,12 @@ then
 	message "alert" "[ALERT] can't write to work directory $CFENGINE_COMMUNITY_VAR_PATH"
 	exit 1
 fi
-message "info" "[INFO] Using $CFENGINE_COMMUNITY_VAR_PATH for Cfengine workdir"
+message "info" "[INFO] Using $CFENGINE_COMMUNITY_VAR_PATH for CFEngine workdir"
 
 # Are you root?
 if [ $MYUID -ne 0 ]
 then
-	message "alert" "[ALERT] only root can launch Cfengine Community"
+	message "alert" "[ALERT] only root can launch CFEngine Community"
 	exit 1
 fi
 
@@ -164,7 +164,7 @@ start_daemons() {
 	# It's time to start the daemons
 	for daemon in ${DAEMONS}; do
 		# Start message
-		message "info" "[INFO] Launching Cfengine Community ${CFENGINE_COMMUNITY_NAME[$daemon]}..."
+		message "info" "[INFO] Launching CFEngine Community ${CFENGINE_COMMUNITY_NAME[$daemon]}..."
 
 		${CFENGINE_COMMUNITY_BIN[$daemon]} ${CFENGINE_COMMUNITY_PARAMS[$daemon]}
 		sleep 1
@@ -203,7 +203,7 @@ start_daemons() {
 			RET=1
 			continue
 		else
-			message "info" "[OK] Cfengine Community ${CFENGINE_COMMUNITY_NAME[$daemon]} started after $i seconds"
+			message "info" "[OK] CFEngine Community ${CFENGINE_COMMUNITY_NAME[$daemon]} started after $i seconds"
 		fi
 
 	done
@@ -217,7 +217,7 @@ stop_daemons() {
 
 	for daemon in ${DAEMONS}; do
 		# Stop message
-		message "info" "[INFO] Halting Cfengine Community ${CFENGINE_COMMUNITY_NAME[$daemon]}..."
+		message "info" "[INFO] Halting CFEngine Community ${CFENGINE_COMMUNITY_NAME[$daemon]}..."
 
 		# Presence of PID file
 		if [ ! -r ${CFENGINE_COMMUNITY_PID_FILE[$daemon]} ]
@@ -242,7 +242,7 @@ stop_daemons() {
 				sleep 1
 			done
 
-			message "info" "[OK] Cfengine Community ${CFENGINE_COMMUNITY_NAME[$daemon]} stopped after $i seconds"
+			message "info" "[OK] CFEngine Community ${CFENGINE_COMMUNITY_NAME[$daemon]} stopped after $i seconds"
 		fi
 	done
 
@@ -257,7 +257,7 @@ forcestop_daemons() {
 		# Check if any process is running
 		if [ `$PS_COMMAND | grep ${CFENGINE_COMMUNITY_BIN[$daemon]} | grep -v grep | wc -l` -eq 0 ]
 		then
-			message "info" "[INFO] Found no Cfengine Community ${CFENGINE_COMMUNITY_NAME[$daemon]} processes running"
+			message "info" "[INFO] Found no CFEngine Community ${CFENGINE_COMMUNITY_NAME[$daemon]} processes running"
 
 			# Cleanup PID file
 			rm -f ${CFENGINE_COMMUNITY_PID_FILE[$daemon]}
@@ -266,7 +266,7 @@ forcestop_daemons() {
 		fi
 
 		# Stop message
-		message "info" "[INFO] Killing Cfengine Community ${CFENGINE_COMMUNITY_NAME[$daemon]} with force..."
+		message "info" "[INFO] Killing CFEngine Community ${CFENGINE_COMMUNITY_NAME[$daemon]} with force..."
 
 		# Presence of PID file
 		if [ ! -r ${CFENGINE_COMMUNITY_PID_FILE[$daemon]} ]
@@ -276,9 +276,9 @@ forcestop_daemons() {
 
 			if [ $? -eq 0 ]
 			then
-				message "info" "[OK] all Cfengine Community ${CFENGINE_COMMUNITY_NAME[$daemon]} processes killed with force"
+				message "info" "[OK] all CFEngine Community ${CFENGINE_COMMUNITY_NAME[$daemon]} processes killed with force"
 			else
-				message "alert" "[ALERT] Unable to kill Cfengine Community ${CFENGINE_COMMUNITY_NAME[$daemon]} with force"
+				message "alert" "[ALERT] Unable to kill CFEngine Community ${CFENGINE_COMMUNITY_NAME[$daemon]} with force"
 			fi
 		else
 			PID=`cat ${CFENGINE_COMMUNITY_PID_FILE[$daemon]}`
@@ -286,12 +286,12 @@ forcestop_daemons() {
 
 			if [ $? -eq 0 ]
 			then
-				message "info" "[OK] Cfengine Community ${CFENGINE_COMMUNITY_NAME[$daemon]} killed with force (PID $PID)"
+				message "info" "[OK] CFEngine Community ${CFENGINE_COMMUNITY_NAME[$daemon]} killed with force (PID $PID)"
 
 				# Cleanup PID file
 				rm -f ${CFENGINE_COMMUNITY_PID_FILE[$daemon]}
 			else
-				message "alert" "[ALERT] Unable to kill Cfengine Community ${CFENGINE_COMMUNITY_NAME[$daemon]} with force (PID $PID)"
+				message "alert" "[ALERT] Unable to kill CFEngine Community ${CFENGINE_COMMUNITY_NAME[$daemon]} with force (PID $PID)"
 				RET=1
 				continue
 			fi
@@ -336,17 +336,17 @@ display_status() {
 
 	if [ $status -eq 0 ]
 	then
-		message "info" "[INFO] All configured Cfengine Community processes are running"
+		message "info" "[INFO] All configured CFEngine Community processes are running"
 	fi
 
 	if [ $status -eq 1 ]
 	then
-		message "info" "[INFO] At least one configured Cfengine Community process is not running"
+		message "info" "[INFO] At least one configured CFEngine Community process is not running"
 	fi
 
 	if [ $status -eq 2 ]
 	then
-		message "info" "[INFO] Unable to determine Cfengine Community processes status"
+		message "info" "[INFO] Unable to determine CFEngine Community processes status"
 	fi
 
 }

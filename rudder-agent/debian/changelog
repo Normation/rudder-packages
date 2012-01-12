@@ -12,7 +12,7 @@ rudder-agent (2.2.0~beta1-0) lenny; urgency=low
 
 rudder-agent (3.1.4-0) lenny; urgency=low
 
-  * Cfengine version number correction
+  * CFEngine version number correction
 
  -- Nicolas Perron <nicolas.perron@normation.com>  Fri, 25 Feb 2011 20:00:18 +0100
 
