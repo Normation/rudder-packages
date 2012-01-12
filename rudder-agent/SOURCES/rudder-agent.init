@@ -2,7 +2,7 @@
 
 #====================================================================
 # Start/stop script for CFEngine Community
-# (http://www.cfengine.org).
+# (http://www.cfengine.com).
 #
 # chkconfig: 2345 85 15
 # description: CFEngine Community

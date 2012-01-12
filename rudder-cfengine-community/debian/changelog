@@ -67,7 +67,7 @@ rudder-cfengine-community (3.1.2-2) lenny; urgency=low
 
 rudder-cfengine-community (3.1.2-1) lenny; urgency=low
 
-  * Change cfengine workdir
+  * Change CFEngine workdir
 
  -- Jonathan Clarke <jonathan.clarke@normation.com>  Fri, 17 Dec 2010 14:04:17 +0100
 
