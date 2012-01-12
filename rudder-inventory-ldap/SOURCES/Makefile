@@ -20,6 +20,7 @@
 
 OPENLDAP_RELEASE = 2.4.23
 GIT_BRANCH_RUDDER = <put branch or tag name here>
+RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
 TMP_DIR := $(shell mktemp -dq)
 WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget
 
@@ -31,6 +32,13 @@ localdepends: ./openldap-source ./DB_CONFIG ./rudder.schema ./inventory.schema .
 	$(WGET) -O ./openldap.tgz http://www.normation.com/tarball/openldap-$(OPENLDAP_RELEASE).tgz
 	tar xvzf ./openldap.tgz -C .
 	mv ./openldap-$(OPENLDAP_RELEASE) ./openldap-source
+
+./rudder-sources.tar.bz2:
+	$(WGET) -O rudder-sources.tar.bz2 http://www.rudder-project.org/archives/rudder-sources-${RUDDER_VERSION_TO_PACKAGE}.tar.bz2
+
+./rudder-sources: ./rudder-sources.tar.bz2
+	tar -xjf rudder-sources.tar.bz2
+	mv rudder-sources-${RUDDER_VERSION_TO_PACKAGE}/ rudder-sources/
 
 ./config/rudder:
 	mkdir -p ./config
@@ -75,6 +83,8 @@ localclean:
 	rm -rf ./rudder.schema
 	rm -rf ./inventory.schema
 	rm -rf ./DB_CONFIG
+	rm -rf ./rudder-sources
+	rm -f ./rudder-sources.tar.bz2
 
 veryclean:
 

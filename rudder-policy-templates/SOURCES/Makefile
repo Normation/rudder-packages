@@ -19,8 +19,16 @@
 .DEFAULT_GOAL := localdepends
 
 GIT_BRANCH_RUDDER = <put branch or tag name here>
+RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
 
 localdepends: ./rudder-policy-templates
+
+./rudder-sources.tar.bz2:
+	$(WGET) -O rudder-sources.tar.bz2 http://www.rudder-project.org/archives/rudder-sources-${RUDDER_VERSION_TO_PACKAGE}.tar.bz2
+
+./rudder-sources: ./rudder-sources.tar.bz2
+	tar -xjf rudder-sources.tar.bz2
+	mv rudder-sources-${RUDDER_VERSION_TO_PACKAGE}/ rudder-sources/
 
 ./rudder-policy-templates:
 	cd . && git clone --depth 1 git://github.com/Normation/rudder-policy-templates.git
@@ -33,5 +41,7 @@ localclean:
 
 veryclean:
 	rm -rf ./rudder-policy-templates
+	rm -rf ./rudder-sources
+	rm -f ./rudder-sources.tar.bz2
 
 .PHONY: localclean localdepends  veryclean

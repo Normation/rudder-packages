@@ -22,6 +22,7 @@ WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget
 .DEFAULT_GOAL := localdepends
 
 GIT_BRANCH_RUDDER = <put branch or tag name here>
+RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
 
 localdepends: ./source ./inventory-web.properties ./maven2/bin/mvn
 
@@ -35,6 +36,13 @@ localdepends: ./source ./inventory-web.properties ./maven2/bin/mvn
 	rm -rf ./maven2
 	mv ./apache-maven-$(MAVEN_RELEASE) ./maven2
 	rm -rf ./maven.tgz
+
+./rudder-sources.tar.bz2:
+	$(WGET) -O rudder-sources.tar.bz2 http://www.rudder-project.org/archives/rudder-sources-${RUDDER_VERSION_TO_PACKAGE}.tar.bz2
+
+./rudder-sources: ./rudder-sources.tar.bz2
+	tar -xjf rudder-sources.tar.bz2
+	mv rudder-sources-${RUDDER_VERSION_TO_PACKAGE}/ rudder-sources/
 
 ./source:
 	mkdir -p ./source
@@ -58,6 +66,8 @@ localclean:
 	rm -rf ./source
 	rm -rf ./maven2
 	rm -rf ./inventory-web.properties
+	rm -rf ./rudder-sources
+	rm -f ./rudder-sources.tar.bz2
 
 veryclean:
 
