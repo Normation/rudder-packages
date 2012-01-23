@@ -1,0 +1,17 @@
+Index: src/env_context.c
+===================================================================
+--- src/env_context.c	(revision 3905)
++++ src/env_context.c	(working copy)
+@@ -1113,9 +1113,10 @@
+ else
+    {
+    CfOut(cf_verbose,""," -> New persistent state %s\n",name);
+-   state.expires = now + ttl_minutes * 60;
+-   state.policy = policy;
+    }
++
++state.expires = now + ttl_minutes * 60;
++state.policy = policy;
+  
+ WriteDB(dbp,name,&state,sizeof(state));
+ CloseDB(dbp);
