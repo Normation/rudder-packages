@@ -50,6 +50,7 @@ Source1: rudder-users.xml
 Source2: rudder.xml
 Source3: settings-external.xml
 Source4: settings-internal.xml
+Source5: rudder-upgrade
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
@@ -117,6 +118,8 @@ cp %{_sourcedir}/source/rudder/rudder-core/src/main/resources/reportsInfo.xml %{
 cp %{_sourcedir}/source/rudder/rudder-web/src/main/resources/apache2-default.conf %{buildroot}/etc/apache2/vhosts.d/
 cp %{SOURCE2} %{buildroot}%{rudderdir}/jetty7/contexts/
 
+cp %{SOURCE5} %{buildroot}%{rudderdir}/bin/
+
 %pre -n rudder-webapp
 #=================================================
 # Pre Installation
@@ -155,88 +158,8 @@ chmod 655 -R %{rudderdir}/share/load-page
 htpasswd2 -bc %{rudderdir}/etc/htpasswd-webdav rudder rudder
 /etc/init.d/apache2 start
 
-# Helper function
-# Function to check if a property exists in a configuration file and add it if not
-# Parameters:
-# - $1 = property name
-# - $2 = value to add
-function check_and_add_config_property {
-    PROPERTY_NAME=$1
-    PROPERTY_VALUE=$2
-    ATTRIBUTESET=`grep "^${PROPERTY_NAME}[ \t]*=" /opt/rudder/etc/rudder-web.properties | wc -l`
-    if [ ${ATTRIBUTESET} -eq 0 ]; then
-        echo "${PROPERTY_VALUE}" >> /opt/rudder/etc/rudder-web.properties
-        echo "New configuration property ${PROPERTY_NAME} added to /opt/rudder/etc/rudder-web.properties"
-    fi
-}
-
-# Migrate from 2.3.0 format policy-template store: /var/rudder/policy-templates
-if [ -d /var/rudder/policy-templates -a ! -d /var/rudder/configuration-repository ]; then
-	echo "***** WARNING *****"
-	echo "The policy template store for Rudder has changed. It will be"
-	echo "automatically moved from /var/rudder/policy-templates to"
-	echo "/var/rudder/configuration-repository/policy-templates."
-
-	cd /var/rudder/policy-templates && git add . && git add -u && git commit -am "Committing all pending policy template changes for automatic migration of the policy template store to /var/rudder/configuration-repository/policy-templates" || true
-
-	mkdir -p /var/rudder/configuration-repository
-	mv /var/rudder/policy-templates/.git /var/rudder/configuration-repository/
-	mv /var/rudder/policy-templates /var/rudder/configuration-repository/
-	cd /var/rudder/configuration-repository/ && git add -u
-	cd /var/rudder/configuration-repository/ && git add policy-templates/
-	cd /var/rudder/configuration-repository/ && git commit -m "Move policy-templates into configuration-repository directory"
-
-	sed -i 's%^rudder.dir.policyPackages *= */var/rudder/policy-templates/\?$%rudder.dir.policyPackages=/var/rudder/configuration-repository/policy-templates%' /opt/rudder/etc/rudder-web.properties
-	echo "rudder.dir.gitRoot=/var/rudder/configuration-repository" >> /opt/rudder/etc/rudder-web.properties
-
-	echo "Automatic migration to /var/rudder/configuration-repository/policy-templates done."
-fi
-
-# Check default folder for shared-files exists
-if [ ! -d /var/rudder/configuration-repository/shared-files ]; then
-	echo "/var/rudder/configuration-repository/shared-files doesn't exist !"
-	mkdir -p /var/rudder/configuration-repository/shared-files
-	# If this folder doesn't contain files, git won't commit it
-	# To simplify usage, we want that the user can add files simply
-	# So when he will add files into shared-files they will appears in git status
-	# So we force git to add the folder
-	CONTENT=`ls /var/rudder/configuration-repository/shared-files/ | wc -l`
-	if [ ${CONTENT} -eq 0 ]; then
-		touch /var/rudder/configuration-repository/shared-files/.placeholder
-		# Check if git init has been made, if not rudder will do it so we don't have to
-		if [ -d /var/rudder/configuration-repository/.git ]; then
-			cd /var/rudder/configuration-repository/ && git add shared-files/
-			cd /var/rudder/configuration-repository/ && git commit -m "Add default shared-files directory" shared-files/
-		fi
-	fi
-	echo "/var/rudder/configuration-repository/shared-files created"
-fi
-
-# Check shared-files folder is set in rudder-web.properties (added in 2.3.2)
-check_and_add_config_property rudder.dir.shared.files.folder "##
-# Shared folder
-#
-# Directory of the extra files the rudder root server will serve to the managed nodes
-# If left empty, no extra files will be served
-rudder.dir.shared.files.folder=/var/rudder/configuration-repository/shared-files"
-
-# Check for configuration property added in 2.4
-check_and_add_config_property rudder.autoArchiveItems "#
-# Boolean, defaults to true.
-# If true, an archive of configuration rules, groups, 
-# policy instances and user policy templates is recorded
-# to the rudder.dir.gitRoot directory specified above
-# and a git commit is performed when any of these items is modified.
-# 
-rudder.autoArchiveItems=true"
-
-# Check for configuration property added in 2.4
-check_and_add_config_property rudder.autoDeployOnModification "#
-# If true, when a policy instance, configuration rule,
-# group, node ... is modified, promises will be automatically
-# regenerated. If false, only a manual request for deployment
-# will trigger a deployment.
-rudder.autoDeployOnModification=true"
+# Run any upgrades
+/opt/rudder/bin/rudder-upgrade
 
 
 #=================================================
