@@ -155,6 +155,21 @@ chmod 655 -R %{rudderdir}/share/load-page
 htpasswd2 -bc %{rudderdir}/etc/htpasswd-webdav rudder rudder
 /etc/init.d/apache2 start
 
+# Helper function
+# Function to check if a property exists in a configuration file and add it if not
+# Parameters:
+# - $1 = property name
+# - $2 = value to add
+function check_and_add_config_property {
+    PROPERTY_NAME=$1
+    PROPERTY_VALUE=$2
+    ATTRIBUTESET=`grep "^${PROPERTY_NAME}[ \t]*=" /opt/rudder/etc/rudder-web.properties | wc -l`
+    if [ ${ATTRIBUTESET} -eq 0 ]; then
+        echo "${PROPERTY_VALUE}" >> /opt/rudder/etc/rudder-web.properties
+        echo "New configuration property ${PROPERTY_NAME} added to /opt/rudder/etc/rudder-web.properties"
+    fi
+}
+
 # Migrate from 2.3.0 format policy-template store: /var/rudder/policy-templates
 if [ -d /var/rudder/policy-templates -a ! -d /var/rudder/configuration-repository ]; then
 	echo "***** WARNING *****"
@@ -196,15 +211,32 @@ if [ ! -d /var/rudder/configuration-repository/shared-files ]; then
 	fi
 	echo "/var/rudder/configuration-repository/shared-files created"
 fi
-# Check shared-files folder is set in rudder-web.properties
-ATTRIBUTESET=`grep "^rudder.dir.shared.files.folder" /opt/rudder/etc/rudder-web.properties | wc -l`
-if [ ${ATTRIBUTESET} -gt 0 ]; then
-	#Idea: when we will be asking for shared files folder path, sed will be used here
-	echo "rudder.dir.shared.files.folder attribute already set in rudder-web.properties"
-else
-	echo "rudder.dir.shared.files.folder=/var/rudder/configuration-repository/shared-files" >> /opt/rudder/etc/rudder-web.properties
-	echo "rudder.dir.shared.files.folder attribute set in rudder-web.properties"
-fi
+
+# Check shared-files folder is set in rudder-web.properties (added in 2.3.2)
+check_and_add_config_property rudder.dir.shared.files.folder "##
+# Shared folder
+#
+# Directory of the extra files the rudder root server will serve to the managed nodes
+# If left empty, no extra files will be served
+rudder.dir.shared.files.folder=/var/rudder/configuration-repository/shared-files"
+
+# Check for configuration property added in 2.4
+check_and_add_config_property rudder.autoArchiveItems "#
+# Boolean, defaults to true.
+# If true, an archive of configuration rules, groups, 
+# policy instances and user policy templates is recorded
+# to the rudder.dir.gitRoot directory specified above
+# and a git commit is performed when any of these items is modified.
+# 
+rudder.autoArchiveItems=true"
+
+# Check for configuration property added in 2.4
+check_and_add_config_property rudder.autoDeployOnModification "#
+# If true, when a policy instance, configuration rule,
+# group, node ... is modified, promises will be automatically
+# regenerated. If false, only a manual request for deployment
+# will trigger a deployment.
+rudder.autoDeployOnModification=true"
 
 
 #=================================================
