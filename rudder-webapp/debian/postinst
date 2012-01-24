@@ -17,20 +17,6 @@ set -e
 # for details, see http://www.debian.org/doc/debian-policy/ or
 # the debian-policy package
 
-# Function to check if a property exists in a configuration file and add it if not
-# Parameters:
-# - $1 = property name
-# - $2 = value to add
-function check_and_add_config_property {
-	PROPERTY_NAME=$1
-	PROPERTY_VALUE=$2
-	ATTRIBUTESET=`grep "^${PROPERTY_NAME}[ \t]*=" /opt/rudder/etc/rudder-web.properties | wc -l`
-	if [ ${ATTRIBUTESET} -eq 0 ]; then
-		echo "${PROPERTY_VALUE}" >> /opt/rudder/etc/rudder-web.properties
-		echo "New configuration property ${PROPERTY_NAME} added to /opt/rudder/etc/rudder-web.properties"
-	fi
-}
-
 case "$1" in
     configure)
 		invoke-rc.d rsyslog reload
