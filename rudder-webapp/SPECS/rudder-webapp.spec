@@ -159,7 +159,17 @@ htpasswd2 -bc %{rudderdir}/etc/htpasswd-webdav rudder rudder
 /etc/init.d/apache2 start
 
 # Run any upgrades
+# Note this must happen *before* creating the policy-template store, as it was moved in version 2.3.2
+# and creating it manually would break the upgrade logic
 /opt/rudder/bin/rudder-upgrade
+
+# Create and populate policy-template store
+if [ ! -d /var/rudder/configuration-repository ]; then mkdir -p /var/rudder/configuration-repository; fi
+if [ ! -d /var/rudder/configuration-repository/shared-files ]; then mkdir -p /var/rudder/configuration-repository/shared-files; fi
+if [ ! -d /var/rudder/configuration-repository/policy-templates ]; then
+	cp -a /opt/rudder/share/policy-templates /var/rudder/configuration-repository/
+fi
+
 
 
 #=================================================
