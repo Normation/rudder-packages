@@ -24,7 +24,7 @@ WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget
 GIT_BRANCH_RUDDER = <put branch or tag name here>
 RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
 
-localdepends: ./source ./maven2/bin/mvn ./rudder-users.xml
+localdepends: ./rudder-sources ./maven2/bin/mvn ./rudder-users.xml
 
 /usr/bin/wget:
 	sudo aptitude --assume-yes install wget
@@ -37,10 +37,8 @@ localdepends: ./source ./maven2/bin/mvn ./rudder-users.xml
 	mv ./apache-maven-$(MAVEN_RELEASE) ./maven2
 	rm -rf ./maven.tgz
 
-./rudder-sources.tar.bz2:
-	$(WGET) -O rudder-sources.tar.bz2 http://www.rudder-project.org/archives/rudder-sources-${RUDDER_VERSION_TO_PACKAGE}.tar.bz2
-
 ./rudder-sources: ./rudder-sources.tar.bz2
+	$(WGET) -O rudder-sources.tar.bz2 http://www.rudder-project.org/archives/rudder-sources-${RUDDER_VERSION_TO_PACKAGE}.tar.bz2
 	tar -xjf rudder-sources.tar.bz2
 	mv rudder-sources-${RUDDER_VERSION_TO_PACKAGE}/ rudder-sources/
 
@@ -59,8 +57,8 @@ localdepends: ./source ./maven2/bin/mvn ./rudder-users.xml
 	cd ./source && git clone --depth 1 git://github.com/Normation/rudder.git
 	cd ./source/rudder && git checkout $(GIT_BRANCH_RUDDER) || rm -rf ./source/rudder
 
-./rudder-users.xml: ./source
-	cp ./source/rudder/rudder-web/src/main/resources/demo-rudder-users.xml ./rudder-users.xml
+./rudder-users.xml: ./rudder-sources
+	cp ./rudder-sources/rudder/rudder-web/src/main/resources/demo-rudder-users.xml ./rudder-users.xml
 
 /usr/bin/git:
 	sudo apt-get --assume-yes install git-core

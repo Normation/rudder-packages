@@ -20,12 +20,12 @@ build: build-stamp
 
 build-stamp: configure-stamp
 	dh_testdir
-	cd $(CURDIR)/SOURCES/source/rudder-parent-pom && $(CURDIR)/SOURCES/maven2/bin/mvn -s $(CURDIR)/SOURCES/settings-internal.xml -Dmaven.test.skip=true install
-	cd $(CURDIR)/SOURCES/source/rudder-commons && $(CURDIR)/SOURCES/maven2/bin/mvn -s $(CURDIR)/SOURCES/settings-internal.xml -Dmaven.test.skip=true install
-	cd $(CURDIR)/SOURCES/source/scala-ldap && $(CURDIR)/SOURCES/maven2/bin/mvn -s $(CURDIR)/SOURCES/settings-internal.xml -Dmaven.test.skip=true install
-	cd $(CURDIR)/SOURCES/source/ldap-inventory && $(CURDIR)/SOURCES/maven2/bin/mvn -s $(CURDIR)/SOURCES/settings-internal.xml -Dmaven.test.skip=true install
-	cd $(CURDIR)/SOURCES/source/cf-clerk && $(CURDIR)/SOURCES/maven2/bin/mvn -s $(CURDIR)/SOURCES/settings-internal.xml -Dmaven.test.skip=true install
-	cd $(CURDIR)/SOURCES/source/rudder && $(CURDIR)/SOURCES/maven2/bin/mvn -s $(CURDIR)/SOURCES/settings-internal.xml -Dmaven.test.skip=true install package
+	cd $(CURDIR)/SOURCES/rudder-sources/rudder-parent-pom && $(CURDIR)/SOURCES/maven2/bin/mvn -s $(CURDIR)/SOURCES/settings-internal.xml -Dmaven.test.skip=true install
+	cd $(CURDIR)/SOURCES/rudder-sources/rudder-commons && $(CURDIR)/SOURCES/maven2/bin/mvn -s $(CURDIR)/SOURCES/settings-internal.xml -Dmaven.test.skip=true install
+	cd $(CURDIR)/SOURCES/rudder-sources/scala-ldap && $(CURDIR)/SOURCES/maven2/bin/mvn -s $(CURDIR)/SOURCES/settings-internal.xml -Dmaven.test.skip=true install
+	cd $(CURDIR)/SOURCES/rudder-sources/ldap-inventory && $(CURDIR)/SOURCES/maven2/bin/mvn -s $(CURDIR)/SOURCES/settings-internal.xml -Dmaven.test.skip=true install
+	cd $(CURDIR)/SOURCES/rudder-sources/cf-clerk && $(CURDIR)/SOURCES/maven2/bin/mvn -s $(CURDIR)/SOURCES/settings-internal.xml -Dmaven.test.skip=true install
+	cd $(CURDIR)/SOURCES/rudder-sources/rudder && $(CURDIR)/SOURCES/maven2/bin/mvn -s $(CURDIR)/SOURCES/settings-internal.xml -Dmaven.test.skip=true install package
 
 	touch $@
 
@@ -58,18 +58,18 @@ binary-arch: install
 #	dh_installdocs
 #	dh_installexamples
 	dh_install --SOURCEDIR=SOURCES/ rudder-users.xml /opt/rudder/etc/
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/source/rudder/rudder-core/src/main/resources/ldap/ bootstrap.ldif /opt/rudder/share/
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/source/rudder/rudder-core/src/main/resources/ldap/ init-policy-server.ldif /opt/rudder/share/
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/source/rudder/rudder-core/src/main/resources/ldap/ demo-data.ldif /opt/rudder/share/
-	cp $(CURDIR)/SOURCES/source/rudder/rudder-web/src/main/resources/configuration.properties $(CURDIR)/BUILD/rudder-web.properties
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/ldap/ bootstrap.ldif /opt/rudder/share/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/ldap/ init-policy-server.ldif /opt/rudder/share/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/ldap/ demo-data.ldif /opt/rudder/share/
+	cp $(CURDIR)/SOURCES/rudder-sources/rudder/rudder-web/src/main/resources/configuration.properties $(CURDIR)/BUILD/rudder-web.properties
 	dh_install --SOURCEDIR=$(CURDIR)/BUILD/ rudder-web.properties /opt/rudder/etc/
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/source/rudder/rudder-web/src/main/resources/ logback.xml /opt/rudder/etc/
-	cp $(CURDIR)/SOURCES/source/rudder/rudder-web/target/rudder-web*.war $(CURDIR)/BUILD/rudder.war
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-web/src/main/resources/ logback.xml /opt/rudder/etc/
+	cp $(CURDIR)/SOURCES/rudder-sources/rudder/rudder-web/target/rudder-web*.war $(CURDIR)/BUILD/rudder.war
 	dh_install --SOURCEDIR=$(CURDIR)/BUILD/ rudder.war /opt/rudder/jetty7/webapps/
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/source/rudder/rudder-web/src/main/resources/ load-page/  /opt/rudder/share/
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/source/rudder/rudder-core/src/test/resources/script/ cfe-red-button.sh /opt/rudder/bin/
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/source/rudder/rudder-core/src/main/resources/ reportsInfo.xml /opt/rudder/etc/
-	cp $(CURDIR)/SOURCES/source/rudder/rudder-web/src/main/resources/apache2-default.conf $(CURDIR)/BUILD/rudder-default
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-web/src/main/resources/ load-page/  /opt/rudder/share/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/test/resources/script/ cfe-red-button.sh /opt/rudder/bin/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/ reportsInfo.xml /opt/rudder/etc/
+	cp $(CURDIR)/SOURCES/rudder-sources/rudder/rudder-web/src/main/resources/apache2-default.conf $(CURDIR)/BUILD/rudder-default
 	dh_install --SOURCEDIR=$(CURDIR)/BUILD/ rudder-default /etc/apache2/sites-available/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder.xml /opt/rudder/jetty7/contexts/
 

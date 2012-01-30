@@ -71,19 +71,19 @@ application server bundled in the rudder-jetty package.
 #=================================================
 %prep
 
-cp -rf %{_sourcedir}/source %{_builddir}
+cp -rf %{_sourcedir}/rudder-sources %{_builddir}
 
 #=================================================
 # Building
 #=================================================
 %build
 
-cd %{_builddir}/source/rudder-parent-pom && %{_sourcedir}/maven2/bin/mvn -s %{SOURCE3} -Dmaven.test.skip=true install
-cd %{_builddir}/source/rudder-commons && %{_sourcedir}/maven2/bin/mvn -s %{SOURCE3} -Dmaven.test.skip=true install
-cd %{_builddir}/source/scala-ldap && %{_sourcedir}/maven2/bin/mvn -s %{SOURCE3} -Dmaven.test.skip=true install
-cd %{_builddir}/source/ldap-inventory && %{_sourcedir}/maven2/bin/mvn -s %{SOURCE3} -Dmaven.test.skip=true install
-cd %{_builddir}/source/cf-clerk && %{_sourcedir}/maven2/bin/mvn -s %{SOURCE3} -Dmaven.test.skip=true install
-cd %{_builddir}/source/rudder && %{_sourcedir}/maven2/bin/mvn -s %{SOURCE3} -Dmaven.test.skip=true install package
+cd %{_builddir}/rudder-sources/rudder-parent-pom && %{_sourcedir}/maven2/bin/mvn -s %{SOURCE3} -Dmaven.test.skip=true install
+cd %{_builddir}/rudder-sources/rudder-commons && %{_sourcedir}/maven2/bin/mvn -s %{SOURCE3} -Dmaven.test.skip=true install
+cd %{_builddir}/rudder-sources/scala-ldap && %{_sourcedir}/maven2/bin/mvn -s %{SOURCE3} -Dmaven.test.skip=true install
+cd %{_builddir}/rudder-sources/ldap-inventory && %{_sourcedir}/maven2/bin/mvn -s %{SOURCE3} -Dmaven.test.skip=true install
+cd %{_builddir}/rudder-sources/cf-clerk && %{_sourcedir}/maven2/bin/mvn -s %{SOURCE3} -Dmaven.test.skip=true install
+cd %{_builddir}/rudder-sources/rudder && %{_sourcedir}/maven2/bin/mvn -s %{SOURCE3} -Dmaven.test.skip=true install package
 
 # Installation
 #=================================================
@@ -104,18 +104,18 @@ mkdir -p %{buildroot}%{rudderlogdir}/apache2/
 mkdir -p %{buildroot}/etc/apache2/vhosts.d/
 
 cp %{SOURCE1} %{buildroot}%{rudderdir}/etc/
-cp %{_sourcedir}/source/rudder/rudder-core/src/main/resources/ldap/bootstrap.ldif %{buildroot}%{rudderdir}/share/
-cp %{_sourcedir}/source/rudder/rudder-core/src/main/resources/ldap/init-policy-server.ldif %{buildroot}%{rudderdir}/share/
-cp %{_sourcedir}/source/rudder/rudder-core/src/main/resources/ldap/demo-data.ldif %{buildroot}%{rudderdir}/share/
-cp %{_sourcedir}/source/rudder/rudder-web/src/main/resources/configuration.properties %{buildroot}%{rudderdir}/etc/rudder-web.properties
-cp %{_sourcedir}/source/rudder/rudder-web/src/main/resources/logback.xml %{buildroot}%{rudderdir}/etc/
+cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/ldap/bootstrap.ldif %{buildroot}%{rudderdir}/share/
+cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/ldap/init-policy-server.ldif %{buildroot}%{rudderdir}/share/
+cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/ldap/demo-data.ldif %{buildroot}%{rudderdir}/share/
+cp %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/configuration.properties %{buildroot}%{rudderdir}/etc/rudder-web.properties
+cp %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/logback.xml %{buildroot}%{rudderdir}/etc/
 
-cp %{_builddir}/source/rudder/rudder-web/target/rudder-web*.war %{buildroot}%{rudderdir}/jetty7/webapps/rudder.war
+cp %{_builddir}/rudder-sources/rudder/rudder-web/target/rudder-web*.war %{buildroot}%{rudderdir}/jetty7/webapps/rudder.war
 
-cp -rf %{_sourcedir}/source/rudder/rudder-web/src/main/resources/load-page %{buildroot}%{rudderdir}/share/
-cp %{_sourcedir}/source/rudder/rudder-core/src/test/resources/script/cfe-red-button.sh %{buildroot}%{rudderdir}/bin/
-cp %{_sourcedir}/source/rudder/rudder-core/src/main/resources/reportsInfo.xml %{buildroot}%{rudderdir}/etc/
-cp %{_sourcedir}/source/rudder/rudder-web/src/main/resources/apache2-default.conf %{buildroot}/etc/apache2/vhosts.d/
+cp -rf %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/load-page %{buildroot}%{rudderdir}/share/
+cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/test/resources/script/cfe-red-button.sh %{buildroot}%{rudderdir}/bin/
+cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/reportsInfo.xml %{buildroot}%{rudderdir}/etc/
+cp %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/apache2-default.conf %{buildroot}/etc/apache2/vhosts.d/
 cp %{SOURCE2} %{buildroot}%{rudderdir}/jetty7/contexts/
 
 cp %{SOURCE5} %{buildroot}%{rudderdir}/bin/
