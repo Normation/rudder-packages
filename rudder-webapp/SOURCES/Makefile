@@ -37,7 +37,7 @@ localdepends: ./rudder-sources ./maven2/bin/mvn ./rudder-users.xml
 	mv ./apache-maven-$(MAVEN_RELEASE) ./maven2
 	rm -rf ./maven.tgz
 
-./rudder-sources: ./rudder-sources.tar.bz2
+./rudder-sources:
 	$(WGET) -O rudder-sources.tar.bz2 http://www.rudder-project.org/archives/rudder-sources-${RUDDER_VERSION_TO_PACKAGE}.tar.bz2
 	tar -xjf rudder-sources.tar.bz2
 	mv rudder-sources-${RUDDER_VERSION_TO_PACKAGE}/ rudder-sources/
