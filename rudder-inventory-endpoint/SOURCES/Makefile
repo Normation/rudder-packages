@@ -67,8 +67,8 @@ localclean:
 	rm -rf ./maven2
 	rm -rf ./inventory-web.properties
 	rm -rf ./rudder-sources
-	rm -f ./rudder-sources.tar.bz2
 
 veryclean:
+	rm -f ./rudder-sources.tar.bz2
 
 .PHONY: localclean localdepends veryclean

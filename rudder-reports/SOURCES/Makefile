@@ -42,10 +42,10 @@ localdepends: ./config
 	sudo aptitude --assume-yes install git-core
 
 localclean:
-
-veryclean:
 	rm -rf ./config
 	rm -rf ./rudder-sources
+
+veryclean:
 	rm -f ./rudder-sources.tar.bz2
 
 .PHONY: localclean localdepends veryclean

@@ -57,10 +57,11 @@ localdepends: ./jetty7
 	sudo aptitude --assume-yes install wget
 
 localclean:
-
-veryclean:
 	rm -rf ./jetty7
 	rm -f ../debian/jetty.init
 	rm -f ../debian/jetty.default
+
+veryclean:
+	rm -f ./rudder-sources.tar.bz2
 
 .PHONY: localclean localdepends veryclean

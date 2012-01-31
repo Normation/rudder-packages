@@ -37,8 +37,10 @@ localdepends: ./rudder-sources ./maven2/bin/mvn ./rudder-users.xml
 	mv ./apache-maven-$(MAVEN_RELEASE) ./maven2
 	rm -rf ./maven.tgz
 
-./rudder-sources:
+./rudder-sources.tar.bz2:
 	$(WGET) -O rudder-sources.tar.bz2 http://www.rudder-project.org/archives/rudder-sources-${RUDDER_VERSION_TO_PACKAGE}.tar.bz2
+
+./rudder-sources: ./rudder-sources.tar.bz2
 	tar -xjf rudder-sources.tar.bz2
 	mv rudder-sources-${RUDDER_VERSION_TO_PACKAGE}/ rudder-sources/
 
@@ -46,12 +48,11 @@ localdepends: ./rudder-sources ./maven2/bin/mvn ./rudder-users.xml
 	cp ./rudder-sources/rudder/rudder-web/src/main/resources/demo-rudder-users.xml ./rudder-users.xml
 
 localclean:
-	rm -rf ./source
 	rm -rf ./rudder-users.xml
 	rm -rf ./maven2/
 	rm -rf ./rudder-sources
-	rm -f ./rudder-sources.tar.bz2
 
 veryclean:
+	rm -f ./rudder-sources.tar.bz2
 
 .PHONY: localclean localdepends veryclean

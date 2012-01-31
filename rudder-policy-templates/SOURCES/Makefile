@@ -38,10 +38,10 @@ localdepends: ./rudder-policy-templates
 	sudo apt-get --assume-yes install git-core
 
 localclean:
-
-veryclean:
 	rm -rf ./rudder-policy-templates
 	rm -rf ./rudder-sources
+
+veryclean:
 	rm -f ./rudder-sources.tar.bz2
 
 .PHONY: localclean localdepends  veryclean

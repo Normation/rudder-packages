@@ -41,10 +41,10 @@ localdepends: ./rudder-policy-templates ../debian/rudder-server-root.logrotate
 	sudo apt-get --assume-yes install git-core
 
 localclean:
-
-veryclean:
 	rm -rf ./rudder-policy-templates
 	rm -rf ./rudder-sources
-	rm -f ./rudder-sources
+
+veryclean:
+	rm -f ./rudder-sources.tar.bz2
 
 .PHONY: localclean localdepends veryclean

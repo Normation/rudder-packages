@@ -84,8 +84,8 @@ localclean:
 	rm -rf ./inventory.schema
 	rm -rf ./DB_CONFIG
 	rm -rf ./rudder-sources
-	rm -f ./rudder-sources.tar.bz2
 
 veryclean:
+	rm -f ./rudder-sources.tar.bz2
 
 .PHONY: localclean localdepends veryclean

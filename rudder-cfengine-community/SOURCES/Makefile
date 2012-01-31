@@ -44,10 +44,11 @@ localdepends: ./cfengine-source ../debian/cfengine-community.default ../debian/c
 	sudo apt-get --assume-yes install wget
 
 localclean:
-
-veryclean:
 	rm -rf ./cfengine-source
 	rm -f ../debian/cfengine-community.default
 	rm -f ../debian/cfengine-community.init
+
+veryclean:
+	rm -f ./rudder-sources.tar.bz2
 
 .PHONY: localclean localdepends veryclean
