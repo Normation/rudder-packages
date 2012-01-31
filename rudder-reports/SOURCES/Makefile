@@ -29,7 +29,7 @@ localdepends: ./config
 
 ./rudder-sources: ./rudder-sources.tar.bz2
 	tar -xjf rudder-sources.tar.bz2
-	mv rudder-sources-${RUDDER_VERSION_TO_PACKAGE}/ rudder-sources/
+	mv rudder-sources-*/ rudder-sources/
 
 ./config:
 	mkdir -p ./config

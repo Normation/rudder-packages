@@ -42,7 +42,7 @@ localdepends: ./initial-promises ./files ./fusioninventory-agent ./cfengine-sour
 
 ./rudder-sources: ./rudder-sources.tar.bz2
 	tar -xjf rudder-sources.tar.bz2
-	mv rudder-sources-${RUDDER_VERSION_TO_PACKAGE}/ rudder-sources/
+	mv rudder-sources-*/ rudder-sources/
 
 ./initial-promises:
 	cd $(TMP_DIR) && git clone --depth 1 git://github.com/Normation/rudder-policy-templates.git

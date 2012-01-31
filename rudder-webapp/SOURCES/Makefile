@@ -42,7 +42,7 @@ localdepends: ./rudder-sources ./maven2/bin/mvn ./rudder-users.xml
 
 ./rudder-sources: ./rudder-sources.tar.bz2
 	tar -xjf rudder-sources.tar.bz2
-	mv rudder-sources-${RUDDER_VERSION_TO_PACKAGE}/ rudder-sources/
+	mv rudder-sources-*/ rudder-sources/
 
 ./rudder-users.xml: ./rudder-sources
 	cp ./rudder-sources/rudder/rudder-web/src/main/resources/demo-rudder-users.xml ./rudder-users.xml

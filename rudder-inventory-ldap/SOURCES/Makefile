@@ -38,7 +38,7 @@ localdepends: ./openldap-source ./DB_CONFIG ./rudder.schema ./inventory.schema .
 
 ./rudder-sources: ./rudder-sources.tar.bz2
 	tar -xjf rudder-sources.tar.bz2
-	mv rudder-sources-${RUDDER_VERSION_TO_PACKAGE}/ rudder-sources/
+	mv rudder-sources-*/ rudder-sources/
 
 ./config/rudder:
 	mkdir -p ./config
