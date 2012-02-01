@@ -29,13 +29,14 @@ localdepends: ./source ./inventory-web.properties ./maven2/bin/mvn
 /usr/bin/wget:
 	sudo aptitude --assume-yes install wget
 
-./maven2/bin/mvn: /usr/bin/wget
+./maven.tgz: /usr/bin/wget
 	# Original URL: http://apache.multidist.com/maven/binaries/apache-maven-$(MAVEN_RELEASE)-bin.tar.gz
 	$(WGET) -O ./maven.tgz http://www.normation.com/tarball/apache-maven-$(MAVEN_RELEASE)-bin.tar.gz
+
+./maven2/bin/mvn: ./maven.tgz
 	tar -xvzf ./maven.tgz -C .
 	rm -rf ./maven2
 	mv ./apache-maven-$(MAVEN_RELEASE) ./maven2
-	rm -rf ./maven.tgz
 
 ./rudder-sources.tar.bz2:
 	$(WGET) -O rudder-sources.tar.bz2 http://www.rudder-project.org/archives/rudder-sources-${RUDDER_VERSION_TO_PACKAGE}.tar.bz2
@@ -62,7 +63,6 @@ localdepends: ./source ./inventory-web.properties ./maven2/bin/mvn
 	sudo apt-get --assume-yes install git-core
 
 localclean:
-	rm -rf ./maven.tgz
 	rm -rf ./source
 	rm -rf ./maven2
 	rm -rf ./inventory-web.properties
@@ -70,5 +70,6 @@ localclean:
 
 veryclean:
 	rm -f ./rudder-sources.tar.bz2
+	rm -rf ./maven.tgz
 
 .PHONY: localclean localdepends veryclean
