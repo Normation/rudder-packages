@@ -34,7 +34,12 @@ localdepends: ./rudder-policy-templates ../debian/rudder-server-root.logrotate
 	cd . && git clone --depth 1 git://github.com/Normation/rudder-policy-templates.git
 	cd ./rudder-policy-templates && git checkout $(GIT_BRANCH_RUDDER) || rm -rf ./rudder-policy-templates
 
-../debian/rudder-server-root.logrotate:
+# Get the logrotate file. We need it both in the SOURCES/ dir, and in debian/ dir,
+# because RPM packages take it straight from SOURCES/
+./rudder.logrotate: ./rudder-sources
+	cp -a ./rudder-sources/rudder-policy-templates/policies/system/distributePolicy/1.0/logrotate.st ./rudder.logrotate
+
+../debian/rudder-server-root.logrotate: ./rudder.logrotate
 	cp rudder.logrotate ../debian/rudder-server-root.logrotate
 
 /usr/bin/git:
@@ -43,6 +48,8 @@ localdepends: ./rudder-policy-templates ../debian/rudder-server-root.logrotate
 localclean:
 	rm -rf ./rudder-policy-templates
 	rm -rf ./rudder-sources
+	rm -f ../debian/rudder-server-root.logrotate
+	rm -f ./rudder.logrotate
 
 veryclean:
 	rm -f ./rudder-sources.tar.bz2
