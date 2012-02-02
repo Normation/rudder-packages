@@ -18,10 +18,9 @@
 
 .DEFAULT_GOAL := localdepends
 
-GIT_BRANCH_RUDDER = <put branch or tag name here>
 RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
 
-localdepends: ./rudder-policy-templates ../debian/rudder-server-root.logrotate
+localdepends: ./rudder-sources ../debian/rudder-server-root.logrotate
 
 ./rudder-sources.tar.bz2:
 	$(WGET) -O rudder-sources.tar.bz2 http://www.rudder-project.org/archives/rudder-sources-${RUDDER_VERSION_TO_PACKAGE}.tar.bz2
@@ -40,10 +39,7 @@ localdepends: ./rudder-policy-templates ../debian/rudder-server-root.logrotate
 	cp -a ./rudder-sources/rudder-policy-templates/policies/system/distributePolicy/1.0/logrotate.st ./rudder.logrotate
 
 ../debian/rudder-server-root.logrotate: ./rudder.logrotate
-	cp rudder.logrotate ../debian/rudder-server-root.logrotate
-
-/usr/bin/git:
-	sudo apt-get --assume-yes install git-core
+	cp ./rudder.logrotate ../debian/rudder-server-root.logrotate
 
 localclean:
 	rm -rf ./rudder-policy-templates

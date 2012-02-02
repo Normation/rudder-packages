@@ -18,7 +18,6 @@
 
 .DEFAULT_GOAL := localdepends
 
-GIT_BRANCH_RUDDER = <put branch or tag name here>
 RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
 CFENGINE_RELEASE = 3.2.0
 FUSION_RELEASE = 2.1.9
@@ -44,10 +43,8 @@ localdepends: ./initial-promises ./files ./fusioninventory-agent ./cfengine-sour
 	tar -xjf rudder-sources.tar.bz2
 	mv rudder-sources-*/ rudder-sources/
 
-./initial-promises:
-	cd $(TMP_DIR) && git clone --depth 1 git://github.com/Normation/rudder-policy-templates.git
-	cd $(TMP_DIR)/rudder-policy-templates && git checkout $(GIT_BRANCH_RUDDER) || rm -rf $(TMP_DIR)/rudder-policy-templates
-	cp -a $(TMP_DIR)/rudder-policy-templates/initial-promises/nodeInitialPromises/ ./initial-promises
+./initial-promises: ./rudder-sources
+	cp -a ./rudder-sources/rudder-policy-templates/initial-promises/nodeInitialPromises/ ./initial-promises
 
 ./fusioninventory-agent: /usr/bin/wget
 	$(WGET) -O $(TMP_DIR)/fusion.tgz http://search.cpan.org/CPAN/authors/id/F/FU/FUSINV/FusionInventory-Agent-$(FUSION_RELEASE).tar.gz
@@ -81,9 +78,6 @@ localdepends: ./initial-promises ./files ./fusioninventory-agent ./cfengine-sour
 
 ../debian/rudder-agent.default:
 	cp ./rudder-agent.default ../debian/
-
-/usr/bin/git:
-	sudo apt-get --assume-yes install git-core
 
 /usr/bin/wget:
 	sudo apt-get --assume-yes install wget

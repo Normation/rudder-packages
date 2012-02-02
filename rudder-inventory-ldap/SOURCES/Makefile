@@ -19,7 +19,6 @@
 .DEFAULT_GOAL := localdepends
 
 OPENLDAP_RELEASE = 2.4.23
-GIT_BRANCH_RUDDER = <put branch or tag name here>
 RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
 TMP_DIR := $(shell mktemp -dq)
 WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget
@@ -40,27 +39,17 @@ localdepends: ./openldap-source ./DB_CONFIG ./rudder.schema ./inventory.schema .
 	tar -xjf rudder-sources.tar.bz2
 	mv rudder-sources-*/ rudder-sources/
 
-./config/rudder:
-	mkdir -p ./config
-	cd ./config && git clone --depth 1 git://github.com/Normation/rudder.git || rm -rf ./config/rudder
-	cd ./config/rudder && git checkout $(GIT_BRANCH_RUDDER) || rm -rf ./config/rudder
-
-./config/ldap-inventory:
-	mkdir -p ./config
-	cd ./config && git clone --depth 1 git://github.com/Normation/ldap-inventory.git || rm -rf ./config/ldap-inventory
-	cd ./config/ldap-inventory && git checkout $(GIT_BRANCH_RUDDER) || rm -rf ./config/ldap-inventory
-
 ./slapd.conf: ./config/ldap-inventory
-	cp ./config/ldap-inventory/inventory-repository/src/main/resources/ldap/slapd.conf ./slapd.conf
+	cp ./rudder-sources/ldap-inventory/inventory-repository/src/main/resources/ldap/slapd.conf ./slapd.conf
 
 ./inventory.schema: ./config/ldap-inventory
-	cp ./config/ldap-inventory/inventory-repository/src/main/resources/ldap/inventory.schema ./inventory.schema
+	cp ./rudder-sources/ldap-inventory/inventory-repository/src/main/resources/ldap/inventory.schema ./inventory.schema
 
 ./DB_CONFIG: ./config/ldap-inventory
-	cp ./config/ldap-inventory/inventory-repository/src/main/resources/ldap/DB_CONFIG ./DB_CONFIG
+	cp ./rudder-sources/ldap-inventory/inventory-repository/src/main/resources/ldap/DB_CONFIG ./DB_CONFIG
 
 ./rudder.schema: ./config/rudder
-	cp ./config/rudder/rudder-core/src/main/resources/ldap/rudder.schema ./rudder.schema
+	cp ./rudder-sources/rudder/rudder-core/src/main/resources/ldap/rudder.schema ./rudder.schema
 
 ../debian/rudder-agent.init:
 	cp ./rudder-inventory-ldap.init ../debian/slapd.init
@@ -71,11 +60,7 @@ localdepends: ./openldap-source ./DB_CONFIG ./rudder.schema ./inventory.schema .
 /usr/bin/wget:
 	sudo apt-get --assume-yes install wget
 
-/usr/bin/git:
-	sudo apt-get --assume-yes install git-core
-
 localclean:
-	rm -rf ./config
 	rm -rf ./openldap-source
 	rm -rf ./slapd.conf
 	rm -rf ../debian/slapd.init

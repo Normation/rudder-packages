@@ -56,9 +56,9 @@ binary-arch: install
 	dh_installchangelogs
 #	dh_installdocs
 #	dh_installexamples
-	cp $(CURDIR)/SOURCES/source/ldap-inventory/inventory-provisioning-web/target/inventory-provisioning-web*.war $(CURDIR)/BUILD/endpoint.war
+	cp $(CURDIR)/SOURCES/rudder-sources/ldap-inventory/inventory-provisioning-web/target/inventory-provisioning-web*.war $(CURDIR)/BUILD/endpoint.war
 	dh_install --SOURCEDIR=$(CURDIR)/BUILD/ endpoint.war /opt/rudder/jetty7/webapps/
-	cp $(CURDIR)/SOURCES/source/ldap-inventory/inventory-provisioning-web/src/main/resources/configuration.properties $(CURDIR)/BUILD/inventory-web.properties
+	cp $(CURDIR)/SOURCES/rudder-sources/ldap-inventory/inventory-provisioning-web/src/main/resources/configuration.properties $(CURDIR)/BUILD/inventory-web.properties
 	dh_install --SOURCEDIR=$(CURDIR)/BUILD/ inventory-web.properties /opt/rudder/etc/
 #	dh_installmenu
 #	dh_installdebconf

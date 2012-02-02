@@ -79,11 +79,11 @@ cp -rf %{_sourcedir}/source %{_builddir}
 #=================================================
 %build
 
-cd %{_builddir}/source/rudder-parent-pom && %{_sourcedir}/maven2/bin/mvn -s %{SOURCE2} -Dmaven.test.skip=true install
-cd %{_builddir}/source/rudder-commons && %{_sourcedir}/maven2/bin/mvn -s %{SOURCE2} -Dmaven.test.skip=true install
-cd %{_builddir}/source/scala-ldap && %{_sourcedir}/maven2/bin/mvn -s %{SOURCE2} -Dmaven.test.skip=true install
-cd %{_builddir}/source/ldap-inventory && %{_sourcedir}/maven2/bin/mvn -s %{SOURCE2} -Dmaven.test.skip=true install
-cd %{_builddir}/source/ldap-inventory/inventory-provisioning-web && %{_sourcedir}/maven2/bin/mvn -s %{SOURCE2} -Dmaven.test.skip=true install package
+cd %{_builddir}/rudder-sources/rudder-parent-pom && %{_sourcedir}/maven2/bin/mvn -s %{SOURCE2} -Dmaven.test.skip=true install
+cd %{_builddir}/rudder-sources/rudder-commons && %{_sourcedir}/maven2/bin/mvn -s %{SOURCE2} -Dmaven.test.skip=true install
+cd %{_builddir}/rudder-sources/scala-ldap && %{_sourcedir}/maven2/bin/mvn -s %{SOURCE2} -Dmaven.test.skip=true install
+cd %{_builddir}/rudder-sources/ldap-inventory && %{_sourcedir}/maven2/bin/mvn -s %{SOURCE2} -Dmaven.test.skip=true install
+cd %{_builddir}/rudder-sources/ldap-inventory/inventory-provisioning-web && %{_sourcedir}/maven2/bin/mvn -s %{SOURCE2} -Dmaven.test.skip=true install package
 
 # Installation
 #=================================================
@@ -93,7 +93,7 @@ rm -rf %{buildroot}
 mkdir -p %{buildroot}/opt/rudder/jetty7/webapps/
 mkdir -p %{buildroot}/opt/rudder/etc/
 
-cp %{_builddir}/source/ldap-inventory/inventory-provisioning-web/target/inventory-provisioning-web*.war %{buildroot}/opt/rudder/jetty7/webapps/endpoint.war
+cp %{_builddir}/rudder-sources/ldap-inventory/inventory-provisioning-web/target/inventory-provisioning-web*.war %{buildroot}/opt/rudder/jetty7/webapps/endpoint.war
 cp %{SOURCE1} %{buildroot}/opt/rudder/etc/
 
 %pre -n rudder-inventory-endpoint

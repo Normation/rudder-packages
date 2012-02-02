@@ -24,7 +24,7 @@ WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget
 GIT_BRANCH_RUDDER = <put branch or tag name here>
 RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
 
-localdepends: ./source ./inventory-web.properties ./maven2/bin/mvn
+localdepends: ./rudder-sources ./inventory-web.properties ./maven2/bin/mvn
 
 /usr/bin/wget:
 	sudo aptitude --assume-yes install wget
@@ -45,22 +45,8 @@ localdepends: ./source ./inventory-web.properties ./maven2/bin/mvn
 	tar -xjf rudder-sources.tar.bz2
 	mv rudder-sources-*/ rudder-sources/
 
-./source:
-	mkdir -p ./source
-	cd ./source && git clone --depth 1 git://github.com/Normation/rudder-parent-pom.git
-	cd ./source/rudder-parent-pom && git checkout $(GIT_BRANCH_RUDDER) || rm -rf ./source/rudder-parent-pom
-	cd ./source && git clone --depth 1 git://github.com/Normation/rudder-commons.git
-	cd ./source/rudder-commons && git checkout $(GIT_BRANCH_RUDDER) || rm -rf ./source/rudder-commons
-	cd ./source && git clone --depth 1 git://github.com/Normation/scala-ldap.git
-	cd ./source/scala-ldap && git checkout $(GIT_BRANCH_RUDDER) || rm -rf ./source/scala-ldap
-	cd ./source && git clone --depth 1 git://github.com/Normation/ldap-inventory.git
-	cd ./source/ldap-inventory && git checkout $(GIT_BRANCH_RUDDER) || rm -rf ./source/ldap-inventory
-
-./inventory-web.properties: ./source
-	cp ./source/ldap-inventory/inventory-provisioning-web/src/main/resources/configuration.properties ./inventory-web.properties
-
-/usr/bin/git:
-	sudo apt-get --assume-yes install git-core
+./inventory-web.properties: ./rudder-sources
+	cp ./rudder-sources/ldap-inventory/inventory-provisioning-web/src/main/resources/configuration.properties ./inventory-web.properties
 
 localclean:
 	rm -rf ./source
