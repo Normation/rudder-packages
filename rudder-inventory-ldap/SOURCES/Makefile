@@ -39,16 +39,16 @@ localdepends: ./openldap-source ./DB_CONFIG ./rudder.schema ./inventory.schema .
 	tar -xjf rudder-sources.tar.bz2
 	mv rudder-sources-*/ rudder-sources/
 
-./slapd.conf: ./config/ldap-inventory
+./slapd.conf: ./config/ldap-inventory ./rudder-sources
 	cp ./rudder-sources/ldap-inventory/inventory-repository/src/main/resources/ldap/slapd.conf ./slapd.conf
 
-./inventory.schema: ./config/ldap-inventory
+./inventory.schema: ./config/ldap-inventory ./rudder-sources
 	cp ./rudder-sources/ldap-inventory/inventory-repository/src/main/resources/ldap/inventory.schema ./inventory.schema
 
-./DB_CONFIG: ./config/ldap-inventory
+./DB_CONFIG: ./config/ldap-inventory ./rudder-sources
 	cp ./rudder-sources/ldap-inventory/inventory-repository/src/main/resources/ldap/DB_CONFIG ./DB_CONFIG
 
-./rudder.schema: ./config/rudder
+./rudder.schema: ./config/rudder ./rudder-sources
 	cp ./rudder-sources/rudder/rudder-core/src/main/resources/ldap/rudder.schema ./rudder.schema
 
 ../debian/rudder-agent.init:
