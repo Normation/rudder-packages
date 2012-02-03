@@ -46,7 +46,7 @@ URL: http://www.rudder-project.org
 
 Group: Applications/System
 
-Source1: rudder-sources/rudder-policy-templates
+Source1: rudder-policy-templates
 Source2: rudder-init.sh
 Source3: uuid.hive
 Source4: rudder.logrotate
@@ -89,11 +89,11 @@ mkdir -p %{buildroot}%{ruddervardir}/cfengine-community/
 mkdir -p %{buildroot}/etc/logrotate.d/
 
 # Initial Promises (root)
-cp -r %{SOURCE1}/%{init_promises}/rootServerInitialPromises/cfengine-nova %{buildroot}%{rudderdir}/share/initial-promises/
-cp -r %{SOURCE1}/%{init_promises}/rootServerInitialPromises/cfengine-community %{buildroot}%{rudderdir}/share/initial-promises/
+cp -r rudder-sources/%{SOURCE1}/%{init_promises}/rootServerInitialPromises/cfengine-nova %{buildroot}%{rudderdir}/share/initial-promises/
+cp -r rudder-sources/%{SOURCE1}/%{init_promises}/rootServerInitialPromises/cfengine-community %{buildroot}%{rudderdir}/share/initial-promises/
 # Initial Promises (node)
-cp -r %{SOURCE1}%{init_promises}/nodeInitialPromises %{buildroot}/var/cfengine/masterfiles
-cp -r %{SOURCE1}%{init_promises}/nodeInitialPromises %{buildroot}%{ruddervardir}/cfengine-community/masterfiles
+cp -r rudder-sources/%{SOURCE1}%{init_promises}/nodeInitialPromises %{buildroot}/var/cfengine/masterfiles
+cp -r rudder-sources/%{SOURCE1}%{init_promises}/nodeInitialPromises %{buildroot}%{ruddervardir}/cfengine-community/masterfiles
 # Others
 cp %{SOURCE2} %{buildroot}%{rudderdir}/bin/
 cp %{SOURCE3} %{buildroot}%{rudderdir}/etc/
