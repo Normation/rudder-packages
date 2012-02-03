@@ -45,7 +45,7 @@ URL: http://www.rudder-project.org
 
 Group: Applications/System
 
-Source1: rudder-sources/rudder-policy-templates
+Source1: rudder-sources
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
@@ -80,8 +80,8 @@ rm -rf %{buildroot}
 mkdir -p %{buildroot}%{rudderdir}/share/
 
 # Policy Templates
-cp -r %{SOURCE1}/policies %{buildroot}%{rudderdir}/share/policy-templates
-cp -r %{SOURCE1}/tools/ %{buildroot}%{rudderdir}/share/
+cp -r %{SOURCE1}/rudder-policy-templates/policies %{buildroot}%{rudderdir}/share/policy-templates
+cp -r %{SOURCE1}/rudder-policy-templates/tools/ %{buildroot}%{rudderdir}/share/
 
 %pre -n rudder-policy-templates
 #=================================================

@@ -45,7 +45,7 @@ URL: http://www.rudder-project.org
 
 Group: Applications/System
 
-Source1: rudder-sources/rudder/rudder-core/src/main/resources
+Source1: rudder-sources
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
@@ -82,7 +82,7 @@ rm -rf %{buildroot}
 mkdir -p %{buildroot}%{rudderdir}/etc/postgresql/
 
 # Policy Templates
-cp %{SOURCE1}/reportsSchema.sql %{buildroot}%{rudderdir}/etc/postgresql/
+cp %{SOURCE1}/rudder/rudder-core/src/main/resources/reportsSchema.sql %{buildroot}%{rudderdir}/etc/postgresql/
 
 %pre -n rudder-reports
 #=================================================
