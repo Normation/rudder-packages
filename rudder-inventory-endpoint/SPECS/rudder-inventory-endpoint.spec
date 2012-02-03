@@ -72,7 +72,7 @@ the rudder-inventory-ldap package.
 #=================================================
 %prep
 
-cp -rf %{_sourcedir}/source %{_builddir}
+cp -rf %{_sourcedir}/rudder-sources %{_builddir}
 
 #=================================================
 # Building
