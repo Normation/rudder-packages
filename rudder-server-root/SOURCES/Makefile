@@ -29,10 +29,6 @@ localdepends: ./rudder-sources ../debian/rudder-server-root.logrotate
 	tar -xjf rudder-sources.tar.bz2
 	mv rudder-sources-*/ rudder-sources/
 
-./rudder-policy-templates:
-	cd . && git clone --depth 1 git://github.com/Normation/rudder-policy-templates.git
-	cd ./rudder-policy-templates && git checkout $(GIT_BRANCH_RUDDER) || rm -rf ./rudder-policy-templates
-
 # Get the logrotate file. We need it both in the SOURCES/ dir, and in debian/ dir,
 # because RPM packages take it straight from SOURCES/
 ./rudder.logrotate: ./rudder-sources
@@ -42,7 +38,6 @@ localdepends: ./rudder-sources ../debian/rudder-server-root.logrotate
 	cp ./rudder.logrotate ../debian/rudder-server-root.logrotate
 
 localclean:
-	rm -rf ./rudder-policy-templates
 	rm -rf ./rudder-sources
 	rm -f ../debian/rudder-server-root.logrotate
 	rm -f ./rudder.logrotate
