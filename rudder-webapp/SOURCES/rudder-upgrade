@@ -121,3 +121,13 @@ check_and_add_config_property rudder.autoDeployOnModification "#
 # will trigger a deployment.
 rudder.autoDeployOnModification=true"
 
+# Check for configuration property added in 2.4
+check_and_add_config_property rudder.rest.allowNonAuthenticatedUser "#
+# Boolean, defaults to true
+# If true, REST API urls under /api/... won't require
+# to be authenticated to be use. 
+# The rational to have default=true for that is that the
+# authorization/authentication part for the REST API
+# will be done by a third party software, like Apache
+#
+rudder.rest.allowNonAuthenticatedUser=true"
