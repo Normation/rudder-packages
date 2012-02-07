@@ -29,6 +29,9 @@ localdepends: ./rudder-policy-templates ../debian/rudder-server-root.logrotate
 ../debian/rudder-server-root.logrotate:
 	cp rudder.logrotate ../debian/rudder-server-root.logrotate
 
+../debian/rudder-server-root.init:
+	cp rudder-server-root.init ../debian/
+
 /usr/bin/git:
 	sudo apt-get --assume-yes install git-core
 
