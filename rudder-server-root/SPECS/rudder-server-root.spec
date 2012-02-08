@@ -50,6 +50,7 @@ Source1: rudder-sources
 Source2: rudder-init.sh
 Source3: uuid.hive
 Source4: rudder.logrotate
+Source5: rudder-server-root.init
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
@@ -87,6 +88,7 @@ mkdir -p %{buildroot}%{rudderdir}/etc/
 mkdir -p %{buildroot}%{rudderdir}/share/initial-promises/
 mkdir -p %{buildroot}%{ruddervardir}/cfengine-community/
 mkdir -p %{buildroot}/etc/logrotate.d/
+mkdir -p %{buildroot}/etc/init.d
 
 # Initial Promises (root)
 cp -r %{SOURCE1}/rudder-policy-templates%{init_promises}/rootServerInitialPromises/cfengine-nova %{buildroot}%{rudderdir}/share/initial-promises/
@@ -98,6 +100,8 @@ cp -r %{SOURCE1}/rudder-policy-templates%{init_promises}/nodeInitialPromises %{b
 cp %{SOURCE2} %{buildroot}%{rudderdir}/bin/
 cp %{SOURCE3} %{buildroot}%{rudderdir}/etc/
 cp %{SOURCE4} %{buildroot}/etc/logrotate.d/rudder
+cp %{SOURCE5} %{buildroot}/etc/init.d/rudder-server-root
+
 
 %pre -n rudder-server-root
 #=================================================
@@ -135,6 +139,7 @@ rm -rf %{buildroot}
 %{ruddervardir}/cfengine-community/masterfiles
 /var/cfengine/masterfiles
 /var/cfengine/inputs
+/etc/init.d/rudder-server-root
 
 #=================================================
 # Changelog

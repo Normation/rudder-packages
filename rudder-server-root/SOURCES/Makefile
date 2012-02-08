@@ -37,6 +37,9 @@ localdepends: ./rudder-sources ../debian/rudder-server-root.logrotate
 ../debian/rudder-server-root.logrotate: ./rudder.logrotate
 	cp ./rudder.logrotate ../debian/rudder-server-root.logrotate
 
+../debian/rudder-server-root.init:
+	cp rudder-server-root.init ../debian/
+
 localclean:
 	rm -rf ./rudder-sources
 	rm -f ../debian/rudder-server-root.logrotate
