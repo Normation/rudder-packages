@@ -20,7 +20,7 @@
 
 GIT_BRANCH_RUDDER = <put branch or tag name here>
 
-localdepends: ./rudder-policy-templates ../debian/rudder-server-root.logrotate
+localdepends: ./rudder-policy-templates ../debian/rudder-server-root.logrotate ../debian/rudder-server-root.init
 
 ./rudder-policy-templates:
 	cd . && git clone --depth 1 git://github.com/Normation/rudder-policy-templates.git
