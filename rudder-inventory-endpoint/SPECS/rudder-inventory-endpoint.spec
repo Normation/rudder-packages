@@ -50,8 +50,6 @@ URL: http://www.rudder-project.org
 Group: Applications/System
 
 Source1: inventory-web.properties
-Source2: settings-external.xml
-Source3: settings-internal.xml
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch

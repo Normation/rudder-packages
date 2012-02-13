@@ -50,8 +50,6 @@ Group: Applications/System
 
 Source1: rudder-users.xml
 Source2: rudder.xml
-Source3: settings-external.xml
-Source4: settings-internal.xml
 Source5: rudder-upgrade
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
