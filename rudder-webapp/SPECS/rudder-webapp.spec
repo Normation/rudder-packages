@@ -98,6 +98,7 @@ mkdir -p %{buildroot}%{rudderdir}/jetty7/contexts/
 mkdir -p %{buildroot}%{rudderdir}/jetty7/rudder-plugins/
 mkdir -p %{buildroot}%{rudderdir}/share/tools
 mkdir -p %{buildroot}%{rudderdir}/share/plugins/
+mkdir -p %{buildroot}%{rudderdir}/share/upgrade-tools/
 mkdir -p %{buildroot}%{ruddervardir}/inventories/incoming
 mkdir -p %{buildroot}%{ruddervardir}/inventories/received
 mkdir -p %{buildroot}%{rudderlogdir}/apache2/
@@ -117,6 +118,10 @@ cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/test/resources/script/cfe
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/reportsInfo.xml %{buildroot}%{rudderdir}/etc/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/apache2-default.conf %{buildroot}/etc/apache2/vhosts.d/
 cp %{SOURCE2} %{buildroot}%{rudderdir}/jetty7/contexts/
+
+# Install upgrade tools
+cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.3-2.4-groups-isDynamic.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
+cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.3-2.4-PT-history.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
 
 cp %{SOURCE5} %{buildroot}%{rudderdir}/bin/
 

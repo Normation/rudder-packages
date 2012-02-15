@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 #####################################################################################
 # Copyright 2012 Normation SAS
 #####################################################################################
@@ -36,6 +38,10 @@
 # - 2.4.0: Add "rudder.autoArchiveItems" configuration parameter to rudder-web.properties 
 # - 2.4.0: Add "rudder.autoDeployOnModification" configuration parameter to rudder-web.properties
 #####################################################################################
+
+# Some variables
+RUDDER_SHARE=/opt/rudder/share
+RUDDER_UPGRADE_TOOLS=${RUDDER_SHARE}/upgrade-tools
 
 # Helper function
 # Function to check if a property exists in a configuration file and add it if not
@@ -131,3 +137,16 @@ check_and_add_config_property rudder.rest.allowNonAuthenticatedUser "#
 # will be done by a third party software, like Apache
 #
 rudder.rest.allowNonAuthenticatedUser=true"
+
+# Upgrade database schema from 2.3 to 2.4 if necessary - first part: group type (static/dynamic)
+RES=$(su - postgres -c "psql -t -d rudder -c \"select count(attname) from pg_attribute where attrelid = (select oid from pg_class where relname = 'Groups') and attname = 'GroupStatus'\"")
+if [ $RES -eq 0 ]; then
+	psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.3-2.4-groups-isDynamic.sql > /dev/null
+fi
+
+# Upgrade database schema from 2.3 to 2.4 if necessary - second part: group type (static/dynamic)
+RES=$(su - postgres -c "psql -t -d rudder -c \"select count(attname) from pg_attribute where attrelid = (select oid from pg_class where relname = 'PolicyInstances') and attname = 'PolicyTemplateHumanName'\"")
+if [ $RES -eq 0 ]; then
+	psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.3-2.4-PT-history.sql > /dev/null
+	${RUDDER_UPGRADE_TOOLS}/rudder-upgrade-database-2.3-2.4-PT-names.pl
+fi

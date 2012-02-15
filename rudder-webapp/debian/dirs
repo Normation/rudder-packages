@@ -4,6 +4,7 @@ opt/rudder/etc
 opt/rudder/etc/plugins
 opt/rudder/share/tools
 opt/rudder/share/plugins
+opt/rudder/share/upgrade-tools
 var/rudder/share
 var/rudder/backup
 var/rudder/files
