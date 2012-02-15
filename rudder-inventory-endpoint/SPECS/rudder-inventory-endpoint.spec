@@ -122,6 +122,7 @@ rm -rf %{buildroot}
 %defattr(-, root, root, 0755)
 /opt/rudder/jetty7/webapps/
 /opt/rudder/etc/
+%config(noreplace) /opt/rudder/etc/%{SOURCE1}
 
 #=================================================
 # Changelog
