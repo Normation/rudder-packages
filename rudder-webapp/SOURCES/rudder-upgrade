@@ -139,14 +139,13 @@ check_and_add_config_property rudder.rest.allowNonAuthenticatedUser "#
 rudder.rest.allowNonAuthenticatedUser=true"
 
 # Upgrade database schema from 2.3 to 2.4 if necessary - first part: group type (static/dynamic)
-RES=$(su - postgres -c "psql -t -d rudder -c \"select count(attname) from pg_attribute where attrelid = (select oid from pg_class where relname = 'Groups') and attname = 'GroupStatus'\"")
+RES=$(su - postgres -c "psql -t -d rudder -c \"select count(attname) from pg_attribute where attrelid = (select oid from pg_class where relname = 'groups') and attname = 'groupstatus'\"")
 if [ $RES -eq 0 ]; then
 	psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.3-2.4-groups-isDynamic.sql > /dev/null
 fi
 
 # Upgrade database schema from 2.3 to 2.4 if necessary - second part: group type (static/dynamic)
-RES=$(su - postgres -c "psql -t -d rudder -c \"select count(attname) from pg_attribute where attrelid = (select oid from pg_class where relname = 'PolicyInstances') and attname = 'PolicyTemplateHumanName'\"")
+RES=$(su - postgres -c "psql -t -d rudder -c \"select count(attname) from pg_attribute where attrelid = (select oid from pg_class where relname = 'policyinstances') and attname = 'policytemplatehumanname'\"")
 if [ $RES -eq 0 ]; then
 	psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.3-2.4-PT-history.sql > /dev/null
-	${RUDDER_UPGRADE_TOOLS}/rudder-upgrade-database-2.3-2.4-PT-names.pl
 fi
