@@ -8,7 +8,7 @@ Homepage: http://www.rudder-project.org
 
 Package: rudder-webapp
 Architecture: all
-Depends: ${shlibs:Depends}, ${misc:Depends}, apache2, rudder-jetty, rudder-inventory-ldap, rudder-inventory-endpoint, rudder-reports, rudder-policy-templates (> 2.2.0~beta1), git-core
+Depends: ${shlibs:Depends}, ${misc:Depends}, apache2, rudder-jetty, rudder-inventory-ldap, rudder-inventory-endpoint, rudder-reports, rudder-policy-templates, git-core
 Description: Configuration management and audit tool - webapp
  Rudder is an open source configuration management and audit solution.
  .
