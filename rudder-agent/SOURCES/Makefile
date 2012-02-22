@@ -44,7 +44,7 @@ localdepends: ./initial-promises ./files ./fusioninventory-agent ./cfengine-sour
 	mv rudder-sources-*/ rudder-sources/
 
 ./initial-promises: ./rudder-sources
-	cp -a ./rudder-sources/rudder-policy-templates/initial-promises/nodeInitialPromises/ ./initial-promises
+	cp -a ./rudder-sources/rudder-techniques/initial-promises/nodeInitialPromises/ ./initial-promises
 
 ./fusioninventory-agent: /usr/bin/wget
 	$(WGET) -O $(TMP_DIR)/fusion.tgz http://search.cpan.org/CPAN/authors/id/F/FU/FUSINV/FusionInventory-Agent-$(FUSION_RELEASE).tar.gz

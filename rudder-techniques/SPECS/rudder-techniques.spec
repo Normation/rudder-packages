@@ -1,5 +1,5 @@
 #####################################################################################
-# Copyright 2011 Normation SAS
+# Copyright 2012 Normation SAS
 #####################################################################################
 #
 # This program is free software: you can redistribute it and/or modify
@@ -17,25 +17,23 @@
 #####################################################################################
 
 #=================================================
-# Specification file for rudder-policy-templates
+# Specification file for rudder-techniques
 #
-# Install Rudder Policy Templates
+# Install Rudder Techniques
 #
-# Copyright (C) 2011 Normation
+# Copyright (C) 2012 Normation
 #=================================================
 
 #=================================================
 # Variables
 #=================================================
-%define real_name        rudder-policy-templates
+%define real_name        rudder-techniques
 %define rudderdir        /opt/rudder
-%define ruddervardir     /var/rudder
-%define rudderlogdir     /var/log/rudder
 
 #=================================================
 # Header
 #=================================================
-Summary: Configuration management and audit tool -  policy templates
+Summary: Configuration management and audit tool - techniques
 Name: %{real_name}
 Version: %{real_version}
 Release: 1%{?dist}
@@ -52,12 +50,20 @@ BuildArch: noarch
 
 #BuildRequires: gcc
 
+# Add Requires here - order is important
+
+# The following lines allow this package (rudder-techniques) to 
+# replace the older rudder-policy-templates package.
+# See http://wiki.mandriva.com/en/Development/Howto/RPM_Advanced#Renaming_a_package
+Provides: rudder-policy-templates
+Obsoletes: rudder-policy-templates
+
 %description
 Rudder is an open source configuration management and audit solution.
 
-This package contains policy templates, which are configuration models, adapted
+This package contains techniques, which are configuration models, adapted
 to a function or a particular service. By providing parameters to these
-templates, you can create configuration rules to manage nodes using Rudder
+techniques, you can create configuration rules to manage nodes using Rudder
 (nodes are machines with the rudder-agent package installed).
 
 
@@ -79,17 +85,16 @@ rm -rf %{buildroot}
 # Directories
 mkdir -p %{buildroot}%{rudderdir}/share/
 
-# Policy Templates
-cp -r %{SOURCE1}/rudder-policy-templates/policies %{buildroot}%{rudderdir}/share/policy-templates
-cp -r %{SOURCE1}/rudder-policy-templates/tools/ %{buildroot}%{rudderdir}/share/
+cp -r %{SOURCE1}/rudder-techniques/policies %{buildroot}%{rudderdir}/share/techniques
+cp -r %{SOURCE1}/rudder-techniques/tools/ %{buildroot}%{rudderdir}/share/
 
-%pre -n rudder-policy-templates
+%pre -n rudder-techniques
 #=================================================
 # Pre Installation
 #=================================================
 
 
-%post -n rudder-policy-templates
+%post -n rudder-techniques
 #=================================================
 # Post Installation
 #=================================================
@@ -104,14 +109,14 @@ rm -rf %{buildroot}
 #=================================================
 # Files
 #=================================================
-%files -n rudder-policy-templates
+%files -n rudder-techniques
 %defattr(-, root, root, 0755)
-%{rudderdir}/share/policy-templates/
+%{rudderdir}/share/techniques/
 %{rudderdir}/share/tools/
 
 #=================================================
 # Changelog
 #=================================================
 %changelog
-* Thu Jul 28 2011 - Nicolas Perron <nicolas.perron@normation.com> 2.3-alpha4-1
-- Initial package
+* Wed Feb 22 2012 - Matthieu Cerda <matthieu.cerda@normation.com> 2.4.0-alpha6-1
+- Initial package (this package used to be rudder-policy-templates)

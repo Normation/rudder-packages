@@ -1,0 +1,5 @@
+rudder-techniques (2.4.0) squeeze; urgency=low
+
+  * Initial release (this package used to be rudder-policy-templates)
+
+ -- Jonathan CLARKE <jonathan.clarke@normation.com>  Wed, 22 Feb 2012 13:19:26 +0100

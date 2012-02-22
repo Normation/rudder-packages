@@ -32,16 +32,22 @@ set -e
 # were run on a version before 2.3.2.
 #
 # Upgrade checks currently implemented:
-# - 2.3.2: Move /var/rudder/policy-templates to /var/rudder/configuration-repository/policy-templates
+# - 2.3.2: Move /var/rudder/policy-templates to /var/rudder/configuration-repository/techniques
 # - 2.3.2: Create and git init the shared-files directory under the configuration-repository
 # - 2.3.2: Add "rudder.dir.shared.files.folder" configuration parameter to rudder-web.properties
 # - 2.4.0: Add "rudder.autoArchiveItems" configuration parameter to rudder-web.properties 
 # - 2.4.0: Add "rudder.autoDeployOnModification" configuration parameter to rudder-web.properties
+# - 2.4.0: Migration DB schema to add a column to the SQL database for group type (static/dynamic)
+# - 2.4.0: Migration DB schema to add a column to the SQL database for technique human name
+# - 2.4.0: Migration DB schema to rename many columns and tables for the new naming scheme (PT->Technique, etc)
+# - 2.4.0: Migration LDAP schema to rename many columns and tables for the new naming scheme (PT->Technique, etc)
+# - 2.4.0: Move /var/rudder/configuration-repository/{policy-templates -> techniques}
 #####################################################################################
 
 # Some variables
 RUDDER_SHARE=/opt/rudder/share
 RUDDER_UPGRADE_TOOLS=${RUDDER_SHARE}/upgrade-tools
+
 
 # Helper function
 # Function to check if a property exists in a configuration file and add it if not
@@ -112,8 +118,8 @@ rudder.dir.shared.files.folder=/var/rudder/configuration-repository/shared-files
 # Check for configuration property added in 2.4
 check_and_add_config_property rudder.autoArchiveItems "#
 # Boolean, defaults to true.
-# If true, an archive of configuration rules, groups, 
-# policy instances and user policy templates is recorded
+# If true, an archive of rules, groups, 
+# directives and active techniques is recorded
 # to the rudder.dir.gitRoot directory specified above
 # and a git commit is performed when any of these items is modified.
 # 
@@ -121,7 +127,7 @@ rudder.autoArchiveItems=true"
 
 # Check for configuration property added in 2.4
 check_and_add_config_property rudder.autoDeployOnModification "#
-# If true, when a policy instance, configuration rule,
+# If true, when a directive, rule,
 # group, node ... is modified, promises will be automatically
 # regenerated. If false, only a manual request for deployment
 # will trigger a deployment.
@@ -144,8 +150,55 @@ if [ $RES -eq 0 ]; then
 	psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.3-2.4-groups-isDynamic.sql > /dev/null
 fi
 
-# Upgrade database schema from 2.3 to 2.4 if necessary - second part: group type (static/dynamic)
+# Upgrade database schema from 2.3 to 2.4 if necessary - second part: technique human name
 RES=$(su - postgres -c "psql -t -d rudder -c \"select count(attname) from pg_attribute where attrelid = (select oid from pg_class where relname = 'policyinstances') and attname = 'policytemplatehumanname'\"")
 if [ $RES -eq 0 ]; then
 	psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.3-2.4-PT-history.sql > /dev/null
+fi
+
+# Upgrade database schema from 2.3 to 2.4 if necessary - third part: rename many tables and columns to match the new naming scheme (PT->Technique, PI->Directive, CR->Rule)
+RES=$(su - postgres -c "psql -t -d rudder -c \"select count(attname) from pg_attribute where attrelid = (select oid from pg_class where relname = 'ruddersysevents') and attname = 'directiveid'\"")
+if [ $RES -eq 0 ]; then
+	psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.3-2.4-refactor.sql > /dev/null
+fi
+
+# Upgrade LDAP schema from 2.3 to 2.4 if necessary: rename many objectclasses and attributetypes to match the new naming scheme (PT->Technique, PI->Directive, CR->Rule)
+# <insert test here>
+# <if test failed>
+#	<run upgrade script>
+# </if>
+
+# Migrate from old policy-template store in /var/rudder/configuration-repository/policy-templates
+# to 2.4.0 in /var/rudder/configuration-repository/techniques
+if [ -d /var/rudder/configuration-repository/policy-templates -a ! -d /var/rudder/configuration-repository/techniques ]; then
+	echo "***** ATTENTION *****"
+	echo "The policy template store for Rudder has been renamed. It will be"
+	echo "automatically moved from /var/rudder/configuration-repository/policy-templates to"
+	echo "/var/rudder/configuration-repository/techniques."
+	echo "Techniques are the new name for policy templates as of Rudder 2.4.0."
+
+	cd /var/rudder/configuration-repository/ && git commit -am "Committing all pending changes for automatic migration of the policy template store to /var/rudder/configuration-repository/techniques" || true
+
+	cd /var/rudder/configuration-repository/ && git mv /var/rudder/configuration-repository/policy-templates /var/rudder/configuration-repository/techniques
+
+	sed -i 's%^rudder.dir.policyPackages *= */var/rudder/configuration-repository/policy-templates/\?$%rudder.dir.policyPackages=/var/rudder/configuration-repository/techniques%' /opt/rudder/etc/rudder-web.properties
+
+	# Rename policy.xml files to metadata.xml and edit their content for renaming
+	find /var/rudder/configuration-repository/techniques -name policy.xml | while read oldfile
+	do
+		cd $(dirname "${oldfile}")
+
+		# Rename the policy.xml to metadata.xml
+		git mv policy.xml metadata.xml
+
+		# Edit metadata.xml to rename POLICY tag to TECHNIQUE
+		# Note for people reading the regex: look for <POLICY or </POLICY
+		sed -i "s%<\(/\)\?POLICY%<\1TECHNIQUE%" metadata.xml
+		git add metadata.xml
+	done
+
+	# Commit all the lovely changes
+	cd /var/rudder/configuration-repository/ && git commit -m "Rename directory for policy-templates to techniques, rename policy.xml to metadata.xml and change names in metadata.xml"
+
+	echo "Automatic migration to /var/rudder/configuration-repository/techniques done."
 fi

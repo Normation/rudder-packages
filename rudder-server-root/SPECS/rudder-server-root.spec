@@ -91,11 +91,11 @@ mkdir -p %{buildroot}/etc/logrotate.d/
 mkdir -p %{buildroot}/etc/init.d
 
 # Initial Promises (root)
-cp -r %{SOURCE1}/rudder-policy-templates%{init_promises}/rootServerInitialPromises/cfengine-nova %{buildroot}%{rudderdir}/share/initial-promises/
-cp -r %{SOURCE1}/rudder-policy-templates%{init_promises}/rootServerInitialPromises/cfengine-community %{buildroot}%{rudderdir}/share/initial-promises/
+cp -r %{SOURCE1}/rudder-techniques%{init_promises}/rootServerInitialPromises/cfengine-nova %{buildroot}%{rudderdir}/share/initial-promises/
+cp -r %{SOURCE1}/rudder-techniques%{init_promises}/rootServerInitialPromises/cfengine-community %{buildroot}%{rudderdir}/share/initial-promises/
 # Initial Promises (node)
-cp -r %{SOURCE1}/rudder-policy-templates%{init_promises}/nodeInitialPromises %{buildroot}/var/cfengine/masterfiles
-cp -r %{SOURCE1}/rudder-policy-templates%{init_promises}/nodeInitialPromises %{buildroot}%{ruddervardir}/cfengine-community/masterfiles
+cp -r %{SOURCE1}/rudder-techniques%{init_promises}/nodeInitialPromises %{buildroot}/var/cfengine/masterfiles
+cp -r %{SOURCE1}/rudder-techniques%{init_promises}/nodeInitialPromises %{buildroot}%{ruddervardir}/cfengine-community/masterfiles
 # Others
 cp %{SOURCE2} %{buildroot}%{rudderdir}/bin/
 cp %{SOURCE3} %{buildroot}%{rudderdir}/etc/

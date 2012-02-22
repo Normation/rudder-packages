@@ -81,7 +81,6 @@ rm -rf %{buildroot}
 # Directories
 mkdir -p %{buildroot}%{rudderdir}/etc/postgresql/
 
-# Policy Templates
 cp %{SOURCE1}/rudder/rudder-core/src/main/resources/reportsSchema.sql %{buildroot}%{rudderdir}/etc/postgresql/
 
 %pre -n rudder-reports

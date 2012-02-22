@@ -56,7 +56,7 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
 
 BuildRequires: jdk
-Requires: jre rudder-jetty rudder-inventory-ldap rudder-inventory-endpoint rudder-reports rudder-policy-templates apache2 apache2-utils git-core
+Requires: jre rudder-jetty rudder-inventory-ldap rudder-inventory-endpoint rudder-reports rudder-techniques apache2 apache2-utils git-core
 
 %description
 Rudder is an open source configuration management and audit solution.
@@ -122,6 +122,7 @@ cp %{SOURCE2} %{buildroot}%{rudderdir}/jetty7/contexts/
 # Install upgrade tools
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.3-2.4-groups-isDynamic.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.3-2.4-PT-history.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
+cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.3-2.4-refactor.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
 
 cp %{SOURCE5} %{buildroot}%{rudderdir}/bin/
 
@@ -153,7 +154,7 @@ then
 		mkdir -p /var/rudder/configuration-repository
 		mkdir -p /var/rudder/configuration-repository/shared-files
 		touch /var/rudder/configuration-repository/shared-files/.placeholder
-		cp -a /opt/rudder/share/policy-templates /var/rudder/configuration-repository/
+		cp -a /opt/rudder/share/techniques /var/rudder/configuration-repository/
 fi
 
 chown root:www %{ruddervardir}/inventories/incoming
@@ -164,15 +165,15 @@ htpasswd2 -bc %{rudderdir}/etc/htpasswd-webdav rudder rudder
 /etc/init.d/apache2 start
 
 # Run any upgrades
-# Note this must happen *before* creating the policy-template store, as it was moved in version 2.3.2
+# Note this must happen *before* creating the technique store, as it was moved in version 2.3.2
 # and creating it manually would break the upgrade logic
 /opt/rudder/bin/rudder-upgrade
 
-# Create and populate policy-template store
+# Create and populate technique store
 if [ ! -d /var/rudder/configuration-repository ]; then mkdir -p /var/rudder/configuration-repository; fi
 if [ ! -d /var/rudder/configuration-repository/shared-files ]; then mkdir -p /var/rudder/configuration-repository/shared-files; fi
-if [ ! -d /var/rudder/configuration-repository/policy-templates ]; then
-	cp -a /opt/rudder/share/policy-templates /var/rudder/configuration-repository/
+if [ ! -d /var/rudder/configuration-repository/techniques ]; then
+	cp -a /opt/rudder/share/techniques /var/rudder/configuration-repository/
 fi
 
 
