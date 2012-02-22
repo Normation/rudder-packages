@@ -11,8 +11,6 @@
 
 
 
-include /usr/share/quilt/quilt.make
-
 configure: configure-stamp
 configure-stamp:
 	dh_testdir
@@ -25,14 +23,14 @@ configure-stamp:
 
 build: build-stamp
 
-build-stamp: configure-stamp  $(QUILT_STAMPFN)
+build-stamp: configure-stamp
 	dh_testdir
 
 	cd SOURCES/cfengine-source && make
 
 	touch $@
 
-clean: unpatch
+clean:
 	dh_testdir
 	dh_testroot
 	rm -f build-stamp configure-stamp

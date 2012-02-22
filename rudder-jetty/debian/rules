@@ -10,18 +10,16 @@
 #export DH_VERBOSE=1
 
 
-include /usr/share/quilt/quilt.make
-
 build: build-stamp
 
-build-stamp: $(QUILT_STAMPFN)
+build-stamp:
 	dh_testdir
 
 	# Add here commands to compile the package.
 
 	touch $@
 
-clean: unpatch
+clean:
 	dh_testdir
 	dh_testroot
 	rm -f build-stamp configure-stamp
