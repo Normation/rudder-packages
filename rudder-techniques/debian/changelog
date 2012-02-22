@@ -1,4 +1,4 @@
-rudder-techniques (2.4.0) squeeze; urgency=low
+rudder-techniques (2.4.0-0) squeeze; urgency=low
 
   * Initial release (this package used to be rudder-policy-templates)
 
