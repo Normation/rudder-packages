@@ -85,7 +85,7 @@ rm -rf %{buildroot}
 # Directories
 mkdir -p %{buildroot}%{rudderdir}/share/
 
-cp -r %{SOURCE1}/rudder-techniques/policies %{buildroot}%{rudderdir}/share/techniques
+cp -r %{SOURCE1}/rudder-techniques/techniques/ %{buildroot}%{rudderdir}/share/
 cp -r %{SOURCE1}/rudder-techniques/tools/ %{buildroot}%{rudderdir}/share/
 
 %pre -n rudder-techniques

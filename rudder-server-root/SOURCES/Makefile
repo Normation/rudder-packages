@@ -32,7 +32,7 @@ localdepends: ./rudder-sources ../debian/rudder-server-root.logrotate ../debian/
 # Get the logrotate file. We need it both in the SOURCES/ dir, and in debian/ dir,
 # because RPM packages take it straight from SOURCES/
 ./rudder.logrotate: ./rudder-sources
-	cp -a ./rudder-sources/rudder-techniques/policies/system/distributePolicy/1.0/logrotate.st ./rudder.logrotate
+	cp -a ./rudder-sources/rudder-techniques/techniques/system/distributePolicy/1.0/logrotate.st ./rudder.logrotate
 
 ../debian/rudder-server-root.logrotate: ./rudder.logrotate
 	cp ./rudder.logrotate ../debian/rudder-server-root.logrotate

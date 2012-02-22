@@ -49,8 +49,7 @@ binary-arch: install
 	dh_installchangelogs
 #	dh_installdocs
 #	dh_installexamples
-	cp -r $(CURDIR)/SOURCES/rudder-sources/rudder-techniques/policies/ $(CURDIR)/BUILD/techniques
-	dh_install --SOURCEDIR=$(CURDIR)/BUILD/ techniques/ /opt/rudder/share/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder-techniques/ techniques/ /opt/rudder/share/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder-techniques/ tools/  /opt/rudder/share/
 
 #	dh_installmenu
