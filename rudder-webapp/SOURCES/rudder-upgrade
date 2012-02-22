@@ -159,7 +159,7 @@ fi
 # Upgrade database schema from 2.3 to 2.4 if necessary - third part: rename many tables and columns to match the new naming scheme (PT->Technique, PI->Directive, CR->Rule)
 RES=$(su - postgres -c "psql -t -d rudder -c \"select count(attname) from pg_attribute where attrelid = (select oid from pg_class where relname = 'ruddersysevents') and attname = 'directiveid'\"")
 if [ $RES -eq 0 ]; then
-	psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.3-2.4-refactor.sql > /dev/null
+	psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.3-2.4-PI-PT-CR-names-changed.sql > /dev/null
 fi
 
 # Upgrade LDAP schema from 2.3 to 2.4 if necessary: rename many objectclasses and attributetypes to match the new naming scheme (PT->Technique, PI->Directive, CR->Rule)
