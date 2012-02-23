@@ -36,6 +36,13 @@
 
 %define maven_settings settings-external.xml
 
+%if 0%{?sles_version} 
+%define sysloginitscript /etc/init.d/syslog
+%endif
+%if 0%{?el6} 
+%define sysloginitscript /etc/init.d/rsyslog
+%endif
+
 #=================================================
 # Header
 #=================================================
@@ -107,7 +114,7 @@ cp %{SOURCE1} %{buildroot}/opt/rudder/etc/
 #=================================================
 
 echo "Reloading syslogd ..."
-/etc/init.d/syslog reload
+%{sysloginitscript} reload
 
 #=================================================
 # Cleaning
