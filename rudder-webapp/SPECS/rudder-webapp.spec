@@ -36,11 +36,15 @@
 %define maven_settings settings-external.xml
 
 %if 0%{?sles_version}
-%define apache  apache2
+%define apache		apache2
+%define apache_group	www
+%define htpasswd_cmd	htpasswd2
 %define sysloginitscript /etc/init.d/syslog
 %endif
 %if 0%{?el6}
-%define apache  httpd
+%define apache		httpd
+%define apache_group	apache
+%define htpasswd_cmd	htpasswd
 %define sysloginitscript /etc/init.d/rsyslog
 %endif
 
@@ -166,11 +170,11 @@ then
 		cp -a /opt/rudder/share/techniques /var/rudder/configuration-repository/
 fi
 
-chown root:www %{ruddervardir}/inventories/incoming
+chown root:%{apache_group} %{ruddervardir}/inventories/incoming
 chmod 2770 %{ruddervardir}/inventories/incoming
 chmod 755 -R %{rudderdir}/share/tools
 chmod 655 -R %{rudderdir}/share/load-page
-htpasswd2 -bc %{rudderdir}/etc/htpasswd-webdav rudder rudder
+%{htpasswd_cmd} -bc %{rudderdir}/etc/htpasswd-webdav rudder rudder
 /etc/init.d/%{apache} start
 
 # Run any upgrades
