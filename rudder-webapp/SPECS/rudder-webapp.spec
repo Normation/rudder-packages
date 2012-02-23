@@ -35,6 +35,13 @@
 
 %define maven_settings settings-external.xml
 
+%if 0%{?sles_version}
+%define apache  apache2
+%endif
+%if 0%{?el6}
+%define apache  httpd
+%endif
+
 #=================================================
 # Header
 #=================================================
@@ -101,8 +108,8 @@ mkdir -p %{buildroot}%{rudderdir}/share/plugins/
 mkdir -p %{buildroot}%{rudderdir}/share/upgrade-tools/
 mkdir -p %{buildroot}%{ruddervardir}/inventories/incoming
 mkdir -p %{buildroot}%{ruddervardir}/inventories/received
-mkdir -p %{buildroot}%{rudderlogdir}/apache2/
-mkdir -p %{buildroot}/etc/apache2/vhosts.d/
+mkdir -p %{buildroot}%{rudderlogdir}/%{apache}/
+mkdir -p %{buildroot}/etc/%{apache}/vhosts.d/
 
 cp %{SOURCE1} %{buildroot}%{rudderdir}/etc/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/ldap/bootstrap.ldif %{buildroot}%{rudderdir}/share/
@@ -116,7 +123,7 @@ cp %{_builddir}/rudder-sources/rudder/rudder-web/target/rudder-web*.war %{buildr
 cp -rf %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/load-page %{buildroot}%{rudderdir}/share/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/test/resources/script/cfe-red-button.sh %{buildroot}%{rudderdir}/bin/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/reportsInfo.xml %{buildroot}%{rudderdir}/etc/
-cp %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/apache2-default.conf %{buildroot}/etc/apache2/vhosts.d/
+cp %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/apache2-default.conf %{buildroot}/etc/%{apache}/vhosts.d/
 cp %{SOURCE2} %{buildroot}%{rudderdir}/jetty7/contexts/
 
 # Install upgrade tools
@@ -137,19 +144,19 @@ cp %{SOURCE5} %{buildroot}%{rudderdir}/bin/
 #=================================================
 
 echo "Setting apache2 as a boot service"
-/sbin/chkconfig --add apache2
+/sbin/chkconfig --add %{apache}
 
 echo "Reloading syslogd ..."
 /etc/init.d/syslog reload
 
-/etc/init.d/apache2 stop
+/etc/init.d/%{apache} stop
 # a2dissite default
 
 # Do this ONLY at first install
 if [ $1 -eq 1 ]
 then
-        echo 'APACHE_MODULES="${APACHE_MODULES} rewrite dav dav_fs proxy proxy_http"' >> /etc/sysconfig/apache2
-		echo 'DAVLockDB /tmp/davlock.db' >> /etc/apache2/conf.d/dav_mod.conf
+        echo 'APACHE_MODULES="${APACHE_MODULES} rewrite dav dav_fs proxy proxy_http"' >> /etc/sysconfig/%{apache}
+		echo 'DAVLockDB /tmp/davlock.db' >> /etc/%{apache}/conf.d/dav_mod.conf
 
 		mkdir -p /var/rudder/configuration-repository
 		mkdir -p /var/rudder/configuration-repository/shared-files
@@ -162,7 +169,7 @@ chmod 2770 %{ruddervardir}/inventories/incoming
 chmod 755 -R %{rudderdir}/share/tools
 chmod 655 -R %{rudderdir}/share/load-page
 htpasswd2 -bc %{rudderdir}/etc/htpasswd-webdav rudder rudder
-/etc/init.d/apache2 start
+/etc/init.d/%{apache} start
 
 # Run any upgrades
 # Note this must happen *before* creating the technique store, as it was moved in version 2.3.2
@@ -200,8 +207,8 @@ rm -rf %{buildroot}
 %{rudderdir}/share
 %{ruddervardir}/inventories/incoming
 %{ruddervardir}/inventories/received
-%{rudderlogdir}/apache2/
-/etc/apache2/vhosts.d/
+%{rudderlogdir}/%{apache}/
+/etc/%{apache}/vhosts.d/
 
 
 #=================================================
