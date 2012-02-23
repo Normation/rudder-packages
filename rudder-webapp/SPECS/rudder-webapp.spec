@@ -37,9 +37,11 @@
 
 %if 0%{?sles_version}
 %define apache  apache2
+%define sysloginitscript /etc/init.d/syslog
 %endif
 %if 0%{?el6}
 %define apache  httpd
+%define sysloginitscript /etc/init.d/rsyslog
 %endif
 
 #=================================================
@@ -147,7 +149,7 @@ echo "Setting apache2 as a boot service"
 /sbin/chkconfig --add %{apache}
 
 echo "Reloading syslogd ..."
-/etc/init.d/syslog reload
+%{sysloginitscript} reload
 
 /etc/init.d/%{apache} stop
 # a2dissite default
