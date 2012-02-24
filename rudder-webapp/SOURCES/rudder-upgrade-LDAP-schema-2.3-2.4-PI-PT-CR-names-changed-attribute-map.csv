@@ -1,0 +1,13 @@
+nodePolicies; nodeTechniques
+policyInstanceId; directiveId
+targetPolicyInstanceId; targetDirectiveId
+policyCategoryId; techniqueCategoryId
+referencePolicyTemplateId; techniqueId
+userPolicyTemplateId; activeTechniqueId
+configurationRuleId; ruleId
+referenceLibraryVersion; techniqueLibraryVersion
+referencePolicyTemplateVersion; techniqueVersion
+configurationRuleTarget; ruleTarget
+policyInstanceVariable; directiveVariable
+isActivated; isEnabled
+policyInstancePriority; directivePriority

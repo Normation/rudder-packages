@@ -46,6 +46,7 @@ set -e
 
 # Some variables
 RUDDER_SHARE=/opt/rudder/share
+RUDDER_OPENLDAP_DATA=/var/rudder/ldap/openldap-data
 RUDDER_UPGRADE_TOOLS=${RUDDER_SHARE}/upgrade-tools
 
 
@@ -163,10 +164,20 @@ if [ $RES -eq 0 ]; then
 fi
 
 # Upgrade LDAP schema from 2.3 to 2.4 if necessary: rename many objectclasses and attributetypes to match the new naming scheme (PT->Technique, PI->Directive, CR->Rule)
-# <insert test here>
-# <if test failed>
-#	<run upgrade script>
-# </if>
+OLD_LDAP_TEST=$(/opt/rudder/sbin/slapcat | grep -E "^policyInstanceId::? " | wc -l)
+if [ ${OLD_LDAP_TEST} -ne 0 ]; then
+	echo "***** ATTENTION *****"
+	echo "The Rudder OpenLDAP schema is not up to date"
+	echo "Updating..."
+	/etc/init.d/slapd stop
+	TMPFILE=`mktemp`
+	/opt/rudder/sbin/slapcat -l ${TMPFILE}
+	${RUDDER_UPGRADE_TOOLS}/rudder-upgrade-LDAP-schema-2.3-2.4-PI-PT-CR-names-changed.pl ${TMPFILE}
+	rm -f ${RUDDER_OPENLDAP_DATA}/log.* ${RUDDER_OPENLDAP_DATA}/__db.* ${RUDDER_OPENLDAP_DATA}/*.bdb ${RUDDER_OPENLDAP_DATA}/alock
+	/opt/rudder/sbin/slapadd -l ${TMPFILE}
+	/etc/init.d/slapd start
+	echo "...done"
+fi
 
 # Migrate from old policy-template store in /var/rudder/configuration-repository/policy-templates
 # to 2.4.0 in /var/rudder/configuration-repository/techniques
