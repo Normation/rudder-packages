@@ -35,6 +35,14 @@
 %define rudderlogdir     /var/log/rudder
 
 %define openldap_release 2.4.23
+
+%if 0%{?sles_version} 
+%define sysloginitscript /etc/init.d/syslog
+%endif
+%if 0%{?el6} 
+%define sysloginitscript /etc/init.d/rsyslog
+%endif
+
 #=================================================
 # Header
 #=================================================
@@ -151,7 +159,7 @@ echo "Setting slapd as a boot service"
 /sbin/chkconfig --add slapd
 
 echo "Reloading syslogd ..."
-/etc/init.d/syslog restart
+%{sysloginitscript} restart
 
 echo "All done. Starting slapd..."
 /etc/init.d/slapd start
