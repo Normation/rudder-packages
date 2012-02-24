@@ -214,3 +214,36 @@ if [ -d /var/rudder/configuration-repository/policy-templates -a ! -d /var/rudde
 
 	echo "Automatic migration to /var/rudder/configuration-repository/techniques done."
 fi
+
+# 2.4.0~alpha6: Rename the configuration-rules directory
+# Note: this only applies to versions between 2.4.0~alpha1 and 2.4.0~alpha5
+if [ -d /var/rudder/configuration-repository/configuration-rules -a ! -d /var/rudder/configuration-repository/rules ]; then
+	cd /var/rudder/configuration-repository/ && git commit -am "Committing all pending changes for automatic migration of the configuration-rules store to /var/rudder/configuration-repository/rules" || true
+	cd /var/rudder/configuration-repository/ && git mv /var/rudder/configuration-repository/configuration-rules /var/rudder/configuration-repository/rules > /dev/null
+	cd /var/rudder/configuration-repository/ && git commit -m "Rename directory for configuration-rules to rules" > /dev/null
+fi
+
+# 2.4.0~alpha6: Rename the policy-library directory and contents of some of the files
+# Note: this only applies to versions between 2.4.0~alpha1 and 2.4.0~alpha5
+if [ -d /var/rudder/configuration-repository/policy-library -a ! -d /var/rudder/configuration-repository/directives ]; then
+	cd /var/rudder/configuration-repository/ && git commit -am "Committing all pending changes for automatic migration of the policy-library store to /var/rudder/configuration-repository/directives" || true
+	cd /var/rudder/configuration-repository/ && git mv /var/rudder/configuration-repository/policy-library /var/rudder/configuration-repository/directives > /dev/null
+
+	# Rename userPolicyTemplateSettings.xml files to activeTechniqueSettings.xml and edit their content for renaming
+	find /var/rudder/configuration-repository/directives -name userPolicyTemplateSettings.xml | while read oldfile
+	do
+		cd $(dirname "${oldfile}")
+
+		# Rename the file
+		git mv userPolicyTemplateSettings.xml activeTechniqueSettings.xml
+
+		# Edit the file
+		sed -i "s%<\(/\)\?policyLibraryTemplate%<\1activeTechnique%" activeTechniqueSettings.xml
+		sed -i "s%<activeTechnique \+fileFormat=\"1.0\"%<activeTechnique fileFormat=\"2.0\"%" activeTechniqueSettings.xml
+		sed -i "s%<\(/\)\?policyTemplateName%<\1techniqueName%" activeTechniqueSettings.xml
+
+		git add activeTechniqueSettings.xml > /dev/null
+	done
+
+	cd /var/rudder/configuration-repository/ && git commit -m "Rename directory for policy-library to directives, rename userPolicyTemplateSettings.xml files to activeTechniqueSettings.xml and change some tags in activeTechniqueSettings.xml" > /dev/null
+fi
