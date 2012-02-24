@@ -62,7 +62,7 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
 
 BuildRequires: jdk
-Requires: jre rudder-jetty rudder-inventory-ldap
+Requires: rudder-jetty rudder-inventory-ldap
 
 %description
 Rudder is an open source configuration management and audit solution.
