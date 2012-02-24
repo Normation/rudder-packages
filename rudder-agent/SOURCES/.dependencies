@@ -1,2 +1,4 @@
 SLES11:gcc openssl-devel bison flex pcre-devel db43-devel
 SLES10:gcc openssl-devel bison flex pcre-devel db42-devel
+RHEL5:gcc openssl-devel bison flex pcre-devel make db4-devel byacc
+RHEL6:gcc openssl-devel bison flex pcre-devel make db4-devel byacc

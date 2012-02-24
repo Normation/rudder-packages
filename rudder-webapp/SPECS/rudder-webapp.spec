@@ -41,6 +41,12 @@
 %define htpasswd_cmd	htpasswd2
 %define sysloginitscript /etc/init.d/syslog
 %endif
+%if 0%{?el5}
+%define apache		httpd
+%define apache_group	apache
+%define htpasswd_cmd	htpasswd
+%define sysloginitscript /etc/init.d/syslog
+%endif
 %if 0%{?el6}
 %define apache		httpd
 %define apache_group	apache
@@ -217,7 +223,7 @@ rm -rf %{buildroot}
 %{rudderdir}/share
 %{ruddervardir}/inventories/incoming
 %{ruddervardir}/inventories/received
-%{rudderlogdir}/%{apache}/
+%{rudderlogdir}/apache2/
 /etc/%{apache}/vhosts.d/
 
 

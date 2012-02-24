@@ -39,6 +39,9 @@
 %if 0%{?sles_version} 
 %define sysloginitscript /etc/init.d/syslog
 %endif
+%if 0%{?el5} 
+%define sysloginitscript /etc/init.d/syslog
+%endif
 %if 0%{?el6} 
 %define sysloginitscript /etc/init.d/rsyslog
 %endif

@@ -39,6 +39,9 @@
 %if 0%{?sles_version} 
 %define sysloginitscript /etc/init.d/syslog
 %endif
+%if 0%{?el5} 
+%define sysloginitscript /etc/init.d/syslog
+%endif
 %if 0%{?el6} 
 %define sysloginitscript /etc/init.d/rsyslog
 %endif
@@ -76,6 +79,10 @@ Requires: libdb-4_5
 %if 0%{?sles_version} == 10
 BuildRequires: db42-devel openssl-devel
 Requires: db42
+%endif
+%if 0%{?rhel}
+BuildRequires: db4-devel openssl-devel
+Requires: db4
 %endif
 
 %description

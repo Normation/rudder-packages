@@ -62,6 +62,11 @@ Requires: libdb-4_5
 BuildRequires: db42-devel
 Requires: db42
 %endif
+%if 0%{?rhel}
+BuildRequires: db4-devel openssl-devel
+Requires: db4
+%endif
+
 
 
 %description

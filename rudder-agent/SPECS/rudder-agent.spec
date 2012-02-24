@@ -77,7 +77,7 @@ BuildRequires: db42-devel
 Requires: db42
 %endif
 
-%if 0%{?rhel_version}
+%if 0%{?rhel}
 BuildRequires: make db4-devel byacc
 Requires: db4
 %endif
