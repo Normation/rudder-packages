@@ -164,10 +164,11 @@ if [ $RES -eq 0 ]; then
 fi
 
 # Upgrade LDAP schema from 2.3 to 2.4 if necessary: rename many objectclasses and attributetypes to match the new naming scheme (PT->Technique, PI->Directive, CR->Rule)
-OLD_LDAP_TEST=$(/opt/rudder/sbin/slapcat | grep -E "^policyInstanceId::? " | wc -l)
+OLD_LDAP_TEST=$(/opt/rudder/sbin/slapcat | grep -Ei "^policyInstanceId::? " | wc -l)
 if [ ${OLD_LDAP_TEST} -ne 0 ]; then
 	echo "***** ATTENTION *****"
-	echo "The Rudder OpenLDAP schema is not up to date"
+	echo "The Rudder OpenLDAP schema is not up to date."
+	echo "You will see some warnings about UNKNOWN attributeDescription."
 	echo "Updating..."
 	/etc/init.d/slapd stop
 	TMPFILE=`mktemp`
@@ -190,7 +191,7 @@ if [ -d /var/rudder/configuration-repository/policy-templates -a ! -d /var/rudde
 
 	cd /var/rudder/configuration-repository/ && git commit -am "Committing all pending changes for automatic migration of the policy template store to /var/rudder/configuration-repository/techniques" || true
 
-	cd /var/rudder/configuration-repository/ && git mv /var/rudder/configuration-repository/policy-templates /var/rudder/configuration-repository/techniques
+	cd /var/rudder/configuration-repository/ && git mv /var/rudder/configuration-repository/policy-templates /var/rudder/configuration-repository/techniques > /dev/null
 
 	sed -i 's%^rudder.dir.policyPackages *= */var/rudder/configuration-repository/policy-templates/\?$%rudder.dir.policyPackages=/var/rudder/configuration-repository/techniques%' /opt/rudder/etc/rudder-web.properties
 
@@ -200,16 +201,16 @@ if [ -d /var/rudder/configuration-repository/policy-templates -a ! -d /var/rudde
 		cd $(dirname "${oldfile}")
 
 		# Rename the policy.xml to metadata.xml
-		git mv policy.xml metadata.xml
+		git mv policy.xml metadata.xml > /dev/null
 
 		# Edit metadata.xml to rename POLICY tag to TECHNIQUE
 		# Note for people reading the regex: look for <POLICY or </POLICY
 		sed -i "s%<\(/\)\?POLICY%<\1TECHNIQUE%" metadata.xml
-		git add metadata.xml
+		git add metadata.xml > /dev/null
 	done
 
 	# Commit all the lovely changes
-	cd /var/rudder/configuration-repository/ && git commit -m "Rename directory for policy-templates to techniques, rename policy.xml to metadata.xml and change names in metadata.xml"
+	cd /var/rudder/configuration-repository/ && git commit -m "Rename directory for policy-templates to techniques, rename policy.xml to metadata.xml and change names in metadata.xml" > /dev/null
 
 	echo "Automatic migration to /var/rudder/configuration-repository/techniques done."
 fi
