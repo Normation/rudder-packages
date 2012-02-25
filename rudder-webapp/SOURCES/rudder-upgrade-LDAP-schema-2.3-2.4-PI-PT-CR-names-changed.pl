@@ -23,7 +23,7 @@ if ( @ARGV != 1 ) {
 }
 
 if ( $UID != 0 ) {
-	print "This command must be run as root!";
+	print "This command must be run as root!\n";
 	exit 2;
 }
 
@@ -152,6 +152,11 @@ while (<LDIF_FILE>) {
 					print RES_FILE $branchDict{"$dn-fullentry"};
 					$skipLinesUntilNextEntry = 1;
 					next;
+				}
+
+				# Check to see if this is a sub-entry below a branch that needs renaming
+				foreach my $dnToReplace ( keys %branchDict ) {
+					$previousLine =~ s/$dnToReplace/$branchDict{$dnToReplace}/;
 				}
 			}
 
