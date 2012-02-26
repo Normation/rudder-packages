@@ -39,12 +39,12 @@ sub readDictionary {
 	while (<DICT_FH>) {
 		next if ( /^#/ or /^\s*$/ );
 		(my $key, my $value, undef, my $value2) = /([^;]+); *([^;]+)(; *([^;]+))?\n$/;
-		${$dictionary}{"$key"} = $value;
+		${$dictionary}{lc "$key"} = $value;
 
 		# Special case for the branch dictionary - the CSV file has a third column with the full entry in
 		if ( defined $value2 ) {
 			$value2 =~ s/\\n/\n/g;
-			${$dictionary}{"$key-fullentry"} = $value2;
+			${$dictionary}{lc "$key-fullentry"} = $value2;
 		}
 	}
 	close DICT_FH;
@@ -57,20 +57,20 @@ sub replaceNames {
 
 	if ( $line =~ /^dn: / ) {
 		foreach my $dnAttribute (keys %attributeDict) {
-			$line =~ s/$dnAttribute=/$attributeDict{$dnAttribute}=/g;
+			$line =~ s/$dnAttribute=/$attributeDict{lc $dnAttribute}=/ig;
 		}
 	} elsif ( $line =~ /^(objectClass|structuralObjectClass): / ) {
 		(my $objectClassAttrName, my $objectClassName) = $line =~ /(objectClass|structuralObjectClass): (.*)$/;
 
-		if ( defined $objectClassDict{$objectClassName} ) {
-			print RES_FILE "$objectClassAttrName: $objectClassDict{$objectClassName}\n";
+		if ( defined $objectClassDict{lc $objectClassName} ) {
+			print RES_FILE "$objectClassAttrName: $objectClassDict{lc $objectClassName}\n";
 			return;
 		}
 	} else {
 		(my $attrName, my $value) = $line =~ /([a-zA-Z]+)::? (.*)$/;
 
-		if ( defined $attributeDict{$attrName} ) {
-			print RES_FILE "$attributeDict{$attrName}: $value\n";
+		if ( defined $attributeDict{lc $attrName} ) {
+			print RES_FILE "$attributeDict{lc $attrName}: $value\n";
 			return;
 		}
 	}
@@ -127,7 +127,7 @@ while (<LDIF_FILE>) {
 
 			# Special case: we are in the middle of an entry that we want to replace completely
 			if ( ( not $previousLine =~ /^\n$/ ) &&  $skipLinesUntilNextEntry == 1 ) {
-				if ( not $previousLine =~ /^(structuralObjectClass|entryUUID|creatorsName|createTimestamp|initTimestamp|entryCSN|objectClass|serial|modifiersName|modifyTimestamp)::? /) {
+				if ( not $previousLine =~ /^(structuralObjectClass|entryUUID|creatorsName|createTimestamp|initTimestamp|entryCSN|objectClass|serial|modifiersName|modifyTimestamp)::? /i ) {
 					# Do nothing, just ignore this line
 					next;
 				}
@@ -145,18 +145,18 @@ while (<LDIF_FILE>) {
 
 				(my $dn) = $previousLine =~ /^dn: (.*)$/;
 
-				if ( defined $branchDict{"$dn"} ) {
+				if ( defined $branchDict{lc "$dn"} ) {
 					# Change the whole entry:
 					# 1) Output the new entry
 					# 2) Set a flag to ignore all lines in the input file until the end of the entry
-					print RES_FILE $branchDict{"$dn-fullentry"};
+					print RES_FILE $branchDict{lc "$dn-fullentry"};
 					$skipLinesUntilNextEntry = 1;
 					next;
 				}
 
 				# Check to see if this is a sub-entry below a branch that needs renaming
 				foreach my $dnToReplace ( keys %branchDict ) {
-					$previousLine =~ s/$dnToReplace/$branchDict{$dnToReplace}/;
+					$previousLine =~ s/$dnToReplace/$branchDict{lc $dnToReplace}/i;
 				}
 			}
 
