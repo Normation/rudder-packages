@@ -81,7 +81,7 @@ BuildRequires: db42-devel openssl-devel
 Requires: db42
 %endif
 %if 0%{?rhel}
-BuildRequires: db4-devel openssl-devel
+BuildRequires: db4-devel openssl-devel libtool-ltdl-devel
 Requires: db4
 %endif
 
