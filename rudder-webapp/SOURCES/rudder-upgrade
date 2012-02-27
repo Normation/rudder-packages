@@ -42,6 +42,10 @@ set -e
 # - 2.4.0: Migration DB schema to rename many columns and tables for the new naming scheme (PT->Technique, etc)
 # - 2.4.0: Migration LDAP schema to rename many columns and tables for the new naming scheme (PT->Technique, etc)
 # - 2.4.0: Move /var/rudder/configuration-repository/{policy-templates -> techniques}
+# - 2.4.0: Rename the properties 
+#               rudder.dir.policyPackages to rudder.dir.techniques
+#               rudder.batch.ptlib.updateInterval to rudder.batch.techniqueLibrary.updateInterval
+#               rudder.ptlib.git.refs.path to rudder.techniqueLibrary.git.refs.path
 #####################################################################################
 
 # Some variables
@@ -247,3 +251,10 @@ if [ -d /var/rudder/configuration-repository/policy-library -a ! -d /var/rudder/
 
 	cd /var/rudder/configuration-repository/ && git commit -m "Rename directory for policy-library to directives, rename userPolicyTemplateSettings.xml files to activeTechniqueSettings.xml and change some tags in activeTechniqueSettings.xml" > /dev/null
 fi
+
+# 2.4.0~alpha6 : Rename the properties that have changed in 2.4
+sed -i 's/^rudder.dir.policyPackages *=/rudder.dir.techniques=/' /opt/rudder/etc/rudder-web.properties
+sed -i 's/^rudder.batch.ptlib.updateInterval *=/rudder.batch.techniqueLibrary.updateInterval=/' /opt/rudder/etc/rudder-web.properties
+sed -i 's/^rudder.ptlib.git.refs.path *=/rudder.techniqueLibrary.git.refs.path=/' /opt/rudder/etc/rudder-web.properties
+
+
