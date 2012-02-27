@@ -60,7 +60,7 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
 
 # BuildRequires:
-Requires: jre
+Requires: jre >= 1.6
 
 %description
 Rudder is an open source configuration management and audit solution.
