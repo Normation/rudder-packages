@@ -6,4 +6,4 @@
 +JAVA="/usr/bin/java"
  JAVA_OPTIONS="$JAVA_OPTIONS
  -server
- -Xms512m -Xmx512m
+ -Xms1024m -Xmx1024m
