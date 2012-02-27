@@ -2,7 +2,7 @@ Source: rudder-plugin-helloworld
 Section: web
 Priority: extra
 Maintainer: Matthieu Cerda <matthieu.cerda@normation.com>
-Build-Depends: debhelper (>= 7), , sun-java6-jdk
+Build-Depends: debhelper (>= 7), sun-java6-jdk | java7-jdk
 Standards-Version: 3.8.0
 Homepage: http://www.rudder-project.org
 
