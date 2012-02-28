@@ -156,8 +156,9 @@ if [ $RES -eq 0 ]; then
 fi
 
 # Upgrade database schema from 2.3 to 2.4 if necessary - second part: technique human name
-RES=$(su - postgres -c "psql -t -d rudder -c \"select count(attname) from pg_attribute where attrelid = (select oid from pg_class where relname = 'policyinstances') and attname = 'policytemplatehumanname'\"")
-if [ $RES -eq 0 ]; then
+RES1=$(su - postgres -c "psql -t -d rudder -c \"select count(attname) from pg_attribute where attrelid = (select oid from pg_class where relname = 'policyinstances') and attname = 'policytemplatehumanname'\"")
+RES2=$(su - postgres -c "psql -t -d rudder -c \"select count(attname) from pg_attribute where attrelid = (select oid from pg_class where relname = 'directives') and attname = 'techniquehumanname'\"")
+if [ $RES1 -eq 0 -a $RES2 -eq 0 ]; then
 	psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.3-2.4-PT-history.sql > /dev/null
 fi
 
