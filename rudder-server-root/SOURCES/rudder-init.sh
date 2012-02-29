@@ -149,7 +149,13 @@ else
 	  fi
 	fi
 	#6th Step: Initial Promises
-	if [ -e /var/cfengine/inputs ] || [ -e /var/rudder/cfengine-comunity/inputs ]
+	if [ -e /var/cfengine/inputs ];then
+		INITREP=/var/cfengine/inputs
+	else
+		INITREP=/var/cfengine-community/inputs
+	fi
+	INITPRO=`ls ${INITREP} | wc -l`
+	if [ ${INITPRO} -ne 0 ]
 	then
 	  while ! echo "$ANSWER6" | grep "^\(yes\|no\)$"
 	  do
@@ -171,7 +177,9 @@ if [ $LDAPCHK -gt 0 ]
 then
   echo Reinitialize LDAP database? "$LDAPRESET"
 fi
-echo Reset Initial Promises? "$ANSWER6"
+if [ ${INITPRO} -ne 0 ];then
+	echo Reset Initial Promises? "$ANSWER6"
+fi
 echo
 Pause
 # Set Configuration
