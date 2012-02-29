@@ -81,11 +81,11 @@ then
     exit
   else
     ANSWER1=$1 #Hostname
-    ALLOWEDNETWORK[0]=$6 #ServerAllowed
-    ANSWER4=$3 #DemoSample
-    LDAPRESET=$4 #LDAPRESET
+    ALLOWEDNETWORK[0]=$5 #ServerAllowed
+    ANSWER4=$2 #DemoSample
+    LDAPRESET=$3 #LDAPRESET
     LDAPCHK=1
-    ANSWER6=$5 #InitialPromises
+    ANSWER6=$4 #InitialPromises
   fi
 else
 	echo
