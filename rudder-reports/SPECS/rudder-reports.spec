@@ -82,6 +82,7 @@ rm -rf %{buildroot}
 mkdir -p %{buildroot}%{rudderdir}/etc/postgresql/
 
 cp %{SOURCE1}/rudder/rudder-core/src/main/resources/reportsSchema.sql %{buildroot}%{rudderdir}/etc/postgresql/
+cp -a %[_sourcedir}/rudder-sources/rudder-techniques/techniques/system/distributePolicy/1.0/rsyslogConf.st %{buildroot}/etc/rsyslog.d/
 
 %pre -n rudder-reports
 #=================================================
@@ -139,6 +140,7 @@ rm -rf %{buildroot}
 %files -n rudder-reports
 %defattr(-, root, root, 0755)
 %{rudderdir}/etc/postgresql/reportsSchema.sql
+/etc/rsyslog.d/rudder.conf
 
 #=================================================
 # Changelog
