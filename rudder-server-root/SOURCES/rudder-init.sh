@@ -75,7 +75,7 @@ LDAPInit()
 #Check if arg are used
 if [ $# -gt 0 ]
 then
-  if [ $# -lt 6 ]
+  if [ $# -lt 5 ]
   then
     echo "usage: rudder-init.sh hostname DemoData LDAPReset InitialPromisesReset AllowedNetwork1 [AllowedNetwork2]..."
     exit
