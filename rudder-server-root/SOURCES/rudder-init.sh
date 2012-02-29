@@ -66,7 +66,6 @@ LDAPInit()
   sed -i "s%^base.url.*$%base.url=http://$ANSWER1/rudder%" $RUDDER_CONF_FILE
   sed -i "s/^\([^#].*\)%%POLICY_SERVER_HOSTNAME%%/\1$ANSWER1/g" $INITPOLICY_PATH
   sed -i "s#^\([^#].*\)%%POLICY_SERVER_ALLOWED_NETWORKS%%#\1$NET#g" $INITPOLICY_PATH
-  sed -i "s/^\([^#].*\)%%POLICY_SERVER_IP%%/\1$ANSWER3/g" $INITPOLICY_PATH
   /opt/rudder/sbin/slapadd -l $BOOTSTRAP_PATH &> $TMP_LOG
   ErrorCheck
   /opt/rudder/sbin/slapadd -l $INITPOLICY_PATH &> $TMP_LOG
@@ -78,12 +77,11 @@ if [ $# -gt 0 ]
 then
   if [ $# -lt 6 ]
   then
-    echo "usage: rudder-init.sh hostname serverIP DemoData LDAPReset InitialPromisesReset AllowedNetwork1 [AllowedNetwork2]..."
+    echo "usage: rudder-init.sh hostname DemoData LDAPReset InitialPromisesReset AllowedNetwork1 [AllowedNetwork2]..."
     exit
   else
     ANSWER1=$1 #Hostname
     ALLOWEDNETWORK[0]=$6 #ServerAllowed
-    ANSWER3=$2 #ServerIp
     ANSWER4=$3 #DemoSample
     LDAPRESET=$4 #LDAPRESET
     LDAPCHK=1
@@ -118,13 +116,6 @@ else
 	  done
 	  while ! echo "$again" | grep "^\(yes\|no\)$";do echo -n "Add more networks? (yes/no) ";read again;done
 	  ((cpt++))
-	done
-	# 3rd Step: Definition SERVER_IP
-	while ! echo "$ANSWER3" | grep "$REGEXPCHK2"
-	do
-	  echo
-	  echo -n "Enter server IP: "
-	  read ANSWER3
 	done
 	# 4th Step: Demo Sample
 	while ! echo "$ANSWER4" | grep "^\(yes\|no\)$"
@@ -171,7 +162,6 @@ fi
 echo
 echo Hostname: "$ANSWER1"
 echo Allowed networks: "${ALLOWEDNETWORK[*]}"
-echo Server IP: "$ANSWER3"
 echo Add sample data? "$ANSWER4"
 if [ $LDAPCHK -gt 0 ]
 then
@@ -212,13 +202,12 @@ then
   find $TMP_DIR/nova $TMP_DIR/community -name "cf-served.cf" -type f -exec sed -i "s@%%POLICY_SERVER_ALLOWED_NETWORKS%%@$NET2@g" {} \;
   find $TMP_DIR/nova $TMP_DIR/community -type f -exec sed -i "s/%%POLICY_SERVER_HOSTNAME%%/$ANSWER1/g" {} \;
   find $TMP_DIR/nova $TMP_DIR/community -type f -exec sed -i "s#%%POLICY_SERVER_ALLOWED_NETWORKS%%#$NET#g" {} \;
-  find $TMP_DIR/nova $TMP_DIR/community -type f -exec sed -i "s/%%POLICY_SERVER_IP%%/$ANSWER3/g" {} \;
   rm -rf /var/rudder/cfengine-community/inputs/*
   rm -rf /var/cfengine/inputs/*
   cp -r $TMP_DIR/community/* /var/rudder/cfengine-community/inputs/
   cp -r $TMP_DIR/nova/* /var/cfengine/inputs/
-  echo $ANSWER3 > /var/cfengine/policy_server.dat
-  echo $ANSWER3 > /var/rudder/cfengine-community/policy_server.dat
+  echo "127.0.0.1" > /var/cfengine/policy_server.dat
+  echo "127.0.0.1"> /var/rudder/cfengine-community/policy_server.dat
   echo " done."
 fi
 # LDAP (re)initialization
