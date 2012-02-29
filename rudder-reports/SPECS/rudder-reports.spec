@@ -80,9 +80,10 @@ calculate compliance to given configuration rules.
 rm -rf %{buildroot}
 # Directories
 mkdir -p %{buildroot}%{rudderdir}/etc/postgresql/
+mkdir -p %{buildroot}/etc/rsyslog.d
 
 cp %{SOURCE1}/rudder/rudder-core/src/main/resources/reportsSchema.sql %{buildroot}%{rudderdir}/etc/postgresql/
-cp -a %[_sourcedir}/rudder-sources/rudder-techniques/techniques/system/distributePolicy/1.0/rudder.st %{buildroot}/etc/rsyslog.d/rudder.conf
+cp -a %{SOURCE1}/rudder-techniques/techniques/system/distributePolicy/1.0/rudder.st %{buildroot}/etc/rsyslog.d/rudder.conf
 
 %pre -n rudder-reports
 #=================================================
