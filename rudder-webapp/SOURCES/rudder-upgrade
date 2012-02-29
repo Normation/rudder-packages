@@ -46,6 +46,8 @@ set -e
 #               rudder.dir.policyPackages to rudder.dir.techniques
 #               rudder.batch.ptlib.updateInterval to rudder.batch.techniqueLibrary.updateInterval
 #               rudder.ptlib.git.refs.path to rudder.techniqueLibrary.git.refs.path
+# - All versions: upgrade system Techniques automatically and reload the Techniqe library
+# - 2.4.0: Force upgrade of the rsyslog configuration, otherwise Rudder won't get any reports
 #####################################################################################
 
 # Some variables
@@ -253,9 +255,19 @@ if [ -d /var/rudder/configuration-repository/policy-library -a ! -d /var/rudder/
 	cd /var/rudder/configuration-repository/ && git commit -m "Rename directory for policy-library to directives, rename userPolicyTemplateSettings.xml files to activeTechniqueSettings.xml and change some tags in activeTechniqueSettings.xml" > /dev/null
 fi
 
-# 2.4.0~alpha6 : Rename the properties that have changed in 2.4
+# 2.4.0: Rename the properties that have changed in 2.4
 sed -i 's/^rudder.dir.policyPackages *=/rudder.dir.techniques=/' /opt/rudder/etc/rudder-web.properties
 sed -i 's/^rudder.batch.ptlib.updateInterval *=/rudder.batch.techniqueLibrary.updateInterval=/' /opt/rudder/etc/rudder-web.properties
 sed -i 's/^rudder.ptlib.git.refs.path *=/rudder.techniqueLibrary.git.refs.path=/' /opt/rudder/etc/rudder-web.properties
 
+# Upgrade system Techniques - always do this!
+diff -Naur /opt/rudder/share/techniques/system/ /var/rudder/configuration-repository/techniques/system/ > /dev/null
+RES=$?
+if [ $RES -ne 0 ]; then
+	cp -a /opt/rudder/share/techniques/system/ /var/rudder/configuration-repository/techniques/
+	cd /var/rudder/configuration-repository/ && git commit -m "Upgrade system Techniques - automatically done by rudder-upgrade script" techniques/system/
+	echo "Reloading the Technique library... " && curl http://localhost/rudder/api/techniqueLibrary/reload && echo ""
+fi
 
+# 2.4.0: force upgrade of the rsyslog configuration for rudder
+cp -a /var/rudder/configuration-repository/techniques/system/distributePolicy/1.0/rudder.st /var/rudder/cfengine-community/inputs/distributePolicy/rsyslog.conf/rudder.conf
