@@ -223,7 +223,7 @@ rm -rf %{buildroot}
 %{rudderdir}/share
 %{ruddervardir}/inventories/incoming
 %{ruddervardir}/inventories/received
-%{rudderlogdir}/apache2/
+%{rudderlogdir}/%{apache}/
 /etc/%{apache}/vhosts.d/
 
 
