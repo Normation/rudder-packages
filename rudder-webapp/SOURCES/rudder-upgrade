@@ -276,14 +276,13 @@ sed -i 's/^rudder.ptlib.git.refs.path *=/rudder.techniqueLibrary.git.refs.path=/
 # Upgrade system Techniques - always do this!
 SRCTECHDIR=/opt/rudder/share/techniques/system/
 TRGTECHDIR=/var/rudder/configuration-repository/techniques/system/
+
 if [ -d ${SRCTECHDIR} -a -d ${TRGTECHDIR} ]; then
-	diff -Naur /opt/rudder/share/techniques/system/ /var/rudder/configuration-repository/techniques/system/ > /dev/null
-fi
-RES=$?
-if [ $RES -ne 0 ]; then
-	cp -a /opt/rudder/share/techniques/system/ /var/rudder/configuration-repository/techniques/
-	cd /var/rudder/configuration-repository/ && git commit -m "Upgrade system Techniques - automatically done by rudder-upgrade script" techniques/system/
-	echo "Reloading the Technique library... " && curl http://localhost/rudder/api/techniqueLibrary/reload && echo ""
+	if ! diff -Naur /opt/rudder/share/techniques/system/ /var/rudder/configuration-repository/techniques/system/ > /dev/null; then
+		cp -a /opt/rudder/share/techniques/system/ /var/rudder/configuration-repository/techniques/
+		cd /var/rudder/configuration-repository/ && git commit -m "Upgrade system Techniques - automatically done by rudder-upgrade script" techniques/system/
+		echo "Reloading the Technique library... " && curl http://localhost/rudder/api/techniqueLibrary/reload && echo ""
+	fi
 fi
 
 # 2.4.0: force upgrade of the rsyslog configuration for rudder
