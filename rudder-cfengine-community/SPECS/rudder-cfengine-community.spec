@@ -52,7 +52,8 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 #Generic requirement
 BuildRequires: gcc, openssl-devel, bison, flex, pcre-devel
-Requires: pcre, openssl
+Requires: pcre, openssl, dmidecode
+
 #Specific requirement
 %if 0%{?sles_version} == 11
 BuildRequires: libdb-4_5-devel
