@@ -37,18 +37,21 @@
 
 %if 0%{?sles_version}
 %define apache		apache2
+%define apache_tools	apache2-utils
 %define apache_group	www
 %define htpasswd_cmd	htpasswd2
 %define sysloginitscript /etc/init.d/syslog
 %endif
 %if 0%{?el5}
 %define apache		httpd
+%define apache_tools	httpd-tools
 %define apache_group	apache
 %define htpasswd_cmd	htpasswd
 %define sysloginitscript /etc/init.d/syslog
 %endif
 %if 0%{?el6}
 %define apache		httpd
+%define apache_tools	httpd-tools
 %define apache_group	apache
 %define htpasswd_cmd	htpasswd
 %define sysloginitscript /etc/init.d/rsyslog
@@ -75,7 +78,7 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
 
 BuildRequires: jdk >= 1.6
-Requires: rudder-jetty rudder-inventory-ldap rudder-inventory-endpoint rudder-reports rudder-techniques apache2 apache2-utils git-core
+Requires: rudder-jetty rudder-inventory-ldap rudder-inventory-endpoint rudder-reports rudder-techniques %{apache} %{apache_tools} git-core
 
 %description
 Rudder is an open source configuration management and audit solution.
