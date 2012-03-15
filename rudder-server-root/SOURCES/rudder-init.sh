@@ -63,8 +63,7 @@ LDAPInit()
   cp /opt/rudder/share/bootstrap.ldif $BOOTSTRAP_PATH
   cp /opt/rudder/share/init-policy-server.ldif $INITPOLICY_PATH
   cp /opt/rudder/share/demo-data.ldif $INITDEMO_PATH
-  # Disabled: Looks useless as of now and breaks with some configurations
-  # sed -i "s%^base.url.*$%base.url=http://$ANSWER1/rudder%" $RUDDER_CONF_FILE
+  sed -i "s%^base.url.*$%base.url=http://$ANSWER1/rudder%" $RUDDER_CONF_FILE
   sed -i "s/^\([^#].*\)%%POLICY_SERVER_HOSTNAME%%/\1$ANSWER1/g" $INITPOLICY_PATH
   sed -i "s#^\([^#].*\)%%POLICY_SERVER_ALLOWED_NETWORKS%%#\1$NET#g" $INITPOLICY_PATH
   /opt/rudder/sbin/slapadd -l $BOOTSTRAP_PATH &> $TMP_LOG
@@ -98,7 +97,7 @@ else
 	# Menu
 	# 1st Step: Definition HOSTNAME
 	echo
-	echo -n "Please enter the fully qualified domain name that will be used by nodes to access this Rudder server (i.e rudder.example.com): "
+	echo -n "Please enter the fully qualified domain name that will be used to access the web interface of the Rudder server (i.e rudder.example.com): "
 	read ANSWER1
 	# 2nd Step: Definition SERVER_ALLOWED_NETWORK
 	while [ z$again = "zyes" ]
