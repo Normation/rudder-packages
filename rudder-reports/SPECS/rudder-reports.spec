@@ -93,6 +93,9 @@ cp -a %{SOURCE1}/rudder-techniques/techniques/system/distributePolicy/1.0/rudder
 /etc/init.d/postgresql status > /dev/null
 if [ $? -ne 0 ]
 then
+%if 0%{?el6}
+  /etc/init.d/postgresql initdb
+%endif
   /etc/init.d/postgresql start
 fi
 #HACK: Give rights for login without unix account
@@ -109,6 +112,9 @@ sed -i 1i"host    all             rudder          127.0.0.1/32            md5" /
 
 echo "Setting postgresql as a boot service"
 /sbin/chkconfig --add postgresql
+%if 0%{?el6}
+/sbin/chkconfig postgresql on
+%endif
 
 dbname="rudder"
 usrname="rudder"
