@@ -49,7 +49,7 @@ Group: Applications/System
 Source1: rudder-policy-templates
 Source2: rudder-init.sh
 Source3: uuid.hive
-Source4: rudder.logrotate
+Source4: rudder.logrotate.suse
 Source5: rudder-server-root.init
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)

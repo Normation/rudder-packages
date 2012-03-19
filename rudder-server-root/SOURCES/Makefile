@@ -27,7 +27,7 @@ localdepends: ./rudder-policy-templates ../debian/rudder-server-root.logrotate .
 	cd ./rudder-policy-templates && git checkout $(GIT_BRANCH_RUDDER) || rm -rf ./rudder-policy-templates
 
 ../debian/rudder-server-root.logrotate:
-	cp rudder.logrotate ../debian/rudder-server-root.logrotate
+	cp rudder.logrotate.debian ../debian/rudder-server-root.logrotate
 
 ../debian/rudder-server-root.init:
 	cp rudder-server-root.init ../debian/
