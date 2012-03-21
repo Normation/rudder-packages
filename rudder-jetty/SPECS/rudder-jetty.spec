@@ -36,6 +36,8 @@
 %define jetty_release    7.2.2
 %define date_release     20101205
 
+%define _binaries_in_noarch_packages_terminate_build   0
+
 #=================================================
 # Header
 #=================================================
