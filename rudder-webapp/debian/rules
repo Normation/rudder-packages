@@ -70,6 +70,9 @@ binary-arch: install
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/test/resources/script/ cfe-red-button.sh /opt/rudder/bin/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/ reportsInfo.xml /opt/rudder/etc/
 	cp $(CURDIR)/SOURCES/rudder-sources/rudder/rudder-web/src/main/resources/apache2-default.conf $(CURDIR)/BUILD/rudder-default
+	# Set log files location for apache
+	sed -i 's@%APACHE_ERRLOG_FILE%@/var/log/rudder/apache2/error.log@' $(CURDIR)/BUILD/rudder-default
+	sed -i 's@%APACHE_LOG_FILE%@/var/log/rudder/apache2/access.log@' $(CURDIR)/BUILD/rudder-default
 	dh_install --SOURCEDIR=$(CURDIR)/BUILD/ rudder-default /etc/apache2/sites-available/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder.xml /opt/rudder/jetty7/contexts/
 

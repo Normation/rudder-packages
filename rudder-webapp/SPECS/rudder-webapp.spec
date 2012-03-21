@@ -40,7 +40,8 @@
 %define apache_tools	apache2-utils
 %define apache_group	www
 %define htpasswd_cmd	htpasswd2
-%define sysloginitscript /etc/init.d/syslog
+%define sysloginitscript	/etc/init.d/syslog
+%define apache_vhost_dir	%{apache}/vhosts.d
 %endif
 %if 0%{?el5}
 %define apache		httpd
@@ -48,6 +49,7 @@
 %define apache_group	apache
 %define htpasswd_cmd	htpasswd
 %define sysloginitscript /etc/init.d/syslog
+%define apache_vhost_dir %{apache}/conf.d
 %endif
 %if 0%{?el6}
 %define apache		httpd
@@ -55,7 +57,11 @@
 %define apache_group	apache
 %define htpasswd_cmd	htpasswd
 %define sysloginitscript /etc/init.d/rsyslog
+%define apache_vhost_dir %{apache}/conf.d
 %endif
+
+%define apache_errlog_dir	%{rudderlogdir}/%{apache}/error.log
+%define apache_log_dir	%{rudderlogdir}/%{apache}/access.log
 
 #=================================================
 # Header
@@ -93,6 +99,8 @@ application server bundled in the rudder-jetty package.
 #=================================================
 %prep
 
+sed -i 's@%APACHE_ERRLOG_FILE%@%{apache_errlog_file}@' %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/apache2-default.conf
+sed -i 's@%APACHE_LOG_FILE%@%{apache_log_file}@' %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/apache2-default.conf
 cp -rf %{_sourcedir}/rudder-sources %{_builddir}
 
 #=================================================
@@ -124,7 +132,7 @@ mkdir -p %{buildroot}%{rudderdir}/share/upgrade-tools/
 mkdir -p %{buildroot}%{ruddervardir}/inventories/incoming
 mkdir -p %{buildroot}%{ruddervardir}/inventories/received
 mkdir -p %{buildroot}%{rudderlogdir}/%{apache}/
-mkdir -p %{buildroot}/etc/%{apache}/vhosts.d/
+mkdir -p %{buildroot}/etc/%{apache_vhost_dir}/
 
 cp %{SOURCE1} %{buildroot}%{rudderdir}/etc/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/ldap/bootstrap.ldif %{buildroot}%{rudderdir}/share/
@@ -138,7 +146,7 @@ cp %{_builddir}/rudder-sources/rudder/rudder-web/target/rudder-web*.war %{buildr
 cp -rf %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/load-page %{buildroot}%{rudderdir}/share/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/test/resources/script/cfe-red-button.sh %{buildroot}%{rudderdir}/bin/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/reportsInfo.xml %{buildroot}%{rudderdir}/etc/
-cp %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/apache2-default.conf %{buildroot}/etc/%{apache}/vhosts.d/
+cp %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/apache2-default.conf %{buildroot}/etc/%{apache_vhost_dir}/
 cp %{SOURCE2} %{buildroot}%{rudderdir}/jetty7/contexts/
 
 # Install upgrade tools
@@ -227,7 +235,7 @@ rm -rf %{buildroot}
 %{ruddervardir}/inventories/incoming
 %{ruddervardir}/inventories/received
 %{rudderlogdir}/%{apache}/
-/etc/%{apache}/vhosts.d/
+/etc/%{apache_vhost_dir}/
 
 
 #=================================================
