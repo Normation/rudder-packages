@@ -55,15 +55,15 @@ BuildArch: noarch
 Requires: postgresql-server >= 8
 Requires: rsyslog >= 4
 
-%if 0{?sles_version} == 10
+%if 0%{?sles_version} == 10
 Requires: %{suse_rsyslogpsl} >= 4
 %endif
 
-%if 0{?sles_version} == 11
+%if 0%{?sles_version} == 11
 Requires: %{suse_rsyslogpsl} >= 4
 %endif
 
-%if 0{?el6}
+%if 0%{?el6}
 Requires: rsyslog-pgsql >= 4
 %endif
 
