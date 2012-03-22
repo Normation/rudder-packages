@@ -31,6 +31,7 @@
 %define rudderdir        /opt/rudder
 %define ruddervardir     /var/rudder
 %define rudderlogdir     /var/log/rudder
+%define suse_rsyslogpsl  rsyslog-module-pgsql
 
 #=================================================
 # Header
@@ -53,7 +54,18 @@ BuildArch: noarch
 #BuildRequires: gcc
 Requires: postgresql-server >= 8
 Requires: rsyslog >= 4
-Requires: rsyslog-module-pgsql >= 4
+
+if 0{?sles_version} == 10
+Requires: %{suse_rsyslogpsl} >= 4
+endif
+
+%if 0{?sles_version} == 11
+Requires: %{suse_rsyslogpsl} >= 4
+endif
+
+%if 0{?el6}
+Requires: rsyslog-pgsql >= 4
+%endif
 
 %description
 Rudder is an open source configuration management and audit solution.
