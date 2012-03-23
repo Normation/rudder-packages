@@ -60,8 +60,8 @@
 %define apache_vhost_dir %{apache}/conf.d
 %endif
 
-%define apache_errlog_dir	%{rudderlogdir}/%{apache}/error.log
-%define apache_log_dir	%{rudderlogdir}/%{apache}/access.log
+%define apache_errlog_file %{rudderlogdir}/%{apache}/error.log
+%define apache_log_file    %{rudderlogdir}/%{apache}/access.log
 
 #=================================================
 # Header
