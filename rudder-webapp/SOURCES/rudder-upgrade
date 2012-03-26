@@ -287,5 +287,6 @@ fi
 
 # 2.4.0: force upgrade of the rsyslog configuration for rudder
 if [ -d ${TRGTECHDIR} ];then
+	mkdir -p /var/rudder/cfengine-community/inputs/distributePolicy/rsyslog.conf
 	cp -a /var/rudder/configuration-repository/techniques/system/distributePolicy/1.0/rudder.st /var/rudder/cfengine-community/inputs/distributePolicy/rsyslog.conf/rudder.conf
 fi
