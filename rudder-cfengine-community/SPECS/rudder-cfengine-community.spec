@@ -52,22 +52,24 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 #Generic requirement
 BuildRequires: gcc, openssl-devel, bison, flex, pcre-devel
-Requires: pcre, openssl, dmidecode
+Requires: pcre, openssl
 
 #Specific requirement
 %if 0%{?sles_version} == 11
 BuildRequires: libdb-4_5-devel
-Requires: libdb-4_5
+Requires: libdb-4_5 pmtools
 %endif
 %if 0%{?sles_version} == 10
 BuildRequires: db42-devel
-Requires: db42
+Requires: db42 pmtools
+%endif
+%if 0%{?rhel_version}
+Requires: dmidecode
 %endif
 %if 0%{?rhel}
 BuildRequires: db4-devel openssl-devel
 Requires: db4
 %endif
-
 
 
 %description

@@ -34,8 +34,8 @@ localdepends: ./rudder-sources ../debian/rudder-server-root.logrotate ../debian/
 ./rudder.logrotate: ./rudder-sources
 	cp -a ./rudder-sources/rudder-techniques/techniques/system/distributePolicy/1.0/logrotate.st ./rudder.logrotate
 
-../debian/rudder-server-root.logrotate: ./rudder.logrotate
-	cp ./rudder.logrotate ../debian/rudder-server-root.logrotate
+../debian/rudder-server-root.logrotate:
+	cp rudder.logrotate.debian ../debian/rudder-server-root.logrotate
 
 ../debian/rudder-server-root.init:
 	cp rudder-server-root.init ../debian/
