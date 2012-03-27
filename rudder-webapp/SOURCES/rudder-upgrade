@@ -48,6 +48,7 @@ set -e
 #               rudder.ptlib.git.refs.path to rudder.techniqueLibrary.git.refs.path
 # - All versions: upgrade system Techniques automatically and reload the Techniqe library
 # - 2.4.0: Force upgrade of the rsyslog configuration, otherwise Rudder won't get any reports
+# - 2.4.0 : Migration DB schema to change the indexes in the SQL database to improve performances
 #####################################################################################
 
 # Some variables
@@ -169,6 +170,13 @@ RES=$(su - postgres -c "psql -t -d rudder -c \"select count(attname) from pg_att
 if [ $RES -eq 0 ]; then
 	psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.3-2.4-PI-PT-CR-names-changed.sql > /dev/null
 fi
+
+# Upgrade database schema from 2.3 to 2.4 if necessary - fourth part: change the indexes of the databases to improve performance (caution, it might be slow on large databases)
+RES=$(su - postgres -c "psql -t -d rudder -c \"select count(oid) from pg_class where lower(relname) = 'component_idx'\"")
+if [ $RES -eq 0 ]; then
+        psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.3-2.4-index.sql > /dev/null
+fi
+
 
 # Upgrade LDAP schema from 2.3 to 2.4 if necessary: On RPM-like systems, we must upgrade the slapd.conf file manually
 RES=$(grep isActivated /opt/rudder/etc/openldap/slapd.conf | wc -l)
