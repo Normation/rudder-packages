@@ -94,7 +94,7 @@ buildPerl () {
 
 }
 
-PERLVERSION="5.12.1"
+PERLVERSION="5.12.4"
 
 # Clean up
 if [ "$NO_CLEANUP" = "0" ]; then

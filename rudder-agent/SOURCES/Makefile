@@ -67,7 +67,7 @@ localdepends: ./initial-promises ./files ./fusioninventory-agent ./cfengine-sour
 	$(WGET) -O ./files/IO-Socket-SSL-1.33.tar.gz http://www.cpan.org/modules/by-module/IO/IO-Socket-SSL-1.33.tar.gz
 	$(WGET) -O ./files/libwww-perl-5.836.tar.gz http://search.cpan.org/CPAN/authors/id/G/GA/GAAS/libwww-perl-5.836.tar.gz
 	$(WGET) -O ./files/Net-IP-1.25.tar.gz http://www.cpan.org/modules/by-module/Net/Net-IP-1.25.tar.gz
-	$(WGET) -O ./files/perl-5.12.1.tar.gz http://www.cpan.org/src/5.0/perl-5.12.1.tar.gz
+	$(WGET) -O ./files/perl-5.12.4.tar.gz http://www.cpan.org/src/5.0/perl-5.12.4.tar.gz
 	$(WGET) -O ./files/UNIVERSAL-require-0.13.tar.gz http://www.cpan.org/modules/by-module/UNIVERSAL/UNIVERSAL-require-0.13.tar.gz
 	$(WGET) -O ./files/URI-1.56.tar.gz http://www.cpan.org/modules/by-module/URI/URI-1.56.tar.gz
 	$(WGET) -O ./files/XML-SAX-0.96.tar.gz http://www.cpan.org/modules/by-module/XML/XML-SAX-0.96.tar.gz
