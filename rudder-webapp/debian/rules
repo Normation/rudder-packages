@@ -10,6 +10,9 @@
 #export DH_VERBOSE=1
 
 TMP_DIR := $(shell mktemp -dq)
+# Set JAVA_HOME according to available JVM
+# We support Sun Java 6 or OpenJDK 7, privilege later versions (sort -r)
+export JAVA_HOME := $(shell find /usr/lib/jvm -maxdepth 1 -type d -name java-7-openjdk-i386 -or -name java-7-openjdk-amd64 -or -name java-6-sun | sort -r | head -n1)
 
 configure: configure-stamp
 configure-stamp:
