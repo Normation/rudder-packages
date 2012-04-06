@@ -21,6 +21,12 @@ set -e
 case "$1" in
     configure)
 		invoke-rc.d rsyslog reload
+  #Check if postgresql is started
+  /etc/init.d/postgresql status > /dev/null
+  if [ $? -ne 0 ]
+  then
+    /etc/init.d/postgresql start
+  fi
   dbname="rudder"
   usrname="rudder"
   RES=$(su postgres -c "psql -t -c \"select count(1) from pg_catalog.pg_database where datname = '$dbname'\"")

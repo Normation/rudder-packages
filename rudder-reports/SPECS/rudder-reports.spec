@@ -124,6 +124,12 @@ fi
 #=================================================
 # Post Installation
 #=================================================
+#Check if postgresql is started
+/etc/init.d/postgresql status > /dev/null
+if [ $? -ne 0 ]
+then
+  /etc/init.d/postgresql start
+fi
 
 echo "Setting postgresql as a boot service"
 /sbin/chkconfig --add postgresql
