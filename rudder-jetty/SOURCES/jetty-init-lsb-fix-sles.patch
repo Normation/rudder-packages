@@ -8,7 +8,7 @@
 +#
 +### BEGIN INIT INFO
 +# Provides:                     jetty
-+# Required-Start:               $local_fs $remote_fs $network 
++# Required-Start:               $local_fs $remote_fs $network slapd
 +# Should-Start:
 +# Should-Stop:
 +# Required-Stop:                $local_fs $remote_fs $network
