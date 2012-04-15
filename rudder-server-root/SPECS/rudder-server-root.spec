@@ -139,7 +139,7 @@ rm -rf %{buildroot}
 %{ruddervardir}/cfengine-community/masterfiles
 /var/cfengine/masterfiles
 /var/cfengine/inputs
-/etc/init.d/rudder-server-root
+%attr(0755, root, root) /etc/init.d/rudder-server-root
 
 #=================================================
 # Changelog
