@@ -147,7 +147,7 @@ cp %{_builddir}/rudder-sources/rudder/rudder-web/target/rudder-web*.war %{buildr
 cp -rf %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/load-page %{buildroot}%{rudderdir}/share/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/test/resources/script/cfe-red-button.sh %{buildroot}%{rudderdir}/bin/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/reportsInfo.xml %{buildroot}%{rudderdir}/etc/
-cp %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/apache2-default.conf %{buildroot}/etc/%{apache_vhost_dir}/
+cp %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/apache2-default.conf %{buildroot}/etc/%{apache_vhost_dir}/rudder-default.conf
 cp %{SOURCE2} %{buildroot}%{rudderdir}/jetty7/contexts/
 
 # Install upgrade tools
@@ -238,6 +238,7 @@ rm -rf %{buildroot}
 %{ruddervardir}/inventories/received
 %{rudderlogdir}/%{apache}/
 /etc/%{apache_vhost_dir}/
+%config{noreplace} /etc/%{apache_vhost_dir}/rudder-default.conf
 
 
 #=================================================
