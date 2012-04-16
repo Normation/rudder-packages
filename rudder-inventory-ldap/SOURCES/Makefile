@@ -18,7 +18,7 @@
 
 .DEFAULT_GOAL := localdepends
 
-OPENLDAP_RELEASE = 2.4.23
+OPENLDAP_RELEASE = 2.4.30
 RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
 TMP_DIR := $(shell mktemp -dq)
 WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget
