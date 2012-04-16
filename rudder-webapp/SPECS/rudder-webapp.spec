@@ -114,7 +114,7 @@ cp %{_builddir}/source/rudder/rudder-web/target/rudder-web*.war %{buildroot}%{ru
 cp -rf %{_sourcedir}/source/rudder/rudder-web/src/main/resources/load-page %{buildroot}%{rudderdir}/share/
 cp %{_sourcedir}/source/rudder/rudder-core/src/test/resources/script/cfe-red-button.sh %{buildroot}%{rudderdir}/bin/
 cp %{_sourcedir}/source/rudder/rudder-core/src/main/resources/reportsInfo.xml %{buildroot}%{rudderdir}/etc/
-cp %{_sourcedir}/source/rudder/rudder-web/src/main/resources/apache2-default.conf %{buildroot}/etc/apache2/vhosts.d/
+cp %{_sourcedir}/source/rudder/rudder-web/src/main/resources/apache2-default.conf %{buildroot}/etc/apache2/vhosts.d/rudder-default.conf
 cp %{SOURCE2} %{buildroot}%{rudderdir}/jetty7/contexts/
 
 %pre -n rudder-webapp
@@ -231,6 +231,7 @@ rm -rf %{buildroot}
 %{ruddervardir}/inventories/received
 %{rudderlogdir}/apache2/
 /etc/apache2/vhosts.d/
+%config{noreplace} /etc/apache2/vhosts.d/rudder-default.conf
 
 
 #=================================================
