@@ -238,7 +238,7 @@ rm -rf %{buildroot}
 %{ruddervardir}/inventories/received
 %{rudderlogdir}/%{apache}/
 /etc/%{apache_vhost_dir}/
-%config{noreplace} /etc/%{apache_vhost_dir}/rudder-default.conf
+%config(noreplace) /etc/%{apache_vhost_dir}/rudder-default.conf
 
 
 #=================================================
