@@ -57,6 +57,7 @@ set -e
 RUDDER_SHARE=/opt/rudder/share
 RUDDER_OPENLDAP_DATA=/var/rudder/ldap/openldap-data
 RUDDER_UPGRADE_TOOLS=${RUDDER_SHARE}/upgrade-tools
+LDAP_EXISTS=$(/opt/rudder/sbin/slapcat 2>/dev/null | grep "rudder-configuration" | wc -l)
 
 
 # Helper function
@@ -218,7 +219,7 @@ fi
 
 # Upgrade LDAP schema from 2.3 to 2.4 if necessary: Aadd new entries about removed inventories
 LDAP_TEST_REMOVED_INVENTORIES=$(/opt/rudder/sbin/slapcat 2>/dev/null | grep "Removed Inventories" | wc -l)
-if [ ${LDAP_TEST_REMOVED_INVENTORIES} -ne 4  ]; then
+if [ ${LDAP_TEST_REMOVED_INVENTORIES} -ne 4 -a ! ${LDAP_EXISTS}  ]; then
 	echo "***** ATTENTION *****"
 	echo "The Rudder OpenLDAP schema is not up to date."
 	echo "Updating..."
