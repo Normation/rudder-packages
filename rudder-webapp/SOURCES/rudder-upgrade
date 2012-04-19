@@ -37,10 +37,12 @@ set -e
 # - 2.3.2: Add "rudder.dir.shared.files.folder" configuration parameter to rudder-web.properties
 # - 2.4.0: Add "rudder.autoArchiveItems" configuration parameter to rudder-web.properties 
 # - 2.4.0: Add "rudder.autoDeployOnModification" configuration parameter to rudder-web.properties
+# - 2.4.0: Add "ldap.inventories.removed.basedn" configuration parameter to rudder-web.properties
 # - 2.4.0: Migration DB schema to add a column to the SQL database for group type (static/dynamic)
 # - 2.4.0: Migration DB schema to add a column to the SQL database for technique human name
 # - 2.4.0: Migration DB schema to rename many columns and tables for the new naming scheme (PT->Technique, etc)
 # - 2.4.0: Migration LDAP schema to rename many columns and tables for the new naming scheme (PT->Technique, etc)
+# - 2.4.0: Migration LDAP schema to add new entries about removed inventories
 # - 2.4.0: Move /var/rudder/configuration-repository/{policy-templates -> techniques}
 # - 2.4.0: Rename the properties 
 #               rudder.dir.policyPackages to rudder.dir.techniques
@@ -152,6 +154,12 @@ check_and_add_config_property rudder.rest.allowNonAuthenticatedUser "#
 #
 rudder.rest.allowNonAuthenticatedUser=true"
 
+# Check for configuration property added in 2.4
+check_and_add_config_property ldap.inventories.removed.basedn "#
+# Inventories information on removed inventories
+ldap.inventories.removed.basedn=ou=Removed Inventories, ou=Inventories, cn=rudder-configuration
+"
+
 # Upgrade database schema from 2.3 to 2.4 if necessary - first part: group type (static/dynamic)
 RES=$(su - postgres -c "psql -t -d rudder -c \"select count(attname) from pg_attribute where attrelid = (select oid from pg_class where relname = 'groups') and attname = 'groupstatus'\"")
 if [ $RES -eq 0 ]; then
@@ -207,6 +215,17 @@ if [ ${OLD_LDAP_TEST} -ne 0 ]; then
 	/etc/init.d/slapd start
 	echo "...done"
 fi
+
+# Upgrade LDAP schema from 2.3 to 2.4 if necessary: Aadd new entries about removed inventories
+LDAP_TEST_REMOVED_INVENTORIES=$(/opt/rudder/sbin/slapcat 2>/dev/null | grep "Removed Inventories" | wc -l)
+if [ ${LDAP_TEST_REMOVED_INVENTORIES} -ne 4  ]; then
+	echo "***** ATTENTION *****"
+	echo "The Rudder OpenLDAP schema is not up to date."
+	echo "Updating..."
+	/opt/rudder/bin/ldapadd -x -D cn=Manager,cn=rudder-configuration -w secret -H ldap://localhost -f ${RUDDER_UPGRADE_TOOLS}/rudder-upgrade-LDAP-schema-2.3-2.4-add-entries.ldif
+	echo "...done"
+fi
+
 
 # Migrate from old policy-template store in /var/rudder/configuration-repository/policy-templates
 # to 2.4.0 in /var/rudder/configuration-repository/techniques
