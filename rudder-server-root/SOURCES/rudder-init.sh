@@ -143,7 +143,7 @@ else
 	if [ -e /var/cfengine/inputs ];then
 		INITREP=/var/cfengine/inputs
 	else
-		INITREP=/var/cfengine-community/inputs
+		INITREP=/var/rudder/cfengine-community/inputs
 	fi
 	INITPRO=`ls ${INITREP} | wc -l`
 	if [ ${INITPRO} -ne 0 ]
