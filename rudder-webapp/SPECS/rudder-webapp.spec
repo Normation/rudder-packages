@@ -36,28 +36,28 @@
 %define maven_settings settings-external.xml
 
 %if 0%{?sles_version}
-%define apache		apache2
-%define apache_tools	apache2-utils
-%define apache_group	www
-%define htpasswd_cmd	htpasswd2
-%define sysloginitscript	/etc/init.d/syslog
-%define apache_vhost_dir	%{apache}/vhosts.d
+%define apache              apache2
+%define apache_tools        apache2-utils
+%define apache_group        www
+%define htpasswd_cmd        htpasswd2
+%define sysloginitscript    /etc/init.d/syslog
+%define apache_vhost_dir    %{apache}/vhosts.d
 %endif
 %if 0%{?el5}
-%define apache		httpd
-%define apache_tools	httpd-tools
-%define apache_group	apache
-%define htpasswd_cmd	htpasswd
-%define sysloginitscript /etc/init.d/syslog
-%define apache_vhost_dir %{apache}/conf.d
+%define apache              httpd
+%define apache_tools        httpd-tools
+%define apache_group        apache
+%define htpasswd_cmd        htpasswd
+%define sysloginitscript    /etc/init.d/syslog
+%define apache_vhost_dir    %{apache}/conf.d
 %endif
 %if 0%{?el6}
-%define apache		httpd
-%define apache_tools	httpd-tools
-%define apache_group	apache
-%define htpasswd_cmd	htpasswd
-%define sysloginitscript /etc/init.d/rsyslog
-%define apache_vhost_dir %{apache}/conf.d
+%define apache              httpd
+%define apache_tools        httpd-tools
+%define apache_group        apache
+%define htpasswd_cmd        htpasswd
+%define sysloginitscript    /etc/init.d/rsyslog
+%define apache_vhost_dir    %{apache}/conf.d
 %endif
 
 %define apache_errlog_file %{rudderlogdir}/%{apache}/error.log
@@ -100,7 +100,7 @@ application server bundled in the rudder-jetty package.
 %prep
 
 sed -i 's@%APACHE_ERRLOG_FILE%@%{apache_errlog_file}@' %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/apache2-default.conf
-sed -i 's@%APACHE_LOG_FILE%@%{apache_log_file}@' %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/apache2-default.conf
+sed -i 's@%APACHE_LOG_FILE%@%{apache_log_file}@'       %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/apache2-default.conf
 cp -rf %{_sourcedir}/rudder-sources %{_builddir}
 
 #=================================================
@@ -109,12 +109,13 @@ cp -rf %{_sourcedir}/rudder-sources %{_builddir}
 %build
 
 cd %{_builddir}/rudder-sources/rudder-parent-pom && %{_sourcedir}/maven2/bin/mvn -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
-cd %{_builddir}/rudder-sources/rudder-commons && %{_sourcedir}/maven2/bin/mvn -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
-cd %{_builddir}/rudder-sources/scala-ldap && %{_sourcedir}/maven2/bin/mvn -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
-cd %{_builddir}/rudder-sources/ldap-inventory && %{_sourcedir}/maven2/bin/mvn -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
-cd %{_builddir}/rudder-sources/cf-clerk && %{_sourcedir}/maven2/bin/mvn -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
-cd %{_builddir}/rudder-sources/rudder && %{_sourcedir}/maven2/bin/mvn -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install package
+cd %{_builddir}/rudder-sources/rudder-commons    && %{_sourcedir}/maven2/bin/mvn -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
+cd %{_builddir}/rudder-sources/scala-ldap        && %{_sourcedir}/maven2/bin/mvn -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
+cd %{_builddir}/rudder-sources/ldap-inventory    && %{_sourcedir}/maven2/bin/mvn -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
+cd %{_builddir}/rudder-sources/cf-clerk          && %{_sourcedir}/maven2/bin/mvn -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
+cd %{_builddir}/rudder-sources/rudder            && %{_sourcedir}/maven2/bin/mvn -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install package
 
+#=================================================
 # Installation
 #=================================================
 %install
@@ -146,7 +147,7 @@ cp %{_builddir}/rudder-sources/rudder/rudder-web/target/rudder-web*.war %{buildr
 cp -rf %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/load-page %{buildroot}%{rudderdir}/share/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/test/resources/script/cfe-red-button.sh %{buildroot}%{rudderdir}/bin/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/reportsInfo.xml %{buildroot}%{rudderdir}/etc/
-cp %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/apache2-default.conf %{buildroot}/etc/%{apache_vhost_dir}/
+cp %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/apache2-default.conf %{buildroot}/etc/%{apache_vhost_dir}/rudder-default.conf
 cp %{SOURCE2} %{buildroot}%{rudderdir}/jetty7/contexts/
 
 # Install upgrade tools
@@ -159,6 +160,7 @@ cp %{_sourcedir}/rudder-upgrade-LDAP-schema-2.3-2.4-PI-PT-CR-names-changed.pl %{
 cp %{_sourcedir}/rudder-upgrade-LDAP-schema-2.3-2.4-PI-PT-CR-names-changed-attribute-map.csv %{buildroot}%{rudderdir}/share/upgrade-tools/
 cp %{_sourcedir}/rudder-upgrade-LDAP-schema-2.3-2.4-PI-PT-CR-names-changed-objectclass-map.csv %{buildroot}%{rudderdir}/share/upgrade-tools/
 cp %{_sourcedir}/rudder-upgrade-LDAP-schema-2.3-2.4-PI-PT-CR-names-changed-branches-map.csv %{buildroot}%{rudderdir}/share/upgrade-tools/
+cp %{_sourcedir}/rudder-upgrade-LDAP-schema-2.3-2.4-add-entries.ldif %{buildroot}%{rudderdir}/share/upgrade-tools/
 
 cp %{SOURCE5} %{buildroot}%{rudderdir}/bin/
 
@@ -238,6 +240,7 @@ rm -rf %{buildroot}
 %{ruddervardir}/inventories/received
 %{rudderlogdir}/%{apache}/
 /etc/%{apache_vhost_dir}/
+%config(noreplace) /etc/%{apache_vhost_dir}/rudder-default.conf
 
 
 #=================================================
