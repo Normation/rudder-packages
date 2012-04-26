@@ -80,7 +80,7 @@ localdepends: ./initial-promises ./files ./fusioninventory-agent ./cfengine-sour
 	#Orignal URL: http://www.cpan.org/modules/by-module/Net/Net-IP-1.25.tar.gz
 	$(WGET) -O ./files/Net-IP-1.25.tar.gz http://www.normation.com/tarball/Net-IP-1.25.tar.gz
 	#Original URL: http://www.cpan.org/src/5.0/perl-5.12.4.tar.gz
-	$(WGET) -O ./files/perl-5.12.1.tar.gz http://www.normation.com/tarball/perl-5.12.4.tar.gz
+	$(WGET) -O ./files/perl-5.12.4.tar.gz http://www.normation.com/tarball/perl-5.12.4.tar.gz
 	#Original URL: http://www.cpan.org/modules/by-module/UNIVERSAL/UNIVERSAL-require-0.13.tar.gz
 	$(WGET) -O ./files/UNIVERSAL-require-0.13.tar.gz http://www.normation.com/tarball/UNIVERSAL-require-0.13.tar.gz
 	#Original URL: http://www.cpan.org/modules/by-module/URI/URI-1.56.tar.gz
