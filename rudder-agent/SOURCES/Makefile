@@ -55,23 +55,41 @@ localdepends: ./initial-promises ./files ./fusioninventory-agent ./cfengine-sour
 
 ./files: /usr/bin/wget
 	mkdir ./files
-	$(WGET) -O ./files/App-cpanminus-1.0004.tar.gz http://www.cpan.org/modules/by-module/App/App-cpanminus-1.0004.tar.gz
-	$(WGET) -O ./files/Archive-Extract-0.42.tar.gz http://www.cpan.org/modules/by-module/Archive/Archive-Extract-0.42.tar.gz
-	$(WGET) -O ./files/Compress-Raw-Bzip2-2.027.tar.gz http://www.cpan.org/modules/by-module/Compress/Compress-Raw-Bzip2-2.027.tar.gz
-	$(WGET) -O ./files/Compress-Raw-Zlib-2.027.tar.gz http://www.cpan.org/modules/by-module/Compress/Compress-Raw-Zlib-2.027.tar.gz
-	$(WGET) -O ./files/Crypt-SSLeay-0.57.tar.gz http://www.cpan.org/modules/by-module/Crypt/Crypt-SSLeay-0.57.tar.gz
-	$(WGET) -O ./files/Digest-MD5-2.39.tar.gz http://www.cpan.org/modules/by-module/Digest/Digest-MD5-2.39.tar.gz
-	$(WGET) -O ./files/HTML-Parser-3.65.tar.gz http://www.cpan.org/modules/by-module/HTML/HTML-Parser-3.65.tar.gz
-	$(WGET) -O ./files/HTML-Tagset-3.20.tar.gz http://www.cpan.org/modules/by-module/HTML/HTML-Tagset-3.20.tar.gz
-	$(WGET) -O ./files/IO-Compress-2.027.tar.gz http://www.cpan.org/modules/by-module/IO/IO-Compress-2.027.tar.gz
-	$(WGET) -O ./files/IO-Socket-SSL-1.33.tar.gz http://www.cpan.org/modules/by-module/IO/IO-Socket-SSL-1.33.tar.gz
-	$(WGET) -O ./files/libwww-perl-5.836.tar.gz http://search.cpan.org/CPAN/authors/id/G/GA/GAAS/libwww-perl-5.836.tar.gz
-	$(WGET) -O ./files/Net-IP-1.25.tar.gz http://www.cpan.org/modules/by-module/Net/Net-IP-1.25.tar.gz
-	$(WGET) -O ./files/perl-5.12.4.tar.gz http://www.cpan.org/src/5.0/perl-5.12.4.tar.gz
-	$(WGET) -O ./files/UNIVERSAL-require-0.13.tar.gz http://www.cpan.org/modules/by-module/UNIVERSAL/UNIVERSAL-require-0.13.tar.gz
-	$(WGET) -O ./files/URI-1.56.tar.gz http://www.cpan.org/modules/by-module/URI/URI-1.56.tar.gz
-	$(WGET) -O ./files/XML-SAX-0.96.tar.gz http://www.cpan.org/modules/by-module/XML/XML-SAX-0.96.tar.gz
-	$(WGET) -O ./files/XML-Simple-2.18.tar.gz http://www.cpan.org/modules/by-module/XML/XML-Simple-2.18.tar.gz
+
+	#Original URL: http://www.cpan.org/modules/by-module/App/App-cpanminus-1.0004.tar.gz
+	$(WGET) -O ./files/App-cpanminus-1.0004.tar.gz http://www.normation.com/tarball/App-cpanminus-1.0004.tar.gz
+	#Original URL: http://www.cpan.org/modules/by-module/Archive/Archive-Extract-0.42.tar.gz
+	$(WGET) -O ./files/Archive-Extract-0.42.tar.gz http://www.normation.com/tarball/Archive-Extract-0.42.tar.gz
+	#Original URL: http://www.cpan.org/modules/by-module/Compress/Compress-Raw-Bzip2-2.027.tar.gz
+	$(WGET) -O ./files/Compress-Raw-Bzip2-2.027.tar.gz http://www.normation.com/tarball/Compress-Raw-Bzip2-2.027.tar.gz
+	#Original URL: http://www.cpan.org/modules/by-module/Compress/Compress-Raw-Zlib-2.027.tar.gz
+	$(WGET) -O ./files/Compress-Raw-Zlib-2.027.tar.gz http://www.normation.com/tarball/Compress-Raw-Zlib-2.027.tar.gz
+	#Original URL: http://www.cpan.org/modules/by-module/Crypt/Crypt-SSLeay-0.57.tar.gz
+	$(WGET) -O ./files/Crypt-SSLeay-0.57.tar.gz http://www.normation.com/tarball/Crypt-SSLeay-0.57.tar.gz
+	#Original URL: http://www.cpan.org/modules/by-module/Digest/Digest-MD5-2.39.tar.gz
+	$(WGET) -O ./files/Digest-MD5-2.39.tar.gz http://www.normation.com/tarball/Digest-MD5-2.39.tar.gz
+	#Original URL: http://www.cpan.org/modules/by-module/HTML/HTML-Parser-3.65.tar.gz
+	$(WGET) -O ./files/HTML-Parser-3.65.tar.gz http://www.normation.com/tarball/HTML-Parser-3.65.tar.gz
+	#Original URL: http://www.cpan.org/modules/by-module/HTML/HTML-Tagset-3.20.tar.gz
+	$(WGET) -O ./files/HTML-Tagset-3.20.tar.gz http://www.normation.com/tarball/HTML-Tagset-3.20.tar.gz
+	#Original URL: http://www.cpan.org/modules/by-module/IO/IO-Compress-2.027.tar.gz
+	$(WGET) -O ./files/IO-Compress-2.027.tar.gz http://www.normation.com/tarball/IO-Compress-2.027.tar.gz
+	#Original URL: http://www.cpan.org/modules/by-module/IO/IO-Socket-SSL-1.33.tar.gz
+	$(WGET) -O ./files/IO-Socket-SSL-1.33.tar.gz http://www.normation.com/tarball/IO-Socket-SSL-1.33.tar.gz
+	#Original URL: http://search.cpan.org/CPAN/authors/id/G/GA/GAAS/libwww-perl-5.836.tar.gz
+	$(WGET) -O ./files/libwww-perl-5.836.tar.gz http://www.normation.com/tarball/libwww-perl-5.836.tar.gz
+	#Orignal URL: http://www.cpan.org/modules/by-module/Net/Net-IP-1.25.tar.gz
+	$(WGET) -O ./files/Net-IP-1.25.tar.gz http://www.normation.com/tarball/Net-IP-1.25.tar.gz
+	#Original URL: http://www.cpan.org/src/5.0/perl-5.12.4.tar.gz
+	$(WGET) -O ./files/perl-5.12.4.tar.gz http://www.normation.com/tarball/perl-5.12.4.tar.gz
+	#Original URL: http://www.cpan.org/modules/by-module/UNIVERSAL/UNIVERSAL-require-0.13.tar.gz
+	$(WGET) -O ./files/UNIVERSAL-require-0.13.tar.gz http://www.normation.com/tarball/UNIVERSAL-require-0.13.tar.gz
+	#Original URL: http://www.cpan.org/modules/by-module/URI/URI-1.56.tar.gz
+	$(WGET) -O ./files/URI-1.56.tar.gz http://www.normation.com/tarball/URI-1.56.tar.gz
+	#Original URL: http://www.cpan.org/modules/by-module/XML/XML-SAX-0.96.tar.gz
+	$(WGET) -O ./files/XML-SAX-0.96.tar.gz http://www.normation.com/tarball/XML-SAX-0.96.tar.gz
+	#Original URL: http://www.cpan.org/modules/by-module/XML/XML-Simple-2.18.tar.gz
+	$(WGET) -O ./files/XML-Simple-2.18.tar.gz http://www.normation.com/tarball/XML-Simple-2.18.tar.gz
 
 ../debian/rudder-agent.init:
 	cp ./rudder-agent.init ../debian/
