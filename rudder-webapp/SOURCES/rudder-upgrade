@@ -313,8 +313,8 @@ TRGTECHDIR=/var/rudder/configuration-repository/techniques/system/
 
 if [ -d ${SRCTECHDIR} -a -d ${TRGTECHDIR} ]; then
 	if ! diff -Naur /opt/rudder/share/techniques/system/ /var/rudder/configuration-repository/techniques/system/ > /dev/null; then
-		if [ -e ${TRGTECHDIR}common/1.0/core-lib.st -a -e ${TRGTECHDIR}common/1.0/library.st ]; then
-			cd /var/rudder/configuration-repository/common/1.0/
+		if [ -e /var/rudder/configuration-repository/techniques/system/common/1.0/core-lib.st -a -e /var/rudder/configuration-repository/techniques/system/common/1.0/library.st ]; then
+			cd /var/rudder/configuration-repository/techniques/system/common/1.0
 			git rm core-lib.st library.st && git commit -m "Upgrade system Techniques - Remove deprecated CFEngine body libraries"
 			cp -a /opt/rudder/share/techniques/system/common/1.0/rudder_lib.st .
 			git add rudder_lib.st && git commit -m "Upgrade system Techniques - Add the new combined CFEngine body library"
