@@ -55,8 +55,7 @@ Group: Applications/System
 Source2: rudder-jetty.default
 
 Patch1: jetty-init-sles.patch
-Patch2: jetty-default-sles.patch
-Patch3: jetty-init-rudder.patch
+Patch2: jetty-init-rudder.patch
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
@@ -84,7 +83,6 @@ rudder-inventory-endpoint packages.
 
 cd %{_topdir}/SOURCES
 %patch1
-%patch2
 
 #=================================================
 # Building

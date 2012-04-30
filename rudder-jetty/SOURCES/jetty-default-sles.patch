@@ -1,9 +1,0 @@
---- rudder-jetty.default.orig	2011-07-29 12:55:31.408539834 +0200
-+++ rudder-jetty.default	2011-07-29 12:55:58.868578194 +0200
-@@ -1,5 +1,5 @@
- #JAVA
--JAVA="${JAVA_HOME}/bin/java"
-+JAVA="/usr/bin/java"
- JAVA_OPTIONS="$JAVA_OPTIONS
- -server
- -Xms1024m -Xmx1024m
