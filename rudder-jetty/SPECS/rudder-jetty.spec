@@ -52,9 +52,10 @@ URL: http://www.rudder-project.org
 Group: Applications/System
 
 #Source1: jetty7/bin/jetty.sh
-Source2: rudder-jetty-sles.default
+Source2: rudder-jetty.default
 
 Patch1: jetty-init-sles.patch
+Patch2: jetty-default-sles.patch
 Patch3: jetty-init-rudder.patch
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -83,6 +84,7 @@ rudder-inventory-endpoint packages.
 
 cd %{_topdir}/SOURCES
 %patch1
+%patch2
 
 #=================================================
 # Building
