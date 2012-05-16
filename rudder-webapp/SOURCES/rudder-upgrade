@@ -192,6 +192,11 @@ if [ $RES -eq 0 ]; then
         psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.3-2.4-add-MigrationEventLog-table.sql > /dev/null
 fi
 
+# Upgrade database schema from 2.3 to 2.4 if necessary - sixth part: Check the presence of the reason column in the Evenlog table
+RES=$(su - postgres -c "psql -t -d rudder -c \"select count(attname) from pg_attribute where attrelid = (select oid from pg_class where relname = 'eventlog') and attname = 'reason'\"")
+if [ $RES -eq 0 ]; then
+	psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.3-2.4-add-EventLog-reason-column.sql > /dev/null
+fi
 
 # Upgrade LDAP schema from 2.3 to 2.4 if necessary: On RPM-like systems, we must upgrade the slapd.conf file manually
 RES=$(grep isActivated /opt/rudder/etc/openldap/slapd.conf | wc -l)
