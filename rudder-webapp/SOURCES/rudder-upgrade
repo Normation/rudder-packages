@@ -192,6 +192,18 @@ if [ $RES -eq 0 ]; then
         psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.3-2.4-add-MigrationEventLog-table.sql > /dev/null
 fi
 
+# Upgrade database schema from 2.3 to 2.4 if necessary - sixth part: Check the presence of the reason column in the Evenlog table
+RES=$(su - postgres -c "psql -t -d rudder -c \"select count(attname) from pg_attribute where attrelid = (select oid from pg_class where relname = 'eventlog') and attname = 'reason'\"")
+if [ $RES -eq 0 ]; then
+	psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.3-2.4-add-EventLog-reason-column.sql > /dev/null
+fi
+
+# Upgrade database schema from 2.3 to 2.4 if necessary - seventh part: Check the lowest fileFormat version in the eventLog and update the date if necessary
+RES=$(su - postgres -c "psql -t -d rudder -c \"select count(*) from (select xpath('/entry/addPending',data) AS x from eventlog) as Y where array_upper(x, 1) > 0;\"")
+RES2=$(su - postgres -c "psql -t -d rudder -c \"select count(*) from (select xpath('/entry/addPending',data) AS x from eventlog) as Y where array_upper(x, 1) > 0;\"")
+if [ $RES -ne 0 ] || [ $RES2 -ne 0 ]; then
+	psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.3-2.4-set-migration-needed-flag-for-EventLog.sql > /dev/null
+fi
 
 # Upgrade LDAP schema from 2.3 to 2.4 if necessary: On RPM-like systems, we must upgrade the slapd.conf file manually
 RES=$(grep isActivated /opt/rudder/etc/openldap/slapd.conf | wc -l)
@@ -224,8 +236,8 @@ if [ ${OLD_LDAP_TEST} -ne 0 ]; then
 fi
 
 # Upgrade LDAP schema from 2.3 to 2.4 if necessary: Aadd new entries about removed inventories
-LDAP_TEST_REMOVED_INVENTORIES=$(/opt/rudder/sbin/slapcat 2>/dev/null | grep "Removed Inventories" | wc -l)
-if [ ${LDAP_TEST_REMOVED_INVENTORIES} -ne 4 -a ! ${LDAP_EXISTS}  ]; then
+LDAP_TEST_REMOVED_INVENTORIES=$(/opt/rudder/sbin/slapcat 2>/dev/null | grep "dn: ou=Removed Inventories,ou=Inventories,cn=rudder-configuration" | wc -l)
+if [ ${LDAP_TEST_REMOVED_INVENTORIES} -ne 1 -a ! ${LDAP_EXISTS}  ]; then
 	echo "***** ATTENTION *****"
 	echo "The Rudder OpenLDAP schema is not up to date."
 	echo "Updating..."
@@ -313,6 +325,12 @@ TRGTECHDIR=/var/rudder/configuration-repository/techniques/system/
 
 if [ -d ${SRCTECHDIR} -a -d ${TRGTECHDIR} ]; then
 	if ! diff -Naur /opt/rudder/share/techniques/system/ /var/rudder/configuration-repository/techniques/system/ > /dev/null; then
+		if [ -e /var/rudder/configuration-repository/techniques/system/common/1.0/core-lib.st -a -e /var/rudder/configuration-repository/techniques/system/common/1.0/library.st ]; then
+			cd /var/rudder/configuration-repository/techniques/system/common/1.0
+			git rm core-lib.st library.st && git commit -m "Upgrade system Techniques - Remove deprecated CFEngine body libraries"
+			cp -a /opt/rudder/share/techniques/system/common/1.0/rudder_lib.st .
+			git add rudder_lib.st && git commit -m "Upgrade system Techniques - Add the new combined CFEngine body library"
+		fi
 		cp -a /opt/rudder/share/techniques/system/ /var/rudder/configuration-repository/techniques/
 		cd /var/rudder/configuration-repository/ && git commit -m "Upgrade system Techniques - automatically done by rudder-upgrade script" techniques/system/
 		echo "Reloading the Technique library... " && curl http://localhost/rudder/api/techniqueLibrary/reload && echo ""

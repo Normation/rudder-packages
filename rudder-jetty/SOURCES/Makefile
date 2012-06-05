@@ -51,7 +51,7 @@ localdepends: ./jetty7
 
 	# Provide jetty's init script to the debian package's standard location
 	cp ./jetty7/bin/jetty-debian.sh ../debian/jetty.init
-	cp ./rudder-jetty-debian.default ../debian/jetty.default
+	cp ./rudder-jetty.default ../debian/jetty.default
 
 /usr/bin/wget:
 	sudo aptitude --assume-yes install wget
