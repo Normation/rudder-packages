@@ -47,7 +47,8 @@ localdepends: ./initial-promises ./files ./fusioninventory-agent ./cfengine-sour
 	cp -a ./rudder-sources/rudder-techniques/initial-promises/nodeInitialPromises/ ./initial-promises
 
 ./fusioninventory-agent: /usr/bin/wget
-	$(WGET) -O $(TMP_DIR)/fusion.tgz http://search.cpan.org/CPAN/authors/id/F/FU/FUSINV/FusionInventory-Agent-$(FUSION_RELEASE).tar.gz
+	#Original URL: http://search.cpan.org/CPAN/authors/id/F/FU/FUSINV/FusionInventory-Agent-$(FUSION_RELEASE).tar.gz
+	$(WGET) -O $(TMP_DIR)/fusion.tgz http://www.normation.com/tarball/FusionInventory-Agent-$(FUSION_RELEASE).tar.gz
 	tar zvxf $(TMP_DIR)/fusion.tgz -C $(TMP_DIR)
 	mv $(TMP_DIR)/FusionInventory-Agent-$(FUSION_RELEASE) ./fusioninventory-agent
 	$(PATCH) -d ./fusioninventory-agent -p1 < ./fusioninventory-os-section.patch
