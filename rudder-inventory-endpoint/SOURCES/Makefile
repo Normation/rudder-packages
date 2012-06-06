@@ -16,7 +16,7 @@
 #
 #####################################################################################
 
-MAVEN_RELEASE = 2.2.1
+MAVEN_RELEASE = 3.0.4
 WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget
 
 .DEFAULT_GOAL := localdepends
