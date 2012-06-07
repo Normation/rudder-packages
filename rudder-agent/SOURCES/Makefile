@@ -33,8 +33,6 @@ localdepends: ./initial-promises ./files ./fusioninventory-agent ./cfengine-sour
 	$(WGET) -O $(TMP_DIR)/cfengine.tgz http://www.normation.com/tarball/cfengine-$(CFENGINE_RELEASE).tar.gz
 	tar xvzf $(TMP_DIR)/cfengine.tgz -C $(TMP_DIR)
 	mv $(TMP_DIR)/cfengine-$(CFENGINE_RELEASE) ./cfengine-source
-	$(PATCH) -d ./cfengine-source -p0 < ./cfengine-file-edit-section-r3229.patch
-	$(PATCH) -d ./cfengine-source -p0 < ./patch-reset-persistent-classes.patch
 
 ./rudder-sources.tar.bz2:
 	$(WGET) -O rudder-sources.tar.bz2 http://www.rudder-project.org/archives/rudder-sources-${RUDDER_VERSION_TO_PACKAGE}.tar.bz2
