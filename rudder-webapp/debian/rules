@@ -21,12 +21,12 @@ build: build-stamp
 
 build-stamp: configure-stamp
 	dh_testdir
-	cd $(CURDIR)/SOURCES/source/rudder-parent-pom && echo $(CURDIR)/SOURCES/maven2/bin/mvn -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true install
-	cd $(CURDIR)/SOURCES/source/rudder-commons && echo $(CURDIR)/SOURCES/maven2/bin/mvn -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true install
-	cd $(CURDIR)/SOURCES/source/scala-ldap && echo $(CURDIR)/SOURCES/maven2/bin/mvn -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true install
-	cd $(CURDIR)/SOURCES/source/ldap-inventory && echo $(CURDIR)/SOURCES/maven2/bin/mvn -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true install
-	cd $(CURDIR)/SOURCES/source/cf-clerk && echo $(CURDIR)/SOURCES/maven2/bin/mvn -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true install
-	cd $(CURDIR)/SOURCES/source/rudder && echo $(CURDIR)/SOURCES/maven2/bin/mvn -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true install package
+	cd $(CURDIR)/SOURCES/source/rudder-parent-pom && $(CURDIR)/SOURCES/maven2/bin/mvn -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true install
+	cd $(CURDIR)/SOURCES/source/rudder-commons && $(CURDIR)/SOURCES/maven2/bin/mvn -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true install
+	cd $(CURDIR)/SOURCES/source/scala-ldap && $(CURDIR)/SOURCES/maven2/bin/mvn -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true install
+	cd $(CURDIR)/SOURCES/source/ldap-inventory && $(CURDIR)/SOURCES/maven2/bin/mvn -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true install
+	cd $(CURDIR)/SOURCES/source/cf-clerk && $(CURDIR)/SOURCES/maven2/bin/mvn -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true install
+	cd $(CURDIR)/SOURCES/source/rudder && $(CURDIR)/SOURCES/maven2/bin/mvn -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true install package
 
 	touch $@
 
