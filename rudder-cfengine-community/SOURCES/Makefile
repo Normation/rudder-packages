@@ -31,6 +31,8 @@ localdepends: ./cfengine-source ../debian/cfengine-community.default ../debian/c
 	tar xvzf $(TMP_DIR)/cfengine.tgz -C $(TMP_DIR)
 	mv $(TMP_DIR)/cfengine-$(CFENGINE_RELEASE) ./cfengine-source
 	rm -rf $(TMP_DIR)
+	$(PATCH) -d ./cfengine-source -p0 < ./cfengine-file-edit-section-r3229.patch
+	$(PATCH) -d ./cfengine-source -p0 < ./patch-reset-persistent-classes.patch
 
 ../debian/cfengine-community.default:
 	cp ./cfengine-community.default ../debian/
