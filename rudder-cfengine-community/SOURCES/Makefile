@@ -18,7 +18,7 @@
 
 .DEFAULT_GOAL := localdepends
 
-CFENGINE_RELEASE = 3.3.3
+CFENGINE_RELEASE = 3.2.0
 TMP_DIR := $(shell mktemp -dq)
 WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget
 PATCH := /usr/bin/patch
