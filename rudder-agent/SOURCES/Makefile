@@ -20,7 +20,7 @@
 
 RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
 CFENGINE_RELEASE = 3.2.4
-FUSION_RELEASE = 2.1.9
+FUSION_RELEASE = 2.2.2
 TMP_DIR := $(shell mktemp -dq)
 WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget
 PATCH := /usr/bin/patch
@@ -51,8 +51,6 @@ localdepends: ./initial-promises ./files ./fusioninventory-agent ./cfengine-sour
 	$(WGET) -O $(TMP_DIR)/fusion.tgz http://www.normation.com/tarball/FusionInventory-Agent-$(FUSION_RELEASE).tar.gz
 	tar zvxf $(TMP_DIR)/fusion.tgz -C $(TMP_DIR)
 	mv $(TMP_DIR)/FusionInventory-Agent-$(FUSION_RELEASE) ./fusioninventory-agent
-	$(PATCH) -d ./fusioninventory-agent -p1 < ./fusioninventory-os-section.patch
-	$(PATCH) -d ./fusioninventory-agent -p1 < ./fusioninventory-centos-nolsb.patch
 
 ./files: /usr/bin/wget
 	mkdir ./files
