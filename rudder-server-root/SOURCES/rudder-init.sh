@@ -231,6 +231,21 @@ then
 fi
 echo " done."
 
+# Generate a password file for Rudder
+cat > /opt/rudder/etc/rudder-passwords.conf <<EOF
+RUDDER_WEBDAV_USERNAME:rudder
+RUDDER_WEBDAV_PASSWORD:$(dd if=/dev/urandom count=128 bs=1 2>&1 | md5sum | cut -b-12)
+RUDDER_PSQL_USER:rudder
+RUDDER_PSQL_PASSWORD:$(dd if=/dev/urandom count=128 bs=1 2>&1 | md5sum | cut -b-12)
+RUDDER_OPENLDAP_BIND_DN:cn=manager,cn=rudder-configuration
+RUDDER_OPENLDAP_BIND_PASSWORD:$(dd if=/dev/urandom count=128 bs=1 2>&1 | md5sum | cut -b-12)
+EOF
+
+chown root:root /opt/rudder/etc/rudder-passwords.conf
+chmod 600 /opt/rudder/etc/rudder-passwords.conf
+
+echo "The password file has been generated successfully."
+
 # Delete temp files
 echo -n "Cleaning up..."
 rm -rf $TMP_DIR
