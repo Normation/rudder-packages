@@ -205,6 +205,12 @@ if [ $RES -ne 0 ] || [ $RES2 -ne 0 ]; then
 	psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.3-2.4-set-migration-needed-flag-for-EventLog.sql > /dev/null
 fi
 
+# Upgrade database schema from 2.3 to 2.4 if necessary - eighth part: Check if archive of the eventlog exists and create it if necessary
+RES=$(su - postgres -c "psql -d rudder -t -c \"select count(1) from pg_class where relname = 'archivedruddersysevents'\"")
+if [ $RES -eq 0 ]; then
+	psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.3-2.4-archive.sql > /dev/null
+fi
+
 # Upgrade LDAP schema from 2.3 to 2.4 if necessary: On RPM-like systems, we must upgrade the slapd.conf file manually
 RES=$(grep isActivated /opt/rudder/etc/openldap/slapd.conf | wc -l)
 if [ $RES -ne 0 -a -e /opt/rudder/etc/openldap/slapd.conf.rpmnew ]; then
