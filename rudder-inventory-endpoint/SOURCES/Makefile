@@ -45,7 +45,7 @@ localdepends: ./rudder-sources ./inventory-web.properties ./maven2/bin/mvn
 	mv rudder-sources-*/ rudder-sources/
 
 ./inventory-web.properties: ./rudder-sources
-	cp ./rudder-sources/ldap-inventory/inventory-provisioning-web/src/main/resources/configuration.properties ./inventory-web.properties
+	cp ./rudder-sources/ldap-inventory/inventory-provisioning-web/src/main/resources/configuration.properties.sample ./inventory-web.properties
 
 localclean:
 	rm -rf ./maven2
