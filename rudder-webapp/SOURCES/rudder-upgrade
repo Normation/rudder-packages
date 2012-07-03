@@ -43,6 +43,7 @@ set -e
 # - 2.4.0: Migration DB schema to rename many columns and tables for the new naming scheme (PT->Technique, etc)
 # - 2.4.0: Migration LDAP schema to rename many columns and tables for the new naming scheme (PT->Technique, etc)
 # - 2.4.0: Migration LDAP schema to add new entries about removed inventories
+# - 2.4.0: Migration LDAP convert cpuSpeed attributes to valid integers
 # - 2.4.0: Move /var/rudder/configuration-repository/{policy-templates -> techniques}
 # - 2.4.0: Rename the properties 
 #               rudder.dir.policyPackages to rudder.dir.techniques
@@ -251,6 +252,16 @@ if [ ${LDAP_TEST_REMOVED_INVENTORIES} -ne 1 -a ! ${LDAP_EXISTS}  ]; then
 	echo "...done"
 fi
 
+# Upgrade LDAP : convert cpuSpeed attributes to valid integers ( introduced in 2.4.0~beta2 update )
+LDAP_CPUSPEED_IS_NOT_INTEGER=$(/opt/rudder/bin/ldapsearch -H ldap://localhost -x -w secret -D "cn=manager,cn=rudder-configuration" -b cn=rudder-configuration -LLL "(cpuSpeed=*)" cpuSpeed |grep -E "^cpuSpeed: [0-9]+\.[0-9]+$"|wc -l)
+if [ ${LDAP_CPUSPEED_IS_NOT_INTEGER} -ne 0 ]; then
+	/opt/rudder/bin/ldapsearch -H ldap://localhost -x -w secret -D "cn=manager,cn=rudder-configuration" -b cn=rudder-configuration -LLL "(cpuSpeed=*)" cpuSpeed| \
+	sed "s%\(cpuSpeed:.*\)%changetype: modify\nreplace: cpuSpeed\n\1%"| \
+	sed "s%cpuSpeed: \(.*\)\..*%cpuSpeed: \1%g"| \
+	/opt/rudder/bin/ldapmodify -H ldap://localhost -x -w secret -D "cn=manager,cn=rudder-configuration" >/dev/null 2>&1
+
+	echo "Some cpuSpeed attributes were converted to integers"
+fi
 
 # Migrate from old policy-template store in /var/rudder/configuration-repository/policy-templates
 # to 2.4.0 in /var/rudder/configuration-repository/techniques
