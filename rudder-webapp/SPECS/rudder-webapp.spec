@@ -195,7 +195,7 @@ then
 		mkdir -p /var/rudder/configuration-repository
 		mkdir -p /var/rudder/configuration-repository/shared-files
 		touch /var/rudder/configuration-repository/shared-files/.placeholder
-		cp -a /opt/rudder/share/techniques /var/rudder/configuration-repository/
+		cp -a %{rudderdir}/share/techniques /var/rudder/configuration-repository/
 fi
 
 chown root:%{apache_group} %{ruddervardir}/inventories/incoming
@@ -203,18 +203,24 @@ chmod 2770 %{ruddervardir}/inventories/incoming
 chmod 755 -R %{rudderdir}/share/tools
 chmod 655 -R %{rudderdir}/share/load-page
 %{htpasswd_cmd} -bc %{rudderdir}/etc/htpasswd-webdav rudder rudder
+
+if [ ! -e %{rudderdir}/etc/rudder-networks.conf ]
+then
+	echo "Allow from all" > %{rudderdir}/etc/rudder-networks.conf
+fi
+
 /etc/init.d/%{apache} start
 
 # Run any upgrades
 # Note this must happen *before* creating the technique store, as it was moved in version 2.3.2
 # and creating it manually would break the upgrade logic
-/opt/rudder/bin/rudder-upgrade
+%{rudderdir}/bin/rudder-upgrade
 
 # Create and populate technique store
 if [ ! -d /var/rudder/configuration-repository ]; then mkdir -p /var/rudder/configuration-repository; fi
 if [ ! -d /var/rudder/configuration-repository/shared-files ]; then mkdir -p /var/rudder/configuration-repository/shared-files; fi
 if [ ! -d /var/rudder/configuration-repository/techniques ]; then
-	cp -a /opt/rudder/share/techniques /var/rudder/configuration-repository/
+	cp -a %{rudderdir}/share/techniques /var/rudder/configuration-repository/
 fi
 
 

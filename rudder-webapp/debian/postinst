@@ -30,6 +30,8 @@ case "$1" in
   chmod 755 -R /opt/rudder/share/tools
   a2ensite rudder-default
   htpasswd -bc /opt/rudder/etc/htpasswd-webdav rudder rudder
+  if [ ! -e %{rudderdir}/etc/rudder-networks.conf ]; then echo "Allow from all" > /opt/rudder/etc/rudder-networks.conf; fi
+
   /etc/init.d/apache2 start
 
   # Run any upgrades
