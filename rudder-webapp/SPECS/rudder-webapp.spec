@@ -78,6 +78,7 @@ Group: Applications/System
 
 Source1: rudder-users.xml
 Source2: rudder.xml
+Source3: rudder-networks.conf
 Source5: rudder-upgrade
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -149,6 +150,7 @@ cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/test/resources/script/cfe
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/reportsInfo.xml %{buildroot}%{rudderdir}/etc/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/apache2-default.conf %{buildroot}/etc/%{apache_vhost_dir}/rudder-default.conf
 cp %{SOURCE2} %{buildroot}%{rudderdir}/jetty7/contexts/
+cp %{SOURCE3} %{buildroot}%{rudderdir}/etc/
 
 # Install upgrade tools
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.3-2.4-groups-isDynamic.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
@@ -204,11 +206,6 @@ chmod 755 -R %{rudderdir}/share/tools
 chmod 655 -R %{rudderdir}/share/load-page
 %{htpasswd_cmd} -bc %{rudderdir}/etc/htpasswd-webdav rudder rudder
 
-if [ ! -e %{rudderdir}/etc/rudder-networks.conf ]
-then
-	echo "Allow from all" > %{rudderdir}/etc/rudder-networks.conf
-fi
-
 /etc/init.d/%{apache} start
 
 # Run any upgrades
@@ -250,7 +247,7 @@ rm -rf %{buildroot}
 %{rudderlogdir}/%{apache}/
 /etc/%{apache_vhost_dir}/
 %config(noreplace) /etc/%{apache_vhost_dir}/rudder-default.conf
-
+%config(noreplace) %{rudderdir}/etc/rudder-networks.conf
 
 #=================================================
 # Changelog

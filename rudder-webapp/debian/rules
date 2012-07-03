@@ -80,6 +80,7 @@ binary-arch: install
 	sed -i 's@%APACHE_LOG_FILE%@/var/log/rudder/apache2/access.log@' $(CURDIR)/BUILD/rudder-default
 	dh_install --SOURCEDIR=$(CURDIR)/BUILD/ rudder-default /etc/apache2/sites-available/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder.xml /opt/rudder/jetty7/contexts/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-networks.conf /opt/rudder/etc/
 
 	# Install upgrade tools
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ dbMigration-2.3-2.4-groups-isDynamic.sql /opt/rudder/share/upgrade-tools/
