@@ -133,13 +133,29 @@ case "$1" in
 		/etc/init.d/postgresql restart
 	fi
 
+	# Get LDAP credentials
+	if [ -f /opt/rudder/etc/rudder-web.properties -a ${LDAP_CREDENTIALS} -eq 2 ]; then
+		LDAP_USER=$(grep -E "^ldap.authdn=" /opt/rudder/etc/rudder-web.properties |cut -d "=" -f 2-)
+		LDAP_PASSWORD=$(grep -E "^ldap.authpw=" /opt/rudder/etc/rudder-web.properties |cut -d "=" -f 2-)
+	else
+		echo "WARNING: LDAP properties are missing in /opt/rudder/etc/rudder-web.properties"
+		if [ -f /opt/rudder/etc/openldap/slapd.conf ]; then
+			LDAP_USER=$(grep "^rootdn" /opt/rudder/etc/openldap/slapd.conf | sed "s/\w*\s*['\"]\?\([^\"']*\)['\"]\?$/\1/")
+			LDAP_PASSWORD=$(grep "^rootpw" /opt/rudder/etc/openldap/slapd.conf | sed "s/\w*\s*['\"]\?\([^\"']*\)['\"]\?$/\1/")
+		else
+			echo "ERROR: /opt/rudder/etc/openldap/slapd.conf doesn't exist"
+			exit 1
+		fi
+	fi
+
 	# Upgrade LDAP : convert cpuSpeed attributes to valid integers ( introduced in 2.4.0~beta2 update )
-	LDAP_CPUSPEED_IS_NOT_INTEGER=$(/opt/rudder/bin/ldapsearch -H ldap://localhost -x -w secret -D "cn=manager,cn=rudder-configuration" -b cn=rudder-configuration -LLL "(cpuSpeed=*)" cpuSpeed |grep -E "^cpuSpeed: [0-9]+\.[0-9]+$"|wc -l)
+	LDAP_CPUSPEED_IS_NOT_INTEGER=$(/opt/rudder/bin/ldapsearch -H ldap://localhost -x -w ${LDAP_PASSWORD} -D "${LDAP_USER}" -b cn=rudder-configuration -LLL "(cpuSpeed=*)" cpuSpeed |grep -E "^cpuSpeed: [0-9]+\.[0-9]+$"|wc -l)
 	if [ ${LDAP_CPUSPEED_IS_NOT_INTEGER} -ne 0 ]; then
-    	/opt/rudder/bin/ldapsearch -H ldap://localhost -x -w secret -D "cn=manager,cn=rudder-configuration" -b cn=rudder-configuration -LLL "(cpuSpeed=*)" cpuSpeed| \
-    	sed "s%\(cpuSpeed:.*\)%changetype: modify\nreplace: cpuSpeed\n\1%"| \
-    	sed "s%cpuSpeed: \(.*\)\..*%cpuSpeed: \1%g"| \
-    	/opt/rudder/bin/ldapmodify -H ldap://localhost -x -w secret -D "cn=manager,cn=rudder-configuration" >/dev/null 2>&1
+		LDAP_CREDENTIALS=`grep -E "^ldap.(authdn|authpw)=" /opt/rudder/etc/rudder-web.properties | wc -l`
+		/opt/rudder/bin/ldapsearch -H ldap://localhost -x -w ${LDAP_PASSWORD} -D ${LDAP_USER} -b cn=rudder-configuration -LLL "(cpuSpeed=*)" cpuSpeed| \
+		sed "s%\(cpuSpeed:.*\)%changetype: modify\nreplace: cpuSpeed\n\1%"| \
+		sed "s%cpuSpeed: \(.*\)\..*%cpuSpeed: \1%g"| \
+		/opt/rudder/bin/ldapmodify -H ldap://localhost -x -w ${LDAP_PASSWORD} -D ${LDAP_USER} >/dev/null 2>&1
 
     	echo "Some cpuSpeed attributes were converted to integers"
 	fi
