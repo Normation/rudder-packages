@@ -51,6 +51,7 @@ Source2: rudder-init.sh
 Source3: uuid.hive
 Source4: rudder.logrotate.suse
 Source5: rudder-server-root.init
+Source6: rudder-passwords.conf
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
@@ -101,6 +102,7 @@ cp %{SOURCE2} %{buildroot}%{rudderdir}/bin/
 cp %{SOURCE3} %{buildroot}%{rudderdir}/etc/
 cp %{SOURCE4} %{buildroot}/etc/logrotate.d/rudder
 cp %{SOURCE5} %{buildroot}/etc/init.d/rudder-server-root
+cp %{SOURCE6} %{buildroot}%{rudderdir}/etc/
 
 
 %pre -n rudder-server-root
@@ -140,6 +142,8 @@ rm -rf %{buildroot}
 /var/cfengine/masterfiles
 /var/cfengine/inputs
 %attr(0755, root, root) /etc/init.d/rudder-server-root
+%config(noreplace) %{rudderdir}/etc/rudder-passwords.conf
+%attr(0600, root, root) %{rudderdir}/etc/rudder-passwords.conf
 
 #=================================================
 # Changelog
