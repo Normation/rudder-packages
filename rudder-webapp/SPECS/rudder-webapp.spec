@@ -248,6 +248,17 @@ if [ ${CHECK_BACKSLASH} -ne 1 ]; then
   /etc/init.d/jetty restart
 fi
 
+# Upgrade LDAP : convert cpuSpeed attributes to valid integers ( introduced in 2.4.0~beta2 update )
+LDAP_CPUSPEED_IS_NOT_INTEGER=$(/opt/rudder/bin/ldapsearch -H ldap://localhost -x -w secret -D "cn=manager,cn=rudder-configuration" -b cn=rudder-configuration -LLL "(cpuSpeed=*)" cpuSpeed |grep -E "^cpuSpeed: [0-9]+\.[0-9]+$"|wc -l)
+if [ ${LDAP_CPUSPEED_IS_NOT_INTEGER} -ne 0 ]; then
+    /opt/rudder/bin/ldapsearch -H ldap://localhost -x -w secret -D "cn=manager,cn=rudder-configuration" -b cn=rudder-configuration -LLL "(cpuSpeed=*)" cpuSpeed| \
+    sed "s%\(cpuSpeed:.*\)%changetype: modify\nreplace: cpuSpeed\n\1%"| \
+    sed "s%cpuSpeed: \(.*\)\..*%cpuSpeed: \1%g"| \
+    /opt/rudder/bin/ldapmodify -H ldap://localhost -x -w secret -D "cn=manager,cn=rudder-configuration" >/dev/null 2>&1
+
+    echo "Some cpuSpeed attributes were converted to integers"
+fi
+
 #=================================================
 # Cleaning
 #=================================================
