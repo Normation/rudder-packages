@@ -242,7 +242,7 @@ if [ ${OLD_LDAP_TEST} -ne 0 ]; then
 	echo "...done"
 fi
 
-# Upgrade LDAP schema from 2.3 to 2.4 if necessary: Aadd new entries about removed inventories
+# Upgrade LDAP schema from 2.3 to 2.4 if necessary: Add new entries about removed inventories
 LDAP_TEST_REMOVED_INVENTORIES=$(/opt/rudder/sbin/slapcat 2>/dev/null | grep "dn: ou=Removed Inventories,ou=Inventories,cn=rudder-configuration" | wc -l)
 if [ ${LDAP_TEST_REMOVED_INVENTORIES} -ne 1 -a ${LDAP_EXISTS} -ne 0 ]; then
 	echo "***** ATTENTION *****"
