@@ -67,10 +67,10 @@ sub replaceNames {
 			return;
 		}
 	} else {
-		(my $attrName, my $value) = $line =~ /([a-zA-Z]+)::? (.*)$/;
+		(my $attrName, my $colons, my $value) = $line =~ /([a-zA-Z]+)(::?) (.*)$/;
 
 		if ( defined $attributeDict{lc $attrName} ) {
-			print RES_FILE "$attributeDict{lc $attrName}: $value\n";
+			print RES_FILE "$attributeDict{lc $attrName}$colons $value\n";
 			return;
 		}
 	}
