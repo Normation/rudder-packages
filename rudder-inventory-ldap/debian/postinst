@@ -57,7 +57,7 @@ case "$1" in
 			fi
 		fi
 
-		if [ "z${REINIT_DB}" == "zyes" ]; then
+		if [ "z${REINIT_DB}" = "zyes" ]; then
 				# Do we have a database backup to restore from?
 				if [ ! -f ${BACKUP_LDIF} ]; then
 					echo >&2 "No database backup for old version. Can't upgrade rudder-inventory-ldap database!"
