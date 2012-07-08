@@ -44,7 +44,7 @@ case "$1" in
 
 				# Save the old database
 				mkdir -p /var/rudder/ldap/openldap-data-backup-upgrade-to-$2/
-				mv /var/rudder/ldap/openldap-data/{alock,*.bdb,log.*,__db.*} /var/rudder/ldap/openldap-data-backup-upgrade-to-$2/
+				find /var/rudder/ldap/openldap-data -maxdepth 1 -mindepth 1 -not -name "DB_CONFIG" -exec mv {} /var/rudder/ldap/openldap-data-backup-upgrade-to-$2/ \;
 
 				# Import the backed up database
 				/opt/rudder/sbin/slapadd -q -l /var/rudder/ldap/backup/openldap-upgrade-to-rudder-inventory-ldap-to-$2.ldif
