@@ -81,7 +81,6 @@ case "$1" in
 				echo "OpenLDAP database was successfully upgraded to new format for ${current_libdb_version}."
 				echo "You can safely remove the backup in /var/rudder/ldap/openldap-data-backup-upgrade-to-$2/"
 
-			fi
 		fi
     ;;
 
