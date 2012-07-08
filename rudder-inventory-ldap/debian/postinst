@@ -38,8 +38,9 @@ case "$1" in
 					exit 1
 				fi
 
-				# Stop OpenLDAP
-				invoke-rc.d slapd stop
+				# Stop OpenLDAP - use forcestop to avoid the init script failing
+				# when trying to do the backup with bad libdb versions
+				invoke-rc.d slapd forcestop
 
 				# Save the old database
 				mkdir -p /var/rudder/ldap/openldap-data-backup-upgrade-to-$2/
