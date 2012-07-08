@@ -25,6 +25,12 @@ case "$1" in
 		echo $(ldd /opt/rudder/sbin/slapcat | grep libdb | cut -d"=" -f1) > /var/rudder/ldap/backup/openldap-upgrade-to-rudder-inventory-ldap-to-$2.libdb-version
     ;;
 
+	install)
+	;;
+
+	abort-upgrade)
+	;;
+
     *)
         echo "preinst called with unknown argument \`$1'" >&2
         exit 1
