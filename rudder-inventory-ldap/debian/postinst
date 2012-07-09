@@ -49,6 +49,19 @@ case "$1" in
 				REINIT_DB="yes"
 			fi
 
+			# The format for the cpuSpeed attribute changed in 2.3.8, 2.4.0 and above
+			# Check if we still have any values in the old format
+			LDAP_CPUSPEED_IS_NOT_INTEGER=`grep -E "^cpuSpeed: [0-9]+\.[0-9]+$" ${BACKUP_LDIF} | wc -l`
+			if [ ${LDAP_CPUSPEED_IS_NOT_INTEGER} -ne 0 ]; then
+				cp ${BACKUP_LDIF} ${BACKUP_LDIF}.cpuSpeedFixed
+				BACKUP_LDIF=${BACKUP_LDIF}.cpuSpeedFixed
+				sed "s%^cpuSpeed: \(.*\)\..*%cpuSpeed: \1%" ${BACKUP_LDIF}
+
+				echo "Some cpuSpeed attributes were converted to integers in the LDAP database"
+
+				REINIT_DB="yes"
+			fi
+
 			# If this is an upgrade from an older version of rudder-inventory-ldap
 			# we may need to drop and reimport the database if the underlying version
 			# of libdb has changed.
