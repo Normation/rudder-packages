@@ -55,7 +55,7 @@ case "$1" in
 			if [ ${LDAP_CPUSPEED_IS_NOT_INTEGER} -ne 0 ]; then
 				cp ${BACKUP_LDIF} ${BACKUP_LDIF}.cpuSpeedFixed
 				BACKUP_LDIF=${BACKUP_LDIF}.cpuSpeedFixed
-				sed "s%^cpuSpeed: \(.*\)\..*%cpuSpeed: \1%" ${BACKUP_LDIF}
+				sed -i "s%^cpuSpeed: \(.*\)\..*%cpuSpeed: \1%" ${BACKUP_LDIF}
 
 				echo "Some cpuSpeed attributes were converted to integers in the LDAP database"
 
