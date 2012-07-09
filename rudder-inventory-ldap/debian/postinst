@@ -22,42 +22,47 @@ case "$1" in
     configure)
 		invoke-rc.d rsyslog restart
 
-		BACKUP_LDIF=/var/rudder/ldap/backup/openldap-upgrade-to-rudder-inventory-ldap-to-$2.ldif
+		BACKUP_LDIF_PATH=/var/rudder/ldap/backup/
+		BACKUP_LDIF_REGEX="^/var/rudder/ldap/backup/openldap-data-pre-upgrade-\([0-9]\{14\}\)\.ldif$"
 
-		# If this is an upgrade from a Rudder 2.3 to 2.4, we need to
-		# rename a whole load of objectClasses and attributes in the LDIF file
-		OLD_LDAP_TEST=$(/opt/rudder/sbin/slapcat 2>/dev/null | grep -Ei "^policyInstanceId::? " | wc -l)
-		if [ ${OLD_LDAP_TEST} -ne 0 ]; then
-			echo "***** ATTENTION *****"
-			echo "The Rudder OpenLDAP schema is not up to date."
-			echo "You will see some warnings about UNKNOWN attributeDescription."
-			echo "Updating..."
+		# Do we have a backup file from a previous upgrade?
+		BACKUP_LDIF=`find ${BACKUP_LDIF_PATH} -regextype sed -regex "${BACKUP_LDIF_REGEX}" | sort -nr | head -n1`
+		if [ "z${BACKUP_LDIF}" != "z" ]; then
+			BACKUP_TIMESTAMP=`echo ${BACKUP_LDIF} | sed "s%${BACKUP_LDIF_REGEX}%\1%"`
 
-			RUDDER_SHARE=/opt/rudder/share
-			RUDDER_UPGRADE_TOOLS=${RUDDER_SHARE}/upgrade-tools
+			# If this is an upgrade from a Rudder 2.3 to 2.4, we need to
+			# rename a whole load of objectClasses and attributes in the LDIF file
+			OLD_LDAP_TEST=`grep -Ei "^policyInstanceId::? " ${BACKUP_LDIF} | wc -l`
+			if [ ${OLD_LDAP_TEST} -ne 0 ]; then
+				echo "The Rudder OpenLDAP schema is not up to date."
+				echo "You will see some warnings about UNKNOWN attributeDescription."
+				echo "Updating..."
 
-			cp ${BACKUP_LDIF} ${BACKUP_LDIF}.renamed
-			BACKUP_LDIF=${BACKUP_LDIF}.renamed
-			${RUDDER_UPGRADE_TOOLS}/rudder-upgrade-LDAP-schema-2.3-2.4-PI-PT-CR-names-changed.pl ${BACKUP_LDIF}
-			echo "...done."
+				RUDDER_SHARE=/opt/rudder/share
+				RUDDER_UPGRADE_TOOLS=${RUDDER_SHARE}/upgrade-tools
 
-			REINIT_DB="yes"
-		fi
+				cp ${BACKUP_LDIF} ${BACKUP_LDIF}.renamed
+				BACKUP_LDIF=${BACKUP_LDIF}.renamed
+				${RUDDER_UPGRADE_TOOLS}/rudder-upgrade-LDAP-schema-2.3-2.4-PI-PT-CR-names-changed.pl ${BACKUP_LDIF}
+				echo "...done."
 
-		# If this is an upgrade from an older version of rudder-inventory-ldap
-		# we may need to drop and reimport the database if the underlying version
-		# of libdb has changed.
-		if [ -f /var/rudder/ldap/backup/openldap-upgrade-to-rudder-inventory-ldap-to-$2.libdb-version ]; then
-			# Did the underlying version of libdb change?
-			current_libdb_version=$(echo `ldd /opt/rudder/sbin/slapcat | grep libdb | cut -d"=" -f1`)
-			previous_libdb_version=$(cat /var/rudder/ldap/backup/openldap-upgrade-to-rudder-inventory-ldap-to-$2.libdb-version)
-			if [ ${current_libdb_version} != ${previous_libdb_version} ]; then
-				# OK, we need to remove the old DB and import the backup
 				REINIT_DB="yes"
 			fi
-		fi
 
-		if [ "z${REINIT_DB}" = "zyes" ]; then
+			# If this is an upgrade from an older version of rudder-inventory-ldap
+			# we may need to drop and reimport the database if the underlying version
+			# of libdb has changed.
+			if [ -f /var/rudder/ldap/backup/openldap-data-pre-upgrade-${TIMESTAMP}.libdb-version ]; then
+				# Did the underlying version of libdb change?
+				current_libdb_version=$(echo `ldd /opt/rudder/sbin/slapcat | grep libdb | cut -d"=" -f1`)
+				previous_libdb_version=`cat /var/rudder/ldap/backup/openldap-data-pre-upgrade-${TIMESTAMP}.libdb-version`
+				if [ ${current_libdb_version} != ${previous_libdb_version} ]; then
+					# OK, we need to remove the old DB and import the backup
+					REINIT_DB="yes"
+				fi
+			fi
+
+			if [ "z${REINIT_DB}" = "zyes" ]; then
 				# Do we have a database backup to restore from?
 				if [ ! -f ${BACKUP_LDIF} ]; then
 					echo >&2 "No database backup for old version. Can't upgrade rudder-inventory-ldap database!"
@@ -69,8 +74,8 @@ case "$1" in
 				invoke-rc.d slapd forcestop
 
 				# Backup the old database
-				mkdir -p /var/rudder/ldap/openldap-data-backup-upgrade-to-$2/
-				find /var/rudder/ldap/openldap-data -maxdepth 1 -mindepth 1 -not -name "DB_CONFIG" -exec mv {} /var/rudder/ldap/openldap-data-backup-upgrade-to-$2/ \;
+				mkdir -p /var/rudder/ldap/openldap-data-backup-upgrade-to-$2-${TIMESTAMP}/
+				find /var/rudder/ldap/openldap-data -maxdepth 1 -mindepth 1 -not -name "DB_CONFIG" -exec mv {} /var/rudder/ldap/openldap-data-backup-upgrade-to-$2-${TIMESTAMP}/ \;
 
 				# Import the backed up database
 				/opt/rudder/sbin/slapadd -q -l ${BACKUP_LDIF}
@@ -79,8 +84,10 @@ case "$1" in
 				invoke-rc.d slapd start
 
 				echo "OpenLDAP database was successfully upgraded to new format for ${current_libdb_version}."
-				echo "You can safely remove the backup in /var/rudder/ldap/openldap-data-backup-upgrade-to-$2/"
+				echo "You can safely remove the backups in /var/rudder/ldap/openldap-data-backup-upgrade-to-$2/"
+				echo "and ${BACKUP_LDIF}"
 
+			fi
 		fi
     ;;
 
