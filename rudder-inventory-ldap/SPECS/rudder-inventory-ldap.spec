@@ -155,6 +155,7 @@ mkdir -p %{buildroot}/etc/rsyslog.d
 cp %{_sourcedir}/rsyslog/slapd.conf %{buildroot}/etc/rsyslog.d/slapd.conf
 
 # Upgrade tools
+mkdir -p %{buildroot}%{rudderdir}/share/upgrade-tools/
 cp %{_sourcedir}/rudder-upgrade-LDAP-schema-2.3-2.4-PI-PT-CR-names-changed.pl %{buildroot}%{rudderdir}/share/upgrade-tools/
 cp %{_sourcedir}/rudder-upgrade-LDAP-schema-2.3-2.4-PI-PT-CR-names-changed-attribute-map.csv %{buildroot}%{rudderdir}/share/upgrade-tools/
 cp %{_sourcedir}/rudder-upgrade-LDAP-schema-2.3-2.4-PI-PT-CR-names-changed-objectclass-map.csv %{buildroot}%{rudderdir}/share/upgrade-tools/
