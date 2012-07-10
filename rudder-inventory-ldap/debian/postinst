@@ -28,7 +28,7 @@ case "$1" in
 		# Do we have a backup file from a previous upgrade?
 		BACKUP_LDIF=`find ${BACKUP_LDIF_PATH} -regextype sed -regex "${BACKUP_LDIF_REGEX}" | sort -nr | head -n1`
 		if [ "z${BACKUP_LDIF}" != "z" ]; then
-			BACKUP_TIMESTAMP=`echo ${BACKUP_LDIF} | sed "s%${BACKUP_LDIF_REGEX}%\1%"`
+			TIMESTAMP=`echo ${BACKUP_LDIF} | sed "s%${BACKUP_LDIF_REGEX}%\1%"`
 
 			# If this is an upgrade from a Rudder 2.3 to 2.4, we need to
 			# rename a whole load of objectClasses and attributes in the LDIF file
@@ -96,7 +96,7 @@ case "$1" in
 				# Start OpenLDAP
 				invoke-rc.d slapd start
 
-				echo "OpenLDAP database was successfully upgraded to new format for ${current_libdb_version}."
+				echo "OpenLDAP database was successfully upgraded to new format"
 				echo "You can safely remove the backups in /var/rudder/ldap/openldap-data-backup-upgrade-to-$2/"
 				echo "and ${BACKUP_LDIF}"
 
