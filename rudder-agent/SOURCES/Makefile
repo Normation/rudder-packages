@@ -88,6 +88,8 @@ localdepends: ./initial-promises ./files ./fusioninventory-agent ./cfengine-sour
 	$(WGET) -O ./files/XML-SAX-0.96.tar.gz http://www.normation.com/tarball/XML-SAX-0.96.tar.gz
 	#Original URL: http://www.cpan.org/modules/by-module/XML/XML-Simple-2.18.tar.gz
 	$(WGET) -O ./files/XML-Simple-2.18.tar.gz http://www.normation.com/tarball/XML-Simple-2.18.tar.gz
+	#Original URL: http://www.cpan.org/modules/by-module/File/File-Which-1.09.tar.gz
+	$(WGET) -O ./files/File-Which-1.09.tar.gz http://www.normation.com/tarball/File-Which-1.09.tar.gz
 
 ../debian/rudder-agent.init:
 	cp ./rudder-agent.init ../debian/
