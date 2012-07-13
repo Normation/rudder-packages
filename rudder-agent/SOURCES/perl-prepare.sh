@@ -138,7 +138,7 @@ done
 
 cd $PWD/../../fusioninventory-agent
 mkdir -p $TMP/perl$PERL_PREFIX/share/fusion-utils && cp -a share/* $TMP/perl$PERL_PREFIX/share/fusion-utils
-PERL_MM_USE_DEFAULT=1 $TMP/perl$PERL_PREFIX/bin/perl Makefile.PL --default INSTALL_BASE=$TMP/perl$PERL_PREFIX
+PERL_MM_USE_DEFAULT=1 $TMP/perl$PERL_PREFIX/bin/perl Makefile.PL --default PERL=$TMP/perl$PERL_PREFIX
 $MAKE install
 
 #Restoring PATH
