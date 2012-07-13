@@ -172,7 +172,7 @@ then
 	# When upgrading OpenLDAP, we may need to dump the database
 	# so that it can be restored from LDIF in case the new
 	# package uses a different version of BerkeleyDB (libdb)
-	TIMESTAMP=`date +%Y%m%d%H%M%S`
+	TIMESTAMP=`date +%%Y%%m%%d%%H%%M%%S`
 	/opt/rudder/sbin/slapcat -b "cn=rudder-configuration" -l /var/rudder/ldap/backup/openldap-data-pre-upgrade-${TIMESTAMP}.ldif
 
 	# Store version of libdb used to make this backup
