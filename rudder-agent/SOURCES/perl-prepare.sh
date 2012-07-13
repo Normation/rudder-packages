@@ -141,6 +141,8 @@ mkdir -p $TMP/perl$PERL_PREFIX/share/fusion-utils && cp -a share/* $TMP/perl$PER
 PERL_MM_USE_DEFAULT=1 $TMP/perl$PERL_PREFIX/bin/perl Makefile.PL --default PREFIX=$TMP/perl$PERL_PREFIX
 $MAKE install
 
+cp -a lib/FusionInventory $TMP/perl$PERL_PREFIX/lib/perl5/
+
 #Restoring PATH
 PATH=$OLD_PATH
 
