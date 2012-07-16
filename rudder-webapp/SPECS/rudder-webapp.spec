@@ -202,8 +202,11 @@ fi
 
 chown root:%{apache_group} %{ruddervardir}/inventories/incoming
 chmod 2770 %{ruddervardir}/inventories/incoming
+chown root:%{apache_group} %{ruddervardir}/inventories/accepted-nodes-updates
+chmod 2770 %{ruddervardir}/inventories/accepted-nodes-updates
 chmod 755 -R %{rudderdir}/share/tools
 chmod 655 -R %{rudderdir}/share/load-page
+%{htpasswd_cmd} -bc %{rudderdir}/etc/htpasswd-webdav-initial rudder rudder
 %{htpasswd_cmd} -bc %{rudderdir}/etc/htpasswd-webdav rudder rudder
 
 /etc/init.d/%{apache} start

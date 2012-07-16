@@ -27,6 +27,8 @@ case "$1" in
   a2enmod proxy_http
   chown root:www-data /var/rudder/inventories/incoming
   chmod 2770 /var/rudder/inventories/incoming
+  chown root:www-data /var/rudder/inventories/accepted-nodes-updates
+  chmod 2770 /var/rudder/inventories/accepted-nodes-updates
   chmod 755 -R /opt/rudder/share/tools
   a2ensite rudder-default
   htpasswd -bc /opt/rudder/etc/htpasswd-webdav rudder rudder

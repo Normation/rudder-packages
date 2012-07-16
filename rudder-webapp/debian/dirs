@@ -11,6 +11,7 @@ var/rudder/files
 var/rudder/lock
 var/rudder/tools
 var/rudder/run
+var/rudder/inventories/accepted-nodes-updates
 var/rudder/inventories/incoming
 var/rudder/inventories/received
 var/rudder/inventories/historical
