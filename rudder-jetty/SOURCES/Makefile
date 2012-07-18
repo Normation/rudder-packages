@@ -41,13 +41,13 @@ localdepends: ./jetty7
 
 	# Change jetty.sh before distincts files
 	patch -p0 -s < jetty-init-rudder.patch
+	patch -p0 -s < jetty-init-umask.patch
 
 	cp ./jetty7/bin/jetty.sh ./jetty7/bin/jetty-debian.sh
 	cp ./jetty7/bin/jetty.sh ./jetty7/bin/jetty-sles.sh
 
 	patch -p0 -s < jetty-init-lsb-fix-debian.patch
 	patch -p0 -s < jetty-init-lsb-fix-sles.patch
-
 
 	# Provide jetty's init script to the debian package's standard location
 	cp ./jetty7/bin/jetty-debian.sh ../debian/jetty.init

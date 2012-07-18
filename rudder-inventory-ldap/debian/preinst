@@ -15,11 +15,22 @@ set -e
 
 
 case "$1" in
-    install|upgrade)
+    upgrade)
+		# When upgrading OpenLDAP, we may need to dump the database
+		# so that it can be restored from LDIF in case the new
+		# package uses a different version of BerkeleyDB (libdb)
+		TIMESTAMP=`date +%Y%m%d%H%M%S`
+		/opt/rudder/sbin/slapcat -b "cn=rudder-configuration" -l /var/rudder/ldap/backup/openldap-data-pre-upgrade-${TIMESTAMP}.ldif
+
+		# Store version of libdb used to make this backup
+		echo $(ldd /opt/rudder/sbin/slapcat | grep libdb | cut -d"=" -f1) > /var/rudder/ldap/backup/openldap-data-pre-upgrade-${TIMESTAMP}.libdb-version
     ;;
 
-    abort-upgrade)
-    ;;
+	install)
+	;;
+
+	abort-upgrade)
+	;;
 
     *)
         echo "preinst called with unknown argument \`$1'" >&2
