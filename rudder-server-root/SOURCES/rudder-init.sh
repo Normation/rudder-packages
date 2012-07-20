@@ -252,7 +252,7 @@ echo -n "Restarting services..."
 
 # Start the whole infrastructure
 /etc/init.d/cfengine-community restart &> $TMP_LOG
-if [ -e $LDAPDATA_PATH ]; then /etc/init.d/slapd restart &> $TMP_LOG; fi
+if [ -e $LDAPDATA_PATH ]; then /etc/init.d/slapd start &> $TMP_LOG; fi
 /etc/init.d/jetty restart &> $TMP_LOG
 echo " done."
 
