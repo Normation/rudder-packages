@@ -233,6 +233,13 @@ if [ $RES -ne 0 ] || [ $RES2 -ne 0 ]; then
 	psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.3-2.4-set-migration-needed-flag-for-EventLog.sql > /dev/null
 fi
 
+# Do the same for the fileFormat version 3
+RES=$(su - postgres -c "psql -t -d rudder -c \"select count(*) from (select xpath('/entry/*[@fileFormat=2]',data) AS x from eventlog) as Y where array_upper(x, 1) > 0;\"")
+RES2=$(su - postgres -c "psql -t -d rudder -c \"select count(*) from (select xpath('/entry/addPending',data) AS x from eventlog) as Y where array_upper(x, 1) > 0;\"")
+if [ $RES -ne 0 ] || [ $RES2 -ne 0 ]; then
+	psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.4-2.4-set-migration-needed-flag-for-EventLog.sql > /dev/null
+fi
+
 # Upgrade database schema from 2.3 to 2.4 if necessary - eighth part: Check if archive of the eventlog exists and create it if necessary
 RES=$(su - postgres -c "psql -d rudder -t -c \"select count(1) from pg_class where relname = 'archivedruddersysevents'\"")
 if [ $RES -eq 0 ]; then
