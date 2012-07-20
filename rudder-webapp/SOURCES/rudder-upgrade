@@ -239,6 +239,12 @@ if [ $RES -eq 0 ]; then
 	psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.3-2.4-archive.sql > /dev/null
 fi
 
+# Upgrade database schema from 2.3 to 2.4 if necessary - nineth part: Check if the archive of the eventlog contains indexes, and if not create them
+RES=$(su - postgres -c "psql -d rudder -t -c \"select count(1) from pg_class where relname = 'executiontimestamp_archived_idx'\"")
+if [ $RES -eq 0 ]; then
+        psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.3-2.4-index-archive.sql > /dev/null
+fi
+
 # Upgrade LDAP schema from 2.3 to 2.4 if necessary: On RPM-like systems, we must upgrade the slapd.conf file manually
 RES=$(grep isActivated /opt/rudder/etc/openldap/slapd.conf | wc -l)
 if [ $RES -ne 0 -a -e /opt/rudder/etc/openldap/slapd.conf.rpmnew ]; then
