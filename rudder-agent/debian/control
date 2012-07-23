@@ -12,9 +12,9 @@ Depends: ${shlibs:Depends}, ${misc:Depends}, uuid-runtime, dmidecode
 # The dependencies below are defined in order to use rudder-agent
 # for the server. This will add capabilities to send inventories
 # from the server itself.
-Provides: rudder-cfengine-community (>= 2.4.0~beta3)
-Conflicts: rudder-cfengine-community (>= 2.4.0~beta3)
-Replaces: rudder-cfengine-community (>= 2.4.0~beta3)
+Provides: rudder-cfengine-community
+Conflicts: rudder-cfengine-community
+Replaces: rudder-cfengine-community
 Description: Configuration management and audit tool - agent
  Rudder is an open source configuration management and audit solution.
  .
