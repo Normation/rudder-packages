@@ -49,10 +49,14 @@ binary-arch: install
 	dh_installchangelogs
 #	dh_installdocs
 #	dh_installexamples
+	# Copy initial promises (root)
+	## Initial promises for CFEngine Nova
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder-techniques/initial-promises/rootServerInitialPromises/ cfengine-nova /opt/rudder/share/initial-promises/
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder-techniques/initial-promises/rootServerInitialPromises/ cfengine-community /opt/rudder/share/initial-promises/
+	## Initial promises for CFEngine Community
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder-techniques/initial-promises/ node-server /opt/rudder/share/initial-promises/
 	rm -rf $(CURDIR)/BUILD/masterfiles
-	cp -ar $(CURDIR)/SOURCES/rudder-sources/rudder-techniques/initial-promises/nodeInitialPromises $(CURDIR)/BUILD/masterfiles
+	# Copy initial promises (node)
+	cp -ar $(CURDIR)/SOURCES/rudder-sources/rudder-techniques/initial-promises/node-server $(CURDIR)/BUILD/masterfiles
 	dh_install --SOURCEDIR=$(CURDIR)/BUILD/ masterfiles /var/cfengine/
 	dh_install --SOURCEDIR=$(CURDIR)/BUILD/ masterfiles /var/rudder/cfengine-community/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-init.sh /opt/rudder/bin/
