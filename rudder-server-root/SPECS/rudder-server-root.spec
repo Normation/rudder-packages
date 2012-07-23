@@ -56,7 +56,7 @@ Source6: rudder-passwords.conf
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
 
-Requires: rudder-cfengine-community, rudder-webapp, curl
+Requires: rudder-agent, rudder-webapp, curl
 
 %description
 Rudder is an open source configuration management and audit solution.
