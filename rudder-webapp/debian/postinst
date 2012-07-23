@@ -31,6 +31,7 @@ case "$1" in
   chmod 2770 /var/rudder/inventories/accepted-nodes-updates
   chmod 755 -R /opt/rudder/share/tools
   a2ensite rudder-default
+  htpasswd -bc /opt/rudder/etc/htpasswd-webdav-initial rudder rudder
   htpasswd -bc /opt/rudder/etc/htpasswd-webdav rudder rudder
 
   /etc/init.d/apache2 start
