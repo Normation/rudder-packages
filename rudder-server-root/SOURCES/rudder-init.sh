@@ -203,7 +203,8 @@ then
   find $TMP_DIR/community -type f -exec sed -i "s#%%POLICY_SERVER_ALLOWED_NETWORKS%%#$NET#g" {} \;
   rm -rf /var/rudder/cfengine-community/inputs/*
   rm -rf /var/cfengine/inputs/*
-  cp -r $TMP_DIR/community/* /var/rudder/cfengine-community/inputs/ /var/cfengine/inputs/
+  cp -r $TMP_DIR/community/* /var/rudder/cfengine-community/inputs/
+  cp -r $TMP_DIR/community/* /var/cfengine/inputs/
   echo "127.0.0.1" > /var/cfengine/policy_server.dat
   echo "127.0.0.1"> /var/rudder/cfengine-community/policy_server.dat
   echo " done."
