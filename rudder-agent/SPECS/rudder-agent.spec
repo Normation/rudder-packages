@@ -51,6 +51,7 @@ Group: Applications/System
 Source1: rudder-agent.init
 Source2: rudder-agent.default
 Source3: run-inventory
+Source4: uuid.hive
 
 # We have PERL things in here. Do not try to outsmart me by adding dummy dependencies, you silly tool.
 AutoReq: 0
@@ -159,6 +160,9 @@ cp -a %{_sourcedir}/perl-custom/opt/rudder/* %{buildroot}%{rudderdir}
 # Wrapper script
 install -m 755 %{SOURCE3} %{buildroot}/opt/rudder/bin/run-inventory
 
+# Install an empty uuid.hive file before generating an uuid
+cp %{SOURCE4} %{buildroot}%{rudderdir}/etc/
+
 %pre -n rudder-agent
 #=================================================
 # Pre Installation
@@ -224,6 +228,7 @@ rm -rf %{buildroot}
 %files -n rudder-agent
 %defattr(-, root, root, 0755)
 %{rudderdir}
+%config(noreplace) %{rudderdir}/etc/uuid.hive
 /etc/init.d/rudder-agent
 /etc/default/rudder-agent
 %{ruddervardir}

@@ -47,7 +47,6 @@ Group: Applications/System
 
 Source1: rudder-sources
 Source2: rudder-init.sh
-Source3: uuid.hive
 Source4: rudder.logrotate.suse
 Source5: rudder-server-root.init
 Source6: rudder-passwords.conf
@@ -91,7 +90,6 @@ mkdir -p %{buildroot}/etc/init.d
 
 # Others
 cp %{SOURCE2} %{buildroot}%{rudderdir}/bin/
-cp %{SOURCE3} %{buildroot}%{rudderdir}/etc/
 cp %{SOURCE4} %{buildroot}/etc/logrotate.d/rudder
 cp %{SOURCE5} %{buildroot}/etc/init.d/rudder-server-root
 cp %{SOURCE6} %{buildroot}%{rudderdir}/etc/
@@ -127,7 +125,6 @@ rm -rf %{buildroot}
 #=================================================
 %files -n rudder-server-root
 %defattr(-, root, root, 0755)
-%config %{rudderdir}/etc/uuid.hive
 %config(noreplace,missingok) %{_sysconfdir}/logrotate.d/rudder
 %{rudderdir}/bin/rudder-init.sh
 /var/cfengine/inputs

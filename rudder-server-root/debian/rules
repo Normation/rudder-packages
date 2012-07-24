@@ -51,7 +51,6 @@ binary-arch: install
 #	dh_installexamples
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-init.sh /opt/rudder/bin/
 	dh_installinit --noscripts --no-start --no-restart-on-upgrade --name=rudder-server-root
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ uuid.hive /opt/rudder/etc/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-passwords.conf /opt/rudder/etc/
 #	dh_installmenu
 #	dh_installdebconf
