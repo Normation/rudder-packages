@@ -20,7 +20,6 @@ set -e
 
 case "$1" in
     configure)
-		echo 'root' > /opt/rudder/etc/uuid.hive
 		# Is this the first installation?
 		LDAPCHK=`/opt/rudder/sbin/slapcat  | grep "^dn: " | wc -l`
 		if [ $LDAPCHK -eq 0 ]; then
