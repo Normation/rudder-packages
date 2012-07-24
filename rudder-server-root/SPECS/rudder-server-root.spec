@@ -130,8 +130,6 @@ rm -rf %{buildroot}
 %config %{rudderdir}/etc/uuid.hive
 %config(noreplace,missingok) %{_sysconfdir}/logrotate.d/rudder
 %{rudderdir}/bin/rudder-init.sh
-%{ruddervardir}/cfengine-community/masterfiles
-/var/cfengine/masterfiles
 /var/cfengine/inputs
 %attr(0755, root, root) /etc/init.d/rudder-server-root
 %config(noreplace) %{rudderdir}/etc/rudder-passwords.conf
