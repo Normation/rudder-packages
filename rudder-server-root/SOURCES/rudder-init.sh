@@ -249,7 +249,7 @@ echo -n "Restarting services..."
 /opt/rudder/sbin/cf-agent
 
 # Start the whole infrastructure
-/etc/init.d/cfengine-community restart &> $TMP_LOG
+/etc/init.d/rudder-agent restart &> $TMP_LOG
 if [ -e $LDAPDATA_PATH ]; then /etc/init.d/slapd start &> $TMP_LOG; fi
 /etc/init.d/jetty restart &> $TMP_LOG
 echo " done."
