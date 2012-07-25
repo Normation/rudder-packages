@@ -213,7 +213,14 @@ fi
 # Generate a UUID if we don't have one yet
 if [ ! -e /opt/rudder/etc/uuid.hive ]
 then
-	uuidgen > /opt/rudder/etc/uuid.hive
+  uuidgen > /opt/rudder/etc/uuid.hive
+else
+  CHECK_UUID=`cat /opt/rudder/etc/uuid.hive | grep "^[a-z0-9]\{8\}-[a-z0-9]\{4\}-[a-z0-9]\{4\}-[a-z0-9]\{4\}-[a-z0-9]\{12\}" | wc -l`
+  # If the UUID is not valid, regenerate it
+  if [ ${CHECK_UUID} -ne 1 ]
+  then
+    uuidgen > /opt/rudder/etc/uuid.hive
+  fi
 fi
 
 #=================================================
