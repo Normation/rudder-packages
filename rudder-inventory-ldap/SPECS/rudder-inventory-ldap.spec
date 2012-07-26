@@ -248,7 +248,7 @@ if [ "z${BACKUP_LDIF}" != "z" ]; then
 	# we have to redefine the ldif in order to move them to 
 	#  nodeId=root,ou=Accepted Inventories,ou=Inventories,cn=rudder-configuration
 	CHECK_NODE_ROOT_ATTR=`/opt/rudder/bin/ldapsearch -H ldap://localhost -x -w ${LDAP_PASSWORD} -D ${LDAP_USER} -b "nodeId=root,ou=Nodes,ou=Accepted Inventories,ou=Inventories,cn=rudder-configuration" -LLL | grep -iE "^(nodeHostname|publicKey|ipHostNumber|agentName|inventoryDate|localAdministratorAccountName|policyServerId)" | wc -l`
-	if [${CHECK_NODE_ROOT_ATTR} -ne 0 ]
+	if [${CHECK_NODE_ROOT_ATTR} -ne 0 ]; then
 		cp ${BACKUP_LDIF} ${BACKUP_LDIF}.ldapEntriesFixed
 		BACKUP_LDIF=${BACKUP_LDIF}.ldapEntriesFixed
 		REINIT_DB="yes"
