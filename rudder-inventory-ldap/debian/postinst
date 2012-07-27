@@ -79,7 +79,8 @@ case "$1" in
 			# we have to redefine the ldif in order to move them to 
 			#  nodeId=root,ou=Accepted Inventories,ou=Inventories,cn=rudder-configuration
 			CHECK_NODE_ROOT_ATTR=`cat ${BACKUP_LDIF} | perl -p0e 's/\n //g' | perl -p0e 's/\n([^\n])/%%%%\1/g' | grep -i "^%%%%dn: nodeId=root,ou=Nodes,cn=rudder-configuration" | grep -iE  "%%%%(nodeHostname|publicKey|ipHostNumber|agentName|inventoryDate|localAdministratorAccountName|policyServerId)::? " | wc -l`
-			if [${CHECK_NODE_ROOT_ATTR} -ne 0 ]; then
+			CHECK_NODE_ROOT_INVENTORY_ENTRY=`cat ${BACKUP_LDIF} | perl -p0e 's/\n //g' | grep -i "^dn: nodeId=root,ou=Nodes,ou=Accepted Inventories,ou=Inventories,cn=rudder-configuration$" | wc -l`
+			if [ ${CHECK_NODE_ROOT_ATTR} -ne 0 -o ${CHECK_NODE_ROOT_INVENTORY_ENTRY} -eq 0 ]; then
                 cp ${BACKUP_LDIF} ${BACKUP_LDIF}.ldapEntriesFixed
                 BACKUP_LDIF=${BACKUP_LDIF}.ldapEntriesFixed
 				${RUDDER_UPGRADE_TOOLS}/rudder-upgrade-LDAP-schema-2.3-2.4-nodeId-root-attributes-changed.pl ${BACKUP_LDIF}
