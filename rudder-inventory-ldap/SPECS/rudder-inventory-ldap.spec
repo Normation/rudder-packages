@@ -252,6 +252,7 @@ if [ "z${BACKUP_LDIF}" != "z" ]; then
 	if [${CHECK_NODE_ROOT_ATTR} -ne 0 ]; then
 		cp ${BACKUP_LDIF} ${BACKUP_LDIF}.ldapEntriesFixed
 		BACKUP_LDIF=${BACKUP_LDIF}.ldapEntriesFixed
+		${RUDDER_UPGRADE_TOOLS}/rudder-upgrade-LDAP-schema-2.3-2.4-nodeId-root-attributes-changed.pl ${BACKUP_LDIF}
 		REINIT_DB="yes"
 	fi
 
