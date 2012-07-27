@@ -292,6 +292,7 @@ fi
 ## Add dn:nodeId=root,ou=Accepted Inventories,ou=Inventories,cn=rudder-configuration
 ## Check if it doesn't exist yet
 CHECK_ROOT_ACCEPTED=`/opt/rudder/bin/ldapsearch -H ldap://localhost -x -w ${LDAP_PASSWORD} -D ${LDAP_USER} -b "nodeId=root,ou=Nodes,ou=Accepted Inventories,ou=Inventories,cn=rudder-configuration" -LLL | grep "dn: " | wc -l`
+POLICY_SERVER_HOSTNAME=`hostname -f`
 if [ ${CHECK_ROOT_ACCEPTED} -eq 0 ]
 then
   echo "Add dn:nodeId=root,ou=Nodes,ou=Accepted Inventories,ou=Inventories,cn=rudder-configuration LDAP entry"

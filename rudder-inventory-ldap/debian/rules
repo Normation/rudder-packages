@@ -74,6 +74,7 @@ binary-arch: install
 	dh_install SOURCES/rudder.schema /opt/rudder/etc/openldap/schema/
 	dh_install SOURCES/DB_CONFIG /var/rudder/ldap/openldap-data/
 	
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-upgrade-LDAP-schema-2.3-2.4-nodeId-root-attributes-changed.pl /opt/rudder/share/upgrade-tools/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-upgrade-LDAP-schema-2.3-2.4-PI-PT-CR-names-changed.pl /opt/rudder/share/upgrade-tools/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-upgrade-LDAP-schema-2.3-2.4-PI-PT-CR-names-changed-attribute-map.csv /opt/rudder/share/upgrade-tools/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-upgrade-LDAP-schema-2.3-2.4-PI-PT-CR-names-changed-objectclass-map.csv /opt/rudder/share/upgrade-tools/
