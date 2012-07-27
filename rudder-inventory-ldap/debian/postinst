@@ -78,6 +78,8 @@ case "$1" in
 			# If somes attribute exists in nodeId=root,ou=Nodes,cn=rudder-configuration
 			# we have to redefine the ldif in order to move them to 
 			#  nodeId=root,ou=Accepted Inventories,ou=Inventories,cn=rudder-configuration
+			LDAP_USER=$(grep -E "ldap.authdn=" /opt/rudder/etc/rudder-web.properties |cut -d "=" -f 2-)
+			LDAP_PASSWORD=$(grep -E "ldap.authpw=" /opt/rudder/etc/rudder-web.properties |cut -d "=" -f 2-)
 			CHECK_NODE_ROOT_ATTR=`/opt/rudder/bin/ldapsearch -H ldap://localhost -x -w ${LDAP_PASSWORD} -D ${LDAP_USER} -b "nodeId=root,ou=Nodes,ou=Accepted Inventories,ou=Inventories,cn=rudder-configuration" -LLL | grep -iE "^(nodeHostname|publicKey|ipHostNumber|agentName|inventoryDate|localAdministratorAccountName|policyServerId)" | wc -l`
 			if [${CHECK_NODE_ROOT_ATTR} -ne 0 ]; then
                 cp ${BACKUP_LDIF} ${BACKUP_LDIF}.ldapEntriesFixed
