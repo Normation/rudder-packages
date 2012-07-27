@@ -389,7 +389,11 @@ if [ -d ${SRCTECHDIR} -a -d ${TRGTECHDIR} ]; then
 		fi
 		cp -a /opt/rudder/share/techniques/system/ /var/rudder/configuration-repository/techniques/
 		cd /var/rudder/configuration-repository/ && git commit -m "Upgrade system Techniques - automatically done by rudder-upgrade script" techniques/system/
-		echo "Reloading the Technique library... " && curl http://localhost/rudder/api/techniqueLibrary/reload && echo ""
+		# Check that the application is up before to call a Technique Library reload
+		CHECK_WEBAPP=`curl http://localhost/rudder/api/status`
+		if [ "z${CHECK_WEBAPP}" == "zOK" ]; then
+			echo "Reloading the Technique library... " && curl http://localhost/rudder/api/techniqueLibrary/reload && echo ""
+		fi
 	fi
 fi
 
