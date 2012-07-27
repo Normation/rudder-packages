@@ -215,7 +215,8 @@ if [ ! -e /opt/rudder/etc/uuid.hive ]
 then
   uuidgen > /opt/rudder/etc/uuid.hive
 else
-  CHECK_UUID=`cat /opt/rudder/etc/uuid.hive | grep "^[a-z0-9]\{8\}-[a-z0-9]\{4\}-[a-z0-9]\{4\}-[a-z0-9]\{4\}-[a-z0-9]\{12\}" | wc -l`
+  # UUID is valid only if it has been generetaed by uuidgen or if it is set to 'root' for policy server
+  CHECK_UUID=`cat /opt/rudder/etc/uuid.hive | grep -E "^[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}|root" | wc -l`
   # If the UUID is not valid, regenerate it
   if [ ${CHECK_UUID} -ne 1 ]
   then
