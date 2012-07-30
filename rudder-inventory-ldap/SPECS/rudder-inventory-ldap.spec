@@ -192,6 +192,8 @@ echo "Setting slapd as a boot service"
 echo "Reloading syslogd ..."
 %{sysloginitscript} restart
 
+RUDDER_SHARE=/opt/rudder/share
+RUDDER_UPGRADE_TOOLS=${RUDDER_SHARE}/upgrade-tools
 BACKUP_LDIF_PATH=/var/rudder/ldap/backup/
 BACKUP_LDIF_REGEX="^/var/rudder/ldap/backup/openldap-data-pre-upgrade-\([0-9]\{14\}\)\.ldif$"
 
@@ -208,8 +210,6 @@ if [ "z${BACKUP_LDIF}" != "z" ]; then
 		echo "You will see some warnings about UNKNOWN attributeDescription."
 		echo "Updating..."
 
-		RUDDER_SHARE=/opt/rudder/share
-		RUDDER_UPGRADE_TOOLS=${RUDDER_SHARE}/upgrade-tools
 
 		cp ${BACKUP_LDIF} ${BACKUP_LDIF}.renamed
 		BACKUP_LDIF=${BACKUP_LDIF}.renamed
