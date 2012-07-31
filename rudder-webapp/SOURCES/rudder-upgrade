@@ -190,6 +190,18 @@ check_and_add_config_property rudder.ui.changeMessage.explanation "#
 rudder.ui.changeMessage.explanation=Please enter a message explaining the reason for this change.
 "
 
+# Check for configuration property added in 2.4
+check_and_add_config_property rudder.webdav.user "#
+# Authentication information for the webdav server used to
+# receive Inventory Reports from nodes
+#
+rudder.webdav.user=rudder
+"
+# Check for configuration property added in 2.4
+check_and_add_config_property rudder.webdav.password "
+rudder.webdav.password=rudder
+"
+
 # Upgrade database schema from 2.3 to 2.4 if necessary - first part: group type (static/dynamic)
 RES=$(su - postgres -c "psql -t -d rudder -c \"select count(attname) from pg_attribute where attrelid = (select oid from pg_class where relname = 'groups') and attname = 'groupstatus'\"")
 if [ $RES -eq 0 ]; then
