@@ -180,10 +180,10 @@ do
   if [ $cpt2 -eq 0 ]
   then
     NET=`echo $i | sed $REGEXP`
-    NET2="\"$NET\""
+    NET2="'$NET'"
   else
     NET="$NET\ndirectiveVariable: ALLOWEDNETWORK[$cpt2]: `echo $i | sed $REGEXP`"
-    NET2="$NET2, \"`echo $i | sed $REGEXP`\""
+    NET2="$NET2, '`echo $i | sed $REGEXP`'"
   fi
   ((cpt2++))
 done
@@ -198,7 +198,7 @@ if [ z$ANSWER6 = "zyes" ]
 then
   echo -n "Configuring and installing initial CFEngine promises..."
   cp -r /opt/rudder/share/initial-promises/ $TMP_DIR/community
-  find $TMP_DIR/community -name "cf-served.cf" -type f -exec sed -i "s@%%POLICY_SERVER_ALLOWED_NETWORKS%%@$NET2@g" {} \;
+  find $TMP_DIR/community -name "cf-served.cf" -type f -exec sed -i --posix "s@'%%POLICY_SERVER_ALLOWED_NETWORKS%%'@$NET2@g" {} \;
   find $TMP_DIR/community -type f -exec sed -i "s/%%POLICY_SERVER_HOSTNAME%%/$ANSWER1/g" {} \;
   find $TMP_DIR/community -type f -exec sed -i "s#%%POLICY_SERVER_ALLOWED_NETWORKS%%#$NET#g" {} \;
   rm -rf /var/rudder/cfengine-community/inputs/*
