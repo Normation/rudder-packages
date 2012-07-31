@@ -14,8 +14,7 @@ Depends: ${shlibs:Depends}, ${misc:Depends}, uuid-runtime, dmidecode
 # from the server itself.
 Provides: rudder-cfengine-community
 Conflicts: rudder-cfengine-community
-Replaces: rudder-cfengine-community rudder-server-root (<< 2.4.0~beta2)
-Breaks: rudder-server-root (<< 2.4.0~beta2)
+Replaces: rudder-cfengine-community
 Description: Configuration management and audit tool - agent
  Rudder is an open source configuration management and audit solution.
  .
