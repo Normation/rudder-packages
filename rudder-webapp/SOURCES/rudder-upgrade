@@ -400,7 +400,7 @@ if [ -d ${SRCTECHDIR} -a -d ${TRGTECHDIR} ]; then
 			git add rudder_lib.st && git commit -m "Upgrade system Techniques - Add the new combined CFEngine body library"
 		fi
 		cp -a /opt/rudder/share/techniques/system/ /var/rudder/configuration-repository/techniques/
-		cd /var/rudder/configuration-repository/ && git commit -m "Upgrade system Techniques - automatically done by rudder-upgrade script" techniques/system/
+		cd /var/rudder/configuration-repository/ &&  find /opt/rudder/share/techniques/system -type f | cut -d '/' -f 5- | xargs git add && git commit -m "Upgrade system Techniques - automatically done by rudder-upgrade script"
 		# Check that the application is up before to call a Technique Library reload
 		CHECK_WEBAPP=`curl http://localhost/rudder/api/status`
 		if [ "z${CHECK_WEBAPP}" == "zOK" ]; then
