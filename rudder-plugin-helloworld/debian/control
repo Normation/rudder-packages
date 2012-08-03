@@ -8,7 +8,7 @@ Homepage: http://www.rudder-project.org
 
 Package: rudder-plugin-helloworld
 Architecture: all
-Depends: ${shlibs:Depends}, ${misc:Depends}, rudder-server-root
+Depends: ${shlibs:Depends}, ${misc:Depends}, rudder-server-root (= ${binary:Version})
 Description: Configuration management and audit tool - hello world plugin
  Rudder is an open source configuration management and audit solution.
  .
