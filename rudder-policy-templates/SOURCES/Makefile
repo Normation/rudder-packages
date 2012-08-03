@@ -22,3 +22,11 @@ localdepends: ./.placeholder
 
 ./.placeholder:
 	touch ./.placeholder
+
+localclean:
+	rm -f ./.placeholder
+
+veryclean:
+	rm -f ./.placeholder
+
+.PHONY: localclean localdepends veryclean
