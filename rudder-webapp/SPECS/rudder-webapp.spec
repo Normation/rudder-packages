@@ -148,6 +148,8 @@ then
 		cp -a /opt/rudder/share/policy-templates /var/rudder/configuration-repository/
 fi
 
+# Add right to apache user to access /var/rudder/inventories/incoming
+chmod 751 /var/rudder/inventories
 chown root:www %{ruddervardir}/inventories/incoming
 chmod 2770 %{ruddervardir}/inventories/incoming
 chmod 755 -R %{rudderdir}/share/tools
