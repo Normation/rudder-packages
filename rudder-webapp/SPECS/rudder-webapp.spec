@@ -198,6 +198,8 @@ then
 		cp -a %{rudderdir}/share/techniques /var/rudder/configuration-repository/
 fi
 
+# Add right to apache user to access /var/rudder/inventories/incoming
+chmod 751 /var/rudder/inventories
 chown root:%{apache_group} %{ruddervardir}/inventories/incoming
 chmod 2770 %{ruddervardir}/inventories/incoming
 chown root:%{apache_group} %{ruddervardir}/inventories/accepted-nodes-updates
