@@ -119,7 +119,7 @@ else
   SERVER_INVENTORY_DATE=`/opt/rudder/sbin/slapcat | perl -p0e 's/\n //g' | perl -p0e 's/\n([^\n])/%%%%\1/g' |\
   grep -i "^%%%%dn: nodeId=root,ou=Nodes,ou=Accepted Inventories,ou=Inventories,cn=rudder-configuration" |\
   grep -iE --color "%%%%(inventoryDate)::? " | sed 's/.*inventoryDate: \([0-9]*\).*/\1/g'`
-  DATE_CHECK=`perl -e 'use Time::Piece; my $date = shift; my $time = Time::Piece->strptime($date, "%Y%m%d%H%M%S"); $time += $time->localtime->tzoffset; print $time->strftime("%s");' ${SERVER_INVENTORY_DATE}`
+  DATE_CHECK=`perl -e 'use Time::Piece; my $date = shift; my $time = Time::Piece->strptime($date, "%Y%m%d%H%M%%S"); $time += $time->localtime->tzoffset; print $time->strftime("%s");' ${SERVER_INVENTORY_DATE}`
   DATE_REF=`date -d '24 hours ago' +%s`
   if [ ${DATE_CHECK} -lt ${DATE_REF} ]; then
     ## If the inventory of the root server is older than 24 hours
