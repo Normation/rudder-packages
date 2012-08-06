@@ -1,5 +1,6 @@
 Source: rudder-policy-templates
 Section: oldlibs
+Priority: extra
 Maintainer: Nicolas Perron <nicolas.perron@normation.com>
 Build-Depends: debhelper (>= 7)
 Standards-Version: 3.8.0

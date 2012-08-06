@@ -1,5 +1,6 @@
 Source: rudder-cfengine-community
 Section: oldlibs
+Priority: extra
 Maintainer: Jonathan Clarke <jonathan.clarke@normation.com>
 Build-Depends: debhelper (>= 7)
 Standards-Version: 3.8.0
