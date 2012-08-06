@@ -50,10 +50,11 @@ case "$1" in
 				POLSRVUUID=${UUID}
 				## Make sure that the folder to make inventory exists
 				mkdir -p /var/rudder/tmp/inventory/
-				/opt/rudder/bin/run-inventory --local=/var/rudder/tmp/inventory --scan-homedirs 2&>1
+				/opt/rudder/bin/run-inventory --local=/var/rudder/tmp/inventory --scan-homedirs
 				echo "...adding extra informations..."
 				FILE_TMP=`mktemp`
 				FILE_SRC=`find /var/rudder/tmp/inventory/ -name "*.ocs"`
+				echo "Transitional files: ${FILE_TMP} and ${FILE_SRC}"
 				## Cut file in two in order to add extra mandatory information 2 lines before the end
 				head -n-2 ${FILE_SRC} > ${FILE_TMP}
 				echo -e "\n<UUID>${UUID}</UUID>\n<USER>${USER}</USER>\n<AGENTSNAME><AGENTNAME>Community</AGENTNAME>\n</AGENTSNAME>\n<MACHINEID>${RUDDERUUID}</MACHINEID>\n<CFKEY>${CFKEY}</CFKEY>\n<HOSTNAME>${HOST_INV}</HOSTNAME>\n<POLICY_SERVER>${POLSRVUUID}</POLICY_SERVER>\n<QUERY>INVENTORY</QUERY>\n</REQUEST>" >> ${FILE_TMP}
