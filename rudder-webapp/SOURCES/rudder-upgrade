@@ -405,6 +405,8 @@ if [ -d ${SRCTECHDIR} -a -d ${TRGTECHDIR} ]; then
 		CHECK_WEBAPP=`curl http://localhost/rudder/api/status`
 		if [ "z${CHECK_WEBAPP}" == "zOK" ]; then
 			echo "Reloading the Technique library... " && curl http://localhost/rudder/api/techniqueLibrary/reload && echo ""
+		else
+			echo "Rudder application is down, it might be reloading. Deferring restart."
 		fi
 	fi
 fi
