@@ -132,6 +132,7 @@ mkdir -p %{buildroot}%{rudderdir}/share/tools
 mkdir -p %{buildroot}%{rudderdir}/share/plugins/
 mkdir -p %{buildroot}%{rudderdir}/share/upgrade-tools/
 mkdir -p %{buildroot}%{ruddervardir}/inventories/incoming
+mkdir -p %{buildroot}%{ruddervardir}/inventories/accepted-nodes-updates
 mkdir -p %{buildroot}%{ruddervardir}/inventories/received
 mkdir -p %{buildroot}%{rudderlogdir}/%{apache}/
 mkdir -p %{buildroot}/etc/%{apache_vhost_dir}/
