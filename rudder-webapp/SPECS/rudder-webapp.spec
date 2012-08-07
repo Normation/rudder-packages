@@ -245,6 +245,7 @@ rm -rf %{buildroot}
 %{rudderdir}/jetty7/rudder-plugins/
 %{rudderdir}/jetty7/contexts/rudder.xml
 %{rudderdir}/share
+%{ruddervardir}/inventories/accepted-nodes-updates
 %{ruddervardir}/inventories/incoming
 %{ruddervardir}/inventories/received
 %{rudderlogdir}/%{apache}/
