@@ -59,8 +59,14 @@ set -e
 RUDDER_SHARE=/opt/rudder/share
 RUDDER_UPGRADE_TOOLS=${RUDDER_SHARE}/upgrade-tools
 LDAP_EXISTS=$(/opt/rudder/sbin/slapcat 2>/dev/null | grep "rudder-configuration" | wc -l)
-LDAP_USER=$(grep -E "ldap.authdn=" /opt/rudder/etc/rudder-web.properties |cut -d "=" -f 2-)
-LDAP_PASSWORD=$(grep -E "ldap.authpw=" /opt/rudder/etc/rudder-web.properties |cut -d "=" -f 2-)
+if [ -f /opt/rudder/etc/openldap/slapd.conf ]; then
+	LDAP_USER=$(grep "^rootdn" /opt/rudder/etc/openldap/slapd.conf | sed "s/\w*\s*['\"]\?\([^\"']*\)['\"]\?$/\1/")
+	LDAP_PASSWORD=$(grep "^rootpw" /opt/rudder/etc/openldap/slapd.conf | sed "s/\w*\s*['\"]\?\([^\"']*\)['\"]\?$/\1/")
+else
+	echo "WARNING: /opt/rudder/etc/openldap/slapd.conf doesn't exist"
+	LDAP_USER=$(grep -E "ldap.authdn=" /opt/rudder/etc/rudder-web.properties |cut -d "=" -f 2-)
+	LDAP_PASSWORD=$(grep -E "ldap.authpw=" /opt/rudder/etc/rudder-web.properties |cut -d "=" -f 2-)
+fi
 
 
 # Helper function
