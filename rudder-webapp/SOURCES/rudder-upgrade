@@ -333,14 +333,20 @@ if [ -d /var/rudder/configuration-repository/policy-templates -a ! -d /var/rudde
 	find /var/rudder/configuration-repository/techniques -name policy.xml | while read oldfile
 	do
 		cd $(dirname "${oldfile}")
-
-		# Rename the policy.xml to metadata.xml
-		git mv policy.xml metadata.xml > /dev/null
+		# Check that the files are already tracked by git
+		GIT_TRACKED=`git ls-files | grep "policy.xml" | wc -l`
+		if [ ${GIT_TRACKED} -eq 1 ]; then
+			## Rename the policy.xml to metadata.xml
+			git mv policy.xml metadata.xml > /dev/null
+		else 
+			mv policy.xml metadata.xml
+		fi
 
 		# Edit metadata.xml to rename POLICY tag to TECHNIQUE
 		# Note for people reading the regex: look for <POLICY or </POLICY
 		sed -i "s%<\(/\)\?POLICY%<\1TECHNIQUE%" metadata.xml
-		git add metadata.xml > /dev/null
+		# Try to add with git only tracked files
+		if [ ${GIT_TRACKED} -eq 1 ]; then git add metadata.xml > /dev/null; fi
 	done
 
 	# Commit all the lovely changes
