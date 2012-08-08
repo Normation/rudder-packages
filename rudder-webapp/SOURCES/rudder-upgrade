@@ -298,7 +298,7 @@ if [ ${LDAP_TEST_REMOVED_INVENTORIES} -ne 1 -a ${LDAP_EXISTS} -ne 0 ]; then
 	echo "***** ATTENTION *****"
 	echo "The Rudder OpenLDAP schema is not up to date."
 	echo "Updating..."
-	/opt/rudder/bin/ldapadd -x -D cn=Manager,cn=rudder-configuration -w ${LDAP_PASSWORD} -H ldap://localhost -f ${RUDDER_UPGRADE_TOOLS}/rudder-upgrade-LDAP-schema-2.3-2.4-add-entries.ldif
+	/opt/rudder/bin/ldapadd -x -D ${LDAP_USER} -w ${LDAP_PASSWORD} -H ldap://localhost -f ${RUDDER_UPGRADE_TOOLS}/rudder-upgrade-LDAP-schema-2.3-2.4-add-entries.ldif
 	echo "...done"
 fi
 
