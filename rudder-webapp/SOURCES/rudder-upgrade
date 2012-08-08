@@ -340,31 +340,40 @@ if [ -d /var/rudder/configuration-repository/policy-templates -a ! -d /var/rudde
 	cd /var/rudder/configuration-repository/ && git mv /var/rudder/configuration-repository/policy-templates /var/rudder/configuration-repository/techniques > /dev/null
 
 	sed -i 's%^rudder.dir.policyPackages *= */var/rudder/configuration-repository/policy-templates/\?$%rudder.dir.policyPackages=/var/rudder/configuration-repository/techniques%' /opt/rudder/etc/rudder-web.properties
+else
+	echo "WARNING: You have both /var/rudder/configuration-repository/policy-templates (obsoletes) and /var/rudder/configuration-repository/techniques (new) folders"
+fi
 
-	# Rename policy.xml files to metadata.xml and edit their content for renaming
-	find /var/rudder/configuration-repository/techniques -name policy.xml | while read oldfile
-	do
-		cd $(dirname "${oldfile}")
-		# Check that the files are already tracked by git
-		GIT_TRACKED=`git ls-files | grep "policy.xml" | wc -l`
-		if [ ${GIT_TRACKED} -eq 1 ]; then
-			## Rename the policy.xml to metadata.xml
-			git mv policy.xml metadata.xml > /dev/null
-		else 
-			mv policy.xml metadata.xml
-		fi
+## Check that no policy.xml files are present
+if [ -d /var/rudder/configuration-repository/techniques ]; then
+	PT_EXISTS=`find /var/rudder/configuration-repository/techniques -name policy.xml | wc -l`
+	if [ ${PT_EXISTS} -gt 0 ]; then
 
-		# Edit metadata.xml to rename POLICY tag to TECHNIQUE
-		# Note for people reading the regex: look for <POLICY or </POLICY
-		sed -i "s%<\(/\)\?POLICY%<\1TECHNIQUE%" metadata.xml
-		# Try to add with git only tracked files
-		if [ ${GIT_TRACKED} -eq 1 ]; then git add metadata.xml > /dev/null; fi
-	done
+		# Rename policy.xml files to metadata.xml and edit their content for renaming
+		find /var/rudder/configuration-repository/techniques -name policy.xml | while read oldfile
+		do
+			cd $(dirname "${oldfile}")
+			# Check that the files are already tracked by git
+			GIT_TRACKED=`git ls-files | grep "policy.xml" | wc -l`
+			if [ ${GIT_TRACKED} -eq 1 ]; then
+				## Rename the policy.xml to metadata.xml
+				git mv policy.xml metadata.xml > /dev/null
+			else 
+				mv policy.xml metadata.xml
+			fi
 
-	# Commit all the lovely changes
-	cd /var/rudder/configuration-repository/ && git commit -m "Rename directory for policy-templates to techniques, rename policy.xml to metadata.xml and change names in metadata.xml" > /dev/null
+			# Edit metadata.xml to rename POLICY tag to TECHNIQUE
+			# Note for people reading the regex: look for <POLICY or </POLICY
+			sed -i "s%<\(/\)\?POLICY%<\1TECHNIQUE%" metadata.xml
+			# Try to add with git only tracked files
+			if [ ${GIT_TRACKED} -eq 1 ]; then git add metadata.xml > /dev/null; fi
+		done
 
-	echo "Automatic migration to /var/rudder/configuration-repository/techniques done."
+		# Commit all the lovely changes
+		cd /var/rudder/configuration-repository/ && git commit -m "Rename directory for policy-templates to techniques, rename policy.xml to metadata.xml and change names in metadata.xml" > /dev/null
+
+		echo "Automatic migration to /var/rudder/configuration-repository/techniques done."
+	fi
 fi
 
 # 2.4.0~alpha6: Rename the configuration-rules directory
