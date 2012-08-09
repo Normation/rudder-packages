@@ -187,7 +187,7 @@ fi
 # Always do this
 
 # Copy new binaries to workdir, make sure daemons are stopped first
-if [ ${CFRUDDER_FIRST_INSTALL} -ne 1 -a -x /etc/init.d/rudder-agent ]; then /etc/init.d/rudder-agent stop; fi
+if [ ${CFRUDDER_FIRST_INSTALL} -ne 1 -a -x /etc/init.d/rudder-agent ]; then /etc/init.d/rudder-agent stop; /usr/bin/pkill -f /var/rudder/cfengine-community/bin/cf; fi
 cp -a /opt/rudder/sbin/cf-* /var/rudder/cfengine-community/bin/
 
 # Copy initial promises if there aren't any already
