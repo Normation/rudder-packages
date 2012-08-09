@@ -174,7 +174,21 @@ then
 	# so that it can be restored from LDIF in case the new
 	# package uses a different version of BerkeleyDB (libdb)
 	TIMESTAMP=`date +%%Y%%m%%d%%H%%M%%S`
-	/opt/rudder/sbin/slapcat -b "cn=rudder-configuration" -l /var/rudder/ldap/backup/openldap-data-pre-upgrade-${TIMESTAMP}.ldif
+	BACKUP_NAME="/var/rudder/ldap/backup/openldap-data-pre-upgrade-${TIMESTAMP}"
+
+	/opt/rudder/sbin/slapcat -b "cn=rudder-configuration" -l ${BACKUP_NAME}.ldif
+	# Check that no attribute is missing about group before any upgrade (Issue #2783)
+	## Count number of groups
+	NB_GROUPS=`cat ${BACKUP_NAME}.ldif | perl -p0e 's/\n //g' | perl -p0e 's/\n([^\n])/%%%%\1/g' | grep -Ei "^%%%%dn: nodeGroupId=[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12},groupCategoryId=GroupRoot,ou=Rudder,cn=rudder-configuration%%%" | wc -l`
+	## Count number of groups with jsonNodeGroupQuery
+	NB_GROUPS_WITH_JSON=`cat ${BACKUP_NAME}.ldif | perl -p0e 's/\n //g' | perl -p0e 's/\n([^\n])/%%%%\1/g' | grep -Ei "^%%%%dn: nodeGroupId=[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12},groupCategoryId=GroupRoot,ou=Rudder,cn=rudder-configuration%%%" | grep -iE  "%%%%(jsonNodeGroupQuery)::?" | wc -l`
+	## Check that the numbers match and if this not the case abort
+	if [ ${NB_GROUPS} -ne ${NB_GROUPS_WITH_JSON}  ]; then
+		echo "ERROR: Upgrade can't be done.\nReason: jsonNodeGroupQuery is missing in LDAP backup"
+		exit 1
+	else
+		echo "LDAP backup seems OK"
+	fi
 
 	# Store version of libdb used to make this backup
 	echo $(ldd /opt/rudder/sbin/slapcat | grep libdb | cut -d"=" -f1) > /var/rudder/ldap/backup/openldap-data-pre-upgrade-${TIMESTAMP}.libdb-version
