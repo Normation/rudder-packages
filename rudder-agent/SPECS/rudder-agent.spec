@@ -188,8 +188,14 @@ fi
 
 # Copy new binaries to workdir, make sure daemons are stopped first
 if [ ${CFRUDDER_FIRST_INSTALL} -ne 1 -a -x /etc/init.d/rudder-agent ]; then /etc/init.d/rudder-agent stop; fi
+echo "List CFEngine processes"
+/usr/bin/pgrep -f /var/rudder/cfengine-community/bin/cf -l
+echo "Kill all CFengine processes in order to free CFengine binaries"
 /usr/bin/pkill -f /var/rudder/cfengine-community/bin/cf
+echo "Copy CFEngine binaries"
 cp -a /opt/rudder/sbin/cf-* /var/rudder/cfengine-community/bin/
+NB_COPIED_BINARIES=`ls -1 /var/rudder/cfengine-community/bin/ | wc -l`
+if [ ${NB_COPIED_BINARIES} -gt 0 ];then echo "CFEngine binaries copied to workdir"; fi
 
 # Copy initial promises if there aren't any already
 if [ ! -e /var/rudder/cfengine-community/inputs/promises.cf ]
