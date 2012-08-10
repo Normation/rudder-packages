@@ -28,8 +28,11 @@ case "$1" in
 		if [ ${CFRUDDER_FIRST_INSTALL} -ne 1 -a -x /etc/init.d/rudder-agent ]; then /etc/init.d/rudder-agent stop; fi
 		echo "List CFEngine processes"
 		/usr/bin/pgrep -f /var/rudder/cfengine-community/bin/cf -l
-		echo "Kill all CFengine processes in order to free CFengine binaries"
-		/usr/bin/pkill -f /var/rudder/cfengine-community/bin/cf
+		NB_CFE_PROCESS=`/usr/bin/pgrep -f /var/rudder/cfengine-community/bin/cf -l | wc -l`
+		if [ ${NB_CFE_PROCESS} -gt 0 ]; then
+			echo "Kill all CFengine processes in order to free CFengine binaries"
+			/usr/bin/pkill -f /var/rudder/cfengine-community/bin/cf
+		fi
 		echo "Copy CFEngine binaries"
 		cp -a /opt/rudder/sbin/cf-* /var/rudder/cfengine-community/bin/
 		NB_COPIED_BINARIES=`ls -1 /var/rudder/cfengine-community/bin/ | wc -l`
