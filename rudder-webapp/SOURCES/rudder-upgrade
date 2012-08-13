@@ -67,7 +67,14 @@ else
 	LDAP_USER=$(grep -E "ldap.authdn=" /opt/rudder/etc/rudder-web.properties |cut -d "=" -f 2-)
 	LDAP_PASSWORD=$(grep -E "ldap.authpw=" /opt/rudder/etc/rudder-web.properties |cut -d "=" -f 2-)
 fi
-
+GIT_BRANCH_IS_SET=`grep -E "^rudder.ptlib.git.refs.path=" /opt/rudder/etc/rudder-web.properties | wc -l`
+if [ ${GIT_BRANCH_IS_SET} -eq 1 ]; then
+	GIT_BRANCH=$(grep -E "^rudder.ptlib.git.refs.path=" /opt/rudder/etc/rudder-web.properties |cut -d "=" -f 2-)
+else
+	echo "rudder.ptlib.git.refs.path attribute in rudder-web.properties doesn't seem to be set"
+	echo "Use of 'refs/heads/master' by default"
+	GIT_BRANCH="refs/heads/master"
+fi
 
 # Helper function
 # Function to check if a property exists in a configuration file and add it if not
@@ -83,6 +90,14 @@ function check_and_add_config_property {
         echo "New configuration property ${PROPERTY_NAME} added to /opt/rudder/etc/rudder-web.properties"
     fi
 }
+
+# Before to do any action on git, set branch to Technique Reference Libreary branch
+if [ -d /var/rudder/policy-templates/.git ];then
+	cd /var/rudder/policy-templates/ && git checkout ${GIT_BRANCH}
+fi
+if [ -d /var/rudder/configuration-repository/.git ];then
+	cd /var/rudder/configuration-repository/ && git checkout ${GIT_BRANCH}
+fi
 
 # Migrate from 2.3.0 format policy-template store (/var/rudder/policy-templates)
 # to /var/rudder/configuration-repository/policy-templates
