@@ -64,8 +64,8 @@ if [ -f /opt/rudder/etc/openldap/slapd.conf ]; then
 	LDAP_PASSWORD=$(grep "^rootpw" /opt/rudder/etc/openldap/slapd.conf | sed "s/\w*\s*['\"]\?\([^\"']*\)['\"]\?$/\1/")
 else
 	echo "WARNING: /opt/rudder/etc/openldap/slapd.conf doesn't exist"
-	LDAP_USER=$(grep -E "ldap.authdn=" /opt/rudder/etc/rudder-web.properties |cut -d "=" -f 2-)
-	LDAP_PASSWORD=$(grep -E "ldap.authpw=" /opt/rudder/etc/rudder-web.properties |cut -d "=" -f 2-)
+	LDAP_USER=$(grep -E "^ldap.authdn=" /opt/rudder/etc/rudder-web.properties |cut -d "=" -f 2-)
+	LDAP_PASSWORD=$(grep -E "^ldap.authpw=" /opt/rudder/etc/rudder-web.properties |cut -d "=" -f 2-)
 fi
 GIT_BRANCH_IS_SET=`grep -E "^rudder.ptlib.git.refs.path=" /opt/rudder/etc/rudder-web.properties | wc -l`
 if [ ${GIT_BRANCH_IS_SET} -eq 1 ]; then
