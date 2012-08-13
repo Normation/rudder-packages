@@ -67,13 +67,13 @@ else
 	LDAP_USER=$(grep -E "^ldap.authdn=" /opt/rudder/etc/rudder-web.properties |cut -d "=" -f 2-)
 	LDAP_PASSWORD=$(grep -E "^ldap.authpw=" /opt/rudder/etc/rudder-web.properties |cut -d "=" -f 2-)
 fi
-GIT_BRANCH_IS_SET=`grep -E "^rudder.ptlib.git.refs.path=" /opt/rudder/etc/rudder-web.properties | wc -l`
+GIT_BRANCH_IS_SET=`grep -E "^rudder.(ptlib|techniqueLibrary).git.refs.path=" /opt/rudder/etc/rudder-web.properties | wc -l`
 if [ ${GIT_BRANCH_IS_SET} -eq 1 ]; then
-	GIT_BRANCH=$(grep -E "^rudder.ptlib.git.refs.path=" /opt/rudder/etc/rudder-web.properties |cut -d "=" -f 2-)
+	GIT_BRANCH=$(grep -E "^rudder.(ptlib|techniqueLibrary).git.refs.path=" /opt/rudder/etc/rudder-web.properties |cut -d "=" -f 2- | sed "s@\(refs/heads/\)\?\(refs/tags/\)\?\(refs/remote/origin/\)\?\(.*\)@\4@")
 else
 	echo "rudder.ptlib.git.refs.path attribute in rudder-web.properties doesn't seem to be set"
-	echo "Use of 'refs/heads/master' by default"
-	GIT_BRANCH="refs/heads/master"
+	echo "Use of 'master' by default"
+	GIT_BRANCH="master"
 fi
 
 # Helper function
