@@ -26,12 +26,10 @@ case "$1" in
 
 		# Copy new binaries to workdir, make sure daemons are stopped first
 		if [ ${CFRUDDER_FIRST_INSTALL} -ne 1 -a -x /etc/init.d/rudder-agent ]; then /etc/init.d/rudder-agent stop; fi
-		echo "List CFEngine processes"
-		ps axf | grep "/var/rudder/cfengine-community/bin/cf" | grep -v "grep"
-		NB_CFE_PROCESS=`ps axf | grep "/var/rudder/cfengine-community/bin/cf" | grep -v "grep" | wc -l`
+		NB_CFE_PROCESS=`/usr/bin/pgrep -fx "^/var/rudder/cfengine-community/bin/cf-.*$" -l | wc -l`
 		if [ ${NB_CFE_PROCESS} -gt 0 ]; then
 			echo "Kill all CFengine processes in order to free CFengine binaries"
-			/usr/bin/pkill -f /var/rudder/cfengine-community/bin/cf
+			/usr/bin/pkill -fx "^/var/rudder/cfengine-community/bin/cf-.*"
 		fi
 		echo "Copy CFEngine binaries"
 		cp -a /opt/rudder/sbin/cf-* /var/rudder/cfengine-community/bin/
