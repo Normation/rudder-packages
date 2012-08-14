@@ -71,8 +71,8 @@ GIT_BRANCH_IS_SET=`grep -E "^rudder.(ptlib|techniqueLibrary).git.refs.path=" /op
 if [ ${GIT_BRANCH_IS_SET} -eq 1 ]; then
 	GIT_BRANCH=$(grep -E "^rudder.(ptlib|techniqueLibrary).git.refs.path=" /opt/rudder/etc/rudder-web.properties |cut -d "=" -f 2- | sed "s@\(refs/heads/\)\?\(refs/tags/\)\?\(refs/remote/origin/\)\?\(.*\)@\4@")
 else
-	echo "rudder.ptlib.git.refs.path attribute in rudder-web.properties doesn't seem to be set"
-	echo "Use of 'master' by default"
+	echo "The rudder.ptlib.git.refs.path attribute in rudder-web.properties does not seem to be set"
+	echo "Using 'master' by default"
 	GIT_BRANCH="master"
 fi
 
@@ -91,7 +91,7 @@ function check_and_add_config_property {
     fi
 }
 
-# Before to do any action on git, set branch to Technique Reference Libreary branch
+# Before doing anything on git, set the branch to the Technique Reference Library branch
 if [ -d /var/rudder/policy-templates/.git ];then
 	cd /var/rudder/policy-templates/ && git checkout ${GIT_BRANCH}
 fi
