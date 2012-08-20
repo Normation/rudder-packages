@@ -20,7 +20,7 @@
 
 RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
 
-localdepends: ./rudder-sources ../debian/rudder-server-root.logrotate ../debian/rudder-server-root.init
+localdepends: ./rudder-sources ../debian/rudder-server-root.logrotate ../debian/rudder-server-root.init ./rudder.logrotate.suse
 
 ./rudder-sources.tar.bz2:
 	$(WGET) -O rudder-sources.tar.bz2 http://www.rudder-project.org/archives/rudder-sources-${RUDDER_VERSION_TO_PACKAGE}.tar.bz2
@@ -31,10 +31,13 @@ localdepends: ./rudder-sources ../debian/rudder-server-root.logrotate ../debian/
 
 # Get the logrotate file. We need it both in the SOURCES/ dir, and in debian/ dir,
 # because RPM packages take it straight from SOURCES/
-./rudder.logrotate: ./rudder-sources
-	cp -a ./rudder-sources/rudder-techniques/techniques/system/distributePolicy/1.0/logrotate.st ./rudder.logrotate
+./rudder.logrotate.debian: ./rudder-sources
+	cp -a ./rudder-sources/rudder-techniques/techniques/system/distributePolicy/1.0/logrotate.debian.st ./rudder.logrotate.debian
 
-../debian/rudder-server-root.logrotate:
+./rudder.logrotate.suse: ./rudder-sources
+	cp -a ./rudder-sources/rudder-techniques/techniques/system/distributePolicy/1.0/logrotate.suse.st ./rudder.logrotate.suse
+
+../debian/rudder-server-root.logrotate: ./rudder.logrotate.debian
 	cp rudder.logrotate.debian ../debian/rudder-server-root.logrotate
 
 ../debian/rudder-server-root.init:
@@ -44,7 +47,8 @@ localclean:
 	rm -rf ./rudder-sources
 	rm -f ../debian/rudder-server-root.logrotate
 	rm -f ../debian/rudder-server-root.init
-	rm -f ./rudder.logrotate
+	rm -f ./rudder.logrotate.debian
+	rm -f ./rudder.logrotate.suse
 
 veryclean:
 	rm -f ./rudder-sources.tar.bz2
