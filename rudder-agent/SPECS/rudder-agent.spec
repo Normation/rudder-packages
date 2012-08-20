@@ -85,7 +85,7 @@ Requires: db4 dmidecode
 
 # Replaces rudder-cfengine-community since 2.4.0~beta3
 Provides: rudder-cfengine-community
-Obsoletes: rudder-cfengine-communtiy
+Obsoletes: rudder-cfengine-community
 
 %description
 Rudder is an open source configuration management and audit solution.
