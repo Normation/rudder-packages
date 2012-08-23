@@ -138,7 +138,7 @@ echo "Setting postgresql as a boot service"
 %endif
 
 echo "Waiting postgresql to be up"
-while [ `ps ax | grep post | grep -v "grep" | wc -l` -lt 1 ]; do echo -n "."; done
+while [ `ps ax | grep post | grep -v "grep" | wc -l` -lt 5 ]; do echo -n "."; done
 
 dbname="rudder"
 usrname="rudder"
