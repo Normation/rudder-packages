@@ -137,6 +137,9 @@ echo "Setting postgresql as a boot service"
 /sbin/chkconfig postgresql on
 %endif
 
+echo "Waiting postgresql to be up"
+while [ `ps ax | grep post | grep -v "grep" | wc -l` -lt 1 ]; do echo -n "."; done
+
 dbname="rudder"
 usrname="rudder"
 RES=$(su - postgres -c "psql -t -c \"select count(1) from pg_catalog.pg_database where datname = '$dbname'\"")
