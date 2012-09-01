@@ -209,7 +209,13 @@ if [ ${CFRUDDER_FIRST_INSTALL} -ne 1 ]
 then
 	/sbin/service rudder-agent start
 else
-	echo "rudder-agent has been installed, but not started"
+	echo "********************************************************************************"
+	echo "rudder-agent has been installed (not started). This host can be a Rudder node."
+	echo "To get started, configure your Rudder server's hostname and launch the agent:"
+	echo "# echo 'rudder.server' > /var/rudder/cfengine-community/policy_server.dat"
+	echo "# /etc/init.d/rudder-agent start"
+	echo "This node will then appear in the Rudder web interface under 'Accept new nodes'."
+	echo "********************************************************************************"
 fi
 
 # Create a key if we don't have one yet
