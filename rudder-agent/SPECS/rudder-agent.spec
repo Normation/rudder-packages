@@ -193,7 +193,8 @@ if [ ${NB_CFE_PROCESS} -gt 0 ]; then
 	echo "Kill all CFengine processes in order to free CFengine binaries"
 	/usr/bin/pkill -fx "^/var/rudder/cfengine-community/bin/cf-.*"
 fi
-echo "Copy CFEngine binaries"
+
+# Copy CFEngine binaries
 cp -a /opt/rudder/sbin/cf-* /var/rudder/cfengine-community/bin/
 NB_COPIED_BINARIES=`ls -1 /var/rudder/cfengine-community/bin/ | wc -l`
 if [ ${NB_COPIED_BINARIES} -gt 0 ];then echo "CFEngine binaries copied to workdir"; fi
@@ -227,15 +228,15 @@ fi
 # Generate a UUID if we don't have one yet
 if [ ! -e /opt/rudder/etc/uuid.hive ]
 then
-  uuidgen > /opt/rudder/etc/uuid.hive
+	uuidgen > /opt/rudder/etc/uuid.hive
 else
-  # UUID is valid only if it has been generetaed by uuidgen or if it is set to 'root' for policy server
-  CHECK_UUID=`cat /opt/rudder/etc/uuid.hive | grep -E "^[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}|root" | wc -l`
-  # If the UUID is not valid, regenerate it
-  if [ ${CHECK_UUID} -ne 1 ]
-  then
-    uuidgen > /opt/rudder/etc/uuid.hive
-  fi
+	# UUID is valid only if it has been generetaed by uuidgen or if it is set to 'root' for policy server
+	CHECK_UUID=`cat /opt/rudder/etc/uuid.hive | grep -E "^[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}|root" | wc -l`
+	# If the UUID is not valid, regenerate it
+	if [ ${CHECK_UUID} -ne 1 ]
+	then
+		uuidgen > /opt/rudder/etc/uuid.hive
+	fi
 fi
 
 #=================================================
