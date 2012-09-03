@@ -138,7 +138,21 @@ echo "Setting postgresql as a boot service"
 %endif
 
 echo "Waiting postgresql to be up"
-while ! su - postgres -c "psql -q --output /dev/null -c \"SELECT COUNT(*) FROM pg_catalog.pg_authid\"" 2&>1 ;do echo -n "."; done
+CPT=0
+TIMEOUT=60
+while ! su - postgres -c "psql -q --output /dev/null -c \"SELECT COUNT(*) FROM pg_catalog.pg_authid\"" 2&>1
+do
+        echo -n "."
+        sleep 1
+        CPT=$((${CPT}+1))
+        if [ ${CPT} -eq ${TIMEOUT} ]
+        then
+                echo -e "\nConnection to PostgreSQL has not been established before timeout"
+                echo "Exiting"
+                exit 1
+        fi
+done
+
 
 dbname="rudder"
 usrname="rudder"
