@@ -224,6 +224,7 @@ rm -rf %{buildroot}
 %{rudderdir}/etc/
 %config(noreplace) %{rudderdir}/etc/rudder-web.properties
 %config(noreplace) %{rudderdir}/etc/rudder-users.xml
+%config(noreplace) %{rudderdir}/etc/logback.xml
 %{rudderdir}/bin/
 %{rudderdir}/jetty7/webapps/
 %{rudderdir}/jetty7/rudder-plugins/
