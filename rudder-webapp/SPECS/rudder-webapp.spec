@@ -178,10 +178,10 @@ cp %{SOURCE5} %{buildroot}%{rudderdir}/bin/
 # Post Installation
 #=================================================
 
-echo "Setting apache2 as a boot service"
+echo "Setting Apache HTTPd as a boot service"
 /sbin/chkconfig --add %{apache}
 
-echo "Reloading syslogd ..."
+echo "Reloading syslog"
 %{sysloginitscript} reload
 
 /etc/init.d/%{apache} stop
@@ -210,7 +210,8 @@ chmod 655 -R %{rudderdir}/share/load-page
 %{htpasswd_cmd} -bc %{rudderdir}/etc/htpasswd-webdav-initial rudder rudder
 %{htpasswd_cmd} -bc %{rudderdir}/etc/htpasswd-webdav rudder rudder
 
-/etc/init.d/%{apache} start
+echo "(Re-)starting Apache HTTPd"
+/etc/init.d/%{apache} restart
 
 # Run any upgrades
 # Note this must happen *before* creating the technique store, as it was moved in version 2.3.2
@@ -223,6 +224,14 @@ if [ ! -d /var/rudder/configuration-repository/shared-files ]; then mkdir -p /va
 if [ ! -d /var/rudder/configuration-repository/techniques ]; then
 	cp -a %{rudderdir}/share/techniques /var/rudder/configuration-repository/
 fi
+
+# Warn the user that Jetty needs restarting. This can't be done automatically due to a bug in Jetty's init script.
+# See http://www.rudder-project.org/redmine/issues/2807
+echo "********************************************************************************"
+echo "rudder-webapp has been upgraded, but for the upgrade to take effect, please"
+echo "restart the jetty application server as follows:"
+echo "# /etc/init.d/jetty restart"
+echo "********************************************************************************"
 
 
 

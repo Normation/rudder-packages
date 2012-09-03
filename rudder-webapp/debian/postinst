@@ -19,6 +19,7 @@ set -e
 
 case "$1" in
     configure)
+		echo "Reloading syslog"
 		invoke-rc.d rsyslog reload
   /etc/init.d/apache2 stop
   a2dissite default
@@ -36,7 +37,8 @@ case "$1" in
   htpasswd -bc /opt/rudder/etc/htpasswd-webdav-initial rudder rudder
   htpasswd -bc /opt/rudder/etc/htpasswd-webdav rudder rudder
 
-  /etc/init.d/apache2 start
+  echo "(Re-)starting Apache HTTPd"
+  /etc/init.d/apache2 restart
 
   # Run any upgrades
   # Note this must happen *before* creating the technique store, as it was moved in version 2.3.2
