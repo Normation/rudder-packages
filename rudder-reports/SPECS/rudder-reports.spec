@@ -152,6 +152,7 @@ do
                 exit 1
         fi
 done
+echo ""
 
 
 dbname="rudder"
