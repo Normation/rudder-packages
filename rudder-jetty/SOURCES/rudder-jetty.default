@@ -20,3 +20,6 @@ JETTY_HOME="/opt/rudder/jetty7/"
 JETTY_RUN="/var/rudder/run"
 JETTY_ARGS="OPTIONS=Server"
 JETTY_LOGS="/var/log/rudder/webapp/"
+
+# Prevent Jetty to change locale in its logs
+export LANG=C
