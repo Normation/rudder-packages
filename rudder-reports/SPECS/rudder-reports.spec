@@ -140,7 +140,7 @@ echo "Setting postgresql as a boot service"
 echo "Waiting postgresql to be up"
 CPT=0
 TIMEOUT=60
-while ! su - postgres -c "psql -q --output /dev/null -c \"SELECT COUNT(*) FROM pg_catalog.pg_authid\"" 2&>1
+while ! su - postgres -c "psql -q --output /dev/null -c \"SELECT COUNT(*) FROM pg_catalog.pg_authid\""
 do
         echo -n "."
         sleep 1
