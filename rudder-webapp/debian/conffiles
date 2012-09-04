@@ -1,4 +1,5 @@
 /opt/rudder/etc/rudder-web.properties
 /opt/rudder/etc/rudder-users.xml
+/opt/rudder/etc/logback.xml
 /etc/apache2/sites-available/rudder-default
 /opt/rudder/etc/rudder-networks.conf
