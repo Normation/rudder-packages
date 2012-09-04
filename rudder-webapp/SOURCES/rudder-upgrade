@@ -53,6 +53,7 @@ set -e
 # - All versions: upgrade system Techniques automatically and reload the Techniqe library
 # - 2.4.0: Force upgrade of the rsyslog configuration, otherwise Rudder won't get any reports
 # - 2.4.0 : Migration DB schema to change the indexes in the SQL database to improve performances
+# - 2.4.0 : Migration of rudder users from 2.3 to 2.4 (add roles)
 #####################################################################################
 
 # Some variables
@@ -463,4 +464,19 @@ fi
 if [ -d ${TRGTECHDIR} ];then
 	mkdir -p /var/rudder/cfengine-community/inputs/distributePolicy/rsyslog.conf
 	cp -a /var/rudder/configuration-repository/techniques/system/distributePolicy/1.0/rudder.st /var/rudder/cfengine-community/inputs/distributePolicy/rsyslog.conf/rudder.conf
+fi
+
+# 2.4.0 : Migration of rudder users from 2.3 to 2.4 (add roles)
+# Check if rudder-users.xml is from a Rudder 2.4 installation, a
+# Rudder 2.3 migration or need to be migrated.
+if [ -f /opt/rudder/etc/rudder-users.xml ]; then
+	NEWUSERS=`grep "<\!-- This file was originally made from Rudder 2.4 or later -->" /opt/rudder/etc/rudder-users.xml | wc -l`
+	MIGRATEDUSERS=`grep "<\!-- This file was migrated from 2.3 to 2.4 by adding the admin role to all users. Don 't delete this line or it will happen again\! -->" /opt/rudder/etc/rudder-users.xml | wc -l`
+	if [ ${NEWUSERS} -eq 1 -o ${MIGRATEDUSERS} -eq 1 ]; then
+		echo "/opt/rudder/etc/rudder-users.xml is conform"
+	else
+		echo "/opt/rudder/etc/rudder-users.xml need to be migrated"
+		sed -i "s/\(^\s*<user name=\".*\"\s*password=\".*\"\)\s*\(\/>\)$/\1 role=\"administrator\" \2/" /opt/rudder/etc/rudder-users.xml
+		echo "/opt/rudder/etc/rudder-users.xml has been modified and is now conform"
+	fi
 fi
