@@ -471,13 +471,13 @@ fi
 # Rudder 2.3 migration or need to be migrated.
 if [ -f /opt/rudder/etc/rudder-users.xml ]; then
 	NEWUSERS=`grep "<\!-- This file was originally made from Rudder 2.4 or later -->" /opt/rudder/etc/rudder-users.xml | wc -l`
-	MIGRATEDUSERS=`grep "<\!-- This file was migrated from 2.3 to 2.4 by adding the admin role to all users. Don 't delete this line or it will happen again\! -->" /opt/rudder/etc/rudder-users.xml | wc -l`
+	MIGRATEDUSERS=`grep "<\!-- This file was migrated from 2.3 to 2.4 by adding the admin role to all users. Do not delete this line or it will happen again\! -->" /opt/rudder/etc/rudder-users.xml | wc -l`
 	if [ ${NEWUSERS} -eq 1 -o ${MIGRATEDUSERS} -eq 1 ]; then
 		echo "/opt/rudder/etc/rudder-users.xml is conform"
 	else
 		echo "/opt/rudder/etc/rudder-users.xml need to be migrated"
 		sed -i "/role=\".*\"/! s/\(^\s*<user name=\".*\"\s*password=\".*\" \?\)\s*\(\/>\)$/\1 role=\"administrator\" \2/g" /opt/rudder/etc/rudder-users.xml
-		echo >> /opt/rudder/etc/rudder-users.xml "<\!-- This file was migrated from 2.3 to 2.4 by adding the admin role to all users. Don 't delete this line or it will happen again\! -->"
+		echo >> /opt/rudder/etc/rudder-users.xml '<!-- This file was migrated from 2.3 to 2.4 by adding the admin role to all users. Do not delete this line or it will happen again! -->'
 		echo "/opt/rudder/etc/rudder-users.xml has been modified and is now conform"
 	fi
 fi
