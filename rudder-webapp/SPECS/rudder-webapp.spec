@@ -208,12 +208,47 @@ else
 	echo "rudder.dir.shared.files.folder attribute set in rudder-web.properties"
 fi
 
-#Check that filePermissions.st located in fileConfiguration/security/ is not duplicated and in the right folder
-if [ -d /var/rudder/configuration-repository/policy-templates/fileConfiguration/security/filesPermissions/ ]; then
-	echo "The Policy Template 'Set the permissions of files' is not correctly located"
-	cd /var/rudder/configuration-repository/ && git mv policy-templates/fileConfiguration/security/ policy-templates/fileConfiguration/fileSecurity/
-	cd /var/rudder/configuration-repository/ && git commit -m "Correct Policy Tempalte 'Set the permissions of files' location"
-	echo "The location of the Policy Template 'Set the permissions of files' is now correct"
+# Migration of PT 'Set the permissions of files' (Ensure that all actions below won't happen if migration has already made)
+if [ ! -f ${PT_DIR}/fileConfiguration/fileSecurity/filesPermissions/1.0/policy.xml ]; then
+## Create right folder if it doesn't exist
+  if [ ! -d ${PT_DIR}/fileConfiguration/fileSecurity/ ]; then
+    mkdir -p "${PT_DIR}/fileConfiguration/fileSecurity"
+    echo "${PT_DIR}/fileConfiguration/fileSecurity has been created"
+  else
+    echo "${PT_DIR}/fileConfiguration/fileSecurity already exists"
+  fi
+
+  if [ -d ${PT_DIR}/fileConfiguration/security/ ]; then
+## Check that filePermissions.st located in fileConfiguration/security/ is not duplicated and in the right folder
+    if [ -d ${PT_DIR}/fileConfiguration/security/filesPermissions/ ]; then
+      echo "The Policy Template 'Set the permissions of files' is not correctly located"
+      cd /var/rudder/configuration-repository/ && git mv policy-templates/fileConfiguration/security/filesPermissions/ policy-templates/fileConfiguration/fileSecurity/
+      cd /var/rudder/configuration-repository/ && git commit -m "Correct Policy Template 'Set the permissions of files' location" policy-templates/fileConfiguration/security/filesPermissions/
+      echo "The location of the Policy Template 'Set the permissions of files' is now correct"
+    fi
+## Check that a category exist on fileSecurity folder, if not move from security folder
+    if [ ! -f ${PT_DIR}/fileConfiguration/fileSecurity/category.xml ]; then
+      echo "${PT_DIR}/fileConfiguration/fileSecurity/category.xml is missing"
+      if [ -f ${PT_DIR}/fileConfiguration/security/category.xml ]; then
+        cd /var/rudder/configuration-repository/ && git mv policy-templates/fileConfiguration/security/category.xml policy-templates/fileConfiguration/fileSecurity/ && git commit -m "Move category description from fileConfiguration/security/ to fileConfiguration/fileSecurity/"
+        echo "${PT_DIR}/fileConfiguration/security/category.xml has been moved to ${PT_DIR}/fileConfiguration/fileSecurity/category.xml"
+      else
+        echo "can't find ${PT_DIR}/fileConfiguration/security/category.xml"
+        exit 1
+      fi
+    fi
+## Check that no others directories are located in fileConfiguration/security/
+    NBR_DIR=`find ${PT_DIR}/fileConfiguration/security/ -mindepth 1 -maxdepth 1 -type d | wc -l`
+    if [ ${NBR_DIR} -ne 0 ]; then
+      echo "Some folder remains in the folder /var/rudder/configuration-repository/policy-templates/fileConfiguration/security/"
+      cd /var/rudder/configuration-repository/ && find policy-templates/fileConfiguration/security/ -mindepth 1 -maxdepth 1 -type d | xargs -I SRCFOLDER git mv SRCFOLDER policy-templates/fileConfiguration/fileSecurity/
+      cd /var/rudder/configuration-repository/ && git commit -m "Move all remnant folder from fileConfiguration/security/ to fileConfiguration/fileSecurity/" policy-templates/fileConfiguration/fileSecurity/
+      echo "All the folder from ${PT_DIR}/fileConfiguration/security/ are now moved to ${PT_DIR}/fileConfiguration/fileSecurity/"
+    fi
+## Remove the folder which should contain no more files or folder
+    rm -rf policy-templates/fileConfiguration/security/ # Not using git since it can't manage folder without file
+    echo  "${PT_DIR}/fileConfiguration/security/ has been removed"
+  fi
 fi
 
 #=================================================
