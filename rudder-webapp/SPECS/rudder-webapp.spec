@@ -234,6 +234,13 @@ echo "# /etc/init.d/jetty restart"
 echo "********************************************************************************"
 
 
+#Check that filePermissions.st located in fileConfiguration/security/ is not duplicated and in the right folder
+if [ -d /var/rudder/configuration-repository/policy-templates/fileConfiguration/security/filesPermissions/ ]; then
+	echo "The Policy Template 'Set the permissions of files' is not correctly located"
+	cd /var/rudder/configuration-repository/ && git mv policy-templates/fileConfiguration/security/ policy-templates/fileConfiguration/fileSecurity/
+	cd /var/rudder/configuration-repository/ && git commit -m "Correct Policy Tempalte 'Set the permissions of files' location"
+	echo "The location of the Policy Template 'Set the permissions of files' is now correct"
+fi
 
 #=================================================
 # Cleaning
