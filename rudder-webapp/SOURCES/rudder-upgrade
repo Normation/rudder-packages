@@ -54,6 +54,7 @@ set -e
 # - 2.4.0: Force upgrade of the rsyslog configuration, otherwise Rudder won't get any reports
 # - 2.4.0 : Migration DB schema to change the indexes in the SQL database to improve performances
 # - 2.4.0 : Migration of rudder users from 2.3 to 2.4 (add roles)
+# - 2.4.0 : Migration of Rudder logs for ops
 #####################################################################################
 
 # Some variables
@@ -480,4 +481,24 @@ if [ -f /opt/rudder/etc/rudder-users.xml ]; then
 		echo >> /opt/rudder/etc/rudder-users.xml '<!-- This file was migrated from 2.3 to 2.4 by adding the admin role to all users. Do not delete this line or it will happen again! -->'
 		echo "/opt/rudder/etc/rudder-users.xml has been modified and is now conform"
 	fi
+fi
+
+# 2.4.0 : Migration of Rudder logs for ops
+OLD_LOG_PATH="/var/log/rudder/webapp-opslog"
+NEW_LOG_PATH="/var/log/rudder/core"
+NEW_LOG_SET=`grep "${NEW_LOG_PATH}" /opt/rudder/etc/logback.xml | wc -l`
+REGEXP_NEW_LOG_SET="s@^(\s*<property\s+name=\\\"OPSLOG_DIR\\\"\s+value=\\\").*(\\\"\s*\/>)@\1${NEW_LOG_PATH}\2@"
+## Check if old log still exist . If so move it to the new path.
+if [ -d ${OLD_LOG_PATH} ]; then
+	if [ ${NEW_LOG_SET} -eq 0 ]; then
+		## Set OPSLOG_DIR to /var/log/rudder/core
+		sed -r ${REGEXP_NEW_LOG_SET} -i /opt/rudder/etc/logback.xml
+	fi
+	## Check if new log already exist
+	if [ ! -d ${NEW_LOG_PATH} ];then
+		## Set OPSLOG_DIR to the new log path in logback.xml
+		mkdir -p ${NEW_LOG_PATH}
+	fi
+	ls -1 ${OLD_LOG_PATH} | xargs -I SRCFILES mv ${OLD_LOG_PATH}/SRCFILES ${NEW_LOG_PATH}/SRCFILES-migrated
+	rmdir ${OLD_LOG_PATH}
 fi
