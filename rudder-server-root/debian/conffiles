@@ -1,1 +1,2 @@
 /opt/rudder/etc/uuid.hive
+/etc/logrotate.d/rudder
