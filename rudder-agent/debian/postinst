@@ -25,17 +25,25 @@ case "$1" in
 		if [ ! -x /var/rudder/cfengine-community/bin/cf-execd ]; then CFRUDDER_FIRST_INSTALL=1; fi
 
 		# Copy new binaries to workdir, make sure daemons are stopped first
-		if [ ${CFRUDDER_FIRST_INSTALL} -ne 1 -a -x /etc/init.d/rudder-agent ]; then /etc/init.d/rudder-agent stop; fi
-		NB_CFE_PROCESS=`/usr/bin/pgrep -fx "^/var/rudder/cfengine-community/bin/cf-.*$" -l | wc -l`
-		if [ ${NB_CFE_PROCESS} -gt 0 ]; then
-			echo "Kill all CFengine processes in order to free CFengine binaries"
-			/usr/bin/pkill -fx "^/var/rudder/cfengine-community/bin/cf-.*"
+
+		# Set a "lock" to avoid CFEngine being restarted during the upgrade process
+		I_SET_THE_LOCK=0
+		if [ ! -e /opt/rudder/etc/disable-agent ]; then
+			I_SET_THE_LOCK=1
+			touch /opt/rudder/etc/disable-agent
 		fi
+
+		if [ ${CFRUDDER_FIRST_INSTALL} -ne 1 -a -x /etc/init.d/rudder-agent ]; then /etc/init.d/rudder-agent stop; fi
 
 		# Copy CFEngine binaries
 		cp -a /opt/rudder/sbin/cf-* /var/rudder/cfengine-community/bin/
 		NB_COPIED_BINARIES=`ls -1 /var/rudder/cfengine-community/bin/ | wc -l`
 		if [ ${NB_COPIED_BINARIES} -gt 0 ];then echo "CFEngine binaries copied to workdir"; fi
+
+		# Remove the lock on CFEngine
+		if [ ${I_SET_THE_LOCK} -eq 1 ]; then
+			rm -f /opt/rudder/etc/disable-agent
+		fi
 
 		# Copy initial promises if there aren't any already
 		if [ ! -e /var/rudder/cfengine-community/inputs/promises.cf ]
