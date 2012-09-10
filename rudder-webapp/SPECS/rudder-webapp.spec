@@ -251,6 +251,16 @@ if [ ! -f ${PT_DIR}/fileConfiguration/fileSecurity/filesPermissions/1.0/policy.x
   fi
 fi
 
+# Check that Rudder database is able to handle backslash
+CHECK_BACKSLASH=$(su - postgres -c "psql -t -d rudder -c \"select '\\foo';\"" 2> /dev/null | grep "foo" | wc -l)
+if [ ${CHECK_BACKSLASH} -ne 1 ]; then
+  echo "Rudder database is not backslash compliant, then a modification will be made."
+  su - postgres -c "psql -t -d rudder -c \"alter database rudder set standard_conforming_strings=true;\""
+  echo "Done. PostgreSQL and Rudder will be restarted"
+  /etc/init.d/postgresql restart
+  /etc/init.d/jetty restart
+fi
+
 #=================================================
 # Cleaning
 #=================================================
