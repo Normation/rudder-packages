@@ -178,6 +178,10 @@ cp %{SOURCE5} %{buildroot}%{rudderdir}/bin/
 # Post Installation
 #=================================================
 
+# Variables
+VAR_RUDDER="/var/rudder"
+PT_DIR="${VAR_RUDDER}/configuration-repository/policy-templates"
+
 echo "Setting Apache HTTPd as a boot service"
 /sbin/chkconfig --add %{apache}
 
