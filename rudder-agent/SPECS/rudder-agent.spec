@@ -216,7 +216,10 @@ fi
 # Restart daemons if we stopped them, otherwise not
 if [ ${CFRUDDER_FIRST_INSTALL} -ne 1 ]
 then
-	/sbin/service rudder-agent start
+	if [ -r /var/rudder/cfengine-community/inputs/failsafe.cf -o -r /var/rudder/cfengine-community/inputs/promises.cf ]
+	then
+		/sbin/service rudder-agent start
+	fi
 else
 	echo "********************************************************************************"
 	echo "rudder-agent has been installed (not started). This host can be a Rudder node."
