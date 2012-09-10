@@ -143,7 +143,10 @@ cp -a %{rudderdir}/sbin/cf-* %{ruddervardir}/cfengine-community/bin/
 # Restart daemons if we stopped them, otherwise not
 if [ ${CFRUDDER_FIRST_INSTALL} -ne 1 ]
   then
-    /etc/init.d/cfengine-community start
+	if [ -r /var/rudder/cfengine-community/inputs/failsafe.cf -o -r /var/rudder/cfengine-community/inputs/promises.cf ]
+	then
+		/etc/init.d/cfengine-community start
+	fi
   else
   echo "rudder-cfengine-community has been installed, but not started"
 fi

@@ -31,7 +31,11 @@ case "$1" in
 		# Restart daemons if we stopped them, otherwise not
 		if [ ${CFRUDDER_FIRST_INSTALL} -ne 1 ]
 		then
-			/etc/init.d/cfengine-community start
+			# Only start CFEngine if there is actually a readable input file
+			if [ -r /var/rudder/cfengine-community/inputs/failsafe.cf -o -r /var/rudder/cfengine-community/inputs/promises.cf ]
+			then
+				/etc/init.d/cfengine-community start
+			fi
 		else
 			echo "rudder-cfengine-community has been installed, but not started"
 		fi
