@@ -9,6 +9,7 @@ Homepage: http://www.rudder-project.org
 Package: rudder-cfengine-community
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
+Conflicts: rudder-agent
 Description: Configuration management and audit tool - CFEngine server component
  Rudder is an open source configuration management and audit solution.
  .

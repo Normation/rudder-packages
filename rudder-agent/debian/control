@@ -9,6 +9,7 @@ Homepage: http://www.rudder-project.org
 Package: rudder-agent
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, uuid-runtime, dmidecode
+Conflicts: rudder-cfengine-community
 Description: Configuration management and audit tool - agent
  Rudder is an open source configuration management and audit solution.
  .

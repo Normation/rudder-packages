@@ -67,6 +67,8 @@ Requires: db42 pmtools
 Requires: dmidecode
 %endif
 
+Conflicts: rudder-agent
+
 %description
 Rudder is an open source configuration management and audit solution.
 

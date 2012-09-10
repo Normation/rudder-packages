@@ -82,6 +82,8 @@ BuildRequires: make db4-devel byacc
 Requires: db4 dmidecode
 %endif
 
+Conflicts: rudder-cfengine-community
+
 %description
 Rudder is an open source configuration management and audit solution.
 
