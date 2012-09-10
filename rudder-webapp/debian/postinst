@@ -19,7 +19,7 @@ set -e
 
 # Variables
 VAR_RUDDER="/var/rudder"
-PT_DIR="${VAR_RUDDER}/configuration-repository/policy-templaltes"
+PT_DIR="${VAR_RUDDER}/configuration-repository/policy-templates"
 
 case "$1" in
     configure)

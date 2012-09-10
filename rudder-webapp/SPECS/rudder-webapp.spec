@@ -127,6 +127,10 @@ cp %{SOURCE2} %{buildroot}%{rudderdir}/jetty7/contexts/
 # Post Installation
 #=================================================
 
+# Variables
+VAR_RUDDER="/var/rudder"
+PT_DIR="${VAR_RUDDER}/configuration-repository/policy-templates"
+
 echo "Setting apache2 as a boot service"
 /sbin/chkconfig --add apache2
 
