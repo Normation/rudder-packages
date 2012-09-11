@@ -55,6 +55,7 @@ set -e
 # - 2.4.0 : Migration DB schema to change the indexes in the SQL database to improve performances
 # - 2.4.0 : Migration of rudder users from 2.3 to 2.4 (add roles)
 # - 2.4.0 : Migration of Rudder logs for ops
+# - All versions: Check that Rudder database is able to handle backslash
 #####################################################################################
 
 # Some variables
@@ -501,4 +502,14 @@ if [ -d ${OLD_LOG_PATH} ]; then
 	fi
 	ls -1 ${OLD_LOG_PATH} | xargs -I SRCFILES mv ${OLD_LOG_PATH}/SRCFILES ${NEW_LOG_PATH}/SRCFILES-migrated
 	rmdir ${OLD_LOG_PATH}
+fi
+
+# All versions: Check that Rudder database is able to handle backslash
+CHECK_BACKSLASH=$(su - postgres -c "psql -t -d rudder -c \"select '\\foo';\"" 2> /dev/null | grep "foo" | wc -l)
+if [ ${CHECK_BACKSLASH} -ne 1 ]; then
+  echo "Rudder database is not backslash compliant, then a modification will be made."
+  su - postgres -c "psql -t -d rudder -c \"alter database rudder set standard_conforming_strings=true;\""
+  echo "Done. PostgreSQL and Rudder will be restarted"
+  /etc/init.d/postgresql restart
+  /etc/init.d/jetty restart
 fi

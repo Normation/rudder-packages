@@ -99,15 +99,6 @@ case "$1" in
 		fi
 	fi
 
-	# Check that Rudder database is able to handle backslash
-	CHECK_BACKSLASH=$(su - postgres -c "psql -t -d rudder -c \"select '\\foo';\"" 2> /dev/null | grep "foo" | wc -l)
-	if [ ${CHECK_BACKSLASH} -ne 1 ]; then
-		echo "Rudder database is not backslash compliant, then a modification will be made."
-		su - postgres -c "psql -t -d rudder -c \"alter database rudder set standard_conforming_strings=true;\""
-		echo "Done. PostgreSQL and Rudder will be restarted"
-		/etc/init.d/postgresql restart
-	fi
-
   # Restart the webapp
   echo "Restarting Rudder webapp and inventory-endpoint"
   /etc/init.d/jetty restart
