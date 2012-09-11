@@ -178,10 +178,6 @@ cp %{SOURCE5} %{buildroot}%{rudderdir}/bin/
 # Post Installation
 #=================================================
 
-# Variables
-VAR_RUDDER="/var/rudder"
-PT_DIR="${VAR_RUDDER}/configuration-repository/policy-templates"
-
 echo "Setting Apache HTTPd as a boot service"
 /sbin/chkconfig --add %{apache}
 
@@ -236,33 +232,6 @@ echo "rudder-webapp has been upgraded, but for the upgrade to take effect, pleas
 echo "restart the jetty application server as follows:"
 echo "# /etc/init.d/jetty restart"
 echo "********************************************************************************"
-
-
-# Migration of PT 'Set the permissions of files' (Ensure that all actions below won't happen if migration has already made)
-if [ ! -f ${PT_DIR}/fileConfiguration/fileSecurity/filesPermissions/1.0/policy.xml ]; then
-    ## Commit all modifications before migration
-    cd ${PT_DIR} && git add . && git add -u && git commit -am "Committing all pending policy template changes for automatic migration of the policy template from ${PT_DIR}/fileConfiguration/security/ to ${PT_DIR}/fileConfiguration/fileSecurity/" || true
-  ## Create right folder if it doesn't exist
-  if [ ! -d ${PT_DIR}/fileConfiguration/fileSecurity/ ]; then
-    mkdir -p "${PT_DIR}/fileConfiguration/fileSecurity"
-    echo "${PT_DIR}/fileConfiguration/fileSecurity has been created"
-  else
-    echo "${PT_DIR}/fileConfiguration/fileSecurity already exists"
-  fi
-
-  if [ -d ${PT_DIR}/fileConfiguration/security/ ]; then
-    ## Check that filePermissions.st located in fileConfiguration/security/ is not duplicated and in the right folder
-    if [ -d ${PT_DIR}/fileConfiguration/security/filesPermissions/ ]; then
-      echo "The Policy Template 'Set the permissions of files' is not correctly located"
-      cd ${PT_DIR} && git mv fileConfiguration/security/* fileConfiguration/fileSecurity/
-      cd ${PT_DIR} && git commit -m "Correct Policy Template 'Set the permissions of files' location"
-      echo "The location of the Policy Template 'Set the permissions of files' is now correct"
-    fi
-    ## Remove the folder which should contain no more files or folder
-    rm -rf ${PT_DIR}/fileConfiguration/security/ # Not using git since it can't manage folder without file
-    echo  "${PT_DIR}/fileConfiguration/security/ has been removed"
-  fi
-fi
 
 #=================================================
 # Cleaning
