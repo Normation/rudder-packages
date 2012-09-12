@@ -99,7 +99,7 @@ case "$1" in
 
 
 	# Migration of PT 'Set the permissions of files' (Ensure that all actions below won't happen if migration has already made)
-	if [ ! -f ${PT_DIR}/fileConfiguration/fileSecurity/filesPermissions/1.0/policy.xml ]; then
+	if [ ! -f ${PT_DIR}/fileConfiguration/fileSecurity/filesPermissions/1.0/policy.xml -a -f ${PT_DIR}/fileConfiguration/security/filesPermissions/1.0/policy.xml ]; then
 		## Commit all modifications before migration
 		cd ${PT_DIR} && git add . && git add -u && git commit -am "Committing all pending policy template changes for automatic migration of the policy template from ${PT_DIR}/fileConfiguration/security/ to ${PT_DIR}/fileConfiguration/fileSecurity/" || true
 		## Create right folder if it doesn't exist
