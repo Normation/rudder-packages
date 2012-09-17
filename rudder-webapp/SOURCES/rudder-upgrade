@@ -242,6 +242,16 @@ check_and_add_config_property history.inventories.enable "#
 # whether to historize inventory version as LDIF file or not
 history.inventories.enable=true
 "
+# Check for configuration property added in 2.4
+check_and_add_config_property rudder.syslog.port "#
+# The port used by rsyslog. 
+# Default port number is 514, but some user will want to change that. 
+# For example, on Ubuntu version >= 12.04, the port 514 is forbidden, 
+# and one above 1025 must be chosen 
+# (see:  https://bugs.launchpad.net/ubuntu/+source/rsyslog/+bug/789174)
+#
+rudder.syslog.port=514
+"
 
 # Upgrade database schema from 2.3 to 2.4 if necessary - first part: group type (static/dynamic)
 RES=$(su - postgres -c "psql -t -d rudder -c \"select count(attname) from pg_attribute where attrelid = (select oid from pg_class where relname = 'groups') and attname = 'groupstatus'\"")
