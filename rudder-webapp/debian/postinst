@@ -52,6 +52,17 @@ case "$1" in
 		cp -a /opt/rudder/share/techniques /var/rudder/configuration-repository/
 	fi
 
+	# Only for Ubuntu:
+	## Change rsyslog port number since Ubuntu 12.04 doesn't allow to use standard
+	## rsyslog port number (https://bugs.launchpad.net/ubuntu/+source/rsyslog/+bug/789174)
+	CHECK_DIST=`/usr/bin/lsb_release -c |cut -d ":" -f2 | sed "s/\s*//"`
+	CHECK_RSYSLOG_PORT=`grep -E "^rudder.syslog.port=[0-9]+$" /tmp/rudder-web.properties | cut -d "=" -f2`
+	if [ "z${CHECK_DIST}" = "zprecise" -a ${CHECK_RSYSLOG_PORT} -ne "5514" ]; then
+		echo "Since Ubuntu 12.04, rsyslog port number used by Rudder  need to be changed"
+		sed -i "s/^\(rudder.syslog.port=\)514$/\15514/" /opt/rudder/etc/rudder-web.properties
+		echo "rsyslog port number changed to 5514"
+	fi
+
 
   # Restart the webapp
   echo "Restarting Rudder webapp and inventory-endpoint"
