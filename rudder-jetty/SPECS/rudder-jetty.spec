@@ -57,6 +57,11 @@ Source2: rudder-jetty.default
 Patch1: jetty-init-sles.patch
 Patch2: jetty-init-rudder.patch
 
+# Prevent rpmbuild to use 64 bits libraries just because of the presence
+# of one 64 bits binary in the jetty archive.
+AutoReq: 0
+AutoProv: 0
+
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
 
