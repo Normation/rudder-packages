@@ -287,12 +287,15 @@ fi
 # Do we need to reindex the LDAP database? This can be necessary if the indexes were changed. Let's check.
 SLAPD_DEFINED_INDEXES=$(mktemp)
 SLAPD_ACTUAL_INDEXES=$(mktemp)
-grep ^index /opt/rudder/etc/openldap/slapd.conf | sed 's/\s\+/\t/g' | cut -f2 | sed 's/,/\n/g' | sort > ${SLAPD_DEFINED_INDEXES}
-ls  /var/rudder/ldap/openldap-data/*.bdb | xargs -n 1 -I{} basename {} .bdb | sort | egrep -v '^(dn2id|id2entry)' > ${SLAPD_ACTUAL_INDEXES}
-if ! diff ${SLAPD_DEFINED_INDEXES} ${SLAPD_ACTUAL_INDEXES}; then
-	echo "OpenLDAP indexes are not up to date, reindexing..."
-	/opt/rudder/sbin/slapindex
-	echo "OpenLDAP indexes updated."
+if [ -r /opt/rudder/etc/openldap/slapd.conf -a -e /var/rudder/ldap/openldap-data/id2entry.bdb ]; then
+	grep ^index /opt/rudder/etc/openldap/slapd.conf | sed 's/\s\+/\t/g' | cut -f2 | sed 's/,/\n/g' | sort > ${SLAPD_DEFINED_INDEXES}
+	ls  /var/rudder/ldap/openldap-data/*.bdb | xargs -n 1 -I{} basename {} .bdb | sort | egrep -v '^(dn2id|id2entry)' > ${SLAPD_ACTUAL_INDEXES}
+	if ! diff ${SLAPD_DEFINED_INDEXES} ${SLAPD_ACTUAL_INDEXES}; then
+		echo "OpenLDAP indexes are not up to date, reindexing..."
+		/etc/init.d/slapd stop
+		/opt/rudder/sbin/slapindex
+		echo "OpenLDAP indexes updated."
+	fi
 fi
 
 echo "All done. Starting slapd..."
