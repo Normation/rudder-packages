@@ -55,11 +55,11 @@ case "$1" in
 	# Only for Ubuntu:
 	## Change rsyslog port number since Ubuntu 12.04 doesn't allow to use standard
 	## rsyslog port number (https://bugs.launchpad.net/ubuntu/+source/rsyslog/+bug/789174)
-	CHECK_DIST=`/usr/bin/lsb_release -c |cut -d ":" -f2 | sed "s/\s*//"`
-	CHECK_RSYSLOG_PORT=`grep -E "^rudder.syslog.port=[0-9]+$" /tmp/rudder-web.properties | cut -d "=" -f2`
-	if [ "z${CHECK_DIST}" = "zprecise" -a ${CHECK_RSYSLOG_PORT} -ne "5514" ]; then
-		echo "Since Ubuntu 12.04, rsyslog port number used by Rudder  need to be changed"
-		sed -i "s/^\(rudder.syslog.port=\)514$/\15514/" /opt/rudder/etc/rudder-web.properties
+	CHECK_DIST=`/usr/bin/lsb_release -cs`
+	CHECK_RSYSLOG_PORT=`grep -E "^rudder.syslog.port\s*=\s*[0-9]+\s*$" /opt/rudder/etc/rudder-web.properties | cut -d "=" -f2`
+	if [ "z${CHECK_DIST}" = "zprecise" -a ${CHECK_RSYSLOG_PORT} -lt 1024 ]; then
+		echo "Since Ubuntu 12.04, rsyslog port number used by Rudder needs to be >1024"
+		sed -i "s/^rudder.syslog.port\w*=.*$/rudder.syslog.port=5514/" /opt/rudder/etc/rudder-web.properties
 		echo "rsyslog port number changed to 5514"
 	fi
 
