@@ -129,7 +129,7 @@ else
     RUDDERUUID=`/usr/sbin/dmidecode -s system-uuid`
     USER=`/usr/bin/whoami`
     CFKEY=`/bin/cat /var/rudder/cfengine-community/ppkeys/localhost.pub`
-    HOST_INV=`grep "^base.url\s*=" /opt/rudder/etc/rudder-web.properties | sed 's%^base.url\s*=\s*https\?://\([^:]*\)[:[0-9]*]*/.*$%\1%'`
+    HOST_INV=`grep "^base.url\s*=" /opt/rudder/etc/rudder-web.properties | sed 's%^base.url\s*=\s*https\?://\(.*\)/.*$%\1%'`
     ## We assume that root server is sending inventory to itself
     POLSRVUUID=${UUID}
     ## Make sure that the folder to make inventory exists
