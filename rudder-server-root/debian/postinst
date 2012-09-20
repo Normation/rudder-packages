@@ -29,24 +29,8 @@ case "$1" in
 			echo "Please run /opt/rudder/bin/rudder-init.sh"
 			echo "************************************************************"
 		else
-			# If it is an upgrade try to send inventory
-			## Check that the inventory has not been sent for 24 hours
-			SERVER_INVENTORY_DATE=`/opt/rudder/sbin/slapcat | perl -p0e 's/\n //g' | perl -p0e 's/\n([^\n])/%%%%\1/g' |\
-				 grep -i "^%%%%dn: nodeId=root,ou=Nodes,ou=Accepted Inventories,ou=Inventories,cn=rudder-configuration" |\
-				 grep -iE --color "%%%%(inventoryDate)::? " | sed 's/.*inventoryDate: \([0-9]*+[0-9]*\).*/\1/g'`
-			DATE_CHECK=`perl -e 'use Time::Piece; my $date = shift; my $time = Time::Piece->strptime($date, "%Y%m%d%H%M%S%z"); $time += $time->localtime->tzoffset; print $time->strftime("%s");' ${SERVER_INVENTORY_DATE}`
-			DATE_REF=`date -d '24 hours ago' +%s`
-			if [ ${DATE_CHECK} -lt ${DATE_REF} ]; then
-				echo "The last inventory of the root server is older than 24 hours"
-				## If the inventory of the root server is older than 24 hours
-				## create invtenroy of the machine
-				echo "A new inventory will be created..."
-				/opt/rudder/bin/run-inventory --local=/var/rudder/tmp/inventory --scan-homedirs 2&>1
-				## And move the inventory in the foler which will process it
-				## when the application will be available
-				mv /var/rudder/tmp/inventory/*.ocs /var/rudder/inventories/incoming/
-				echo "Done."
-			fi
+		# If it is an upgrade force to sent inventory
+			/opt/rudder/sbin/cf-agent -KI -D force_inventory
 		fi
     ;;
 
