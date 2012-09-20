@@ -553,3 +553,6 @@ if [ ! -f ${PT_DIR}/fileConfiguration/fileSecurity/filesPermissions/1.0/metadata
 		echo  "${PT_DIR}/fileConfiguration/security/ has been removed"
 	fi
 fi
+
+# For every upgrade, we force the root server to run a new inventory on the next CFEngine run
+touch /opt/rudder/etc/force_inventory
