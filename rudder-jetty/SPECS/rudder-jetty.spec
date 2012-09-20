@@ -64,8 +64,8 @@ AutoProv: 0
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
 
-# BuildRequires:
 Requires: jre >= 1.6
+Requires: rudder-inventory-ldap
 
 %description
 Rudder is an open source configuration management and audit solution.
