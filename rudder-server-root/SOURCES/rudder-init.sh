@@ -34,6 +34,7 @@ BOOTSTRAP_PATH=$TMP_DIR/bootstrap.ldif
 INITPOLICY_PATH=$TMP_DIR/init-policy-server.ldif
 INITDEMO_PATH=$TMP_DIR/demo-data.ldif
 RUDDER_CONF_FILE=/opt/rudder/etc/rudder-web.properties
+RUDDER_CONTEXT=`grep contextPath --color /opt/rudder/jetty7/contexts/rudder.xml | sed "s@^\s*<Set name=\"contextPath\">\(.*\)</Set>@\1@"`
 REGEXP='s/^\([0-9]\{1,3\}\)\(.[0-9]\{1,3\}\)\(.[0-9]\{1,3\}\)\(.[0-9]\{1,3\}.[0-9]\{1,2\}\)$/\1\\\2\\\3\\\4/g'
 again="yes"
 cpt=0
@@ -63,7 +64,6 @@ LDAPInit()
   cp /opt/rudder/share/bootstrap.ldif $BOOTSTRAP_PATH
   cp /opt/rudder/share/init-policy-server.ldif $INITPOLICY_PATH
   cp /opt/rudder/share/demo-data.ldif $INITDEMO_PATH
-  sed -i "s%^base.url.*$%base.url=http://$ANSWER1/rudder%" $RUDDER_CONF_FILE
   sed -i "s/^\([^#].*\)%%POLICY_SERVER_HOSTNAME%%/\1$ANSWER1/g" $INITPOLICY_PATH
   sed -i "s#^\([^#].*\)%%POLICY_SERVER_ALLOWED_NETWORKS%%#\1$NET#g" $INITPOLICY_PATH
   /opt/rudder/sbin/slapadd -l $BOOTSTRAP_PATH &> $TMP_LOG
@@ -257,4 +257,4 @@ echo " done."
 
 echo
 echo "Everything has been set up correctly."
-echo "Rudder is ready to go on http://$ANSWER1/"
+echo "Rudder is ready to go on http://${ANSWER1}${RUDDER_CONTEXT}"
