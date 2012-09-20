@@ -104,16 +104,14 @@ cp %{SOURCE6} %{buildroot}%{rudderdir}/etc/
 #=================================================
 # Post Installation
 #=================================================
-echo 'root' > %{rudderdir}/etc/uuid.hive
 # Is this the first installation?
+echo 'root' > %{rudderdir}/etc/uuid.hive
 LDAPCHK=`/opt/rudder/sbin/slapcat  | grep "^dn: " | wc -l`
-## If this is the first installation, need to initialize
 if [ $LDAPCHK -eq 0 ]; then
   echo "************************************************************"
   echo "Rudder is now installed but not configured."
   echo "Please run /opt/rudder/bin/rudder-init.sh"
   echo "************************************************************"
-else
   # If it is an upgrade try to send inventory
   ## Check that the inventory has not been sent for 24 hours
   SERVER_INVENTORY_DATE=`/opt/rudder/sbin/slapcat | perl -p0e 's/\n //g' | perl -p0e 's/\n([^\n])/%%%%\1/g' |\
@@ -150,6 +148,9 @@ else
     rm -rf /var/rudder/tmp/inventory/
     echo "Done."
   fi
+else
+# If it is an upgrade force to sent inventory
+  /opt/rudder/sbin/cf-agent -KI -D force_inventory
 fi
 
 #=================================================
