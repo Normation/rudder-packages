@@ -137,8 +137,8 @@ fi
 # Do this at first install
 if [ $1 -eq 1 ]
 then
-	# Set jetty as a boot service
-	/sbin/insserv -f jetty
+	# Set rudder-agent as service
+	/sbin/chkconfig --add jetty
 fi
 
 #=================================================
