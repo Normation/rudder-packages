@@ -112,9 +112,6 @@ if [ $LDAPCHK -eq 0 ]; then
   echo "Rudder is now installed but not configured."
   echo "Please run /opt/rudder/bin/rudder-init.sh"
   echo "************************************************************"
-else
-# If it is an upgrade force to sent inventory
-  /opt/rudder/sbin/cf-agent -KI -D force_inventory
 fi
 
 #=================================================
