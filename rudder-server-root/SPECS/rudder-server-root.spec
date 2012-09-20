@@ -128,10 +128,7 @@ if [ $LDAPCHK -eq 0 ]; then
     USER=`/usr/bin/whoami`
     CFKEY=`/bin/cat /var/rudder/cfengine-community/ppkeys/localhost.pub`
     HOST_INV=`grep "^base.url\s*=" /opt/rudder/etc/rudder-web.properties | sed 's%^base.url\s*=\s*https\?://\(.*\)/.*$%\1%'`
-    ## We assume that root server is sending inventory to itself
-    POLSRVUUID=${UUID}
-    ## Make sure that the folder to make inventory exists
-    mkdir -p /var/rudder/tmp/inventory/
+    POLSRVUUID=`/bin/cat /var/rudder/tmp/uuid.txt`
     /opt/rudder/bin/run-inventory --local=/var/rudder/tmp/inventory --scan-homedirs 2&>1
     echo "...adding extra informations..."
     FILE_TMP=`mktemp`
@@ -142,10 +139,8 @@ if [ $LDAPCHK -eq 0 ]; then
     cp -f ${FILE_TMP} ${FILE_SRC}
     ## And move the inventory in the foler which will process it
     ## when the application will be available
-    mv /var/rudder/tmp/inventory/*.ocs /var/rudder/inventories/incoming/
-    ## Remove temporary folder and files generated
-    rm -rf /var/rudder/tmp/inventory/
-    echo "Done."
+     mv /var/rudder/tmp/inventory/*.ocs /var/rudder/inventories/incoming/
+     echo "Done."
   fi
 else
 # If it is an upgrade force to sent inventory
