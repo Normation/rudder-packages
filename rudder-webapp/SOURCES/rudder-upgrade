@@ -491,7 +491,7 @@ if [ -f /opt/rudder/etc/rudder-users.xml ]; then
 		echo "/opt/rudder/etc/rudder-users.xml is conform"
 	else
 		echo "/opt/rudder/etc/rudder-users.xml need to be migrated"
-		sed -i "/role=\".*\"/! s/\(^\s*<user name=\".*\"\s*password=\".*\" \?\)\s*\(\/>\)$/\1 role=\"administrator\" \2/g" /opt/rudder/etc/rudder-users.xml
+		sed -i "/role=\".*\"/! s/\(^\s*<user name=\".*\"\s\+password=\".*\"\s\?\)\s*\(.*\/>\)$/\1 role=\"administrator\" \2/" /opt/rudder/etc/rudder-users.xml
 		echo >> /opt/rudder/etc/rudder-users.xml '<!-- This file was migrated from 2.3 to 2.4 by adding the admin role to all users. Do not delete this line or it will happen again! -->'
 		echo "/opt/rudder/etc/rudder-users.xml has been modified and is now conform"
 	fi
