@@ -377,8 +377,10 @@ if [ -d /var/rudder/configuration-repository/policy-templates -a ! -d /var/rudde
 	cd /var/rudder/configuration-repository/ && git mv /var/rudder/configuration-repository/policy-templates /var/rudder/configuration-repository/techniques > /dev/null
 
 	sed -i 's%^rudder.dir.policyPackages *= */var/rudder/configuration-repository/policy-templates/\?$%rudder.dir.policyPackages=/var/rudder/configuration-repository/techniques%' /opt/rudder/etc/rudder-web.properties
-else
-	echo "WARNING: You have both /var/rudder/configuration-repository/policy-templates (obsoletes) and /var/rudder/configuration-repository/techniques (new) folders"
+fi
+
+if [ -d /var/rudder/configuration-repository/policy-templates ]; then
+	echo "WARNING: You have both /var/rudder/configuration-repository/policy-templates (obsolete) and /var/rudder/configuration-repository/techniques (new) folders"
 fi
 
 ## Check that no policy.xml files are present
