@@ -110,7 +110,7 @@ case "$1" in
 				invoke-rc.d slapd start
 
 				echo "OpenLDAP database was successfully upgraded to new format"
-				echo "You can safely remove the backups in /var/rudder/ldap/openldap-data-backup-upgrade-to-$2/"
+				echo "You can safely remove the backups in /var/rudder/ldap/openldap-data-backup-upgrade-to-$2-${TIMESTAMP}/"
 				echo "and ${BACKUP_LDIF}"
 
 			fi

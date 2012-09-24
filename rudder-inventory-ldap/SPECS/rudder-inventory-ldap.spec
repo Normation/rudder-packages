@@ -174,6 +174,9 @@ then
 	# so that it can be restored from LDIF in case the new
 	# package uses a different version of BerkeleyDB (libdb)
 	TIMESTAMP=`date +%%Y%%m%%d%%H%%M%%S`
+	# Ensure backup folder exist
+	mkdir -p /var/rudder/ldap/backup/
+
 	/opt/rudder/sbin/slapcat -b "cn=rudder-configuration" -l /var/rudder/ldap/backup/openldap-data-pre-upgrade-${TIMESTAMP}.ldif
 
 	# Store version of libdb used to make this backup
@@ -269,8 +272,8 @@ if [ "z${BACKUP_LDIF}" != "z" ]; then
 		/etc/init.d/slapd forcestop
 
 		# Backup the old database
-		mkdir -p /var/rudder/ldap/openldap-data-backup-upgrade-to-$2-${TIMESTAMP}/
-		find /var/rudder/ldap/openldap-data -maxdepth 1 -mindepth 1 -not -name "DB_CONFIG" -exec mv {} /var/rudder/ldap/openldap-data-backup-upgrade-to-$2-${TIMESTAMP}/ \;
+		mkdir -p /var/rudder/ldap/openldap-data-backup-upgrade-to-%version-${TIMESTAMP}/
+		find /var/rudder/ldap/openldap-data -maxdepth 1 -mindepth 1 -not -name "DB_CONFIG" -exec mv {} /var/rudder/ldap/openldap-data-backup-upgrade-to-%version-${TIMESTAMP}/ \;
 
 		# Import the backed up database
 		/opt/rudder/sbin/slapadd -q -l ${BACKUP_LDIF}
@@ -279,7 +282,7 @@ if [ "z${BACKUP_LDIF}" != "z" ]; then
 		/etc/init.d/slapd start
 
 		echo "OpenLDAP database was successfully upgraded to new format"
-		echo "You can safely remove the backups in /var/rudder/ldap/openldap-data-backup-upgrade-to-$2/"
+		echo "You can safely remove the backups in /var/rudder/ldap/openldap-data-backup-upgrade-to-%version-${TIMESTAMP}/"
 		echo "and ${BACKUP_LDIF}"
 	fi
 fi

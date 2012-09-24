@@ -20,6 +20,8 @@ case "$1" in
 		# so that it can be restored from LDIF in case the new
 		# package uses a different version of BerkeleyDB (libdb)
 		TIMESTAMP=`date +%Y%m%d%H%M%S`
+		# Ensure backup folder exist
+		mkdir -p /var/rudder/ldap/backup/
 		/opt/rudder/sbin/slapcat -b "cn=rudder-configuration" -l /var/rudder/ldap/backup/openldap-data-pre-upgrade-${TIMESTAMP}.ldif
 
 		# Store version of libdb used to make this backup
