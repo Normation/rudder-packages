@@ -57,6 +57,7 @@ set -e
 # - 2.4.0 : Migration of Rudder logs for ops
 # - All versions: Check that Rudder database is able to handle backslash
 # - All versions: Migration of PT 'Set the permissions of files'
+# - 2.4.0 : Disable base.url attribute in rudder-web.properties
 #####################################################################################
 
 # Some variables
@@ -549,6 +550,15 @@ if [ ! -f ${PT_DIR}/fileConfiguration/fileSecurity/filesPermissions/1.0/metadata
 		echo  "${PT_DIR}/fileConfiguration/security/ has been removed"
 	fi
 fi
+
+# - 2.4.0 : Disable base.url attribute in rudder-web.properties
+CHECK_BASEURL_ATTR=`grep "^\s*base.url" /opt/rudder/etc/rudder-web.properties | wc -l`
+if [ ${CHECK_BASEURL_ATTR} -ge 1 ]; then
+	echo "Disabling base.url attribute in rudder-web.properties as it is no more used in Rudder 2.4"
+	sed -i "s@^\s*\(base\.url\s*=\s*.*\)\s*@#\1\t#This attribute has been disabled in Rudder 2.4@" /opt/rudder/etc/rudder-web.properties
+	echo "base.url attribute has been disabled"
+fi
+
 
 # For every upgrade, we force the root server to run a new inventory on the next CFEngine run
 touch /opt/rudder/etc/force_inventory
