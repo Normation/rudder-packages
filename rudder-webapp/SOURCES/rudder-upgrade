@@ -459,13 +459,7 @@ TRGTECHDIR=/var/rudder/configuration-repository/techniques/system/
 
 if [ -d ${SRCTECHDIR} -a -d ${TRGTECHDIR} ]; then
 	if ! diff -Naur /opt/rudder/share/techniques/system/ /var/rudder/configuration-repository/techniques/system/ > /dev/null; then
-		if [ -e /var/rudder/configuration-repository/techniques/system/common/1.0/core-lib.st -a -e /var/rudder/configuration-repository/techniques/system/common/1.0/library.st ]; then
-			cd /var/rudder/configuration-repository/techniques/system/common/1.0
-			git rm core-lib.st library.st && git commit -m "Upgrade system Techniques - Remove deprecated CFEngine body libraries"
-			cp -a /opt/rudder/share/techniques/system/common/1.0/rudder_lib.st .
-			git add rudder_lib.st && git commit -m "Upgrade system Techniques - Add the new combined CFEngine body library"
-		fi
-		rsync --delete -rptgo /opt/rudder/share/techniques/system/ /var/rudder/configuration-repository/techniques/
+		rsync --delete -rptgoq /opt/rudder/share/techniques/system/ /var/rudder/configuration-repository/techniques/system/
 		cd /var/rudder/configuration-repository/techniques/ && git add -A system/ && git commit -m "Upgrade system Techniques - automatically done by rudder-upgrade script"
 		# Check that the application is up before to call a Technique Library reload
 		CHECK_WEBAPP=`curl -s http://localhost/rudder/api/status`
