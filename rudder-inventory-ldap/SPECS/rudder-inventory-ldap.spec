@@ -272,8 +272,9 @@ if [ "z${BACKUP_LDIF}" != "z" ]; then
 		/etc/init.d/slapd forcestop
 
 		# Backup the old database
-		mkdir -p /var/rudder/ldap/openldap-data-backup-upgrade-to-%version-${TIMESTAMP}/
-		find /var/rudder/ldap/openldap-data -maxdepth 1 -mindepth 1 -not -name "DB_CONFIG" -exec mv {} /var/rudder/ldap/openldap-data-backup-upgrade-to-%version-${TIMESTAMP}/ \;
+		LDAP_BACKUP_DIR="/var/rudder/ldap/openldap-data-backup-upgrade-on-${TIMESTAMP}/"
+		mkdir -p "${LDAP_BACKUP_DIR}"
+		find /var/rudder/ldap/openldap-data -maxdepth 1 -mindepth 1 -not -name "DB_CONFIG" -exec mv {} ${LDAP_BACKUP_DIR} \;
 
 		# Import the backed up database
 		/opt/rudder/sbin/slapadd -q -l ${BACKUP_LDIF}
@@ -282,7 +283,7 @@ if [ "z${BACKUP_LDIF}" != "z" ]; then
 		/etc/init.d/slapd start
 
 		echo "OpenLDAP database was successfully upgraded to new format"
-		echo "You can safely remove the backups in /var/rudder/ldap/openldap-data-backup-upgrade-to-%version-${TIMESTAMP}/"
+		echo "You can safely remove the backups in ${LDAP_BACKUP_DIR}"
 		echo "and ${BACKUP_LDIF}"
 	fi
 fi
