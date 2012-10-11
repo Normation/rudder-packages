@@ -131,6 +131,8 @@ case "$1" in
 				echo "OpenLDAP indexes updated."
 			fi
 		fi
+		# Remove temporary files about LDAP indexes
+		rm -f ${SLAPD_DEFINED_INDEXES} ${SLAPD_ACTUAL_INDEXES}
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)

@@ -9,8 +9,6 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
-TMP_DIR := $(shell mktemp -dq)
-
 configure: configure-stamp
 configure-stamp:
 	dh_testdir

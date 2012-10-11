@@ -301,6 +301,8 @@ if [ -r /opt/rudder/etc/openldap/slapd.conf -a -e /var/rudder/ldap/openldap-data
 		echo "OpenLDAP indexes updated."
 	fi
 fi
+# Remove temporary files about LDAP indexes
+rm -f ${SLAPD_DEFINED_INDEXES} ${SLAPD_ACTUAL_INDEXES}
 
 echo "All done. Starting slapd..."
 /etc/init.d/slapd start
