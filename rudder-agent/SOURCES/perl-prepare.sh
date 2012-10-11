@@ -129,7 +129,9 @@ installMod "URI"
 installMod "HTML::Tagset"
 installMod "HTML::Parser"
 installMod "LWP" "libwww-perl"
-installMod "Compress::Zlib" "IO-Compress"
+installMod "Compress::Raw::Bzip2"
+installMod "Compress::Raw::Zlib"
+installMod "Compress::Raw::Zlib" "IO-Compress"
 
 # Tree dependencies not pulled by cpanm
 for modName in $MODULES; do
