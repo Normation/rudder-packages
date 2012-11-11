@@ -42,6 +42,7 @@ localdepends: ./jetty7
 	# Change jetty.sh before distincts files
 	patch -p0 -s < jetty-init-rudder.patch
 	patch -p0 -s < jetty-init-umask.patch
+	patch -p0 -s < jetty-init-stop-fix.patch
 
 	cp ./jetty7/bin/jetty.sh ./jetty7/bin/jetty-debian.sh
 	cp ./jetty7/bin/jetty.sh ./jetty7/bin/jetty-sles.sh
