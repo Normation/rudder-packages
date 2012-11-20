@@ -65,7 +65,12 @@ AutoProv: 0
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
 
+# Change dependencies for RHEL/CentOS since jre is not provided by OpenJDK7
+%if 0%{?rhel}
+Requires: jre7
+%else
 Requires: jre >= 1.6
+%endif
 Requires: rudder-inventory-ldap
 
 %description
