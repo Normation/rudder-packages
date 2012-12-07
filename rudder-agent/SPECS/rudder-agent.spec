@@ -68,6 +68,11 @@ BuildRequires: gcc openssl-devel bison flex pcre-devel
 Requires: pcre openssl
 
 #Specific requirements
+%if 0%{?suse_version} == 1120
+BuildRequires: libdb-4_5-devel
+Requires: libdb-4_5 pmtools
+%endif
+
 %if 0%{?sles_version} == 11
 BuildRequires: db43-devel
 Requires: db43 pmtools
@@ -123,6 +128,10 @@ export BERKELEYDB_CFLAGS=-I/usr/include/db42
 %if 0%{?sles_version} == 11
 export BERKELEYDB_LIBS=-ldb-4.3
 export BERKELEYDB_CFLAGS=-I/usr/include/db43
+%endif
+%if 0%{?suse_version} == 1120
+export BERKELEYDB_LIBS=-ldb-4.5
+export BERKELEYDB_CFLAGS=-I/usr/include/db45
 %endif
 
 ./configure --build=%_target --prefix=%{rudderdir} --with-workdir=%{ruddervardir}/cfengine-community --enable-static=yes --enable-shared=no
