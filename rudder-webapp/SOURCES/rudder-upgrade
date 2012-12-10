@@ -58,6 +58,7 @@ set -e
 # - All versions: Check that Rudder database is able to handle backslash
 # - All versions: Migration of PT 'Set the permissions of files'
 # - 2.4.0 : Disable base.url attribute in rudder-web.properties
+# - 2.5.0 : Add the automatic reports cleaning properties
 #####################################################################################
 
 # Some variables
@@ -559,6 +560,31 @@ if [ ${CHECK_BASEURL_ATTR} -ge 1 ]; then
 	echo "base.url attribute has been disabled"
 fi
 
+# - 2.5.0 : Add the automatic reports cleaning properties
+# Check for configuration property added in 2.4
+check_and_add_config_property rudder.batch.reportscleaner.archive.TTL "###########################
+# Automatic reports cleaning ###########################################################
+###########################
+
+# Defaults: archive after 30 days, delete after 90 days.
+
+rudder.batch.reportscleaner.archive.TTL=30
+rudder.batch.reportscleaner.delete.TTL=90
+
+# Default frequency: daily
+rudder.batch.reportscleaner.frequency=daily
+
+# Values  : [0-59]
+# Default : 0
+rudder.batch.databasecleaner.runtime.minute=0
+
+# Values : [0-23]
+# Default : 0
+rudder.batch.databasecleaner.runtime.hour=0
+
+# Values : monday | tuesday | wednesday | thursday | friday | saturday | sunday
+# Default : sunday
+rudder.batch.databasecleaner.runtime.day=sunday"
 
 # For every upgrade, we force the root server to run a new inventory on the next CFEngine run
 touch /opt/rudder/etc/force_inventory
