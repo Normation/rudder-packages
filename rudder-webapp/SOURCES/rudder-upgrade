@@ -562,7 +562,7 @@ if [ ${CHECK_BASEURL_ATTR} -ge 1 ]; then
 fi
 
 # - 2.4.0 : Update logback.xml in order to have information about name historization
-if ! cat /opt/rudder/etc/logback.xml | perl -p0e 's/\n//g' | perl -p0e 's/<!--.(?:(?!-->).)*-->//g' | perl -p0e 's/> *</></g' | grep '<logger name="historization" level="info" additivity="false"><appender-ref ref="OPSLOG" /><appender-ref ref="STDOUT" /></logger>'
+if ! cat /opt/rudder/etc/logback.xml | perl -p0e 's/\n//g' | perl -p0e 's/<!--.(?:(?!-->).)*-->//g' | perl -p0e 's/> *</></g' | grep '<logger name="historization" level="info" additivity="false"><appender-ref ref="OPSLOG" /><appender-ref ref="STDOUT" /></logger>' > /dev/null
 then
     sed -i 's%^ *</configuration>%   <logger name="historization" level="info" additivity="false">\n     <appender-ref ref="OPSLOG" />\n     <!-- comment the following appender if you dont want to have logs about report in both stdout and opslog -->\n     <appender-ref ref="STDOUT" />\n   </logger>\n </configuration>%' /opt/rudder/etc/logback.xml
 fi
