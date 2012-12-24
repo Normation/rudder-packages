@@ -59,6 +59,7 @@ set -e
 # - All versions: Migration of PT 'Set the permissions of files'
 # - 2.4.0 : Disable base.url attribute in rudder-web.properties
 # - 2.4.0 : Update logback.xml in order to have information about name historization
+# - 2.4.1 : Add the group serialization table (GroupsNodesJoin) to the database
 #####################################################################################
 
 # Some variables
@@ -561,11 +562,16 @@ if [ ${CHECK_BASEURL_ATTR} -ge 1 ]; then
 fi
 
 # - 2.4.0 : Update logback.xml in order to have information about name historization
-if ! cat /opt/rudder/etc/logback.xml | perl -p0e 's/\n//g' | perl -p0e 's/<!--.(?:(?!-->).)*-->//g' | perl -p0e 's/> *</></g' | grep '<logger name="historization" level="info" additivity="false"><appender-ref ref="OPSLOG" /><appender-ref ref="STDOUT" /></logger>'
+if ! cat /opt/rudder/etc/logback.xml | perl -p0e 's/\n//g' | perl -p0e 's/<!--.(?:(?!-->).)*-->//g' | perl -p0e 's/> *</></g' | grep '<logger name="historization" level="info" additivity="false"><appender-ref ref="OPSLOG" /><appender-ref ref="STDOUT" /></logger>' > /dev/null
 then
     sed -i 's%^ *</configuration>%   <logger name="historization" level="info" additivity="false">\n     <appender-ref ref="OPSLOG" />\n     <!-- comment the following appender if you dont want to have logs about report in both stdout and opslog -->\n     <appender-ref ref="STDOUT" />\n   </logger>\n </configuration>%' /opt/rudder/etc/logback.xml
 fi
 
+# - 2.4.1 : Add the group serialization table (GroupsNodesJoin) to the database
+RES=$(su - postgres -c "psql -d rudder -t -c \"select count(1) from pg_class where relname = 'groupsnodesjoin'\"")
+if [ $RES -eq 0 ]; then
+	psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.4-2.5-group-serialisation.sql > /dev/null
+fi
 
 # For every upgrade, we force the root server to run a new inventory on the next CFEngine run
 touch /opt/rudder/etc/force_inventory
