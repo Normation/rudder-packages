@@ -304,13 +304,13 @@ fi
 # Upgrade database schema from 2.3 to 2.4 if necessary - fourth part: change the indexes of the databases to improve performance (caution, it might be slow on large databases)
 RES=$(su - postgres -c "psql -t -d rudder -c \"select count(oid) from pg_class where lower(relname) = 'component_idx'\"")
 if [ $RES -eq 0 ]; then
-        psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.3-2.4-index.sql > /dev/null
+	psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.3-2.4-index.sql > /dev/null
 fi
 
 # Upgrade database schema from 2.3 to 2.4 if necessary - fifth part: Add the MigrationEventLog table (and MigrationEventLogId sequence) so that we can trace EventLog migration status
 RES=$(su - postgres -c "psql -t -d rudder -c \"select count(oid) from pg_class where lower(relname) = 'migrationeventlog'\"")
 if [ $RES -eq 0 ]; then
-        psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.3-2.4-add-MigrationEventLog-table.sql > /dev/null
+	psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.3-2.4-add-MigrationEventLog-table.sql > /dev/null
 fi
 
 # Upgrade database schema from 2.3 to 2.4 if necessary - sixth part: Check the presence of the reason column in the Evenlog table
@@ -342,19 +342,19 @@ fi
 # Upgrade database schema from 2.3 to 2.4 if necessary - nineth part: Check if the archive of the eventlog contains indexes, and if not create them
 RES=$(su - postgres -c "psql -d rudder -t -c \"select count(1) from pg_class where relname = 'executiontimestamp_archived_idx'\"")
 if [ $RES -eq 0 ]; then
-        psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.3-2.4-index-archive.sql > /dev/null
+	psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.3-2.4-index-archive.sql > /dev/null
 fi
 
 # Upgrade database schema from 2.4 to 2.5 if necessary - first part : Check if the rudder properties table is present, and create it if needed.
 RES=$(su - postgres -c "psql -t -d rudder -c \"select count(oid) from pg_class where lower(relname) = 'rudderproperties'\"")
 if [ $RES -eq 0 ]; then
-        psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.4-2.5-last-error-report-id.sql > /dev/null
+	psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.4-2.5-last-error-report-id.sql > /dev/null
 fi
 
 # Upgrade database schema from 2.4 to 2.5 if necessary - second part : Check if the git commit table is present, and create it if needed.
 RES=$(su - postgres -c "psql -t -d rudder -c \"select count(oid) from pg_class where lower(relname) = 'gitcommit'\"")
 if [ $RES -eq 0 ]; then
-        psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.4-2.5-git-commit.sql > /dev/null
+	psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.4-2.5-git-commit.sql > /dev/null
 fi
 
 # Upgrade database schema from 2.4 to 2.5 if necessary - third part : Check if the modificationId column is present in event log table, and create it if needed.
