@@ -19,8 +19,8 @@ set -e
 
 case "$1" in
     configure)
-		echo "Reloading syslog"
-		invoke-rc.d rsyslog reload
+		echo "Restarting syslog"
+		invoke-rc.d rsyslog restart
   /etc/init.d/apache2 stop
   a2dissite default
   a2enmod dav_fs
