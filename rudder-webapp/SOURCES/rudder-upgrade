@@ -65,6 +65,7 @@ set -e
 # - 2.5.0 : Add "rudder.batch.reports.logInterval" configuration parameter to rudder-web.properties
 # - 2.5.0 : Migration DB schema to add gitcommit table, to link a git commit to a modification
 # - 2.5.0 : Migration DB schema to add modificationid column to eventLog table
+# - 2.5.0 : Update logback.xml in order to have information about non compliant reports
 #####################################################################################
 
 # Some variables
@@ -609,6 +610,12 @@ fi
 if ! cat /opt/rudder/etc/logback.xml | perl -p0e 's/\n//g' | perl -p0e 's/<!--.(?:(?!-->).)*-->//g' | perl -p0e 's/> *</></g' | grep '<logger name="historization" level="info" additivity="false"><appender-ref ref="OPSLOG" /><appender-ref ref="STDOUT" /></logger>' > /dev/null
 then
     sed -i 's%^ *</configuration>%   <logger name="historization" level="info" additivity="false">\n     <appender-ref ref="OPSLOG" />\n     <!-- comment the following appender if you dont want to have logs about report in both stdout and opslog -->\n     <appender-ref ref="STDOUT" />\n   </logger>\n </configuration>%' /opt/rudder/etc/logback.xml
+fi
+
+# - 2.5.0 : Update logback.xml in order to have information about non compliant reports
+if ! cat /opt/rudder/etc/logback.xml | perl -p0e 's/\n//g' | perl -p0e 's/<!--.(?:(?!-->).)*-->//g' | perl -p0e 's/> *</></g' | grep -E '<property name="REPORT_DIR" value="[^"]+" />' > /dev/null
+then
+    sed -i 's%^ *</configuration>%  <!-- Here come non compliant reports logger -->\n\n  <property name="REPORT_DIR" value="/var/log/rudder/compliance" />\n\n  <!--\n    A file log appender for exploitation logs about failure reports.\n  -->\n  <appender name="REPORTLOG" class="ch.qos.logback.core.FileAppender">\n    <file>${REPORT_DIR}/non-compliant-reports.log</file>\n    <append>true</append>\n    <encoder>\n      <pattern>\%msg\%n</pattern>\n    </encoder>\n  </appender>\n\n  <logger name="non-compliant-reports" level="info" additivity="false">\n    <appender-ref ref="REPORTLOG" />\n    <!-- comment the following appender if you dont want to have logs about non compliant reports in both stdout and reportlog -->\n    <appender-ref ref="STDOUT" />\n  </logger>\n\n</configuration>%' /opt/rudder/etc/logback.xml
 fi
 
 # - 2.4.1 : Add the group serialization table (GroupsNodesJoin) to the database
