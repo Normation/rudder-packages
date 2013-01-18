@@ -52,6 +52,7 @@ Source1: rudder-agent.init
 Source2: rudder-agent.default
 Source3: run-inventory
 Source4: uuid.hive
+Source5: rudder-agent.cron
 
 # We have PERL things in here. Do not try to outsmart me by adding dummy dependencies, you silly tool.
 AutoReq: 0
@@ -150,6 +151,9 @@ mkdir -p %{buildroot}/etc/init.d
 mkdir -p %{buildroot}/etc/default
 install -m 755 %{SOURCE1} %{buildroot}/etc/init.d/rudder-agent
 install -m 644 %{SOURCE2} %{buildroot}/etc/default/rudder-agent
+
+# Cron
+install -m 644 %{SOURCE5} %{buildroot}/etc/cron.d/rudder-agent
 
 # Initial promises
 cp -a %{_sourcedir}/initial-promises %{buildroot}%{rudderdir}/share/
