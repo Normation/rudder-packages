@@ -1,2 +1,2 @@
-SLES11:gcc openssl-devel bison flex pcre-devel libdb-4_5-devel
+SLES11:gcc openssl-devel bison flex pcre-devel db43-devel
 SLES10:gcc openssl-devel bison flex pcre-devel db42-devel
