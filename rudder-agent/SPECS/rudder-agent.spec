@@ -153,6 +153,7 @@ install -m 755 %{SOURCE1} %{buildroot}/etc/init.d/rudder-agent
 install -m 644 %{SOURCE2} %{buildroot}/etc/default/rudder-agent
 
 # Cron
+mkdir -p %{buildroot}/etc/cron.d
 install -m 644 %{SOURCE5} %{buildroot}/etc/cron.d/rudder-agent
 
 # Initial promises
