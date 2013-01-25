@@ -270,6 +270,7 @@ rm -rf %{buildroot}
 %config(noreplace) %{rudderdir}/etc/uuid.hive
 /etc/init.d/rudder-agent
 /etc/default/rudder-agent
+/etc/cron.d/rudder-agent
 %{ruddervardir}
 
 #=================================================
