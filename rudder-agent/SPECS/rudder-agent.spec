@@ -29,11 +29,15 @@
 #=================================================
 # Variables
 #=================================================
-%define real_name        rudder-agent
+%define real_name            rudder-agent
 
-%define rudderdir        /opt/rudder
-%define ruddervardir     /var/rudder
-%define rudderlogdir     /var/log/rudder
+%define rudderdir            /opt/rudder
+%define ruddervardir         /var/rudder
+%define rudderlogdir         /var/log/rudder
+# is_tokyocabinet_here checks if to build CFEngine we will need to build 
+# Tokyocabinet or if a package already exists on the system.
+# Default value is true in order to handle cases which are not caught below
+%define is_tokyocabinet_here true
 
 #=================================================
 # Header
@@ -53,6 +57,9 @@ Source2: rudder-agent.default
 Source3: run-inventory
 Source4: uuid.hive
 Source5: rudder-agent.cron
+# This file will contain path of /opt/rudder/lib for ld which will
+# find there all necessary libraries for tokyocabinet.
+Source6: rudder.conf
 
 # We have PERL things in here. Do not try to outsmart me by adding dummy dependencies, you silly tool.
 AutoReq: 0
@@ -69,19 +76,37 @@ BuildRequires: gcc openssl-devel bison flex pcre-devel
 Requires: pcre openssl
 
 #Specific requirements
-%if 0%{?sles_version} == 11
-BuildRequires: libdb-4_5-devel
-Requires: libdb-4_5 pmtools
-%endif
-
-%if 0%{?sles_version} == 10
-BuildRequires: db42-devel
-Requires: db42 pmtools
-%endif
-
 %if 0%{?rhel}
-BuildRequires: make db4-devel byacc
-Requires: db4 dmidecode
+BuildRequires: make byacc
+Requires: dmidecode
+%endif
+
+## Each tests of OS version comparison with "greater" or "lesser version than"
+## need to test before if we compare the right OS.
+%if 0%{?rhel} && 0%{?rhel} <= 5
+BuildRequires: bzip2-devel zlib-devel
+%define is_tokyocabinet_here false
+%endif
+
+%if 0%{?rhel} && 0%{?rhel} >= 6
+BuildRequires: tokyocabinet-devel
+Requires: tokyocabinet
+%define is_tokyocabinet_here true
+%endif
+
+%if 0%{?sles_version} && 0%{?sles_version} >= 11
+BuildRequires: libbz2-devel zlib-devel
+Requires: pmtools
+%define is_tokyocabinet_here false
+%endif
+
+## Contents of package 'libbz2-devel' in SLES 11 is included in the package of bzip2
+## in SLES 10 which is on the system by default.
+## cf http://linux.derkeiler.com/Mailing-Lists/SuSE/2003-11/2640.html
+%if 0%{?sles_version} == 10
+BuildRequires: zlib-devel
+Requires: pmtools
+%define is_tokyocabinet_here false
 %endif
 
 # Replaces rudder-cfengine-community since 2.4.0~beta3
@@ -112,21 +137,30 @@ cd %{_sourcedir}
 
 %{_sourcedir}/perl-prepare.sh
 
-cd %{_sourcedir}/cfengine-source
 
 # Ensure an appropriate environment for the compiler
 export CFLAGS="$RPM_OPT_FLAGS"
 export CXXFLAGS="$RPM_OPT_FLAGS"
-%if 0%{?sles_version} == 10
-export BERKELEYDB_LIBS=-ldb-4.2
-export BERKELEYDB_CFLAGS=-I/usr/include/db42
-%endif
-%if 0%{?sles_version} == 11
-export BERKELEYDB_LIBS=-ldb-4.5
-export BERKELEYDB_CFLAGS=-I/usr/include/db4
+
+%if %{is_tokyocabinet_here} == "false"
+# Remove all remaining files from temporary build folder before to compile tokyocabinet
+rm -rf %{buildroot}
+# Compile Tokyocabinet library and install it in /opt/rudder/lib
+cd %{_sourcedir}/tokyocabinet-source
+./configure --prefix=%{rudderdir}
+make %{?_smp_mflags}
+make install DESTDIR=%{buildroot}
 %endif
 
-./configure --build=%_target --prefix=%{rudderdir} --with-workdir=%{ruddervardir}/cfengine-community --enable-static=yes --enable-shared=no
+# Prepare CFEngine 3.4.x build
+cd %{_sourcedir}/cfengine-source
+%if %{is_tokyocabinet_here} == "false"
+## Define path of tokyocabinet if built before instead of being provided by the system.
+%define tokyocabinet_arg "--with-tokyocabinet=%{buildroot}%{rudderdir}"
+%else
+%define tokyocabinet_arg ""
+%endif
+./configure --build=%_target --prefix=%{rudderdir} --with-workdir=%{ruddervardir}/cfengine-community --enable-static=yes --enable-shared=no %{tokyocabinet_arg}
 
 make %{?_smp_mflags}
 
@@ -134,13 +168,22 @@ make %{?_smp_mflags}
 # Installation
 #=================================================
 %install
+%if %{is_tokyocabinet_here} == "true"
+# Remove all remaining files from temporary build folder since no actions should
+# have been made before in this directory (if tokyocabinet has not been
+# built).
+# Besides, all actions should not have been made before %install, so removing all 
+# the files from %{buildroot} should be made at the begining of %install.
+# Build of and embeded library (here, tokyocabinet)is an exception.
 rm -rf %{buildroot}
+%endif
 cd %{_sourcedir}/cfengine-source
 make install DESTDIR=%{buildroot} STRIP=""
 
 # Directories
 mkdir -p %{buildroot}%{rudderdir}
 mkdir -p %{buildroot}%{rudderdir}/etc
+mkdir -p %{buildroot}/etc/ld.so.conf.d
 mkdir -p %{buildroot}%{ruddervardir}/cfengine-community/bin
 mkdir -p %{buildroot}%{ruddervardir}/cfengine-community/inputs
 mkdir -p %{buildroot}%{ruddervardir}/tmp
@@ -168,6 +211,12 @@ install -m 755 %{SOURCE3} %{buildroot}/opt/rudder/bin/run-inventory
 # Install an empty uuid.hive file before generating an uuid
 cp %{SOURCE4} %{buildroot}%{rudderdir}/etc/
 
+%if %{is_tokyocabinet_here} == "false"
+# Install /etc/ld.so.conf.d/rudder.conf in order to use libraries contain
+# in /opt/rudder/lib like tokyocabinet
+install -m 644 %{SOURCE6} %{buildroot}/etc/ld.so.conf.d/rudder.conf
+%endif
+
 %pre -n rudder-agent
 #=================================================
 # Pre Installation
@@ -189,6 +238,13 @@ then
 	CFRUDDER_FIRST_INSTALL=1
 fi
 
+# Reload configuration of ldd if new configuration has been added
+%if %{is_tokyocabinet_here} == "false"
+if [ -f /etc/ld.so.conf.d/rudder.conf ]; then
+	ldconfig
+fi
+%endif
+
 # Always do this
 
 # Copy new binaries to workdir, make sure daemons are stopped first
@@ -203,7 +259,7 @@ fi
 if [ ${CFRUDDER_FIRST_INSTALL} -ne 1 -a -x /etc/init.d/rudder-agent ]; then /etc/init.d/rudder-agent stop; fi
 
 # Copy CFEngine binaries
-cp -a /opt/rudder/sbin/cf-* /var/rudder/cfengine-community/bin/
+cp -a /opt/rudder/bin/cf-* /var/rudder/cfengine-community/bin/
 NB_COPIED_BINARIES=`ls -1 /var/rudder/cfengine-community/bin/ | wc -l`
 if [ ${NB_COPIED_BINARIES} -gt 0 ];then echo "CFEngine binaries copied to workdir"; fi
 
@@ -272,6 +328,10 @@ rm -rf %{buildroot}
 /etc/default/rudder-agent
 /etc/cron.d/rudder-agent
 %{ruddervardir}
+%attr(0600, -, -) %{ruddervardir}/cfengine-community/ppkeys
+%if %{is_tokyocabinet_here} == "false"
+%config(noreplace) /etc/ld.so.conf.d/rudder.conf
+%endif
 
 #=================================================
 # Changelog

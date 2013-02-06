@@ -35,8 +35,8 @@ case "$1" in
 
 		if [ ${CFRUDDER_FIRST_INSTALL} -ne 1 -a -x /etc/init.d/rudder-agent ]; then /etc/init.d/rudder-agent stop; fi
 
-		# Copy CFEngine binaries
-		cp -a /opt/rudder/sbin/cf-* /var/rudder/cfengine-community/bin/
+		# Copy CFEngine binaries (Changed location from sbin/ to bin/ in version 3.4)
+		cp -a /opt/rudder/bin/cf-* /var/rudder/cfengine-community/bin/
 		NB_COPIED_BINARIES=`ls -1 /var/rudder/cfengine-community/bin/ | wc -l`
 		if [ ${NB_COPIED_BINARIES} -gt 0 ];then echo "CFEngine binaries copied to workdir"; fi
 

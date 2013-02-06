@@ -19,13 +19,14 @@
 .DEFAULT_GOAL := localdepends
 
 RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
-CFENGINE_RELEASE = 3.2.4
+CFENGINE_RELEASE = 3.4.2
 FUSION_RELEASE = 2.2.2
+TOKYOCABINET_RELEASE = 1.4.48
 TMP_DIR := $(shell mktemp -dq)
 WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget
 PATCH := /usr/bin/patch
 
-localdepends: ./initial-promises ./files ./fusioninventory-agent ./cfengine-source ../debian/rudder-agent.init ../debian/rudder-agent.default ./rudder-agent.cron ../debian/rudder-agent.cron.d
+localdepends: ./initial-promises ./files ./fusioninventory-agent ./tokyocabinet-source ./cfengine-source ../debian/rudder-agent.init ../debian/rudder-agent.default ./rudder-agent.cron ../debian/rudder-agent.cron.d
 	rm -rf $(TMP_DIR)
 
 ./cfengine-source: /usr/bin/wget
@@ -33,8 +34,12 @@ localdepends: ./initial-promises ./files ./fusioninventory-agent ./cfengine-sour
 	$(WGET) -O $(TMP_DIR)/cfengine.tgz http://www.normation.com/tarball/cfengine-$(CFENGINE_RELEASE).tar.gz
 	tar xvzf $(TMP_DIR)/cfengine.tgz -C $(TMP_DIR)
 	mv $(TMP_DIR)/cfengine-$(CFENGINE_RELEASE) ./cfengine-source
-	$(PATCH) -d ./cfengine-source -p0 < ./cfengine-file-edit-section-r3229.patch
-	$(PATCH) -d ./cfengine-source -p0 < ./patch-reset-persistent-classes.patch
+
+./tokyocabinet-source: /usr/bin/wget
+	# Original URL: http://fallabs.com/tokyocabinet/tokyocabinet-${TOKYOCABINET_RELEASE}.tar.gz
+	$(WGET) -O $(TMP_DIR)/tokyocabinet.tgz http://www.normation.com/tarball/tokyocabinet-${TOKYOCABINET_RELEASE}.tar.gz
+	tar xvzf $(TMP_DIR)/tokyocabinet.tgz -C $(TMP_DIR)
+	mv $(TMP_DIR)/tokyocabinet-$(TOKYOCABINET_RELEASE) ./tokyocabinet-source
 
 ./rudder-sources.tar.bz2:
 	$(WGET) -O rudder-sources.tar.bz2 http://www.rudder-project.org/archives/rudder-sources-${RUDDER_VERSION_TO_PACKAGE}.tar.bz2
