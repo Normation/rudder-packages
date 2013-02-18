@@ -66,6 +66,7 @@ set -e
 # - 2.5.0 : Migration DB schema to add gitcommit table, to link a git commit to a modification
 # - 2.5.0 : Migration DB schema to add modificationid column to eventLog table
 # - 2.5.0 : Update logback.xml in order to have information about non compliant reports
+# - 2.6.0 : Migration LDAP : Add "All Nodes" Group
 #####################################################################################
 
 # Some variables
@@ -410,6 +411,17 @@ replace: ruleTarget
 ruleTarget: special:all
 EOF
 fi
+
+
+## Add group "All-Nodes"
+## Check if the group "All-Nodes" exists
+CHECK_ALLNODES_GROUP=`/opt/rudder/bin/ldapsearch -H ldap://localhost -x -w ${LDAP_PASSWORD} -D ${LDAP_USER} -b "groupCategoryId=GroupRoot,ou=Rudder,cn=rudder-configuration" -LLL "(nodeGroupId=All-Nodes)" | wc -l`
+if [ ${LDAP_EXISTS} -ne 0 -a ${CHECK_ALLNODES_GROUP} -eq 0 ]
+then
+  echo "Create node group \"All-Nodes\" dn:nodeGroupId=All-Nodes,groupCategoryId=GroupRoot,ou=Rudder,cn=rudder-configuration"
+  /opt/rudder/bin/ldapmodify -x -D ${LDAP_USER} -w ${LDAP_PASSWORD} -H ldap://localhost -f ${RUDDER_UPGRADE_TOOLS}/ldapMigration-2.5-2.6-Add-all-Nodes-Group.ldif 
+fi
+
 
 # Migrate from old policy-template store in /var/rudder/configuration-repository/policy-templates
 # to 2.4.0 in /var/rudder/configuration-repository/techniques
