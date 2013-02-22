@@ -172,8 +172,8 @@ make %{?_smp_mflags}
 # Remove all remaining files from temporary build folder since no actions should
 # have been made before in this directory (if tokyocabinet has not been
 # built).
-# Besides, all actions should not have been made before %install, so removing all 
-# the files from %{buildroot} should be made at the begining of %install.
+# Besides, all actions should not have been made before macro 'install', so removing all 
+# the files from %{buildroot} should be made at the begining of macro 'install'.
 # Build of and embeded library (here, tokyocabinet)is an exception.
 rm -rf %{buildroot}
 %endif
