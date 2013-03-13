@@ -67,6 +67,7 @@ set -e
 # - 2.5.0 : Migration DB schema to add modificationid column to eventLog table
 # - 2.5.0 : Update logback.xml in order to have information about non compliant reports
 # - 2.6.0 : Migration LDAP modify entries about System groups
+# - 2.6.0 : Migration DB schema to add unexpandedComponentValues column to expectedReports table
 #####################################################################################
 
 # Some variables
@@ -363,6 +364,12 @@ fi
 RES=$(su - postgres -c "psql -t -d rudder -c \"select count(attname) from pg_attribute where attrelid = (select oid from pg_class where relname = 'eventlog') and attname = 'modificationid'\"")
 if [ $RES -eq 0 ]; then
 	psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.4-2.5-add-modification-id-to-EventLog.sql > /dev/null
+fi
+
+# Upgrade database schema from 2.5 to 2.6 if necessary - first part : Add a column unexpandedComponentsValues to table ExpectedReports.
+RES=$(su - postgres -c "psql -t -d rudder -c \"select count(attname) from pg_attribute where attrelid = (select oid from pg_class where relname = 'expectedreports') and attname = 'unexpandedcomponentsvalues'\"")
+if [ $RES -eq 0 ]; then
+        psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.5-2.6-unexpanded-value.sql > /dev/null
 fi
 
 # Upgrade LDAP schema from 2.3 to 2.4 if necessary: On RPM-like systems, we must upgrade the slapd.conf file manually
