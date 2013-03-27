@@ -1,0 +1,59 @@
+#####################################################################################
+# Copyright 2013 Normation SAS
+#####################################################################################
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, Version 3.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+################################################################################
+
+# LDIF to migrate system groups entries
+
+# Entry about system group
+dn: groupCategoryId=SystemGroups,groupCategoryId=GroupRoot,ou=Rudder,cn=rudder-configuration
+changetype: modify
+replace: cn
+cn: System groups
+
+# System group entry about policy server
+dn: ruleTarget=policyServer:root,groupCategoryId=SystemGroups,groupCategoryId=GroupRoot,ou=Rudder,cn=rudder-configuration
+changetype: modify
+replace: description
+description: Only the root policy server
+
+# System group entry about all nodes
+dn: ruleTarget=special:all,groupCategoryId=SystemGroups,groupCategoryId=GroupRoot,ou=Rudder,cn=rudder-configuration
+changetype: modify
+replace: cn
+cn: All nodes
+-
+replace: description
+description: All nodes known by Rudder (including Rudder policy servers)
+
+# System group entry about all nodes except policy server(s)
+dn: ruleTarget=special:all_exceptPolicyServers,groupCategoryId=SystemGroups,groupCategoryId=GroupRoot,ou=Rudder,cn=rudder-configuration
+changetype: modify
+replace: cn
+cn: All managed nodes
+-
+replace: description
+description: All nodes known by Rudder (excluding Rudder policy servers)
+
+# System group entry about all connected nodes to root policy server
+dn: nodeGroupId=hasPolicyServer-root,groupCategoryId=SystemGroups,groupCategoryId=GroupRoot,ou=Rudder,cn=rudder-configuration
+changetype: modify
+replace: cn
+cn: All nodes managed by root policy server
+-
+replace: description
+description: All nodes known by Rudder directly connected to the root server
+
