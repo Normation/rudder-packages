@@ -66,6 +66,7 @@ set -e
 # - 2.5.0 : Migration DB schema to add gitcommit table, to link a git commit to a modification
 # - 2.5.0 : Migration DB schema to add modificationid column to eventLog table
 # - 2.5.0 : Update logback.xml in order to have information about non compliant reports
+# - 2.6.0 : Migration LDAP modify entries about System groups
 #####################################################################################
 
 # Some variables
@@ -652,3 +653,8 @@ rudder.batch.databasecleaner.runtime.day=sunday"
 
 # For every upgrade, we force the root server to run a new inventory on the next CFEngine run
 touch /opt/rudder/etc/force_inventory
+
+# - 2.6.0 : Migration LDAP modify entries about System groups
+echo "Modifying system group entries in LDAP if necessary..."
+/opt/rudder/bin/ldapmodify -x -D ${LDAP_USER} -w ${LDAP_PASSWORD} -H ldap://localhost -f ${RUDDER_UPGRADE_TOOLS}/rudder-upgrade-modify-system-group-entries.ldif
+echo "OK"
