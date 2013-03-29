@@ -651,10 +651,13 @@ rudder.batch.databasecleaner.runtime.hour=0
 # Default : sunday
 rudder.batch.databasecleaner.runtime.day=sunday"
 
-# For every upgrade, we force the root server to run a new inventory on the next CFEngine run
-touch /opt/rudder/etc/force_inventory
-
 # - 2.6.0 : Migration LDAP modify entries about System groups
 echo "Modifying system group entries in LDAP if necessary..."
+# Ensure that LDAP exist before to do any request
+if [ ${LDAP_EXISTS} -ne 0 ]; then
 /opt/rudder/bin/ldapmodify -x -D ${LDAP_USER} -w ${LDAP_PASSWORD} -H ldap://localhost -f ${RUDDER_UPGRADE_TOOLS}/rudder-upgrade-modify-system-group-entries.ldif
+fi
 echo "OK"
+
+# For every upgrade, we force the root server to run a new inventory on the next CFEngine run
+touch /opt/rudder/etc/force_inventory
