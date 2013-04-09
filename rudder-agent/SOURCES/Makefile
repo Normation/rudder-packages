@@ -19,7 +19,7 @@
 .DEFAULT_GOAL := localdepends
 
 RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
-CFENGINE_RELEASE = 3.4.2
+CFENGINE_RELEASE = 3.4.4
 FUSION_RELEASE = 2.2.2
 TOKYOCABINET_RELEASE = 1.4.48
 TMP_DIR := $(shell mktemp -dq)
