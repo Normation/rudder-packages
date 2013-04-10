@@ -69,6 +69,8 @@ set -e
 # - 2.6.0 : Migration LDAP modify entries about System groups
 # - 2.6.0 : Migration DB schema to add unexpandedComponentValues column to expectedReports table
 # - 2.6.0 : Migration LDAP to unescape entries previously escaped by the user
+# - 2.6.0 : Migration SQL to add the necessary workflow tables
+# - 2.6.0 : Add the workflows properties and replace the autoDeployOnModification property
 #####################################################################################
 
 # Some variables
@@ -680,6 +682,43 @@ if [ ! -f /opt/rudder/etc/escaping_migration_done ]; then
 	touch /opt/rudder/etc/escaping_migration_done
 	echo "OK"
 fi
+
+# - 2.6.0 : Migration SQL to add the necessary workflow tables
+RES=$(su - postgres -c "psql -d rudder -t -c \"select count(1) from pg_class where relname = 'ChangeRequest'\"")
+if [ $RES -eq 0 ]; then
+	psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.5-2.6-add_workflow_support.sql > /dev/null
+fi
+
+# - 2.6.0 : Add the workflows properties and replace the autoDeployOnModification property
+
+# Get the old value if applicable
+if [ egrep -q "^rudder.autoDeployOnModification" /opt/rudder/etc/rudder-web.properties ]; then
+	AUTODEPLOY_BOOL=$(grep rudder.autoDeployOnModification rudder-web.properties|sed "s/.*=\(.*\)/\1/")
+fi
+
+# Reverse the value (if autodeploy is enabled, workflows aren't enabled by default)
+if [ "z${AUTODEPLOY_BOOL}" = "ztrue" ]; then
+	WORKFLOWS_BOOL="false"
+elif [ "z${AUTODEPLOY_BOOL}" = "zfalse" ]; then
+	WORKFLOWS_BOOL="true"
+fi
+
+# Replace the old property if applicable
+sed -i "s/rudder.autoDeployOnModification=.*/# This variable has been replaced by\n# rudder.workflow.enabled, see below./" rudder-web.properties
+
+# Add the new property according to the old one value
+check_and_add_config_property rudder.workflow.enabled "############
+# Workflows ############################################################################
+############
+
+# Boolean, defaults to false.
+# If true, the Rudder modification
+# workflows feature will be enabled.
+#
+# This value replaces the auto deploy
+# modifications variable, and is migrated
+# if necessary.
+rudder.workflow.enabled=${WORKFLOWS_BOOL:-"false"}"
 
 # For every upgrade, we force the root server to run a new inventory on the next CFEngine run
 touch /opt/rudder/etc/force_inventory
