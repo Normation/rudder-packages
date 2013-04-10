@@ -25,6 +25,7 @@ TOKYOCABINET_RELEASE = 1.4.48
 TMP_DIR := $(shell mktemp -dq)
 WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget
 PATCH := /usr/bin/patch
+FIND := /usr/bin/find
 
 localdepends: ./initial-promises ./files ./fusioninventory-agent ./tokyocabinet-source ./cfengine-source ../debian/rudder-agent.init ../debian/rudder-agent.default ./rudder-agent.cron ../debian/rudder-agent.cron.d
 	rm -rf $(TMP_DIR)
@@ -57,6 +58,8 @@ localdepends: ./initial-promises ./files ./fusioninventory-agent ./tokyocabinet-
 	tar zvxf $(TMP_DIR)/fusion.tgz -C $(TMP_DIR)
 	mv $(TMP_DIR)/FusionInventory-Agent-$(FUSION_RELEASE) ./fusioninventory-agent
 	$(PATCH) -d ./fusioninventory-agent -p1 < ./SuSE_service_pack.patch
+	# Fix a lsusb invocation that crashes some SLES machines
+	$(FIND) ./fusioninventory-agent -iname "USB.pm" -delete
 
 ./files: /usr/bin/wget
 	mkdir ./files
@@ -116,6 +119,7 @@ localdepends: ./initial-promises ./files ./fusioninventory-agent ./tokyocabinet-
 
 localclean:
 	rm -rf ./cfengine-source
+	rm -rf ./tokyocabinet-source
 	rm -rf ./initial-promises
 	rm -f ../debian/rudder-agent.init
 	rm -f ../debian/rudder-agent.default
