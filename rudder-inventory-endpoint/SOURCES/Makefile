@@ -16,48 +16,44 @@
 #
 #####################################################################################
 
-MAVEN_RELEASE = 2.2.1
+MAVEN_RELEASE = 3.0.4
 WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget
 
 .DEFAULT_GOAL := localdepends
 
-GIT_BRANCH_RUDDER = <put branch or tag name here>
+RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
 
-localdepends: ./source ./inventory-web.properties ./maven2/bin/mvn
+localdepends: ./rudder-sources ./inventory-web.properties ./maven2/bin/mvn
 
 /usr/bin/wget:
 	sudo aptitude --assume-yes install wget
 
-./maven2/bin/mvn: /usr/bin/wget
+./maven.tgz: /usr/bin/wget
+	# Original URL: http://apache.multidist.com/maven/binaries/apache-maven-$(MAVEN_RELEASE)-bin.tar.gz
 	$(WGET) -O ./maven.tgz http://www.normation.com/tarball/apache-maven-$(MAVEN_RELEASE)-bin.tar.gz
+
+./maven2/bin/mvn: ./maven.tgz
 	tar -xvzf ./maven.tgz -C .
 	rm -rf ./maven2
 	mv ./apache-maven-$(MAVEN_RELEASE) ./maven2
-	rm -rf ./maven.tgz
 
-./source:
-	mkdir -p ./source
-	cd ./source && git clone --depth 1 git://github.com/Normation/rudder-parent-pom.git
-	cd ./source/rudder-parent-pom && git checkout $(GIT_BRANCH_RUDDER) || rm -rf ./source/rudder-parent-pom
-	cd ./source && git clone --depth 1 git://github.com/Normation/rudder-commons.git
-	cd ./source/rudder-commons && git checkout $(GIT_BRANCH_RUDDER) || rm -rf ./source/rudder-commons
-	cd ./source && git clone --depth 1 git://github.com/Normation/scala-ldap.git
-	cd ./source/scala-ldap && git checkout $(GIT_BRANCH_RUDDER) || rm -rf ./source/scala-ldap
-	cd ./source && git clone --depth 1 git://github.com/Normation/ldap-inventory.git
-	cd ./source/ldap-inventory && git checkout $(GIT_BRANCH_RUDDER) || rm -rf ./source/ldap-inventory
+./rudder-sources.tar.bz2:
+	$(WGET) -O rudder-sources.tar.bz2 http://www.rudder-project.org/archives/rudder-sources-${RUDDER_VERSION_TO_PACKAGE}.tar.bz2
 
-./inventory-web.properties: ./source
-	cp ./source/ldap-inventory/inventory-provisioning-web/src/main/resources/configuration.properties ./inventory-web.properties
+./rudder-sources: ./rudder-sources.tar.bz2
+	tar -xjf rudder-sources.tar.bz2
+	mv rudder-sources-*/ rudder-sources/
 
-/usr/bin/git:
-	sudo apt-get --assume-yes install git-core
+./inventory-web.properties: ./rudder-sources
+	cp ./rudder-sources/ldap-inventory/inventory-provisioning-web/src/main/resources/configuration.properties.sample ./inventory-web.properties
 
 localclean:
-	rm -rf ./maven.tgz
-	rm -rf ./source
 	rm -rf ./maven2
 	rm -rf ./inventory-web.properties
+	rm -rf ./rudder-sources
 
 veryclean:
+	rm -f ./rudder-sources.tar.bz2
+	rm -rf ./maven.tgz
 
 .PHONY: localclean localdepends veryclean

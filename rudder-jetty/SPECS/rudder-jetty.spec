@@ -36,6 +36,8 @@
 %define jetty_release    7.2.2
 %define date_release     20101205
 
+%define _binaries_in_noarch_packages_terminate_build   0
+
 #=================================================
 # Header
 #=================================================
@@ -53,8 +55,7 @@ Group: Applications/System
 Source2: rudder-jetty.default
 
 Patch1: jetty-init-sles.patch
-Patch2: jetty-default-sles.patch
-Patch3: jetty-init-rudder.patch
+Patch2: jetty-init-rudder.patch
 
 # Prevent rpmbuild to use 64 bits libraries just because of the presence
 # of one 64 bits binary in the jetty archive.
@@ -64,7 +65,12 @@ AutoProv: 0
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
 
+# Change dependencies for RHEL/CentOS since jre is not provided by OpenJDK7
+%if 0%{?rhel}
+Requires: jre7
+%else
 Requires: jre >= 1.6
+%endif
 Requires: rudder-inventory-ldap
 
 %description
@@ -87,7 +93,6 @@ rudder-inventory-endpoint packages.
 
 cd %{_topdir}/SOURCES
 %patch1
-%patch2
 
 #=================================================
 # Building

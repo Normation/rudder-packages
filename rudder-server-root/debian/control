@@ -8,10 +8,10 @@ Homepage: http://www.rudder-project.org
 
 Package: rudder-server-root
 Architecture: all
-Depends: ${shlibs:Depends}, ${misc:Depends}, rudder-webapp, rudder-cfengine-community, curl
+Depends: ${shlibs:Depends}, ${misc:Depends}, rudder-webapp (= ${binary:Version}), rudder-agent (= ${binary:Version}), curl
 Description: Configuration management and audit tool - root server base package
  Rudder is an open source configuration management and audit solution.
  .
  This package is essentially a meta-package to install all components required
  to run a Rudder root server on one machine. It also installs some required
- files (initial promises).
+ files (rudder-init.sh and uuid to root).

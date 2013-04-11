@@ -17,13 +17,10 @@ set -e
 # for details, see http://www.debian.org/doc/debian-policy/ or
 # the debian-policy package
 
-# Variables
-VAR_RUDDER="/var/rudder"
-PT_DIR="${VAR_RUDDER}/configuration-repository/policy-templates"
-
 case "$1" in
     configure)
-		invoke-rc.d rsyslog reload
+		echo "Restarting syslog"
+		invoke-rc.d rsyslog restart
   /etc/init.d/apache2 stop
   a2dissite default
   a2enmod dav_fs
@@ -33,132 +30,40 @@ case "$1" in
   chmod 751 /var/rudder/inventories
   chown root:www-data /var/rudder/inventories/incoming
   chmod 2770 /var/rudder/inventories/incoming
+  chown root:www-data /var/rudder/inventories/accepted-nodes-updates
+  chmod 2770 /var/rudder/inventories/accepted-nodes-updates
   chmod 755 -R /opt/rudder/share/tools
   a2ensite rudder-default
+  htpasswd -bc /opt/rudder/etc/htpasswd-webdav-initial rudder rudder
   htpasswd -bc /opt/rudder/etc/htpasswd-webdav rudder rudder
-  /etc/init.d/apache2 start
 
-  # Migrate from 2.3.0 format policy-template store: /var/rudder/policy-templates
-  if [ -d /var/rudder/policy-templates -a ! -d /var/rudder/configuration-repository ]; then
-      echo "***** WARNING *****"
-      echo "The policy template store for Rudder has changed. It will be"
-      echo "automatically moved from /var/rudder/policy-templates to"
-      echo "/var/rudder/configuration-repository/policy-templates."
+  echo "(Re-)starting Apache HTTPd"
+  /etc/init.d/apache2 restart
 
-	  cd /var/rudder/policy-templates && git add . && git add -u && git commit -am "Committing all pending policy template changes for automatic migration of the policy template store to /var/rudder/configuration-repository/policy-templates" || true
+  # Run any upgrades
+  # Note this must happen *before* creating the technique store, as it was moved in version 2.3.2
+  # and creating it manually would break the upgrade logic
+  /opt/rudder/bin/rudder-upgrade
 
-	  mkdir -p /var/rudder/configuration-repository
-	  mv /var/rudder/policy-templates/.git /var/rudder/configuration-repository/
-	  mv /var/rudder/policy-templates /var/rudder/configuration-repository/
-	  cd /var/rudder/configuration-repository/ && git add -u
-	  cd /var/rudder/configuration-repository/ && git add policy-templates/
-	  cd /var/rudder/configuration-repository/ && git commit -m "Move policy-templates into configuration-repository directory"
-
-	  sed -i 's%^rudder.dir.policyPackages *= */var/rudder/policy-templates/\?$%rudder.dir.policyPackages=/var/rudder/configuration-repository/policy-templates%' /opt/rudder/etc/rudder-web.properties
-	  echo "rudder.dir.gitRoot=/var/rudder/configuration-repository" >> /opt/rudder/etc/rudder-web.properties
-
-	  echo "Automatic migration to /var/rudder/configuration-repository/policy-templates done."
-  fi
-
-  # Create and populate policy-template store
-  if [ ! -d /var/rudder/configuration-repository ]; then
-	  mkdir -p /var/rudder/configuration-repository
-	  mkdir -p /var/rudder/configuration-repository/shared-files
-	  cp -a /opt/rudder/share/policy-templates /var/rudder/configuration-repository/
-  fi
-
-
-  # Check default folder for shared-files exists
-  if [ ! -d /var/rudder/configuration-repository/shared-files ]; then
-    echo "/var/rudder/configuration-repository/shared-files doesn't exist !"
-    mkdir -p /var/rudder/configuration-repository/shared-files
-    # If this folder doesn't contain files, git won't commit it
-    # To simplify usage, we want that the user can add files simply
-    # So when he will add files into shared-files they will appears in git status
-    # So we force git to add the folder
-    CONTENT=`ls /var/rudder/configuration-repository/shared-files/ | wc -l`
-    if [ ${CONTENT} -eq 0 ]; then
-        touch /var/rudder/configuration-repository/shared-files/.placeholder
-        # Check if git init has been made, if not rudder will do it so we don't have to
-        if [ -d /var/rudder/configuration-repository/.git ]; then
-            cd /var/rudder/configuration-repository/ && git add shared-files/
-            cd /var/rudder/configuration-repository/ && git commit -m "Add default shared-files directory" shared-files/
-        fi
-	fi
-		echo "/var/rudder/configuration-repository/shared-files created"
-	fi
-	# Check shared-files folder is set in rudder-web.properties
-	ATTRIBUTESET=`grep "^rudder.dir.shared.files.folder" /opt/rudder/etc/rudder-web.properties | wc -l`
-	if [ ${ATTRIBUTESET} -gt 0 ]; then
-		#Idea: when we will be asking for shared files folder path, sed will be used here
-		echo "rudder.dir.shared.files.folder attribute already set in rudder-web.properties"
-	else
-		echo "rudder.dir.shared.files.folder=/var/rudder/configuration-repository/shared-files" >> /opt/rudder/etc/rudder-web.properties
-		echo "rudder.dir.shared.files.folder attribute set in rudder-web.properties"
+	# Create and populate technique store
+	if [ ! -d /var/rudder/configuration-repository ]; then mkdir -p /var/rudder/configuration-repository; fi
+	if [ ! -d /var/rudder/configuration-repository/shared-files ]; then mkdir -p /var/rudder/configuration-repository/shared-files; fi
+	if [ ! -d /var/rudder/configuration-repository/techniques ]; then
+		cp -a /opt/rudder/share/techniques /var/rudder/configuration-repository/
 	fi
 
-
-	# Migration of PT 'Set the permissions of files' (Ensure that all actions below won't happen if migration has already made)
-	if [ ! -f ${PT_DIR}/fileConfiguration/fileSecurity/filesPermissions/1.0/policy.xml -a -f ${PT_DIR}/fileConfiguration/security/filesPermissions/1.0/policy.xml ]; then
-		## Commit all modifications before migration
-		cd ${PT_DIR} && git add . && git add -u && git commit -am "Committing all pending policy template changes for automatic migration of the policy template from ${PT_DIR}/fileConfiguration/security/ to ${PT_DIR}/fileConfiguration/fileSecurity/" || true
-		## Create right folder if it doesn't exist
-		if [ ! -d ${PT_DIR}/fileConfiguration/fileSecurity/ ]; then
-			mkdir -p "${PT_DIR}/fileConfiguration/fileSecurity"
-			echo "${PT_DIR}/fileConfiguration/fileSecurity has been created"
-		else
-			echo "${PT_DIR}/fileConfiguration/fileSecurity already exists"
-		fi
-
-		if [ -d ${PT_DIR}/fileConfiguration/security/ ]; then
-		## Check that filePermissions.st located in fileConfiguration/security/ is not duplicated and in the right folder
-			if [ -d ${PT_DIR}/fileConfiguration/security/filesPermissions/ ]; then
-				echo "The Policy Template 'Set the permissions of files' is not correctly located"
-				cd ${PT_DIR} && git mv fileConfiguration/security/* fileConfiguration/fileSecurity/
-				cd ${PT_DIR} && git commit -m "Correct Policy Template 'Set the permissions of files' location"
-				echo "The location of the Policy Template 'Set the permissions of files' is now correct"
-			fi
-			## Remove the folder which should contain no more files or folder
-			rm -rf ${PT_DIR}/fileConfiguration/security/ # Not using git since it can't manage folder without file
-			echo  "${PT_DIR}/fileConfiguration/security/ has been removed"
-		fi
+	# Only for Ubuntu:
+	## Change rsyslog port number since Ubuntu 12.04 doesn't allow to use standard
+	## rsyslog port number (https://bugs.launchpad.net/ubuntu/+source/rsyslog/+bug/789174)
+	CHECK_DIST=`/usr/bin/lsb_release -is`
+	CHECK_UBUNTU_VERSION=`/usr/bin/lsb_release -rs | cut -d. -f1`
+	CHECK_RSYSLOG_PORT=`grep -E "^rudder.syslog.port\s*=\s*[0-9]+\s*$" /opt/rudder/etc/rudder-web.properties | cut -d "=" -f2`
+	if [ "z${CHECK_DIST}" = "zUbuntu" -a ${CHECK_UBUNTU_VERSION} -ge 12 -a ${CHECK_RSYSLOG_PORT} -lt 1024 ]; then
+		echo "Since Ubuntu 12.04, rsyslog port number used by Rudder needs to be >1024"
+		sed -i "s/^rudder.syslog.port\w*=.*$/rudder.syslog.port=5514/" /opt/rudder/etc/rudder-web.properties
+		echo "rsyslog port number changed to 5514"
 	fi
 
-	# Check that Rudder database is able to handle backslash
-	CHECK_BACKSLASH=$(su - postgres -c "psql -t -d rudder -c \"select '\\foo';\"" 2> /dev/null | grep "foo" | wc -l)
-	if [ ${CHECK_BACKSLASH} -ne 1 ]; then
-		echo "Rudder database is not backslash compliant, then a modification will be made."
-		su - postgres -c "psql -t -d rudder -c \"alter database rudder set standard_conforming_strings=true;\""
-		echo "Done. PostgreSQL and Rudder will be restarted"
-		/etc/init.d/postgresql restart
-	fi
-
-	# Get LDAP credentials
-	if [ -f /opt/rudder/etc/rudder-web.properties -a ${LDAP_CREDENTIALS} -eq 2 ]; then
-		LDAP_USER=$(grep -E "^ldap.authdn=" /opt/rudder/etc/rudder-web.properties |cut -d "=" -f 2-)
-		LDAP_PASSWORD=$(grep -E "^ldap.authpw=" /opt/rudder/etc/rudder-web.properties |cut -d "=" -f 2-)
-	else
-		echo "WARNING: LDAP properties are missing in /opt/rudder/etc/rudder-web.properties"
-		if [ -f /opt/rudder/etc/openldap/slapd.conf ]; then
-			LDAP_USER=$(grep "^rootdn" /opt/rudder/etc/openldap/slapd.conf | sed "s/\w*\s*['\"]\?\([^\"']*\)['\"]\?$/\1/")
-			LDAP_PASSWORD=$(grep "^rootpw" /opt/rudder/etc/openldap/slapd.conf | sed "s/\w*\s*['\"]\?\([^\"']*\)['\"]\?$/\1/")
-		else
-			echo "ERROR: /opt/rudder/etc/openldap/slapd.conf doesn't exist"
-			exit 1
-		fi
-	fi
-
-	# Upgrade LDAP : convert cpuSpeed attributes to valid integers ( introduced in 2.4.0~beta2 update )
-	LDAP_CPUSPEED_IS_NOT_INTEGER=$(/opt/rudder/bin/ldapsearch -H ldap://localhost -x -w ${LDAP_PASSWORD} -D "${LDAP_USER}" -b cn=rudder-configuration -LLL "(cpuSpeed=*)" cpuSpeed |grep -E "^cpuSpeed: [0-9]+\.[0-9]+$"|wc -l)
-	if [ ${LDAP_CPUSPEED_IS_NOT_INTEGER} -ne 0 ]; then
-		LDAP_CREDENTIALS=`grep -E "^ldap.(authdn|authpw)=" /opt/rudder/etc/rudder-web.properties | wc -l`
-		/opt/rudder/bin/ldapsearch -H ldap://localhost -x -w ${LDAP_PASSWORD} -D ${LDAP_USER} -b cn=rudder-configuration -LLL "(cpuSpeed=*)" cpuSpeed| \
-		sed "s%\(cpuSpeed:.*\)%changetype: modify\nreplace: cpuSpeed\n\1%"| \
-		sed "s%cpuSpeed: \(.*\)\..*%cpuSpeed: \1%g"| \
-		/opt/rudder/bin/ldapmodify -H ldap://localhost -x -w ${LDAP_PASSWORD} -D ${LDAP_USER} >/dev/null 2>&1
-
-    	echo "Some cpuSpeed attributes were converted to integers"
-	fi
 
   # Restart the webapp
   echo "Restarting Rudder webapp and inventory-endpoint"

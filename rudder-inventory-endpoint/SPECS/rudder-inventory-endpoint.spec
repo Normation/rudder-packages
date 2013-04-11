@@ -34,6 +34,18 @@
 %define ruddervardir     /var/rudder
 %define rudderlogdir     /var/log/rudder
 
+%define maven_settings settings-external.xml
+
+%if 0%{?sles_version} 
+%define sysloginitscript /etc/init.d/syslog
+%endif
+%if 0%{?el5} 
+%define sysloginitscript /etc/init.d/syslog
+%endif
+%if 0%{?el6} 
+%define sysloginitscript /etc/init.d/rsyslog
+%endif
+
 #=================================================
 # Header
 #=================================================
@@ -48,8 +60,6 @@ URL: http://www.rudder-project.org
 Group: Applications/System
 
 Source1: inventory-web.properties
-Source2: settings-external.xml
-Source3: settings-internal.xml
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
@@ -72,18 +82,18 @@ the rudder-inventory-ldap package.
 #=================================================
 %prep
 
-cp -rf %{_sourcedir}/source %{_builddir}
+cp -rf %{_sourcedir}/rudder-sources %{_builddir}
 
 #=================================================
 # Building
 #=================================================
 %build
 
-cd %{_builddir}/source/rudder-parent-pom && %{_sourcedir}/maven2/bin/mvn -s %{SOURCE2} -Dmaven.test.skip=true install
-cd %{_builddir}/source/rudder-commons && %{_sourcedir}/maven2/bin/mvn -s %{SOURCE2} -Dmaven.test.skip=true install
-cd %{_builddir}/source/scala-ldap && %{_sourcedir}/maven2/bin/mvn -s %{SOURCE2} -Dmaven.test.skip=true install
-cd %{_builddir}/source/ldap-inventory && %{_sourcedir}/maven2/bin/mvn -s %{SOURCE2} -Dmaven.test.skip=true install
-cd %{_builddir}/source/ldap-inventory/inventory-provisioning-web && %{_sourcedir}/maven2/bin/mvn -s %{SOURCE2} -Dmaven.test.skip=true install package
+cd %{_builddir}/rudder-sources/rudder-parent-pom && %{_sourcedir}/maven2/bin/mvn -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
+cd %{_builddir}/rudder-sources/rudder-commons && %{_sourcedir}/maven2/bin/mvn -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
+cd %{_builddir}/rudder-sources/scala-ldap && %{_sourcedir}/maven2/bin/mvn -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
+cd %{_builddir}/rudder-sources/ldap-inventory && %{_sourcedir}/maven2/bin/mvn -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
+cd %{_builddir}/rudder-sources/ldap-inventory/inventory-provisioning-web && %{_sourcedir}/maven2/bin/mvn -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install package
 
 # Installation
 #=================================================
@@ -93,7 +103,7 @@ rm -rf %{buildroot}
 mkdir -p %{buildroot}/opt/rudder/jetty7/webapps/
 mkdir -p %{buildroot}/opt/rudder/etc/
 
-cp %{_builddir}/source/ldap-inventory/inventory-provisioning-web/target/inventory-provisioning-web*.war %{buildroot}/opt/rudder/jetty7/webapps/endpoint.war
+cp %{_builddir}/rudder-sources/ldap-inventory/inventory-provisioning-web/target/inventory-provisioning-web*.war %{buildroot}/opt/rudder/jetty7/webapps/endpoint.war
 cp %{SOURCE1} %{buildroot}/opt/rudder/etc/
 
 %pre -n rudder-inventory-endpoint
@@ -107,7 +117,7 @@ cp %{SOURCE1} %{buildroot}/opt/rudder/etc/
 #=================================================
 
 echo "Reloading syslogd ..."
-/etc/init.d/syslog reload
+%{sysloginitscript} reload
 
 #=================================================
 # Cleaning

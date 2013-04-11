@@ -1,3 +1,3 @@
 #!/bin/sh
-/opt/rudder/bin/perl -I /opt/rudder/lib/perl5 /opt/rudder/bin/fusioninventory-agent --share-dir=/opt/rudder/share/fusion-utils "$@"
+/opt/rudder/bin/perl -I /opt/rudder/lib/perl5 /opt/rudder/bin/fusioninventory-agent --config=none "$@"
 

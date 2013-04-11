@@ -18,35 +18,15 @@
 
 .DEFAULT_GOAL := localdepends
 
-CFENGINE_RELEASE = 3.2.0
-TMP_DIR := $(shell mktemp -dq)
-WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget
-PATCH := /usr/bin/patch
+localdepends: ./.placeholder
 
-localdepends: ./cfengine-source ../debian/cfengine-community.default ../debian/cfengine-community.init
-
-./cfengine-source: /usr/bin/wget
-	$(WGET) -O $(TMP_DIR)/cfengine.tgz http://www.normation.com/tarball/cfengine-$(CFENGINE_RELEASE).tar.gz
-	tar xvzf $(TMP_DIR)/cfengine.tgz -C $(TMP_DIR)
-	mv $(TMP_DIR)/cfengine-$(CFENGINE_RELEASE) ./cfengine-source
-	rm -rf $(TMP_DIR)
-	$(PATCH) -d ./cfengine-source -p0 < ./cfengine-file-edit-section-r3229.patch
-	$(PATCH) -d ./cfengine-source -p0 < ./patch-reset-persistent-classes.patch
-
-../debian/cfengine-community.default:
-	cp ./cfengine-community.default ../debian/
-
-../debian/cfengine-community.init:
-	cp ./cfengine-community.init ../debian/
-
-/usr/bin/wget:
-	sudo apt-get --assume-yes install wget
+./.placeholder:
+	touch ./.placeholder
 
 localclean:
+	rm -f ./.placeholder
 
 veryclean:
-	rm -rf ./cfengine-source
-	rm -f ../debian/cfengine-community.default
-	rm -f ../debian/cfengine-community.init
+	rm -f ./.placeholder
 
 .PHONY: localclean localdepends veryclean

@@ -30,21 +30,25 @@
 #
 #====================================================================                               
 
+APACHE2_INIT=/etc/init.d/apache2
+if [ ! -x ${APACHE2_INIT} ] && [ -x /etc/init.d/httpd ]; then
+	APACHE2_INIT=/etc/init.d/httpd
+fi
 
 start_services()
 {
 /etc/init.d/slapd start
 /etc/init.d/postgresql* start
-/etc/init.d/cfengine-community start
-/etc/init.d/apache2 start
+/etc/init.d/rudder-agent start
+${APACHE2_INIT} start
 /etc/init.d/jetty start
 }
 
 stop_services()
 {
-/etc/init.d/apache2 stop
+${APACHE2_INIT} stop
 /etc/init.d/jetty stop
-/etc/init.d/cfengine-community stop
+/etc/init.d/rudder-agent stop
 /etc/init.d/postgresql* stop
 /etc/init.d/slapd stop
 }

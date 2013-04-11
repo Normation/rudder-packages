@@ -4,12 +4,14 @@ opt/rudder/etc
 opt/rudder/etc/plugins
 opt/rudder/share/tools
 opt/rudder/share/plugins
+opt/rudder/share/upgrade-tools
 var/rudder/share
 var/rudder/backup
 var/rudder/files
 var/rudder/lock
 var/rudder/tools
 var/rudder/run
+var/rudder/inventories/accepted-nodes-updates
 var/rudder/inventories/incoming
 var/rudder/inventories/received
 var/rudder/inventories/historical

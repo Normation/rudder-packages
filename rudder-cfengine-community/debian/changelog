@@ -18,7 +18,7 @@ rudder-cfengine-community (3.1.4-4) lenny; urgency=low
 
 rudder-cfengine-community (3.1.4-3) lenny; urgency=low
 
-  * postinst: Don't stop Cfengine if it's not installed yet (fixes #870)
+  * postinst: Don't stop CFEngine if it's not installed yet (fixes #870)
 
  -- Jonathan Clarke <jonathan.clarke@normation.com>  Thu, 17 Feb 2011 15:19:53 +0100
 
@@ -31,7 +31,7 @@ rudder-cfengine-community (3.1.4-2) lenny; urgency=low
 rudder-cfengine-community (3.1.4-1) lenny; urgency=medium
 
   * Add patch to fix segmentation fault while calling functions in server
-    config. This is from Cfengine upstream r1764.
+    config. This is from CFEngine upstream r1764.
 
  -- Jonathan Clarke <jonathan.clarke@normation.com>  Tue, 15 Feb 2011 20:00:27 +0100
 
@@ -43,7 +43,7 @@ rudder-cfengine-community (3.1.4-0) lenny; urgency=low
 
 rudder-cfengine-community (3.1.3-2) lenny; urgency=low
 
-  * Postinst to copy cf-* binaries to Cfengine workdir/bin
+  * Postinst to copy cf-* binaries to CFEngine workdir/bin
 
  -- Jonathan Clarke <jonathan.clarke@normation.com>  Wed, 26 Jan 2011 19:03:18 +0100
 
@@ -67,7 +67,7 @@ rudder-cfengine-community (3.1.2-2) lenny; urgency=low
 
 rudder-cfengine-community (3.1.2-1) lenny; urgency=low
 
-  * Change cfengine workdir
+  * Change CFEngine workdir
 
  -- Jonathan Clarke <jonathan.clarke@normation.com>  Fri, 17 Dec 2010 14:04:17 +0100
 

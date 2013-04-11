@@ -9,6 +9,10 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
+# Set JAVA_HOME according to available JVM
+# We support Sun Java 6 or OpenJDK 7, privilege later versions (sort -r)
+export JAVA_HOME := $(shell find /usr/lib/jvm -maxdepth 1 -type d -name java-7-openjdk-i386 -or -name java-7-openjdk-amd64 -or -name java-6-sun | sort -r | head -n1)
+
 MAVEN_SETTINGS := settings-external.xml
 
 configure: configure-stamp
@@ -21,12 +25,12 @@ build: build-stamp
 build-stamp: configure-stamp
 	dh_testdir
 
-	ls -lh $(CURDIR)/SOURCES/source
-	cd $(CURDIR)/SOURCES/source/rudder-parent-pom && $(CURDIR)/SOURCES/maven2/bin/mvn -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true install
-	cd $(CURDIR)/SOURCES/source/rudder-commons && $(CURDIR)/SOURCES/maven2/bin/mvn -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true install
-	cd $(CURDIR)/SOURCES/source/scala-ldap && $(CURDIR)/SOURCES/maven2/bin/mvn -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true install
-	cd $(CURDIR)/SOURCES/source/ldap-inventory && $(CURDIR)/SOURCES/maven2/bin/mvn -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true install
-	cd $(CURDIR)/SOURCES/source/ldap-inventory/inventory-provisioning-web && $(CURDIR)/SOURCES/maven2/bin/mvn -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true install package
+	ls -lh $(CURDIR)/SOURCES/rudder-sources
+	cd $(CURDIR)/SOURCES/rudder-sources/rudder-parent-pom && $(CURDIR)/SOURCES/maven2/bin/mvn -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true install
+	cd $(CURDIR)/SOURCES/rudder-sources/rudder-commons && $(CURDIR)/SOURCES/maven2/bin/mvn -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true install
+	cd $(CURDIR)/SOURCES/rudder-sources/scala-ldap && $(CURDIR)/SOURCES/maven2/bin/mvn -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true install
+	cd $(CURDIR)/SOURCES/rudder-sources/ldap-inventory && $(CURDIR)/SOURCES/maven2/bin/mvn -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true install
+	cd $(CURDIR)/SOURCES/rudder-sources/ldap-inventory/inventory-provisioning-web && $(CURDIR)/SOURCES/maven2/bin/mvn -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true install package
 
 	touch $@
 
@@ -58,10 +62,9 @@ binary-arch: install
 	dh_installchangelogs
 #	dh_installdocs
 #	dh_installexamples
-	cp $(CURDIR)/SOURCES/source/ldap-inventory/inventory-provisioning-web/target/inventory-provisioning-web*.war $(CURDIR)/BUILD/endpoint.war
+	cp $(CURDIR)/SOURCES/rudder-sources/ldap-inventory/inventory-provisioning-web/target/inventory-provisioning-web*.war $(CURDIR)/BUILD/endpoint.war
 	dh_install --SOURCEDIR=$(CURDIR)/BUILD/ endpoint.war /opt/rudder/jetty7/webapps/
-	cp $(CURDIR)/SOURCES/source/ldap-inventory/inventory-provisioning-web/src/main/resources/configuration.properties $(CURDIR)/BUILD/inventory-web.properties
-	dh_install --SOURCEDIR=$(CURDIR)/BUILD/ inventory-web.properties /opt/rudder/etc/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ inventory-web.properties /opt/rudder/etc/
 #	dh_installmenu
 #	dh_installdebconf
 #	dh_installlogrotate

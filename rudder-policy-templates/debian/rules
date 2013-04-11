@@ -9,10 +9,16 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
+
+
+
 configure: configure-stamp
 configure-stamp:
 	dh_testdir
 	# Add here commands to configure the package.
+
+	touch configure-stamp
+
 
 build: build-stamp
 
@@ -26,17 +32,16 @@ clean:
 	dh_testroot
 	rm -f build-stamp configure-stamp
 
-	# Add here commands to clean up after the build process.
-
-	dh_clean
+	dh_clean 
 
 install: build
 	dh_testdir
 	dh_testroot
-	dh_prep
+	dh_prep  
 	dh_installdirs
 
-	# Add here commands to install the package into debian/normation-openldap.
+	# Add here commands to install the package into debian/tmp
+
 
 # Build architecture-independent files here.
 binary-indep: install
@@ -46,13 +51,10 @@ binary-indep: install
 binary-arch: install
 	dh_testdir
 	dh_testroot
-	dh_installchangelogs
-#	dh_installdocs
-#	dh_installexamples
-	cp -r $(CURDIR)/SOURCES/rudder-policy-templates/policies/ $(CURDIR)/BUILD/policy-templates
-	dh_install --SOURCEDIR=$(CURDIR)/BUILD/ policy-templates/ /opt/rudder/share/
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-policy-templates/ tools/  /opt/rudder/share/
-
+	dh_installchangelogs 
+	dh_installdocs
+	dh_installexamples
+	dh_install
 #	dh_installmenu
 #	dh_installdebconf
 #	dh_installlogrotate

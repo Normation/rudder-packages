@@ -2,13 +2,13 @@ Source: rudder-jetty
 Section: web
 Priority: extra
 Maintainer: Nicolas Perron <nicolas.perron@normation.com>
-Build-Depends: quilt, debhelper (>= 7)
+Build-Depends: debhelper (>= 7)
 Standards-Version: 3.7.3
 Homepage: http://www.rudder-project.org
 
 Package: rudder-jetty
 Architecture: all
-Depends: ${shlibs:Depends}, ${misc:Depends}, sun-java6-jre (>=6), rudder-inventory-ldap
+Depends: ${shlibs:Depends}, ${misc:Depends}, sun-java6-jre (>=6) | java7-runtime, rudder-inventory-ldap
 Description: Configuration management and audit tool - Jetty application server
  Rudder is an open source configuration management and audit solution.
  .

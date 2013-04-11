@@ -19,7 +19,7 @@
 #=================================================
 # Specification file for rudder-server-root
 #
-# Install initial promises, rudder-init and uuid
+# Install rudder-init and force uuid to be root
 #
 # Copyright (C) 2011 Normation
 #=================================================
@@ -31,7 +31,6 @@
 %define rudderdir        /opt/rudder
 %define ruddervardir     /var/rudder
 %define rudderlogdir     /var/log/rudder
-%define init_promises	 /initial-promises
 
 #=================================================
 # Header
@@ -46,23 +45,23 @@ URL: http://www.rudder-project.org
 
 Group: Applications/System
 
-Source1: rudder-policy-templates
+Source1: rudder-sources
 Source2: rudder-init.sh
-Source3: uuid.hive
 Source4: rudder.logrotate.suse
 Source5: rudder-server-root.init
+Source6: rudder-passwords.conf
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
 
-Requires: rudder-cfengine-community, rudder-webapp, curl
+Requires: rudder-agent, rudder-webapp, curl
 
 %description
 Rudder is an open source configuration management and audit solution.
 
 This package is essentially a meta-package to install all components required to
 run a Rudder root server on one machine. It also installs some required files
-(initial promises).
+(rudder-init.sh and uuid to root).
 
 
 #=================================================
@@ -85,22 +84,15 @@ mkdir -p %{buildroot}/var/cfengine/
 mkdir -p %{buildroot}/var/cfengine/inputs
 mkdir -p %{buildroot}%{rudderdir}/bin/
 mkdir -p %{buildroot}%{rudderdir}/etc/
-mkdir -p %{buildroot}%{rudderdir}/share/initial-promises/
 mkdir -p %{buildroot}%{ruddervardir}/cfengine-community/
 mkdir -p %{buildroot}/etc/logrotate.d/
 mkdir -p %{buildroot}/etc/init.d
 
-# Initial Promises (root)
-cp -r %{SOURCE1}/%{init_promises}/rootServerInitialPromises/cfengine-nova %{buildroot}%{rudderdir}/share/initial-promises/
-cp -r %{SOURCE1}/%{init_promises}/rootServerInitialPromises/cfengine-community %{buildroot}%{rudderdir}/share/initial-promises/
-# Initial Promises (node)
-cp -r %{SOURCE1}%{init_promises}/nodeInitialPromises %{buildroot}/var/cfengine/masterfiles
-cp -r %{SOURCE1}%{init_promises}/nodeInitialPromises %{buildroot}%{ruddervardir}/cfengine-community/masterfiles
 # Others
 cp %{SOURCE2} %{buildroot}%{rudderdir}/bin/
-cp %{SOURCE3} %{buildroot}%{rudderdir}/etc/
 cp %{SOURCE4} %{buildroot}/etc/logrotate.d/rudder
 cp %{SOURCE5} %{buildroot}/etc/init.d/rudder-server-root
+cp %{SOURCE6} %{buildroot}%{rudderdir}/etc/
 
 
 %pre -n rudder-server-root
@@ -113,6 +105,7 @@ cp %{SOURCE5} %{buildroot}/etc/init.d/rudder-server-root
 # Post Installation
 #=================================================
 # Is this the first installation?
+echo 'root' > %{rudderdir}/etc/uuid.hive
 LDAPCHK=`/opt/rudder/sbin/slapcat  | grep "^dn: " | wc -l`
 if [ $LDAPCHK -eq 0 ]; then
   echo "************************************************************"
@@ -132,14 +125,12 @@ rm -rf %{buildroot}
 #=================================================
 %files -n rudder-server-root
 %defattr(-, root, root, 0755)
-%{rudderdir}/share/initial-promises/
-%config %{rudderdir}/etc/uuid.hive
 %config(noreplace,missingok) %{_sysconfdir}/logrotate.d/rudder
 %{rudderdir}/bin/rudder-init.sh
-%{ruddervardir}/cfengine-community/masterfiles
-/var/cfengine/masterfiles
 /var/cfengine/inputs
 %attr(0755, root, root) /etc/init.d/rudder-server-root
+%config(noreplace) %{rudderdir}/etc/rudder-passwords.conf
+%attr(0600, root, root) %{rudderdir}/etc/rudder-passwords.conf
 
 #=================================================
 # Changelog

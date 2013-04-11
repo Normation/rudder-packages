@@ -41,7 +41,7 @@ PERL_PREFIX="/opt/rudder"
 BUILDDIR="$TMP/build"
 BASETARBALLSDIR="$PWD/base-tarballs"
 # MODULES="XML::NamespaceSupport Class::Inspector Digest::MD5 Net::IP File::ShareDir File::Copy::Recursive Net::IP Proc::Daemon Proc::PID::File Digest::MD5 File::Copy File::Path File::Temp Net::NBName Parallel::ForkManager XML::SAX XML::Simple UNIVERSAL::require"
-MODULES="Digest::MD5 Net::IP XML::SAX XML::Simple UNIVERSAL::require"
+MODULES="Digest::MD5 Net::IP XML::SAX XML::Simple UNIVERSAL::require File::Which XML::TreePP"
 FINALDIR=$PWD
 NO_CLEANUP=0
 OLD_PATH=$PATH
@@ -94,7 +94,7 @@ buildPerl () {
 
 }
 
-PERLVERSION="5.12.1"
+PERLVERSION="5.12.4"
 
 # Clean up
 if [ "$NO_CLEANUP" = "0" ]; then
@@ -140,8 +140,10 @@ done
 
 cd $PWD/../../fusioninventory-agent
 mkdir -p $TMP/perl$PERL_PREFIX/share/fusion-utils && cp -a share/* $TMP/perl$PERL_PREFIX/share/fusion-utils
-PERL_MM_USE_DEFAULT=1 $TMP/perl$PERL_PREFIX/bin/perl Makefile.PL --default INSTALL_BASE=$TMP/perl$PERL_PREFIX
-$MAKE install
+PERL_MM_USE_DEFAULT=1 $TMP/perl$PERL_PREFIX/bin/perl Makefile.PL --default PREFIX=$PERL_PREFIX
+$MAKE install DESTDIR=$TMP/perl
+
+cp -a lib/FusionInventory $TMP/perl$PERL_PREFIX/lib/perl5/
 
 #Restoring PATH
 PATH=$OLD_PATH

@@ -9,7 +9,10 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
-TMP_DIR := $(shell mktemp -dq)
+# Set JAVA_HOME according to available JVM
+# We support Sun Java 6 or OpenJDK 7, privilege later versions (sort -r)
+export JAVA_HOME := $(shell find /usr/lib/jvm -maxdepth 1 -type d -name java-7-openjdk-i386 -or -name java-7-openjdk-amd64 -or -name java-6-sun | sort -r | head -n1)
+
 MAVEN_SETTINGS := settings-external.xml
 
 configure: configure-stamp
@@ -21,12 +24,12 @@ build: build-stamp
 
 build-stamp: configure-stamp
 	dh_testdir
-	cd $(CURDIR)/SOURCES/source/rudder-parent-pom && $(CURDIR)/SOURCES/maven2/bin/mvn -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true install
-	cd $(CURDIR)/SOURCES/source/rudder-commons && $(CURDIR)/SOURCES/maven2/bin/mvn -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true install
-	cd $(CURDIR)/SOURCES/source/scala-ldap && $(CURDIR)/SOURCES/maven2/bin/mvn -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true install
-	cd $(CURDIR)/SOURCES/source/ldap-inventory && $(CURDIR)/SOURCES/maven2/bin/mvn -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true install
-	cd $(CURDIR)/SOURCES/source/cf-clerk && $(CURDIR)/SOURCES/maven2/bin/mvn -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true install
-	cd $(CURDIR)/SOURCES/source/rudder && $(CURDIR)/SOURCES/maven2/bin/mvn -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true install package
+	cd $(CURDIR)/SOURCES/rudder-sources/rudder-parent-pom && $(CURDIR)/SOURCES/maven2/bin/mvn -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true install
+	cd $(CURDIR)/SOURCES/rudder-sources/rudder-commons && $(CURDIR)/SOURCES/maven2/bin/mvn -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true install
+	cd $(CURDIR)/SOURCES/rudder-sources/scala-ldap && $(CURDIR)/SOURCES/maven2/bin/mvn -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true install
+	cd $(CURDIR)/SOURCES/rudder-sources/ldap-inventory && $(CURDIR)/SOURCES/maven2/bin/mvn -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true install
+	cd $(CURDIR)/SOURCES/rudder-sources/cf-clerk && $(CURDIR)/SOURCES/maven2/bin/mvn -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true install
+	cd $(CURDIR)/SOURCES/rudder-sources/rudder && $(CURDIR)/SOURCES/maven2/bin/mvn -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true install package
 
 	touch $@
 
@@ -59,20 +62,46 @@ binary-arch: install
 #	dh_installdocs
 #	dh_installexamples
 	dh_install --SOURCEDIR=SOURCES/ rudder-users.xml /opt/rudder/etc/
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/source/rudder/rudder-core/src/main/resources/ldap/ bootstrap.ldif /opt/rudder/share/
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/source/rudder/rudder-core/src/main/resources/ldap/ init-policy-server.ldif /opt/rudder/share/
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/source/rudder/rudder-core/src/main/resources/ldap/ demo-data.ldif /opt/rudder/share/
-	cp $(CURDIR)/SOURCES/source/rudder/rudder-web/src/main/resources/configuration.properties $(CURDIR)/BUILD/rudder-web.properties
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/ldap/ bootstrap.ldif /opt/rudder/share/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/ldap/ init-policy-server.ldif /opt/rudder/share/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/ldap/ demo-data.ldif /opt/rudder/share/
+	cp $(CURDIR)/SOURCES/rudder-sources/rudder/rudder-web/src/main/resources/configuration.properties.sample $(CURDIR)/BUILD/rudder-web.properties
 	dh_install --SOURCEDIR=$(CURDIR)/BUILD/ rudder-web.properties /opt/rudder/etc/
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/source/rudder/rudder-web/src/main/resources/ logback.xml /opt/rudder/etc/
-	cp $(CURDIR)/SOURCES/source/rudder/rudder-web/target/rudder-web*.war $(CURDIR)/BUILD/rudder.war
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-web/src/main/resources/ logback.xml /opt/rudder/etc/
+	cp $(CURDIR)/SOURCES/rudder-sources/rudder/rudder-web/target/rudder-web*.war $(CURDIR)/BUILD/rudder.war
 	dh_install --SOURCEDIR=$(CURDIR)/BUILD/ rudder.war /opt/rudder/jetty7/webapps/
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/source/rudder/rudder-web/src/main/resources/ load-page/  /opt/rudder/share/
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/source/rudder/rudder-core/src/test/resources/script/ cfe-red-button.sh /opt/rudder/bin/
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/source/rudder/rudder-core/src/main/resources/ reportsInfo.xml /opt/rudder/etc/
-	cp $(CURDIR)/SOURCES/source/rudder/rudder-web/src/main/resources/apache2-default.conf $(CURDIR)/BUILD/rudder-default
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-web/src/main/resources/ load-page/  /opt/rudder/share/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/test/resources/script/ cfe-red-button.sh /opt/rudder/bin/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/ reportsInfo.xml /opt/rudder/etc/
+	cp $(CURDIR)/SOURCES/rudder-sources/rudder/rudder-web/src/main/resources/apache2-default.conf $(CURDIR)/BUILD/rudder-default
+	# Set log files location for apache
+	sed -i 's@%APACHE_ERRLOG_FILE%@/var/log/rudder/apache2/error.log@' $(CURDIR)/BUILD/rudder-default
+	sed -i 's@%APACHE_LOG_FILE%@/var/log/rudder/apache2/access.log@' $(CURDIR)/BUILD/rudder-default
 	dh_install --SOURCEDIR=$(CURDIR)/BUILD/ rudder-default /etc/apache2/sites-available/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder.xml /opt/rudder/jetty7/contexts/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-networks.conf /opt/rudder/etc/
+
+	# Install upgrade tools
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ dbMigration-2.3-2.4-groups-isDynamic.sql /opt/rudder/share/upgrade-tools/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ dbMigration-2.3-2.4-PT-history.sql /opt/rudder/share/upgrade-tools/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ dbMigration-2.3-2.4-PI-PT-CR-names-changed.sql /opt/rudder/share/upgrade-tools/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ dbMigration-2.3-2.4-index.sql /opt/rudder/share/upgrade-tools/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ dbMigration-2.3-2.4-add-MigrationEventLog-table.sql /opt/rudder/share/upgrade-tools/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ dbMigration-2.3-2.4-add-EventLog-reason-column.sql /opt/rudder/share/upgrade-tools/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ dbMigration-2.3-2.4-set-migration-needed-flag-for-EventLog.sql /opt/rudder/share/upgrade-tools/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ dbMigration-2.4-2.4-set-migration-needed-flag-for-EventLog.sql /opt/rudder/share/upgrade-tools/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ dbMigration-2.3-2.4-archive.sql /opt/rudder/share/upgrade-tools/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ dbMigration-2.3-2.4-index-archive.sql /opt/rudder/share/upgrade-tools/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ dbMigration-2.4-2.5-group-serialisation.sql /opt/rudder/share/upgrade-tools/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ dbMigration-2.4-2.5-last-error-report-id.sql /opt/rudder/share/upgrade-tools/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ dbMigration-2.4-2.5-git-commit.sql /opt/rudder/share/upgrade-tools/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ dbMigration-2.4-2.5-add-modification-id-to-EventLog.sql /opt/rudder/share/upgrade-tools/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ dbMigration-2.5-2.6-unexpanded-value.sql /opt/rudder/share/upgrade-tools/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ dbMigration-2.5-2.6-add_workflow_support.sql /opt/rudder/share/upgrade-tools/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-upgrade-LDAP-schema-2.3-2.4-add-entries.ldif /opt/rudder/share/upgrade-tools/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-upgrade-modify-system-group-entries.ldif /opt/rudder/share/upgrade-tools/
+
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-upgrade /opt/rudder/bin/
 
 #	dh_installmenu
 #	dh_installdebconf

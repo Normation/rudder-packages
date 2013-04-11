@@ -49,15 +49,9 @@ binary-arch: install
 	dh_installchangelogs
 #	dh_installdocs
 #	dh_installexamples
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-policy-templates/initial-promises/rootServerInitialPromises/ cfengine-nova /opt/rudder/share/initial-promises/
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-policy-templates/initial-promises/rootServerInitialPromises/ cfengine-community /opt/rudder/share/initial-promises/
-	rm -rf $(CURDIR)/BUILD/masterfiles
-	cp -ar $(CURDIR)/SOURCES/rudder-policy-templates/initial-promises/nodeInitialPromises $(CURDIR)/BUILD/masterfiles
-	dh_install --SOURCEDIR=$(CURDIR)/BUILD/ masterfiles /var/cfengine/
-	dh_install --SOURCEDIR=$(CURDIR)/BUILD/ masterfiles /var/rudder/cfengine-community/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-init.sh /opt/rudder/bin/
 	dh_installinit --noscripts --no-start --no-restart-on-upgrade --name=rudder-server-root
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ uuid.hive /opt/rudder/etc/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-passwords.conf /opt/rudder/etc/
 #	dh_installmenu
 #	dh_installdebconf
 	dh_installlogrotate

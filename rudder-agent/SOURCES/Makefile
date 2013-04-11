@@ -18,35 +18,48 @@
 
 .DEFAULT_GOAL := localdepends
 
-GIT_BRANCH_RUDDER = <put branch or tag name here>
-CFENGINE_RELEASE = 3.2.0
-FUSION_RELEASE = 2.1.9
+RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
+CFENGINE_RELEASE = 3.4.4
+FUSION_RELEASE = 2.2.2
+TOKYOCABINET_RELEASE = 1.4.48
 TMP_DIR := $(shell mktemp -dq)
 WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget
 PATCH := /usr/bin/patch
+FIND := /usr/bin/find
 
-localdepends: ./initial-promises ./files ./fusioninventory-agent ./cfengine-source ../debian/rudder-agent.init ../debian/rudder-agent.default
+localdepends: ./initial-promises ./files ./fusioninventory-agent ./tokyocabinet-source ./cfengine-source ../debian/rudder-agent.init ../debian/rudder-agent.default ./rudder-agent.cron ../debian/rudder-agent.cron.d
 	rm -rf $(TMP_DIR)
 
 ./cfengine-source: /usr/bin/wget
+	# Original URL: http://cfengine.com/source-code/download?file=cfengine-$(CFENGINE_RELEASE).tar.gz
 	$(WGET) -O $(TMP_DIR)/cfengine.tgz http://www.normation.com/tarball/cfengine-$(CFENGINE_RELEASE).tar.gz
 	tar xvzf $(TMP_DIR)/cfengine.tgz -C $(TMP_DIR)
 	mv $(TMP_DIR)/cfengine-$(CFENGINE_RELEASE) ./cfengine-source
-	$(PATCH) -d ./cfengine-source -p0 < ./cfengine-file-edit-section-r3229.patch
-	$(PATCH) -d ./cfengine-source -p0 < ./patch-reset-persistent-classes.patch
 
-./initial-promises:
-	cd $(TMP_DIR) && git clone --depth 1 git://github.com/Normation/rudder-techniques.git rudder-policy-templates
-	cd $(TMP_DIR)/rudder-policy-templates && git checkout $(GIT_BRANCH_RUDDER) || rm -rf $(TMP_DIR)/rudder-policy-templates
-	cp -a $(TMP_DIR)/rudder-policy-templates/initial-promises/nodeInitialPromises/ ./initial-promises
+./tokyocabinet-source: /usr/bin/wget
+	# Original URL: http://fallabs.com/tokyocabinet/tokyocabinet-${TOKYOCABINET_RELEASE}.tar.gz
+	$(WGET) -O $(TMP_DIR)/tokyocabinet.tgz http://www.normation.com/tarball/tokyocabinet-${TOKYOCABINET_RELEASE}.tar.gz
+	tar xvzf $(TMP_DIR)/tokyocabinet.tgz -C $(TMP_DIR)
+	mv $(TMP_DIR)/tokyocabinet-$(TOKYOCABINET_RELEASE) ./tokyocabinet-source
+
+./rudder-sources.tar.bz2:
+	$(WGET) -O rudder-sources.tar.bz2 http://www.rudder-project.org/archives/rudder-sources-${RUDDER_VERSION_TO_PACKAGE}.tar.bz2
+
+./rudder-sources: ./rudder-sources.tar.bz2
+	tar -xjf rudder-sources.tar.bz2
+	mv rudder-sources-*/ rudder-sources/
+
+./initial-promises: ./rudder-sources
+	cp -aT ./rudder-sources/rudder-techniques/initial-promises/node-server/ ./initial-promises/
 
 ./fusioninventory-agent: /usr/bin/wget
 	#Original URL: http://search.cpan.org/CPAN/authors/id/F/FU/FUSINV/FusionInventory-Agent-$(FUSION_RELEASE).tar.gz
 	$(WGET) -O $(TMP_DIR)/fusion.tgz http://www.normation.com/tarball/FusionInventory-Agent-$(FUSION_RELEASE).tar.gz
 	tar zvxf $(TMP_DIR)/fusion.tgz -C $(TMP_DIR)
 	mv $(TMP_DIR)/FusionInventory-Agent-$(FUSION_RELEASE) ./fusioninventory-agent
-	$(PATCH) -d ./fusioninventory-agent -p1 < ./fusioninventory-os-section.patch
-	$(PATCH) -d ./fusioninventory-agent -p1 < ./fusioninventory-centos-nolsb.patch
+	$(PATCH) -d ./fusioninventory-agent -p1 < ./SuSE_service_pack.patch
+	# Fix a lsusb invocation that crashes some SLES machines
+	$(FIND) ./fusioninventory-agent -iname "USB.pm" -delete
 
 ./files: /usr/bin/wget
 	mkdir ./files
@@ -74,8 +87,8 @@ localdepends: ./initial-promises ./files ./fusioninventory-agent ./cfengine-sour
 	$(WGET) -O ./files/libwww-perl-5.836.tar.gz http://www.normation.com/tarball/libwww-perl-5.836.tar.gz
 	#Orignal URL: http://www.cpan.org/modules/by-module/Net/Net-IP-1.25.tar.gz
 	$(WGET) -O ./files/Net-IP-1.25.tar.gz http://www.normation.com/tarball/Net-IP-1.25.tar.gz
-	#Original URL: http://www.cpan.org/src/5.0/perl-5.12.1.tar.gz
-	$(WGET) -O ./files/perl-5.12.1.tar.gz http://www.normation.com/tarball/perl-5.12.1.tar.gz
+	#Original URL: http://www.cpan.org/src/5.0/perl-5.12.4.tar.gz
+	$(WGET) -O ./files/perl-5.12.4.tar.gz http://www.normation.com/tarball/perl-5.12.4.tar.gz
 	#Original URL: http://www.cpan.org/modules/by-module/UNIVERSAL/UNIVERSAL-require-0.13.tar.gz
 	$(WGET) -O ./files/UNIVERSAL-require-0.13.tar.gz http://www.normation.com/tarball/UNIVERSAL-require-0.13.tar.gz
 	#Original URL: http://www.cpan.org/modules/by-module/URI/URI-1.56.tar.gz
@@ -84,6 +97,10 @@ localdepends: ./initial-promises ./files ./fusioninventory-agent ./cfengine-sour
 	$(WGET) -O ./files/XML-SAX-0.96.tar.gz http://www.normation.com/tarball/XML-SAX-0.96.tar.gz
 	#Original URL: http://www.cpan.org/modules/by-module/XML/XML-Simple-2.18.tar.gz
 	$(WGET) -O ./files/XML-Simple-2.18.tar.gz http://www.normation.com/tarball/XML-Simple-2.18.tar.gz
+	#Original URL: http://www.cpan.org/modules/by-module/File/File-Which-1.09.tar.gz
+	$(WGET) -O ./files/File-Which-1.09.tar.gz http://www.normation.com/tarball/File-Which-1.09.tar.gz
+	#Original URL: http://www.cpan.org/modules/by-module/XML/XML-TreePP-0.41.tar.gz
+	$(WGET) -O ./files/XML-TreePP-0.41.tar.gz http://www.normation.com/tarball/XML-TreePP-0.41.tar.gz
 
 ../debian/rudder-agent.init:
 	cp ./rudder-agent.init ../debian/
@@ -91,14 +108,18 @@ localdepends: ./initial-promises ./files ./fusioninventory-agent ./cfengine-sour
 ../debian/rudder-agent.default:
 	cp ./rudder-agent.default ../debian/
 
-/usr/bin/git:
-	sudo apt-get --assume-yes install git-core
+./rudder-agent.cron: ./rudder-sources
+	cp ./rudder-sources/rudder-techniques/techniques/system/common/1.0/rudder_agent_community_cron.st ./rudder-agent.cron
+
+../debian/rudder-agent.cron.d: ./rudder-agent.cron
+	cp ./rudder-agent.cron ../debian/
 
 /usr/bin/wget:
 	sudo apt-get --assume-yes install wget
 
 localclean:
 	rm -rf ./cfengine-source
+	rm -rf ./tokyocabinet-source
 	rm -rf ./initial-promises
 	rm -f ../debian/rudder-agent.init
 	rm -f ../debian/rudder-agent.default
@@ -108,7 +129,10 @@ localclean:
 	rm -rf ./tmp
 	rm -rf ./perl-custom
 	rm -rf ./files
+	rm -rf ./rudder-sources
+	rm -f ./rudder-agent.cron ../debian/rudder-agent.cron.d
 
 veryclean:
+	rm -f ./rudder-sources.tar.bz2
 
 .PHONY: localclean localdepends veryclean

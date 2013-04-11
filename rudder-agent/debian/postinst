@@ -19,20 +19,37 @@ set -e
 
 
 case "$1" in
-    configure)
-    CFRUDDER_FIRST_INSTALL=0
+	configure)
 		# Is this the first installation?
+		CFRUDDER_FIRST_INSTALL=0
 		if [ ! -x /var/rudder/cfengine-community/bin/cf-execd ]; then CFRUDDER_FIRST_INSTALL=1; fi
 
 		# Copy new binaries to workdir, make sure daemons are stopped first
-		if [ ${CFRUDDER_FIRST_INSTALL} -ne 1 -a -x /etc/init.d/rudder-agent ]; then /etc/init.d/rudder-agent stop; fi
-		cp -a /opt/rudder/sbin/cf-* /var/rudder/cfengine-community/bin/
 
-    # Copy initial promises if there aren't any already
-    if [ ! -e /var/rudder/cfengine-community/inputs/promises.cf ]
-    then
-      cp -r /opt/rudder/share/initial-promises/* /var/rudder/cfengine-community/inputs
-    fi
+		# Set a "lock" to avoid CFEngine being restarted during the upgrade process
+		I_SET_THE_LOCK=0
+		if [ ! -e /opt/rudder/etc/disable-agent ]; then
+			I_SET_THE_LOCK=1
+			touch /opt/rudder/etc/disable-agent
+		fi
+
+		if [ ${CFRUDDER_FIRST_INSTALL} -ne 1 -a -x /etc/init.d/rudder-agent ]; then /etc/init.d/rudder-agent stop; fi
+
+		# Copy CFEngine binaries (Changed location from sbin/ to bin/ in version 3.4)
+		cp -a /opt/rudder/bin/cf-* /var/rudder/cfengine-community/bin/
+		NB_COPIED_BINARIES=`ls -1 /var/rudder/cfengine-community/bin/ | wc -l`
+		if [ ${NB_COPIED_BINARIES} -gt 0 ];then echo "CFEngine binaries copied to workdir"; fi
+
+		# Remove the lock on CFEngine
+		if [ ${I_SET_THE_LOCK} -eq 1 ]; then
+			rm -f /opt/rudder/etc/disable-agent
+		fi
+
+		# Copy initial promises if there aren't any already
+		if [ ! -e /var/rudder/cfengine-community/inputs/promises.cf ]
+		then
+			cp -r /opt/rudder/share/initial-promises/* /var/rudder/cfengine-community/inputs
+		fi
 
 		# Restart daemons if we stopped them, otherwise not
 		if [ ${CFRUDDER_FIRST_INSTALL} -ne 1 ]
@@ -42,7 +59,13 @@ case "$1" in
 				/etc/init.d/rudder-agent start
 			fi
 		else
-			echo "rudder-agent has been installed, but not started"
+			echo "********************************************************************************"
+			echo "rudder-agent has been installed (not started). This host can be a Rudder node."
+			echo "To get started, configure your Rudder server's hostname and launch the agent:"
+			echo "# echo 'rudder.server' > /var/rudder/cfengine-community/policy_server.dat"
+			echo "# /etc/init.d/rudder-agent start"
+			echo "This node will then appear in the Rudder web interface under 'Accept new nodes'."
+			echo "********************************************************************************"
 		fi
 
 		# Create a key if we don't have one yet
@@ -50,10 +73,20 @@ case "$1" in
 		then
 			/var/rudder/cfengine-community/bin/cf-key
 		fi
-    if [ ! -e /opt/rudder/etc/uuid.hive ]
-    then
-      uuidgen > /opt/rudder/etc/uuid.hive
-    fi
+
+		# Generate a UUID if we don't have one yet
+		if [ ! -e /opt/rudder/etc/uuid.hive ]
+		then
+			uuidgen > /opt/rudder/etc/uuid.hive
+		else
+			# UUID is valid only if it has been generetaed by uuidgen or if it is set to 'root' for policy server
+			CHECK_UUID=`cat /opt/rudder/etc/uuid.hive | grep -E "^[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}|root" | wc -l`
+			# If the UUID is not valid, regenerate it
+			if [ ${CHECK_UUID} -ne 1 ]
+			then
+				uuidgen > /opt/rudder/etc/uuid.hive
+			fi
+		fi
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)

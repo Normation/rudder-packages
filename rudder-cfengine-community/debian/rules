@@ -11,35 +11,26 @@
 
 
 
-include /usr/share/quilt/quilt.make
 
 configure: configure-stamp
 configure-stamp:
 	dh_testdir
 	# Add here commands to configure the package.
-	cd SOURCES/cfengine-source && ./configure --prefix=/opt/rudder --with-workdir=/var/rudder/cfengine-community --enable-static=yes --enable-shared=no
 
 	touch configure-stamp
 
 
 build: build-stamp
 
-build-stamp: configure-stamp  $(QUILT_STAMPFN)
+build-stamp: configure-stamp
 	dh_testdir
-
-	cd SOURCES/cfengine-source && make
 
 	touch $@
 
-clean: unpatch
+clean:
 	dh_testdir
 	dh_testroot
 	rm -f build-stamp configure-stamp
-
-	# Add here commands to clean up after the build process.
-	if [ -f SOURCES/cfengine-source/Makefile ] ; then \
-		cd SOURCES/cfengine-source && make clean ; \
-	fi
 
 	dh_clean 
 
@@ -50,7 +41,6 @@ install: build
 	dh_installdirs
 
 	# Add here commands to install the package into debian/tmp
-	cd SOURCES/cfengine-source && make install DESTDIR=$(CURDIR)/debian/tmp
 
 
 # Build architecture-independent files here.
@@ -70,7 +60,6 @@ binary-arch: install
 #	dh_installlogrotate
 #	dh_installmime
 #	dh_python
-	dh_installinit --no-start -R --name=cfengine-community # restart after upgrade (instead of stop, upgrade, start)
 #	dh_installcron
 #	dh_installinfo
 	dh_installman

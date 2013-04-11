@@ -2,14 +2,20 @@ Source: rudder-agent
 Section: admin
 Priority: extra
 Maintainer: Nicolas Perron <nicolas.perron@normation.com>
-Build-Depends: quilt, debhelper (>= 7), libssl-dev, byacc, bison, gcc, flex, libpcre3-dev, libdb4.6, libdb4.6-dev
+Build-Depends: debhelper (>= 7), libssl-dev, bison, gcc, flex, libpcre3-dev, libtokyocabinet-dev
 Standards-Version: 3.8.0
 Homepage: http://www.rudder-project.org
 
 Package: rudder-agent
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, uuid-runtime, dmidecode
+# The dependencies below are defined in order to use rudder-agent
+# for the server. This will add capabilities to send inventories
+# from the server itself.
+Provides: rudder-cfengine-community
 Conflicts: rudder-cfengine-community
+Replaces: rudder-cfengine-community, rudder-server-root (<< 2.4.0~beta2)
+Breaks: rudder-server-root (<< 2.4.0~beta2)
 Description: Configuration management and audit tool - agent
  Rudder is an open source configuration management and audit solution.
  .

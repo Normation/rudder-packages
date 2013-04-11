@@ -18,24 +18,21 @@
 
 .DEFAULT_GOAL := localdepends
 
-TMP_DIR := $(shell mktemp -dq)
-GIT_BRANCH_RUDDER = <put branch or tag name here>
+RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
 
-localdepends: ./config
+localdepends: ./rudder-sources
 
-./config:
-	mkdir -p ./config
-	cd $(TMP_DIR) && git clone --depth 1 git://github.com/Normation/rudder.git
-	cd $(TMP_DIR)/rudder && git checkout $(GIT_BRANCH_RUDDER) || rm -rf $(TMP_DIR)/rudder
-	cp $(TMP_DIR)/rudder/rudder-core/src/main/resources/reportsSchema.sql ./config/
-	rm -rf $(TMP_DIR)
+./rudder-sources.tar.bz2:
+	$(WGET) -O rudder-sources.tar.bz2 http://www.rudder-project.org/archives/rudder-sources-${RUDDER_VERSION_TO_PACKAGE}.tar.bz2
 
-/usr/bin/git:
-	sudo aptitude --assume-yes install git-core
+./rudder-sources: ./rudder-sources.tar.bz2
+	tar -xjf rudder-sources.tar.bz2
+	mv rudder-sources-*/ rudder-sources/
 
 localclean:
+	rm -rf ./rudder-sources
 
 veryclean:
-	rm -rf ./config
+	rm -f ./rudder-sources.tar.bz2
 
 .PHONY: localclean localdepends veryclean

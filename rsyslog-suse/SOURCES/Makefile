@@ -26,5 +26,6 @@ localdepends:
 localclean:
 
 veryclean:
+	rm -f ./rudder-sources.tar.bz2
 
 .PHONY: localclean localdepends veryclean

@@ -34,6 +34,7 @@ BOOTSTRAP_PATH=$TMP_DIR/bootstrap.ldif
 INITPOLICY_PATH=$TMP_DIR/init-policy-server.ldif
 INITDEMO_PATH=$TMP_DIR/demo-data.ldif
 RUDDER_CONF_FILE=/opt/rudder/etc/rudder-web.properties
+RUDDER_CONTEXT=`grep contextPath --color /opt/rudder/jetty7/contexts/rudder.xml | sed "s@^\s*<Set name=\"contextPath\">\(.*\)</Set>@\1@"`
 REGEXP='s/^\([0-9]\{1,3\}\)\(.[0-9]\{1,3\}\)\(.[0-9]\{1,3\}\)\(.[0-9]\{1,3\}.[0-9]\{1,2\}\)$/\1\\\2\\\3\\\4/g'
 again="yes"
 cpt=0
@@ -63,10 +64,8 @@ LDAPInit()
   cp /opt/rudder/share/bootstrap.ldif $BOOTSTRAP_PATH
   cp /opt/rudder/share/init-policy-server.ldif $INITPOLICY_PATH
   cp /opt/rudder/share/demo-data.ldif $INITDEMO_PATH
-  sed -i "s%^base.url.*$%base.url=http://$ANSWER1/rudder%" $RUDDER_CONF_FILE
   sed -i "s/^\([^#].*\)%%POLICY_SERVER_HOSTNAME%%/\1$ANSWER1/g" $INITPOLICY_PATH
   sed -i "s#^\([^#].*\)%%POLICY_SERVER_ALLOWED_NETWORKS%%#\1$NET#g" $INITPOLICY_PATH
-  sed -i "s/^\([^#].*\)%%POLICY_SERVER_IP%%/\1$ANSWER3/g" $INITPOLICY_PATH
   /opt/rudder/sbin/slapadd -l $BOOTSTRAP_PATH &> $TMP_LOG
   ErrorCheck
   /opt/rudder/sbin/slapadd -l $INITPOLICY_PATH &> $TMP_LOG
@@ -76,18 +75,17 @@ LDAPInit()
 #Check if arg are used
 if [ $# -gt 0 ]
 then
-  if [ $# -lt 6 ]
+  if [ $# -lt 5 ]
   then
-    echo "usage: rudder-init.sh hostname serverIP DemoData LDAPReset InitialPromisesReset AllowedNetwork1 [AllowedNetwork2]..."
+    echo "usage: rudder-init.sh hostname DemoData LDAPReset InitialPromisesReset AllowedNetwork1 [AllowedNetwork2]..."
     exit
   else
     ANSWER1=$1 #Hostname
-    ALLOWEDNETWORK[0]=$6 #ServerAllowed
-    ANSWER3=$2 #ServerIp
-    ANSWER4=$3 #DemoSample
-    LDAPRESET=$4 #LDAPRESET
+    ALLOWEDNETWORK[0]=$5 #ServerAllowed
+    ANSWER4=$2 #DemoSample
+    LDAPRESET=$3 #LDAPRESET
     LDAPCHK=1
-    ANSWER6=$5 #InitialPromises
+    ANSWER6=$4 #InitialPromises
   fi
 else
 	echo
@@ -118,13 +116,6 @@ else
 	  done
 	  while ! echo "$again" | grep "^\(yes\|no\)$";do echo -n "Add more networks? (yes/no) ";read again;done
 	  ((cpt++))
-	done
-	# 3rd Step: Definition SERVER_IP
-	while ! echo "$ANSWER3" | grep "$REGEXPCHK2"
-	do
-	  echo
-	  echo -n "Enter server IP: "
-	  read ANSWER3
 	done
 	# 4th Step: Demo Sample
 	while ! echo "$ANSWER4" | grep "^\(yes\|no\)$"
@@ -171,7 +162,6 @@ fi
 echo
 echo Hostname: "$ANSWER1"
 echo Allowed networks: "${ALLOWEDNETWORK[*]}"
-echo Server IP: "$ANSWER3"
 echo Add sample data? "$ANSWER4"
 if [ $LDAPCHK -gt 0 ]
 then
@@ -190,10 +180,10 @@ do
   if [ $cpt2 -eq 0 ]
   then
     NET=`echo $i | sed $REGEXP`
-    NET2="\"$NET\""
+    NET2="'$NET'"
   else
-    NET="$NET\npolicyInstanceVariable: ALLOWEDNETWORK[$cpt2]: `echo $i | sed $REGEXP`"
-    NET2="$NET2, \"`echo $i | sed $REGEXP`\""
+    NET="$NET\ndirectiveVariable: ALLOWEDNETWORK[$cpt2]: `echo $i | sed $REGEXP`"
+    NET2="$NET2, '`echo $i | sed $REGEXP`'"
   fi
   ((cpt2++))
 done
@@ -206,19 +196,17 @@ echo "<licenses></licenses>" > /opt/rudder/etc/licenses/licenses.xml
 # Configure initial promises
 if [ z$ANSWER6 = "zyes" ]
 then
-  echo -n "Configuring and installing initial Cfengine promises..."
-  cp -r /opt/rudder/share/initial-promises/cfengine-community $TMP_DIR/community
-  cp -r /opt/rudder/share/initial-promises/cfengine-nova $TMP_DIR/nova
-  find $TMP_DIR/nova $TMP_DIR/community -name "cf-served.cf" -type f -exec sed -i "s@%%POLICY_SERVER_ALLOWED_NETWORKS%%@$NET2@g" {} \;
-  find $TMP_DIR/nova $TMP_DIR/community -type f -exec sed -i "s/%%POLICY_SERVER_HOSTNAME%%/$ANSWER1/g" {} \;
-  find $TMP_DIR/nova $TMP_DIR/community -type f -exec sed -i "s#%%POLICY_SERVER_ALLOWED_NETWORKS%%#$NET#g" {} \;
-  find $TMP_DIR/nova $TMP_DIR/community -type f -exec sed -i "s/%%POLICY_SERVER_IP%%/$ANSWER3/g" {} \;
+  echo -n "Configuring and installing initial CFEngine promises..."
+  cp -r /opt/rudder/share/initial-promises/ $TMP_DIR/community
+  find $TMP_DIR/community -name "cf-served.cf" -type f -exec sed -i "s@'%%POLICY_SERVER_ALLOWED_NETWORKS%%'@$NET2@g" {} \;
+  find $TMP_DIR/community -type f -exec sed -i "s/%%POLICY_SERVER_HOSTNAME%%/$ANSWER1/g" {} \;
+  find $TMP_DIR/community -type f -exec sed -i "s#%%POLICY_SERVER_ALLOWED_NETWORKS%%#$NET#g" {} \;
   rm -rf /var/rudder/cfengine-community/inputs/*
   rm -rf /var/cfengine/inputs/*
   cp -r $TMP_DIR/community/* /var/rudder/cfengine-community/inputs/
-  cp -r $TMP_DIR/nova/* /var/cfengine/inputs/
-  echo $ANSWER3 > /var/cfengine/policy_server.dat
-  echo $ANSWER3 > /var/rudder/cfengine-community/policy_server.dat
+  cp -r $TMP_DIR/community/* /var/cfengine/inputs/
+  echo "127.0.0.1" > /var/cfengine/policy_server.dat
+  echo "127.0.0.1"> /var/rudder/cfengine-community/policy_server.dat
   echo " done."
 fi
 # LDAP (re)initialization
@@ -242,6 +230,14 @@ then
 fi
 echo " done."
 
+# Update the password file used by Rudder with random password
+
+sed -i s/RUDDER_WEBDAV_PASSWORD.*/RUDDER_WEBDAV_PASSWORD:$(dd if=/dev/urandom count=128 bs=1 2>&1 | md5sum | cut -b-12)/ /opt/rudder/etc/rudder-passwords.conf
+sed -i s/RUDDER_PSQL_PASSWORD.*/RUDDER_PSQL_PASSWORD:$(dd if=/dev/urandom count=128 bs=1 2>&1 | md5sum | cut -b-12)/ /opt/rudder/etc/rudder-passwords.conf
+sed -i s/RUDDER_OPENLDAP_BIND_PASSWORD.*/RUDDER_OPENLDAP_BIND_PASSWORD:$(dd if=/dev/urandom count=128 bs=1 2>&1 | md5sum | cut -b-12)/ /opt/rudder/etc/rudder-passwords.conf
+
+echo "The Rudder password file has been updated with random passwords."
+
 # Delete temp files
 echo -n "Cleaning up..."
 rm -rf $TMP_DIR
@@ -249,11 +245,16 @@ echo " done."
 
 # Restart services
 echo -n "Restarting services..."
-/etc/init.d/cfengine-community restart &> $TMP_LOG
+
+# Launch manually a single cf-agent instance to set passwords everywhere
+/opt/rudder/sbin/cf-agent
+
+# Start the whole infrastructure
+/etc/init.d/rudder-agent restart &> $TMP_LOG
 if [ -e $LDAPDATA_PATH ]; then /etc/init.d/slapd start &> $TMP_LOG; fi
 /etc/init.d/jetty restart &> $TMP_LOG
 echo " done."
 
 echo
 echo "Everything has been set up correctly."
-echo "Rudder is ready to go on http://$ANSWER1/"
+echo "Rudder is ready to go on http://${ANSWER1}${RUDDER_CONTEXT}"

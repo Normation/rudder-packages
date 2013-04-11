@@ -33,6 +33,36 @@
 %define ruddervardir     /var/rudder
 %define rudderlogdir     /var/log/rudder
 
+%define maven_settings settings-external.xml
+
+%if 0%{?sles_version}
+%define apache              apache2
+%define apache_tools        apache2-utils
+%define apache_group        www
+%define htpasswd_cmd        htpasswd2
+%define sysloginitscript    /etc/init.d/syslog
+%define apache_vhost_dir    %{apache}/vhosts.d
+%endif
+%if 0%{?el5}
+%define apache              httpd
+%define apache_tools        httpd-tools
+%define apache_group        apache
+%define htpasswd_cmd        htpasswd
+%define sysloginitscript    /etc/init.d/syslog
+%define apache_vhost_dir    %{apache}/conf.d
+%endif
+%if 0%{?el6}
+%define apache              httpd
+%define apache_tools        httpd-tools
+%define apache_group        apache
+%define htpasswd_cmd        htpasswd
+%define sysloginitscript    /etc/init.d/rsyslog
+%define apache_vhost_dir    %{apache}/conf.d
+%endif
+
+%define apache_errlog_file %{rudderlogdir}/%{apache}/error.log
+%define apache_log_file    %{rudderlogdir}/%{apache}/access.log
+
 #=================================================
 # Header
 #=================================================
@@ -48,14 +78,14 @@ Group: Applications/System
 
 Source1: rudder-users.xml
 Source2: rudder.xml
-Source3: settings-external.xml
-Source4: settings-internal.xml
+Source3: rudder-networks.conf
+Source5: rudder-upgrade
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
 
 BuildRequires: jdk >= 1.6
-Requires: rudder-jetty rudder-inventory-ldap rudder-inventory-endpoint rudder-reports rudder-policy-templates apache2 apache2-utils git-core
+Requires: rudder-jetty rudder-inventory-ldap rudder-inventory-endpoint rudder-reports rudder-techniques %{apache} %{apache_tools} git-core
 
 %description
 Rudder is an open source configuration management and audit solution.
@@ -70,20 +100,23 @@ application server bundled in the rudder-jetty package.
 #=================================================
 %prep
 
-cp -rf %{_sourcedir}/source %{_builddir}
+sed -i 's@%APACHE_ERRLOG_FILE%@%{apache_errlog_file}@' %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/apache2-default.conf
+sed -i 's@%APACHE_LOG_FILE%@%{apache_log_file}@'       %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/apache2-default.conf
+cp -rf %{_sourcedir}/rudder-sources %{_builddir}
 
 #=================================================
 # Building
 #=================================================
 %build
 
-cd %{_builddir}/source/rudder-parent-pom && %{_sourcedir}/maven2/bin/mvn -s %{SOURCE3} -Dmaven.test.skip=true install
-cd %{_builddir}/source/rudder-commons && %{_sourcedir}/maven2/bin/mvn -s %{SOURCE3} -Dmaven.test.skip=true install
-cd %{_builddir}/source/scala-ldap && %{_sourcedir}/maven2/bin/mvn -s %{SOURCE3} -Dmaven.test.skip=true install
-cd %{_builddir}/source/ldap-inventory && %{_sourcedir}/maven2/bin/mvn -s %{SOURCE3} -Dmaven.test.skip=true install
-cd %{_builddir}/source/cf-clerk && %{_sourcedir}/maven2/bin/mvn -s %{SOURCE3} -Dmaven.test.skip=true install
-cd %{_builddir}/source/rudder && %{_sourcedir}/maven2/bin/mvn -s %{SOURCE3} -Dmaven.test.skip=true install package
+cd %{_builddir}/rudder-sources/rudder-parent-pom && %{_sourcedir}/maven2/bin/mvn -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
+cd %{_builddir}/rudder-sources/rudder-commons    && %{_sourcedir}/maven2/bin/mvn -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
+cd %{_builddir}/rudder-sources/scala-ldap        && %{_sourcedir}/maven2/bin/mvn -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
+cd %{_builddir}/rudder-sources/ldap-inventory    && %{_sourcedir}/maven2/bin/mvn -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
+cd %{_builddir}/rudder-sources/cf-clerk          && %{_sourcedir}/maven2/bin/mvn -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
+cd %{_builddir}/rudder-sources/rudder            && %{_sourcedir}/maven2/bin/mvn -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install package
 
+#=================================================
 # Installation
 #=================================================
 %install
@@ -97,25 +130,50 @@ mkdir -p %{buildroot}%{rudderdir}/jetty7/contexts/
 mkdir -p %{buildroot}%{rudderdir}/jetty7/rudder-plugins/
 mkdir -p %{buildroot}%{rudderdir}/share/tools
 mkdir -p %{buildroot}%{rudderdir}/share/plugins/
+mkdir -p %{buildroot}%{rudderdir}/share/upgrade-tools/
 mkdir -p %{buildroot}%{ruddervardir}/inventories/incoming
+mkdir -p %{buildroot}%{ruddervardir}/inventories/accepted-nodes-updates
 mkdir -p %{buildroot}%{ruddervardir}/inventories/received
-mkdir -p %{buildroot}%{rudderlogdir}/apache2/
-mkdir -p %{buildroot}/etc/apache2/vhosts.d/
+mkdir -p %{buildroot}%{rudderlogdir}/%{apache}/
+mkdir -p %{buildroot}/etc/%{apache_vhost_dir}/
 
 cp %{SOURCE1} %{buildroot}%{rudderdir}/etc/
-cp %{_sourcedir}/source/rudder/rudder-core/src/main/resources/ldap/bootstrap.ldif %{buildroot}%{rudderdir}/share/
-cp %{_sourcedir}/source/rudder/rudder-core/src/main/resources/ldap/init-policy-server.ldif %{buildroot}%{rudderdir}/share/
-cp %{_sourcedir}/source/rudder/rudder-core/src/main/resources/ldap/demo-data.ldif %{buildroot}%{rudderdir}/share/
-cp %{_sourcedir}/source/rudder/rudder-web/src/main/resources/configuration.properties %{buildroot}%{rudderdir}/etc/rudder-web.properties
-cp %{_sourcedir}/source/rudder/rudder-web/src/main/resources/logback.xml %{buildroot}%{rudderdir}/etc/
+cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/ldap/bootstrap.ldif %{buildroot}%{rudderdir}/share/
+cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/ldap/init-policy-server.ldif %{buildroot}%{rudderdir}/share/
+cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/ldap/demo-data.ldif %{buildroot}%{rudderdir}/share/
+cp %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/configuration.properties.sample %{buildroot}%{rudderdir}/etc/rudder-web.properties
+cp %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/logback.xml %{buildroot}%{rudderdir}/etc/
 
-cp %{_builddir}/source/rudder/rudder-web/target/rudder-web*.war %{buildroot}%{rudderdir}/jetty7/webapps/rudder.war
+cp %{_builddir}/rudder-sources/rudder/rudder-web/target/rudder-web*.war %{buildroot}%{rudderdir}/jetty7/webapps/rudder.war
 
-cp -rf %{_sourcedir}/source/rudder/rudder-web/src/main/resources/load-page %{buildroot}%{rudderdir}/share/
-cp %{_sourcedir}/source/rudder/rudder-core/src/test/resources/script/cfe-red-button.sh %{buildroot}%{rudderdir}/bin/
-cp %{_sourcedir}/source/rudder/rudder-core/src/main/resources/reportsInfo.xml %{buildroot}%{rudderdir}/etc/
-cp %{_sourcedir}/source/rudder/rudder-web/src/main/resources/apache2-default.conf %{buildroot}/etc/apache2/vhosts.d/rudder-default.conf
+cp -rf %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/load-page %{buildroot}%{rudderdir}/share/
+cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/test/resources/script/cfe-red-button.sh %{buildroot}%{rudderdir}/bin/
+cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/reportsInfo.xml %{buildroot}%{rudderdir}/etc/
+cp %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/apache2-default.conf %{buildroot}/etc/%{apache_vhost_dir}/rudder-default.conf
 cp %{SOURCE2} %{buildroot}%{rudderdir}/jetty7/contexts/
+cp %{SOURCE3} %{buildroot}%{rudderdir}/etc/
+
+# Install upgrade tools
+cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.3-2.4-groups-isDynamic.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
+cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.3-2.4-PT-history.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
+cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.3-2.4-PI-PT-CR-names-changed.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
+cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.3-2.4-index.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
+cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.3-2.4-add-MigrationEventLog-table.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
+cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.3-2.4-add-EventLog-reason-column.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
+cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.3-2.4-set-migration-needed-flag-for-EventLog.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
+cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.4-2.4-set-migration-needed-flag-for-EventLog.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
+cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.3-2.4-archive.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
+cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.3-2.4-index-archive.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
+cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.4-2.5-group-serialisation.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
+cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.4-2.5-last-error-report-id.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
+cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.4-2.5-git-commit.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
+cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.4-2.5-add-modification-id-to-EventLog.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
+cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.5-2.6-unexpanded-value.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
+cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.5-2.6-add_workflow_support.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
+cp %{_sourcedir}/rudder-upgrade-LDAP-schema-2.3-2.4-add-entries.ldif %{buildroot}%{rudderdir}/share/upgrade-tools/
+cp %{_sourcedir}/rudder-upgrade-modify-system-group-entries.ldif %{buildroot}%{rudderdir}/share/upgrade-tools/
+
+cp %{SOURCE5} %{buildroot}%{rudderdir}/bin/
 
 %pre -n rudder-webapp
 #=================================================
@@ -127,153 +185,60 @@ cp %{SOURCE2} %{buildroot}%{rudderdir}/jetty7/contexts/
 # Post Installation
 #=================================================
 
-# Variables
-VAR_RUDDER="/var/rudder"
-PT_DIR="${VAR_RUDDER}/configuration-repository/policy-templates"
+echo "Setting Apache HTTPd as a boot service"
+/sbin/chkconfig --add %{apache}
 
-echo "Setting apache2 as a boot service"
-/sbin/chkconfig --add apache2
+echo "Reloading syslog"
+%{sysloginitscript} reload
 
-echo "Reloading syslogd ..."
-/etc/init.d/syslog reload
-
-/etc/init.d/apache2 stop
+/etc/init.d/%{apache} stop
 # a2dissite default
 
 # Do this ONLY at first install
 if [ $1 -eq 1 ]
 then
-        echo 'APACHE_MODULES="${APACHE_MODULES} rewrite dav dav_fs proxy proxy_http"' >> /etc/sysconfig/apache2
-		echo 'DAVLockDB /tmp/davlock.db' >> /etc/apache2/conf.d/dav_mod.conf
+        echo 'APACHE_MODULES="${APACHE_MODULES} rewrite dav dav_fs proxy proxy_http"' >> /etc/sysconfig/%{apache}
+		echo 'DAVLockDB /tmp/davlock.db' >> /etc/%{apache}/conf.d/dav_mod.conf
 
 		mkdir -p /var/rudder/configuration-repository
 		mkdir -p /var/rudder/configuration-repository/shared-files
 		touch /var/rudder/configuration-repository/shared-files/.placeholder
-		cp -a /opt/rudder/share/policy-templates /var/rudder/configuration-repository/
+		cp -a %{rudderdir}/share/techniques /var/rudder/configuration-repository/
 fi
 
 # Add right to apache user to access /var/rudder/inventories/incoming
 chmod 751 /var/rudder/inventories
-chown root:www %{ruddervardir}/inventories/incoming
+chown root:%{apache_group} %{ruddervardir}/inventories/incoming
 chmod 2770 %{ruddervardir}/inventories/incoming
+chown root:%{apache_group} %{ruddervardir}/inventories/accepted-nodes-updates
+chmod 2770 %{ruddervardir}/inventories/accepted-nodes-updates
 chmod 755 -R %{rudderdir}/share/tools
 chmod 655 -R %{rudderdir}/share/load-page
-htpasswd2 -bc %{rudderdir}/etc/htpasswd-webdav rudder rudder
-/etc/init.d/apache2 start
+%{htpasswd_cmd} -bc %{rudderdir}/etc/htpasswd-webdav-initial rudder rudder
+%{htpasswd_cmd} -bc %{rudderdir}/etc/htpasswd-webdav rudder rudder
 
-# Migrate from 2.3.0 format policy-template store: /var/rudder/policy-templates
-if [ -d /var/rudder/policy-templates -a ! -d /var/rudder/configuration-repository ]; then
-	echo "***** WARNING *****"
-	echo "The policy template store for Rudder has changed. It will be"
-	echo "automatically moved from /var/rudder/policy-templates to"
-	echo "/var/rudder/configuration-repository/policy-templates."
+echo "(Re-)starting Apache HTTPd"
+/etc/init.d/%{apache} restart
 
-	cd /var/rudder/policy-templates && git add . && git add -u && git commit -am "Committing all pending policy template changes for automatic migration of the policy template store to /var/rudder/configuration-repository/policy-templates" || true
+# Run any upgrades
+# Note this must happen *before* creating the technique store, as it was moved in version 2.3.2
+# and creating it manually would break the upgrade logic
+%{rudderdir}/bin/rudder-upgrade
 
-	mkdir -p /var/rudder/configuration-repository
-	mv /var/rudder/policy-templates/.git /var/rudder/configuration-repository/
-	mv /var/rudder/policy-templates /var/rudder/configuration-repository/
-	cd /var/rudder/configuration-repository/ && git add -u
-	cd /var/rudder/configuration-repository/ && git add policy-templates/
-	cd /var/rudder/configuration-repository/ && git commit -m "Move policy-templates into configuration-repository directory"
-
-	sed -i 's%^rudder.dir.policyPackages *= */var/rudder/policy-templates/\?$%rudder.dir.policyPackages=/var/rudder/configuration-repository/policy-templates%' /opt/rudder/etc/rudder-web.properties
-	echo "rudder.dir.gitRoot=/var/rudder/configuration-repository" >> /opt/rudder/etc/rudder-web.properties
-
-	echo "Automatic migration to /var/rudder/configuration-repository/policy-templates done."
+# Create and populate technique store
+if [ ! -d /var/rudder/configuration-repository ]; then mkdir -p /var/rudder/configuration-repository; fi
+if [ ! -d /var/rudder/configuration-repository/shared-files ]; then mkdir -p /var/rudder/configuration-repository/shared-files; fi
+if [ ! -d /var/rudder/configuration-repository/techniques ]; then
+	cp -a %{rudderdir}/share/techniques /var/rudder/configuration-repository/
 fi
 
-# Check default folder for shared-files exists
-if [ ! -d /var/rudder/configuration-repository/shared-files ]; then
-	echo "/var/rudder/configuration-repository/shared-files doesn't exist !"
-	mkdir -p /var/rudder/configuration-repository/shared-files
-	# If this folder doesn't contain files, git won't commit it
-	# To simplify usage, we want that the user can add files simply
-	# So when he will add files into shared-files they will appears in git status
-	# So we force git to add the folder
-	CONTENT=`ls /var/rudder/configuration-repository/shared-files/ | wc -l`
-	if [ ${CONTENT} -eq 0 ]; then
-		touch /var/rudder/configuration-repository/shared-files/.placeholder
-		# Check if git init has been made, if not rudder will do it so we don't have to
-		if [ -d /var/rudder/configuration-repository/.git ]; then
-			cd /var/rudder/configuration-repository/ && git add shared-files/
-			cd /var/rudder/configuration-repository/ && git commit -m "Add default shared-files directory" shared-files/
-		fi
-	fi
-	echo "/var/rudder/configuration-repository/shared-files created"
-fi
-# Check shared-files folder is set in rudder-web.properties
-ATTRIBUTESET=`grep "^rudder.dir.shared.files.folder" /opt/rudder/etc/rudder-web.properties | wc -l`
-if [ ${ATTRIBUTESET} -gt 0 ]; then
-	#Idea: when we will be asking for shared files folder path, sed will be used here
-	echo "rudder.dir.shared.files.folder attribute already set in rudder-web.properties"
-else
-	echo "rudder.dir.shared.files.folder=/var/rudder/configuration-repository/shared-files" >> /opt/rudder/etc/rudder-web.properties
-	echo "rudder.dir.shared.files.folder attribute set in rudder-web.properties"
-fi
-
-# Migration of PT 'Set the permissions of files' (Ensure that all actions below won't happen if migration has already made)
-if [ ! -f ${PT_DIR}/fileConfiguration/fileSecurity/filesPermissions/1.0/policy.xml -a -f ${PT_DIR}/fileConfiguration/security/filesPermissions/1.0/policy.xml ]; then
-    ## Commit all modifications before migration
-    cd ${PT_DIR} && git add . && git add -u && git commit -am "Committing all pending policy template changes for automatic migration of the policy template from ${PT_DIR}/fileConfiguration/security/ to ${PT_DIR}/fileConfiguration/fileSecurity/" || true
-  ## Create right folder if it doesn't exist
-  if [ ! -d ${PT_DIR}/fileConfiguration/fileSecurity/ ]; then
-    mkdir -p "${PT_DIR}/fileConfiguration/fileSecurity"
-    echo "${PT_DIR}/fileConfiguration/fileSecurity has been created"
-  else
-    echo "${PT_DIR}/fileConfiguration/fileSecurity already exists"
-  fi
-
-  if [ -d ${PT_DIR}/fileConfiguration/security/ ]; then
-    ## Check that filePermissions.st located in fileConfiguration/security/ is not duplicated and in the right folder
-    if [ -d ${PT_DIR}/fileConfiguration/security/filesPermissions/ ]; then
-      echo "The Policy Template 'Set the permissions of files' is not correctly located"
-      cd ${PT_DIR} && git mv fileConfiguration/security/* fileConfiguration/fileSecurity/
-      cd ${PT_DIR} && git commit -m "Correct Policy Template 'Set the permissions of files' location"
-      echo "The location of the Policy Template 'Set the permissions of files' is now correct"
-    fi
-    ## Remove the folder which should contain no more files or folder
-    rm -rf ${PT_DIR}/fileConfiguration/security/ # Not using git since it can't manage folder without file
-    echo  "${PT_DIR}/fileConfiguration/security/ has been removed"
-  fi
-fi
-
-# Check that Rudder database is able to handle backslash
-CHECK_BACKSLASH=$(su - postgres -c "psql -t -d rudder -c \"select '\\foo';\"" 2> /dev/null | grep "foo" | wc -l)
-if [ ${CHECK_BACKSLASH} -ne 1 ]; then
-  echo "Rudder database is not backslash compliant, then a modification will be made."
-  su - postgres -c "psql -t -d rudder -c \"alter database rudder set standard_conforming_strings=true;\""
-  echo "Done. PostgreSQL and Rudder will be restarted"
-  /etc/init.d/postgresql restart
-  /etc/init.d/jetty restart
-fi
-
-# Get LDAP credentials
-if [ -f /opt/rudder/etc/rudder-web.properties -a ${LDAP_CREDENTIALS} -eq 2 ]; then
-	LDAP_USER=$(grep -E "^ldap.authdn=" /opt/rudder/etc/rudder-web.properties |cut -d "=" -f 2-)
-	LDAP_PASSWORD=$(grep -E "^ldap.authpw=" /opt/rudder/etc/rudder-web.properties |cut -d "=" -f 2-)
-else
-	echo "WARNING: LDAP properties are missing in /opt/rudder/etc/rudder-web.properties"
-	if [ -f /opt/rudder/etc/openldap/slapd.conf ]; then
-		LDAP_USER=$(grep "^rootdn" /opt/rudder/etc/openldap/slapd.conf | sed "s/\w*\s*['\"]\?\([^\"']*\)['\"]\?$/\1/")
-		LDAP_PASSWORD=$(grep "^rootpw" /opt/rudder/etc/openldap/slapd.conf | sed "s/\w*\s*['\"]\?\([^\"']*\)['\"]\?$/\1/")
-	else
-		echo "ERROR: /opt/rudder/etc/openldap/slapd.conf doesn't exist"
-		exit 1
-	fi
-fi
-
-
-# Upgrade LDAP : convert cpuSpeed attributes to valid integers ( introduced in 2.4.0~beta2 update )
-LDAP_CPUSPEED_IS_NOT_INTEGER=$(/opt/rudder/bin/ldapsearch -H ldap://localhost -x -w ${LDAP_PASSWORD} -D "${LDAP_USER}" -b cn=rudder-configuration -LLL "(cpuSpeed=*)" cpuSpeed |grep -E "^cpuSpeed: [0-9]+\.[0-9]+$"|wc -l)
-if [ ${LDAP_CPUSPEED_IS_NOT_INTEGER} -ne 0 ]; then
-	/opt/rudder/bin/ldapsearch -H ldap://localhost -x -w ${LDAP_PASSWORD} -D ${LDAP_USER} -b cn=rudder-configuration -LLL "(cpuSpeed=*)" cpuSpeed| \
-	sed "s%\(cpuSpeed:.*\)%changetype: modify\nreplace: cpuSpeed\n\1%"| \
-	sed "s%cpuSpeed: \(.*\)\..*%cpuSpeed: \1%g"| \
-	/opt/rudder/bin/ldapmodify -H ldap://localhost -x -w ${LDAP_PASSWORD} -D ${LDAP_USER} >/dev/null 2>&1
-
-	echo "Some cpuSpeed attributes were converted to integers"
-fi
+# Warn the user that Jetty needs restarting. This can't be done automatically due to a bug in Jetty's init script.
+# See http://www.rudder-project.org/redmine/issues/2807
+echo "********************************************************************************"
+echo "rudder-webapp has been upgraded, but for the upgrade to take effect, please"
+echo "restart the jetty application server as follows:"
+echo "# /etc/init.d/jetty restart"
+echo "********************************************************************************"
 
 #=================================================
 # Cleaning
@@ -296,12 +261,13 @@ rm -rf %{buildroot}
 %{rudderdir}/jetty7/rudder-plugins/
 %{rudderdir}/jetty7/contexts/rudder.xml
 %{rudderdir}/share
+%{ruddervardir}/inventories/accepted-nodes-updates
 %{ruddervardir}/inventories/incoming
 %{ruddervardir}/inventories/received
-%{rudderlogdir}/apache2/
-/etc/apache2/vhosts.d/
-%config(noreplace) /etc/apache2/vhosts.d/rudder-default.conf
-
+%{rudderlogdir}/%{apache}/
+/etc/%{apache_vhost_dir}/
+%config(noreplace) /etc/%{apache_vhost_dir}/rudder-default.conf
+%config(noreplace) %{rudderdir}/etc/rudder-networks.conf
 
 #=================================================
 # Changelog

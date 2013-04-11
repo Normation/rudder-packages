@@ -1,5 +1,5 @@
 Source: rudder-policy-templates
-Section: web
+Section: oldlibs
 Priority: extra
 Maintainer: Nicolas Perron <nicolas.perron@normation.com>
 Build-Depends: debhelper (>= 7)
@@ -8,12 +8,6 @@ Homepage: http://www.rudder-project.org
 
 Package: rudder-policy-templates
 Architecture: all
-Depends: ${shlibs:Depends}, ${misc:Depends}
-Replaces: rudder-webapp (>= 2.2.0~beta1)
-Description: Configuration management and audit tool -  policy templates
- Rudder is an open source configuration management and audit solution.
- .
- This package contains policy templates, which are configuration models,
- adapted to a function or a particular service. By providing parameters to these
- templates, you can create configuration rules to manage nodes using Rudder
- (nodes are machines with the rudder-agent package installed).
+Depends: rudder-techniques, ${shlibs:Depends}, ${misc:Depends}
+Description: Transitional dummy package for rudder-techniques
+ Transitional dummy package to pull in rudder-techniques

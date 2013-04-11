@@ -1,0 +1,9 @@
+specialConfigurationRuleTarget; specialRuleTarget
+userLibraryVersion; activeTechniqueLibraryVersion
+policyCategory; techniqueCategory
+userPolicyTemplate; activeTechnique
+policyInstance; directive
+configurationRule; rule
+abstractPolicyInstanceNodeConfiguration; abstractDirectiveNodeConfiguration
+policyInstanceNodeConfiguration; directiveNodeConfiguration
+targetPolicyInstanceNodeConfiguration; targetDirectiveNodeConfiguration

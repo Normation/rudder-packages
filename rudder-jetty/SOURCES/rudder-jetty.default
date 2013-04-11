@@ -1,5 +1,9 @@
+# Check wich JVM is installed
+# We support Sun Java 6 or OpenJDK 7, privilege later versions (sort -r)
+if [ -d /usr/lib/jvm ]; then JAVA_HOME=$(find /usr/lib/jvm -maxdepth 1 -type d -name java-7-openjdk-i386 -or -name java-7-openjdk-amd64 -or -name java-6-sun | sort -r | head -n1); fi
+if [ -d /usr/java ]; then JAVA_HOME=/usr/java/latest; fi
 #JAVA
-JAVA="/usr/lib/jvm/java-6-sun/bin/java"
+if [ -f ${JAVA_HOME}/bin/java ]; then JAVA=${JAVA_HOME}/bin/java; else JAVA=/usr/bin/java; fi
 JAVA_OPTIONS="$JAVA_OPTIONS
 -server
 -Xms1024m -Xmx1024m
@@ -16,3 +20,6 @@ JETTY_HOME="/opt/rudder/jetty7/"
 JETTY_RUN="/var/rudder/run"
 JETTY_ARGS="OPTIONS=Server"
 JETTY_LOGS="/var/log/rudder/webapp/"
+
+# Prevent Jetty to change locale in its logs
+export LANG=C

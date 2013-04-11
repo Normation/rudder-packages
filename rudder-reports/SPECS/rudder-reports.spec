@@ -31,6 +31,7 @@
 %define rudderdir        /opt/rudder
 %define ruddervardir     /var/rudder
 %define rudderlogdir     /var/log/rudder
+%define suse_rsyslogpsl  rsyslog-module-pgsql
 
 #=================================================
 # Header
@@ -45,7 +46,7 @@ URL: http://www.rudder-project.org
 
 Group: Applications/System
 
-Source1: config
+Source1: rudder-sources
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
@@ -53,7 +54,18 @@ BuildArch: noarch
 #BuildRequires: gcc
 Requires: postgresql-server >= 8
 Requires: rsyslog >= 4
-Requires: rsyslog-module-pgsql >= 4
+
+%if 0%{?sles_version} == 10
+Requires: %{suse_rsyslogpsl} >= 4
+%endif
+
+%if 0%{?sles_version} == 11
+Requires: %{suse_rsyslogpsl} >= 4
+%endif
+
+%if 0%{?el6}
+Requires: rsyslog-pgsql >= 4
+%endif
 
 %description
 Rudder is an open source configuration management and audit solution.
@@ -80,9 +92,10 @@ calculate compliance to given configuration rules.
 rm -rf %{buildroot}
 # Directories
 mkdir -p %{buildroot}%{rudderdir}/etc/postgresql/
+mkdir -p %{buildroot}/etc/rsyslog.d
 
-# Policy Templates
-cp %{SOURCE1}/reportsSchema.sql %{buildroot}%{rudderdir}/etc/postgresql/
+cp %{SOURCE1}/rudder/rudder-core/src/main/resources/reportsSchema.sql %{buildroot}%{rudderdir}/etc/postgresql/
+cp -a %{SOURCE1}/rudder-techniques/techniques/system/distributePolicy/1.0/rudder.st %{buildroot}/etc/rsyslog.d/rudder.conf
 
 %pre -n rudder-reports
 #=================================================
@@ -92,6 +105,9 @@ cp %{SOURCE1}/reportsSchema.sql %{buildroot}%{rudderdir}/etc/postgresql/
 /etc/init.d/postgresql status > /dev/null
 if [ $? -ne 0 ]
 then
+%if 0%{?el6}
+  /etc/init.d/postgresql initdb
+%endif
   /etc/init.d/postgresql start
 fi
 #HACK: Give rights for login without unix account
@@ -117,6 +133,27 @@ fi
 
 echo "Setting postgresql as a boot service"
 /sbin/chkconfig --add postgresql
+%if 0%{?el6}
+/sbin/chkconfig postgresql on
+%endif
+
+echo "Waiting postgresql to be up"
+CPT=0
+TIMEOUT=60
+while ! su - postgres -c "psql -q --output /dev/null -c \"SELECT COUNT(*) FROM pg_catalog.pg_authid\""
+do
+        echo -n "."
+        sleep 1
+        CPT=$((${CPT}+1))
+        if [ ${CPT} -eq ${TIMEOUT} ]
+        then
+                echo -e "\nConnection to PostgreSQL has not been established before timeout"
+                echo "Exiting"
+                exit 1
+        fi
+done
+echo ""
+
 
 dbname="rudder"
 usrname="rudder"
@@ -149,6 +186,7 @@ rm -rf %{buildroot}
 %files -n rudder-reports
 %defattr(-, root, root, 0755)
 %{rudderdir}/etc/postgresql/reportsSchema.sql
+/etc/rsyslog.d/rudder.conf
 
 #=================================================
 # Changelog

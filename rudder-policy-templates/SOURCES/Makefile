@@ -18,20 +18,15 @@
 
 .DEFAULT_GOAL := localdepends
 
-GIT_BRANCH_RUDDER = <put branch or tag name here>
+localdepends: ./.placeholder
 
-localdepends: ./rudder-policy-templates
-
-./rudder-policy-templates:
-	cd . && git clone --depth 1 git://github.com/Normation/rudder-techniques.git rudder-policy-templates
-	cd ./rudder-policy-templates && git checkout $(GIT_BRANCH_RUDDER) || rm -rf ./rudder-policy-templates
-
-/usr/bin/git:
-	sudo apt-get --assume-yes install git-core
+./.placeholder:
+	touch ./.placeholder
 
 localclean:
+	rm -f ./.placeholder
 
 veryclean:
-	rm -rf ./rudder-policy-templates
+	rm -f ./.placeholder
 
-.PHONY: localclean localdepends  veryclean
+.PHONY: localclean localdepends veryclean
