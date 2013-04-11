@@ -692,7 +692,7 @@ fi
 # - 2.6.0 : Add the workflows properties and replace the autoDeployOnModification property
 
 # Get the old value if applicable
-if [ egrep -q "^rudder.autoDeployOnModification" /opt/rudder/etc/rudder-web.properties ]; then
+if egrep -q "^rudder.autoDeployOnModification" /opt/rudder/etc/rudder-web.properties; then
 	AUTODEPLOY_BOOL=$(grep rudder.autoDeployOnModification rudder-web.properties|sed "s/.*=\(.*\)/\1/")
 fi
 
@@ -704,20 +704,19 @@ elif [ "z${AUTODEPLOY_BOOL}" = "zfalse" ]; then
 fi
 
 # Replace the old property if applicable
-sed -i "s/rudder.autoDeployOnModification=.*/# This variable has been replaced by\n# rudder.workflow.enabled, see below./" rudder-web.properties
+sed -i "s/^\(rudder.autoDeployOnModification=.*\)$/# This variable has been replaced by\n# rudder.workflow.enabled, see below.\n#\1/" /opt/rudder/etc/rudder-web.properties
 
 # Add the new property according to the old one value
-check_and_add_config_property rudder.workflow.enabled "############
+check_and_add_config_property rudder.workflow.enabled "
+############
 # Workflows ############################################################################
 ############
 
 # Boolean, defaults to false.
-# If true, the Rudder modification
-# workflows feature will be enabled.
+# If true, the Rudder validation workflow will
+# be enabled for all configuration changes made
+# in the application.
 #
-# This value replaces the auto deploy
-# modifications variable, and is migrated
-# if necessary.
 rudder.workflow.enabled=${WORKFLOWS_BOOL:-"false"}"
 
 # For every upgrade, we force the root server to run a new inventory on the next CFEngine run
