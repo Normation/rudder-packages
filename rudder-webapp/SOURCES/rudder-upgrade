@@ -72,6 +72,8 @@ set -e
 # - 2.6.0 : Migration SQL to add the necessary workflow tables
 # - 2.6.0 : Add the workflows properties and replace the autoDeployOnModification property
 # - 2.6.0 : Add modification id to change request table
+# - 2.6.0 : Add the property to enable/disable workflow self validation
+# - 2.6.0 : Add the property to enable/disable workflow self deployment
 #####################################################################################
 
 # Some variables
@@ -725,6 +727,30 @@ RES=$(su - postgres -c "psql -t -d rudder -c \"select count(attname) from pg_att
 if [ $RES -eq 0 ]; then
         psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.6-2.6-add-modification-Id-change-request-column.sql > /dev/null
 fi
+
+# - 2.6.0 : Add the property to enable/disable workflow self validation
+check_and_add_config_property rudder.workflow.self.validation "
+# Enable self validation (default false)
+#
+# If false, no change request can be validated by it's creator
+# So every change request will need to be reviewed by someone different from
+# who requested this changed
+#
+# Boolean, defaults to false.
+
+rudder.workflow.self.validation=false"
+
+# - 2.6.0 : Add the property to enable/disable workflow self deployment
+check_and_add_config_property rudder.workflow.self.deployment "
+# Enable self deployment (default true)
+#
+# If false, no change request can be deployed by it's creator
+# So every change request will need to be deployed by someone different from
+# who requested this changed
+#
+# Boolean, defaults to true.
+
+rudder.workflow.self.deployment=true"
 
 
 # For every upgrade, we force the root server to run a new inventory on the next CFEngine run
