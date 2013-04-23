@@ -247,7 +247,7 @@ echo " done."
 echo -n "Restarting services..."
 
 # Launch manually a single cf-agent instance to set passwords everywhere
-/opt/rudder/sbin/cf-agent
+/opt/rudder/bin/cf-agent
 
 # Start the whole infrastructure
 /etc/init.d/rudder-agent restart &> $TMP_LOG
