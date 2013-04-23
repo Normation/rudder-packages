@@ -71,6 +71,7 @@ set -e
 # - 2.6.0 : Migration LDAP to unescape entries previously escaped by the user
 # - 2.6.0 : Migration SQL to add the necessary workflow tables
 # - 2.6.0 : Add the workflows properties and replace the autoDeployOnModification property
+# - 2.6.0 : Add modification id to change request table
 #####################################################################################
 
 # Some variables
@@ -684,7 +685,7 @@ if [ ! -f /opt/rudder/etc/escaping_migration_done ]; then
 fi
 
 # - 2.6.0 : Migration SQL to add the necessary workflow tables
-RES=$(su - postgres -c "psql -d rudder -t -c \"select count(1) from pg_class where relname = 'ChangeRequest'\"")
+RES=$(su - postgres -c "psql -d rudder -t -c \"select count(1) from pg_class where relname = 'changerequest'\"")
 if [ $RES -eq 0 ]; then
 	psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.5-2.6-add_workflow_support.sql > /dev/null
 fi
@@ -718,6 +719,13 @@ check_and_add_config_property rudder.workflow.enabled "
 # in the application.
 #
 rudder.workflow.enabled=${WORKFLOWS_BOOL:-"false"}"
+
+# - 2.6.0 : Add modification id column to change request table
+RES=$(su - postgres -c "psql -t -d rudder -c \"select count(attname) from pg_attribute where attrelid = (select oid from pg_class where relname = 'changerequest') and attname = 'modificationid'\"")
+if [ $RES -eq 0 ]; then
+        psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.6-2.6-add-modification-Id-change-request-column.sql > /dev/null
+fi
+
 
 # For every upgrade, we force the root server to run a new inventory on the next CFEngine run
 touch /opt/rudder/etc/force_inventory
