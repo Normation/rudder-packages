@@ -229,6 +229,10 @@ install -m 644 %{SOURCE6} %{buildroot}/etc/ld.so.conf.d/rudder.conf
 
 CFRUDDER_FIRST_INSTALL=0
 
+echo "Making sure that the permissions on the CFEngine key directory are correct..."
+chmod 700 %{ruddervardir}/cfengine-community/ppkeys
+chmod 600 %{ruddervardir}/cfengine-community/ppkeys/*
+
 # Do this at first install
 if [ $1 -eq 1 ]
 then
@@ -328,7 +332,7 @@ rm -rf %{buildroot}
 /etc/default/rudder-agent
 /etc/cron.d/rudder-agent
 %{ruddervardir}
-%attr(0600, -, -) %{ruddervardir}/cfengine-community/ppkeys
+%attr(0600, -, -) %dir %{ruddervardir}/cfengine-community/ppkeys
 %if %{is_tokyocabinet_here} == "false"
 %config(noreplace) /etc/ld.so.conf.d/rudder.conf
 %endif
