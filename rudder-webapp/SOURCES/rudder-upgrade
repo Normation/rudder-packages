@@ -36,7 +36,6 @@ set -e
 # - 2.3.2: Create and git init the shared-files directory under the configuration-repository
 # - 2.3.2: Add "rudder.dir.shared.files.folder" configuration parameter to rudder-web.properties
 # - 2.4.0: Add "rudder.autoArchiveItems" configuration parameter to rudder-web.properties 
-# - 2.4.0: Add "rudder.autoDeployOnModification" configuration parameter to rudder-web.properties
 # - 2.4.0: Add "ldap.inventories.removed.basedn" configuration parameter to rudder-web.properties
 # - 2.4.0: Migration DB schema to add a column to the SQL database for group type (static/dynamic)
 # - 2.4.0: Migration DB schema to add a column to the SQL database for technique human name
@@ -188,14 +187,6 @@ check_and_add_config_property rudder.autoArchiveItems "#
 # and a git commit is performed when any of these items is modified.
 # 
 rudder.autoArchiveItems=true"
-
-# Check for configuration property added in 2.4
-check_and_add_config_property rudder.autoDeployOnModification "#
-# If true, when a directive, rule,
-# group, node ... is modified, promises will be automatically
-# regenerated. If false, only a manual request for deployment
-# will trigger a deployment.
-rudder.autoDeployOnModification=true"
 
 # Check for configuration property added in 2.4
 check_and_add_config_property rudder.rest.allowNonAuthenticatedUser "#
