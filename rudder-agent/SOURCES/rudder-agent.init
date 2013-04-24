@@ -219,7 +219,8 @@ stop_daemons() {
 		# Stop message
 		message "info" "[INFO] Halting Cfengine Community ${CFENGINE_COMMUNITY_NAME[$daemon]}..."
 
-		# Presence of PID file and not empty
+        # Presence of PID file
+        # If the pid file is not readable or is empty, kill all process by name
 		if [ ! -r ${CFENGINE_COMMUNITY_PID_FILE[$daemon]} -o ! -s ${CFENGINE_COMMUNITY_PID_FILE[$daemon]} ]
 		then
 			message "info" "[INFO] can't read PID file, not stopping ${CFENGINE_COMMUNITY_NAME[$daemon]}"
@@ -268,7 +269,8 @@ forcestop_daemons() {
 		# Stop message
 		message "info" "[INFO] Killing Cfengine Community ${CFENGINE_COMMUNITY_NAME[$daemon]} with force..."
 
-		# Presence of PID file and not empty
+        # Presence of PID file
+        # If the pid file is not readable or is empty, kill all process by name
 		if [ ! -r ${CFENGINE_COMMUNITY_PID_FILE[$daemon]} -o ! -s ${CFENGINE_COMMUNITY_PID_FILE[$daemon]} ]
 		then
 			# Try a killall
