@@ -696,7 +696,7 @@ fi
 
 # Get the old value if applicable
 if egrep -q "^rudder.autoDeployOnModification" /opt/rudder/etc/rudder-web.properties; then
-	AUTODEPLOY_BOOL=$(grep ^rudder.autoDeployOnModification rudder-web.properties|sed "s/.*=\(.*\)/\1/")
+	AUTODEPLOY_BOOL=$(grep ^rudder.autoDeployOnModification /opt/rudder/etc/rudder-web.properties|sed "s/.*=\(.*\)/\1/")
 fi
 
 # Reverse the value (if autodeploy is enabled, workflows aren't enabled by default)
