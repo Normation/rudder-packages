@@ -230,8 +230,10 @@ install -m 644 %{SOURCE6} %{buildroot}/etc/ld.so.conf.d/rudder.conf
 CFRUDDER_FIRST_INSTALL=0
 
 echo "Making sure that the permissions on the CFEngine key directory are correct..."
+if [ -d %{ruddervardir}/cfengine-community/ppkeys ]; then
 chmod 700 %{ruddervardir}/cfengine-community/ppkeys
 chmod 600 %{ruddervardir}/cfengine-community/ppkeys/*
+fi
 
 # Do this at first install
 if [ $1 -eq 1 ]

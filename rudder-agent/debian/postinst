@@ -25,8 +25,10 @@ case "$1" in
 		if [ ! -x /var/rudder/cfengine-community/bin/cf-execd ]; then CFRUDDER_FIRST_INSTALL=1; fi
 
 		echo "Making sure that the permissions on the CFEngine key directory are correct..."
+    if [ -d /var/rudder/cfengine-community/ppkeys ]; then
 		chmod 700 /var/rudder/cfengine-community/ppkeys
 		chmod 600 /var/rudder/cfengine-community/ppkeys/*
+    fi
 
 		# Copy new binaries to workdir, make sure daemons are stopped first
 
