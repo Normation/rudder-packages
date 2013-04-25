@@ -29,6 +29,7 @@ case "$1" in
   a2enmod dav_fs
   a2enmod rewrite
   a2enmod proxy_http
+  a2enmod headers
   # Add right to apache user to access /var/rudder/inventories/incoming
   chmod 751 /var/rudder/inventories
   chown root:www-data /var/rudder/inventories/incoming

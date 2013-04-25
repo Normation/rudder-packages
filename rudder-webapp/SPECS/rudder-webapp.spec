@@ -143,7 +143,7 @@ echo "Reloading syslogd ..."
 # Do this ONLY at first install
 if [ $1 -eq 1 ]
 then
-        echo 'APACHE_MODULES="${APACHE_MODULES} rewrite dav dav_fs proxy proxy_http"' >> /etc/sysconfig/apache2
+		echo -e '# This sources the Rudder needed by Rudder\n. /etc/sysconfig/rudder-apache' >> /etc/sysconfig/apache2
 		echo 'DAVLockDB /tmp/davlock.db' >> /etc/apache2/conf.d/dav_mod.conf
 
 		mkdir -p /var/rudder/configuration-repository
@@ -152,6 +152,16 @@ then
 		cp -a /opt/rudder/share/policy-templates /var/rudder/configuration-repository/
 fi
 
+# Update /etc/sysconfig/apache2 in case an old module loading entry has already been created by Rudder
+if grep -q 'APACHE_MODULES="${APACHE_MODULES} rewrite dav dav_fs proxy proxy_http' /etc/sysconfig/apache2
+then
+	echo "Upgrading the /etc/sysconfig/apache2 file, Rudder needed modules for Apache are now listed in /etc/sysconfig/rudder-apache"
+	sed -i 's%APACHE_MODULES="${APACHE_MODULES} rewrite dav dav_fs proxy proxy_http.*%# This sources the Rudder needed by Rudder\n. /etc/sysconfig/rudder-apache%' /etc/sysconfig/apache2
+fi
+
+# Create / Update the file containing the Rudder-needed modules
+echo 'APACHE_MODULES="${APACHE_MODULES} rewrite dav dav_fs proxy proxy_http headers"' > /etc/sysconfig/rudder-apache
+
 # Add right to apache user to access /var/rudder/inventories/incoming
 chmod 751 /var/rudder/inventories
 chown root:www %{ruddervardir}/inventories/incoming
@@ -159,7 +169,7 @@ chmod 2770 %{ruddervardir}/inventories/incoming
 chmod 755 -R %{rudderdir}/share/tools
 chmod 655 -R %{rudderdir}/share/load-page
 htpasswd2 -bc %{rudderdir}/etc/htpasswd-webdav rudder rudder
-/etc/init.d/apache2 start
+/etc/init.d/apache2 restart
 
 # Migrate from 2.3.0 format policy-template store: /var/rudder/policy-templates
 if [ -d /var/rudder/policy-templates -a ! -d /var/rudder/configuration-repository ]; then
