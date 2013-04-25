@@ -101,6 +101,7 @@ mkdir -p %{buildroot}%{ruddervardir}/inventories/incoming
 mkdir -p %{buildroot}%{ruddervardir}/inventories/received
 mkdir -p %{buildroot}%{rudderlogdir}/apache2/
 mkdir -p %{buildroot}/etc/apache2/vhosts.d/
+mkdir -p %{buildroot}/etc/sysconfig/
 
 cp %{SOURCE1} %{buildroot}%{rudderdir}/etc/
 cp %{_sourcedir}/source/rudder/rudder-core/src/main/resources/ldap/bootstrap.ldif %{buildroot}%{rudderdir}/share/
@@ -115,6 +116,7 @@ cp -rf %{_sourcedir}/source/rudder/rudder-web/src/main/resources/load-page %{bui
 cp %{_sourcedir}/source/rudder/rudder-core/src/test/resources/script/cfe-red-button.sh %{buildroot}%{rudderdir}/bin/
 cp %{_sourcedir}/source/rudder/rudder-core/src/main/resources/reportsInfo.xml %{buildroot}%{rudderdir}/etc/
 cp %{_sourcedir}/source/rudder/rudder-web/src/main/resources/apache2-default.conf %{buildroot}/etc/apache2/vhosts.d/rudder-default.conf
+cp %{_sourcedir}/source/rudder/rudder-web/src/main/resources/apache2-sysconfig %{buildroot}/etc/sysconfig/rudder-apache
 cp %{SOURCE2} %{buildroot}%{rudderdir}/jetty7/contexts/
 
 %pre -n rudder-webapp
@@ -158,9 +160,6 @@ then
 	echo "Upgrading the /etc/sysconfig/apache2 file, Rudder needed modules for Apache are now listed in /etc/sysconfig/rudder-apache"
 	sed -i 's%APACHE_MODULES="${APACHE_MODULES} rewrite dav dav_fs proxy proxy_http.*%# This sources the Rudder needed by Rudder\n. /etc/sysconfig/rudder-apache%' /etc/sysconfig/apache2
 fi
-
-# Create / Update the file containing the Rudder-needed modules
-echo 'APACHE_MODULES="${APACHE_MODULES} rewrite dav dav_fs proxy proxy_http headers"' > /etc/sysconfig/rudder-apache
 
 # Add right to apache user to access /var/rudder/inventories/incoming
 chmod 751 /var/rudder/inventories
@@ -311,7 +310,7 @@ rm -rf %{buildroot}
 %{rudderlogdir}/apache2/
 /etc/apache2/vhosts.d/
 %config(noreplace) /etc/apache2/vhosts.d/rudder-default.conf
-
+%config(noreplace) /etc/sysconfig/rudder-apache
 
 #=================================================
 # Changelog
