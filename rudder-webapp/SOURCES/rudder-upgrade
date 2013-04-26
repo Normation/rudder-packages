@@ -73,6 +73,7 @@ set -e
 # - 2.6.0 : Add modification id to change request table
 # - 2.6.0 : Add the property to enable/disable workflow self validation
 # - 2.6.0 : Add the property to enable/disable workflow self deployment
+# - 2.6.0 : Check the LDAP and PostgreSQL daemons status before upgrading
 #####################################################################################
 
 # Some variables
@@ -119,6 +120,32 @@ function check_and_add_config_property {
     fi
 }
 
+# Helper function
+# Function to launch a service status check and retry to poll it in case of a failure
+# Parameters:
+# - $1 = command to execute
+# - $2 = service name
+retry_wrapper() {
+    tries=0; MAXTRIES=10;
+    while [ ${tries} -lt ${MAXTRIES} ]; do
+        eval ${1} && RET_SSH=0 || RET_SSH=$?
+        # Did we succeed?
+        if [ ${RET_SSH} -eq 0 ]; then break; fi
+        # OK, we failed
+        tries=$((${tries}+1))
+        if [ ${tries} -ge ${MAXTRIES} ]; then
+            echo "${2} service verification failed after ${MAXTRIES} tries. Aborting the migration."
+            echo "Please restart the Rudder service, and start the migration script again:"
+            echo "# /etc/init.d/rudder-server-root restart"
+            echo "# /opt/rudder/bin/rudder-upgrade"
+            /bin/false
+        else
+            echo "${2} service verification failure (try ${tries} of ${MAXTRIES}), trying again..."
+            /bin/sleep 2
+        fi
+    done
+}
+
 # Before doing anything on git, set the branch to the Technique Reference Library branch
 if [ -d /var/rudder/policy-templates/.git ];then
 	cd /var/rudder/policy-templates/ && git checkout ${GIT_BRANCH}
@@ -126,6 +153,13 @@ fi
 if [ -d /var/rudder/configuration-repository/.git ];then
 	cd /var/rudder/configuration-repository/ && git checkout ${GIT_BRANCH}
 fi
+
+# - 2.6.0 : Check the LDAP and PostgreSQL daemons status before upgrading
+retry_wrapper '/opt/rudder/bin/ldapsearch -x -D "${LDAP_USER}" -w "${LDAP_PASSWORD}" -s one -b "cn=rudder-configuration" cn >/dev/null 2>&1' 'LDAP'
+echo "The LDAP service is accessible and configured."
+
+retry_wrapper 'su - postgres -c "psql -t -d rudder -c \"select count(id) from ruddersysevents\"" >/dev/null 2>&1' 'PostgreSQL'
+echo "The PostgreSQL service is accessible and configured."
 
 # Migrate from 2.3.0 format policy-template store (/var/rudder/policy-templates)
 # to /var/rudder/configuration-repository/policy-templates
