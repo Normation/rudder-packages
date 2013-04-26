@@ -62,8 +62,12 @@ Source5: rudder-agent.cron
 Source6: rudder.conf
 
 # We have PERL things in here. Do not try to outsmart me by adding dummy dependencies, you silly tool.
-AutoReq: 0
 AutoProv: 0
+%global _use_internal_dependency_generator 0
+%global __find_requires_orig %{__find_requires}
+%define __find_requires %{_sourcedir}/filter-reqs.pl %{__find_requires_orig}
+%global __find_provides_orig %{__find_provides}
+%define __find_provides %{_sourcedir}/filter-reqs.pl %{__find_provides_orig}
 
 %if 0%{?rhel} == 4
 Patch1: fix-missing-headers
