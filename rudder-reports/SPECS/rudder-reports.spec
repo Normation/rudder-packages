@@ -102,13 +102,13 @@ cp -a %{SOURCE1}/rudder-techniques/techniques/system/distributePolicy/1.0/rudder
 # Pre Installation
 #=================================================
 #Check if postgresql is started
-/etc/init.d/postgresql status > /dev/null
+/sbin/service postgresql status > /dev/null
 if [ $? -ne 0 ]
 then
 %if 0%{?el6}
-  /etc/init.d/postgresql initdb
+  /sbin/service postgresql initdb
 %endif
-  /etc/init.d/postgresql start
+  /sbin/service postgresql start
 fi
 #HACK: Give rights for login without unix account
 RUDDER_PG_DEFINED=`grep "rudder" /var/lib/pgsql/data/pg_hba.conf | wc -l`
@@ -118,17 +118,17 @@ if [ ${RUDDER_PG_DEFINED} -le 0 ]; then
 fi
 
 #Apply changes in postgresql
-/etc/init.d/postgresql reload
+/sbin/service postgresql reload
 
 %post -n rudder-reports
 #=================================================
 # Post Installation
 #=================================================
 #Check if postgresql is started
-/etc/init.d/postgresql status > /dev/null
+/sbin/service postgresql status > /dev/null
 if [ $? -ne 0 ]
 then
-  /etc/init.d/postgresql start
+  /sbin/service postgresql start
 fi
 
 echo "Setting postgresql as a boot service"

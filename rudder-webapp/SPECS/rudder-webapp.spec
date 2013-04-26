@@ -194,7 +194,7 @@ echo "Setting Apache HTTPd as a boot service"
 echo "Reloading syslog"
 %{sysloginitscript} reload
 
-/etc/init.d/%{apache} stop
+/sbin/service %{apache} stop
 # a2dissite default
 
 # Do this ONLY at first install
@@ -228,7 +228,7 @@ chmod 655 -R %{rudderdir}/share/load-page
 %{htpasswd_cmd} -bc %{rudderdir}/etc/htpasswd-webdav rudder rudder
 
 echo "(Re-)starting Apache HTTPd"
-/etc/init.d/%{apache} restart
+/sbin/service %{apache} restart
 
 # Run any upgrades
 # Note this must happen *before* creating the technique store, as it was moved in version 2.3.2
@@ -247,7 +247,7 @@ fi
 echo "********************************************************************************"
 echo "rudder-webapp has been upgraded, but for the upgrade to take effect, please"
 echo "restart the jetty application server as follows:"
-echo "# /etc/init.d/jetty restart"
+echo "# /sbin/service jetty restart"
 echo "********************************************************************************"
 
 #=================================================

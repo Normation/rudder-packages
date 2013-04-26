@@ -262,7 +262,7 @@ if [ ! -e /opt/rudder/etc/disable-agent ]; then
 	touch /opt/rudder/etc/disable-agent
 fi
 
-if [ ${CFRUDDER_FIRST_INSTALL} -ne 1 -a -x /etc/init.d/rudder-agent ]; then /etc/init.d/rudder-agent stop; fi
+if [ ${CFRUDDER_FIRST_INSTALL} -ne 1 -a -x /etc/init.d/rudder-agent ]; then /sbin/service rudder-agent stop; fi
 
 # Copy CFEngine binaries
 cp -a /opt/rudder/bin/cf-* /var/rudder/cfengine-community/bin/
@@ -292,7 +292,7 @@ else
 	echo "rudder-agent has been installed (not started). This host can be a Rudder node."
 	echo "To get started, configure your Rudder server's hostname and launch the agent:"
 	echo "# echo 'rudder.server' > /var/rudder/cfengine-community/policy_server.dat"
-	echo "# /etc/init.d/rudder-agent start"
+	echo "# service rudder-agent start"
 	echo "This node will then appear in the Rudder web interface under 'Accept new nodes'."
 	echo "********************************************************************************"
 fi
