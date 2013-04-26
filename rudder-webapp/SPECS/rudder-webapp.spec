@@ -151,6 +151,7 @@ cp -rf %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/load-pa
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/test/resources/script/cfe-red-button.sh %{buildroot}%{rudderdir}/bin/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/reportsInfo.xml %{buildroot}%{rudderdir}/etc/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/apache2-default.conf %{buildroot}/etc/%{apache_vhost_dir}/rudder-default.conf
+cp %{_sourcedir}/source/rudder/rudder-web/src/main/resources/apache2-sysconfig %{buildroot}/etc/sysconfig/rudder-apache
 cp %{SOURCE2} %{buildroot}%{rudderdir}/jetty7/contexts/
 cp %{SOURCE3} %{buildroot}%{rudderdir}/etc/
 
