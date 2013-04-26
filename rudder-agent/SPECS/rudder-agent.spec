@@ -257,6 +257,20 @@ fi
 
 # Always do this
 
+# Generate a UUID if we don't have one yet
+if [ ! -e /opt/rudder/etc/uuid.hive ]
+then
+	uuidgen > /opt/rudder/etc/uuid.hive
+else
+	# UUID is valid only if it has been generetaed by uuidgen or if it is set to 'root' for policy server
+	CHECK_UUID=`cat /opt/rudder/etc/uuid.hive | grep -E "^[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}|root" | wc -l`
+	# If the UUID is not valid, regenerate it
+	if [ ${CHECK_UUID} -ne 1 ]
+	then
+		uuidgen > /opt/rudder/etc/uuid.hive
+	fi
+fi
+
 # Copy new binaries to workdir, make sure daemons are stopped first
 
 # Set a "lock" to avoid CFEngine being restarted during the upgrade process
@@ -305,20 +319,6 @@ fi
 if [ ! -f /var/rudder/cfengine-community/ppkeys/localhost.priv ]
 then
 	/var/rudder/cfengine-community/bin/cf-key
-fi
-
-# Generate a UUID if we don't have one yet
-if [ ! -e /opt/rudder/etc/uuid.hive ]
-then
-	uuidgen > /opt/rudder/etc/uuid.hive
-else
-	# UUID is valid only if it has been generetaed by uuidgen or if it is set to 'root' for policy server
-	CHECK_UUID=`cat /opt/rudder/etc/uuid.hive | grep -E "^[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}|root" | wc -l`
-	# If the UUID is not valid, regenerate it
-	if [ ${CHECK_UUID} -ne 1 ]
-	then
-		uuidgen > /opt/rudder/etc/uuid.hive
-	fi
 fi
 
 #=================================================

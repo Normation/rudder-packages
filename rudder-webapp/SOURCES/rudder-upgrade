@@ -548,13 +548,9 @@ if [ -d ${SRCTECHDIR} -a -d ${TRGTECHDIR} ]; then
 	if ! diff -Naur /opt/rudder/share/techniques/system/ /var/rudder/configuration-repository/techniques/system/ > /dev/null; then
 		rsync --delete -rptgoq /opt/rudder/share/techniques/system/ /var/rudder/configuration-repository/techniques/system/
 		cd /var/rudder/configuration-repository/techniques/ && git add -A system/ && git commit -m "Upgrade system Techniques - automatically done by rudder-upgrade script"
-		# Check that the application is up before to call a Technique Library reload
-		CHECK_WEBAPP=`curl -s http://localhost/rudder/api/status`
-		if [ "z${CHECK_WEBAPP}" == "zOK" ]; then
-			echo "Reloading the Technique library... " && curl -s http://localhost/rudder/api/techniqueLibrary/reload && echo ""
-		else
-			echo "Rudder application is down, it might be reloading. Deferring restart."
-		fi
+		# For every upgrade, we schedule a Technique reloading REST call on the next CFEngine run
+		echo "A Technique library reload is needed and has been scheduled."
+		touch /opt/rudder/etc/force_technique_reload
 	fi
 fi
 
