@@ -269,7 +269,7 @@ if [ "z${BACKUP_LDIF}" != "z" ]; then
 
 		# Stop OpenLDAP - use forcestop to avoid the init script failing
 		# when trying to do the backup with bad libdb versions
-		/etc/init.d/slapd forcestop
+		/sbin/service slapd forcestop
 
 		# Backup the old database
 		LDAP_BACKUP_DIR="/var/rudder/ldap/openldap-data-backup-upgrade-on-${TIMESTAMP}/"
@@ -280,7 +280,7 @@ if [ "z${BACKUP_LDIF}" != "z" ]; then
 		/opt/rudder/sbin/slapadd -q -l ${BACKUP_LDIF}
 
 		# Start OpenLDAP
-		/etc/init.d/slapd start
+		/sbin/service slapd start
 
 		echo "OpenLDAP database was successfully upgraded to new format"
 		echo "You can safely remove the backups in ${LDAP_BACKUP_DIR}"
@@ -296,7 +296,7 @@ if [ -r /opt/rudder/etc/openldap/slapd.conf -a -e /var/rudder/ldap/openldap-data
 	ls  /var/rudder/ldap/openldap-data/*.bdb | xargs -n 1 -I{} basename {} .bdb | sort | egrep -v '^(dn2id|id2entry)' > ${SLAPD_ACTUAL_INDEXES}
 	if ! diff ${SLAPD_DEFINED_INDEXES} ${SLAPD_ACTUAL_INDEXES} > /dev/null; then
 		echo "OpenLDAP indexes are not up to date, reindexing..."
-		/etc/init.d/slapd stop
+		/sbin/service slapd stop
 		/opt/rudder/sbin/slapindex
 		echo "OpenLDAP indexes updated."
 	fi
@@ -305,7 +305,7 @@ fi
 rm -f ${SLAPD_DEFINED_INDEXES} ${SLAPD_ACTUAL_INDEXES}
 
 echo "All done. Starting slapd..."
-/etc/init.d/slapd start
+/sbin/service slapd start
 
 #=================================================
 # Cleaning
