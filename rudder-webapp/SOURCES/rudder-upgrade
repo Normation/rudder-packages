@@ -155,8 +155,10 @@ if [ -d /var/rudder/configuration-repository/.git ];then
 fi
 
 # - 2.6.0 : Check the LDAP and PostgreSQL daemons status before upgrading
-retry_wrapper '/opt/rudder/bin/ldapsearch -x -D "${LDAP_USER}" -w "${LDAP_PASSWORD}" -s one -b "cn=rudder-configuration" cn >/dev/null 2>&1' 'LDAP'
-echo "The LDAP service is accessible and configured."
+if [ ${LDAP_EXISTS} -ne 0 ]; then
+  retry_wrapper '/opt/rudder/bin/ldapsearch -x -D "${LDAP_USER}" -w "${LDAP_PASSWORD}" -s one -b "cn=rudder-configuration" cn >/dev/null 2>&1' 'LDAP'
+  echo "The LDAP service is accessible and configured."
+fi
 
 retry_wrapper 'su - postgres -c "psql -t -d rudder -c \"select count(id) from ruddersysevents\"" >/dev/null 2>&1' 'PostgreSQL'
 echo "The PostgreSQL service is accessible and configured."
