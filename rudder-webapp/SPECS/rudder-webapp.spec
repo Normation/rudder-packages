@@ -137,6 +137,7 @@ mkdir -p %{buildroot}%{ruddervardir}/inventories/accepted-nodes-updates
 mkdir -p %{buildroot}%{ruddervardir}/inventories/received
 mkdir -p %{buildroot}%{rudderlogdir}/%{apache}/
 mkdir -p %{buildroot}/etc/%{apache_vhost_dir}/
+mkdir -p %{buildroot}/etc/sysconfig/
 
 cp %{SOURCE1} %{buildroot}%{rudderdir}/etc/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/ldap/bootstrap.ldif %{buildroot}%{rudderdir}/share/
@@ -199,13 +200,20 @@ echo "Reloading syslog"
 # Do this ONLY at first install
 if [ $1 -eq 1 ]
 then
-        echo 'APACHE_MODULES="${APACHE_MODULES} rewrite dav dav_fs proxy proxy_http"' >> /etc/sysconfig/%{apache}
+		echo -e '# This sources the Rudder needed by Rudder\n. /etc/sysconfig/rudder-apache' >> /etc/sysconfig/apache2
 		echo 'DAVLockDB /tmp/davlock.db' >> /etc/%{apache}/conf.d/dav_mod.conf
 
 		mkdir -p /var/rudder/configuration-repository
 		mkdir -p /var/rudder/configuration-repository/shared-files
 		touch /var/rudder/configuration-repository/shared-files/.placeholder
 		cp -a %{rudderdir}/share/techniques /var/rudder/configuration-repository/
+fi
+
+# Update /etc/sysconfig/apache2 in case an old module loading entry has already been created by Rudder
+if grep -q 'APACHE_MODULES="${APACHE_MODULES} rewrite dav dav_fs proxy proxy_http' /etc/sysconfig/apache2
+then
+	echo "Upgrading the /etc/sysconfig/apache2 file, Rudder needed modules for Apache are now listed in /etc/sysconfig/rudder-apache"
+	sed -i 's%APACHE_MODULES="${APACHE_MODULES} rewrite dav dav_fs proxy proxy_http.*%# This sources the Rudder needed by Rudder\n. /etc/sysconfig/rudder-apache%' /etc/sysconfig/apache2
 fi
 
 # Add right to apache user to access /var/rudder/inventories/incoming
@@ -270,6 +278,7 @@ rm -rf %{buildroot}
 /etc/%{apache_vhost_dir}/
 %config(noreplace) /etc/%{apache_vhost_dir}/rudder-default.conf
 %config(noreplace) %{rudderdir}/etc/rudder-networks.conf
+%config(noreplace) /etc/sysconfig/rudder-apache
 
 #=================================================
 # Changelog
