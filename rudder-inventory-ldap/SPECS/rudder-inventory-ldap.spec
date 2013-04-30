@@ -66,6 +66,10 @@ Source4: inventory.schema
 Source5: rudder.schema
 Source6: DB_CONFIG
 
+# This package contains OpenLDAP libraries, but we don't want RPM to tell the system that we provide them
+# since they are only for our own use. This overrides the automatic detection of them done by rpmbuild
+AutoProv: 0
+
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 #Generic requirement
