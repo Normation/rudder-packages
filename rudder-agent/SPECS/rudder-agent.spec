@@ -61,18 +61,6 @@ Source5: rudder-agent.cron
 # find there all necessary libraries for tokyocabinet.
 Source6: rudder.conf
 
-# We have PERL things in here. Do not try to outsmart me by adding dummy dependencies, you silly tool.
-AutoProv: 0
-%global _use_internal_dependency_generator 0
-%global __find_requires_orig %{__find_requires}
-%if 0%{?rhel} && 0%{?rhel} >= 6
-%define __find_requires %{_sourcedir}/filter-reqs.pl %{__find_requires_orig}
-%else
-%define __find_requires %{_sourcedir}/filter-reqs-without-tokyocabinet.pl %{__find_requires_orig}
-%endif
-%global __find_provides_orig %{__find_provides}
-%define __find_provides %{_sourcedir}/filter-reqs.pl %{__find_provides_orig}
-
 %if 0%{?rhel} == 4
 Patch1: fix-missing-headers
 %endif
@@ -120,6 +108,16 @@ Requires: pmtools
 # Replaces rudder-cfengine-community since 2.4.0~beta3
 Provides: rudder-cfengine-community
 Obsoletes: rudder-cfengine-community
+
+# We have PERL things in here. Do not try to outsmart me by adding dummy dependencies, you silly tool.
+# Same for TokyoCabinet, don't require the libs when we bundle them in this package, duh.
+AutoProv: 0
+%global _use_internal_dependency_generator 0
+%global __find_requires_orig %{__find_requires}
+%define __find_requires %{_sourcedir}/filter-reqs.pl %{is_tokyocabinet_here} %{__find_requires_orig}
+%global __find_provides_orig %{__find_provides}
+%define __find_provides %{_sourcedir}/filter-reqs.pl %{is_tokyocabinet_here} %{__find_provides_orig}
+
 
 %description
 Rudder is an open source configuration management and audit solution.
