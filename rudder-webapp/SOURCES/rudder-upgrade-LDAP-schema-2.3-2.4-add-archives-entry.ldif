@@ -1,0 +1,5 @@
+# Add Archives entry to perform archive restoration with backups
+dn: ou=Archives,ou=Rudder,cn=rudder-configuration
+objectClass: organizationalUnit
+objectClass: top
+ou: Archives
