@@ -65,7 +65,11 @@ Source6: rudder.conf
 AutoProv: 0
 %global _use_internal_dependency_generator 0
 %global __find_requires_orig %{__find_requires}
+%if 0%{?rhel} && 0%{?rhel} >= 6
 %define __find_requires %{_sourcedir}/filter-reqs.pl %{__find_requires_orig}
+%else
+%define __find_requires %{_sourcedir}/filter-reqs-without-tokyocabinet.pl %{__find_requires_orig}
+%endif
 %global __find_provides_orig %{__find_provides}
 %define __find_provides %{_sourcedir}/filter-reqs.pl %{__find_provides_orig}
 
