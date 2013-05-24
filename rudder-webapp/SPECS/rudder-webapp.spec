@@ -176,6 +176,7 @@ cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.6-2.6-add-modification-Id-change-request-column.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
 cp %{_sourcedir}/rudder-upgrade-LDAP-schema-2.3-2.4-add-entries.ldif %{buildroot}%{rudderdir}/share/upgrade-tools/
 cp %{_sourcedir}/rudder-upgrade-modify-system-group-entries.ldif %{buildroot}%{rudderdir}/share/upgrade-tools/
+cp %{_sourcedir}/rudder-upgrade-LDAP-schema-2.3-2.4-add-archives-entry.ldif %{buildroot}%{rudderdir}/share/upgrade-tools/
 
 cp %{SOURCE5} %{buildroot}%{rudderdir}/bin/
 

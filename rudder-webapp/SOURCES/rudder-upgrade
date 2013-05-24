@@ -452,6 +452,16 @@ ruleTarget: special:all
 EOF
 fi
 
+# Upgrade LDAP schema from 2.3 to 2.4 if necessary: Add new entry to perform archive restoration with backups
+LDAP_TEST_ARCHIVES=$(/opt/rudder/sbin/slapcat 2>/dev/null | grep "dn: ou=Archives,ou=Rudder,cn=rudder-configuration" | wc -l)
+if [ ${LDAP_TEST_ARCHIVES} -ne 1 -a ${LDAP_EXISTS} -ne 0 ]; then
+        echo "***** ATTENTION *****"
+        echo "The Rudder OpenLDAP schema is not up to date."
+        echo "Updating..."
+        /opt/rudder/bin/ldapadd -x -D ${LDAP_USER} -w ${LDAP_PASSWORD} -H ldap://localhost -f ${RUDDER_UPGRADE_TOOLS}/rudder-upgrade-LDAP-schema-2.3-2.4-add-archives-entry.ldif
+        echo "...done"
+fi
+
 # Migrate from old policy-template store in /var/rudder/configuration-repository/policy-templates
 # to 2.4.0 in /var/rudder/configuration-repository/techniques
 if [ -d /var/rudder/configuration-repository/policy-templates -a ! -d /var/rudder/configuration-repository/techniques ]; then
