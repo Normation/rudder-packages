@@ -97,7 +97,7 @@ binary-arch: install
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ dbMigration-2.4-2.5-git-commit.sql /opt/rudder/share/upgrade-tools/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ dbMigration-2.4-2.5-add-modification-id-to-EventLog.sql /opt/rudder/share/upgrade-tools/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-upgrade-LDAP-schema-2.3-2.4-add-entries.ldif /opt/rudder/share/upgrade-tools/
-        dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-upgrade-LDAP-schema-2.3-2.4-add-archives-entry.ldif /opt/rudder/share/upgrade-tools/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-upgrade-LDAP-schema-2.3-2.4-add-archives-entry.ldif /opt/rudder/share/upgrade-tools/
 
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-upgrade /opt/rudder/bin/
 
