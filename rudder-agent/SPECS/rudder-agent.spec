@@ -238,7 +238,9 @@ CFRUDDER_FIRST_INSTALL=0
 echo "Making sure that the permissions on the CFEngine key directory are correct..."
 if [ -d %{ruddervardir}/cfengine-community/ppkeys ]; then
 chmod 700 %{ruddervardir}/cfengine-community/ppkeys
-chmod 600 %{ruddervardir}/cfengine-community/ppkeys/*
+  if [ `ls %{ruddervardir}/cfengine-community/ppkeys | wc -l` -gt 0 ]; then
+    chmod 600 %{ruddervardir}/cfengine-community/ppkeys/*
+  fi
 fi
 
 # Do this at first install
