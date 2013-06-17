@@ -32,6 +32,8 @@ if [ ! -f 'perl-prepare.sh' ]; then
     fi
 fi
 
+source ../../../scripts/detect_os.sh
+
 ROOT="$PWD/.."
 MAKE="make"
 TMP="$PWD/tmp"
@@ -124,6 +126,11 @@ archive=`ls $FILEDIR/App-cpanminus-*.tar.gz`
 echo $archive
 gunzip < $archive | tar xvf -
 CPANM=$BUILDDIR/App-cpanminus-1.0004/bin/cpanm
+
+# If we are ona RHEL 3, remove unwanted arguments to wget
+if [ "${OSVERSION}" -eq 3 -a "z${OS}" == "zRHEL" ]; then
+	sed -i "s/--retry-connrefused //" $BUILDDIR/App-cpanminus-1.0004/bin/cpanm
+fi
 
 installMod "URI"
 installMod "HTML::Tagset"
