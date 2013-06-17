@@ -74,7 +74,16 @@ Requires: pcre openssl
 #Specific requirements
 %if 0%{?rhel}
 BuildRequires: make byacc
+%endif
+
+# dmiecode is provided in the "dmidecode" package on EL4+ and on kernel-utils
+# on EL3
+%if 0%{?rhel} >= 4
 Requires: dmidecode
+%endif
+
+%if 0%{?rhel} < 4
+Requires: kernel-utils
 %endif
 
 ## Each tests of OS version comparison with "greater" or "lesser version than"
@@ -189,11 +198,15 @@ make install DESTDIR=%{buildroot} STRIP=""
 # Directories
 mkdir -p %{buildroot}%{rudderdir}
 mkdir -p %{buildroot}%{rudderdir}/etc
-mkdir -p %{buildroot}/etc/ld.so.conf.d
 mkdir -p %{buildroot}%{ruddervardir}/cfengine-community/bin
 mkdir -p %{buildroot}%{ruddervardir}/cfengine-community/inputs
 mkdir -p %{buildroot}%{ruddervardir}/tmp
 mkdir -p %{buildroot}%{ruddervardir}/tools
+
+# ld.so.conf.d is not supported on CentOS 3
+%if 0%{?rhel} != 3
+mkdir -p %{buildroot}/etc/ld.so.conf.d
+%endif
 
 # Init script
 mkdir -p %{buildroot}/etc/init.d
@@ -217,9 +230,9 @@ install -m 755 %{SOURCE3} %{buildroot}/opt/rudder/bin/run-inventory
 # Install an empty uuid.hive file before generating an uuid
 cp %{SOURCE4} %{buildroot}%{rudderdir}/etc/
 
-%if %{is_tokyocabinet_here} == "false"
-# Install /etc/ld.so.conf.d/rudder.conf in order to use libraries contain
-# in /opt/rudder/lib like tokyocabinet
+%if %{is_tokyocabinet_here} == "false" && 0%{?rhel} != 3
+# Install /etc/ld.so.conf.d/rudder.conf in order to use libraries
+# contained in /opt/rudder/lib like tokyocabinet
 install -m 644 %{SOURCE6} %{buildroot}/etc/ld.so.conf.d/rudder.conf
 %endif
 
@@ -253,10 +266,21 @@ then
 fi
 
 # Reload configuration of ldd if new configuration has been added
-%if %{is_tokyocabinet_here} == "false"
+%if %{is_tokyocabinet_here} == "false" && 0%{?rhel} != 3
 if [ -f /etc/ld.so.conf.d/rudder.conf ]; then
 	ldconfig
 fi
+%endif
+
+# Reload configuration of ldd if new configuration has been added,
+# CentOS 3 style.
+%if %{is_tokyocabinet_here} == "false" && 0%{?rhel} == 3
+if [ ! `grep "/opt/rudder/lib" /etc/ld.so.conf` ]; then
+	echo "/opt/rudder/lib" >> /etc/ld.so.conf
+fi
+
+# Reload the linker configuration
+ldconfig
 %endif
 
 # Always do this

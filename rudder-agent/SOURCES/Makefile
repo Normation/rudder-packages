@@ -22,7 +22,7 @@ RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
 CFENGINE_RELEASE = 3.4.4
 FUSION_RELEASE = 2.2.2
 TOKYOCABINET_RELEASE = 1.4.48
-TMP_DIR := $(shell mktemp -dq)
+TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX)
 WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget
 PATCH := /usr/bin/patch
 FIND := /usr/bin/find
@@ -52,7 +52,8 @@ localdepends: ./initial-promises ./files ./fusioninventory-agent ./tokyocabinet-
 	mv rudder-sources-*/ rudder-sources/
 
 ./initial-promises: ./rudder-sources
-	cp -aT ./rudder-sources/rudder-techniques/initial-promises/node-server/ ./initial-promises/
+	rm -rf ./initial-promises/
+	cp -a ./rudder-sources/rudder-techniques/initial-promises/node-server/ ./initial-promises/
 
 ./fusioninventory-agent: /usr/bin/wget
 	#Original URL: http://search.cpan.org/CPAN/authors/id/F/FU/FUSINV/FusionInventory-Agent-$(FUSION_RELEASE).tar.gz
@@ -61,7 +62,7 @@ localdepends: ./initial-promises ./files ./fusioninventory-agent ./tokyocabinet-
 	mv $(TMP_DIR)/FusionInventory-Agent-$(FUSION_RELEASE) ./fusioninventory-agent
 	$(PATCH) -d ./fusioninventory-agent -p1 < ./SuSE_service_pack.patch
 	# Fix a lsusb invocation that crashes some SLES machines
-	$(FIND) ./fusioninventory-agent -iname "USB.pm" -delete
+	$(FIND) ./fusioninventory-agent -iname "USB.pm" -exec rm "{}" \;
 
 ./files: /usr/bin/wget
 	mkdir ./files
