@@ -53,7 +53,7 @@ localdepends: ./initial-promises ./files ./fusioninventory-agent ./tokyocabinet-
 
 ./initial-promises: ./rudder-sources
 	rm -rf ./initial-promises/
-	cp -a ./rudder-sources/rudder-techniques/initial-promises/node-server/ ./initial-promises/
+	cp -a ./rudder-sources/rudder-techniques/initial-promises/node-server/ ./initial-promises
 
 ./fusioninventory-agent: /usr/bin/wget
 	#Original URL: http://search.cpan.org/CPAN/authors/id/F/FU/FUSINV/FusionInventory-Agent-$(FUSION_RELEASE).tar.gz
