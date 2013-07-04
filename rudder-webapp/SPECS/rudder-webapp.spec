@@ -84,7 +84,7 @@ Source5: rudder-upgrade
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
 
-BuildRequires: jdk >= 1.6
+BuildRequires: jdk >= 1.6 asciidoc ImageMagick graphviz
 Requires: rudder-jetty rudder-inventory-ldap rudder-inventory-endpoint rudder-reports rudder-techniques %{apache} %{apache_tools} git-core
 
 %description
@@ -108,6 +108,9 @@ cp -rf %{_sourcedir}/rudder-sources %{_builddir}
 # Building
 #=================================================
 %build
+
+#Build Rudder documentation
+cd %{_builddir}/rudder-sources/rudder-doc && make html
 
 export MAVEN_OPTS=-Xmx512m
 cd %{_builddir}/rudder-sources/rudder-parent-pom && %{_sourcedir}/maven2/bin/mvn -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
@@ -179,6 +182,9 @@ cp %{_sourcedir}/rudder-upgrade-modify-system-group-entries.ldif %{buildroot}%{r
 cp %{_sourcedir}/rudder-upgrade-LDAP-schema-2.3-2.4-add-archives-entry.ldif %{buildroot}%{rudderdir}/share/upgrade-tools/
 
 cp %{SOURCE5} %{buildroot}%{rudderdir}/bin/
+
+# Install documentation
+cp -rf %{_builddir}/rudder-sources/rudder-doc/html %{buildroot}/usr/share/doc/rudder
 
 %pre -n rudder-webapp
 #=================================================

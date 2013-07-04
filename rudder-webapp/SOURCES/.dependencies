@@ -1,1 +1,3 @@
 JAVA:jdk
+SLES11:asciidoc ImageMagick graphviz
+RHEL6:asciidoc ImageMagick graphviz
