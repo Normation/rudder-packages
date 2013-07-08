@@ -25,6 +25,9 @@ build: build-stamp
 
 build-stamp: configure-stamp
 	dh_testdir
+	#Build Rudder documentation
+	cd $(CURDIR)/SOURCES/rudder-sources/rudder-doc && make html
+	
 	cd $(CURDIR)/SOURCES/rudder-sources/rudder-parent-pom && $(CURDIR)/SOURCES/maven2/bin/mvn -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true install
 	cd $(CURDIR)/SOURCES/rudder-sources/rudder-commons && $(CURDIR)/SOURCES/maven2/bin/mvn -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true install
 	cd $(CURDIR)/SOURCES/rudder-sources/scala-ldap && $(CURDIR)/SOURCES/maven2/bin/mvn -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true install
@@ -105,6 +108,10 @@ binary-arch: install
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-upgrade-LDAP-schema-2.3-2.4-add-archives-entry.ldif /opt/rudder/share/upgrade-tools/
 
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-upgrade /opt/rudder/bin/
+
+	# Install documentation
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder-doc/ html %{buildroot}/usr/share/doc/rudder
+
 
 #	dh_installmenu
 #	dh_installdebconf

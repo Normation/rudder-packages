@@ -19,3 +19,4 @@ var/log/rudder/apache2
 var/log/rudder/ldap
 var/log/rudder/reports
 var/log/rudder/webapp
+usr/share/doc/rudder
