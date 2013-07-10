@@ -86,16 +86,7 @@ binary-arch: install
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-networks.conf /opt/rudder/etc/
 
 	# Install upgrade tools
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ dbMigration-2.3-2.4-groups-isDynamic.sql /opt/rudder/share/upgrade-tools/
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ dbMigration-2.3-2.4-PT-history.sql /opt/rudder/share/upgrade-tools/
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ dbMigration-2.3-2.4-PI-PT-CR-names-changed.sql /opt/rudder/share/upgrade-tools/
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ dbMigration-2.3-2.4-index.sql /opt/rudder/share/upgrade-tools/
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ dbMigration-2.3-2.4-add-MigrationEventLog-table.sql /opt/rudder/share/upgrade-tools/
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ dbMigration-2.3-2.4-add-EventLog-reason-column.sql /opt/rudder/share/upgrade-tools/
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ dbMigration-2.3-2.4-set-migration-needed-flag-for-EventLog.sql /opt/rudder/share/upgrade-tools/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ dbMigration-2.4-2.4-set-migration-needed-flag-for-EventLog.sql /opt/rudder/share/upgrade-tools/
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ dbMigration-2.3-2.4-archive.sql /opt/rudder/share/upgrade-tools/
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ dbMigration-2.3-2.4-index-archive.sql /opt/rudder/share/upgrade-tools/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ dbMigration-2.4-2.5-group-serialisation.sql /opt/rudder/share/upgrade-tools/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ dbMigration-2.4-2.5-last-error-report-id.sql /opt/rudder/share/upgrade-tools/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ dbMigration-2.4-2.5-git-commit.sql /opt/rudder/share/upgrade-tools/
@@ -103,9 +94,7 @@ binary-arch: install
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ dbMigration-2.5-2.6-unexpanded-value.sql /opt/rudder/share/upgrade-tools/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ dbMigration-2.5-2.6-add_workflow_support.sql /opt/rudder/share/upgrade-tools/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ dbMigration-2.6-2.6-add-modification-Id-change-request-column.sql /opt/rudder/share/upgrade-tools/
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-upgrade-LDAP-schema-2.3-2.4-add-entries.ldif /opt/rudder/share/upgrade-tools/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-upgrade-modify-system-group-entries.ldif /opt/rudder/share/upgrade-tools/
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-upgrade-LDAP-schema-2.3-2.4-add-archives-entry.ldif /opt/rudder/share/upgrade-tools/
 
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-upgrade /opt/rudder/bin/
 
