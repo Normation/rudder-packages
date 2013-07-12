@@ -137,7 +137,7 @@ echo "Setting postgresql as a boot service"
 /sbin/chkconfig postgresql on
 %endif
 
-echo "Waiting postgresql to be up"
+echo "Waiting postgresql to be up..."
 CPT=0
 TIMEOUT=60
 while ! su - postgres -c "psql -q --output /dev/null -c \"SELECT COUNT(*) FROM pg_catalog.pg_authid\""
@@ -152,9 +152,10 @@ do
                 exit 1
         fi
 done
-echo ""
+echo -e "\nDone\n"
 
 
+echo "Creation of Rudder database..."
 dbname="rudder"
 usrname="rudder"
 RES=$(su - postgres -c "psql -t -c \"select count(1) from pg_catalog.pg_database where datname = '$dbname'\"")
@@ -172,6 +173,7 @@ else
   chmod 600 /root/.pgpass
   psql -q -U rudder -h localhost -d rudder -f %{rudderdir}/etc/postgresql/reportsSchema.sql > /dev/null
 fi
+echo -e "\nDone"
 
 
 #=================================================

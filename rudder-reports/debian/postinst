@@ -28,7 +28,7 @@ case "$1" in
     /etc/init.d/postgresql start
   fi
 
-  echo "Waiting postgresql to be up"
+  echo "Waiting postgresql to be up..."
   CPT=0
   TIMEOUT=60
   while ! su - postgres -c "psql -q --output /dev/null -c \"SELECT COUNT(*) FROM pg_catalog.pg_authid\""
@@ -43,9 +43,10 @@ case "$1" in
       exit 1
     fi
   done
-  echo ""
+  echo -e "\nDone\n"
 
 
+  echo "Creation of Rudder database..."
   dbname="rudder"
   usrname="rudder"
   RES=$(su postgres -c "psql -t -c \"select count(1) from pg_catalog.pg_database where datname = '$dbname'\"")
@@ -63,6 +64,7 @@ case "$1" in
     chmod 600 /root/.pgpass
     psql -q -U rudder -h localhost -d rudder -f /opt/rudder/etc/postgresql/reportsSchema.sql > /dev/null
   fi
+  echo -e "\nDone\n"
    ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
