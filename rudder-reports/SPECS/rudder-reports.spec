@@ -137,7 +137,7 @@ echo "Setting postgresql as a boot service"
 /sbin/chkconfig postgresql on
 %endif
 
-echo "Waiting postgresql to be up..."
+echo -n "Waiting for postgresql to be up..."
 CPT=0
 TIMEOUT=60
 while ! su - postgres -c "psql -q --output /dev/null -c \"SELECT COUNT(*) FROM pg_catalog.pg_authid\""
@@ -173,7 +173,7 @@ else
   chmod 600 /root/.pgpass
   psql -q -U rudder -h localhost -d rudder -f %{rudderdir}/etc/postgresql/reportsSchema.sql > /dev/null
 fi
-echo -e "\nDone"
+echo "Done"
 
 
 #=================================================
