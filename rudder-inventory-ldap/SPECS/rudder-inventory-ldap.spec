@@ -154,13 +154,6 @@ install -m 644 %{SOURCE6} %{buildroot}/var/rudder/ldap/openldap-data/
 mkdir -p %{buildroot}/etc/rsyslog.d
 cp %{_sourcedir}/rsyslog/slapd.conf %{buildroot}/etc/rsyslog.d/slapd.conf
 
-# Upgrade tools
-mkdir -p %{buildroot}%{rudderdir}/share/upgrade-tools/
-cp %{_sourcedir}/rudder-upgrade-LDAP-schema-2.3-2.4-nodeId-root-attributes-changed.pl %{buildroot}%{rudderdir}/share/upgrade-tools/
-cp %{_sourcedir}/rudder-upgrade-LDAP-schema-2.3-2.4-PI-PT-CR-names-changed.pl %{buildroot}%{rudderdir}/share/upgrade-tools/
-cp %{_sourcedir}/rudder-upgrade-LDAP-schema-2.3-2.4-PI-PT-CR-names-changed-attribute-map.csv %{buildroot}%{rudderdir}/share/upgrade-tools/
-cp %{_sourcedir}/rudder-upgrade-LDAP-schema-2.3-2.4-PI-PT-CR-names-changed-objectclass-map.csv %{buildroot}%{rudderdir}/share/upgrade-tools/
-cp %{_sourcedir}/rudder-upgrade-LDAP-schema-2.3-2.4-PI-PT-CR-names-changed-branches-map.csv %{buildroot}%{rudderdir}/share/upgrade-tools/
 
 %pre -n rudder-inventory-ldap
 #=================================================
@@ -205,36 +198,6 @@ BACKUP_LDIF=`find ${BACKUP_LDIF_PATH} -regextype sed -regex "${BACKUP_LDIF_REGEX
 if [ "z${BACKUP_LDIF}" != "z" ]; then
 	TIMESTAMP=`echo ${BACKUP_LDIF} | sed "s%${BACKUP_LDIF_REGEX}%\1%"`
 
-	# If this is an upgrade from a Rudder 2.3 to 2.4, we need to
-	# rename a whole load of objectClasses and attributes in the LDIF file
-	OLD_LDAP_TEST=`grep -Ei "^policyInstanceId::? " ${BACKUP_LDIF} | wc -l`
-	if [ ${OLD_LDAP_TEST} -ne 0 ]; then
-		echo "The Rudder OpenLDAP schema is not up to date."
-		echo "You will see some warnings about UNKNOWN attributeDescription."
-		echo "Updating..."
-
-
-		cp ${BACKUP_LDIF} ${BACKUP_LDIF}.renamed
-		BACKUP_LDIF=${BACKUP_LDIF}.renamed
-		${RUDDER_UPGRADE_TOOLS}/rudder-upgrade-LDAP-schema-2.3-2.4-PI-PT-CR-names-changed.pl ${BACKUP_LDIF}
-		echo "...done."
-
-		REINIT_DB="yes"
-	fi  
-
-	# The format for the cpuSpeed attribute changed in 2.3.8, 2.4.0 and above
-   	# Check if we still have any values in the old format
-	LDAP_CPUSPEED_IS_NOT_INTEGER=`grep -E "^cpuSpeed: [0-9]+\.[0-9]+$" ${BACKUP_LDIF} | wc -l`
-	if [ ${LDAP_CPUSPEED_IS_NOT_INTEGER} -ne 0 ]; then
-		cp ${BACKUP_LDIF} ${BACKUP_LDIF}.cpuSpeedFixed
-		BACKUP_LDIF=${BACKUP_LDIF}.cpuSpeedFixed
-		sed -i "s%^cpuSpeed: \(.*\)\..*%cpuSpeed: \1%" ${BACKUP_LDIF}
-
-		echo "Some cpuSpeed attributes were converted to integers in the LDAP database"
-
-		REINIT_DB="yes"
-    fi
-
 	# If this is an upgrade from an older version of rudder-inventory-ldap
    	# we may need to drop and reimport the database if the underlying version
 	# of libdb has changed.
@@ -248,17 +211,6 @@ if [ "z${BACKUP_LDIF}" != "z" ]; then
 		fi
 	fi
 
-	# If somes attribute exists in nodeId=root,ou=Nodes,cn=rudder-configuration
-	# we have to redefine the ldif in order to move them to 
-	#  nodeId=root,ou=Accepted Inventories,ou=Inventories,cn=rudder-configuration
-	CHECK_NODE_ROOT_ATTR=`cat ${BACKUP_LDIF} | perl -p0e 's/\n //g' | perl -p0e 's/\n([^\n])/%%%%\1/g' | grep -i "^%%%%dn: nodeId=root,ou=Nodes,cn=rudder-configuration" | grep -iE  "%%%%(nodeHostname|publicKey|ipHostNumber|agentName|inventoryDate|localAdministratorAccountName|policyServerId)::? " | wc -l`
-	CHECK_NODE_ROOT_INVENTORY_ENTRY=`cat ${BACKUP_LDIF} | perl -p0e 's/\n //g' | grep -i "^dn: nodeId=root,ou=Nodes,ou=Accepted Inventories,ou=Inventories,cn=rudder-configuration$" | wc -l`
-	if [ ${CHECK_NODE_ROOT_ATTR} -ne 0 -o ${CHECK_NODE_ROOT_INVENTORY_ENTRY} -eq 0 ]; then
-		cp ${BACKUP_LDIF} ${BACKUP_LDIF}.ldapEntriesFixed
-		BACKUP_LDIF=${BACKUP_LDIF}.ldapEntriesFixed
-		${RUDDER_UPGRADE_TOOLS}/rudder-upgrade-LDAP-schema-2.3-2.4-nodeId-root-attributes-changed.pl ${BACKUP_LDIF}
-		REINIT_DB="yes"
-	fi
 
 	if [ "z${REINIT_DB}" = "zyes" ]; then
 		# Do we have a database backup to restore from?
