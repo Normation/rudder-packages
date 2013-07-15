@@ -141,6 +141,7 @@ mkdir -p %{buildroot}%{ruddervardir}/inventories/received
 mkdir -p %{buildroot}%{rudderlogdir}/%{apache}/
 mkdir -p %{buildroot}/etc/%{apache_vhost_dir}/
 mkdir -p %{buildroot}/etc/sysconfig/
+mkdir -p %{buildroot}/usr/share/doc/rudder
 
 cp %{SOURCE1} %{buildroot}%{rudderdir}/etc/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/ldap/bootstrap.ldif %{buildroot}%{rudderdir}/share/
@@ -276,6 +277,7 @@ rm -rf %{buildroot}
 %config(noreplace) /etc/%{apache_vhost_dir}/rudder-default.conf
 %config(noreplace) %{rudderdir}/etc/rudder-networks.conf
 %config(noreplace) /etc/sysconfig/rudder-apache
+/usr/share/doc/rudder
 
 #=================================================
 # Changelog
