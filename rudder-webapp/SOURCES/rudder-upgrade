@@ -93,7 +93,7 @@ function check_and_add_config_property {
     ATTRIBUTESET=`grep "^${PROPERTY_NAME}[ \t]*=" /opt/rudder/etc/rudder-web.properties | wc -l`
     if [ ${ATTRIBUTESET} -eq 0 ]; then
         echo "${PROPERTY_VALUE}" >> /opt/rudder/etc/rudder-web.properties
-        echo "New configuration property ${PROPERTY_NAME} added to /opt/rudder/etc/rudder-web.properties"
+        echo "INFO: New configuration property ${PROPERTY_NAME} added to /opt/rudder/etc/rudder-web.properties"
     fi
 }
 
@@ -117,7 +117,7 @@ retry_wrapper() {
             echo "# /opt/rudder/bin/rudder-upgrade"
             /bin/false
         else
-            echo "${2} service verification failure (try ${tries} of ${MAXTRIES}), trying again..."
+            echo -n "."
             /bin/sleep 2
         fi
     done
@@ -125,20 +125,22 @@ retry_wrapper() {
 
 # Before doing anything on git, set the branch to the Technique Reference Library branch
 if [ -d /var/rudder/policy-templates/.git ];then
-	cd /var/rudder/policy-templates/ && git checkout ${GIT_BRANCH}
+	cd /var/rudder/policy-templates/ && git checkout ${GIT_BRANCH} >/dev/null 2>&1
 fi
 if [ -d /var/rudder/configuration-repository/.git ];then
-	cd /var/rudder/configuration-repository/ && git checkout ${GIT_BRANCH}
+	cd /var/rudder/configuration-repository/ && git checkout ${GIT_BRANCH} >/dev/null 2>&1
 fi
 
 # - 2.6.0 : Check the LDAP and PostgreSQL daemons status before upgrading
 if [ ${LDAP_EXISTS} -ne 0 ]; then
+  echo -n "INFO: Checking LDAP service status..."
   retry_wrapper '/opt/rudder/bin/ldapsearch -x -D "${LDAP_USER}" -w "${LDAP_PASSWORD}" -s one -b "cn=rudder-configuration" cn >/dev/null 2>&1' 'LDAP'
-  echo "The LDAP service is accessible and configured."
+  echo " OK"
 fi
 
+echo -n "INFO: Checking PostgreSQL service status..."
 retry_wrapper 'su - postgres -c "psql -t -d rudder -c \"select count(id) from ruddersysevents\"" >/dev/null 2>&1' 'PostgreSQL'
-echo "The PostgreSQL service is accessible and configured."
+echo " OK"
 
 # Check for configuration property added in 2.5
 check_and_add_config_property rudder.batch.reports.logInterval "###############################
@@ -166,47 +168,46 @@ rudder.batch.reports.logInterval=1
 RES=$(su - postgres -c "psql -t -d rudder -c \"select count(*) from (select xpath('/entry/*[@fileFormat=1]',data) AS x from eventlog) as Y where array_upper(x, 1) > 0;\"")
 RES2=$(su - postgres -c "psql -t -d rudder -c \"select count(*) from (select xpath('/entry/addPending',data) AS x from eventlog) as Y where array_upper(x, 1) > 0;\"")
 if [ $RES -ne 0 ] || [ $RES2 -ne 0 ]; then
-   echo "Warning: Some events log are still based on an old file format (file format 1), please upgrade first to 2.6 to make this migration"
+   echo "WARNING: Some events log are still based on an old file format (file format 1), please upgrade first to 2.6 to make this migration"
 fi
 
 # File Format migration : version 2 (2.4) to 3 (2.4) : Check if an event log has File format 2 and set migration flag if needed
 RES=$(su - postgres -c "psql -t -d rudder -c \"select count(*) from (select xpath('/entry/*[@fileFormat=2]',data) AS x from eventlog) as Y where array_upper(x, 1) > 0;\"")
 RES2=$(su - postgres -c "psql -t -d rudder -c \"select count(*) from (select xpath('/entry/addPending',data) AS x from eventlog) as Y where array_upper(x, 1) > 0;\"")
 if [ $RES -ne 0 ] || [ $RES2 -ne 0 ]; then
-	psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.4-2.4-set-migration-needed-flag-for-EventLog.sql > /dev/null
+	psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.4-2.4-set-migration-needed-flag-for-EventLog.sql >/dev/null 2>&1
 fi
 
 # Upgrade database schema from 2.4 to 2.5 if necessary - first part : Check if the rudder properties table is present, and create it if needed.
 RES=$(su - postgres -c "psql -t -d rudder -c \"select count(oid) from pg_class where lower(relname) = 'rudderproperties'\"")
 if [ $RES -eq 0 ]; then
-	psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.4-2.5-last-error-report-id.sql > /dev/null
+	psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.4-2.5-last-error-report-id.sql >/dev/null 2>&1
 fi
 
 # Upgrade database schema from 2.4 to 2.5 if necessary - second part : Check if the git commit table is present, and create it if needed.
 RES=$(su - postgres -c "psql -t -d rudder -c \"select count(oid) from pg_class where lower(relname) = 'gitcommit'\"")
 if [ $RES -eq 0 ]; then
-	psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.4-2.5-git-commit.sql > /dev/null
+	psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.4-2.5-git-commit.sql >/dev/null 2>&1
 fi
 
 # Upgrade database schema from 2.4 to 2.5 if necessary - third part : Check if the modificationId column is present in event log table, and create it if needed.
 RES=$(su - postgres -c "psql -t -d rudder -c \"select count(attname) from pg_attribute where attrelid = (select oid from pg_class where relname = 'eventlog') and attname = 'modificationid'\"")
 if [ $RES -eq 0 ]; then
-	psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.4-2.5-add-modification-id-to-EventLog.sql > /dev/null
+	psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.4-2.5-add-modification-id-to-EventLog.sql >/dev/null 2>&1
 fi
 
 # Upgrade database schema from 2.5 to 2.6 if necessary - first part : Add a column unexpandedComponentsValues to table ExpectedReports.
 RES=$(su - postgres -c "psql -t -d rudder -c \"select count(attname) from pg_attribute where attrelid = (select oid from pg_class where relname = 'expectedreports') and attname = 'unexpandedcomponentsvalues'\"")
 if [ $RES -eq 0 ]; then
-        psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.5-2.6-unexpanded-value.sql > /dev/null
+        psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.5-2.6-unexpanded-value.sql >/dev/null 2>&1
 fi
 
 ## Change attribute from dn:ruleId=inventory-all,ou=Rules,ou=Rudder,cn=rudder-configuration
 ## Check if ruleTarget attribute contains all nodes or all execpt policy server and LDAP is setting up
-CHECK_INVENTORY_TARGET=`/opt/rudder/bin/ldapsearch -H ldap://localhost -x -w ${LDAP_PASSWORD} -D ${LDAP_USER} -b "ruleId=inventory-all,ou=Rules,ou=Rudder,cn=rudder-configuration" -LLL "(ruleTarget=*)"  2> /dev/null | grep "^ruleTarget: special:all$" | wc -l`
+CHECK_INVENTORY_TARGET=`/opt/rudder/bin/ldapsearch -H ldap://localhost -x -w ${LDAP_PASSWORD} -D ${LDAP_USER} -b "ruleId=inventory-all,ou=Rules,ou=Rudder,cn=rudder-configuration" -LLL "(ruleTarget=*)" >/dev/null 2>&1 | grep "^ruleTarget: special:all$" | wc -l`
 if [ ${LDAP_EXISTS} -ne 0 -a ${CHECK_INVENTORY_TARGET} -ne 1 ]
 then
-  echo "Change ruleTarget in  dn:ruleId=inventory-all,ou=Rules,ou=Rudder,cn=rudder-configuration LDAP entry"
-  /opt/rudder/bin/ldapmodify -x -D ${LDAP_USER} -w ${LDAP_PASSWORD} -H ldap://localhost << EOF
+  /opt/rudder/bin/ldapmodify -x -D ${LDAP_USER} -w ${LDAP_PASSWORD} -H ldap://localhost  >/dev/null 2>&1 << EOF
 dn: ruleId=inventory-all,ou=Rules,ou=Rudder,cn=rudder-configuration
 changetype: modify
 replace: ruleTarget
@@ -220,56 +221,54 @@ SRCTECHDIR=/opt/rudder/share/techniques/system/
 TRGTECHDIR=/var/rudder/configuration-repository/techniques/system/
 
 if [ -d ${SRCTECHDIR} -a -d ${TRGTECHDIR} ]; then
-	if ! diff -Naur /opt/rudder/share/techniques/system/ /var/rudder/configuration-repository/techniques/system/ > /dev/null; then
+	if ! diff -Naur /opt/rudder/share/techniques/system/ /var/rudder/configuration-repository/techniques/system/ >/dev/null 2>&1; then
 		rsync --delete -rptgoq /opt/rudder/share/techniques/system/ /var/rudder/configuration-repository/techniques/system/
 		cd /var/rudder/configuration-repository/techniques/ && git add -A system/ && git commit -m "Upgrade system Techniques - automatically done by rudder-upgrade script"
 		# For every upgrade, we schedule a Technique reloading REST call on the next CFEngine run
-		echo "A Technique library reload is needed and has been scheduled."
+		echo "INFO: A Technique library reload is needed and has been scheduled."
 		touch /opt/rudder/etc/force_technique_reload
 	fi
 fi
 
 
 # All versions: Check that Rudder database is able to handle backslash
-CHECK_BACKSLASH=$(su - postgres -c "psql -t -d rudder -c \"select '\\foo';\"" 2> /dev/null | grep "foo" | wc -l)
+CHECK_BACKSLASH=$(su - postgres -c "psql -t -d rudder -c \"select '\\foo';\"" >/dev/null 2>&1 | grep "foo" | wc -l)
 if [ ${CHECK_BACKSLASH} -ne 1 ]; then
-  echo "Rudder database is not backslash compliant, then a modification will be made."
-  su - postgres -c "psql -t -d rudder -c \"alter database rudder set standard_conforming_strings=true;\""
-  echo "Done. PostgreSQL and Rudder will be restarted"
-  /etc/init.d/postgresql restart
-  /etc/init.d/jetty restart
+  echo -n "INFO: Rudder database is not backslash compliant, then a modification will be made..."
+  su - postgres -c "psql -t -d rudder -c \"alter database rudder set standard_conforming_strings=true;\"" >/dev/null 2>&1
+  echo " Done"
+  echo -n "INFO: PostgreSQL and Rudder will be restarted..."
+  /etc/init.d/postgresql restart >/dev/null 2>&1
+  /etc/init.d/jetty restart >/dev/null 2>&1
+  echo " Done"
 fi
 
 
 # All versions: Migration of PT 'Set the permissions of files' (Ensure that all actions below won't happen if migration has already made)
 if [ ! -f ${PT_DIR}/fileConfiguration/fileSecurity/filesPermissions/1.0/metadata.xml -a -f ${PT_DIR}/fileConfiguration/security/filesPermissions/1.0/metadata.xml ]; then
 	## Commit all modifications before migration
-	cd ${PT_DIR} && git add . && git add -u && git commit -am "Committing all pending policy template changes for automatic migration of the policy template from ${PT_DIR}/fileConfiguration/security/ to ${PT_DIR}/fileConfiguration/fileSecurity/" || true
+	cd ${PT_DIR} && git add . && git add -u && git commit -am "Committing all pending policy template changes for automatic migration of the policy template from ${PT_DIR}/fileConfiguration/security/ to ${PT_DIR}/fileConfiguration/fileSecurity/" >/dev/null 2>&1 || true
 	## Create right folder if it doesn't exist
 	if [ ! -d ${PT_DIR}/fileConfiguration/fileSecurity/ ]; then
 		mkdir -p "${PT_DIR}/fileConfiguration/fileSecurity"
-		echo "${PT_DIR}/fileConfiguration/fileSecurity has been created"
-	else
-		echo "${PT_DIR}/fileConfiguration/fileSecurity already exists"
 	fi
 
 	if [ -d ${PT_DIR}/fileConfiguration/security/ ]; then
 		## Check that filePermissions.st located in fileConfiguration/security/ is not duplicated and in the right folder
 		if [ -d ${PT_DIR}/fileConfiguration/security/filesPermissions/ ]; then
-			echo "The Policy Template 'Set the permissions of files' is not correctly located"
+			echo -n "WARNING: The Policy Template 'Set the permissions of files' is not correctly located, fixing..."
 				cd ${PT_DIR} && git mv fileConfiguration/security/* fileConfiguration/fileSecurity/
-				cd ${PT_DIR} && git commit -m "Correct Policy Template 'Set the permissions of files' location"
-			echo "The location of the Policy Template 'Set the permissions of files' is now correct"
+				cd ${PT_DIR} && git commit -m "Correct Policy Template 'Set the permissions of files' location" >/dev/null 2>&1
+			echo " Done"
 		fi
 		## Remove the folder which should contain no more files or folder
 		rm -rf ${PT_DIR}/fileConfiguration/security/ # Not using git since it can't manage folder without file
-		echo  "${PT_DIR}/fileConfiguration/security/ has been removed"
 	fi
 fi
 
 
 # - 2.5.0 : Update logback.xml in order to have information about non compliant reports
-if ! cat /opt/rudder/etc/logback.xml | perl -p0e 's/\n//g' | perl -p0e 's/<!--.(?:(?!-->).)*-->//g' | perl -p0e 's/> *</></g' | grep -E '<property name="REPORT_DIR" value="[^"]+" />' > /dev/null
+if ! cat /opt/rudder/etc/logback.xml | perl -p0e 's/\n//g' | perl -p0e 's/<!--.(?:(?!-->).)*-->//g' | perl -p0e 's/> *</></g' | grep -E '<property name="REPORT_DIR" value="[^"]+" />' >/dev/null 2>&1
 then
     sed -i 's%^ *</configuration>%  <!-- Here come non compliant reports logger -->\n\n  <property name="REPORT_DIR" value="/var/log/rudder/compliance" />\n\n  <!--\n    A file log appender for exploitation logs about failure reports.\n  -->\n  <appender name="REPORTLOG" class="ch.qos.logback.core.FileAppender">\n    <file>${REPORT_DIR}/non-compliant-reports.log</file>\n    <append>true</append>\n    <encoder>\n      <pattern>\%msg\%n</pattern>\n    </encoder>\n  </appender>\n\n  <logger name="non-compliant-reports" level="info" additivity="false">\n    <appender-ref ref="REPORTLOG" />\n    <!-- comment the following appender if you dont want to have logs about non compliant reports in both stdout and reportlog -->\n    <appender-ref ref="STDOUT" />\n  </logger>\n\n</configuration>%' /opt/rudder/etc/logback.xml
 fi
@@ -277,7 +276,7 @@ fi
 # - 2.4.1 : Add the group serialization table (GroupsNodesJoin) to the database
 RES=$(su - postgres -c "psql -d rudder -t -c \"select count(1) from pg_class where relname = 'groupsnodesjoin'\"")
 if [ $RES -eq 0 ]; then
-	psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.4-2.5-group-serialisation.sql > /dev/null
+	psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.4-2.5-group-serialisation.sql >/dev/null 2>&1
 fi
 
 # - 2.5.0 : Add the automatic reports cleaning properties
@@ -307,32 +306,32 @@ rudder.batch.databasecleaner.runtime.hour=0
 rudder.batch.databasecleaner.runtime.day=sunday"
 
 # - 2.6.0 : Migration LDAP modify entries about System groups
-echo "Modifying system group entries in LDAP if necessary..."
+echo -n "INFO: Modifying system group entries in LDAP if necessary..."
 # Ensure that LDAP exist before to do any request
 if [ ${LDAP_EXISTS} -ne 0 ]; then
-/opt/rudder/bin/ldapmodify -x -D ${LDAP_USER} -w ${LDAP_PASSWORD} -H ldap://localhost -f ${RUDDER_UPGRADE_TOOLS}/rudder-upgrade-modify-system-group-entries.ldif
+/opt/rudder/bin/ldapmodify -x -D ${LDAP_USER} -w ${LDAP_PASSWORD} -H ldap://localhost -f ${RUDDER_UPGRADE_TOOLS}/rudder-upgrade-modify-system-group-entries.ldif >/dev/null 2>&1
 fi
-echo "OK"
+echo " Done"
 
 # - 2.6.0 : Migration LDAP to unescape entries previously escaped by the user
 if [ ! -f /opt/rudder/etc/escaping_migration_done ]; then
-	echo "Converting escaped directive variabled to plain format..."
+	echo -n "INFO: Converting escaped directive variabled to plain format..."
 	# If some entries match something like \" or \\, convert them to either " or \ and change them in the LDAP.
-	/opt/rudder/bin/ldapsearch -H ldap://localhost -x -D ${LDAP_USER} -w ${LDAP_PASSWORD} -b 'techniqueCategoryId=Active Techniques,ou=Rudder,cn=rudder-configuration' -LLL '(&(objectClass=directive)(|(directiveVariable=*\\"*)(directiveVariable=*\\\\*)))' directiveVariable  2> /dev/null \
+	/opt/rudder/bin/ldapsearch -H ldap://localhost -x -D ${LDAP_USER} -w ${LDAP_PASSWORD} -b 'techniqueCategoryId=Active Techniques,ou=Rudder,cn=rudder-configuration' -LLL '(&(objectClass=directive)(|(directiveVariable=*\\"*)(directiveVariable=*\\\\*)))' directiveVariable >/dev/null 2>&1 \
 	| perl -p0e "s/\n //g" \
 	|sed "s/\(ou=Rudder,cn=rudder-configuration\)/\1\nchangetype: modify\nreplace: directiveVariable/" \
 	|sed "s/\\\\\"/\"/g" \
 	|sed "s%\\\\\\\%\\\%g" \
-	|/opt/rudder/bin/ldapmodify -H ldap://localhost -x -D ${LDAP_USER} -w ${LDAP_PASSWORD}
+	|/opt/rudder/bin/ldapmodify -H ldap://localhost -x -D ${LDAP_USER} -w ${LDAP_PASSWORD} >/dev/null 2>&1
 
 	touch /opt/rudder/etc/escaping_migration_done
-	echo "OK"
+	echo "Done"
 fi
 
 # - 2.6.0 : Migration SQL to add the necessary workflow tables
 RES=$(su - postgres -c "psql -d rudder -t -c \"select count(1) from pg_class where relname = 'changerequest'\"")
 if [ $RES -eq 0 ]; then
-	psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.5-2.6-add_workflow_support.sql > /dev/null
+	psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.5-2.6-add_workflow_support.sql >/dev/null 2>&1
 fi
 
 # - 2.6.0 : Add the workflows properties and replace the autoDeployOnModification property
@@ -368,7 +367,7 @@ rudder.workflow.enabled=${WORKFLOWS_BOOL:-"false"}"
 # - 2.6.0 : Add modification id column to change request table
 RES=$(su - postgres -c "psql -t -d rudder -c \"select count(attname) from pg_attribute where attrelid = (select oid from pg_class where relname = 'changerequest') and attname = 'modificationid'\"")
 if [ $RES -eq 0 ]; then
-        psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.6-2.6-add-modification-Id-change-request-column.sql > /dev/null
+        psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.6-2.6-add-modification-Id-change-request-column.sql >/dev/null 2>&1
 fi
 
 # - 2.6.0 : Add the property to enable/disable workflow self validation

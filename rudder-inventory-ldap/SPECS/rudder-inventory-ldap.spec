@@ -194,7 +194,7 @@ BACKUP_LDIF_PATH=/var/rudder/ldap/backup/
 BACKUP_LDIF_REGEX="^/var/rudder/ldap/backup/openldap-data-pre-upgrade-\([0-9]\{14\}\)\.ldif$"
 
 # Do we have a backup file from a previous upgrade?
-BACKUP_LDIF=`find ${BACKUP_LDIF_PATH} -regextype sed -regex "${BACKUP_LDIF_REGEX}" | sort -nr | head -n1`
+BACKUP_LDIF=`find ${BACKUP_LDIF_PATH} -regextype sed -regex "${BACKUP_LDIF_REGEX}" >/dev/null 2>&1 | sort -nr | head -n1`
 if [ "z${BACKUP_LDIF}" != "z" ]; then
 	TIMESTAMP=`echo ${BACKUP_LDIF} | sed "s%${BACKUP_LDIF_REGEX}%\1%"`
 
@@ -221,7 +221,9 @@ if [ "z${BACKUP_LDIF}" != "z" ]; then
 
 		# Stop OpenLDAP - use forcestop to avoid the init script failing
 		# when trying to do the backup with bad libdb versions
-		/sbin/service slapd forcestop
+		echo -n "Stopping slapd..."
+		/sbin/service slapd forcestop >/dev/null 2>&1
+		echo " Done"
 
 		# Backup the old database
 		LDAP_BACKUP_DIR="/var/rudder/ldap/openldap-data-backup-upgrade-on-${TIMESTAMP}/"
@@ -232,7 +234,9 @@ if [ "z${BACKUP_LDIF}" != "z" ]; then
 		/opt/rudder/sbin/slapadd -q -l ${BACKUP_LDIF}
 
 		# Start OpenLDAP
-		/sbin/service slapd start
+		echo -n "Starting slapd..."
+		/sbin/service slapd start >/dev/null 2>&1
+		echo " Done"
 
 		echo "OpenLDAP database was successfully upgraded to new format"
 		echo "You can safely remove the backups in ${LDAP_BACKUP_DIR}"
@@ -256,8 +260,9 @@ fi
 # Remove temporary files about LDAP indexes
 rm -f ${SLAPD_DEFINED_INDEXES} ${SLAPD_ACTUAL_INDEXES}
 
-echo "All done. Starting slapd..."
-/sbin/service slapd start
+echo -n "Starting slapd..."
+/sbin/service slapd start >/dev/null 2>&1
+echo " Done"
 
 #=================================================
 # Cleaning

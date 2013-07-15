@@ -186,19 +186,18 @@ cp -rf %{_builddir}/rudder-sources/rudder-doc/html %{buildroot}/usr/share/doc/ru
 # Post Installation
 #=================================================
 
-echo "Setting Apache HTTPd as a boot service"
-/sbin/chkconfig --add %{apache}
+echo -n "INFO: Setting Apache HTTPd as a boot service..."
+/sbin/chkconfig --add %{apache} 2&> /dev/null
+echo " Done"
 
-echo "Reloading syslog"
-%{sysloginitscript} reload
-
-/sbin/service %{apache} stop
-# a2dissite default
+echo -n "INFO: Reloading syslog..."
+%{sysloginitscript} reload > /dev/null
+echo " Done"
 
 # Do this ONLY at first install
 if [ $1 -eq 1 ]
 then
-		echo -e '# This sources the Rudder needed by Rudder\n. /etc/sysconfig/rudder-apache' >> /etc/sysconfig/apache2
+		echo -e '# This sources the configuration file needed by Rudder\n. /etc/sysconfig/rudder-apache' >> /etc/sysconfig/apache2
 		echo 'DAVLockDB /tmp/davlock.db' >> /etc/%{apache}/conf.d/dav_mod.conf
 
 		mkdir -p /var/rudder/configuration-repository
@@ -210,7 +209,7 @@ fi
 # Update /etc/sysconfig/apache2 in case an old module loading entry has already been created by Rudder
 if grep -q 'APACHE_MODULES="${APACHE_MODULES} rewrite dav dav_fs proxy proxy_http' /etc/sysconfig/apache2
 then
-	echo "Upgrading the /etc/sysconfig/apache2 file, Rudder needed modules for Apache are now listed in /etc/sysconfig/rudder-apache"
+	echo "INFO: Upgrading the /etc/sysconfig/apache2 file, Rudder needed modules for Apache are now listed in /etc/sysconfig/rudder-apache"
 	sed -i 's%APACHE_MODULES="${APACHE_MODULES} rewrite dav dav_fs proxy proxy_http.*%# This sources the Rudder needed by Rudder\n. /etc/sysconfig/rudder-apache%' /etc/sysconfig/apache2
 fi
 
@@ -222,16 +221,21 @@ chown root:%{apache_group} %{ruddervardir}/inventories/accepted-nodes-updates
 chmod 2770 %{ruddervardir}/inventories/accepted-nodes-updates
 chmod 755 -R %{rudderdir}/share/tools
 chmod 655 -R %{rudderdir}/share/load-page
-%{htpasswd_cmd} -bc %{rudderdir}/etc/htpasswd-webdav-initial rudder rudder
-%{htpasswd_cmd} -bc %{rudderdir}/etc/htpasswd-webdav rudder rudder
+%{htpasswd_cmd} -bc %{rudderdir}/etc/htpasswd-webdav-initial rudder rudder  >/dev/null 2>&1
+%{htpasswd_cmd} -bc %{rudderdir}/etc/htpasswd-webdav rudder rudder  >/dev/null 2>&1
 
-echo "(Re-)starting Apache HTTPd"
-/sbin/service %{apache} restart
+echo -n "INFO: Restarting Apache HTTPd..."
+/sbin/service %{apache} restart >/dev/null 2>&1
+echo " Done"
 
 # Run any upgrades
 # Note this must happen *before* creating the technique store, as it was moved in version 2.3.2
 # and creating it manually would break the upgrade logic
-%{rudderdir}/bin/rudder-upgrade
+if [ $1 -ne 1 ];then
+  echo "INFO: Launching script to check if a migration is needed"
+  %{rudderdir}/bin/rudder-upgrade
+  echo "INFO: End of migration script"
+fi
 
 # Create and populate technique store
 if [ ! -d /var/rudder/configuration-repository ]; then mkdir -p /var/rudder/configuration-repository; fi
