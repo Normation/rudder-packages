@@ -99,7 +99,7 @@ binary-arch: install
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-upgrade /opt/rudder/bin/
 
 	# Install documentation
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder-doc/ html %{buildroot}/usr/share/doc/rudder
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder-doc/ html /usr/share/doc/rudder
 
 
 #	dh_installmenu
