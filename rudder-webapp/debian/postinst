@@ -25,9 +25,11 @@ case "$1" in
   SITES_TO_DISABLE="default"
   MODULES_TO_ENABLE="dav_fs rewrite proxy_http headers"
   for dissite in ${SITES_TO_DISABLE}
+  do
     a2dissite ${dissite} >/dev/null 2>&1
   done
   for enmod in ${MODULES_TO_ENABLE}
+  do
     a2enmod ${enmod} >/dev/null 2>&1
   done
   # Add right to apache user to access /var/rudder/inventories/incoming
