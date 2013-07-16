@@ -125,16 +125,16 @@ fi
 # Post Installation
 #=================================================
 #Check if postgresql is started
-/sbin/service postgresql status > /dev/null
+/sbin/service postgresql status >/dev/null 2<&1
 if [ $? -ne 0 ]
 then
-  /sbin/service postgresql start
+  /sbin/service postgresql start >/dev/null 2>&1
 fi
 
 echo -n "INFO: Setting postgresql as a boot service..."
-/sbin/chkconfig --add postgresql
+/sbin/chkconfig --add postgresql >/dev/null 2>&1
 %if 0%{?el6}
-/sbin/chkconfig postgresql on
+/sbin/chkconfig postgresql on >/dev/null 2>&1
 %endif
 echo " Done"
 
@@ -161,14 +161,14 @@ usrname="rudder"
 CHK_PG_DB=$(su - postgres -c "psql -t -c \"select count(1) from pg_catalog.pg_database where datname = '$dbname'\"")
 CHK_PG_USER=$(su - postgres -c "psql -t -c \"select count(1) from pg_user where usename = '$usrname'\"")
 # Rudder user
-if [ $CHK_PG_USER -e 0 ]
+if [ ${CHK_PG_USER} -eq 0 ]
 then
   echo -n "INFO: Creating Rudder PostgreSQL user..."
   su - postgres -c "psql -q -c \"CREATE USER rudder WITH PASSWORD 'Normation'\"" >/dev/null 2>&1
   echo " Done"
 fi
 # Rudder database
-if [ $CHK_PG_DB -e 0 ]
+if [ ${CHK_PG_DB} -eq 0 ]
 then
   echo -n "INFO: Creating Rudder PostgreSQL database..."
   su - postgres -c "psql -q -c \"CREATE DATABASE rudder WITH OWNER = $dbname\"" >/dev/null 2>&1

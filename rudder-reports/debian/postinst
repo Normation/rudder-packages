@@ -52,14 +52,14 @@ case "$1" in
   CHK_PG_DB=$(su - postgres -c "psql -t -c \"select count(1) from pg_catalog.pg_database where datname = '$dbname'\"")
   CHK_PG_USER=$(su - postgres -c "psql -t -c \"select count(1) from pg_user where usename = '$usrname'\"")
   # Rudder user
-  if [ $CHK_PG_USER -e 0 ]
+  if [ ${CHK_PG_USER} -eq 0 ]
   then
     echo -n "Creating Rudder PostgreSQL user..."
     su - postgres -c "psql -q -c \"CREATE USER rudder WITH PASSWORD 'Normation'\"" >/dev/null 2>&1
     echo "Done"
   fi
   # Rudder database
-  if [ $CHK_PG_DB -e 0 ]
+  if [ ${CHK_PG_DB} -eq 0 ]
   then
     echo -n "INFO: Creating Rudder PostgreSQL database..."
     su - postgres -c "psql -q -c \"CREATE DATABASE rudder WITH OWNER = $dbname\"" >/dev/null 2>&1
