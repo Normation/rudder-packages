@@ -32,7 +32,6 @@ set -e
 # Upgrade checks currently implemented:
 # - All versions: upgrade system Techniques automatically and reload the Techniqe library
 # - All versions: Check that Rudder database is able to handle backslash
-# - All versions: Migration of Technique 'Set the permissions of files'
 # - 2.4.1 : Add the group serialization table (GroupsNodesJoin) to the database
 # - 2.5.0 : Add the automatic reports cleaning properties
 # - 2.5.0 : Migration DB schema to add table to the SQL database to store error report logger state
@@ -236,29 +235,6 @@ if [ ${CHECK_BACKSLASH} -ne 1 ]; then
   /etc/init.d/postgresql restart >/dev/null 2>&1
   /etc/init.d/jetty restart >/dev/null 2>&1
   echo " Done"
-fi
-
-
-# All versions: Migration of Technique 'Set the permissions of files' (Ensure that all actions below won't happen if migration has already made)
-if [ ! -f ${TECH_DIR}/fileConfiguration/fileSecurity/filesPermissions/1.0/metadata.xml -a -f ${TECH_DIR}/fileConfiguration/security/filesPermissions/1.0/metadata.xml ]; then
-	## Commit all modifications before migration
-	cd ${TECH_DIR} && git add . && git add -u && git commit -am "Committing all pending technique changes for automatic migration of the technique from ${TECH_DIR}/fileConfiguration/security/ to ${TECH_DIR}/fileConfiguration/fileSecurity/" >/dev/null 2>&1 || true
-	## Create right folder if it doesn't exist
-	if [ ! -d ${TECH_DIR}/fileConfiguration/fileSecurity/ ]; then
-		mkdir -p "${TECH_DIR}/fileConfiguration/fileSecurity"
-	fi
-
-	if [ -d ${TECH_DIR}/fileConfiguration/security/ ]; then
-		## Check that filePermissions.st located in fileConfiguration/security/ is not duplicated and in the right folder
-		if [ -d ${TECH_DIR}/fileConfiguration/security/filesPermissions/ ]; then
-			echo -n "WARNING: The Technique 'Set the permissions of files' is not correctly located, fixing..."
-				cd ${TECH_DIR} && git mv fileConfiguration/security/* fileConfiguration/fileSecurity/
-				cd ${TECH_DIR} && git commit -m "Correct Technique 'Set the permissions of files' location" >/dev/null 2>&1
-			echo " Done"
-		fi
-		## Remove the folder which should contain no more files or folder
-		rm -rf ${TECH_DIR}/fileConfiguration/security/ # Not using git since it can't manage folder without file
-	fi
 fi
 
 
