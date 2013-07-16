@@ -19,14 +19,17 @@ set -e
 
 case "$1" in
     configure)
-		echo "Restarting syslog"
-		invoke-rc.d rsyslog restart
-  /etc/init.d/apache2 stop
-  a2dissite default
-  a2enmod dav_fs
-  a2enmod rewrite
-  a2enmod proxy_http
-  a2enmod headers
+  echo -n "INFO: Restarting syslog..."
+  invoke-rc.d rsyslog restart >/dev/null 2>&1
+  echo "Done"
+  SITES_TO_DISABLE="default"
+  MODULES_TO_ENABLE="dav_fs rewrite proxy_http headers"
+  for dissite in ${SITES_TO_DISABLE}
+    a2dissite ${dissite} >/dev/null 2>&1
+  done
+  for enmod in ${MODULES_TO_ENABLE}
+    a2enmod ${enmod} >/dev/null 2>&1
+  done
   # Add right to apache user to access /var/rudder/inventories/incoming
   chmod 751 /var/rudder/inventories
   chown root:www-data /var/rudder/inventories/incoming
@@ -34,17 +37,20 @@ case "$1" in
   chown root:www-data /var/rudder/inventories/accepted-nodes-updates
   chmod 2770 /var/rudder/inventories/accepted-nodes-updates
   chmod 755 -R /opt/rudder/share/tools
-  a2ensite rudder-default
-  htpasswd -bc /opt/rudder/etc/htpasswd-webdav-initial rudder rudder
-  htpasswd -bc /opt/rudder/etc/htpasswd-webdav rudder rudder
+  a2ensite rudder-default >/dev/null 2>&1
+  htpasswd -bc /opt/rudder/etc/htpasswd-webdav-initial rudder rudder >/dev/null 2>&1
+  htpasswd -bc /opt/rudder/etc/htpasswd-webdav rudder rudder >/dev/null 2>&1
 
-  echo "(Re-)starting Apache HTTPd"
-  /etc/init.d/apache2 restart
+  echo -n "INFO: Restarting Apache HTTPd..."
+  /etc/init.d/apache2 restart >/dev/null 2>&1
+  echo " Done"
 
   # Run any upgrades
   # Note this must happen *before* creating the technique store, as it was moved in version 2.3.2
   # and creating it manually would break the upgrade logic
+  echo "INFO: Launching script to check if a migration is needed"
   /opt/rudder/bin/rudder-upgrade
+  echo "INFO: End of migration script"
 
 	# Create and populate technique store
 	if [ ! -d /var/rudder/configuration-repository ]; then mkdir -p /var/rudder/configuration-repository; fi
@@ -60,15 +66,20 @@ case "$1" in
 	CHECK_UBUNTU_VERSION=`/usr/bin/lsb_release -rs | cut -d. -f1`
 	CHECK_RSYSLOG_PORT=`grep -E "^rudder.syslog.port\s*=\s*[0-9]+\s*$" /opt/rudder/etc/rudder-web.properties | cut -d "=" -f2`
 	if [ "z${CHECK_DIST}" = "zUbuntu" -a ${CHECK_UBUNTU_VERSION} -ge 12 -a ${CHECK_RSYSLOG_PORT} -lt 1024 ]; then
-		echo "Since Ubuntu 12.04, rsyslog port number used by Rudder needs to be >1024"
+		echo "INFO: Since Ubuntu 12.04, rsyslog port number used by Rudder needs to be >1024"
 		sed -i "s/^rudder.syslog.port\w*=.*$/rudder.syslog.port=5514/" /opt/rudder/etc/rudder-web.properties
-		echo "rsyslog port number changed to 5514"
+		echo "INFO: rsyslog port number changed to 5514"
 	fi
 
 
   # Restart the webapp
-  echo "Restarting Rudder webapp and inventory-endpoint"
-  /etc/init.d/jetty restart
+  echo -n "INFO: Restarting Rudder webapp and inventory-endpoint..."
+  if [ /etc/init.d/jetty check >/dev/null 2>&1 ];then
+    /etc/init.d/jetty start >/dev/null 2>&1
+  else
+    /etc/init.d/jetty restart >/dev/null 2>&1
+  fi
+  echo " Done"
 
     ;;
 
