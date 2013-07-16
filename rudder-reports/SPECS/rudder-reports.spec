@@ -148,7 +148,7 @@ do
         CPT=$((${CPT}+1))
         if [ ${CPT} -eq ${TIMEOUT} ]
         then
-                echo "ERROR: Connection to PostgreSQL has not been established before timeout.Exiting"
+                echo -e "\nERROR: Connection to PostgreSQL has not been established before timeout. Exiting"
                 exit 1
         fi
 done
