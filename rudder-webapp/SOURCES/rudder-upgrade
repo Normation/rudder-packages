@@ -168,7 +168,7 @@ rudder.batch.reports.logInterval=1
 RES=$(su - postgres -c "psql -t -d rudder -c \"select count(*) from (select xpath('/entry/*[@fileFormat=1]',data) AS x from eventlog) as Y where array_upper(x, 1) > 0;\"")
 RES2=$(su - postgres -c "psql -t -d rudder -c \"select count(*) from (select xpath('/entry/addPending',data) AS x from eventlog) as Y where array_upper(x, 1) > 0;\"")
 if [ $RES -ne 0 ] || [ $RES2 -ne 0 ]; then
-   echo "WARNING: Some events log are still based on an old file format (file format 1), please upgrade first to 2.6 to make this migration"
+   echo "WARNING: Some event log are still based on an old file format (file format 1), please upgrade first to 2.6 to make this migration"
 fi
 
 # File Format migration : version 2 (2.4) to 3 (2.4) : Check if an event log has File format 2 and set migration flag if needed
@@ -232,9 +232,9 @@ fi
 
 
 # All versions: Check that Rudder database is able to handle backslash
-CHECK_BACKSLASH=$(su - postgres -c "psql -t -d rudder -c \"select '\\foo';\"" >/dev/null 2>&1 | grep "foo" | wc -l)
+CHECK_BACKSLASH=$(su - postgres -c "psql -t -d rudder -c \"select '\\foo';\"" 2>/dev/null| grep "foo" | wc -l)
 if [ ${CHECK_BACKSLASH} -ne 1 ]; then
-  echo -n "INFO: Rudder database is not backslash compliant, then a modification will be made..."
+  echo -n "INFO: Rudder database is not backslash compliant, fixing..."
   su - postgres -c "psql -t -d rudder -c \"alter database rudder set standard_conforming_strings=true;\"" >/dev/null 2>&1
   echo " Done"
   echo -n "INFO: PostgreSQL and Rudder will be restarted..."
@@ -317,7 +317,7 @@ echo " Done"
 if [ ! -f /opt/rudder/etc/escaping_migration_done ]; then
 	echo -n "INFO: Converting escaped directive variabled to plain format..."
 	# If some entries match something like \" or \\, convert them to either " or \ and change them in the LDAP.
-	/opt/rudder/bin/ldapsearch -H ldap://localhost -x -D ${LDAP_USER} -w ${LDAP_PASSWORD} -b 'techniqueCategoryId=Active Techniques,ou=Rudder,cn=rudder-configuration' -LLL '(&(objectClass=directive)(|(directiveVariable=*\\"*)(directiveVariable=*\\\\*)))' directiveVariable >/dev/null 2>&1 \
+	/opt/rudder/bin/ldapsearch -H ldap://localhost -x -D ${LDAP_USER} -w ${LDAP_PASSWORD} -b 'techniqueCategoryId=Active Techniques,ou=Rudder,cn=rudder-configuration' -LLL '(&(objectClass=directive)(|(directiveVariable=*\\"*)(directiveVariable=*\\\\*)))' directiveVariable 2>/dev/null \
 	| perl -p0e "s/\n //g" \
 	|sed "s/\(ou=Rudder,cn=rudder-configuration\)/\1\nchangetype: modify\nreplace: directiveVariable/" \
 	|sed "s/\\\\\"/\"/g" \

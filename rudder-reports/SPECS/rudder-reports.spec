@@ -125,7 +125,7 @@ fi
 # Post Installation
 #=================================================
 #Check if postgresql is started
-/sbin/service postgresql status >/dev/null 2<&1
+/sbin/service postgresql status >/dev/null 2>&1
 if [ $? -ne 0 ]
 then
   /sbin/service postgresql start >/dev/null 2>&1
@@ -148,8 +148,7 @@ do
         CPT=$((${CPT}+1))
         if [ ${CPT} -eq ${TIMEOUT} ]
         then
-                echo "ERROR: Connection to PostgreSQL has not been established before timeout"
-                echo "Exiting"
+                echo -e "\nERROR: Connection to PostgreSQL has not been established before timeout.\nExiting\n"
                 exit 1
         fi
 done
@@ -158,21 +157,21 @@ echo " Done"
 
 dbname="rudder"
 usrname="rudder"
-CHK_PG_DB=$(su - postgres -c "psql -t -c \"select count(1) from pg_catalog.pg_database where datname = '$dbname'\"")
-CHK_PG_USER=$(su - postgres -c "psql -t -c \"select count(1) from pg_user where usename = '$usrname'\"")
+CHK_PG_DB=$(su - postgres -c "psql -t -c \"select count(1) from pg_catalog.pg_database where datname = '${dbname}'\"")
+CHK_PG_USER=$(su - postgres -c "psql -t -c \"select count(1) from pg_user where usename = '${usrname}'\"")
 # Rudder user
 if [ ${CHK_PG_USER} -eq 0 ]
 then
   echo -n "INFO: Creating Rudder PostgreSQL user..."
-  su - postgres -c "psql -q -c \"CREATE USER rudder WITH PASSWORD 'Normation'\"" >/dev/null 2>&1
+  su - postgres -c "psql -q -c \"CREATE USER ${usrname} WITH PASSWORD 'Normation'\"" >/dev/null 2>&1
   echo " Done"
 fi
 # Rudder database
 if [ ${CHK_PG_DB} -eq 0 ]
 then
   echo -n "INFO: Creating Rudder PostgreSQL database..."
-  su - postgres -c "psql -q -c \"CREATE DATABASE rudder WITH OWNER = $dbname\"" >/dev/null 2>&1
-  echo "localhost:5432:$dbname:$usrname:Normation" > /root/.pgpass
+  su - postgres -c "psql -q -c \"CREATE DATABASE ${dbname} WITH OWNER = ${usrname}\"" >/dev/null 2>&1
+  echo "localhost:5432:${dbname}:${usrname}:Normation" > /root/.pgpass
   chmod 600 /root/.pgpass
   psql -q -U rudder -h localhost -d rudder -f %{rudderdir}/etc/postgresql/reportsSchema.sql  >/dev/null 2>&1
   echo " Done"

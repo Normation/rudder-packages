@@ -19,15 +19,15 @@ set -e
 
 case "$1" in
     configure)
-  echo "INFO: Restarting syslog..."
+  echo -n "INFO: Restarting syslog..."
   invoke-rc.d rsyslog restart >/dev/null 2>&1
   echo "Done"
-  MODULES_TO_DISABLE="default"
+  SITES_TO_DISABLE="default"
   MODULES_TO_ENABLE="dav_fs rewrite proxy_http headers"
-  for dismod in ${MODULES_TO_DISABLE}
+  for dissite in ${SITES_TO_DISABLE}
     a2dissite ${dismod} >/dev/null 2>&1
   done
-  for dismod in ${MODULES_TO_ENABLE}
+  for enmod in ${MODULES_TO_ENABLE}
     a2enmod ${enmod} >/dev/null 2>&1
   done
   # Add right to apache user to access /var/rudder/inventories/incoming
