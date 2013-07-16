@@ -317,7 +317,7 @@ echo " Done"
 if [ ! -f /opt/rudder/etc/escaping_migration_done ]; then
 	echo -n "INFO: Converting escaped directive variabled to plain format..."
 	# If some entries match something like \" or \\, convert them to either " or \ and change them in the LDAP.
-	/opt/rudder/bin/ldapsearch -H ldap://localhost -x -D ${LDAP_USER} -w ${LDAP_PASSWORD} -b 'techniqueCategoryId=Active Techniques,ou=Rudder,cn=rudder-configuration' -LLL '(&(objectClass=directive)(|(directiveVariable=*\\"*)(directiveVariable=*\\\\*)))' directiveVariable 2>/dev/null \
+	/opt/rudder/bin/ldapsearch -H ldap://localhost -x -D ${LDAP_USER} -w ${LDAP_PASSWORD} -b 'techniqueCategoryId=Active Techniques,ou=Rudder,cn=rudder-configuration' -LLL '(&(objectClass=directive)(|(directiveVariable=*\\"*)(directiveVariable=*\\\\*)))' directiveVariable \
 	| perl -p0e "s/\n //g" \
 	|sed "s/\(ou=Rudder,cn=rudder-configuration\)/\1\nchangetype: modify\nreplace: directiveVariable/" \
 	|sed "s/\\\\\"/\"/g" \
