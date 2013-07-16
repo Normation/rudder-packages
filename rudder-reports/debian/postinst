@@ -45,7 +45,6 @@ case "$1" in
   echo " Done"
 
 
-  echo -n "INFO: Creating Rudder database..."
   dbname="rudder"
   usrname="rudder"
   CHK_PG_DB=$(su - postgres -c "psql -t -c \"select count(1) from pg_catalog.pg_database where datname = '${dbname}'\"")
