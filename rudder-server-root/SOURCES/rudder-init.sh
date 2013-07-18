@@ -39,14 +39,9 @@ REGEXP='s/^\([0-9]\{1,3\}\)\(.[0-9]\{1,3\}\)\(.[0-9]\{1,3\}\)\(.[0-9]\{1,3\}.[0-
 again="yes"
 cpt=0
 cpt2=0
-## Check if the initial promises are from CFEngine Nova or Community...
-if [ -e /var/cfengine/inputs ];then
-  INITREP=/var/cfengine/inputs
-else
-  INITREP=/var/rudder/cfengine-community/inputs
-fi
-## ...then check if the initial promises are installed
-INITPRO=`ls ${INITREP} | wc -l`
+# Check if promises already exist for CFEngine community
+INITREP=/var/rudder/cfengine-community/inputs
+INITPRO=`ls ${INITREP} 2>/dev/null | wc -l`
 
 
 Pause()
