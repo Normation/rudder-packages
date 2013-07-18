@@ -48,6 +48,7 @@ set -e
 # - 2.6.0 : Add the property to enable/disable workflow self validation
 # - 2.6.0 : Add the property to enable/disable workflow self deployment
 # - 2.6.0 : Check the LDAP and PostgreSQL daemons status before upgrading
+# - 2.7.0 : Add FileFormat 3 to 4 migration script
 #####################################################################################
 
 # Some variables
@@ -170,6 +171,12 @@ RES=$(su - postgres -c "psql -t -d rudder -c \"select count(*) from (select xpat
 RES2=$(su - postgres -c "psql -t -d rudder -c \"select count(*) from (select xpath('/entry/addPending',data) AS x from eventlog) as Y where array_upper(x, 1) > 0;\"")
 if [ $RES -ne 0 ] || [ $RES2 -ne 0 ]; then
 	psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.4-2.4-set-migration-needed-flag-for-EventLog.sql >/dev/null 2>&1
+fi
+
+# 2.7.0: File Format migration from 3 to 4
+RES=$(su - postgres -c "psql -t -d rudder -c \"select count(*) from (select xpath('/entry/*[@fileFormat=3]',data) AS x from eventlog) as Y where array_upper(x, 1) > 0;\"")
+if [ $RES -ne 0 ]; then
+        psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.6-2.7-set-migration-needed-flag-for-EventLog.sql > /dev/null 2>&1
 fi
 
 # Upgrade database schema from 2.4 to 2.5 if necessary - first part : Check if the rudder properties table is present, and create it if needed.
