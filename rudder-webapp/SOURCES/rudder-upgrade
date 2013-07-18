@@ -378,17 +378,17 @@ if [ ${LDAP_EXISTS} -ne 0 ]; then
   # - 2.7.0 : Migration LDAP to add the global parameter ou
   LDAP_TEST_GLOBAL_PARAMETER=$(/opt/rudder/sbin/slapcat 2>/dev/null | grep "dn: ou=Parameters,ou=Rudder,cn=rudder-configuration" | wc -l)
   if [ ${LDAP_TEST_GLOBAL_PARAMETER} -eq 0 ]; then
-    echo "INFO: The Rudder OpenLDAP schema is not up to date, adding Global Parameter ou."
+    echo -n "INFO: The Rudder OpenLDAP schema is not up to date, adding Global Parameter ou..."
     /opt/rudder/bin/ldapadd -x -D "${LDAP_USER}" -w "${LDAP_PASSWORD}" -H ldap://localhost -f ${RUDDER_UPGRADE_TOOLS}/rudder-upgrade-LDAP-schema-2.6-2.7-add-global-parameter-ou.ldif
-    echo "Done."
+    echo " Done."
   fi
 
   # - 2.7.0 : Migration LDAP to add the default parameter for file edition
   LDAP_TEST_DEFAULT_PARAMETER=$(/opt/rudder/bin/ldapsearch -H ldap://localhost -x -w "${LDAP_PASSWORD}" -D "${LDAP_USER}" -b "parameterName=rudder_file_edit_header,ou=Parameters,ou=Rudder,cn=rudder-configuration"  -LLL parameterName 2>/dev/null | grep "parameterName" | wc -l)
   if [ ${LDAP_TEST_DEFAULT_PARAMETER} -eq 0 ]; then
-    echo "INFO: Adding default Global Parameter containing the header put in file managed by Rudder."
+    echo -n "INFO: Adding default Global Parameter containing the header put in file managed by Rudder..."
     /opt/rudder/bin/ldapadd -x -D "${LDAP_USER}" -w "${LDAP_PASSWORD}" -H ldap://localhost -f ${RUDDER_UPGRADE_TOOLS}/rudder-upgrade-LDAP-schema-2.6-2.7-add-default-global-parameter.ldif
-    echo "Done."
+    echo " Done."
   fi
 fi
 
