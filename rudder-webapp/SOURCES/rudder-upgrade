@@ -374,20 +374,22 @@ check_and_add_config_property rudder.workflow.self.deployment "
 
 rudder.workflow.self.deployment=true"
 
-# - 2.7.0 : Migration LDAP to add the global parameter ou
-LDAP_TEST_GLOBAL_PARAMETER=$(/opt/rudder/sbin/slapcat 2>/dev/null | grep "dn: ou=Parameters,ou=Rudder,cn=rudder-configuration" | wc -l)
-if [ $LDAP_TEST_GLOBAL_PARAMETER -eq 0 ]; then
-  echo "The Rudder OpenLDAP schema is not up to date, adding Global Parameter ou."
-  /opt/rudder/bin/ldapadd -x -D "${LDAP_USER}" -w "${LDAP_PASSWORD}" -H ldap://localhost -f ${RUDDER_UPGRADE_TOOLS}/rudder-upgrade-LDAP-schema-2.6-2.7-add-global-parameter-ou.ldif
-  echo "Done."
-fi
+if [ ${LDAP_EXISTS} -ne 0 ]; then
+  # - 2.7.0 : Migration LDAP to add the global parameter ou
+  LDAP_TEST_GLOBAL_PARAMETER=$(/opt/rudder/sbin/slapcat 2>/dev/null | grep "dn: ou=Parameters,ou=Rudder,cn=rudder-configuration" | wc -l)
+  if [ ${LDAP_TEST_GLOBAL_PARAMETER} -eq 0 ]; then
+    echo -n "INFO: The Rudder OpenLDAP schema is not up to date, adding Global Parameter ou..."
+    /opt/rudder/bin/ldapadd -x -D "${LDAP_USER}" -w "${LDAP_PASSWORD}" -H ldap://localhost -f ${RUDDER_UPGRADE_TOOLS}/rudder-upgrade-LDAP-schema-2.6-2.7-add-global-parameter-ou.ldif
+    echo " Done."
+  fi
 
-# - 2.7.0 : Migration LDAP to add the default parameter for file edition
-LDAP_TEST_DEFAULT_PARAMETER=$(/opt/rudder/bin/ldapsearch -H ldap://localhost -x -w "${LDAP_PASSWORD}" -D "${LDAP_USER}" -b "parameterName=rudder_file_edit_header,ou=Parameters,ou=Rudder,cn=rudder-configuration"  -LLL parameterName | grep "parameterName" | wc -l)
-if [ $LDAP_TEST_DEFAULT_PARAMETER -eq 0 ]; then
-  echo "adding default Global Parameter containing the header put in file managed by Rudder."
-  /opt/rudder/bin/ldapadd -x -D "${LDAP_USER}" -w "${LDAP_PASSWORD}" -H ldap://localhost -f ${RUDDER_UPGRADE_TOOLS}/rudder-upgrade-LDAP-schema-2.6-2.7-add-default-global-parameter.ldif
-  echo "Done."
+  # - 2.7.0 : Migration LDAP to add the default parameter for file edition
+  LDAP_TEST_DEFAULT_PARAMETER=$(/opt/rudder/bin/ldapsearch -H ldap://localhost -x -w "${LDAP_PASSWORD}" -D "${LDAP_USER}" -b "parameterName=rudder_file_edit_header,ou=Parameters,ou=Rudder,cn=rudder-configuration"  -LLL parameterName 2>/dev/null | grep "parameterName" | wc -l)
+  if [ ${LDAP_TEST_DEFAULT_PARAMETER} -eq 0 ]; then
+    echo -n "INFO: Adding default Global Parameter containing the header put in file managed by Rudder..."
+    /opt/rudder/bin/ldapadd -x -D "${LDAP_USER}" -w "${LDAP_PASSWORD}" -H ldap://localhost -f ${RUDDER_UPGRADE_TOOLS}/rudder-upgrade-LDAP-schema-2.6-2.7-add-default-global-parameter.ldif
+    echo " Done."
+  fi
 fi
 
 # For every upgrade, we force the root server to run a new inventory on the next CFEngine run
