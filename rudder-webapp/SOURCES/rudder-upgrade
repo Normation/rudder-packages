@@ -160,7 +160,7 @@ if [ ${LDAP_EXISTS} -ne 0 ]; then
   echo "The LDAP service is accessible and configured."
 fi
 
-retry_wrapper 'su - postgres -c "psql -t -d rudder -c \"select count(id) from ruddersysevents\"" >/dev/null 2>&1' 'PostgreSQL'
+retry_wrapper 'su - postgres -c "psql -t -d rudder -c \"select count(ruleid) from rules\"" >/dev/null 2>&1' 'PostgreSQL'
 echo "The PostgreSQL service is accessible and configured."
 
 # Migrate from 2.3.0 format policy-template store (/var/rudder/policy-templates)
