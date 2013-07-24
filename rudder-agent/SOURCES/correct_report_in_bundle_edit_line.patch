@@ -1,0 +1,11 @@
+diff --git a/src/files_editline.c b/src/files_editline.c
+index f03f29e..aef033b 100644
+--- a/src/files_editline.c
++++ b/src/files_editline.c
+@@ -1329,6 +1329,7 @@ static int InsertCompoundLineAtLocation(char *chunk, Item **start, Item *begin_p
+ 
+     if (MatchRegion(chunk, *start, location, NULL))
+        {
++       cfPS(cf_verbose, CF_NOP, "", pp, a, " -> Promised chunk \"%s\" exists within selected region of %s (promise kept)", pp->promiser, pp->this_server);
+        return false;
+        }
