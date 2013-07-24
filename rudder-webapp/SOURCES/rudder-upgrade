@@ -712,8 +712,30 @@ if [ ! -f /opt/rudder/etc/escaping_migration_done ]; then
 	/opt/rudder/bin/ldapsearch -H ldap://localhost -x -D ${LDAP_USER} -w ${LDAP_PASSWORD} -b 'techniqueCategoryId=Active Techniques,ou=Rudder,cn=rudder-configuration' -LLL '(&(objectClass=directive)(|(directiveVariable=*\\"*)(directiveVariable=*\\\\*)))' directiveVariable \
 	| perl -p0e "s/\n //g" \
 	|sed "s/\(ou=Rudder,cn=rudder-configuration\)/\1\nchangetype: modify\nreplace: directiveVariable/" \
-	|sed "s/\\\\\"/\"/g" \
-	|sed "s%\\\\\\\%\\\%g" \
+	|while read line; do
+		if [[ "${line}" =~ ^directiveVariable:.* ]]; then
+			if [[ "${line}" =~ ^directiveVariable::.* ]]; then
+				ISBASEENCODED=true
+				VALUE=$(echo "${line}"|sed "s/^directiveVariable::\s\(.*\)/\1/"|openssl enc -base64 -d -A)
+			else
+				ISBASEENCODED=false
+				VALUE=$(echo "${line}"|sed "s/^directiveVariable:\s\(.*\)/\1/")
+			fi
+
+			# Remove the unnecessary escapings
+			VALUE=$(echo "${VALUE}"|sed "s/\\\\\"/\"/g"|sed "s%\\\\\\\%\\\%g")
+
+			BASECOLON=""
+			# If the original value was base64 encoded, encode it again
+			if [ "z${ISBASEENCODED}" == "ztrue" ]; then
+				VALUE=$(echo "${VALUE}"|openssl enc -base64 -A)
+				BASECOLON=":"
+			fi
+			echo "directiveVariable:${BASECOLON} ${VALUE}"
+		else
+			echo "${line}"
+		fi
+	done \
 	|/opt/rudder/bin/ldapmodify -H ldap://localhost -x -D ${LDAP_USER} -w ${LDAP_PASSWORD}
 
 	touch /opt/rudder/etc/escaping_migration_done
