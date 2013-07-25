@@ -226,7 +226,7 @@ TRGTECHDIR=/var/rudder/configuration-repository/techniques/system/
 if [ -d ${SRCTECHDIR} -a -d ${TRGTECHDIR} ]; then
 	if ! diff -Naur /opt/rudder/share/techniques/system/ /var/rudder/configuration-repository/techniques/system/ >/dev/null 2>&1; then
 		rsync --delete -rptgoq /opt/rudder/share/techniques/system/ /var/rudder/configuration-repository/techniques/system/
-		cd /var/rudder/configuration-repository/techniques/ && git add -A system/ && git commit -m "Upgrade system Techniques - automatically done by rudder-upgrade script"
+		cd /var/rudder/configuration-repository/techniques/ && git add -A system/ && git commit -m "Upgrade system Techniques - automatically done by rudder-upgrade script" >/dev/null 2>&1
 		# For every upgrade, we schedule a Technique reloading REST call on the next CFEngine run
 		echo "INFO: A Technique library reload is needed and has been scheduled."
 		touch /opt/rudder/etc/force_technique_reload
@@ -379,7 +379,7 @@ if [ ${LDAP_EXISTS} -ne 0 ]; then
   LDAP_TEST_GLOBAL_PARAMETER=$(/opt/rudder/sbin/slapcat 2>/dev/null | grep "dn: ou=Parameters,ou=Rudder,cn=rudder-configuration" | wc -l)
   if [ ${LDAP_TEST_GLOBAL_PARAMETER} -eq 0 ]; then
     echo -n "INFO: The Rudder OpenLDAP schema is not up to date, adding Global Parameter ou..."
-    /opt/rudder/bin/ldapadd -x -D "${LDAP_USER}" -w "${LDAP_PASSWORD}" -H ldap://localhost -f ${RUDDER_UPGRADE_TOOLS}/rudder-upgrade-LDAP-schema-2.6-2.7-add-global-parameter-ou.ldif
+    /opt/rudder/bin/ldapadd -x -D "${LDAP_USER}" -w "${LDAP_PASSWORD}" -H ldap://localhost -f ${RUDDER_UPGRADE_TOOLS}/rudder-upgrade-LDAP-schema-2.6-2.7-add-global-parameter-ou.ldif >/dev/null 2>&1
     echo " Done."
   fi
 
@@ -387,7 +387,7 @@ if [ ${LDAP_EXISTS} -ne 0 ]; then
   LDAP_TEST_DEFAULT_PARAMETER=$(/opt/rudder/bin/ldapsearch -H ldap://localhost -x -w "${LDAP_PASSWORD}" -D "${LDAP_USER}" -b "parameterName=rudder_file_edit_header,ou=Parameters,ou=Rudder,cn=rudder-configuration"  -LLL parameterName 2>/dev/null | grep "parameterName" | wc -l)
   if [ ${LDAP_TEST_DEFAULT_PARAMETER} -eq 0 ]; then
     echo -n "INFO: Adding default Global Parameter containing the header put in file managed by Rudder..."
-    /opt/rudder/bin/ldapadd -x -D "${LDAP_USER}" -w "${LDAP_PASSWORD}" -H ldap://localhost -f ${RUDDER_UPGRADE_TOOLS}/rudder-upgrade-LDAP-schema-2.6-2.7-add-default-global-parameter.ldif
+    /opt/rudder/bin/ldapadd -x -D "${LDAP_USER}" -w "${LDAP_PASSWORD}" -H ldap://localhost -f ${RUDDER_UPGRADE_TOOLS}/rudder-upgrade-LDAP-schema-2.6-2.7-add-default-global-parameter.ldif >/dev/null 2>&1
     echo " Done."
   fi
 fi
