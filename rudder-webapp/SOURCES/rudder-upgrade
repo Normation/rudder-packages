@@ -51,6 +51,7 @@ set -e
 # - 2.7.0 : Add FileFormat 3 to 4 migration script
 # - 2.7.0 : Migration LDAP to add the global parameter OU
 # - 2.7.0 : Migration LDAP to add the defaut parameter for file edition
+# - 2.7.0~rc1 : LDAP migration to add a UUID to REST API accounts
 #####################################################################################
 
 # Some variables
@@ -388,6 +389,20 @@ if [ ${LDAP_EXISTS} -ne 0 ]; then
   if [ ${LDAP_TEST_DEFAULT_PARAMETER} -eq 0 ]; then
     echo -n "INFO: Adding default Global Parameter containing the header put in file managed by Rudder..."
     /opt/rudder/bin/ldapadd -x -D "${LDAP_USER}" -w "${LDAP_PASSWORD}" -H ldap://localhost -f ${RUDDER_UPGRADE_TOOLS}/rudder-upgrade-LDAP-schema-2.6-2.7-add-default-global-parameter.ldif >/dev/null 2>&1
+    echo " Done."
+  fi
+
+  # - 2.7.0~rc1 : LDAP migration to add a UUID to REST API accounts
+  LDAP_TEST_OLD_API_ACCOUNTS=$(/opt/rudder/bin/ldapsearch -H ldap://localhost -x -w "${LDAP_PASSWORD}" -D "${LDAP_USER}" -b "ou=API Accounts,ou=Rudder,cn=rudder-configuration"  -LLL dn 2>/dev/null | grep "^dn: cn=" | wc -l)
+  if [ ${LDAP_TEST_OLD_API_ACCOUNTS} -ne 0 ]; then
+    echo -n "INFO: Renaming API accounts to have a unique ID..."
+    /opt/rudder/bin/ldapsearch -H ldap://localhost -x -w "${LDAP_PASSWORD}" -D "${LDAP_USER}" -b "ou=API Accounts,ou=Rudder,cn=rudder-configuration"  -LLL dn 2>/dev/null |\
+      grep "^dn: cn=" |\
+      while read line; do
+        NEW_UUID=$(uuidgen)
+        DN=$(echo ${line} | sed 's/^dn: \(.*\)$/\1/')
+        echo -e "${DN}\napiAccountId=${NEW_UUID}" | /opt/rudder/bin/ldapmodrdn -H ldap://localhost -x -w "${LDAP_PASSWORD}" -D "${LDAP_USER}" > /dev/null 2>&1
+      done
     echo " Done."
   fi
 fi
