@@ -401,7 +401,7 @@ if [ ${LDAP_EXISTS} -ne 0 ]; then
       while read line; do
         NEW_UUID=$(uuidgen)
         DN=$(echo ${line} | sed 's/^dn: \(.*\)$/\1/')
-        echo -e "${DN}\napiAccountId=${NEW_UUID}" | /opt/rudder/bin/ldapmodrdn -H ldap://localhost -x -w "${LDAP_PASSWORD}" -D "${LDAP_USER}"
+        echo -e "${DN}\napiAccountId=${NEW_UUID}" | /opt/rudder/bin/ldapmodrdn -H ldap://localhost -x -w "${LDAP_PASSWORD}" -D "${LDAP_USER}" > /dev/null 2>&1
       done
     echo " Done."
   fi
