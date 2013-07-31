@@ -446,7 +446,7 @@ fi
 
 
 # - 2.7.0 : Apache configuration migration to add link to User Manual
-CHECK_USER_MANUAL=$(grep "[ \t]*Alias /rudder-doc[ \t]*" ${RUDDER_WWW_CONF} | wc -l)
+CHECK_USER_MANUAL=$(grep "^\s*Alias /rudder-doc /usr/share/doc/rudder/html\s*$" ${RUDDER_WWW_CONF} | wc -l)
 if [ ${CHECK_USER_MANUAL} -ne 1 ];then
   echo -n "INFO: Add User Manual configuration..."
   ### Put Parameters into a variable
@@ -465,7 +465,7 @@ fi
 
 # - 2.7.0 : Apache configuration migration to add restriction on legacy API
 ## Remove old API restriction if necessary
-CHECK_OLD_API_RESTRICTION=$(grep "[ \t]*# NO access to the API unless you are localhost" ${RUDDER_WWW_CONF} | wc -l)
+CHECK_OLD_API_RESTRICTION=$(grep "^\s*# NO access to the API unless you are localhost\s*$" ${RUDDER_WWW_CONF} | wc -l)
 if [ ${CHECK_OLD_API_RESTRICTION} -eq 1 ];then
   echo -n "INFO: Remove old API restriction..."
   ### Remove lines between '# NO access to the API unless you are localhost' and end tag '</Location>'
@@ -474,7 +474,7 @@ if [ ${CHECK_OLD_API_RESTRICTION} -eq 1 ];then
 fi
 
 ## Add new API restriction if necessary
-CHECK_NEW_API_RESTRICTION=$(grep "[ \t]*SetEnvIf X-API-Version[ \t]*" ${RUDDER_WWW_CONF} | wc -l)
+CHECK_NEW_API_RESTRICTION=$(grep "^\s*SetEnvIf X-API-Version \[^1\] api_deny\s*$" ${RUDDER_WWW_CONF} | wc -l)
 if [ ${CHECK_NEW_API_RESTRICTION} -ne 1 ];then
   echo -n "INFO: Add New API restriction..."
   ### Put Parameters into a variable
