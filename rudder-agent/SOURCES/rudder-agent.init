@@ -371,6 +371,10 @@ display_status() {
 	then
 		message "info" "[INFO] The ${RUDDER_DISABLE_AGENT_FLAG_FILE} flag is present, CFEngine Community is halted"
 	fi
+
+  # Exit with status code
+  exit ${status}
+
 }
 
 #====================================================================
