@@ -52,6 +52,8 @@ set -e
 # - 2.7.0 : Migration LDAP to add the global parameter OU
 # - 2.7.0 : Migration LDAP to add the defaut parameter for file edition
 # - 2.7.0~rc1 : LDAP migration to add a UUID to REST API accounts
+# - 2.7.0 : Apache configuration migration to add link to User Manual
+# - 2.7.0 : Apache configuration migration to add restriction on legacy API
 #####################################################################################
 
 # Some variables
@@ -82,6 +84,19 @@ else
 	echo "Using 'master' by default"
 	GIT_BRANCH="master"
 fi
+# Where is the Apache Directory on this OS?
+export WWW_DIR=""
+if [ -d "/etc/apache2/sites-enabled" ]; then
+  export WWW_DIR="/etc/apache2/sites-enabled"
+elif [ -d "/etc/apache2/vhosts.d" ]; then
+  export WWW_DIR="/etc/apache2/vhosts.d"
+elif [ -d "/etc/httpd/conf.d" ];then
+  export WWW_DIR="/etc/httpd/conf.d"
+else
+  echo "WARNING: Could not find Apache configuration file"
+fi
+# Define the location of the default Apache configuration of Rudder
+RUDDER_WWW_CONF="${WWW_DIR}/rudder-default"
 
 # Helper function
 # Function to check if a property exists in a configuration file and add it if not
@@ -426,6 +441,64 @@ if [ ${LDAP_EXISTS} -ne 0 ]; then
         echo -e "${DN}\napiAccountId=${NEW_UUID}" | /opt/rudder/bin/ldapmodrdn -H ldap://localhost -x -w "${LDAP_PASSWORD}" -D "${LDAP_USER}" > /dev/null 2>&1
       done
     echo " Done."
+  fi
+fi
+
+
+# Migrations about Apache
+if [ "z${WWW_DIR}" != "z" ];then
+  # - 2.7.0 : Apache configuration migration to add link to User Manual
+  CHECK_USER_MANUAL=$(grep '^\s*Alias /rudder-doc /usr/share/doc/rudder/html\s*$' ${RUDDER_WWW_CONF} | wc -l)
+  if [ ${CHECK_USER_MANUAL} -ne 1 ];then
+    echo -n "INFO: Adding Apache alias for User Manual... "
+    ### Put Parameters into a variable
+    export USER_MANUAL_CONF_ONELINER=$(echo '	# Link to Rudder documentation
+	Alias /rudder-doc /usr/share/doc/rudder/html
+	<Directory /usr/share/doc/rudder/html>
+		DirectoryIndex rudder-doc.html
+		Order deny,allow
+		Allow from all
+	</Directory>
+' | perl -p0e "s/\n/\\\n/g" | perl -p0e "s/\t/\\\t/g")
+    ### Use sed to add them at the end but before the end of 'VirtualHost' tag
+    sed -i "s@^\([ \t]*</VirtualHost>\)@${USER_MANUAL_CONF_ONELINER}\n\1@" ${RUDDER_WWW_CONF}
+    echo "Done"
+  fi
+
+  # - 2.7.0 : Apache configuration migration to add restriction on legacy API
+  ## Remove old API restriction if necessary
+  CHECK_OLD_API_RESTRICTION=$(grep '^\s*# NO access to the API unless you are localhost\s*$' ${RUDDER_WWW_CONF} | wc -l)
+  if [ ${CHECK_OLD_API_RESTRICTION} -eq 1 ];then
+    echo -n "INFO: Removing old API access rules from Apache config... "
+    ### Remove lines between '# NO access to the API unless you are localhost' and end tag '</Location>'
+    sed -i "/^[ \t]*# NO access to the API unless you are localhost/,/^[ \t]*<\/Location>/d" ${RUDDER_WWW_CONF}
+    echo "Done"
+  fi
+
+  ## Add new API restriction if necessary
+  CHECK_NEW_API_RESTRICTION=$(grep '^\s*SetEnvIf X-API-Version \"\[^1\]\" api_deny\s*$' ${RUDDER_WWW_CONF} | wc -l)
+  if [ ${CHECK_NEW_API_RESTRICTION} -ne 1 ];then
+    echo -n "INFO: Adding new API access rules to Apache config... "
+    ### Put Parameters into a variable
+    export NEW_API_CONF_ONELINER=$(echo '	# Deny the use of legacy API if using X-API-Version which is not '1'
+	SetEnvIf X-API-Version "[^1]" api_deny
+	# NO access to the status and archiving API unless you are localhost
+	<LocationMatch "^/rudder/api/(status|archives)$">
+		Order allow,deny
+		Allow from localhost
+		Deny from env=api_deny
+	</LocationMatch>
+
+	# NO access to the reloading API either unless you are localhost
+	<LocationMatch "^/rudder/api/(techniqueLibrary|dyngroup|deploy)/reload$">
+		Order allow,deny
+		Allow from localhost
+		Deny from env=api_deny
+	</LocationMatch>
+' | perl -p0e "s/\n/\\\n/g" | perl -p0e "s/\t/\\\t/g")
+    ### Use sed to add them at the end but before the end of 'VirtualHost' tag
+    sed -i "s@^\([ \t]*</VirtualHost>\)@${NEW_API_CONF_ONELINER}\n\1@" ${RUDDER_WWW_CONF}
+    echo "Done"
   fi
 fi
 
