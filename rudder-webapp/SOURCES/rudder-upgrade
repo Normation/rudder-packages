@@ -52,6 +52,8 @@ set -e
 # - 2.7.0 : Migration LDAP to add the global parameter OU
 # - 2.7.0 : Migration LDAP to add the defaut parameter for file edition
 # - 2.7.0~rc1 : LDAP migration to add a UUID to REST API accounts
+# - 2.7.0 : Apache configuration migration to add link to User Manual
+# - 2.7.0 : Apache configuration migration to add restriction on legacy API
 #####################################################################################
 
 # Some variables
@@ -82,6 +84,19 @@ else
 	echo "Using 'master' by default"
 	GIT_BRANCH="master"
 fi
+# Where is the Apache Directory on this OS?
+if [ -d "/etc/apache2/sites-enabled" ]; then
+  export WWW_DIR="/etc/apache2/sites-enabled"
+elif [ -d "/etc/apache2/vhosts.d" ]; then
+  export WWW_DIR="/etc/apache2/vhosts.d"
+elif [ -d "/etc/httpd/conf.d" ];then
+  export WWW_DIR="/etc/httpd/conf.d"
+else
+  echo "ERROR: There is not Apache configuration file"
+  exit 1
+fi
+# Define the location of the default Apache configuration of Rudder
+RUDDER_WWW_CONF="${WWW_DIR}/rudder-default"
 
 # Helper function
 # Function to check if a property exists in a configuration file and add it if not
@@ -427,6 +442,61 @@ if [ ${LDAP_EXISTS} -ne 0 ]; then
       done
     echo " Done."
   fi
+fi
+
+
+# - 2.7.0 : Apache configuration migration to add link to User Manual
+CHECK_USER_MANUAL=$(grep "[ \t]*Alias /rudder-doc[ \t]*" ${RUDDER_WWW_CONF} | wc -l)
+if [ ${CHECK_USER_MANUAL} -ne 1 ];then
+  echo -n "INFO: Add User Manual configuration..."
+  ### Put Parameters into a variable
+  export USER_MANUAL_CONF_ONELINER=$(echo "	# Link to Rudder documentation
+	Alias /rudder-doc /usr/share/doc/rudder/html
+	<Directory /usr/share/doc/rudder/html>
+		DirectoryIndex rudder-doc.html
+		Order deny,allow
+		Allow from all
+	</Directory>
+" | perl -p0e "s/\n/\\\n/g" | perl -p0e "s/\t/\\\t/g")
+  ### Use sed to add them at the end but before the end of 'VirtualHost' tag
+  sed -i "s@^[ \t]*\(</VirtualHost>\)@${USER_MANUAL_CONF_ONELINER}\1@" ${RUDDER_WWW_CONF}
+  echo "Done."
+fi
+
+# - 2.7.0 : Apache configuration migration to add restriction on legacy API
+## Remove old API restriction if necessary
+CHECK_OLD_API_RESTRICTION=$(grep "[ \t]*# NO access to the API unless you are localhost" ${RUDDER_WWW_CONF} | wc -l)
+if [ ${CHECK_OLD_API_RESTRICTION} -eq 1 ];then
+  echo -n "INFO: Remove old API restriction..."
+  ### Remove lines between '# NO access to the API unless you are localhost' and end tag '</Location>'
+  sed -i "/^[ \t]*# NO access to the API unless you are localhost/,/^[ \t]*<\/Location>/d" ${RUDDER_WWW_CONF}
+  echo "Done."
+fi
+
+## Add new API restriction if necessary
+CHECK_NEW_API_RESTRICTION=$(grep "[ \t]*SetEnvIf X-API-Version[ \t]*" ${RUDDER_WWW_CONF} | wc -l)
+if [ ${CHECK_NEW_API_RESTRICTION} -ne 1 ];then
+  echo -n "INFO: Add New API restriction..."
+  ### Put Parameters into a variable
+  export NEW_API_CONF_ONELINER=$(echo "	# Deny the use of legacy API if using X-API-Version which is not '1'
+	SetEnvIf X-API-Version "[^1]" api_deny
+	# NO access to the status and archiving API unless you are localhost
+	<LocationMatch \"^/rudder/api/(status|archives)$\">
+		Order allow,deny
+		Allow from localhost
+		Deny from env=api_deny
+	</LocationMatch>
+
+	# NO access to the reloading API either unless you are localhost
+	<LocationMatch \"^/rudder/api/(techniqueLibrary|dyngroup|deploy)/reload$\">
+		Order allow,deny
+		Allow from localhost
+		Deny from env=api_deny
+	</LocationMatch>
+" | perl -p0e "s/\n/\\\n/g" | perl -p0e "s/\t/\\\t/g")
+  ### Use sed to add them at the end but before the end of 'VirtualHost' tag
+  sed -i "s@^[ \t]*\(</VirtualHost>\)@${NEW_API_CONF_ONELINER}\1@" ${RUDDER_WWW_CONF}
+  echo "Done."
 fi
 
 # For every upgrade, we force the root server to run a new inventory on the next CFEngine run
