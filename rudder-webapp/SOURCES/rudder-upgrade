@@ -448,9 +448,9 @@ fi
 # Migrations about Apache
 if [ "z${WWW_DIR}" != "z" ];then
   # - 2.7.0 : Apache configuration migration to add link to User Manual
-  CHECK_USER_MANUAL=$(grep "^\s*Alias /rudder-doc /usr/share/doc/rudder/html\s*$" ${RUDDER_WWW_CONF} | wc -l)
+  CHECK_USER_MANUAL=$(grep '^\s*Alias /rudder-doc /usr/share/doc/rudder/html\s*$' ${RUDDER_WWW_CONF} | wc -l)
   if [ ${CHECK_USER_MANUAL} -ne 1 ];then
-    echo -n "INFO: Adding User Manual configuration..."
+    echo -n "INFO: Adding Apache alias for User Manual... "
     ### Put Parameters into a variable
     export USER_MANUAL_CONF_ONELINER=$(echo '	# Link to Rudder documentation
 	Alias /rudder-doc /usr/share/doc/rudder/html
@@ -462,23 +462,23 @@ if [ "z${WWW_DIR}" != "z" ];then
 ' | perl -p0e "s/\n/\\\n/g" | perl -p0e "s/\t/\\\t/g")
     ### Use sed to add them at the end but before the end of 'VirtualHost' tag
     sed -i "s@^\([ \t]*</VirtualHost>\)@${USER_MANUAL_CONF_ONELINER}\n\1@" ${RUDDER_WWW_CONF}
-    echo " Done."
+    echo "Done"
   fi
 
   # - 2.7.0 : Apache configuration migration to add restriction on legacy API
   ## Remove old API restriction if necessary
-  CHECK_OLD_API_RESTRICTION=$(grep "^\s*# NO access to the API unless you are localhost\s*$" ${RUDDER_WWW_CONF} | wc -l)
+  CHECK_OLD_API_RESTRICTION=$(grep '^\s*# NO access to the API unless you are localhost\s*$' ${RUDDER_WWW_CONF} | wc -l)
   if [ ${CHECK_OLD_API_RESTRICTION} -eq 1 ];then
-    echo -n "INFO: Removing old API restriction..."
+    echo -n "INFO: Removing old API access rules from Apache config... "
     ### Remove lines between '# NO access to the API unless you are localhost' and end tag '</Location>'
     sed -i "/^[ \t]*# NO access to the API unless you are localhost/,/^[ \t]*<\/Location>/d" ${RUDDER_WWW_CONF}
-    echo " Done."
+    echo "Done"
   fi
 
   ## Add new API restriction if necessary
-  CHECK_NEW_API_RESTRICTION=$(grep "^\s*SetEnvIf X-API-Version \[^1\] api_deny\s*$" ${RUDDER_WWW_CONF} | wc -l)
+  CHECK_NEW_API_RESTRICTION=$(grep '^\s*SetEnvIf X-API-Version \"\[^1\]\" api_deny\s*$' ${RUDDER_WWW_CONF} | wc -l)
   if [ ${CHECK_NEW_API_RESTRICTION} -ne 1 ];then
-    echo -n "INFO: Adding New API restriction..."
+    echo -n "INFO: Adding new API access rules to Apache config... "
     ### Put Parameters into a variable
     export NEW_API_CONF_ONELINER=$(echo '	# Deny the use of legacy API if using X-API-Version which is not '1'
 	SetEnvIf X-API-Version "[^1]" api_deny
@@ -498,7 +498,7 @@ if [ "z${WWW_DIR}" != "z" ];then
 ' | perl -p0e "s/\n/\\\n/g" | perl -p0e "s/\t/\\\t/g")
     ### Use sed to add them at the end but before the end of 'VirtualHost' tag
     sed -i "s@^\([ \t]*</VirtualHost>\)@${NEW_API_CONF_ONELINER}\n\1@" ${RUDDER_WWW_CONF}
-    echo " Done."
+    echo "Done"
   fi
 fi
 
