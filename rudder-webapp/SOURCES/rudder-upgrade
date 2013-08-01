@@ -106,6 +106,16 @@ function check_and_add_config_property {
     fi
 }
 
+function check_and_add_endpoint_config_property {
+    PROPERTY_NAME=$1
+    PROPERTY_VALUE=$2
+    ATTRIBUTESET=`grep "^${PROPERTY_NAME}[ \t]*=" /opt/rudder/etc/inventory-web.properties | wc -l`
+    if [ ${ATTRIBUTESET} -eq 0 ]; then
+        echo "${PROPERTY_VALUE}" >> /opt/rudder/etc/inventory-web.properties
+        echo "New configuration property ${PROPERTY_NAME} added to /opt/rudder/etc/inventory-web.properties"
+    fi
+}
+
 # Before doing anything on git, set the branch to the Technique Reference Library branch
 if [ -d /var/rudder/policy-templates/.git ];then
 	cd /var/rudder/policy-templates/ && git checkout ${GIT_BRANCH}
@@ -199,6 +209,10 @@ check_and_add_config_property ldap.inventories.removed.basedn "#
 # Inventories information on removed inventories
 ldap.inventories.removed.basedn=ou=Removed Inventories, ou=Inventories, cn=rudder-configuration
 "
+check_and_add_endpoint_config_property ldap.inventories.removed.basedn "#
+# Inventories information on removed inventories
+ldap.inventories.removed.basedn=ou=Removed Inventories, ou=Inventories, cn=rudder-configuration
+"
 
 # Check for configuration property added in 2.4
 check_and_add_config_property rudder.ui.changeMessage.enabled "#
@@ -241,7 +255,7 @@ rudder.webdav.password=rudder
 "
 
 # Check for configuration property added in 2.4
-check_and_add_config_property history.inventories.enable "#
+check_and_add_endpoint_config_property history.inventories.enable "#
 # whether to historize inventory version as LDIF file or not
 history.inventories.enable=true
 "
