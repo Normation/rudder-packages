@@ -139,6 +139,16 @@ retry_wrapper() {
     done
 }
 
+function check_and_add_endpoint_config_property {
+    PROPERTY_NAME=$1
+    PROPERTY_VALUE=$2
+    ATTRIBUTESET=`grep "^${PROPERTY_NAME}[ \t]*=" /opt/rudder/etc/inventory-web.properties | wc -l`
+    if [ ${ATTRIBUTESET} -eq 0 ]; then
+        echo "${PROPERTY_VALUE}" >> /opt/rudder/etc/inventory-web.properties
+        echo "New configuration property ${PROPERTY_NAME} added to /opt/rudder/etc/inventory-web.properties"
+    fi
+}
+
 # Before doing anything on git, set the branch to the Technique Reference Library branch
 if [ -d /var/rudder/configuration-repository/.git ];then
 	cd /var/rudder/configuration-repository/ && git checkout ${GIT_BRANCH} >/dev/null 2>&1
