@@ -85,7 +85,7 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
 
 BuildRequires: jdk >= 1.6
-Requires: rudder-jetty rudder-inventory-ldap rudder-inventory-endpoint rudder-reports rudder-techniques %{apache} %{apache_tools} git-core
+Requires: rudder-jetty rudder-inventory-ldap rudder-inventory-endpoint rudder-reports rudder-techniques %{apache} %{apache_tools} git-core rsync
 
 %description
 Rudder is an open source configuration management and audit solution.
