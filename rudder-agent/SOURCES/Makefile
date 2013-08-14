@@ -62,6 +62,7 @@ localdepends: ./initial-promises ./files ./fusioninventory-agent ./tokyocabinet-
 	tar zvxf $(TMP_DIR)/fusion.tgz -C $(TMP_DIR)
 	mv $(TMP_DIR)/FusionInventory-Agent-$(FUSION_RELEASE) ./fusioninventory-agent
 	$(PATCH) -d ./fusioninventory-agent -p1 < ./SuSE_service_pack.patch
+	$(PATCH) -d ./fusioninventory-agent -p1 < ./Scientific_linux_distro_name.patch
 	# Fix a lsusb invocation that crashes some SLES machines
 	$(FIND) ./fusioninventory-agent -iname "USB.pm" -exec rm "{}" \;
 
