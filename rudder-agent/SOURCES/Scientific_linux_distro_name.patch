@@ -1,0 +1,26 @@
+From 766fe07ac6e6e6ffb77bdf379b8aeb726f3505a0 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Vincent=20Membr=C3=A9?= <vincent.membre@normation.com>
+Date: Wed, 14 Aug 2013 17:48:24 +0200
+Subject: [PATCH] Add Scientific Linux Support
+
+---
+ lib/FusionInventory/Agent/Task/Inventory/Input/Linux/Distro/NonLSB.pm | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/lib/FusionInventory/Agent/Task/Inventory/Input/Linux/Distro/NonLSB.pm b/lib/FusionInventory/Agent/Task/Inventory/Input/Linux/Distro/NonLSB.pm
+index 97a36f1..8ea6a2e 100644
+--- a/lib/FusionInventory/Agent/Task/Inventory/Input/Linux/Distro/NonLSB.pm
++++ b/lib/FusionInventory/Agent/Task/Inventory/Input/Linux/Distro/NonLSB.pm
+@@ -39,6 +39,9 @@ my @distributions = (
+     # centos-release contains something like "CentOS Linux release 6.0 (Final)
+     [ '/etc/centos-release',    'CentOS',                     'release ([\d.]+)', '%s' ],
+ 
++    # system-release contains something like "Scientific Linux release 6.4 (Carbon)"
++    [ '/etc/system-release', 'Scientific', 'release ([\d.]+)', '%s' ],
++
+     # redhat-release contains something like "Red Hat Enterprise Linux Server release 5 (Tikanga)"
+     [ '/etc/redhat-release',    'RedHat',                     'release ([\d.]+)', '%s' ],
+ 
+-- 
+1.8.1.4
+
