@@ -52,6 +52,7 @@ localdepends: ./initial-promises ./files ./fusioninventory-agent ./cfengine-sour
 	tar zvxf $(TMP_DIR)/fusion.tgz -C $(TMP_DIR)
 	mv $(TMP_DIR)/FusionInventory-Agent-$(FUSION_RELEASE) ./fusioninventory-agent
 	$(PATCH) -d ./fusioninventory-agent -p1 < ./SuSE_service_pack.patch
+	$(PATCH) -d ./fusioninventory-agent -p1 < ./Scientific_linux_distro_name.patch
 
 ./files: /usr/bin/wget
 	mkdir ./files
