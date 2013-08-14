@@ -1,0 +1,50 @@
+From e3fad1235180530ae0f53a89de9032d30f3c6f94 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Vincent=20Membr=C3=A9?= <vincent.membre@normation.com>
+Date: Wed, 14 Aug 2013 17:33:59 +0200
+Subject: [PATCH] Fix Oracle linuxdistro name
+
+---
+ lib/FusionInventory/Agent/Task/Inventory/Input/Linux/Distro/LSB.pm   | 3 ++-
+ .../Agent/Task/Inventory/Input/Linux/Distro/NonLSB.pm                | 5 ++++-
+ 2 files changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/lib/FusionInventory/Agent/Task/Inventory/Input/Linux/Distro/LSB.pm b/lib/FusionInventory/Agent/Task/Inventory/Input/Linux/Distro/LSB.pm
+index 835df43..058fa5a 100644
+--- a/lib/FusionInventory/Agent/Task/Inventory/Input/Linux/Distro/LSB.pm
++++ b/lib/FusionInventory/Agent/Task/Inventory/Input/Linux/Distro/LSB.pm
+@@ -6,7 +6,8 @@ use warnings;
+ use FusionInventory::Agent::Tools;
+ 
+ sub isEnabled {
+-    return canRun('lsb_release');
++    # Only use lsb_release if not on Oracle Linux
++    return !canRead('/etc/oracle-release') && canRun('lsb_release');
+ }
+ 
+ sub doInventory {
+diff --git a/lib/FusionInventory/Agent/Task/Inventory/Input/Linux/Distro/NonLSB.pm b/lib/FusionInventory/Agent/Task/Inventory/Input/Linux/Distro/NonLSB.pm
+index 97a36f1..47e4a2a 100644
+--- a/lib/FusionInventory/Agent/Task/Inventory/Input/Linux/Distro/NonLSB.pm
++++ b/lib/FusionInventory/Agent/Task/Inventory/Input/Linux/Distro/NonLSB.pm
+@@ -36,6 +36,9 @@ my @distributions = (
+     # mandrake-release contains something like "Mandrakelinux release 10.1 (Community) for i586"
+     [ '/etc/mandrake-release',  'Mandrake',                   'release ([\d.]+)', '%s'],
+ 
++    # oracle-release contains something like "Oracle Linux Server release 6.3"
++    [ '/etc/oracle-release',    'Oracle Linux Server',        'release ([\d.]+)', '%s' ],
++
+     # centos-release contains something like "CentOS Linux release 6.0 (Final)
+     [ '/etc/centos-release',    'CentOS',                     'release ([\d.]+)', '%s' ],
+ 
+@@ -63,7 +66,7 @@ our $runMeIfTheseChecksFailed =
+     ["FusionInventory::Agent::Task::Inventory::Input::Linux::Distro::LSB"];
+ 
+ sub isEnabled {
+-    return !canRun('lsb_release');
++    return canRead('/etc/oracle-release') || !canRun('lsb_release')
+ }
+ 
+ sub doInventory {
+-- 
+1.8.1.4
+
