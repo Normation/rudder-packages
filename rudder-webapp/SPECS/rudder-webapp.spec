@@ -103,14 +103,12 @@ application server bundled in the rudder-jetty package.
 sed -i 's@%APACHE_ERRLOG_FILE%@%{apache_errlog_file}@' %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/apache2-default.conf
 sed -i 's@%APACHE_LOG_FILE%@%{apache_log_file}@'       %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/apache2-default.conf
 cp -rf %{_sourcedir}/rudder-sources %{_builddir}
+cp -rf %{_sourcedir}/rudder-doc %{_builddir}
 
 #=================================================
 # Building
 #=================================================
 %build
-
-#Build Rudder documentation
-cd %{_builddir}/rudder-sources/rudder-doc && make html
 
 export MAVEN_OPTS=-Xmx512m
 cd %{_builddir}/rudder-sources/rudder-parent-pom && %{_sourcedir}/maven2/bin/mvn -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
@@ -177,7 +175,8 @@ cp %{_sourcedir}/rudder-upgrade-modify-system-group-entries.ldif %{buildroot}%{r
 cp %{SOURCE5} %{buildroot}%{rudderdir}/bin/
 
 # Install documentation
-cp -rf %{_builddir}/rudder-sources/rudder-doc/html %{buildroot}/usr/share/doc/rudder
+cp -rf %{_builddir}/rudder-doc/pdf %{buildroot}/usr/share/doc/rudder
+cp -rf %{_builddir}/rudder-doc/html %{buildroot}/usr/share/doc/rudder
 
 %pre -n rudder-webapp
 #=================================================
