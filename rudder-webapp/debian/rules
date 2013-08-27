@@ -77,11 +77,16 @@ binary-arch: install
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-web/src/main/resources/ load-page/  /opt/rudder/share/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/test/resources/script/ cfe-red-button.sh /opt/rudder/bin/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/ reportsInfo.xml /opt/rudder/etc/
-	cp $(CURDIR)/SOURCES/rudder-sources/rudder/rudder-web/src/main/resources/apache2-default.conf $(CURDIR)/BUILD/rudder-default
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-web/src/main/resources/ apache2-config.conf /opt/rudder/etc/apache2/
+	cp $(CURDIR)/SOURCES/rudder-sources/rudder/rudder-web/src/main/resources/apache2-non-ssl.conf $(CURDIR)/BUILD/rudder-non-ssl
+	cp $(CURDIR)/SOURCES/rudder-sources/rudder/rudder-web/src/main/resources/apache2-ssl.conf $(CURDIR)/BUILD/rudder-ssl
 	# Set log files location for apache
-	sed -i 's@%APACHE_ERRLOG_FILE%@/var/log/rudder/apache2/error.log@' $(CURDIR)/BUILD/rudder-default
-	sed -i 's@%APACHE_LOG_FILE%@/var/log/rudder/apache2/access.log@' $(CURDIR)/BUILD/rudder-default
-	dh_install --SOURCEDIR=$(CURDIR)/BUILD/ rudder-default /etc/apache2/sites-available/
+	sed -i 's@%APACHE_ERRLOG_FILE%@/var/log/rudder/apache2/error.log@' $(CURDIR)/BUILD/rudder-non-ssl
+	sed -i 's@%APACHE_LOG_FILE%@/var/log/rudder/apache2/access.log@' $(CURDIR)/BUILD/rudder-non-ssl
+	sed -i 's@%APACHE_ERRLOG_FILE%@/var/log/rudder/apache2/ssl-error.log@' $(CURDIR)/BUILD/rudder-ssl
+	sed -i 's@%APACHE_LOG_FILE%@/var/log/rudder/apache2/ssl-access.log@' $(CURDIR)/BUILD/rudder-ssl
+	dh_install --SOURCEDIR=$(CURDIR)/BUILD/ rudder-non-ssl /etc/apache2/sites-available/
+	dh_install --SOURCEDIR=$(CURDIR)/BUILD/ rudder-ssl /etc/apache2/sites-available/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder.xml /opt/rudder/jetty7/contexts/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-networks.conf /opt/rudder/etc/
 
