@@ -2,6 +2,7 @@ opt/rudder/bin
 opt/rudder/jetty7/rudder-plugins
 opt/rudder/etc
 opt/rudder/etc/plugins
+opt/rudder/etc/apache2
 opt/rudder/share/tools
 opt/rudder/share/plugins
 opt/rudder/share/upgrade-tools
