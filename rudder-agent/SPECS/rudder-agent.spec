@@ -78,11 +78,11 @@ BuildRequires: make byacc
 
 # dmiecode is provided in the "dmidecode" package on EL4+ and on kernel-utils
 # on EL3
-%if 0%{?rhel} >= 4
+%if 0%{?rhel} && 0%{?rhel} >= 4
 Requires: dmidecode
 %endif
 
-%if 0%{?rhel} < 4
+%if 0%{?rhel} && 0%{?rhel} < 4
 Requires: kernel-utils
 %endif
 
