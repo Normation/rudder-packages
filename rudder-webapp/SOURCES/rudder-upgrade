@@ -86,17 +86,22 @@ else
 fi
 # Where is the Apache Directory on this OS?
 export WWW_DIR=""
+# What is the name of the vhost file?
+export VHOST_NAME=""
 if [ -d "/etc/apache2/sites-enabled" ]; then
   export WWW_DIR="/etc/apache2/sites-enabled"
+  export VHOST_NAME="rudder-default"
 elif [ -d "/etc/apache2/vhosts.d" ]; then
   export WWW_DIR="/etc/apache2/vhosts.d"
+  export VHOST_NAME="rudder-default.conf"
 elif [ -d "/etc/httpd/conf.d" ];then
   export WWW_DIR="/etc/httpd/conf.d"
+  export VHOST_NAME="rudder-default.conf"
 else
   echo "WARNING: Could not find Apache configuration file"
 fi
 # Define the location of the default Apache configuration of Rudder
-RUDDER_WWW_CONF="${WWW_DIR}/rudder-default"
+RUDDER_WWW_CONF="${WWW_DIR}/${VHOST_NAME}"
 
 # Helper function
 # Function to check if a property exists in a configuration file and add it if not
