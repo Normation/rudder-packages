@@ -68,7 +68,7 @@ case "$1" in
 
   # Restart the webapp
   echo "Restarting Rudder webapp and inventory-endpoint"
-  /etc/init.d/jetty restart || echo "Jetty failed to start, maybe there is not enough RAM or swap on the machine. Skipping..."
+  /etc/init.d/jetty restart || echo "WARNING: Jetty failed to start, maybe there is not enough RAM or swap on the machine. Skipping..."
 
     ;;
 

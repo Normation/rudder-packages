@@ -1,26 +1,28 @@
---- jetty7/bin/jetty.sh	2013-08-08 14:22:10.077148773 +0200
-+++ jetty7/bin/jetty.sh	2013-08-08 16:25:27.317049904 +0200
-@@ -115,7 +115,18 @@
+--- jetty7/bin/jetty.sh	2013-08-29 11:11:06.359931946 +0200
++++ jetty7/bin/jetty.sh	2013-08-29 11:15:57.979928668 +0200
+@@ -115,7 +115,20 @@
    source "$1"
  }
  
 -
-+# Gets the Java XMX and MaxPermSize sizes in megabytes as arguments.
++# Gets the memory size (Xmx+MaxPermSize) needed by Java megabytes as argument.
 +# Checks if there is enough available RAM + Swap to contain the JVM.
 +checkAvailableRam()
 +{
++  # By default, add 10% to the given needed memory size to have a safe
++  # margin (leave some memory for the OS)
 +  TOTAL_MEM_NEEDED=$((((${1})*100)/90))
 +  TOTAL_MEM_AVAILABLE=$(($(free -m|awk '/^Mem:/{print $2}')+$(free -m|awk '/^Swap:/{print $2}')))
 +  if [ ${TOTAL_MEM_AVAILABLE} -gt ${TOTAL_MEM_NEEDED} ]; then
-+    echo "There is enough memory to start Jetty."
++    echo "INFO: There is enough memory to start Jetty."
 +  else
-+    echo "WARNING: Not enough memory to start Jetty, the application is likely to fail."
++    echo "WARNING: Not enough free memory to start Jetty ( about ${TOTAL_MEM_NEEDED}MB are needed ). Trying anyway, but the application is likely to fail."
 +  fi
 +}
  
  ##################################################
  # Get the action & configs
-@@ -319,6 +330,13 @@
+@@ -319,6 +332,13 @@
  fi
  
  ##################################################
@@ -34,7 +36,7 @@
  # Setup JAVA if unset
  ##################################################
  if [ -z "$JAVA" ]
-@@ -383,15 +401,17 @@
+@@ -383,15 +403,17 @@
  #####################################################
  if (( DEBUG ))
  then
@@ -61,7 +63,7 @@
  fi
  
  #####################################################
-@@ -424,6 +444,10 @@
+@@ -424,6 +446,10 @@
    start)
      UMASK="0027" 
      echo "Setting umask to ${UMASK}" 
@@ -72,7 +74,7 @@
      echo -n "Starting Jetty: "
  
      if (( NO_START )); then 
-@@ -571,18 +595,20 @@
+@@ -571,18 +597,20 @@
  
    check)
      echo "Checking arguments to Jetty: "
