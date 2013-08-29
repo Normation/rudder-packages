@@ -16,7 +16,7 @@
 +  if [ ${TOTAL_MEM_AVAILABLE} -gt ${TOTAL_MEM_NEEDED} ]; then
 +    echo "INFO: There is enough memory to start Jetty."
 +  else
-+    echo "WARNING: Not enough free memory to start Jetty ( about ${TOTAL_MEM_NEEDED}MB are needed ). Trying anyway, but the application is likely to fail."
++    echo "WARNING: Not enough free memory to start Jetty (about ${TOTAL_MEM_NEEDED}MB are needed). Trying anyway, but the application is likely to fail."
 +  fi
 +}
  
