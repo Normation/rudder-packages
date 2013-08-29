@@ -315,15 +315,15 @@ cp -a /opt/rudder/bin/cf-* /var/rudder/cfengine-community/bin/
 NB_COPIED_BINARIES=`ls -1 /var/rudder/cfengine-community/bin/ | wc -l`
 if [ ${NB_COPIED_BINARIES} -gt 0 ];then echo "CFEngine binaries copied to workdir"; fi
 
-# Remove the lock on CFEngine
-if [ ${I_SET_THE_LOCK} -eq 1 ]; then
-	rm -f /opt/rudder/etc/disable-agent
-fi
-
 # Copy initial promises if there aren't any already
 if [ ! -e /var/rudder/cfengine-community/inputs/promises.cf ]
 then
 	cp -r /opt/rudder/share/initial-promises/* /var/rudder/cfengine-community/inputs
+fi
+
+# Remove the lock on CFEngine
+if [ ${I_SET_THE_LOCK} -eq 1 ]; then
+	rm -f /opt/rudder/etc/disable-agent
 fi
 
 # Restart daemons if we stopped them, otherwise not
@@ -346,8 +346,46 @@ fi
 # Create a key if we don't have one yet
 if [ ! -f /var/rudder/cfengine-community/ppkeys/localhost.priv ]
 then
-	/var/rudder/cfengine-community/bin/cf-key
+	echo -n "INFO: Creating keys for CFEngine agent..."
+	/var/rudder/cfengine-community/bin/cf-key > /dev/null 2>&1
+	echo " Done."
 fi
+
+# Generate a UUID if we don't have one yet
+if [ ! -e /opt/rudder/etc/uuid.hive ]
+then
+	echo -n "INFO: Creating a new UUID for Rudder..."
+	uuidgen > /opt/rudder/etc/uuid.hive
+	echo " Done."
+else
+	# UUID is valid only if it has been generetaed by uuidgen or if it is set to 'root' for policy server
+	CHECK_UUID=`cat /opt/rudder/etc/uuid.hive | grep -E "^[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}|root" | wc -l`
+	# If the UUID is not valid, regenerate it
+	if [ ${CHECK_UUID} -ne 1 ]
+	then
+		echo -n "INFO: Creating a new UUID for Rudder as the existing one is invalid..."
+		uuidgen > /opt/rudder/etc/uuid.hive
+		echo " Done."
+	fi
+fi
+
+%postun -n rudder-agent
+#=================================================
+# Post Installation
+#=================================================
+
+# Make sure that CFEngine is not running anymore
+for component in cf-agent cf-serverd cf-execd cf-monitord; do
+	kill -9 `pidof ${component}`
+done
+
+# Remove the cron script we create at installation to prevent mail
+# flooding, re-installation surprises, and general system garbage.
+rm -f /etc/cron.d/rudder-agent
+
+# Make sure that Rudder related directories were removed
+rm -rf /opt/rudder
+rm -rf /var/rudder
 
 #=================================================
 # Cleaning

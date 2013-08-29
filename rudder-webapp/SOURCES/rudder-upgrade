@@ -59,6 +59,7 @@ set -e
 # - 2.4.0 : Disable base.url attribute in rudder-web.properties
 # - 2.4.0 : Update logback.xml in order to have information about name historization
 # - 2.4.1 : Add the group serialization table (GroupsNodesJoin) to the database
+# - 2.4.8 : Remove the user name length limitation in the event log table
 # - 2.5.0 : Add the automatic reports cleaning properties
 # - 2.5.0 : Migration DB schema to add table to the SQL database to store error report logger state
 # - 2.5.0 : Add "rudder.batch.reports.logInterval" configuration parameter to rudder-web.properties
@@ -629,7 +630,7 @@ if [ ${CHECK_BACKSLASH} -ne 1 ]; then
   su - postgres -c "psql -t -d rudder -c \"alter database rudder set standard_conforming_strings=true;\""
   echo "Done. PostgreSQL and Rudder will be restarted"
   /etc/init.d/postgresql restart
-  /etc/init.d/jetty restart
+  /etc/init.d/jetty restart || echo "WARNING: Jetty failed to start, maybe there is not enough RAM or swap on the machine. Skipping..."
 fi
 
 
@@ -683,6 +684,12 @@ fi
 RES=$(su - postgres -c "psql -d rudder -t -c \"select count(1) from pg_class where relname = 'groupsnodesjoin'\"")
 if [ $RES -eq 0 ]; then
 	psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.4-2.5-group-serialisation.sql > /dev/null
+fi
+
+# - 2.4.8: Remove the user name length limitation in the event log table
+RES=$(su - postgres -c "psql -d rudder -t -c \"select count(*) from INFORMATION_SCHEMA.COLUMNS where column_name='principal' and table_name = 'eventlog' and data_type = 'character varying'\"")
+if [ $RES -ne 0 ]; then
+        psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.4-2.4-eventlog-unlimited-principal-length.sql > /dev/null
 fi
 
 # - 2.5.0 : Add the automatic reports cleaning properties
