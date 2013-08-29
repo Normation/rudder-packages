@@ -547,7 +547,7 @@ if [ ${CHECK_BACKSLASH} -ne 1 ]; then
   su - postgres -c "psql -t -d rudder -c \"alter database rudder set standard_conforming_strings=true;\""
   echo "Done. PostgreSQL and Rudder will be restarted"
   /etc/init.d/postgresql restart
-  /etc/init.d/jetty restart
+  /etc/init.d/jetty restart || echo "WARNING: Jetty failed to start, maybe there is not enough RAM or swap on the machine. Skipping..."
 fi
 
 
