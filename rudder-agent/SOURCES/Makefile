@@ -116,6 +116,9 @@ localdepends: ./initial-promises ./files ./fusioninventory-agent ./tokyocabinet-
 
 ./rudder-agent.cron: ./rudder-sources
 	cp ./rudder-sources/rudder-techniques/techniques/system/common/1.0/rudder_agent_community_cron.st ./rudder-agent.cron
+	# Set unexpanded variables of the cron file
+	sed 's@\$${sys.workdir}@/var/rudder/cfengine-community@g' -i rudder-agent.cron
+	sed 's@\$${g.rudder_base}@/opt/rudder@g' -i rudder-agent.cron
 
 ../debian/rudder-agent.cron: ./rudder-agent.cron
 	cp ./rudder-agent.cron ../debian/
