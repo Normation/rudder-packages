@@ -43,6 +43,7 @@ localdepends: ./jetty7
 	patch -p0 -s < jetty-init-rudder.patch
 	patch -p0 -s < jetty-init-umask.patch
 	patch -p0 -s < jetty-init-stop-fix.patch
+	patch -p0 -s < jetty-init-sizecheck.patch
 
 	cp ./jetty7/bin/jetty.sh ./jetty7/bin/jetty-debian.sh
 	cp ./jetty7/bin/jetty.sh ./jetty7/bin/jetty-sles.sh

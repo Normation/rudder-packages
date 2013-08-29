@@ -79,7 +79,7 @@ case "$1" in
   if [ /etc/init.d/jetty check >/dev/null 2>&1 ];then
     /etc/init.d/jetty start >/dev/null 2>&1
   else
-    /etc/init.d/jetty restart >/dev/null 2>&1
+    /etc/init.d/jetty restart >/dev/null 2>&1 || echo "WARNING: Jetty failed to start, maybe there is not enough RAM or swap on the machine. Skipping..."
   fi
   echo " Done"
 
