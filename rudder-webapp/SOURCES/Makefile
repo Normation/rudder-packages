@@ -24,7 +24,7 @@ WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget
 RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
 RUDDER_MAJOR_VERSION := $(shell echo ${RUDDER_VERSION_TO_PACKAGE} | cut -d'.' -f 1-2)
 
-localdepends: ./rudder-sources ./maven2/bin/mvn ./rudder-users.xml ./rudder-doc ./rudder-doc/pdf/rudder-doc.pdf
+localdepends: ./rudder-sources ./maven2/bin/mvn ./rudder-users.xml ./rudder-doc ./rudder-doc/html/rudder-doc.pdf
 
 /usr/bin/wget:
 	sudo aptitude --assume-yes install wget
@@ -49,11 +49,11 @@ localdepends: ./rudder-sources ./maven2/bin/mvn ./rudder-users.xml ./rudder-doc 
 	# Get user manual from rudder-project.org and rename directory containing it to rudder-doc
 	$(WGET) -P ./rudder-doc/html -r -np -nH --cut-dirs=1 http://www.rudder-project.org/rudder-doc-${RUDDER_MAJOR_VERSION}/rudder-doc.html
 	mkdir -p ./rudder-doc/pdf
-
-./rudder-doc/pdf/rudder-doc.pdf: ./rudder-doc
 	# Move the generated PDF from html directory to pdf
 	mv ./rudder-doc/html/rudder-doc.pdf ./rudder-doc/pdf/
-	ln -s ../pdf/rudder-doc.pdf ./rudder-doc/html/rudder-doc.pdf
+
+./rudder-doc/html/rudder-doc.pdf: ./rudder-doc
+	ln -fs ../pdf/rudder-doc.pdf ./rudder-doc/html/rudder-doc.pdf
 
 ./rudder-users.xml: ./rudder-sources
 	cp ./rudder-sources/rudder/rudder-web/src/main/resources/demo-rudder-users.xml ./rudder-users.xml
