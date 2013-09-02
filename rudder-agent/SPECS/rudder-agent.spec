@@ -369,9 +369,20 @@ else
 	fi
 fi
 
+%preun -n rudder-agent
+#=================================================
+# Pre Uninstallation
+#=================================================
+
+# Keep a backup copy of uuid.hive
+mkdir -p /var/backups/rudder
+cp -f /opt/rudder/etc/uuid.hive /var/backups/rudder/uuid-$(date +%Y%m%d).hive
+echo "INFO: A back up copy of the /opt/rudder/etc/uuid.hive has been created in /var/backups/rudder"
+
+
 %postun -n rudder-agent
 #=================================================
-# Post Installation
+# Post Uninstallation
 #=================================================
 
 # Make sure that CFEngine is not running anymore
@@ -383,9 +394,10 @@ done
 # flooding, re-installation surprises, and general system garbage.
 rm -f /etc/cron.d/rudder-agent
 
-# Make sure that Rudder related directories were removed
-rm -rf /opt/rudder
-rm -rf /var/rudder
+# Make sure that Rudder agent specific files have been removed
+rm -f /etc/init.d/rudder-agent
+rm -f /etc/default/rudder-agent
+rm -f /opt/rudder/etc/uuid.hive
 
 #=================================================
 # Cleaning
