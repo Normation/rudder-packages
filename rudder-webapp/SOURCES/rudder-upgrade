@@ -195,15 +195,14 @@ rudder.batch.reports.logInterval=1
 # File Format migration : version 1 (2.3) to 2 (2.4) : Check if an event log has File format 1
 # The migration is not supported anymore, explain that you should upgrade first to 2.6 before
 RES=$(su - postgres -c "psql -t -d rudder -c \"select count(*) from (select xpath('/entry/*[@fileFormat=1]',data) AS x from eventlog) as Y where array_upper(x, 1) > 0;\"")
-RES2=$(su - postgres -c "psql -t -d rudder -c \"select count(*) from (select xpath('/entry/addPending',data) AS x from eventlog) as Y where array_upper(x, 1) > 0;\"")
-if [ $RES -ne 0 ] || [ $RES2 -ne 0 ]; then
+if [ $RES -ne 0 ]; then
    echo "WARNING: Some event log are still based on an old file format (file format 1), please upgrade first to 2.6 to make this migration"
+	psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.3-2.4-set-migration-needed-flag-for-EventLog.sql > /dev/null
 fi
 
 # File Format migration : version 2 (2.4) to 3 (2.4) : Check if an event log has File format 2 and set migration flag if needed
 RES=$(su - postgres -c "psql -t -d rudder -c \"select count(*) from (select xpath('/entry/*[@fileFormat=2]',data) AS x from eventlog) as Y where array_upper(x, 1) > 0;\"")
-RES2=$(su - postgres -c "psql -t -d rudder -c \"select count(*) from (select xpath('/entry/addPending',data) AS x from eventlog) as Y where array_upper(x, 1) > 0;\"")
-if [ $RES -ne 0 ] || [ $RES2 -ne 0 ]; then
+if [ $RES -ne 0 ]; then
 	psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.4-2.4-set-migration-needed-flag-for-EventLog.sql >/dev/null 2>&1
 fi
 
