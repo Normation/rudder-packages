@@ -116,8 +116,8 @@ cp %{SOURCE1} %{buildroot}/opt/rudder/etc/
 # Post Installation
 #=================================================
 
-echo "Reloading syslogd ..."
-%{sysloginitscript} reload
+echo "Restarting syslogd ..."
+%{sysloginitscript} restart
 
 #=================================================
 # Cleaning
