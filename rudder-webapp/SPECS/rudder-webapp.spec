@@ -193,8 +193,8 @@ echo -n "INFO: Setting Apache HTTPd as a boot service..."
 /sbin/chkconfig --add %{apache} 2&> /dev/null
 echo " Done"
 
-echo -n "INFO: Reloading syslog..."
-%{sysloginitscript} reload > /dev/null
+echo -n "INFO: Restrating syslog..."
+%{sysloginitscript} restart > /dev/null
 echo " Done"
 
 # Do this ONLY at first install
