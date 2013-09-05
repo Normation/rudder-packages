@@ -194,8 +194,8 @@ cp %{SOURCE5} %{buildroot}%{rudderdir}/bin/
 echo "Setting Apache HTTPd as a boot service"
 /sbin/chkconfig --add %{apache}
 
-echo "Reloading syslog"
-%{sysloginitscript} reload
+echo "Restarting syslog"
+%{sysloginitscript} restart
 
 /sbin/service %{apache} stop
 # a2dissite default
