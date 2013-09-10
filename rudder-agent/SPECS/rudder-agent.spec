@@ -261,10 +261,13 @@ fi
 # Pre Uninstallation
 #=================================================
 
-# Keep a backup copy of uuid.hive
-mkdir -p /var/backups/rudder
-cp -f /opt/rudder/etc/uuid.hive /var/backups/rudder/uuid-$(date +%Y%m%d).hive
-echo "INFO: A back up copy of the /opt/rudder/etc/uuid.hive has been created in /var/backups/rudder"
+# Do it only during uninstallation
+if [ $1 -eq 0 ]; then
+  # Keep a backup copy of uuid.hive
+  mkdir -p /var/backups/rudder
+  cp -f /opt/rudder/etc/uuid.hive /var/backups/rudder/uuid-$(date +%Y%m%d).hive
+  echo "INFO: A back up copy of the /opt/rudder/etc/uuid.hive has been created in /var/backups/rudder"
+fi
 
 
 %postun -n rudder-agent
@@ -272,19 +275,22 @@ echo "INFO: A back up copy of the /opt/rudder/etc/uuid.hive has been created in 
 # Post Uninstallation
 #=================================================
 
-# Make sure that CFEngine is not running anymore
-for component in cf-agent cf-serverd cf-execd cf-monitord; do
-	kill -9 `pidof ${component}`
-done
+# Do it only during uninstallation
+if [ $1 -eq 0 ]; then
+  # Make sure that CFEngine is not running anymore
+  for component in cf-agent cf-serverd cf-execd cf-monitord; do
+    kill -9 `pidof ${component}`
+  done
 
-# Remove the cron script we create at installation to prevent mail
-# flooding, re-installation surprises, and general system garbage.
-rm -f /etc/cron.d/rudder-agent
+  # Remove the cron script we create at installation to prevent mail
+  # flooding, re-installation surprises, and general system garbage.
+  rm -f /etc/cron.d/rudder-agent
 
-# Make sure that Rudder agent specific files have been removed
-rm -f /etc/init.d/rudder-agent
-rm -f /etc/default/rudder-agent
-rm -f /opt/rudder/etc/uuid.hive
+  # Make sure that Rudder agent specific files have been removed
+  rm -f /etc/init.d/rudder-agent
+  rm -f /etc/default/rudder-agent
+  rm -f /opt/rudder/etc/uuid.hive
+fi
 
 #=================================================
 # Cleaning
