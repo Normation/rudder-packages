@@ -374,13 +374,15 @@ fi
 # Pre Uninstallation
 #=================================================
 
-# Do it only during uninstallation
-if [ $1 -eq 0 ]; then
-  # Keep a backup copy of uuid.hive
-  mkdir -p /var/backups/rudder
-  cp -f /opt/rudder/etc/uuid.hive /var/backups/rudder/uuid-$(date +%Y%m%d).hive
-  echo "INFO: A back up copy of the /opt/rudder/etc/uuid.hive has been created in /var/backups/rudder"
-fi
+# Do it during upgrade and uninstall
+# Keep a backup copy of uuid.hive
+mkdir -p /var/backups/rudder
+cp -f /opt/rudder/etc/uuid.hive /var/backups/rudder/uuid-$(date +%Y%m%d).hive
+echo "INFO: A back up copy of the /opt/rudder/etc/uuid.hive has been created in /var/backups/rudder"
+
+# Keep a backup copy of CFEngine ppkeys
+cp -af /var/rudder/cfengine-community/ppkeys/ /var/backups/rudder/ppkeys-$(date +%Y%m%d)
+echo "INFO: A back up copy of the /var/rudder/cfengine-community/ppkeys has been created in /var/backups/rudder"
 
 
 %postun -n rudder-agent
