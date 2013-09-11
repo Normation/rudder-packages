@@ -173,6 +173,15 @@ cp %{SOURCE4} %{buildroot}%{rudderdir}/etc/
 # Post Installation
 #=================================================
 
+BACKUP_FOLDER=/var/backups/rudder/
+UUID_FILEPATH=/opt/rudder/etc/uuid.hive
+LATEST_BACKUPED_UUID=""
+if [ -d ${BACKUP_FOLDER} ];then
+  # Get latest backup file of uuid based on name containing a date
+  LATEST_BACKUPED_UUID=$(ls -v1 ${BACKUP_FOLDER} | tail -n1)
+fi
+
+
 CFRUDDER_FIRST_INSTALL=0
 
 # Do this at first install
@@ -241,9 +250,22 @@ fi
 # Generate a UUID if we don't have one yet
 if [ ! -e /opt/rudder/etc/uuid.hive ]
 then
-	echo -n "INFO: Creating a new UUID for Rudder..."
-	uuidgen > /opt/rudder/etc/uuid.hive
-	echo " Done."
+	if [ ${CFRUDDER_FIRST_INSTALL} -eq 1 ]
+	then
+		echo -n "INFO: Creating a new UUID for Rudder..."
+		uuidgen > ${UUID_FILEPATH}
+		echo " Done."
+	else
+		if [ -f ${BACKUP_FOLDER}${LATEST_BACKUPED_UUID} ];then
+			echo -n "WARNING: The UUID of the node does not exist. The lastest backup (${LATEST_BACKUPED_UUID}) will be recovered..."
+			cp -a ${BACKUP_FOLDER}${LATEST_BACKUPED_UUID} ${UUID_FILEPATH} >/dev/null 2>&1
+			echo " Done"
+		else
+			echo -n "WARNING: The UUID of the node does not exist and no backup exist. A new one will be generated..."
+			uuidgen > ${UUID_FILEPATH}
+			echo " Done"
+		fi
+	fi
 else
 	# UUID is valid only if it has been generetaed by uuidgen or if it is set to 'root' for policy server
 	CHECK_UUID=`cat /opt/rudder/etc/uuid.hive | grep -E "^[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}|root" | wc -l`
