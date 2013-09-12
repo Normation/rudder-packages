@@ -47,6 +47,7 @@ URL: http://www.rudder-project.org
 Group: Applications/System
 
 Source1: rudder-sources
+Source2: rudder.conf
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
@@ -95,7 +96,7 @@ mkdir -p %{buildroot}%{rudderdir}/etc/postgresql/
 mkdir -p %{buildroot}/etc/rsyslog.d
 
 cp %{SOURCE1}/rudder/rudder-core/src/main/resources/reportsSchema.sql %{buildroot}%{rudderdir}/etc/postgresql/
-cp -a %{SOURCE1}/rudder-techniques/initial-promises/node-server/distributePolicy/rsyslog.conf/rudder.conf %{buildroot}/etc/rsyslog.d/rudder.conf
+cp -a %{SOURCE2} %{buildroot}/etc/rsyslog.d/rudder.conf
 
 %pre -n rudder-reports
 #=================================================
