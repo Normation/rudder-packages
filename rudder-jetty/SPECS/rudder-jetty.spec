@@ -161,7 +161,7 @@ rm -rf %{buildroot}
 %{rudderlogdir}/webapp
 /var/rudder/run
 /etc/init.d/jetty
-%config(noreplace) /etc/default/jetty
+/etc/default/jetty
 
 #=================================================
 # Changelog
