@@ -52,7 +52,7 @@ Source1: rudder-agent.init
 Source2: rudder-agent.default
 Source3: run-inventory
 Source4: uuid.hive
-Source5: check_rudder-agent
+Source5: check-rudder-agent
 
 # We have PERL things in here. Do not try to outsmart me by adding dummy dependencies, you silly tool.
 AutoReq: 0
@@ -164,7 +164,7 @@ install -m 755 %{SOURCE3} %{buildroot}/opt/rudder/bin/run-inventory
 # Install an empty uuid.hive file before generating an uuid
 cp %{SOURCE4} %{buildroot}%{rudderdir}/etc/
 
-install -m 755 %{SOURCE5} %{buildroot}/opt/rudder/bin/check_rudder-agent
+install -m 755 %{SOURCE5} %{buildroot}/opt/rudder/bin/check-rudder-agent
 
 %pre -n rudder-agent
 #=================================================
@@ -175,15 +175,6 @@ install -m 755 %{SOURCE5} %{buildroot}/opt/rudder/bin/check_rudder-agent
 #=================================================
 # Post Installation
 #=================================================
-
-BACKUP_FOLDER=/var/backups/rudder/
-UUID_FILEPATH=/opt/rudder/etc/uuid.hive
-LATEST_BACKUPED_UUID=""
-if [ -d ${BACKUP_FOLDER} ];then
-  # Get latest backup file of uuid based on name containing a date
-  LATEST_BACKUPED_UUID=$(ls -v1 ${BACKUP_FOLDER} | tail -n1)
-fi
-
 
 CFRUDDER_FIRST_INSTALL=0
 
@@ -251,7 +242,7 @@ then
 fi
 
 # Launch verification script of rudder-agent and will create/recover UUID if needed
-%{rudderdir}/bin/check_rudder-agent
+%{rudderdir}/bin/check-rudder-agent
 
 
 %preun -n rudder-agent

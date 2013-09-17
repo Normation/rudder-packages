@@ -78,7 +78,7 @@ binary-arch: install
 	# Install an empty uuid.hive file before generating an uuid
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ uuid.hive /opt/rudder/etc/
 	# Install a verification script for cron
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ check_rudder-agent /opt/rudder/bin/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ check-rudder-agent /opt/rudder/bin/
 #	dh_installcron
 #	dh_installinfo
 	dh_installman

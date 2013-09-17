@@ -109,9 +109,9 @@ fi
 # Post Installation
 #=================================================
 # Launch verifications for rudder-agent
-%{rudderdir}/bin/check_rudder-agent
+%{rudderdir}/bin/check-rudder-agent
 
-# Is this the first installation?
+# Check if Rudder has already been initialize previously
 LDAPCHK=`/opt/rudder/sbin/slapcat  | grep "^dn: " | wc -l`
 if [ $LDAPCHK -eq 0 ]; then
   echo "************************************************************"

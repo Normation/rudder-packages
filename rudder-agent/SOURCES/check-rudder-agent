@@ -62,6 +62,10 @@ else
   # If the UUID is not valid, regenerate it
   if [ ${CHECK_UUID} -ne 1 ]; then
     echo -n "INFO: Creating a new UUID for Rudder as the existing one is invalid..."
+    # Keep a backup of UUID even if it is not valid
+    mkdir -p /var/backups/rudder
+    cp -f /opt/rudder/etc/uuid.hive /var/backups/rudder/uuid-$(date +%Y%m%d).hive
+    # Generate a new one
     uuidgen > ${UUID_FILE}
     echo " Done."
   fi

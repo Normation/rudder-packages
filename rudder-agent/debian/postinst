@@ -21,14 +21,6 @@ set -e
 case "$1" in
 	configure)
 
-		BACKUP_FOLDER=/var/backups/rudder/
-		UUID_FILEPATH=/opt/rudder/etc/uuid.hive
-		LATEST_BACKUPED_UUID=""
-		if [ -d ${BACKUP_FOLDER} ];then
-			# Get latest backup file of uuid based on name containing a date
-			LATEST_BACKUPED_UUID=$(ls -v1 ${BACKUP_FOLDER} | tail -n1)
-		fi
-
 		# Is this the first installation?
 		CFRUDDER_FIRST_INSTALL=0
 		if [ ! -x /var/rudder/cfengine-community/bin/cf-execd ]; then CFRUDDER_FIRST_INSTALL=1; fi
@@ -86,7 +78,7 @@ case "$1" in
 		fi
 
 		# Launch verification script of rudder-agent and will create/recover UUID if needed
-		/opt/rudder/bin/check_rudder-agent
+		/opt/rudder/bin/check-rudder-agent
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)

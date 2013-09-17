@@ -21,8 +21,8 @@ set -e
 case "$1" in
     configure)
 		# Launch verifications for rudder-agent
-		/opt/rudder/bin/check_rudder-agent
-		# Is this the first installation?
+		/opt/rudder/bin/check-rudder-agent
+		# Check if Rudder has already been initialize previously
 		LDAPCHK=`/opt/rudder/sbin/slapcat  | grep "^dn: " | wc -l`
 		if [ $LDAPCHK -eq 0 ]; then
 			echo "************************************************************"
