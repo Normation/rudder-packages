@@ -53,6 +53,17 @@ ${APACHE2_INIT} stop
 /etc/init.d/slapd stop
 }
 
+status_services()
+{
+${APACHE2_INIT} status
+/etc/init.d/jetty check | tail -1
+/etc/init.d/rudder-agent status
+# Add PostgreSQL PID to the output
+echo -n "postgres[$(ps axf | grep postmaster | grep -v grep | cut -d" " -f 2)]: "
+/etc/init.d/postgresql* status
+/etc/init.d/slapd status
+}
+
 case "$1" in
 stop)
 stop_services
@@ -60,12 +71,15 @@ stop_services
 start)
 start_services
 ;;
+status)
+status_services
+;;
 restart)
 stop_services
 start_services
 ;;
 *)
-  echo "Usage: $0 {start|stop|restart}"
+  echo "Usage: $0 {start|stop|restart|status}"
   exit 1
 ;;
 esac
