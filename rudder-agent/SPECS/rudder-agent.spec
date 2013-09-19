@@ -243,11 +243,14 @@ fi
 
 # Add temporary cron for checking UUID. This cron is created in postinst
 # in order to remove it later without complains of the package manager.
-CHECK_RUDDER_AGENT_CRON=`grep "check-rudder-agent" techniques/system/common/1.0/rudder_agent_community_cron.st | wc -l`
+CHECK_RUDDER_AGENT_CRON=`grep "/opt/rudder/bin/check-rudder-agent" /etc/cron.d/rudder-agent | wc -l`
 # Add it only if the default cron file does not call check-rudder-agent script
-if [ ${CHECK_RUDDER_AGENT_CRON} -ne 1 ]; then
-	echo "0,5,10,15,20,25,30,35,40,45,50,55 * * * * root /opt/rudder/bin/check-rudder-agent" > /etc/cron.d/rudder-agent-uuid
-	chmod 755 /etc/cron.d/rudder-uuid
+if [ ${CHECK_RUDDER_AGENT_CRON} -eq 0 ]; then
+	TMP_CRON=/etc/cron.d/rudder-agent-uuid
+	if [ ! -f ${TMP_CRON} ]; then
+		echo "0,5,10,15,20,25,30,35,40,45,50,55 * * * * root /opt/rudder/bin/check-rudder-agent" > ${TMP_CRON}
+		chmod 755 ${TMP_CRON}
+	fi
 fi
 
 %preun -n rudder-agent
