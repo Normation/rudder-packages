@@ -99,19 +99,16 @@ cp %{SOURCE6} %{buildroot}%{rudderdir}/etc/
 #=================================================
 # Pre Installation
 #=================================================
-# If first install, change uuid to 'root'
-if [ $1 -eq 1 ]; then
-  echo 'root' > %{rudderdir}/etc/uuid.hive
-fi
 
 %post -n rudder-server-root
 #=================================================
 # Post Installation
 #=================================================
-# Launch verifications for rudder-agent
-%{rudderdir}/bin/check-rudder-agent
+# This package is only installed by the root server
+# then we can set UUID to 'root' serenly
+echo 'root' > %{rudderdir}/etc/uuid.hive
 
-# Check if Rudder has already been initialize previously
+# Check if Rudder LDAP has already been initialize previously
 LDAPCHK=`/opt/rudder/sbin/slapcat  | grep "^dn: " | wc -l`
 if [ $LDAPCHK -eq 0 ]; then
   echo "************************************************************"

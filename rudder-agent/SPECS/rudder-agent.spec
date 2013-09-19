@@ -241,9 +241,13 @@ then
 	echo " Done."
 fi
 
-# Launch verification script of rudder-agent and will create/recover UUID if needed
-%{rudderdir}/bin/check-rudder-agent
-
+# Add temporary cron for checking UUID. This cron is created in postinst
+# in order to remove it later without complains of the package manager.
+CHECK_RUDDER_AGENT_CRON=`grep "check-rudder-agent" techniques/system/common/1.0/rudder_agent_community_cron.st | wc -l`
+if [ ${CHECK_RUDDER_AGENT_CRON} -ne 1 ]; then
+	echo "0,5,10,15,20,25,30,35,40,45,50,55 * * * * root /opt/rudder/bin/check-rudder-agent" > /etc/cron.d/rudder-agent-uuid
+	chmod 755 /etc/cron.d/rudder-uuid
+fi
 
 %preun -n rudder-agent
 #=================================================
