@@ -75,6 +75,7 @@ set -e
 # - 2.6.0 : Add the property to enable/disable workflow self validation
 # - 2.6.0 : Add the property to enable/disable workflow self deployment
 # - 2.6.0 : Check the LDAP and PostgreSQL daemons status before upgrading
+# - 2.6.6 : Migration DB schema to modify indexes on RudderSysEvents to improve nodes list display
 #####################################################################################
 
 # Some variables
@@ -832,6 +833,13 @@ check_and_add_config_property rudder.workflow.self.deployment "
 
 rudder.workflow.self.deployment=true"
 
+# - 2.6.6 : Migration DB schema to modify indexes on RudderSysEvents to improve nodes list display
+RES=$(su - postgres -c "psql -t -d rudder -c \"select count(oid) from pg_class where lower(relname) = 'composite_node_execution_idx'\"")
+if [ $RES -eq 0 ]; then
+        echo -n "INFO: Updating the PostgreSQL indexes, this may take several minutes..."
+        psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.6-2.6-index-reports.sql > /dev/null
+        echo " Done"
+fi
 
 # For every upgrade, we force the root server to run a new inventory on the next CFEngine run
 touch /opt/rudder/etc/force_inventory
