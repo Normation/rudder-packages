@@ -101,6 +101,7 @@ binary-arch: install
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ dbMigration-2.5-2.6-unexpanded-value.sql /opt/rudder/share/upgrade-tools/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ dbMigration-2.5-2.6-add_workflow_support.sql /opt/rudder/share/upgrade-tools/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ dbMigration-2.6-2.6-add-modification-Id-change-request-column.sql /opt/rudder/share/upgrade-tools/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ dbMigration-2.6-2.6-index-reports.sql
 
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-upgrade-LDAP-schema-2.3-2.4-add-entries.ldif /opt/rudder/share/upgrade-tools/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-upgrade-modify-system-group-entries.ldif /opt/rudder/share/upgrade-tools/
