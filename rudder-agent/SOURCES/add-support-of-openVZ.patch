@@ -1,0 +1,193 @@
+diff --git a/src/cf3.defs.h b/src/cf3.defs.h
+index 3f44844..9395c80 100755
+--- a/src/cf3.defs.h
++++ b/src/cf3.defs.h
+@@ -323,6 +323,7 @@ enum statepolicy
+ enum classes
+ {
+     hard_class_unknown,
++    virt_host_vz_vzps,
+     hp,
+     aix,
+     linuxx,
+diff --git a/src/classes.c b/src/classes.c
+index b7efd87..a333ad0 100644
+--- a/src/classes.c
++++ b/src/classes.c
+@@ -27,6 +27,7 @@
+ const char *CLASSTEXT[HARD_CLASSES_MAX] =
+ {
+     "<unknown>",
++    "virt_host_vz_vzps",
+     "hpux",
+     "aix",
+     "linux",
+@@ -48,6 +49,7 @@ const char *CLASSTEXT[HARD_CLASSES_MAX] =
+ const char *VPSCOMM[HARD_CLASSES_MAX] =
+ {
+     "",
++    "/bin/vzps -E 0",           /* vz with vzps */
+     "/bin/ps",                  /* hpux */
+     "/bin/ps",                  /* aix */
+     "/bin/ps",                  /* linux */
+@@ -72,6 +74,7 @@ const char *VPSCOMM[HARD_CLASSES_MAX] =
+ const char *VPSOPTS[HARD_CLASSES_MAX] =
+ {
+     "",
++    "-o user,pid,ppid,pgid,pcpu,pmem,vsz,pri,rss,nlwp,stime,time,args", /* vz with vzps */
+     "-ef",                      /* hpux */
+     "-N -eo user,pid,ppid,pgid,pcpu,pmem,vsz,ni,stat,st=STIME,time,args",  /* aix */
+     "-eo user,pid,ppid,pgid,pcpu,pmem,vsz,pri,rss,nlwp,stime,time,args",        /* linux */
+@@ -93,6 +96,7 @@ const char *VPSOPTS[HARD_CLASSES_MAX] =
+ const char *VFSTAB[HARD_CLASSES_MAX] =
+ {
+     "-",
++    "/etc/fstab",               /* vz with vzps */
+     "/etc/fstab",               /* hpux */
+     "/etc/filesystems",         /* aix */
+     "/etc/fstab",               /* linux */
+diff --git a/src/mon_network.c b/src/mon_network.c
+index 55690ed..0bf9312 100644
+--- a/src/mon_network.c
++++ b/src/mon_network.c
+@@ -37,6 +37,7 @@ Item *MON_UDP4 = NULL, *MON_UDP6 = NULL, *MON_TCP4 = NULL, *MON_TCP6 = NULL;
+ static const char *VNETSTAT[HARD_CLASSES_MAX] =
+ {
+     "-",
++    "/bin/netstat -rn",         /* virt_host_vz_vzps */
+     "/usr/bin/netstat -rn",     /* hpux */
+     "/usr/bin/netstat -rn",     /* aix */
+     "/bin/netstat -rn",         /* linux */
+diff --git a/src/nfs.c b/src/nfs.c
+index ab80db5..e0437b8 100644
+--- a/src/nfs.c
++++ b/src/nfs.c
+@@ -42,6 +42,7 @@ static void DeleteThisItem(Item **liststart, Item *entry);
+ static const char *VMOUNTCOMM[HARD_CLASSES_MAX] =
+ {
+     "",
++    "/bin/mount -va",           /* virt_host_vz_vzps */
+     "/sbin/mount -ea",          /* hpux */
+     "/usr/sbin/mount -t nfs",   /* aix */
+     "/bin/mount -va",           /* linux */
+@@ -63,6 +64,7 @@ static const char *VMOUNTCOMM[HARD_CLASSES_MAX] =
+ static const char *VUNMOUNTCOMM[HARD_CLASSES_MAX] =
+ {
+     "",
++    "/bin/umount",              /* virt_host_vz_vzps */
+     "/sbin/umount",             /* hpux */
+     "/usr/sbin/umount",         /* aix */
+     "/bin/umount",              /* linux */
+@@ -84,6 +86,7 @@ static const char *VUNMOUNTCOMM[HARD_CLASSES_MAX] =
+ static const char *VMOUNTOPTS[HARD_CLASSES_MAX] =
+ {
+     "",
++    "defaults",                 /* virt_host_vz_vzps */
+     "bg,hard,intr",             /* hpux */
+     "bg,hard,intr",             /* aix */
+     "defaults",                 /* linux */
+diff --git a/src/sysinfo.c b/src/sysinfo.c
+index 557f449..70bd366 100644
+--- a/src/sysinfo.c
++++ b/src/sysinfo.c
+@@ -49,6 +49,7 @@ static int Linux_Debian_Version(void);
+ static int Linux_Mandrake_Version(void);
+ static int Linux_Mandriva_Version(void);
+ static int Linux_Mandriva_Version_Real(char *filename, char *relstring, char *vendor);
++static int OpenVZ_Detect(void);
+ static int VM_Version(void);
+ static int Xen_Domain(void);
+ 
+@@ -66,6 +67,7 @@ static void GetCPUInfo(void);
+ static const char *CLASSATTRIBUTES[HARD_CLASSES_MAX][3] =
+ {
+     {"-", "-", "-"},            /* as appear here are matched. The fields are sysname and machine */
++    {"virt_host_vz_vzps", ".*", ".*"},        /* virt_host_vz_vzps */
+     {"hp-ux", ".*", ".*"},      /* hpux */
+     {"aix", ".*", ".*"},        /* aix */
+     {"linux", ".*", ".*"},      /* linux */
+@@ -87,6 +89,7 @@ static const char *CLASSATTRIBUTES[HARD_CLASSES_MAX][3] =
+ static const char *VRESOLVCONF[HARD_CLASSES_MAX] =
+ {
+     "-",
++    "/etc/resolv.conf",         /* virt_host_vz_vzps */
+     "/etc/resolv.conf",         /* hpux */
+     "/etc/resolv.conf",         /* aix */
+     "/etc/resolv.conf",         /* linux */
+@@ -108,6 +111,7 @@ static const char *VRESOLVCONF[HARD_CLASSES_MAX] =
+ static const char *VMAILDIR[HARD_CLASSES_MAX] =
+ {
+     "-",
++    "/var/spool/mail",          /* virt_host_vz_vzps */
+     "/var/mail",                /* hpux */
+     "/var/spool/mail",          /* aix */
+     "/var/spool/mail",          /* linux */
+@@ -129,6 +133,7 @@ static const char *VMAILDIR[HARD_CLASSES_MAX] =
+ static const char *VEXPORTS[HARD_CLASSES_MAX] =
+ {
+     "-",
++    "/etc/exports",             /* virt_host_vz_vzps */
+     "/etc/exports",             /* hpux */
+     "/etc/exports",             /* aix */
+     "/etc/exports",             /* linux */
+@@ -874,6 +879,11 @@ void OSClasses(void)
+ 
+ #endif
+ 
++    if (cfstat("/proc/self/status", &statbuf) != -1)
++    {
++        OpenVZ_Detect();
++    }
++
+     GetCPUInfo();
+ 
+ #ifdef CFCYG
+@@ -1867,6 +1877,39 @@ static int Linux_Mandriva_Version_Real(char *filename, char *relstring, char *ve
+ 
+     return 0;
+ }
++/******************************************************************/
++static int OpenVZ_Detect(void)
++{
++#define OPENVZ_HOST_FILENAME "/proc/bc/0"
++#define OPENVZ_GUEST_FILENAME "/proc/vz"
++#define OPENVZ_VZPS_FILE "/bin/vzps"
++    struct stat statbuf;
++
++    /* The file /proc/bc/0 is present on host
++       The file /proc/vz is present on guest
++       If the host has /bin/vzps, we should use it for checking processes
++    */
++
++    if (cfstat(OPENVZ_HOST_FILENAME, &statbuf) != -1)
++    {
++        CfOut(cf_verbose, "", "This appears to be an OpenVZ/Virtuozzo/Parallels Cloud Server host system.\n");
++        HardClass("virt_host_vz");
++        /* if the file /bin/vzps is there, it is safe to use the processes promise type */
++        if (cfstat(OPENVZ_VZPS_FILE, &statbuf) != -1)
++        {
++           HardClass("virt_host_vz_vzps");
++        }
++        else
++        {
++           CfOut(cf_inform, "", "This OpenVZ/Virtuozzo/Parallels Cloud Server host system does not have vzps installed; the processes promise type may not work as expected.\n");
++        }
++    }
++    else if (cfstat(OPENVZ_GUEST_FILENAME, &statbuf) != -1)
++    {
++        CfOut(cf_verbose, "", "This appears to be an OpenVZ/Virtuozzo/Parallels Cloud Server guest system.\n");
++        HardClass("virt_guest_vz");
++    }
++}
+ 
+ /******************************************************************/
+ 
+@@ -1976,6 +2019,7 @@ static void Xen_Cpuid(uint32_t idx, uint32_t *eax, uint32_t *ebx, uint32_t *ecx,
+   : "=a"(*eax), "=r"(*ebx), "=c"(*ecx), "=d"(*edx):"0"(idx), "2"(0));
+ }
+ 
++
+ /******************************************************************/
+ 
+ static int Xen_Hv_Check(void)
+
