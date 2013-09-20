@@ -38,6 +38,7 @@ localdepends: ./initial-promises ./files ./fusioninventory-agent ./tokyocabinet-
 	$(PATCH) -d ./cfengine-source -p1 < ./split_dist_evaluation.patch
 	$(PATCH) -d ./cfengine-source -p1 < ./html_leak_in_syslog.patch
 	$(PATCH) -d ./cfengine-source -p1 < ./correct_report_in_bundle_edit_line.patch
+	$(PATCH) -d ./cfengine-source -p1 < ./add-support-of-openVZ.patch
 
 ./tokyocabinet-source: /usr/bin/wget
 	# Original URL: http://fallabs.com/tokyocabinet/tokyocabinet-${TOKYOCABINET_RELEASE}.tar.gz
