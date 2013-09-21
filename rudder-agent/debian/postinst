@@ -20,6 +20,7 @@ set -e
 
 case "$1" in
 	configure)
+
 		# Is this the first installation?
 		CFRUDDER_FIRST_INSTALL=0
 		if [ ! -x /var/rudder/cfengine-community/bin/cf-execd ]; then CFRUDDER_FIRST_INSTALL=1; fi
@@ -76,21 +77,15 @@ case "$1" in
 			echo " Done."
 		fi
 
-		# Generate a UUID if we don't have one yet
-		if [ ! -e /opt/rudder/etc/uuid.hive ]
-		then
-			echo -n "INFO: Creating a new UUID for Rudder..."
-			uuidgen > /opt/rudder/etc/uuid.hive
-			echo " Done."
-		else
-			# UUID is valid only if it has been generetaed by uuidgen or if it is set to 'root' for policy server
-			CHECK_UUID=`cat /opt/rudder/etc/uuid.hive | grep -E "^[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}|root" | wc -l`
-			# If the UUID is not valid, regenerate it
-			if [ ${CHECK_UUID} -ne 1 ]
-			then
-				echo -n "INFO: Creating a new UUID for Rudder as the existing one is invalid..."
-				uuidgen > /opt/rudder/etc/uuid.hive
-				echo " Done."
+		# Add temporary cron for checking UUID. This cron is created in postinst
+		# in order to remove it later without complains of the package manager.
+		CHECK_RUDDER_AGENT_CRON=`grep "/opt/rudder/bin/check-rudder-agent" /etc/cron.d/rudder-agent | wc -l`
+		# Add it only if the default cron file does not call check-rudder-agent script
+		if [ ${CHECK_RUDDER_AGENT_CRON} -eq 0 ]; then
+			TMP_CRON=/etc/cron.d/rudder-agent-uuid
+			if [ ! -f ${TMP_CRON} ]; then
+				echo "0,5,10,15,20,25,30,35,40,45,50,55 * * * * root /opt/rudder/bin/check-rudder-agent" > ${TMP_CRON}
+				chmod 755 ${TMP_CRON}
 			fi
 		fi
     ;;
