@@ -55,6 +55,7 @@ set -e
 # - 2.7.0~rc1 : LDAP migration to add a UUID to REST API accounts
 # - 2.7.0 : Apache configuration migration to add link to User Manual
 # - 2.7.0 : Apache configuration migration to add restriction on legacy API
+# - 2.6.6 : Migration DB schema to modify indexes on RudderSysEvents to improve nodes list display
 #####################################################################################
 
 # Some variables
@@ -532,6 +533,14 @@ if [ "z${WWW_DIR}" != "z" ];then
     sed -i "s@^\([ \t]*</VirtualHost>\)@${NEW_API_CONF_ONELINER}\n\1@" ${RUDDER_WWW_CONF}
     echo "Done"
   fi
+fi
+
+# - 2.6.6 : Migration DB schema to modify indexes on RudderSysEvents to improve nodes list display
+RES=$(su - postgres -c "psql -t -d rudder -c \"select count(oid) from pg_class where lower(relname) = 'composite_node_execution_idx'\"")
+if [ $RES -eq 0 ]; then
+        echo -n "INFO: Updating the PostgreSQL indexes, this may take several minutes..."
+        psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.6-2.6-index-reports.sql > /dev/null
+        echo " Done"
 fi
 
 # For every upgrade, we force the root server to run a new inventory on the next CFEngine run
