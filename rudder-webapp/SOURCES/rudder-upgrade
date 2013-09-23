@@ -76,6 +76,7 @@ set -e
 # - 2.6.0 : Add the property to enable/disable workflow self deployment
 # - 2.6.0 : Check the LDAP and PostgreSQL daemons status before upgrading
 # - 2.6.6 : Migration DB schema to modify indexes on RudderSysEvents to improve nodes list display
+# - 2.6.6 : Add available options to rudder.batch.reportscleaner.frequency property
 #####################################################################################
 
 # Some variables
@@ -707,6 +708,7 @@ check_and_add_config_property rudder.batch.reportscleaner.archive.TTL "#########
 rudder.batch.reportscleaner.archive.TTL=30
 rudder.batch.reportscleaner.delete.TTL=90
 
+# Available options: hourly, daily, weekly
 # Default frequency: daily
 rudder.batch.reportscleaner.frequency=daily
 
@@ -840,6 +842,16 @@ if [ $RES -eq 0 ]; then
         psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.6-2.6-index-reports.sql > /dev/null
         echo " Done"
 fi
+
+
+# - 2.6.6 : Add available options to rudder.batch.reportscleaner.frequency property
+CHECK_PROPERTY=`grep "^rudder.batch.reportscleaner.frequency[ \t]*=" /opt/rudder/etc/rudder-web.properties | wc -l`
+CHECK_COMMENT=`grep "^# Available options: hourly, daily, weekly" /opt/rudder/etc/rudder-web.properties | wc -l`
+if [ ${CHECK_PROPERTY} -eq 1 ] && [ ${CHECK_COMMENT} -eq 0 ]; then
+    sed -i "/^rudder.batch.reportscleaner.frequency[ \t]*=/i # Available options: hourly, daily, weekly" /opt/rudder/etc/rudder-web.properties
+    echo "Added comments about available options to rudder.batch.reportscleaner.frequency in rudder-web.properties"
+fi
+}
 
 # For every upgrade, we force the root server to run a new inventory on the next CFEngine run
 touch /opt/rudder/etc/force_inventory
