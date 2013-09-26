@@ -104,8 +104,11 @@ cp %{SOURCE6} %{buildroot}%{rudderdir}/etc/
 #=================================================
 # Post Installation
 #=================================================
-# Is this the first installation?
+# This package is only installed by the root server
+# then we can set UUID to 'root' serenly
 echo 'root' > %{rudderdir}/etc/uuid.hive
+
+# Check if Rudder LDAP has already been initialize previously
 LDAPCHK=`/opt/rudder/sbin/slapcat  | grep "^dn: " | wc -l`
 if [ $LDAPCHK -eq 0 ]; then
   echo "************************************************************"
