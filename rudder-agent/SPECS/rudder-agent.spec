@@ -361,13 +361,18 @@ fi
 # Add temporary cron for checking UUID. This cron is created in postinst
 # in order to remove it later without complains of the package manager.
 CHECK_RUDDER_AGENT_CRON=`grep "/opt/rudder/bin/check-rudder-agent" /etc/cron.d/rudder-agent | wc -l`
+TMP_CRON=/etc/cron.d/rudder-agent-uuid
 # Add it only if the default cron file does not call check-rudder-agent script
 if [ ${CHECK_RUDDER_AGENT_CRON} -eq 0 ]; then
-	TMP_CRON=/etc/cron.d/rudder-agent-uuid
 	if [ ! -f ${TMP_CRON} ]; then
 		echo "0,5,10,15,20,25,30,35,40,45,50,55 * * * * root /opt/rudder/bin/check-rudder-agent" > ${TMP_CRON}
-		chmod 755 ${TMP_CRON}
 	fi
+fi
+
+# Vixie-cron and cronie (at least) expect specific permissions to be applied
+# on /etc/cron.d entries, and will refuse to load executable files.
+if [ -f ${TMP_CRON} ]; then
+	chmod 644 ${TMP_CRON}
 fi
 
 %preun -n rudder-agent
