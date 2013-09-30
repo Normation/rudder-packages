@@ -32,10 +32,11 @@ localdepends: ./rudder-sources ./rudder.conf
 ./rudder.conf: ./rudder-sources
 	cp rudder-sources/rudder-techniques/initial-promises/node-server/distributePolicy/rsyslog.conf/rudder.conf rudder.conf
 	sed 's@\$${install_rsyslogd.rsyslog_port\[2\]}@514@' -i rudder.conf
+	sed 's@\$$(p.psql_password\[2\])@Normation@' -i rudder.conf
 
 localclean:
 	rm -rf ./rudder-sources
-	rm -f ./rudder-reports.rsyslog
+	rm -f ./rudder.conf
 
 veryclean:
 	rm -f ./rudder-sources.tar.bz2
