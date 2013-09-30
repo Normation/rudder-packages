@@ -50,6 +50,7 @@ Source2: rudder-init.sh
 Source4: rudder.logrotate.suse
 Source5: rudder-server-root.init
 Source6: rudder-passwords.conf
+Source7: rudder-server-root.default
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
@@ -87,12 +88,16 @@ mkdir -p %{buildroot}%{rudderdir}/etc/
 mkdir -p %{buildroot}%{ruddervardir}/cfengine-community/
 mkdir -p %{buildroot}/etc/logrotate.d/
 mkdir -p %{buildroot}/etc/init.d
+mkdir -p %{buildroot}/etc/default
 
 # Others
 cp %{SOURCE2} %{buildroot}%{rudderdir}/bin/
 cp %{SOURCE4} %{buildroot}/etc/logrotate.d/rudder
 cp %{SOURCE5} %{buildroot}/etc/init.d/rudder-server-root
 cp %{SOURCE6} %{buildroot}%{rudderdir}/etc/
+
+# Init script
+install -m 644 %{SOURCE7} %{buildroot}/etc/default/rudder-server-root
 
 
 %pre -n rudder-server-root
