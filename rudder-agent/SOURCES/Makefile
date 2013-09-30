@@ -121,6 +121,7 @@ localdepends: ./initial-promises ./files ./fusioninventory-agent ./tokyocabinet-
 	sed 's@\$${sys.workdir}@/var/rudder/cfengine-community@g' -i rudder-agent.cron
 	sed 's@\$${g.rudder_base}@/opt/rudder@g' -i rudder-agent.cron
 	sed  's@\\&\\&@\&\&@g' -i rudder-agent.cron
+	sed  's@\\&1@\&1@g' -i rudder-agent.cron
 
 ../debian/rudder-agent.cron: ./rudder-agent.cron
 	cp ./rudder-agent.cron ../debian/
