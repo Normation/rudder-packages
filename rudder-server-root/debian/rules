@@ -54,7 +54,7 @@ binary-arch: install
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-passwords.conf /opt/rudder/etc/
 #	dh_installmenu
 #	dh_installdebconf
-	dh_installlogrotate
+	dh_installlogrotate --name=rudder
 #	dh_installmime
 #	dh_python
 #	dh_installcron
