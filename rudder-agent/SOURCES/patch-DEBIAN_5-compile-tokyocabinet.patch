@@ -59,9 +59,9 @@ diff -Naurw debian/rules debian-new/rules
 +	# Install /etc/ld.so.conf.d/rudder.conf in order to use libraries contain
 +	# in /opt/rudder/lib like tokyocabinet
 +	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder.conf /etc/ld.so.conf.d
+ 	# Install a verification script for cron
+ 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ check-rudder-agent /opt/rudder/bin/
  	dh_installcron
- #	dh_installinfo
- 	dh_installman
 @@ -85,7 +94,7 @@
  	dh_compress
  	dh_fixperms
