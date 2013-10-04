@@ -19,8 +19,6 @@
 
 set -e
 
-BACKUP_DIR=/var/backups/rudder/
-
 check_and_fix_cfengine_processes() {
 
 # Default variables for CFEngine binaries and disable files
@@ -41,13 +39,14 @@ fi
 check_and_fix_rudder_uuid() {
 
 # Default variables about UUID file and its backups
+BACKUP_DIR=/var/backups/rudder/
 UUID_FILE=/opt/rudder/etc/uuid.hive
 LATEST_BACKUPED_UUID=""
 
 # Generate a UUID if we don't have one yet
 if [ ! -e ${UUID_FILE} ]; then
   if [ -d ${BACKUP_DIR} ]; then
-    LATEST_BACKUPED_UUID=$(ls -v1 ${BACKUP_DIR}uuid-*.hive | tail -n1)
+    LATEST_BACKUPED_UUID=$(ls -v1 ${BACKUP_DIR} | tail -n1)
   fi
   if [ -f ${BACKUP_DIR}${LATEST_BACKUPED_UUID} ]; then
     echo -n "WARNING: The UUID of the node does not exist. The lastest backup (${LATEST_BACKUPED_UUID}) will be recovered..."
@@ -74,34 +73,9 @@ else
 fi
 }
 
-
-check_and_fix_specific_rudder_agent_file() {
-
-FILE_TO_RESTORE=$1
-FILE_TYPE=$2
-LATEST_BACKUPED_FILES=""
-
-if [ ! -e ${FILE_TO_RESTORE} ]; then
-  if [ -d ${BACKUP_DIR} ]; then
-    LATEST_BACKUPED_FILES=$(ls -v1 ${BACKUP_DIR}rudder-agent.${FILE_TYPE}-* | tail -n1)
-  fi
-  if [ -f ${LATEST_BACKUPED_FILES} ]; then
-    echo -n "WARNING: The file ${FILE_TO_RESTORE} does not exist. The lastest backup (${LATEST_BACKUPED_FILES}) will be recovered..."
-    cp -a ${LATEST_BACKUPED_FILES} ${FILE_TO_RESTORE} >/dev/null 2>&1
-    echo " Done"
-  else
-    echo "WARNING: The file ${FILE_TO_RESTORE} does not exist and no backup exist. Please reinstall the rudder-agent package"
-  fi
-fi
-}
-
-
 # Ensure script is executed by root
 if [ ! $(whoami) = 'root' ];then echo "You must be root"; exit; fi
 
 # Launch each check with a certain order
 check_and_fix_rudder_uuid
 check_and_fix_cfengine_processes
-check_and_fix_specific_rudder_agent_file /etc/init.d/rudder-agent init
-check_and_fix_specific_rudder_agent_file /etc/default/rudder-agent default
-check_and_fix_specific_rudder_agent_file /etc/cron.d/rudder-agent cron
