@@ -23,7 +23,7 @@ check_and_fix_cfengine_processes() {
 
 # Default variables for CFEngine binaries and disable files
 CFE_DIR=/var/rudder/cfengine-community
-CFE_BIN_DIR=${CFE_BIN_DIR}/bin
+CFE_BIN_DIR=${CFE_DIR}/bin
 CFE_DISABLE_FILE=/opt/rudder/etc/disable-agent
 
 # If no disable file AND no process of CFEngine from Rudder, then relaunch cf-agent with a failsafe first
