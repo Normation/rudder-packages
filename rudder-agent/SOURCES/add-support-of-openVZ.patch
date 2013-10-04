@@ -151,11 +151,11 @@ index 557f449..70bd366 100644
 +    if (stat(OPENVZ_HOST_FILENAME, &statbuf) != -1)
 +    {
 +        Log(LOG_LEVEL_VERBOSE, "This appears to be an OpenVZ/Virtuozzo/Parallels Cloud Server host system.\n");
-+        EvalContextClassPutHard(ctx, "virt_host_vz");
++        EvalContextHeapAddHard(ctx, "virt_host_vz");
 +        /* if the file /bin/vzps is there, it is safe to use the processes promise type */ 
 +        if (stat(OPENVZ_VZPS_FILE, &statbuf) != -1)
 +        {
-+            EvalContextClassPutHard(ctx, "virt_host_vz_vzps");
++            EvalContextHeapAddHard(ctx, "virt_host_vz_vzps");
 +        }
 +        else
 +        {
@@ -165,7 +165,7 @@ index 557f449..70bd366 100644
 +    else if (stat(OPENVZ_GUEST_FILENAME, &statbuf) != -1)
 +    {
 +        Log(LOG_LEVEL_VERBOSE, "This appears to be an OpenVZ/Virtuozzo/Parallels Cloud Server guest system.\n");
-+        EvalContextClassPutHard(ctx, "virt_guest_vz");
++        EvalContextHeapAddHard(ctx, "virt_guest_vz");
 +    }
 +}
 +
