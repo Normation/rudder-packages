@@ -249,6 +249,7 @@ install -m 755 %{SOURCE7} %{buildroot}/opt/rudder/bin/check-rudder-agent
 #=================================================
 
 # Keep a backup copy of Rudder agent init and cron files to prevent http://www.rudder-project.org/redmine/issues/3995
+mkdir -p /var/backups/rudder
 cp -af /etc/init.d/rudder-agent /var/backups/rudder/rudder-agent.init-$(date +%Y%m%d)
 echo "INFO: A back up copy of the /etc/init.d/rudder-agent has been created in /var/backups/rudder"
 cp -af /etc/default/rudder-agent /var/backups/rudder/rudder-agent.default-$(date +%Y%m%d)
