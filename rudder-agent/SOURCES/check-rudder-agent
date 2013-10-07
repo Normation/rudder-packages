@@ -49,9 +49,9 @@ if [ ! -e ${UUID_FILE} ]; then
   if [ -d ${BACKUP_DIR} ]; then
     LATEST_BACKUPED_UUID=$(ls -v1 ${BACKUP_DIR}uuid-*.hive | tail -n1)
   fi
-  if [ -f ${BACKUP_DIR}${LATEST_BACKUPED_UUID} ]; then
+  if [ -f ${LATEST_BACKUPED_UUID} ]; then
     echo -n "WARNING: The UUID of the node does not exist. The lastest backup (${LATEST_BACKUPED_UUID}) will be recovered..."
-    cp -a ${BACKUP_DIR}${LATEST_BACKUPED_UUID} ${UUID_FILE} >/dev/null 2>&1
+    cp -a ${LATEST_BACKUPED_UUID} ${UUID_FILE} >/dev/null 2>&1
     echo " Done"
   else
     echo -n "WARNING: The UUID of the node does not exist and no backup exist. A new one will be generated..."
