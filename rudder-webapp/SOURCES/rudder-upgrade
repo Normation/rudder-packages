@@ -51,7 +51,6 @@ set -e
 #               rudder.batch.ptlib.updateInterval to rudder.batch.techniqueLibrary.updateInterval
 #               rudder.ptlib.git.refs.path to rudder.techniqueLibrary.git.refs.path
 # - All versions: upgrade system Techniques automatically and reload the Techniqe library
-# - 2.4.0: Force upgrade of the rsyslog configuration, otherwise Rudder won't get any reports
 # - 2.4.0 : Migration DB schema to change the indexes in the SQL database to improve performances
 # - 2.4.0 : Migration of rudder users from 2.3 to 2.4 (add roles)
 # - 2.4.0 : Migration of Rudder logs for ops
@@ -500,12 +499,6 @@ if [ -d ${SRCTECHDIR} -a -d ${TRGTECHDIR} ]; then
 			echo "Rudder application is down, it might be reloading. Deferring restart."
 		fi
 	fi
-fi
-
-# 2.4.0: force upgrade of the rsyslog configuration for rudder
-if [ -d ${TRGTECHDIR} ];then
-	mkdir -p /var/rudder/cfengine-community/inputs/distributePolicy/rsyslog.conf
-	cp -a /var/rudder/configuration-repository/techniques/system/distributePolicy/1.0/rudder.st /var/rudder/cfengine-community/inputs/distributePolicy/rsyslog.conf/rudder.conf
 fi
 
 # 2.4.0 : Migration of rudder users from 2.3 to 2.4 (add roles)
