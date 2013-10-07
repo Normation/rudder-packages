@@ -56,6 +56,7 @@ set -e
 # - 2.7.0 : Apache configuration migration to add link to User Manual
 # - 2.7.0 : Apache configuration migration to add restriction on legacy API
 # - 2.6.6 : Migration DB schema to modify indexes on RudderSysEvents to improve nodes list display
+# - 2.8.0 : Update logback.xml in order to have information about change requests
 #####################################################################################
 
 # Some variables
@@ -294,6 +295,12 @@ fi
 if ! cat /opt/rudder/etc/logback.xml | perl -p0e 's/\n//g' | perl -p0e 's/<!--.(?:(?!-->).)*-->//g' | perl -p0e 's/> *</></g' | grep -E '<property name="REPORT_DIR" value="[^"]+" />' >/dev/null 2>&1
 then
     sed -i 's%^ *</configuration>%  <!-- Here come non compliant reports logger -->\n\n  <property name="REPORT_DIR" value="/var/log/rudder/compliance" />\n\n  <!--\n    A file log appender for exploitation logs about failure reports.\n  -->\n  <appender name="REPORTLOG" class="ch.qos.logback.core.FileAppender">\n    <file>${REPORT_DIR}/non-compliant-reports.log</file>\n    <append>true</append>\n    <encoder>\n      <pattern>\%msg\%n</pattern>\n    </encoder>\n  </appender>\n\n  <logger name="non-compliant-reports" level="info" additivity="false">\n    <appender-ref ref="REPORTLOG" />\n    <!-- comment the following appender if you dont want to have logs about non compliant reports in both stdout and reportlog -->\n    <appender-ref ref="STDOUT" />\n  </logger>\n\n</configuration>%' /opt/rudder/etc/logback.xml
+fi
+
+# - 2.8.0 : Update logback.xml in order to have information about change requests
+if ! cat /opt/rudder/etc/logback.xml | perl -p0e 's/\n//g' | perl -p0e 's/<!--.(?:(?!-->).)*-->//g' | perl -p0e 's/> *</></g' | grep -E '<logger name="changeRequest" level="[^"]+" additivity="false">' >/dev/null 2>&1
+then
+    sed -i 's%^ *</configuration>%   <logger name="changeRequest" level="info" additivity="false">\n     <appender-ref ref="OPSLOG" />\n     <appender-ref ref="STDOUT" />\n   </logger>\n</configuration>%' /opt/rudder/etc/logback.xml
 fi
 
 # - 2.4.1 : Add the group serialization table (GroupsNodesJoin) to the database
