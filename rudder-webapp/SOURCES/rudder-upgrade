@@ -504,8 +504,15 @@ fi
 
 # 2.4.0: force upgrade of the rsyslog configuration for rudder
 if [ -d ${TRGTECHDIR} ];then
+  # Get syslog port to set
+  SYSLOG_PORT=514 # Default value
+  ATTRIBUTESET=`grep "^rudder.syslog.port[ \t]*=" /opt/rudder/etc/rudder-web.properties | wc -l`
+  if [ ${ATTRIBUTESET} -ne 0 ]; then
+    SYSLOG_PORT=$(grep "^rudder.syslog.port[ \t]*=" /opt/rudder/etc/rudder-web.properties | sed "s/^[^=]\+=[ \t]*//")
+  fi
+
 	mkdir -p /var/rudder/cfengine-community/inputs/distributePolicy/rsyslog.conf
-	cp -a /var/rudder/configuration-repository/techniques/system/distributePolicy/1.0/rudder.st /var/rudder/cfengine-community/inputs/distributePolicy/rsyslog.conf/rudder.conf
+	sed "s/&SYSLOGPORT&/${SYSLOG_PORT}/" /var/rudder/configuration-repository/techniques/system/distributePolicy/1.0/rudder.st > /var/rudder/cfengine-community/inputs/distributePolicy/rsyslog.conf/rudder.conf
 fi
 
 # 2.4.0 : Migration of rudder users from 2.3 to 2.4 (add roles)
