@@ -277,7 +277,6 @@ if [ -d ${SRCTECHDIR} -a -d ${TRGTECHDIR} ]; then
 	fi
 fi
 
-
 # All versions: Check that Rudder database is able to handle backslash
 CHECK_BACKSLASH=$(su - postgres -c "psql -t -d rudder -c \"select '\\foo';\"" 2>/dev/null| grep "foo" | wc -l)
 if [ ${CHECK_BACKSLASH} -ne 1 ]; then
