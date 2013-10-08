@@ -256,6 +256,8 @@ if [ $1 -eq 2 ];then
 	echo "INFO: A back up copy of the /etc/init.d/rudder-agent has been created in /var/backups/rudder"
 	cp -af /etc/default/rudder-agent /var/backups/rudder/rudder-agent.default-$(date +%Y%m%d)
 	echo "INFO: A back up copy of the /etc/default/rudder-agent has been created in /var/backups/rudder"
+	cp -af /etc/cron.d/rudder-agent /var/backups/rudder/rudder-agent.cron-$(date +%Y%m%d)
+	echo "INFO: A back up copy of the /etc/cron.d/rudder-agent has been created in /var/backups/rudder"
 fi
 
 %post -n rudder-agent
