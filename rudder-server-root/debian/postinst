@@ -32,6 +32,10 @@ case "$1" in
 			echo "Please run /opt/rudder/bin/rudder-init.sh"
 			echo "************************************************************"
 		fi
+
+		if dpkg-maintscript-helper supports mv_conffile 2>/dev/null; then
+			dpkg-maintscript-helper mv_conffile /etc/logrotate.d/rudder-server-root /etc/logrotate.d/rudder -- "$@"
+		fi
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
