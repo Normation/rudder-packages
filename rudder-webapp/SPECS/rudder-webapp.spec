@@ -60,9 +60,6 @@
 %define apache_vhost_dir    %{apache}/conf.d
 %endif
 
-%define apache_errlog_file %{rudderlogdir}/%{apache}/error.log
-%define apache_log_file    %{rudderlogdir}/%{apache}/access.log
-
 #=================================================
 # Header
 #=================================================
@@ -100,8 +97,6 @@ application server bundled in the rudder-jetty package.
 #=================================================
 %prep
 
-sed -i 's@%APACHE_ERRLOG_FILE%@%{apache_errlog_file}@' %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/apache2-default.conf
-sed -i 's@%APACHE_LOG_FILE%@%{apache_log_file}@'       %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/apache2-default.conf
 cp -rf %{_sourcedir}/rudder-sources %{_builddir}
 cp -rf %{_sourcedir}/rudder-doc %{_builddir}
 
@@ -136,7 +131,7 @@ mkdir -p %{buildroot}%{rudderdir}/share/upgrade-tools/
 mkdir -p %{buildroot}%{ruddervardir}/inventories/incoming
 mkdir -p %{buildroot}%{ruddervardir}/inventories/accepted-nodes-updates
 mkdir -p %{buildroot}%{ruddervardir}/inventories/received
-mkdir -p %{buildroot}%{rudderlogdir}/%{apache}/
+mkdir -p %{buildroot}%{rudderlogdir}/apache2/
 mkdir -p %{buildroot}/etc/%{apache_vhost_dir}/
 mkdir -p %{buildroot}/etc/sysconfig/
 mkdir -p %{buildroot}/usr/share/doc/rudder
@@ -198,6 +193,10 @@ echo -n "INFO: Restrating syslog..."
 %{sysloginitscript} restart > /dev/null
 echo " Done"
 
+echo -n "INFO: Stopping Apache HTTPd..."
+/sbin/service %{apache} stop >/dev/null 2>&1
+echo " Done"
+
 # Do this ONLY at first install
 if [ $1 -eq 1 ]
 then
@@ -228,8 +227,27 @@ chmod 655 -R %{rudderdir}/share/load-page
 %{htpasswd_cmd} -bc %{rudderdir}/etc/htpasswd-webdav-initial rudder rudder  >/dev/null 2>&1
 %{htpasswd_cmd} -bc %{rudderdir}/etc/htpasswd-webdav rudder rudder  >/dev/null 2>&1
 
-echo -n "INFO: Restarting Apache HTTPd..."
-/sbin/service %{apache} restart >/dev/null 2>&1
+# If the current Rudder HTTPd configuration uses /var/log/rudder/httpd, change it
+for i in /etc/%{apache_vhost_dir}/rudder-*.conf
+do
+	if grep -q /var/log/rudder/httpd "${i}"; then
+		echo -n "INFO: Old logging configuration detected in ${i}, changing to log into %{rudderlogdir}/apache2..."
+		sed -i "s%/var/log/rudder/httpd/\(.*\).log%/var/log/rudder/apache2/\1.log%" "${i}"
+		echo " Done"
+	fi
+done
+
+# If this machine has old logging entries on RHEL, migrate them.
+if [ -d %{rudderlogdir}/httpd ]; then
+	echo -n "INFO: Old logging directory detected (%{rudderlogdir}/httpd), migrating to %{rudderlogdir}/apache2..."
+	mkdir -p %{rudderlogdir}/apache2
+	mv %{rudderlogdir}/httpd/* %{rudderlogdir}/apache2/
+	rmdir %{rudderlogdir}/httpd
+	echo " Done"
+fi
+
+echo -n "INFO: Starting Apache HTTPd..."
+/sbin/service %{apache} start >/dev/null 2>&1
 echo " Done"
 
 # Run any upgrades
@@ -280,7 +298,7 @@ rm -rf %{buildroot}
 %{ruddervardir}/inventories/accepted-nodes-updates
 %{ruddervardir}/inventories/incoming
 %{ruddervardir}/inventories/received
-%{rudderlogdir}/%{apache}/
+%{rudderlogdir}/apache2/
 /etc/%{apache_vhost_dir}/
 %config(noreplace) /etc/%{apache_vhost_dir}/rudder-default.conf
 %config(noreplace) %{rudderdir}/etc/rudder-networks.conf
