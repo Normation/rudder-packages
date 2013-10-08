@@ -20,7 +20,7 @@
 
 RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
 
-localdepends: ./rudder-sources ../debian/rudder.logrotate ../debian/rudder-server-root.init ./rudder.logrotate.suse
+localdepends: ./rudder-sources ../debian/rudder.logrotate ../debian/rudder-server-root.init ./rudder.logrotate.suse ./rudder.logrotate.rhel
 
 ./rudder-sources.tar.bz2:
 	$(WGET) -O rudder-sources.tar.bz2 http://www.rudder-project.org/archives/rudder-sources-${RUDDER_VERSION_TO_PACKAGE}.tar.bz2
@@ -36,6 +36,9 @@ localdepends: ./rudder-sources ../debian/rudder.logrotate ../debian/rudder-serve
 
 ./rudder.logrotate.suse: ./rudder-sources
 	cp -a ./rudder-sources/rudder-techniques/techniques/system/distributePolicy/1.0/logrotate.suse.st ./rudder.logrotate.suse
+
+./rudder.logrotate.rhel: ./rudder-sources
+	cp -a ./rudder-sources/rudder-techniques/techniques/system/distributePolicy/1.0/logrotate.rhel.st ./rudder.logrotate.rhel
 
 ../debian/rudder.logrotate: ./rudder.logrotate.debian
 	cp rudder.logrotate.debian ../debian/rudder.logrotate
