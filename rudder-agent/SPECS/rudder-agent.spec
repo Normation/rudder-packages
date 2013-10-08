@@ -256,6 +256,8 @@ if [ $1 -eq 2 ];then
 	echo "INFO: A back up copy of the /etc/init.d/rudder-agent has been created in /var/backups/rudder"
 	cp -af /etc/default/rudder-agent /var/backups/rudder/rudder-agent.default-$(date +%Y%m%d)
 	echo "INFO: A back up copy of the /etc/default/rudder-agent has been created in /var/backups/rudder"
+	cp -af /etc/cron.d/rudder-agent /var/backups/rudder/rudder-agent.cron-$(date +%Y%m%d)
+	echo "INFO: A back up copy of the /etc/cron.d/rudder-agent has been created in /var/backups/rudder"
 fi
 
 %post -n rudder-agent
@@ -410,7 +412,9 @@ echo "INFO: A back up copy of the /var/rudder/cfengine-community/ppkeys has been
 if [ $1 -eq 0 ]; then
   # Make sure that CFEngine is not running anymore
   for component in cf-agent cf-serverd cf-execd cf-monitord; do
-    kill -9 `pidof ${component}`
+    if pid=`pidof ${component}`; then
+      kill -9 ${pid}
+    fi
   done
 
   # Remove the cron script we create at installation to prevent mail

@@ -32,6 +32,12 @@
 %define ruddervardir     /var/rudder
 %define rudderlogdir     /var/log/rudder
 
+%if 0%{?rhel}
+%define logrotatefile    rudder.logrotate.rhel
+%else
+%define logrotatefile    rudder.logrotate.suse
+%endif
+
 #=================================================
 # Header
 #=================================================
@@ -47,7 +53,7 @@ Group: Applications/System
 
 Source1: rudder-sources
 Source2: rudder-init.sh
-Source4: rudder.logrotate.suse
+Source4: %{logrotatefile}
 Source5: rudder-server-root.init
 Source6: rudder-passwords.conf
 
