@@ -293,7 +293,9 @@ echo "INFO: A back up copy of the /var/rudder/cfengine-community/ppkeys has been
 if [ $1 -eq 0 ]; then
   # Make sure that CFEngine is not running anymore
   for component in cf-agent cf-serverd cf-execd cf-monitord; do
-    kill -9 `pidof ${component}`
+    if pid=`pidof ${component}`; then
+      kill -9 ${pid}
+    fi
   done
 
   # Remove the cron script we create at installation to prevent mail
