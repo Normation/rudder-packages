@@ -19,7 +19,7 @@
 .DEFAULT_GOAL := localdepends
 
 RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
-CFENGINE_RELEASE = 3.4.4
+CFENGINE_RELEASE = 3.5.2
 FUSION_RELEASE = 2.2.2
 TOKYOCABINET_RELEASE = 1.4.48
 TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX)
@@ -35,9 +35,6 @@ localdepends: ./initial-promises ./files ./fusioninventory-agent ./tokyocabinet-
 	$(WGET) -O $(TMP_DIR)/cfengine.tgz http://www.normation.com/tarball/cfengine-$(CFENGINE_RELEASE).tar.gz
 	tar xvzf $(TMP_DIR)/cfengine.tgz -C $(TMP_DIR)
 	mv $(TMP_DIR)/cfengine-$(CFENGINE_RELEASE) ./cfengine-source
-	$(PATCH) -d ./cfengine-source -p1 < ./split_dist_evaluation.patch
-	$(PATCH) -d ./cfengine-source -p1 < ./html_leak_in_syslog.patch
-	$(PATCH) -d ./cfengine-source -p1 < ./correct_report_in_bundle_edit_line.patch
 	$(PATCH) -d ./cfengine-source -p1 < ./add-support-of-openVZ.patch
 
 ./tokyocabinet-source: /usr/bin/wget
