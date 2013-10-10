@@ -270,7 +270,7 @@ TRGTECHDIR=/var/rudder/configuration-repository/techniques/system/
 if [ -d ${SRCTECHDIR} -a -d ${TRGTECHDIR} ]; then
 	if ! diff -Naur /opt/rudder/share/techniques/system/ /var/rudder/configuration-repository/techniques/system/ >/dev/null 2>&1; then
 		rsync --delete -rptgoq /opt/rudder/share/techniques/system/ /var/rudder/configuration-repository/techniques/system/
-		cd /var/rudder/configuration-repository/techniques/ && git add -A system/ && git commit -m "Upgrade system Techniques - automatically done by rudder-upgrade script" >/dev/null 2>&1
+		cd /var/rudder/configuration-repository/ && git add -A techniques/system/ && git commit -m "Upgrade system Techniques - automatically done by rudder-upgrade script" >/dev/null 2>&1
 		# For every upgrade, we schedule a Technique reloading REST call on the next CFEngine run
 		echo "INFO: A Technique library reload is needed and has been scheduled."
 		touch /opt/rudder/etc/force_technique_reload
