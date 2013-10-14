@@ -164,6 +164,7 @@ cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.5-2.6-unexpanded-value.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.5-2.6-add_workflow_support.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.6-2.6-add-modification-Id-change-request-column.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
+cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.7-2.8-add-nodes-executions-storage.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
 cp %{_sourcedir}/rudder-upgrade-LDAP-schema-2.6-2.7-add-global-parameter-ou.ldif %{buildroot}%{rudderdir}/share/upgrade-tools/
 cp %{_sourcedir}/rudder-upgrade-LDAP-schema-2.6-2.7-add-default-global-parameter.ldif %{buildroot}%{rudderdir}/share/upgrade-tools/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.6-2.6-index-reports.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
