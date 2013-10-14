@@ -76,8 +76,10 @@ binary-arch: install
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/ reportsInfo.xml /opt/rudder/etc/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-web/src/main/resources/ load-page/  /opt/rudder/share/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-web/src/main/resources/ rudder-apache-common.conf /opt/rudder/etc/
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-web/src/main/resources/ rudder-vhost /etc/apache2/sites-available/
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-web/src/main/resources/ rudder-vhost-ssl /etc/apache2/sites-available/
+	cp $(CURDIR)/SOURCES/rudder-sources/rudder/rudder-web/src/main/resources/rudder-vhost.conf $(CURDIR)/BUILD/rudder-vhost
+	cp $(CURDIR)/SOURCES/rudder-sources/rudder/rudder-web/src/main/resources/rudder-vhost-ssl.conf $(CURDIR)/BUILD/rudder-vhost-ssl
+	dh_install --SOURCEDIR=$(CURDIR)/BUILD/ rudder-vhost /etc/apache2/sites-available/
+	dh_install --SOURCEDIR=$(CURDIR)/BUILD/ rudder-vhost-ssl /etc/apache2/sites-available/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder.xml /opt/rudder/jetty7/contexts/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-networks.conf /opt/rudder/etc/
 
