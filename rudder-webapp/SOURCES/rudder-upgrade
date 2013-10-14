@@ -461,19 +461,19 @@ check_and_add_config_property rudder.workflow.self.deployment "
 rudder.workflow.self.deployment=true"
 
 # - 2.8.0 : Add the property to configure maximum days of reports treated at each run
-check_and_add_config_property rudder.reportsExecution.maxDays "
+check_and_add_config_property rudder.batch.storeAgentRunTimes.maxDays "
 # Maximum Days of reports handled (default : 5)
 #
-# To avoid handling too much reports at one time, the \"ReportsExecution\" process
+# To avoid handling too much reports at one time, the \"Store Agent Run Times\" process
 # will only take reports after X days from the last one processed.
 # This is mainly used on the first Run, when the process has to catch on old reports,
 # and build execution history.
 # This value is expressed in days.
 
-rudder.reportsExecution.maxDays=5"
+rudder.batch.storeAgentRunTimes.maxDays=5"
 
 # - 2.8.0 : Add the property to configure execution of agent reports frequency
-check_and_add_config_property rudder.reportsExecution.reportInterval "
+check_and_add_config_property rudder.batch.storeAgentRunTimes.updateInterval "
 # Delay before to launch of the reports executions actor (default : 5)
 # 
 # This value determine the frequency of the reports executions actor.
@@ -481,7 +481,7 @@ check_and_add_config_property rudder.reportsExecution.reportInterval "
 # Having a low delay will means that agent executions are almost synchronized with now.
 # This value is expressed in seconds
 
-rudder.reportsExecution.reportInterval=5"
+rudder.batch.storeAgentRunTimes.updateInterval=5"
 
 if [ ${LDAP_EXISTS} -ne 0 ]; then
   # - 2.7.0 : Migration LDAP to add the global parameter ou
