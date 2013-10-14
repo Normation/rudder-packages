@@ -57,6 +57,9 @@ set -e
 # - 2.7.0 : Apache configuration migration to add restriction on legacy API
 # - 2.6.6 : Migration DB schema to modify indexes on RudderSysEvents to improve nodes list display
 # - 2.8.0 : Update logback.xml in order to have information about change requests
+# - 2.8.0 : Migration SQL to add the necessary tables for reports executions
+# - 2.8.0 : Add the property to configure maximum days of reports treated at each run
+# - 2.8.0 : Add the property to configure execution of agent reports frequency
 #####################################################################################
 
 # Some variables
@@ -247,6 +250,12 @@ fi
 RES=$(su - postgres -c "psql -t -d rudder -c \"select count(attname) from pg_attribute where attrelid = (select oid from pg_class where relname = 'expectedreports') and attname = 'unexpandedcomponentsvalues'\"")
 if [ $RES -eq 0 ]; then
         psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.5-2.6-unexpanded-value.sql >/dev/null 2>&1
+fi
+
+# Upgrade database schema from 2.7 to 2.8 if necessary - Check if the execution table is present, and create it if needed.
+RES=$(su - postgres -c "psql -t -d rudder -c \"select count(oid) from pg_class where lower(relname) = 'reportsexecution'\"")
+if [ $RES -eq 0 ]; then
+  psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.7-2.8-add-nodes-executions-storage.sql >/dev/null 2>&1
 fi
 
 ## Change attribute from dn:ruleId=inventory-all,ou=Rules,ou=Rudder,cn=rudder-configuration
@@ -450,6 +459,29 @@ check_and_add_config_property rudder.workflow.self.deployment "
 # Boolean, defaults to true.
 
 rudder.workflow.self.deployment=true"
+
+# - 2.8.0 : Add the property to configure maximum days of reports treated at each run
+check_and_add_config_property rudder.batch.storeAgentRunTimes.maxDays "
+# Maximum Days of reports handled (default : 5)
+#
+# To avoid handling too much reports at one time, the \"Store Agent Run Times\" process
+# will only take reports after X days from the last one processed.
+# This is mainly used on the first Run, when the process has to catch on old reports,
+# and build execution history.
+# This value is expressed in days.
+
+rudder.batch.storeAgentRunTimes.maxDays=5"
+
+# - 2.8.0 : Add the property to configure execution of agent reports frequency
+check_and_add_config_property rudder.batch.storeAgentRunTimes.updateInterval "
+# Delay before to launch of the reports executions actor (default : 5)
+# 
+# This value determine the frequency of the reports executions actor.
+# This needs to be run very often so you should keep it as low as possible.
+# Having a low delay will means that agent executions are almost synchronized with now.
+# This value is expressed in seconds
+
+rudder.batch.storeAgentRunTimes.updateInterval=5"
 
 if [ ${LDAP_EXISTS} -ne 0 ]; then
   # - 2.7.0 : Migration LDAP to add the global parameter ou
