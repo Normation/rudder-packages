@@ -1,6 +1,7 @@
 opt/rudder/bin
 opt/rudder/jetty7/rudder-plugins
 opt/rudder/etc
+opt/rudder/etc/ssl
 opt/rudder/etc/plugins
 opt/rudder/share/tools
 opt/rudder/share/plugins

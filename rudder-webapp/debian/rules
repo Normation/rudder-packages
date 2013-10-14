@@ -72,11 +72,12 @@ binary-arch: install
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-web/src/main/resources/ logback.xml /opt/rudder/etc/
 	cp $(CURDIR)/SOURCES/rudder-sources/rudder/rudder-web/target/rudder-web*.war $(CURDIR)/BUILD/rudder.war
 	dh_install --SOURCEDIR=$(CURDIR)/BUILD/ rudder.war /opt/rudder/jetty7/webapps/
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-web/src/main/resources/ load-page/  /opt/rudder/share/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/test/resources/script/ cfe-red-button.sh /opt/rudder/bin/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/ reportsInfo.xml /opt/rudder/etc/
-	cp $(CURDIR)/SOURCES/rudder-sources/rudder/rudder-web/src/main/resources/apache2-default.conf $(CURDIR)/BUILD/rudder-default
-	dh_install --SOURCEDIR=$(CURDIR)/BUILD/ rudder-default /etc/apache2/sites-available/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-web/src/main/resources/ load-page/  /opt/rudder/share/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-web/src/main/resources/ rudder-apache-common.conf /opt/rudder/etc/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-web/src/main/resources/ rudder-vhost /etc/apache2/sites-available/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-web/src/main/resources/ rudder-vhost-ssl /etc/apache2/sites-available/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder.xml /opt/rudder/jetty7/contexts/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-networks.conf /opt/rudder/etc/
 

@@ -22,16 +22,26 @@ case "$1" in
   echo -n "INFO: Restarting syslog..."
   invoke-rc.d rsyslog restart >/dev/null 2>&1
   echo "Done"
-  SITES_TO_DISABLE="default"
-  MODULES_TO_ENABLE="dav_fs rewrite proxy_http headers"
+
+  SITES_TO_DISABLE="default rudder-default rudder-default-ssl"
+  SITES_TO_ENABLE="rudder-vhost rudder-vhost-ssl"
+  MODULES_TO_ENABLE="dav_fs rewrite proxy_http headers ssl"
+
   for dissite in ${SITES_TO_DISABLE}
   do
     a2dissite ${dissite} >/dev/null 2>&1
   done
+
+  for ensite in ${SITES_TO_ENABLE}
+  do
+    a2ensite ${ensite} >/dev/null 2>&1
+  done
+
   for enmod in ${MODULES_TO_ENABLE}
   do
     a2enmod ${enmod} >/dev/null 2>&1
   done
+
   # Add right to apache user to access /var/rudder/inventories/incoming
   chmod 751 /var/rudder/inventories
   chown root:www-data /var/rudder/inventories/incoming
@@ -39,9 +49,26 @@ case "$1" in
   chown root:www-data /var/rudder/inventories/accepted-nodes-updates
   chmod 2770 /var/rudder/inventories/accepted-nodes-updates
   chmod 755 -R /opt/rudder/share/tools
-  a2ensite rudder-default >/dev/null 2>&1
   htpasswd -bc /opt/rudder/etc/htpasswd-webdav-initial rudder rudder >/dev/null 2>&1
   htpasswd -bc /opt/rudder/etc/htpasswd-webdav rudder rudder >/dev/null 2>&1
+
+  # Move old virtual hosts out of the way
+  for OLD_VHOST in rudder-default rudder-default-ssl; do
+    if [ -f /etc/apache2/sites-available/${OLD_VHOST} ]; then
+      echo -n "INFO: An old rudder virtual host file has been detected (${OLD_VHOST}), it will be moved to /var/backups."
+      mkdir -p /var/backups
+      mv /etc/apache2/sites-available/${OLD_VHOST} /var/backups/${OLD_VHOST}-$(date +%s)
+      echo " Done"
+    fi
+  done
+
+  # Generate the SSL certificates if needed
+  if [ ! -f /opt/rudder/etc/ssl/rudder-webapp.crt ] || [ ! -f /opt/rudder/etc/ssl/rudder-webapp.key ]; then
+    echo -n "INFO: No usable SSL certificate detected for Rudder HTTP/S support, generating one automatically..."
+    openssl req -new -x509 -newkey rsa:2048 -subj "/CN=$(hostname --fqdn)/" -keyout /opt/rudder/etc/ssl/rudder-webapp.key -out /opt/rudder/etc/ssl/rudder-webapp.crt -days 1460 -nodes -sha256 >/dev/null 2>&1
+    chgrp www-data /opt/rudder/etc/ssl/rudder-webapp.key && chmod 640 /opt/rudder/etc/ssl/rudder-webapp.key
+    echo " Done"
+  fi
 
   echo -n "INFO: Restarting Apache HTTPd..."
   /etc/init.d/apache2 restart >/dev/null 2>&1
