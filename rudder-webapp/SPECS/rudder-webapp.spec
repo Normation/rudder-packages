@@ -82,7 +82,11 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
 
 BuildRequires: jdk >= 1.6
-Requires: rudder-jetty rudder-inventory-ldap rudder-inventory-endpoint rudder-reports rudder-techniques %{apache} %{apache_tools} git-core rsync
+Requires: rudder-jetty rudder-inventory-ldap rudder-inventory-endpoint rudder-reports rudder-techniques %{apache} %{apache_tools} git-core rsync openssl
+
+%if 0%{?rhel}
+Requires: mod_ssl
+%endif
 
 %description
 Rudder is an open source configuration management and audit solution.
@@ -120,6 +124,7 @@ cd %{_builddir}/rudder-sources/rudder            && %{_sourcedir}/maven2/bin/mvn
 rm -rf %{buildroot}
 
 mkdir -p %{buildroot}%{rudderdir}/etc/
+mkdir -p %{buildroot}%{rudderdir}/etc/ssl/
 mkdir -p %{buildroot}%{rudderdir}/etc/plugins/
 mkdir -p %{buildroot}%{rudderdir}/bin/
 mkdir -p %{buildroot}%{rudderdir}/jetty7/webapps/
@@ -148,7 +153,9 @@ cp %{_builddir}/rudder-sources/rudder/rudder-web/target/rudder-web*.war %{buildr
 cp -rf %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/load-page %{buildroot}%{rudderdir}/share/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/test/resources/script/cfe-red-button.sh %{buildroot}%{rudderdir}/bin/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/reportsInfo.xml %{buildroot}%{rudderdir}/etc/
-cp %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/apache2-default.conf %{buildroot}/etc/%{apache_vhost_dir}/rudder-default.conf
+cp %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/rudder-apache-common.conf %{buildroot}%{rudderdir}/etc/rudder-apache-common.conf
+cp %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/rudder-vhost.conf %{buildroot}/etc/%{apache_vhost_dir}/rudder-vhost.conf
+cp %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/rudder-vhost-ssl.conf %{buildroot}/etc/%{apache_vhost_dir}/rudder-vhost-ssl.conf
 cp %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/apache2-sysconfig %{buildroot}/etc/sysconfig/rudder-apache
 cp %{SOURCE2} %{buildroot}%{rudderdir}/jetty7/contexts/
 cp %{SOURCE3} %{buildroot}%{rudderdir}/etc/
@@ -246,9 +253,26 @@ if [ -d %{rudderlogdir}/httpd ]; then
 	echo " Done"
 fi
 
+# Move old virtual hosts out of the way
+for OLD_VHOST in rudder-default rudder-default-ssl rudder-default.conf rudder-default-ssl.conf; do
+	if [ -f /etc/%{apache_vhost_dir}/${OLD_VHOST} ]; then
+		echo -n "INFO: An old rudder virtual host file has been detected (${OLD_VHOST}), it will be moved to /var/backups."
+		mkdir -p /var/backups
+		mv /etc/%{apache_vhost_dir}/${OLD_VHOST} /var/backups/${OLD_VHOST}-$(date +%s)
+		echo " Done"
+	fi
+done
+
+# Generate the SSL certificates if needed
+if [ ! -f /opt/rudder/etc/ssl/rudder-webapp.crt ] || [ ! -f /opt/rudder/etc/ssl/rudder-webapp.key ]; then
+	echo -n "INFO: No usable SSL certificate detected for Rudder HTTP/S support, generating one automatically..."
+	openssl req -new -x509 -newkey rsa:2048 -subj "/CN=$(hostname --fqdn)/" -keyout /opt/rudder/etc/ssl/rudder-webapp.key -out /opt/rudder/etc/ssl/rudder-webapp.crt -days 1460 -nodes -sha256 >/dev/null 2>&1
+	chgrp %{apache_group} /opt/rudder/etc/ssl/rudder-webapp.key && chmod 640 /opt/rudder/etc/ssl/rudder-webapp.key
+	echo " Done"
+fi
+
 echo -n "INFO: Starting Apache HTTPd..."
 /sbin/service %{apache} start >/dev/null 2>&1
-echo " Done"
 
 # Run any upgrades
 # Note this must happen *before* creating the technique store, as it was moved in version 2.3.2
@@ -300,7 +324,9 @@ rm -rf %{buildroot}
 %{ruddervardir}/inventories/received
 %{rudderlogdir}/apache2/
 /etc/%{apache_vhost_dir}/
-%config(noreplace) /etc/%{apache_vhost_dir}/rudder-default.conf
+%config(noreplace) %{rudderdir}/etc/rudder-apache-common.conf
+%config(noreplace) /etc/%{apache_vhost_dir}/rudder-vhost.conf
+%config(noreplace) /etc/%{apache_vhost_dir}/rudder-vhost-ssl.conf
 %config(noreplace) %{rudderdir}/etc/rudder-networks.conf
 %config(noreplace) /etc/sysconfig/rudder-apache
 /usr/share/doc/rudder
