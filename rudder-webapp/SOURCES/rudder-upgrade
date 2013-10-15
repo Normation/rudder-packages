@@ -46,8 +46,6 @@ set -e
 # - 2.6.0 : Migration SQL to add the necessary workflow tables
 # - 2.6.0 : Add the workflows properties and replace the autoDeployOnModification property
 # - 2.6.0 : Add modification id to change request table
-# - 2.6.0 : Add the property to enable/disable workflow self validation
-# - 2.6.0 : Add the property to enable/disable workflow self deployment
 # - 2.6.0 : Check the LDAP and PostgreSQL daemons status before upgrading
 # - 2.7.0 : Add FileFormat 3 to 4 migration script
 # - 2.7.0 : Migration LDAP to add the global parameter OU
@@ -60,6 +58,7 @@ set -e
 # - 2.8.0 : Migration SQL to add the necessary tables for reports executions
 # - 2.8.0 : Add the property to configure maximum days of reports treated at each run
 # - 2.8.0 : Add the property to configure execution of agent reports frequency
+# - 2.8.0 : Deprecate properties that are now handled directly in the webapp (validation workflow and change Message)
 #####################################################################################
 
 # Some variables
@@ -436,30 +435,6 @@ if [ $RES -eq 0 ]; then
         psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.6-2.6-add-modification-Id-change-request-column.sql >/dev/null 2>&1
 fi
 
-# - 2.6.0 : Add the property to enable/disable workflow self validation
-check_and_add_config_property rudder.workflow.self.validation "
-# Enable self validation (default false)
-#
-# If false, no change request can be validated by it's creator
-# So every change request will need to be reviewed by someone different from
-# who requested this changed
-#
-# Boolean, defaults to false.
-
-rudder.workflow.self.validation=false"
-
-# - 2.6.0 : Add the property to enable/disable workflow self deployment
-check_and_add_config_property rudder.workflow.self.deployment "
-# Enable self deployment (default true)
-#
-# If false, no change request can be deployed by it's creator
-# So every change request will need to be deployed by someone different from
-# who requested this changed
-#
-# Boolean, defaults to true.
-
-rudder.workflow.self.deployment=true"
-
 # - 2.8.0 : Add the property to configure maximum days of reports treated at each run
 check_and_add_config_property rudder.batch.storeAgentRunTimes.maxDays "
 # Maximum Days of reports handled (default : 5)
@@ -580,6 +555,19 @@ if [ $RES -eq 0 ]; then
         psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.6-2.6-index-reports.sql > /dev/null
         echo " Done"
 fi
+
+# - 2.8.0 : Deprecate properties that are now handled directly in the webapp (validation workflow and change Message)
+
+for i in rudder.ui.changeMessage.enabled rudder.ui.changeMessage.mandatory rudder.ui.changeMessage.explanation rudder.workflow.enabled rudder.workflow.self.validation rudder.workflow.self.deployment
+do
+        # Get the two lines before the property if the property exists. Then find out if the comment is here.
+        RES=$(grep -B 2 -e "^${i}[ \t]*=" /opt/rudder/etc/rudder-web.properties | grep "^# DEPRECATED in Rudder 2.8.0" | wc -l)
+        if [ $RES -eq 0 ]; then
+                sed -i "/^${i}[ \t]*=/i # DEPRECATED in Rudder 2.8.0\n# The property is now configurable directly in the webapp. See 'Adminstration -> Settings' page." /opt/rudder/etc/rudder-web.properties
+                echo "INFO: Property ${i} is now configurable directly in the web interface and has been migrated. It's use is deprecated in /opt/rudder/etc/rudder-web.properties."
+        fi
+done
+
 
 # For every upgrade, we force the root server to run a new inventory on the next CFEngine run
 touch /opt/rudder/etc/force_inventory
