@@ -29,7 +29,7 @@ case "$1" in
 
   for dissite in ${SITES_TO_DISABLE}
   do
-    a2dissite ${dissite} >/dev/null 2>&1
+    a2dissite ${dissite} >/dev/null 2>&1 || true
   done
 
   for ensite in ${SITES_TO_ENABLE}
