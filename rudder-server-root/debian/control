@@ -14,4 +14,4 @@ Description: Configuration management and audit tool - root server base package
  .
  This package is essentially a meta-package to install all components required
  to run a Rudder root server on one machine. It also installs some required
- files (rudder-init.sh and uuid to root).
+ files (rudder-init.sh, rudder-node-to-relay.sh and uuid to root).
