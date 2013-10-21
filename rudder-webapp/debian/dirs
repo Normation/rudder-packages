@@ -15,6 +15,7 @@ var/rudder/run
 var/rudder/inventories/accepted-nodes-updates
 var/rudder/inventories/incoming
 var/rudder/inventories/received
+var/rudder/inventories/failed
 var/rudder/inventories/historical
 var/log/rudder/apache2
 var/log/rudder/ldap

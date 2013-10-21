@@ -136,6 +136,7 @@ mkdir -p %{buildroot}%{rudderdir}/share/upgrade-tools/
 mkdir -p %{buildroot}%{ruddervardir}/inventories/incoming
 mkdir -p %{buildroot}%{ruddervardir}/inventories/accepted-nodes-updates
 mkdir -p %{buildroot}%{ruddervardir}/inventories/received
+mkdir -p %{buildroot}%{ruddervardir}/inventories/failed
 mkdir -p %{buildroot}%{rudderlogdir}/apache2/
 mkdir -p %{buildroot}/etc/%{apache_vhost_dir}/
 mkdir -p %{buildroot}/etc/sysconfig/
@@ -323,6 +324,7 @@ rm -rf %{buildroot}
 %{ruddervardir}/inventories/accepted-nodes-updates
 %{ruddervardir}/inventories/incoming
 %{ruddervardir}/inventories/received
+%{ruddervardir}/inventories/failed
 %{rudderlogdir}/apache2/
 /etc/%{apache_vhost_dir}/
 %config(noreplace) %{rudderdir}/etc/rudder-apache-common.conf
