@@ -1,6 +1,7 @@
 opt/rudder/bin
 opt/rudder/jetty7/rudder-plugins
 opt/rudder/etc
+opt/rudder/etc/ssl
 opt/rudder/etc/plugins
 opt/rudder/share/tools
 opt/rudder/share/plugins
@@ -14,8 +15,10 @@ var/rudder/run
 var/rudder/inventories/accepted-nodes-updates
 var/rudder/inventories/incoming
 var/rudder/inventories/received
+var/rudder/inventories/failed
 var/rudder/inventories/historical
 var/log/rudder/apache2
 var/log/rudder/ldap
 var/log/rudder/reports
 var/log/rudder/webapp
+usr/share/doc/rudder

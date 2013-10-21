@@ -20,7 +20,9 @@ set -e
 
 case "$1" in
     configure)
-		invoke-rc.d rsyslog restart
+		echo -n "INFO: Restarting syslogd..."
+		invoke-rc.d rsyslog restart >/dev/null 2>&1
+		echo " Done"
 
 		RUDDER_SHARE=/opt/rudder/share
 		RUDDER_UPGRADE_TOOLS=${RUDDER_SHARE}/upgrade-tools
@@ -28,40 +30,10 @@ case "$1" in
 		BACKUP_LDIF_REGEX="^/var/rudder/ldap/backup/openldap-data-pre-upgrade-\([0-9]\{14\}\)\.ldif$"
 
 		# Do we have a backup file from a previous upgrade?
-		BACKUP_LDIF=`find ${BACKUP_LDIF_PATH} -regextype sed -regex "${BACKUP_LDIF_REGEX}" | sort -nr | head -n1`
+		BACKUP_LDIF=`find ${BACKUP_LDIF_PATH} -regextype sed -regex "${BACKUP_LDIF_REGEX}" >/dev/null 2>&1 | sort -nr | head -n1`
 		if [ "z${BACKUP_LDIF}" != "z" ]; then
 			TIMESTAMP=`echo ${BACKUP_LDIF} | sed "s%${BACKUP_LDIF_REGEX}%\1%"`
 
-
-			# If this is an upgrade from a Rudder 2.3 to 2.4, we need to
-			# rename a whole load of objectClasses and attributes in the LDIF file
-			OLD_LDAP_TEST=`grep -Ei "^policyInstanceId::? " ${BACKUP_LDIF} | wc -l`
-			if [ ${OLD_LDAP_TEST} -ne 0 ]; then
-				echo "The Rudder OpenLDAP schema is not up to date."
-				echo "You will see some warnings about UNKNOWN attributeDescription."
-				echo "Updating..."
-
-
-				cp ${BACKUP_LDIF} ${BACKUP_LDIF}.renamed
-				BACKUP_LDIF=${BACKUP_LDIF}.renamed
-				${RUDDER_UPGRADE_TOOLS}/rudder-upgrade-LDAP-schema-2.3-2.4-PI-PT-CR-names-changed.pl ${BACKUP_LDIF}
-				echo "...done."
-
-				REINIT_DB="yes"
-			fi
-
-			# The format for the cpuSpeed attribute changed in 2.3.8, 2.4.0 and above
-			# Check if we still have any values in the old format
-			LDAP_CPUSPEED_IS_NOT_INTEGER=`grep -E "^cpuSpeed: [0-9]+\.[0-9]+$" ${BACKUP_LDIF} | wc -l`
-			if [ ${LDAP_CPUSPEED_IS_NOT_INTEGER} -ne 0 ]; then
-				cp ${BACKUP_LDIF} ${BACKUP_LDIF}.cpuSpeedFixed
-				BACKUP_LDIF=${BACKUP_LDIF}.cpuSpeedFixed
-				sed -i "s%^cpuSpeed: \(.*\)\..*%cpuSpeed: \1%" ${BACKUP_LDIF}
-
-				echo "Some cpuSpeed attributes were converted to integers in the LDAP database"
-
-				REINIT_DB="yes"
-			fi
 
 			# If this is an upgrade from an older version of rudder-inventory-ldap
 			# we may need to drop and reimport the database if the underlying version
@@ -76,28 +48,19 @@ case "$1" in
 				fi
 			fi
 
-			# If somes attribute exists in nodeId=root,ou=Nodes,cn=rudder-configuration
-			# we have to redefine the ldif in order to move them to 
-			#  nodeId=root,ou=Accepted Inventories,ou=Inventories,cn=rudder-configuration
-			CHECK_NODE_ROOT_ATTR=`cat ${BACKUP_LDIF} | perl -p0e 's/\n //g' | perl -p0e 's/\n([^\n])/%%%%\1/g' | grep -i "^%%%%dn: nodeId=root,ou=Nodes,cn=rudder-configuration" | grep -iE  "%%%%(nodeHostname|publicKey|ipHostNumber|agentName|inventoryDate|localAdministratorAccountName|policyServerId)::? " | wc -l`
-			CHECK_NODE_ROOT_INVENTORY_ENTRY=`cat ${BACKUP_LDIF} | perl -p0e 's/\n //g' | grep -i "^dn: nodeId=root,ou=Nodes,ou=Accepted Inventories,ou=Inventories,cn=rudder-configuration$" | wc -l`
-			if [ ${CHECK_NODE_ROOT_ATTR} -ne 0 -o ${CHECK_NODE_ROOT_INVENTORY_ENTRY} -eq 0 ]; then
-                cp ${BACKUP_LDIF} ${BACKUP_LDIF}.ldapEntriesFixed
-                BACKUP_LDIF=${BACKUP_LDIF}.ldapEntriesFixed
-				${RUDDER_UPGRADE_TOOLS}/rudder-upgrade-LDAP-schema-2.3-2.4-nodeId-root-attributes-changed.pl ${BACKUP_LDIF}
-				REINIT_DB="yes"
-			fi
 
 			if [ "z${REINIT_DB}" = "zyes" ]; then
 				# Do we have a database backup to restore from?
 				if [ ! -f ${BACKUP_LDIF} ]; then
-					echo >&2 "No database backup for old version. Can't upgrade rudder-inventory-ldap database!"
+					echo >&2 "ERROR: No database backup for old version. Can't upgrade rudder-inventory-ldap database!"
 					exit 1
 				fi
 
 				# Stop OpenLDAP - use forcestop to avoid the init script failing
 				# when trying to do the backup with bad libdb versions
-				invoke-rc.d slapd forcestop
+				echo -n "INFO: Stopping slapd..."
+				invoke-rc.d slapd forcestop >/dev/null 2>&1
+				echo " Done"
 
 				# Backup the old database
 				LDAP_BACKUP_DIR="/var/rudder/ldap/openldap-data-backup-upgrade-on-${TIMESTAMP}/"
@@ -108,11 +71,13 @@ case "$1" in
 				/opt/rudder/sbin/slapadd -q -l ${BACKUP_LDIF}
 
 				# Start OpenLDAP
-				invoke-rc.d slapd start
+				echo -n "INFO: Starting slapd..."
+				invoke-rc.d slapd start >/dev/null 2>&1
+				echo " Done"
 
-				echo "OpenLDAP database was successfully upgraded to new format"
-				echo "You can safely remove the backups in ${LDAP_BACKUP_DIR}"
-				echo "and ${BACKUP_LDIF}"
+				echo "INFO: OpenLDAP database was successfully upgraded to new format"
+				echo "INFO: You can safely remove the backups in ${LDAP_BACKUP_DIR}"
+				echo "INFO: and ${BACKUP_LDIF}"
 
 			fi
 		fi
@@ -124,13 +89,15 @@ case "$1" in
 			grep ^index /opt/rudder/etc/openldap/slapd.conf | sed 's/\s\+/\t/g' | cut -f2 | sed 's/,/\n/g' | sort > ${SLAPD_DEFINED_INDEXES}
 			ls  /var/rudder/ldap/openldap-data/*.bdb | xargs -n 1 -I{} basename {} .bdb | sort | egrep -v '^(dn2id|id2entry)' > ${SLAPD_ACTUAL_INDEXES}
 			if ! diff ${SLAPD_DEFINED_INDEXES} ${SLAPD_ACTUAL_INDEXES} > /dev/null; then
-				echo "OpenLDAP indexes are not up to date, reindexing..."
-				invoke-rc.d slapd stop
-				/opt/rudder/sbin/slapindex
-				invoke-rc.d slapd start
-				echo "OpenLDAP indexes updated."
+				echo -n "INFO: OpenLDAP indexes are not up to date, reindexing..."
+				invoke-rc.d slapd stop >/dev/null 2>&1
+				/opt/rudder/sbin/slapindex >/dev/null 2>&1
+				invoke-rc.d slapd start >/dev/null 2>&1
+				echo " Done."
 			fi
 		fi
+		# Remove temporary files about LDAP indexes
+		rm -f ${SLAPD_DEFINED_INDEXES} ${SLAPD_ACTUAL_INDEXES}
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)

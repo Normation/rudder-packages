@@ -104,3 +104,4 @@ check_and_fix_rudder_uuid
 check_and_fix_cfengine_processes
 check_and_fix_specific_rudder_agent_file /etc/init.d/rudder-agent init
 check_and_fix_specific_rudder_agent_file /etc/default/rudder-agent default
+check_and_fix_specific_rudder_agent_file /etc/cron.d/rudder-agent cron

@@ -25,6 +25,14 @@ case "$1" in
 		CFRUDDER_FIRST_INSTALL=0
 		if [ ! -x /var/rudder/cfengine-community/bin/cf-execd ]; then CFRUDDER_FIRST_INSTALL=1; fi
 
+		echo "Making sure that the permissions on the CFEngine key directory are correct..."
+    if [ -d /var/rudder/cfengine-community/ppkeys ]; then
+		chmod 700 /var/rudder/cfengine-community/ppkeys
+		if [ `ls /var/rudder/cfengine-community/ppkeys | wc -l` -gt 0 ]; then
+			chmod 600 /var/rudder/cfengine-community/ppkeys/*
+		fi
+    fi
+
 		# Copy new binaries to workdir, make sure daemons are stopped first
 
 		# Set a "lock" to avoid CFEngine being restarted during the upgrade process
@@ -36,8 +44,8 @@ case "$1" in
 
 		if [ ${CFRUDDER_FIRST_INSTALL} -ne 1 -a -x /etc/init.d/rudder-agent ]; then /etc/init.d/rudder-agent stop; fi
 
-		# Copy CFEngine binaries
-		cp -a /opt/rudder/sbin/cf-* /var/rudder/cfengine-community/bin/
+		# Copy CFEngine binaries (Changed location from sbin/ to bin/ in version 3.4)
+		cp -a /opt/rudder/bin/cf-* /var/rudder/cfengine-community/bin/
 		NB_COPIED_BINARIES=`ls -1 /var/rudder/cfengine-community/bin/ | wc -l`
 		if [ ${NB_COPIED_BINARIES} -gt 0 ];then echo "CFEngine binaries copied to workdir"; fi
 

@@ -103,13 +103,13 @@ cp -a %{SOURCE2} %{buildroot}/etc/rsyslog.d/rudder.conf
 # Pre Installation
 #=================================================
 #Check if postgresql is started
-/etc/init.d/postgresql status > /dev/null
+/sbin/service postgresql status > /dev/null
 if [ $? -ne 0 ]
 then
 %if 0%{?el6}
-  /etc/init.d/postgresql initdb
+  /sbin/service postgresql initdb
 %endif
-  /etc/init.d/postgresql start
+  /sbin/service postgresql start
 fi
 #HACK: Give rights for login without unix account
 RUDDER_PG_DEFINED=`grep "rudder" /var/lib/pgsql/data/pg_hba.conf | wc -l`
@@ -119,59 +119,63 @@ if [ ${RUDDER_PG_DEFINED} -le 0 ]; then
 fi
 
 #Apply changes in postgresql
-/etc/init.d/postgresql reload
+/sbin/service postgresql reload
 
 %post -n rudder-reports
 #=================================================
 # Post Installation
 #=================================================
 #Check if postgresql is started
-/etc/init.d/postgresql status > /dev/null
+/sbin/service postgresql status >/dev/null 2>&1
 if [ $? -ne 0 ]
 then
-  /etc/init.d/postgresql start
+  /sbin/service postgresql start >/dev/null 2>&1
 fi
 
-echo "Setting postgresql as a boot service"
-/sbin/chkconfig --add postgresql
+echo -n "INFO: Setting postgresql as a boot service..."
+/sbin/chkconfig --add postgresql >/dev/null 2>&1
 %if 0%{?el6}
-/sbin/chkconfig postgresql on
+/sbin/chkconfig postgresql on >/dev/null 2>&1
 %endif
+echo " Done"
 
-echo "Waiting postgresql to be up"
+echo -n "INFO: Waiting for postgresql to be up..."
 CPT=0
 TIMEOUT=60
-while ! su - postgres -c "psql -q --output /dev/null -c \"SELECT COUNT(*) FROM pg_catalog.pg_authid\""
+while ! su - postgres -c "psql -q --output /dev/null -c \"SELECT COUNT(*) FROM pg_catalog.pg_authid\"" >/dev/null 2>&1
 do
         echo -n "."
         sleep 1
         CPT=$((${CPT}+1))
         if [ ${CPT} -eq ${TIMEOUT} ]
         then
-                echo -e "\nConnection to PostgreSQL has not been established before timeout"
-                echo "Exiting"
+                echo -e "\nERROR: Connection to PostgreSQL has not been established before timeout. Exiting"
                 exit 1
         fi
 done
-echo ""
+echo " Done"
 
 
 dbname="rudder"
 usrname="rudder"
-RES=$(su - postgres -c "psql -t -c \"select count(1) from pg_catalog.pg_database where datname = '$dbname'\"")
-RES2=$(su - postgres -c "psql -t -c \"select count(1) from pg_user where usename = '$usrname'\"")
-if [ $RES -ne 0 ]
+CHK_PG_DB=$(su - postgres -c "psql -t -c \"select count(1) from pg_catalog.pg_database where datname = '${dbname}'\"")
+CHK_PG_USER=$(su - postgres -c "psql -t -c \"select count(1) from pg_user where usename = '${usrname}'\"")
+# Rudder user
+if [ ${CHK_PG_USER} -eq 0 ]
 then
-  echo "$dbname database alreadys exists - not creating"
-elif [ $RES2 -ne 0 ]
+  echo -n "INFO: Creating Rudder PostgreSQL user..."
+  su - postgres -c "psql -q -c \"CREATE USER ${usrname} WITH PASSWORD 'Normation'\"" >/dev/null 2>&1
+  echo " Done"
+fi
+# Rudder database
+if [ ${CHK_PG_DB} -eq 0 ]
 then
-  echo "Error: the database user $usrname exists but there is no associated database"
-else
-  su - postgres -c "psql -q -c \"CREATE USER rudder WITH PASSWORD 'Normation'\""
-  su - postgres -c "psql -q -c \"CREATE DATABASE rudder WITH OWNER = rudder\""
-  echo "localhost:5432:rudder:rudder:Normation" > /root/.pgpass
+  echo -n "INFO: Creating Rudder PostgreSQL database..."
+  su - postgres -c "psql -q -c \"CREATE DATABASE ${dbname} WITH OWNER = ${usrname}\"" >/dev/null 2>&1
+  echo "localhost:5432:${dbname}:${usrname}:Normation" > /root/.pgpass
   chmod 600 /root/.pgpass
-  psql -q -U rudder -h localhost -d rudder -f %{rudderdir}/etc/postgresql/reportsSchema.sql > /dev/null
+  psql -q -U rudder -h localhost -d rudder -f %{rudderdir}/etc/postgresql/reportsSchema.sql  >/dev/null 2>&1
+  echo " Done"
 fi
 
 

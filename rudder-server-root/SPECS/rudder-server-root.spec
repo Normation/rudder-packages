@@ -53,6 +53,7 @@ Group: Applications/System
 
 Source1: rudder-sources
 Source2: rudder-init.sh
+Source3: rudder-node-to-relay
 Source4: %{logrotatefile}
 Source5: rudder-server-root.init
 Source6: rudder-passwords.conf
@@ -67,7 +68,7 @@ Rudder is an open source configuration management and audit solution.
 
 This package is essentially a meta-package to install all components required to
 run a Rudder root server on one machine. It also installs some required files
-(rudder-init.sh and uuid to root).
+(rudder-init.sh, rudder-node-to-relay and uuid to root).
 
 
 #=================================================
@@ -96,6 +97,7 @@ mkdir -p %{buildroot}/etc/init.d
 
 # Others
 cp %{SOURCE2} %{buildroot}%{rudderdir}/bin/
+cp %{SOURCE3} %{buildroot}%{rudderdir}/bin/
 cp %{SOURCE4} %{buildroot}/etc/logrotate.d/rudder
 cp %{SOURCE5} %{buildroot}/etc/init.d/rudder-server-root
 cp %{SOURCE6} %{buildroot}%{rudderdir}/etc/
@@ -135,6 +137,7 @@ rm -rf %{buildroot}
 %files -n rudder-server-root
 %defattr(-, root, root, 0755)
 %config(noreplace,missingok) %{_sysconfdir}/logrotate.d/rudder
+%{rudderdir}/bin/rudder-node-to-relay
 %{rudderdir}/bin/rudder-init.sh
 /var/cfengine/inputs
 %attr(0755, root, root) /etc/init.d/rudder-server-root

@@ -41,6 +41,9 @@
 # Version 0.1 (12/2010):
 # - First version
 # Author: Jonathan Clarke <jonathan.clarke@normation.com>
+# Version 0.2 (07/2013):
+# - Add support for checking the "disable-agent" flag file
+# Author: Jonathan Clarke <jonathan.clarke@normation.com>
 #====================================================================
 
 # Array indexes
@@ -77,6 +80,8 @@ CFENGINE_COMMUNITY_PARAMS[$CFMONITORD]=""
 CFENGINE_COMMUNITY_PID_FILE[$CFEXECD]="$CFENGINE_COMMUNITY_VAR_PATH/cf-execd.pid"
 CFENGINE_COMMUNITY_PID_FILE[$CFSERVERD]="$CFENGINE_COMMUNITY_VAR_PATH/cf-serverd.pid"
 CFENGINE_COMMUNITY_PID_FILE[$CFMONITORD]="$CFENGINE_COMMUNITY_VAR_PATH/cf-monitord.pid"
+
+RUDDER_DISABLE_AGENT_FLAG_FILE=/opt/rudder/etc/disable-agent
 
 # Other
 TIMEOUT="60"    # Max time to stop process
@@ -160,6 +165,12 @@ fi
 #====================================================================
 start_daemons() {
 	RET=0
+
+	# Check for disable-agent flag file
+	if [ -f ${RUDDER_DISABLE_AGENT_FLAG_FILE} ]; then
+		message "alert" "[ALERT] The ${RUDDER_DISABLE_AGENT_FLAG_FILE} flag file is present. The agent cannot be started."
+		exit 3
+	fi
 
 	# It's time to start the daemons
 	for daemon in ${DAEMONS}; do
@@ -304,8 +315,13 @@ forcestop_daemons() {
 
 }
 
+# Return 0 if all required daemons are running, 1 if any is stopped, 2 if we can't say, 3 if the disable-agent flag is present
 daemons_status() {
-	# Return 0 if all required daemons are running, 1 if any is stopped, 2 if we can't say
+	# Check for disable-agent flag file
+	if [ -f ${RUDDER_DISABLE_AGENT_FLAG_FILE} ]; then
+		return 3
+	fi
+
 	for daemon in ${DAEMONS}; do
 		if [ ! -r ${CFENGINE_COMMUNITY_PID_FILE[$daemon]} ]
 		then
@@ -350,6 +366,14 @@ display_status() {
 	then
 		message "info" "[INFO] Unable to determine CFEngine Community processes status"
 	fi
+
+	if [ $status -eq 3 ]
+	then
+		message "info" "[INFO] The ${RUDDER_DISABLE_AGENT_FLAG_FILE} flag is present, CFEngine Community is halted"
+	fi
+
+  # Exit with status code
+  exit ${status}
 
 }
 

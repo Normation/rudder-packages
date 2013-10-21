@@ -1,0 +1,73 @@
+diff -Naurw debian/control debian-new/control
+--- debian/control	2013-02-14 12:31:04.704238740 +0100
++++ debian/control	2013-02-14 17:33:20.571842330 +0100
+@@ -2,7 +2,7 @@
+ Section: admin
+ Priority: extra
+ Maintainer: Nicolas Perron <nicolas.perron@normation.com>
+-Build-Depends: debhelper (>= 7), libssl-dev, bison, gcc, flex, libpcre3-dev, libtokyocabinet-dev
++Build-Depends: debhelper (>= 7), libssl-dev, bison, gcc, flex, libpcre3-dev, zlib1g-dev, libbz2-dev
+ Standards-Version: 3.8.0
+ Homepage: http://www.rudder-project.org
+ 
+diff -Naurw debian/postinst debian-new/postinst
+--- debian/postinst	2013-02-14 17:33:05.471842660 +0100
++++ debian/postinst	2013-02-14 17:33:20.571842330 +0100
+@@ -24,6 +24,9 @@
+ 		CFRUDDER_FIRST_INSTALL=0
+ 		if [ ! -x /var/rudder/cfengine-community/bin/cf-execd ]; then CFRUDDER_FIRST_INSTALL=1; fi
+ 
++		# Reload library of ldd
++		if [ -e /etc/ld.so.conf.d/rudder.conf ]; then ldconfig; fi
++
+ 		# Copy new binaries to workdir, make sure daemons are stopped first
+ 
+ 		# Set a "lock" to avoid CFEngine being restarted during the upgrade process
+diff -Naurw debian/rules debian-new/rules
+--- debian/rules	2013-02-12 17:41:29.074854753 +0100
++++ debian/rules	2013-02-14 17:33:20.571842330 +0100
+@@ -14,9 +14,16 @@
+ configure: configure-stamp
+ configure-stamp:
+ 	dh_testdir
++	# dh_prep has been moved from 'install' target since we need to build tokyocabinet first
++	dh_prep
+ 	# Add here commands to configure the package.
+ 	cd SOURCES && ./perl-prepare.sh
+-	cd SOURCES/cfengine-source && ./configure --prefix=/opt/rudder --with-workdir=/var/rudder/cfengine-community --enable-static=yes --enable-shared=no
++	# Compile Tokyocabinet library and install it in /opt/rudder/lib 
++	cd SOURCES/tokyocabinet-source && ./configure --prefix=/opt/rudder
++	cd SOURCES/tokyocabinet-source && make
++	cd SOURCES/tokyocabinet-source && make install DESTDIR=$(CURDIR)/debian/tmp
++	# Prepare CFEngine 3.4.x build with defined path of tokyocabinet library
++	cd SOURCES/cfengine-source && ./configure --prefix=/opt/rudder --with-workdir=/var/rudder/cfengine-community --enable-static=yes --enable-shared=no --with-tokyocabinet=$(CURDIR)/debian/tmp/opt/rudder
+ 
+ 	touch configure-stamp
+ 
+@@ -47,7 +54,6 @@
+ install: build
+ 	dh_testdir
+ 	dh_testroot
+-	dh_prep
+ 	dh_installdirs
+ 
+ 	# Add here commands to install the package into debian/tmp
+@@ -77,6 +83,9 @@
+ 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES initial-promises /opt/rudder/share
+ 	# Install an empty uuid.hive file before generating an uuid
+ 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ uuid.hive /opt/rudder/etc/
++	# Install /etc/ld.so.conf.d/rudder.conf in order to use libraries contain
++	# in /opt/rudder/lib like tokyocabinet
++	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder.conf /etc/ld.so.conf.d
+ 	# Install a verification script for cron
+ 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ check-rudder-agent /opt/rudder/bin/
+ 	dh_installcron
+@@ -85,7 +94,7 @@
+ 	dh_compress
+ 	dh_fixperms
+ #	dh_perl
+-#	dh_makeshlibs
++	dh_makeshlibs
+ 	dh_installdeb
+ 	dh_shlibdeps
+ 	dh_gencontrol
