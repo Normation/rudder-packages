@@ -348,9 +348,20 @@ fi
 # Restart daemons if we stopped them, otherwise not
 if [ ${CFRUDDER_FIRST_INSTALL} -ne 1 ]
 then
-	if [ -r /var/rudder/cfengine-community/inputs/failsafe.cf -o -r /var/rudder/cfengine-community/inputs/promises.cf ]
+	# Check if agent is disabled
+	if [ ! -f /opt/rudder/etc/disable-agent ]
 	then
-		/sbin/service rudder-agent start
+		if [ -r /var/rudder/cfengine-community/inputs/failsafe.cf -o -r /var/rudder/cfengine-community/inputs/promises.cf ]
+		then
+			/sbin/service rudder-agent start
+		fi
+	else
+		echo "********************************************************************************"
+		echo "rudder-agent has been updated, but was not started as it is disabled."
+		echo "To enable rudder agent, you have to remove disable file, and start rudder-agent:"
+		echo "# rm -f /opt/rudder/etc/disable-agent"
+		echo "# /sbin/service rudder-agent start"
+		echo "********************************************************************************"
 	fi
 else
 	echo "********************************************************************************"
