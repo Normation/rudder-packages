@@ -427,9 +427,9 @@ if [ -d /var/rudder/configuration-repository/techniques ]; then
 			GIT_TRACKED=`git ls-files | grep "policy.xml" | wc -l`
 			if [ ${GIT_TRACKED} -eq 1 ]; then
 				## Rename the policy.xml to metadata.xml
-				git mv policy.xml metadata.xml > /dev/null
-			else 
-				mv policy.xml metadata.xml
+				git mv -f policy.xml metadata.xml > /dev/null
+			else
+				mv -f policy.xml metadata.xml
 			fi
 
 			# Edit metadata.xml to rename POLICY tag to TECHNIQUE
