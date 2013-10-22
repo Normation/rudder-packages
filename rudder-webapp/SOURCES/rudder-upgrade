@@ -250,7 +250,6 @@ ruleTarget: special:all
 EOF
 fi
 
-
 # Upgrade system Techniques - always do this!
 SRCTECHDIR=/opt/rudder/share/techniques/system/
 TRGTECHDIR=/var/rudder/configuration-repository/techniques/system/
