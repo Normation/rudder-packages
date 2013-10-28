@@ -254,4 +254,4 @@ echo " done."
 
 echo
 echo "Everything has been set up correctly."
-echo "Rudder is ready to go on http://${ANSWER1}${RUDDER_CONTEXT}"
+echo "Rudder is ready to go on https://${ANSWER1}${RUDDER_CONTEXT}"
