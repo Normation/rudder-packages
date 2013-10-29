@@ -340,6 +340,14 @@ then
 	cp -r /opt/rudder/share/initial-promises/* /var/rudder/cfengine-community/inputs
 fi
 
+# If the cf-promises validation fails, it means we have a broken set of promises (possibly a pre-2.8 set).
+# Reset the initial promises so the server is able to send the agent a new set of correct ones.
+RUDDER_UUID=`cat /opt/rudder/etc/uuid.hive 2>/dev/null || true`
+if ! /var/rudder/cfengine-community/bin/cf-promises >/dev/null 2>&1 && [ "z${RUDDER_UUID}" != "zroot" ]
+then
+	rsync --delete -aq /opt/rudder/share/initial-promises/ /var/rudder/cfengine-community/inputs/
+fi
+
 # Migration to CFEngine 3.5: Correct a specific Technique that breaks the most recent CFEngine versions
 if [ -f /var/rudder/cfengine-community/inputs/distributePolicy/1.0/passwordCheck.cf ]
 then
