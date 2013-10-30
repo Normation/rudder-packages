@@ -304,7 +304,7 @@ touch "${additional_sockets#/}"; chmod 640 "${additional_sockets#/}"
 #
 # Restart syslog
 #
-/etc/init.d/syslog restart
+/sbin/service syslog restart
 
 %preun
 #

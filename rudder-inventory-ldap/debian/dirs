@@ -1,5 +1,4 @@
 opt/rudder
-opt/rudder/share/upgrade-tools
 var/rudder/run
 var/log/rudder/ldap
 var/rudder/ldap/backup

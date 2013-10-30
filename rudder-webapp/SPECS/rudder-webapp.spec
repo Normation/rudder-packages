@@ -60,9 +60,6 @@
 %define apache_vhost_dir    %{apache}/conf.d
 %endif
 
-%define apache_errlog_file %{rudderlogdir}/%{apache}/error.log
-%define apache_log_file    %{rudderlogdir}/%{apache}/access.log
-
 #=================================================
 # Header
 #=================================================
@@ -85,7 +82,11 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
 
 BuildRequires: jdk >= 1.6
-Requires: rudder-jetty rudder-inventory-ldap rudder-inventory-endpoint rudder-reports rudder-techniques %{apache} %{apache_tools} git-core rsync
+Requires: rudder-jetty rudder-inventory-ldap rudder-inventory-endpoint rudder-reports rudder-techniques %{apache} %{apache_tools} git-core rsync openssl
+
+%if 0%{?rhel}
+Requires: mod_ssl
+%endif
 
 %description
 Rudder is an open source configuration management and audit solution.
@@ -100,15 +101,15 @@ application server bundled in the rudder-jetty package.
 #=================================================
 %prep
 
-sed -i 's@%APACHE_ERRLOG_FILE%@%{apache_errlog_file}@' %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/apache2-default.conf
-sed -i 's@%APACHE_LOG_FILE%@%{apache_log_file}@'       %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/apache2-default.conf
 cp -rf %{_sourcedir}/rudder-sources %{_builddir}
+cp -rf %{_sourcedir}/rudder-doc %{_builddir}
 
 #=================================================
 # Building
 #=================================================
 %build
 
+export MAVEN_OPTS=-Xmx512m
 cd %{_builddir}/rudder-sources/rudder-parent-pom && %{_sourcedir}/maven2/bin/mvn -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
 cd %{_builddir}/rudder-sources/rudder-commons    && %{_sourcedir}/maven2/bin/mvn -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
 cd %{_builddir}/rudder-sources/scala-ldap        && %{_sourcedir}/maven2/bin/mvn -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
@@ -123,6 +124,7 @@ cd %{_builddir}/rudder-sources/rudder            && %{_sourcedir}/maven2/bin/mvn
 rm -rf %{buildroot}
 
 mkdir -p %{buildroot}%{rudderdir}/etc/
+mkdir -p %{buildroot}%{rudderdir}/etc/ssl/
 mkdir -p %{buildroot}%{rudderdir}/etc/plugins/
 mkdir -p %{buildroot}%{rudderdir}/bin/
 mkdir -p %{buildroot}%{rudderdir}/jetty7/webapps/
@@ -134,9 +136,11 @@ mkdir -p %{buildroot}%{rudderdir}/share/upgrade-tools/
 mkdir -p %{buildroot}%{ruddervardir}/inventories/incoming
 mkdir -p %{buildroot}%{ruddervardir}/inventories/accepted-nodes-updates
 mkdir -p %{buildroot}%{ruddervardir}/inventories/received
-mkdir -p %{buildroot}%{rudderlogdir}/%{apache}/
+mkdir -p %{buildroot}%{ruddervardir}/inventories/failed
+mkdir -p %{buildroot}%{rudderlogdir}/apache2/
 mkdir -p %{buildroot}/etc/%{apache_vhost_dir}/
 mkdir -p %{buildroot}/etc/sysconfig/
+mkdir -p %{buildroot}/usr/share/doc/rudder
 
 cp %{SOURCE1} %{buildroot}%{rudderdir}/etc/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/ldap/bootstrap.ldif %{buildroot}%{rudderdir}/share/
@@ -150,28 +154,35 @@ cp %{_builddir}/rudder-sources/rudder/rudder-web/target/rudder-web*.war %{buildr
 cp -rf %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/load-page %{buildroot}%{rudderdir}/share/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/test/resources/script/cfe-red-button.sh %{buildroot}%{rudderdir}/bin/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/reportsInfo.xml %{buildroot}%{rudderdir}/etc/
-cp %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/apache2-default.conf %{buildroot}/etc/%{apache_vhost_dir}/rudder-default.conf
+cp %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/rudder-apache-common.conf %{buildroot}%{rudderdir}/etc/rudder-apache-common.conf
+cp %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/rudder-vhost.conf %{buildroot}/etc/%{apache_vhost_dir}/rudder-vhost.conf
+cp %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/rudder-vhost-ssl.conf %{buildroot}/etc/%{apache_vhost_dir}/rudder-vhost-ssl.conf
 cp %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/apache2-sysconfig %{buildroot}/etc/sysconfig/rudder-apache
 cp %{SOURCE2} %{buildroot}%{rudderdir}/jetty7/contexts/
 cp %{SOURCE3} %{buildroot}%{rudderdir}/etc/
 
 # Install upgrade tools
-cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.3-2.4-groups-isDynamic.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
-cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.3-2.4-PT-history.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
-cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.3-2.4-PI-PT-CR-names-changed.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
-cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.3-2.4-index.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
-cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.3-2.4-add-MigrationEventLog-table.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
-cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.3-2.4-add-EventLog-reason-column.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
-cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.3-2.4-set-migration-needed-flag-for-EventLog.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.4-2.4-set-migration-needed-flag-for-EventLog.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
-cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.3-2.4-archive.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
-cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.3-2.4-index-archive.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
+cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.6-2.7-set-migration-needed-flag-for-EventLog.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.4-2.5-group-serialisation.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.4-2.4-eventlog-unlimited-principal-length.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
-cp %{_sourcedir}/rudder-upgrade-LDAP-schema-2.3-2.4-add-entries.ldif %{buildroot}%{rudderdir}/share/upgrade-tools/
-cp %{_sourcedir}/rudder-upgrade-LDAP-schema-2.3-2.4-add-archives-entry.ldif %{buildroot}%{rudderdir}/share/upgrade-tools/
+cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.4-2.5-last-error-report-id.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
+cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.4-2.5-git-commit.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
+cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.4-2.5-add-modification-id-to-EventLog.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
+cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.5-2.6-unexpanded-value.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
+cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.5-2.6-add_workflow_support.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
+cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.6-2.6-add-modification-Id-change-request-column.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
+cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.7-2.8-add-nodes-executions-storage.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
+cp %{_sourcedir}/rudder-upgrade-LDAP-schema-2.6-2.7-add-global-parameter-ou.ldif %{buildroot}%{rudderdir}/share/upgrade-tools/
+cp %{_sourcedir}/rudder-upgrade-LDAP-schema-2.6-2.7-add-default-global-parameter.ldif %{buildroot}%{rudderdir}/share/upgrade-tools/
+cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.6-2.6-index-reports.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
+cp %{_sourcedir}/rudder-upgrade-modify-system-group-entries.ldif %{buildroot}%{rudderdir}/share/upgrade-tools/
 
 cp %{SOURCE5} %{buildroot}%{rudderdir}/bin/
+
+# Install documentation
+cp -rf %{_builddir}/rudder-doc/pdf %{buildroot}/usr/share/doc/rudder
+cp -rf %{_builddir}/rudder-doc/html %{buildroot}/usr/share/doc/rudder
 
 %pre -n rudder-webapp
 #=================================================
@@ -183,19 +194,22 @@ cp %{SOURCE5} %{buildroot}%{rudderdir}/bin/
 # Post Installation
 #=================================================
 
-echo "Setting Apache HTTPd as a boot service"
-/sbin/chkconfig --add %{apache}
+echo -n "INFO: Setting Apache HTTPd as a boot service..."
+/sbin/chkconfig --add %{apache} 2&> /dev/null
+echo " Done"
 
-echo "Restarting syslog"
-%{sysloginitscript} restart
+echo -n "INFO: Restrating syslog..."
+%{sysloginitscript} restart > /dev/null
+echo " Done"
 
-/etc/init.d/%{apache} stop
-# a2dissite default
+echo -n "INFO: Stopping Apache HTTPd..."
+/sbin/service %{apache} stop >/dev/null 2>&1
+echo " Done"
 
 # Do this ONLY at first install
 if [ $1 -eq 1 ]
 then
-		echo -e '# This sources the Rudder needed by Rudder\n. /etc/sysconfig/rudder-apache' >> /etc/sysconfig/apache2
+		echo -e '# This sources the configuration file needed by Rudder\n. /etc/sysconfig/rudder-apache' >> /etc/sysconfig/apache2
 		echo 'DAVLockDB /tmp/davlock.db' > /etc/%{apache}/conf.d/dav_mod.conf
 
 		mkdir -p /var/rudder/configuration-repository
@@ -207,7 +221,7 @@ fi
 # Update /etc/sysconfig/apache2 in case an old module loading entry has already been created by Rudder
 if grep -q 'APACHE_MODULES="${APACHE_MODULES} rewrite dav dav_fs proxy proxy_http' /etc/sysconfig/apache2
 then
-	echo "Upgrading the /etc/sysconfig/apache2 file, Rudder needed modules for Apache are now listed in /etc/sysconfig/rudder-apache"
+	echo "INFO: Upgrading the /etc/sysconfig/apache2 file, Rudder needed modules for Apache are now listed in /etc/sysconfig/rudder-apache"
 	sed -i 's%APACHE_MODULES="${APACHE_MODULES} rewrite dav dav_fs proxy proxy_http.*%# This sources the Rudder needed by Rudder\n. /etc/sysconfig/rudder-apache%' /etc/sysconfig/apache2
 fi
 
@@ -219,16 +233,57 @@ chown root:%{apache_group} %{ruddervardir}/inventories/accepted-nodes-updates
 chmod 2770 %{ruddervardir}/inventories/accepted-nodes-updates
 chmod 755 -R %{rudderdir}/share/tools
 chmod 655 -R %{rudderdir}/share/load-page
-%{htpasswd_cmd} -bc %{rudderdir}/etc/htpasswd-webdav-initial rudder rudder
-%{htpasswd_cmd} -bc %{rudderdir}/etc/htpasswd-webdav rudder rudder
+%{htpasswd_cmd} -bc %{rudderdir}/etc/htpasswd-webdav-initial rudder rudder  >/dev/null 2>&1
+%{htpasswd_cmd} -bc %{rudderdir}/etc/htpasswd-webdav rudder rudder  >/dev/null 2>&1
 
-echo "(Re-)starting Apache HTTPd"
-/etc/init.d/%{apache} restart
+# If the current Rudder HTTPd configuration uses /var/log/rudder/httpd, change it
+for i in /etc/%{apache_vhost_dir}/rudder-*.conf
+do
+	if grep -q /var/log/rudder/httpd "${i}"; then
+		echo -n "INFO: Old logging configuration detected in ${i}, changing to log into %{rudderlogdir}/apache2..."
+		sed -i "s%/var/log/rudder/httpd/\(.*\).log%/var/log/rudder/apache2/\1.log%" "${i}"
+		echo " Done"
+	fi
+done
+
+# If this machine has old logging entries on RHEL, migrate them.
+if [ -d %{rudderlogdir}/httpd ]; then
+	echo -n "INFO: Old logging directory detected (%{rudderlogdir}/httpd), migrating to %{rudderlogdir}/apache2..."
+	mkdir -p %{rudderlogdir}/apache2
+	mv %{rudderlogdir}/httpd/* %{rudderlogdir}/apache2/
+	rmdir %{rudderlogdir}/httpd
+	echo " Done"
+fi
+
+# Move old virtual hosts out of the way
+for OLD_VHOST in rudder-default rudder-default-ssl rudder-default.conf rudder-default-ssl.conf; do
+	if [ -f /etc/%{apache_vhost_dir}/${OLD_VHOST} ]; then
+		echo -n "INFO: An old rudder virtual host file has been detected (${OLD_VHOST}), it will be moved to /var/backups."
+		mkdir -p /var/backups
+		mv /etc/%{apache_vhost_dir}/${OLD_VHOST} /var/backups/${OLD_VHOST}-$(date +%s)
+		echo " Done"
+	fi
+done
+
+# Generate the SSL certificates if needed
+if [ ! -f /opt/rudder/etc/ssl/rudder-webapp.crt ] || [ ! -f /opt/rudder/etc/ssl/rudder-webapp.key ]; then
+	echo -n "INFO: No usable SSL certificate detected for Rudder HTTP/S support, generating one automatically..."
+	openssl req -new -x509 -newkey rsa:2048 -subj "/CN=$(hostname --fqdn)/" -keyout /opt/rudder/etc/ssl/rudder-webapp.key -out /opt/rudder/etc/ssl/rudder-webapp.crt -days 1460 -nodes -sha256 >/dev/null 2>&1
+	chgrp %{apache_group} /opt/rudder/etc/ssl/rudder-webapp.key && chmod 640 /opt/rudder/etc/ssl/rudder-webapp.key
+	echo " Done"
+fi
+
+echo -n "INFO: Starting Apache HTTPd..."
+/sbin/service %{apache} start >/dev/null 2>&1
 
 # Run any upgrades
 # Note this must happen *before* creating the technique store, as it was moved in version 2.3.2
 # and creating it manually would break the upgrade logic
-%{rudderdir}/bin/rudder-upgrade
+if [ $1 -ne 1 ];then
+  echo "INFO: Launching script to check if a migration is needed"
+  %{rudderdir}/bin/rudder-upgrade
+  echo "INFO: End of migration script"
+fi
 
 # Create and populate technique store
 if [ ! -d /var/rudder/configuration-repository ]; then mkdir -p /var/rudder/configuration-repository; fi
@@ -242,7 +297,7 @@ fi
 echo "********************************************************************************"
 echo "rudder-webapp has been upgraded, but for the upgrade to take effect, please"
 echo "restart the jetty application server as follows:"
-echo "# /etc/init.d/jetty restart"
+echo "# /sbin/service jetty restart"
 echo "********************************************************************************"
 
 #=================================================
@@ -269,11 +324,15 @@ rm -rf %{buildroot}
 %{ruddervardir}/inventories/accepted-nodes-updates
 %{ruddervardir}/inventories/incoming
 %{ruddervardir}/inventories/received
-%{rudderlogdir}/%{apache}/
+%{ruddervardir}/inventories/failed
+%{rudderlogdir}/apache2/
 /etc/%{apache_vhost_dir}/
-%config(noreplace) /etc/%{apache_vhost_dir}/rudder-default.conf
+%config(noreplace) %{rudderdir}/etc/rudder-apache-common.conf
+%config(noreplace) /etc/%{apache_vhost_dir}/rudder-vhost.conf
+%config(noreplace) /etc/%{apache_vhost_dir}/rudder-vhost-ssl.conf
 %config(noreplace) %{rudderdir}/etc/rudder-networks.conf
 %config(noreplace) /etc/sysconfig/rudder-apache
+/usr/share/doc/rudder
 
 #=================================================
 # Changelog

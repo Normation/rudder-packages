@@ -19,13 +19,15 @@
 .DEFAULT_GOAL := localdepends
 
 RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
-CFENGINE_RELEASE = 3.2.4
+CFENGINE_RELEASE = 3.5.2
 FUSION_RELEASE = 2.2.2
-TMP_DIR := $(shell mktemp -dq)
+TOKYOCABINET_RELEASE = 1.4.48
+TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX)
 WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget
 PATCH := /usr/bin/patch
+FIND := /usr/bin/find
 
-localdepends: ./initial-promises ./files ./fusioninventory-agent ./cfengine-source ../debian/rudder-agent.init ../debian/rudder-agent.default
+localdepends: ./initial-promises ./files ./fusioninventory-agent ./tokyocabinet-source ./cfengine-source ../debian/rudder-agent.init ../debian/rudder-agent.default ./rudder-agent.cron ../debian/rudder-agent.cron
 	rm -rf $(TMP_DIR)
 
 ./cfengine-source: /usr/bin/wget
@@ -33,8 +35,13 @@ localdepends: ./initial-promises ./files ./fusioninventory-agent ./cfengine-sour
 	$(WGET) -O $(TMP_DIR)/cfengine.tgz http://www.normation.com/tarball/cfengine-$(CFENGINE_RELEASE).tar.gz
 	tar xvzf $(TMP_DIR)/cfengine.tgz -C $(TMP_DIR)
 	mv $(TMP_DIR)/cfengine-$(CFENGINE_RELEASE) ./cfengine-source
-	$(PATCH) -d ./cfengine-source -p0 < ./cfengine-file-edit-section-r3229.patch
-	$(PATCH) -d ./cfengine-source -p0 < ./patch-reset-persistent-classes.patch
+	$(PATCH) -d ./cfengine-source -p1 < ./add-support-of-openVZ.patch
+
+./tokyocabinet-source: /usr/bin/wget
+	# Original URL: http://fallabs.com/tokyocabinet/tokyocabinet-${TOKYOCABINET_RELEASE}.tar.gz
+	$(WGET) -O $(TMP_DIR)/tokyocabinet.tgz http://www.normation.com/tarball/tokyocabinet-${TOKYOCABINET_RELEASE}.tar.gz
+	tar xvzf $(TMP_DIR)/tokyocabinet.tgz -C $(TMP_DIR)
+	mv $(TMP_DIR)/tokyocabinet-$(TOKYOCABINET_RELEASE) ./tokyocabinet-source
 
 ./rudder-sources.tar.bz2:
 	$(WGET) -O rudder-sources.tar.bz2 http://www.rudder-project.org/archives/rudder-sources-${RUDDER_VERSION_TO_PACKAGE}.tar.bz2
@@ -44,7 +51,8 @@ localdepends: ./initial-promises ./files ./fusioninventory-agent ./cfengine-sour
 	mv rudder-sources-*/ rudder-sources/
 
 ./initial-promises: ./rudder-sources
-	cp -aT ./rudder-sources/rudder-techniques/initial-promises/node-server/ ./initial-promises/
+	rm -rf ./initial-promises/
+	cp -a ./rudder-sources/rudder-techniques/initial-promises/node-server/ ./initial-promises
 
 ./fusioninventory-agent: /usr/bin/wget
 	#Original URL: http://search.cpan.org/CPAN/authors/id/F/FU/FUSINV/FusionInventory-Agent-$(FUSION_RELEASE).tar.gz
@@ -54,6 +62,8 @@ localdepends: ./initial-promises ./files ./fusioninventory-agent ./cfengine-sour
 	$(PATCH) -d ./fusioninventory-agent -p1 < ./SuSE_service_pack.patch
 	$(PATCH) -d ./fusioninventory-agent -p1 < ./Scientific_linux_distro_name.patch
 	$(PATCH) -d ./fusioninventory-agent -p1 < ./Oracle_linux_distro_name.patch
+	# Fix a lsusb invocation that crashes some SLES machines
+	$(FIND) ./fusioninventory-agent -iname "USB.pm" -exec rm "{}" \;
 
 ./files: /usr/bin/wget
 	mkdir ./files
@@ -102,11 +112,23 @@ localdepends: ./initial-promises ./files ./fusioninventory-agent ./cfengine-sour
 ../debian/rudder-agent.default:
 	cp ./rudder-agent.default ../debian/
 
+./rudder-agent.cron: ./rudder-sources
+	cp ./rudder-sources/rudder-techniques/techniques/system/common/1.0/rudder_agent_community_cron.st ./rudder-agent.cron
+	# Set unexpanded variables of the cron file
+	sed 's@\$${sys.workdir}@/var/rudder/cfengine-community@g' -i rudder-agent.cron
+	sed 's@\$${g.rudder_base}@/opt/rudder@g' -i rudder-agent.cron
+	sed  's@\\&\\&@\&\&@g' -i rudder-agent.cron
+	sed  's@\\&1@\&1@g' -i rudder-agent.cron
+
+../debian/rudder-agent.cron: ./rudder-agent.cron
+	cp ./rudder-agent.cron ../debian/
+
 /usr/bin/wget:
 	sudo apt-get --assume-yes install wget
 
 localclean:
 	rm -rf ./cfengine-source
+	rm -rf ./tokyocabinet-source
 	rm -rf ./initial-promises
 	rm -f ../debian/rudder-agent.init
 	rm -f ../debian/rudder-agent.default
@@ -117,6 +139,7 @@ localclean:
 	rm -rf ./perl-custom
 	rm -rf ./files
 	rm -rf ./rudder-sources
+	rm -f ./rudder-agent.cron ../debian/rudder-agent.cron
 
 veryclean:
 	rm -f ./rudder-sources.tar.bz2
