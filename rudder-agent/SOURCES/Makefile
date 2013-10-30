@@ -27,7 +27,7 @@ WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget
 PATCH := /usr/bin/patch
 FIND := /usr/bin/find
 
-localdepends: ./initial-promises ./files ./fusioninventory-agent ./tokyocabinet-source ./cfengine-source ../debian/rudder-agent.init ../debian/rudder-agent.default ./rudder-agent.cron ../debian/rudder-agent.cron
+localdepends: ./initial-promises ./files ./fusioninventory-agent ./tokyocabinet-source ./cfengine-source ../debian/rudder-agent.init ../debian/rudder-agent.default ./rudder-agent.cron ../debian/rudder-agent.cron.d
 	rm -rf $(TMP_DIR)
 
 ./cfengine-source: /usr/bin/wget
@@ -120,8 +120,8 @@ localdepends: ./initial-promises ./files ./fusioninventory-agent ./tokyocabinet-
 	sed  's@\\&\\&@\&\&@g' -i rudder-agent.cron
 	sed  's@\\&1@\&1@g' -i rudder-agent.cron
 
-../debian/rudder-agent.cron: ./rudder-agent.cron
-	cp ./rudder-agent.cron ../debian/
+../debian/rudder-agent.cron.d: ./rudder-agent.cron
+	cp ./rudder-agent.cron ../debian/rudder-agent.cron.d
 
 /usr/bin/wget:
 	sudo apt-get --assume-yes install wget
@@ -139,7 +139,7 @@ localclean:
 	rm -rf ./perl-custom
 	rm -rf ./files
 	rm -rf ./rudder-sources
-	rm -f ./rudder-agent.cron ../debian/rudder-agent.cron
+	rm -f ./rudder-agent.cron ../debian/rudder-agent.cron.d
 
 veryclean:
 	rm -f ./rudder-sources.tar.bz2
