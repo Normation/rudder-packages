@@ -30,7 +30,8 @@ set -e
 # /opt/rudder/etc/rudder-web.properties configuration file is harmless.
 #
 # Upgrade checks currently implemented:
-# - All versions: upgrade system Techniques automatically and reload the Techniqe library
+# - All versions: Check if access credentials in rudder-web.properties/inventory-web.properties match the ones from rudder-passwords.conf
+# - All versions: upgrade system Techniques automatically and reload the Technique library
 # - All versions: Check that Rudder database is able to handle backslash
 # - 2.4.1 : Add the group serialization table (GroupsNodesJoin) to the database
 # - 2.4.8 : Remove the user name length limitation in the event log table
@@ -65,20 +66,37 @@ TECH_DIR="${VAR_RUDDER}/configuration-repository/techniques"
 RUDDER_SHARE=/opt/rudder/share
 RUDDER_UPGRADE_TOOLS=${RUDDER_SHARE}/upgrade-tools
 LDAP_EXISTS=$(/opt/rudder/sbin/slapcat 2>/dev/null | grep "rudder-configuration" | wc -l)
-LDAP_CREDENTIALS=`grep -E "^ldap.(authdn|authpw)=" /opt/rudder/etc/rudder-web.properties | wc -l`
-if [ -f /opt/rudder/etc/rudder-web.properties -a ${LDAP_CREDENTIALS} -eq 2 ]; then
-	LDAP_USER=$(grep -E "^ldap.authdn=" /opt/rudder/etc/rudder-web.properties |cut -d "=" -f 2-)
-	LDAP_PASSWORD=$(grep -E "^ldap.authpw=" /opt/rudder/etc/rudder-web.properties |cut -d "=" -f 2-)
+
+# Get how many access credentials we got for LDAP and SQL in /opt/rudder/etc/rudder-passwords.conf
+# (should have 2 for each, user and password)
+LDAP_CREDENTIALS=`grep -E "^RUDDER_OPENLDAP_BIND_(DN|PASSWORD):" /opt/rudder/etc/rudder-passwords.conf | wc -l`
+SQL_CREDENTIALS=`grep -E "^RUDDER_PSQL_(USER|PASSWORD):" /opt/rudder/etc/rudder-passwords.conf | wc -l`
+
+if [ -f /opt/rudder/etc/rudder-passwords.conf -a ${LDAP_CREDENTIALS} -eq 2 ]; then
+        # Get the LDAP database access credentials from the rudder-passwords.conf file
+        LDAP_USER=`grep -E "^RUDDER_OPENLDAP_BIND_DN:" /opt/rudder/etc/rudder-passwords.conf |cut -d ":" -f 2-`
+        LDAP_PASSWORD=`grep -E "^RUDDER_OPENLDAP_BIND_PASSWORD:" /opt/rudder/etc/rudder-passwords.conf |cut -d ":" -f 2-`
 else
-	echo "WARNING: LDAP properties are missing in /opt/rudder/etc/rudder-web.properties"
-	if [ -f /opt/rudder/etc/openldap/slapd.conf ]; then
-		LDAP_USER=$(grep "^rootdn" /opt/rudder/etc/openldap/slapd.conf | sed "s/\w*\s*['\"]\?\([^\"']*\)['\"]\?$/\1/")
-		LDAP_PASSWORD=$(grep "^rootpw" /opt/rudder/etc/openldap/slapd.conf | sed "s/\w*\s*['\"]\?\([^\"']*\)['\"]\?$/\1/")
-	else
-		echo "ERROR: /opt/rudder/etc/openldap/slapd.conf doesn't exist"
-		exit 1
-	fi
+        # No LDAP database access credentials in rudder-passwords.conf, use slapd.conf instead.
+        echo "WARNING: LDAP credentials are missing in /opt/rudder/etc/rudder-passwords.conf. Using /opt/rudder/etc/openldap/slapd.conf as a reference instead."
+        if [ -f /opt/rudder/etc/openldap/slapd.conf ]; then
+                LDAP_USER=`grep "^rootdn" /opt/rudder/etc/openldap/slapd.conf | sed "s/\w*\s*['\"]\?\([^\"']*\)['\"]\?$/\1/"`
+                LDAP_PASSWORD=`grep "^rootpw" /opt/rudder/etc/openldap/slapd.conf | sed "s/\w*\s*['\"]\?\([^\"']*\)['\"]\?$/\1/"`
+        else
+                echo "ERROR: /opt/rudder/etc/openldap/slapd.conf doesn't exist."
+                exit 1
+        fi
 fi
+
+if [ -f /opt/rudder/etc/rudder-passwords.conf -a ${SQL_CREDENTIALS} -eq 2 ]; then
+        # Get the SQL database access credentials from the rudder-passwords.conf file
+        SQL_USER=`grep -E "^RUDDER_PSQL_USER:" /opt/rudder/etc/rudder-passwords.conf |cut -d ":" -f 2-`
+        SQL_PASSWORD=`grep -E "^RUDDER_PSQL_PASSWORD:" /opt/rudder/etc/rudder-passwords.conf |cut -d ":" -f 2-`
+else
+        echo "ERROR: Unable to find SQL access credentials in /opt/rudder/etc/rudder-passwords.conf."
+        exit 1
+fi
+
 GIT_BRANCH_IS_SET=`grep -E "^rudder.(ptlib|techniqueLibrary).git.refs.path=" /opt/rudder/etc/rudder-web.properties | wc -l`
 if [ ${GIT_BRANCH_IS_SET} -eq 1 ]; then
 	GIT_BRANCH=$(grep -E "^rudder.(ptlib|techniqueLibrary).git.refs.path=" /opt/rudder/etc/rudder-web.properties |cut -d "=" -f 2- | sed "s@\(refs/heads/\)\?\(refs/tags/\)\?\(refs/remote/origin/\)\?\(.*\)@\4@")
@@ -138,6 +156,48 @@ function check_and_add_endpoint_config_property {
         echo "New configuration property ${PROPERTY_NAME} added to /opt/rudder/etc/inventory-web.properties"
     fi
 }
+
+# - All versions: Check if access credentials in rudder-web.properties/inventory-web.properties match the ones from rudder-passwords.conf
+# For every property file, check if the access credentials match between the property file and
+# the rudder-passwords.conf file. If not, update the properties.
+#
+# This is to prevent an upgrade failure if the properties have been resetted during a package upgrade.
+for property_file in rudder-web.properties inventory-web.properties; do
+
+  echo -n "INFO: Checking if ${property_file} database access credentials are all right..."
+
+  # Get the credentials in the property files
+  PROPERTY_SQL_USER=`grep -E "^rudder.jdbc.username[ \t]*=" /opt/rudder/etc/${property_file} |cut -d "=" -f 2-`
+  PROPERTY_SQL_PASSWORD=`grep -E "^rudder.jdbc.password[ \t]*=" /opt/rudder/etc/${property_file} |cut -d "=" -f 2-`
+
+  PROPERTY_LDAP_USER=`grep -E "^ldap.authdn[ \t]*=" /opt/rudder/etc/${property_file} |cut -d "=" -f 2-`
+  PROPERTY_LDAP_PASSWORD=`grep -E "^ldap.authpw[ \t]*=" /opt/rudder/etc/${property_file} |cut -d "=" -f 2-`
+
+  # SQL properties only apply to rudder-web.properties
+  if [ "z${property_file}" = "zrudder-web.properties" ]; then
+    if [ "z${SQL_USER}" = "z${PROPERTY_SQL_USER}" ] && [ "z${SQL_PASSWORD}" = "z${PROPERTY_SQL_PASSWORD}" ]; then
+      echo -n " SQL OK,"
+    else
+      # Credentials from the properties and the rudder-password.conf do not match, update the properties.
+      sed -i "s%rudder.jdbc.username[ \t]*=.*%rudder.jdbc.username=${SQL_USER}%" /opt/rudder/etc/${property_file}
+      sed -i "s%rudder.jdbc.password[ \t]*=.*%rudder.jdbc.password=${SQL_PASSWORD}%" /opt/rudder/etc/${property_file}
+      echo -n " SQL Credentials updated,"
+    fi
+  else
+    # The file is not relevant for SQL checking, skip it.
+    echo -n " SQL skipped,"
+  fi
+
+  # Do the same for LDAP credentials on all property files
+  if [ "z${LDAP_USER}" = "z${PROPERTY_LDAP_USER}" ] && [ "z${LDAP_PASSWORD}" = "z${PROPERTY_LDAP_PASSWORD}" ]; then
+    echo " LDAP OK"
+  else
+    sed -i "s%ldap.authdn[ \t]*=.*%ldap.authdn=${LDAP_USER}%" /opt/rudder/etc/${property_file}
+    sed -i "s%ldap.authpw[ \t]*=.*%ldap.authpw=${LDAP_PASSWORD}%" /opt/rudder/etc/${property_file}
+    echo " LDAP Credentials updated"
+  fi
+
+done
 
 # Before doing anything on git, set the branch to the Technique Reference Library branch
 if [ -d /var/rudder/configuration-repository/.git ];then
