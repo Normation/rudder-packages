@@ -55,6 +55,12 @@ case "$1" in
 			cp -r /opt/rudder/share/initial-promises/* /var/rudder/cfengine-community/inputs
 		fi
 
+		# Migration to CFEngine 3.5: Correct a specific Technique that breaks the most recent CFEngine versions
+		if [ -f /var/rudder/cfengine-community/inputs/distributePolicy/1.0/passwordCheck.cf ]
+		then
+			sed -i 's%^\(.*ALTER USER rudder WITH PASSWORD.*p.psql_password.*\)"",$%\1""%' /var/rudder/cfengine-community/inputs/distributePolicy/1.0/passwordCheck.cf
+		fi
+
 		# Remove the lock on CFEngine
 		if [ ${I_SET_THE_LOCK} -eq 1 ]; then
 			rm -f /opt/rudder/etc/disable-agent
