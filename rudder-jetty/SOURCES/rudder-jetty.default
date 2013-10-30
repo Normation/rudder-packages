@@ -1,11 +1,30 @@
+######################### WARNING ############################
+#                                                            #
+# Every modification done to this file will be lost at every #
+# Rudder update. To change Jetty memory settings, please use #
+# the /opt/rudder/etc/rudder-jetty.conf file instead         #
+#                                                            #
+######################### WARNING ############################
+
+# Source variables from /opt/rudder/etc/rudder-jetty.conf
+if [ -f /opt/rudder/etc/rudder-jetty.conf ]
+then
+	. /opt/rudder/etc/rudder-jetty.conf
+fi
+
 # Check wich JVM is installed
 # We support Sun Java 6 or OpenJDK 7, privilege later versions (sort -r)
 if [ -d /usr/lib/jvm ]; then JAVA_HOME=$(find /usr/lib/jvm -maxdepth 1 -type d -name java-7-openjdk-i386 -or -name java-7-openjdk-amd64 -or -name java-6-sun | sort -r | head -n1); fi
 if [ -d /usr/java ]; then JAVA_HOME=/usr/java/latest; fi
-#JAVA
+
+# Java VM location
 if [ -f ${JAVA_HOME}/bin/java ]; then JAVA=${JAVA_HOME}/bin/java; else JAVA=/usr/bin/java; fi
-JAVA_XMX=1024
-JAVA_MAXPERMSIZE=256
+
+# Memory settings
+JAVA_XMX=${JAVA_XMX:=1024}
+JAVA_MAXPERMSIZE=${JAVA_MAXPERMSIZE:=256}
+
+# Java VM arguments
 JAVA_OPTIONS="$JAVA_OPTIONS
 -server
 -Xms${JAVA_XMX}m -Xmx${JAVA_XMX}m
@@ -18,7 +37,8 @@ JAVA_OPTIONS="$JAVA_OPTIONS
 -Dinventoryweb.configFile=/opt/rudder/etc/inventory-web.properties
 -Dlogback.configurationFile=/opt/rudder/etc/logback.xml
 -Drun.mode=production"
-#JETTY
+
+# Jetty
 JETTY_HOME="/opt/rudder/jetty7/"
 JETTY_RUN="/var/rudder/run"
 JETTY_ARGS="OPTIONS=Server"

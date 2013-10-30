@@ -102,7 +102,6 @@ cp %{SOURCE5} %{buildroot}/etc/init.d/rudder-server-root
 cp %{SOURCE6} %{buildroot}%{rudderdir}/etc/
 cp %{SOURCE7} %{buildroot}%{rudderdir}/bin/
 
-
 %pre -n rudder-server-root
 #=================================================
 # Pre Installation

@@ -53,6 +53,7 @@ Group: Applications/System
 
 #Source1: jetty7/bin/jetty.sh
 Source2: rudder-jetty.default
+Source3: rudder-jetty.conf
 
 Patch1: jetty-init-sles.patch
 Patch2: jetty-init-rudder.patch
@@ -130,6 +131,7 @@ echo "No build"
 rm -rf %{buildroot}
 
 mkdir -p %{buildroot}/opt/rudder
+mkdir -p %{buildroot}/opt/rudder/etc
 mkdir -p %{buildroot}%{rudderlogdir}/webapp
 mkdir -p %{buildroot}/var/rudder/run
 
@@ -143,6 +145,7 @@ mkdir -p %{buildroot}/etc/init.d
 mkdir -p %{buildroot}/etc/default
 install -m 755 jetty7/bin/jetty-sles.sh %{buildroot}/etc/init.d/jetty
 install -m 644 %{SOURCE2} %{buildroot}/etc/default/jetty
+install -m 644 %{SOURCE3} %{buildroot}/opt/rudder/etc/rudder-jetty.conf
 
 %pre -n rudder-jetty
 #=================================================
@@ -182,10 +185,12 @@ rm -rf %{buildroot}
 %files -n rudder-jetty
 %defattr(-, root, root, 0755)
 /opt/rudder/jetty7
+/opt/rudder/etc
 %{rudderlogdir}/webapp
 /var/rudder/run
 /etc/init.d/jetty
 /etc/default/jetty
+%config(noreplace) /opt/rudder/etc/rudder-jetty.conf
 
 #=================================================
 # Changelog
