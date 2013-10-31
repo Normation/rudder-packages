@@ -235,11 +235,9 @@ echo " Done"
 # Run any upgrades
 # Note this must happen *before* creating the technique store, as it was moved in version 2.3.2
 # and creating it manually would break the upgrade logic
-if [ $1 -ne 1 ];then
-  echo "INFO: Launching script to check if a migration is needed"
-  %{rudderdir}/bin/rudder-upgrade
-  echo "INFO: End of migration script"
-fi
+echo "INFO: Launching script to check if a migration is needed"
+%{rudderdir}/bin/rudder-upgrade
+echo "INFO: End of migration script"
 
 # Create and populate technique store
 if [ ! -d /var/rudder/configuration-repository ]; then mkdir -p /var/rudder/configuration-repository; fi
