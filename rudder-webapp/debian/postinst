@@ -17,6 +17,16 @@ set -e
 # for details, see http://www.debian.org/doc/debian-policy/ or
 # the debian-policy package
 
+# Check if this is a fresh installation or an upgrade.
+# If it is a fresh install, $2 will be empty whereas in
+# case of an upgrade it contains the old package version.
+if [ -z "${2}" ]
+then
+	S_FIRST_INSTALL=1
+else
+	IS_FIRST_INSTALL=0
+fi
+
 case "$1" in
     configure)
   echo -n "INFO: Restarting syslog..."
@@ -77,9 +87,12 @@ case "$1" in
   # Run any upgrades
   # Note this must happen *before* creating the technique store, as it was moved in version 2.3.2
   # and creating it manually would break the upgrade logic
-  echo "INFO: Launching script to check if a migration is needed"
-  /opt/rudder/bin/rudder-upgrade
-  echo "INFO: End of migration script"
+  if [ "${IS_FIRST_INSTALL}" -eq 0 ]
+  then
+    echo "INFO: Launching script to check if a migration is needed"
+    /opt/rudder/bin/rudder-upgrade
+    echo "INFO: End of migration script"
+  fi
 
 	# Create and populate technique store
 	if [ ! -d /var/rudder/configuration-repository ]; then mkdir -p /var/rudder/configuration-repository; fi
