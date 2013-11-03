@@ -79,9 +79,13 @@ BuildRequires: db42-devel
 Requires: db42 pmtools
 %endif
 
+%if 0%{?sles_version}
+Requires: cron
+%endif
+
 %if 0%{?rhel}
 BuildRequires: make db4-devel byacc
-Requires: db4 dmidecode
+Requires: db4 dmidecode crontabs
 %endif
 
 # Replaces rudder-cfengine-community since 2.4.0~beta3
