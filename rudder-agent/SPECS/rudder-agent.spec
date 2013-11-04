@@ -197,6 +197,9 @@ if [ $1 -eq 1 ]
 then
 	# Set rudder-agent as service
 	/sbin/chkconfig --add rudder-agent
+	%if 0%{?rhel} >= 6
+	/sbin/chkconfig rudder-agent on
+	%endif
 
 	CFRUDDER_FIRST_INSTALL=1
 fi

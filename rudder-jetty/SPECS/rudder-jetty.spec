@@ -144,6 +144,9 @@ if [ $1 -eq 1 ]
 then
 	# Set rudder-agent as service
 	/sbin/chkconfig --add jetty
+	%if 0%{?rhel} >= 6
+	/sbin/chkconfig jetty on
+	%endif
 fi
 
 #=================================================
