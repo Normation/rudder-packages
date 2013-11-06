@@ -133,6 +133,12 @@ case "$1" in
 		fi
 		# Remove temporary files about LDAP indexes
 		rm -f ${SLAPD_DEFINED_INDEXES} ${SLAPD_ACTUAL_INDEXES}
+
+		# Restart slapd to take schema changes into account
+		echo -n "INFO: Restarting slapd..."
+		invoke-rc.d slapd restart >/dev/null 2>&1
+		echo " Done"
+
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)

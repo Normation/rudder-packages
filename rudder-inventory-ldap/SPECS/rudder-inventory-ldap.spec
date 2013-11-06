@@ -307,8 +307,10 @@ fi
 # Remove temporary files about LDAP indexes
 rm -f ${SLAPD_DEFINED_INDEXES} ${SLAPD_ACTUAL_INDEXES}
 
-echo "All done. Starting slapd..."
-/sbin/service slapd start
+# Need to restart to take schema changes into account
+echo -n "INFO: Restarting slapd..."
+/sbin/service slapd restart >/dev/null 2>&1
+echo " Done"
 
 #=================================================
 # Cleaning
