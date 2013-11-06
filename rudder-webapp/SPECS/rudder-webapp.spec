@@ -194,6 +194,9 @@ cp %{SOURCE5} %{buildroot}%{rudderdir}/bin/
 
 echo "Setting Apache HTTPd as a boot service"
 /sbin/chkconfig --add %{apache}
+%if 0%{?rhel} >= 6
+/sbin/chkconfig %{apache} on
+%endif
 
 echo "Restarting syslog"
 %{sysloginitscript} restart
