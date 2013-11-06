@@ -184,6 +184,9 @@ fi
 
 echo -n "INFO: Setting slapd as a boot service..."
 /sbin/chkconfig --add slapd >/dev/null 2>&1
+%if 0%{?rhel} >= 6
+/sbin/chkconfig slapd on
+%endif
 echo " Done"
 
 echo -n "INFO: Reloading syslogd... "

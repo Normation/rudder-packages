@@ -134,7 +134,7 @@ fi
 
 echo -n "INFO: Setting postgresql as a boot service..."
 /sbin/chkconfig --add postgresql >/dev/null 2>&1
-%if 0%{?el6}
+%if 0%{?rhel} >= 6
 /sbin/chkconfig postgresql on >/dev/null 2>&1
 %endif
 echo " Done"

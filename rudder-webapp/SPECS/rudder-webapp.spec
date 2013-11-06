@@ -196,6 +196,9 @@ cp -rf %{_builddir}/rudder-doc/html %{buildroot}/usr/share/doc/rudder
 
 echo -n "INFO: Setting Apache HTTPd as a boot service..."
 /sbin/chkconfig --add %{apache} 2&> /dev/null
+%if 0%{?rhel} >= 6
+/sbin/chkconfig %{apache} on
+%endif
 echo " Done"
 
 echo -n "INFO: Restrating syslog..."

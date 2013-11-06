@@ -79,6 +79,11 @@ Requires: pcre openssl
 #Specific requirements
 %if 0%{?rhel}
 BuildRequires: make byacc
+Requires: crontabs
+%endif
+
+%if 0%{?sles_version}
+Requires: cron
 %endif
 
 # dmiecode is provided in the "dmidecode" package on EL4+ and on kernel-utils
@@ -280,6 +285,9 @@ if [ $1 -eq 1 ]
 then
 	# Set rudder-agent as service
 	/sbin/chkconfig --add rudder-agent
+	%if 0%{?rhel} >= 6
+	/sbin/chkconfig rudder-agent on
+	%endif
 
 	CFRUDDER_FIRST_INSTALL=1
 fi
