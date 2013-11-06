@@ -305,8 +305,10 @@ if [ -r /opt/rudder/etc/openldap/slapd.conf -a -e /var/rudder/ldap/openldap-data
 	fi
 fi
 
-echo "All done. Starting slapd..."
-/etc/init.d/slapd start
+# Need to restart to take schema changes into account
+echo -n "INFO: Restarting slapd..."
+/sbin/service slapd restart >/dev/null 2>&1
+echo " Done"
 
 #=================================================
 # Cleaning

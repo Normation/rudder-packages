@@ -131,6 +131,12 @@ case "$1" in
 				echo "OpenLDAP indexes updated."
 			fi
 		fi
+
+		# Restart slapd to take schema changes into account
+		echo -n "INFO: Restarting slapd..."
+		invoke-rc.d slapd restart >/dev/null 2>&1
+		echo " Done"
+
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
