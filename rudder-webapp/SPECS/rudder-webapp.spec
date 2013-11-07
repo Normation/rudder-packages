@@ -278,6 +278,7 @@ fi
 
 echo -n "INFO: Starting Apache HTTPd..."
 /sbin/service %{apache} start >/dev/null 2>&1
+echo " Done"
 
 # Run any upgrades
 # Note this must happen *before* creating the technique store, as it was moved in version 2.3.2
