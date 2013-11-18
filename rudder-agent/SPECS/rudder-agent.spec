@@ -406,6 +406,9 @@ if [ -f ${TMP_CRON} ]; then
 	chmod 644 ${TMP_CRON}
 fi
 
+# launch rudder agent check script, it will generate an UUID on first install or repair it if needed
+/opt/rudder/bin/check-rudder-agent
+
 %preun -n rudder-agent
 #=================================================
 # Pre Uninstallation
