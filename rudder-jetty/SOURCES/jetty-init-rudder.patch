@@ -20,7 +20,7 @@
 +        then
 +            PLUGINSPATH=$fic
 +        else
-+            PLUGINSPATH="$PLUGINSPATH:$fic"
++            PLUGINSPATH="$PLUGINSPATH,$fic"
 +        fi
 +        CPT=$(($CPT+1))
 +    done
