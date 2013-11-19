@@ -308,7 +308,9 @@ fi
 # Upgrade database schema from 2.7 to 2.8 if necessary - Check if the execution table is present, and create it if needed.
 RES=$(su - postgres -c "psql -t -d rudder -c \"select count(oid) from pg_class where lower(relname) = 'reportsexecution'\"")
 if [ $RES -eq 0 ]; then
+  echo -n "INFO: Creating new table containing all nodes executions, this migration script can take a long time..."
   psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.7-2.8-add-nodes-executions-storage.sql >/dev/null 2>&1
+  echo " Done."
 fi
 
 ## Change attribute from dn:ruleId=inventory-all,ou=Rules,ou=Rudder,cn=rudder-configuration
