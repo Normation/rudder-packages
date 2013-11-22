@@ -36,6 +36,8 @@ localdepends: ./initial-promises ./files ./fusioninventory-agent ./tokyocabinet-
 	tar xvzf $(TMP_DIR)/cfengine.tgz -C $(TMP_DIR)
 	mv $(TMP_DIR)/cfengine-$(CFENGINE_RELEASE) ./cfengine-source
 	$(PATCH) -d ./cfengine-source -p1 < ./add-support-of-openVZ.patch
+	$(PATCH) -d ./cfengine-source -p1 < ./allow-purging-of-directory-in-copy.patch
+
 
 ./tokyocabinet-source: /usr/bin/wget
 	# Original URL: http://fallabs.com/tokyocabinet/tokyocabinet-${TOKYOCABINET_RELEASE}.tar.gz

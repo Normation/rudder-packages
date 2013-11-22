@@ -1,0 +1,30 @@
+diff --git a/cf-agent/verify_files_utils.c b/cf-agent/verify_files_utils.c
+index 21f195c..c12c479 100644
+--- a/cf-agent/verify_files_utils.c
++++ b/cf-agent/verify_files_utils.c
+@@ -597,7 +597,7 @@ static void PurgeLocalFiles(EvalContext *ctx, Item *filelist, char *localdir, At
+                 {
+                     if (!DeleteDirectoryTree(filename))
+                     {
+-                        cfPS(ctx, LOG_LEVEL_VERBOSE, PROMISE_RESULT_FAIL, pp, attr, "Unable to purge directory '%s'", filename);
++                        cfPS(ctx, LOG_LEVEL_VERBOSE, PROMISE_RESULT_FAIL, pp, attr, "Unable to purge directory tree '%s'", filename);
+                     }
+                     else if (rmdir(filename) == -1)
+                     {
+diff --git a/libpromises/files_lib.c b/libpromises/files_lib.c
+index 7d48938..4a02440 100644
+--- a/libpromises/files_lib.c
++++ b/libpromises/files_lib.c
+@@ -576,6 +576,11 @@ static bool DeleteDirectoryTreeInternal(const char *basepath, const char *path)
+                 {
+                     failed = true;
+                 }
++
++                if (rmdir(subpath) == -1)
++                {
++                    failed = true;
++                }
+             }
+             else
+             {
+
