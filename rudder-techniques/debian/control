@@ -8,7 +8,7 @@ Homepage: http://www.rudder-project.org
 
 Package: rudder-techniques
 Architecture: all
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}, ncf
 # The following lines allow this package (rudder-techniques)
 # to replace rudder-policy-templates cleanly.
 # No need to have a dummy binary package for transition, as
@@ -20,7 +20,7 @@ Conflicts: rudder-policy-templates
 Description: Configuration management and audit tool - techniques
  Rudder is an open source configuration management and audit solution.
  .
- This package contains techniques, which are configuration models,
+ This package contains Techniques, which are configuration models,
  adapted to a function or a particular service. By providing parameters to these
  templates, you can create rules to manage nodes using Rudder
- (nodes are machines with the rudder-agent package installed).
+ (nodes are machines using the rudder-agent package).
