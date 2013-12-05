@@ -62,7 +62,8 @@ set -e
 
 # Some variables
 VAR_RUDDER="/var/rudder"
-TECH_DIR="${VAR_RUDDER}/configuration-repository/techniques"
+CONFIGURATION_REPOSITORY="${VAR_RUDDER}/configuration-repository"
+TECH_DIR="${CONFIGURATION_REPOSITORY}/techniques"
 RUDDER_SHARE=/opt/rudder/share
 RUDDER_UPGRADE_TOOLS=${RUDDER_SHARE}/upgrade-tools
 LDAP_EXISTS=$(/opt/rudder/sbin/slapcat 2>/dev/null | grep "rudder-configuration" | wc -l)
@@ -147,6 +148,11 @@ retry_wrapper() {
     done
 }
 
+# Helper function
+# Function to add a config property to rudder .properties files
+# Parameters:
+# - $1 = property name
+# - $2 = property value
 function check_and_add_endpoint_config_property {
     PROPERTY_NAME=$1
     PROPERTY_VALUE=$2
@@ -154,6 +160,36 @@ function check_and_add_endpoint_config_property {
     if [ ${ATTRIBUTESET} -eq 0 ]; then
         echo "${PROPERTY_VALUE}" >> /opt/rudder/etc/inventory-web.properties
         echo "New configuration property ${PROPERTY_NAME} added to /opt/rudder/etc/inventory-web.properties"
+    fi
+}
+
+# Helper function
+# Function to trigger a Technique library reload
+# Parameters: N/A
+function trigger_technique_library_reload {
+    if [ ! -f /opt/rudder/etc/force_technique_reload ]; then
+        echo "INFO: A Technique library reload is needed and has been scheduled."
+        touch /opt/rudder/etc/force_technique_reload
+    fi
+}
+
+# Helper function
+# Function to update rudder's configuration repository from a system directory
+# Parameters:
+# - $1 = origin directory
+# - $2 = destination directory (in configuration repository)
+function update_rudder_repository_from_system_directory {
+    # Prime work variables first
+    SRCTECHDIR="${1}"
+    TRGTECHDIR="${CONFIGURATION_REPOSITORY}/${2}"
+
+    if [ -d ${SRCTECHDIR} -a -d ${TRGTECHDIR} ]; then
+        if ! diff -Naur ${SRCTECHDIR} ${TRGTECHDIR} >/dev/null 2>&1; then
+            rsync --delete -rptgoq ${SRCTECHDIR} ${TRGTECHDIR}
+            cd ${CONFIGURATION_REPOSITORY}/ && git add -A ${2} && git commit -m "Upgrade system Techniques from ${SRCTECHDIR} - automatically done by rudder-upgrade script" >/dev/null 2>&1
+            # Schedule a Technique library reload because of the update
+            trigger_technique_library_reload
+        fi
     fi
 }
 
@@ -214,8 +250,8 @@ else
 fi
 
 # Before doing anything on git, set the branch to the Technique Reference Library branch
-if [ -d /var/rudder/configuration-repository/.git ];then
-	cd /var/rudder/configuration-repository/ && git checkout ${GIT_BRANCH} >/dev/null 2>&1
+if [ -d ${CONFIGURATION_REPOSITORY}/.git ];then
+	cd ${CONFIGURATION_REPOSITORY}/ && git checkout ${GIT_BRANCH} >/dev/null 2>&1
 fi
 
 # - 2.6.0 : Check the LDAP and PostgreSQL daemons status before upgrading
@@ -326,19 +362,8 @@ ruleTarget: special:all
 EOF
 fi
 
-# Upgrade system Techniques - always do this!
-SRCTECHDIR=/opt/rudder/share/techniques/system/
-TRGTECHDIR=/var/rudder/configuration-repository/techniques/system/
-
-if [ -d ${SRCTECHDIR} -a -d ${TRGTECHDIR} ]; then
-	if ! diff -Naur /opt/rudder/share/techniques/system/ /var/rudder/configuration-repository/techniques/system/ >/dev/null 2>&1; then
-		rsync --delete -rptgoq /opt/rudder/share/techniques/system/ /var/rudder/configuration-repository/techniques/system/
-		cd /var/rudder/configuration-repository/ && git add -A techniques/system/ && git commit -m "Upgrade system Techniques - automatically done by rudder-upgrade script" >/dev/null 2>&1
-		# For every upgrade, we schedule a Technique reloading REST call on the next CFEngine run
-		echo "INFO: A Technique library reload is needed and has been scheduled."
-		touch /opt/rudder/etc/force_technique_reload
-	fi
-fi
+# Upgrade system Techniques and NCF - always do this!
+update_rudder_repository_from_system_directory /opt/rudder/share/techniques/system/ techniques/system/
 
 # All versions: Check that Rudder database is able to handle backslash
 CHECK_BACKSLASH=$(su - postgres -c "psql -t -d rudder -c \"select '\\foo';\"" 2>/dev/null| grep "foo" | wc -l)

@@ -17,29 +17,30 @@
 #####################################################################################
 
 #=================================================
-# Specification file for rudder-techniques
+# Specification file for ncf
 #
-# Install Rudder Techniques
+# Install the NCF framework
 #
-# Copyright (C) 2012 Normation
+# Copyright (C) 2013 Normation
 #=================================================
 
 #=================================================
 # Variables
 #=================================================
-%define real_name        rudder-techniques
-%define rudderdir        /opt/rudder
+%define real_name        ncf
+%define installdir       /usr/share
+%define bindir           /usr/bin
 
 #=================================================
 # Header
 #=================================================
-Summary: Configuration management and audit tool - techniques
+Summary: NCF - CFEngine framework
 Name: %{real_name}
 Version: %{real_version}
 Release: 1%{?dist}
 Epoch: 1299256513
 License: GPLv3
-URL: http://www.rudder-project.org
+URL: http://www.ncf-project.org
 
 Group: Applications/System
 
@@ -51,21 +52,11 @@ BuildArch: noarch
 #BuildRequires: gcc
 
 # Add Requires here - order is important
-Requires: ncf
-
-# The following lines allow this package (rudder-techniques) to 
-# replace the older rudder-policy-templates package.
-# See http://wiki.mandriva.com/en/Development/Howto/RPM_Advanced#Renaming_a_package
-Provides: rudder-policy-templates
-Obsoletes: rudder-policy-templates
 
 %description
-Rudder is an open source configuration management and audit solution.
-
-This package contains Techniques, which are configuration models,
-adapted to a function or a particular service. By providing parameters to these
-templates, you can create rules to manage nodes using Rudder
-(nodes are machines using the rudder-agent package).
+NCF is a CFEngine framework aimed at helping newcomers on CFEngine
+to be more quickly operationnal and old timers to spend less time
+focusing on low level details and have more time for fun things.
 
 #=================================================
 # Source preparation
@@ -81,20 +72,23 @@ templates, you can create rules to manage nodes using Rudder
 # Installation
 #=================================================
 %install
+
 rm -rf %{buildroot}
+
 # Directories
-mkdir -p %{buildroot}%{rudderdir}/share/
+mkdir -p %{buildroot}%{installdir}/
+mkdir -p %{buildroot}%{bindir}/
 
-cp -r %{SOURCE1}/rudder-techniques/techniques/ %{buildroot}%{rudderdir}/share/
-cp -r %{SOURCE1}/rudder-techniques/tools/ %{buildroot}%{rudderdir}/share/
+cp -r %{SOURCE1}/ncf/ %{buildroot}%{installdir}/
+ln -s %{buildroot}%{installdir}/ncf/ncf %{buildroot}%{bindir}/ncf
 
-%pre -n rudder-techniques
+%pre -n ncf
 #=================================================
 # Pre Installation
 #=================================================
 
 
-%post -n rudder-techniques
+%post -n ncf
 #=================================================
 # Post Installation
 #=================================================
@@ -109,14 +103,14 @@ rm -rf %{buildroot}
 #=================================================
 # Files
 #=================================================
-%files -n rudder-techniques
+%files -n ncf
 %defattr(-, root, root, 0755)
-%{rudderdir}/share/techniques/
-%{rudderdir}/share/tools/
+%{installdir}/ncf/
+%{bindir}/ncf
 
 #=================================================
 # Changelog
 #=================================================
 %changelog
-* Wed Feb 22 2012 - Matthieu Cerda <matthieu.cerda@normation.com> 2.4.0-alpha6-1
-- Initial package (this package used to be rudder-policy-templates)
+* Thu Dec 05 2013 - Matthieu CERDA <matthieu.cerda@normation.com> 0.2013120500-1
+- Initial release

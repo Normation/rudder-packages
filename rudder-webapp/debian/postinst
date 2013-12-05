@@ -87,6 +87,9 @@ case "$1" in
 	if [ ! -d /var/rudder/configuration-repository/techniques ]; then
 		cp -a /opt/rudder/share/techniques /var/rudder/configuration-repository/
 	fi
+	if [ ! -d /var/rudder/configuration-repository/ncf ]; then
+		cp -a /usr/share/ncf /var/rudder/configuration-repository/
+	fi
 
 	# Only for Ubuntu:
 	## Change rsyslog port number since Ubuntu 12.04 doesn't allow to use standard

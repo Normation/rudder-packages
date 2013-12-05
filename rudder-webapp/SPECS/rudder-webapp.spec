@@ -32,6 +32,7 @@
 %define rudderdir        /opt/rudder
 %define ruddervardir     /var/rudder
 %define rudderlogdir     /var/log/rudder
+%define sharedir         /usr/share
 
 %define maven_settings settings-external.xml
 
@@ -82,7 +83,7 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
 
 BuildRequires: jdk >= 1.6
-Requires: rudder-jetty rudder-inventory-ldap rudder-inventory-endpoint rudder-reports rudder-techniques %{apache} %{apache_tools} git-core rsync openssl
+Requires: rudder-jetty rudder-inventory-ldap rudder-inventory-endpoint rudder-reports rudder-techniques ncf %{apache} %{apache_tools} git-core rsync openssl
 
 %if 0%{?rhel}
 Requires: mod_ssl
@@ -219,6 +220,7 @@ then
 		mkdir -p /var/rudder/configuration-repository/shared-files
 		touch /var/rudder/configuration-repository/shared-files/.placeholder
 		cp -a %{rudderdir}/share/techniques /var/rudder/configuration-repository/
+		cp -a %{sharedir}/ncf /var/rudder/configuration-repository/
 fi
 
 # Update /etc/sysconfig/apache2 in case an old module loading entry has already been created by Rudder
@@ -292,6 +294,9 @@ if [ ! -d /var/rudder/configuration-repository ]; then mkdir -p /var/rudder/conf
 if [ ! -d /var/rudder/configuration-repository/shared-files ]; then mkdir -p /var/rudder/configuration-repository/shared-files; fi
 if [ ! -d /var/rudder/configuration-repository/techniques ]; then
 	cp -a %{rudderdir}/share/techniques /var/rudder/configuration-repository/
+fi
+if [ ! -d /var/rudder/configuration-repository/ncf ]; then
+	cp -a %{sharedir}/ncf /var/rudder/configuration-repository/
 fi
 
 # Warn the user that Jetty needs restarting. This can't be done automatically due to a bug in Jetty's init script.
