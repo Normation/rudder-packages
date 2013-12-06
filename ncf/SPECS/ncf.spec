@@ -80,7 +80,7 @@ mkdir -p %{buildroot}%{installdir}/
 mkdir -p %{buildroot}%{bindir}/
 
 cp -r %{SOURCE1}/ncf/ %{buildroot}%{installdir}/
-ln -s %{buildroot}%{installdir}/ncf/ncf %{buildroot}%{bindir}/ncf
+ln -sf %{bindir}/ncf %{buildroot}%{bindir}/ncf
 
 %pre -n ncf
 #=================================================
