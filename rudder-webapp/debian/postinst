@@ -88,7 +88,7 @@ case "$1" in
 		cp -a /opt/rudder/share/techniques /var/rudder/configuration-repository/
 	fi
 	if [ ! -d /var/rudder/configuration-repository/ncf ]; then
-		cp -a /usr/share/ncf /var/rudder/configuration-repository/
+		ncf init /var/rudder/configuration-repository/ncf
 	fi
 
 	# Only for Ubuntu:
