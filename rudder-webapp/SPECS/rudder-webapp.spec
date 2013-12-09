@@ -220,7 +220,7 @@ then
 		mkdir -p /var/rudder/configuration-repository/shared-files
 		touch /var/rudder/configuration-repository/shared-files/.placeholder
 		cp -a %{rudderdir}/share/techniques /var/rudder/configuration-repository/
-		cp -a %{sharedir}/ncf /var/rudder/configuration-repository/
+		ncf init /var/rudder/configuration-repository/ncf
 fi
 
 # Update /etc/sysconfig/apache2 in case an old module loading entry has already been created by Rudder
@@ -296,7 +296,7 @@ if [ ! -d /var/rudder/configuration-repository/techniques ]; then
 	cp -a %{rudderdir}/share/techniques /var/rudder/configuration-repository/
 fi
 if [ ! -d /var/rudder/configuration-repository/ncf ]; then
-	cp -a %{sharedir}/ncf /var/rudder/configuration-repository/
+	ncf init /var/rudder/configuration-repository/ncf
 fi
 
 # Warn the user that Jetty needs restarting. This can't be done automatically due to a bug in Jetty's init script.
