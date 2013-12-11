@@ -33,6 +33,8 @@ set -e
 # - All versions: Check if access credentials in rudder-web.properties/inventory-web.properties match the ones from rudder-passwords.conf
 # - All versions: upgrade system Techniques automatically and reload the Technique library
 # - All versions: Check that Rudder database is able to handle backslash
+# - 2.9.0 : Upgrade ncf
+# - 2.9.0 : Make sure that ncf uses the right logger bundles (_logger_default and logger_rudder)
 # - 2.4.1 : Add the group serialization table (GroupsNodesJoin) to the database
 # - 2.4.8 : Remove the user name length limitation in the event log table
 # - 2.5.0 : Add the automatic reports cleaning properties
@@ -65,6 +67,7 @@ VAR_RUDDER="/var/rudder"
 CONFIGURATION_REPOSITORY="${VAR_RUDDER}/configuration-repository"
 TECH_DIR="${CONFIGURATION_REPOSITORY}/techniques"
 RUDDER_SHARE=/opt/rudder/share
+RUDDER_NCF_SOURCE_DIRECTORY=/usr/share/ncf
 RUDDER_UPGRADE_TOOLS=${RUDDER_SHARE}/upgrade-tools
 LDAP_EXISTS=$(/opt/rudder/sbin/slapcat 2>/dev/null | grep "rudder-configuration" | wc -l)
 
@@ -362,14 +365,19 @@ ruleTarget: special:all
 EOF
 fi
 
-# Upgrade system Techniques and NCF - always do this!
+# Upgrade system Techniques and ncf - always do this!
 update_rudder_repository_from_system_directory /opt/rudder/share/techniques/system/ techniques/system/
 
 mkdir -p /var/rudder/ncf/common
 if [ -d /usr/share/ncf/tree ]; then
-  if ! diff -aur /usr/share/ncf/tree/ /var/rudder/ncf/common/ >/dev/null 2>&1; then
-    rsync --delete -rptgoq /usr/share/ncf/tree/ /var/rudder/ncf/common/
+  if ! diff -aur ${RUDDER_NCF_SOURCE_DIRECTORY}/tree/ ${VAR_RUDDER}/ncf/common/ >/dev/null 2>&1; then
+    rsync --delete -rptgoq ${RUDDER_NCF_SOURCE_DIRECTORY}/tree/ ${VAR_RUDDER}/ncf/common/
   fi
+fi
+
+# Make sure that ncf uses the right logger bundles (_logger_default and logger_rudder)
+if ! grep -Eq "^loggers=.*logger_rudder.*" ${RUDDER_NCF_SOURCE_DIRECTORY}/tree/ncf.conf; then
+  sed -i "s%^loggers=\(.*\)%loggers=\1,logger_rudder%" ${RUDDER_NCF_SOURCE_DIRECTORY}/tree/ncf.conf
 fi
 
 # All versions: Check that Rudder database is able to handle backslash
