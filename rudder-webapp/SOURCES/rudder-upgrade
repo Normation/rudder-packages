@@ -365,6 +365,13 @@ fi
 # Upgrade system Techniques and NCF - always do this!
 update_rudder_repository_from_system_directory /opt/rudder/share/techniques/system/ techniques/system/
 
+mkdir -p /var/rudder/ncf/common
+if [ -d /usr/share/ncf/tree ]; then
+  if ! diff -aur /usr/share/ncf/tree/ /var/rudder/ncf/common/ >/dev/null 2>&1; then
+    rsync --delete -rptgoq /usr/share/ncf/tree/ /var/rudder/ncf/common/
+  fi
+fi
+
 # All versions: Check that Rudder database is able to handle backslash
 CHECK_BACKSLASH=$(su - postgres -c "psql -t -d rudder -c \"select '\\foo';\"" 2>/dev/null| grep "foo" | wc -l)
 if [ ${CHECK_BACKSLASH} -ne 1 ]; then
