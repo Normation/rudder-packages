@@ -69,6 +69,7 @@ TECH_DIR="${CONFIGURATION_REPOSITORY}/techniques"
 RUDDER_SHARE=/opt/rudder/share
 RUDDER_NCF_SOURCE_DIRECTORY=/usr/share/ncf
 RUDDER_UPGRADE_TOOLS=${RUDDER_SHARE}/upgrade-tools
+RSYNC_COMMAND="rsync --delete -rptgoq"
 LDAP_EXISTS=$(/opt/rudder/sbin/slapcat 2>/dev/null | grep "rudder-configuration" | wc -l)
 
 # Get how many access credentials we got for LDAP and SQL in /opt/rudder/etc/rudder-web.properties
@@ -188,7 +189,7 @@ function update_rudder_repository_from_system_directory {
 
     if [ -d ${SRCTECHDIR} -a -d ${TRGTECHDIR} ]; then
         if ! diff -Naur ${SRCTECHDIR} ${TRGTECHDIR} >/dev/null 2>&1; then
-            rsync --delete -rptgoq ${SRCTECHDIR} ${TRGTECHDIR}
+            ${RSYNC_COMMAND} ${SRCTECHDIR} ${TRGTECHDIR}
             cd ${CONFIGURATION_REPOSITORY}/ && git add -A ${2} && git commit -m "Upgrade system Techniques from ${SRCTECHDIR} - automatically done by rudder-upgrade script" >/dev/null 2>&1
             # Schedule a Technique library reload because of the update
             trigger_technique_library_reload
@@ -368,10 +369,18 @@ fi
 # Upgrade system Techniques and ncf - always do this!
 update_rudder_repository_from_system_directory /opt/rudder/share/techniques/system/ techniques/system/
 
-mkdir -p /var/rudder/ncf/common
+for i in common tools; do
+  mkdir -p /var/rudder/ncf/${i}
+done
+
 if [ -d /usr/share/ncf/tree ]; then
+  # Update ncf common
   if ! diff -aur ${RUDDER_NCF_SOURCE_DIRECTORY}/tree/ ${VAR_RUDDER}/ncf/common/ >/dev/null 2>&1; then
-    rsync --delete -rptgoq ${RUDDER_NCF_SOURCE_DIRECTORY}/tree/ ${VAR_RUDDER}/ncf/common/
+    ${RSYNC_COMMAND} ${RUDDER_NCF_SOURCE_DIRECTORY}/tree/ ${VAR_RUDDER}/ncf/common/
+  fi
+  # Update ncf tools
+  if ! diff -aur ${RUDDER_NCF_SOURCE_DIRECTORY}/tools/ ${VAR_RUDDER}/ncf/tools/ >/dev/null 2>&1; then
+    ${RSYNC_COMMAND} ${RUDDER_NCF_SOURCE_DIRECTORY}/tools/ ${VAR_RUDDER}/ncf/tools/
   fi
 fi
 
