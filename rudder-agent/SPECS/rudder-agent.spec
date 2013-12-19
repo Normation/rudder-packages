@@ -61,6 +61,7 @@ Source5: rudder-agent.cron
 # find there all necessary libraries for tokyocabinet.
 Source6: rudder.conf
 Source7: check-rudder-agent
+Source8: rudder-agent.sh
 
 # We have PERL things in here. Do not try to outsmart me by adding dummy dependencies, you silly tool.
 AutoReq: 0
@@ -206,6 +207,9 @@ cd %{_sourcedir}/cfengine-source
 make install DESTDIR=%{buildroot} STRIP=""
 
 # Directories
+mkdir -p %{buildroot}/etc/init.d
+mkdir -p %{buildroot}/etc/default
+mkdir -p %{buildroot}/etc/profile.d
 mkdir -p %{buildroot}%{rudderdir}
 mkdir -p %{buildroot}%{rudderdir}/etc
 mkdir -p %{buildroot}%{ruddervardir}/cfengine-community/bin
@@ -219,8 +223,6 @@ mkdir -p %{buildroot}/etc/ld.so.conf.d
 %endif
 
 # Init script
-mkdir -p %{buildroot}/etc/init.d
-mkdir -p %{buildroot}/etc/default
 install -m 755 %{SOURCE1} %{buildroot}/etc/init.d/rudder-agent
 install -m 644 %{SOURCE2} %{buildroot}/etc/default/rudder-agent
 
@@ -247,6 +249,9 @@ install -m 644 %{SOURCE6} %{buildroot}/etc/ld.so.conf.d/rudder.conf
 %endif
 
 install -m 755 %{SOURCE7} %{buildroot}/opt/rudder/bin/check-rudder-agent
+
+# Install a profile script to make cf-* part of the PATH
+install -m 644 %{SOURCE8} %{buildroot}/etc/profile.d/rudder-agent.sh
 
 %pre -n rudder-agent
 #=================================================
@@ -476,6 +481,7 @@ rm -rf %{buildroot}
 %defattr(-, root, root, 0755)
 %{rudderdir}
 %config(noreplace) %{rudderdir}/etc/uuid.hive
+/etc/profile.d/rudder-agent.sh
 /etc/init.d/rudder-agent
 /etc/default/rudder-agent
 /etc/cron.d/rudder-agent
