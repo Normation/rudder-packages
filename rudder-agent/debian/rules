@@ -72,6 +72,8 @@ binary-arch: install
 #	dh_installmime
 #	dh_python
 	dh_installinit --no-start -R # restart after upgrade (instead of stop, upgrade, start)
+	# Install the profile.d file (PATH adjustment)
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-agent.sh /etc/profile.d
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/perl-custom/opt rudder /opt
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES run-inventory /opt/rudder/bin
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES initial-promises /opt/rudder/share
