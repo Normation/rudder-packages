@@ -65,12 +65,27 @@ AutoProv: 0
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
 
-# Change dependencies for RHEL/CentOS since jre is not provided by OpenJDK7
-%if 0%{?rhel}
-Requires: jre7
-%else
+# Dependencies for RHEL/CentOS / OpenJDK7 are a bit specific: on EL6.5, the
+# jre7 virtual package was removed. Consistency on EL6 jre/jre7 package is
+# not assured and RPM does not provide something like
+# "Requires: package | package2" so I am forced to fallback to a hardcoded
+# package name.
+#
+# Also, I would like to have something like %elif here, but not implemented
+# in RPM yet...
+
+%if 0%{?rhel} > 6
+Requires: jre >= 1.7
+%endif
+
+%if 0%{?rhel} == 6
+Requires: java-1.7.0-openjdk
+%endif
+
+%if 0%{!?rhel}
 Requires: jre >= 1.6
 %endif
+
 Requires: rudder-inventory-ldap
 
 %description
