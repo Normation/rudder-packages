@@ -60,6 +60,7 @@ set -e
 # - 2.8.0 : Add the property to configure maximum days of reports treated at each run
 # - 2.8.0 : Add the property to configure execution of agent reports frequency
 # - 2.8.0 : Deprecate properties that are now handled directly in the webapp (validation workflow and change Message)
+# - 2.9.0 : File Format migration from 4 to 5
 #####################################################################################
 
 # Some variables
@@ -318,6 +319,12 @@ fi
 RES=$(su - postgres -c "psql -t -d rudder -c \"select count(*) from (select xpath('/entry/*[@fileFormat=3]',data) AS x from eventlog) as Y where array_upper(x, 1) > 0;\"")
 if [ $RES -ne 0 ]; then
         psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.6-2.7-set-migration-needed-flag-for-EventLog.sql > /dev/null 2>&1
+fi
+
+# 2.9.0: File Format migration from 4 to 5
+RES=$(su - postgres -c "psql -t -d rudder -c \"select count(*) from (select xpath('/entry/*[@fileFormat=4]',data) AS x from eventlog) as Y where array_upper(x, 1) > 0;\"")
+if [ $RES -ne 0 ]; then
+        psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.8-2.9-set-migration-needed-flag-for-EventLog.sql > /dev/null 2>&1
 fi
 
 # Upgrade database schema from 2.4 to 2.5 if necessary - first part : Check if the rudder properties table is present, and create it if needed.
