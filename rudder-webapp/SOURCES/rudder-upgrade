@@ -35,6 +35,7 @@ set -e
 # - All versions: Check that Rudder database is able to handle backslash
 # - 2.9.0 : Upgrade ncf
 # - 2.9.0 : Make sure that ncf uses the right logger bundles (_logger_default and logger_rudder)
+# - 2.9.0 : Make sure that ncf uses the right CFEngine port (5309)
 # - 2.4.1 : Add the group serialization table (GroupsNodesJoin) to the database
 # - 2.4.8 : Remove the user name length limitation in the event log table
 # - 2.5.0 : Add the automatic reports cleaning properties
@@ -378,6 +379,11 @@ fi
 # Make sure that ncf uses the right logger bundles (_logger_default and logger_rudder)
 if ! grep -Eq "^loggers=.*logger_rudder.*" ${RUDDER_NCF_SOURCE_DIRECTORY}/tree/ncf.conf; then
   sed -i "s%^loggers=\(.*\)%loggers=\1,logger_rudder%" ${RUDDER_NCF_SOURCE_DIRECTORY}/tree/ncf.conf
+fi
+
+# Make sure that ncf uses the right CFEngine port (5309)
+if ! grep -Eq "^cfengine_port=5309" ${RUDDER_NCF_SOURCE_DIRECTORY}/tree/ncf.conf; then
+  sed -i "s%^cfengine_port=.*%cfengine_port=5309%" ${RUDDER_NCF_SOURCE_DIRECTORY}/tree/ncf.conf
 fi
 
 # All versions: Check that Rudder database is able to handle backslash
