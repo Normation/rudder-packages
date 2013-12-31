@@ -80,7 +80,10 @@ mkdir -p %{buildroot}%{installdir}/
 mkdir -p %{buildroot}%{bindir}/
 
 cp -r %{SOURCE1}/ncf/ %{buildroot}%{installdir}/
-ln -sf %{bindir}/ncf %{buildroot}%{bindir}/ncf
+
+# Create a symlink to make ncf available as part of the
+# default PATH
+ln -sf %{installdir}/ncf/ncf %{buildroot}%{bindir}/ncf
 
 %pre -n ncf
 #=================================================
