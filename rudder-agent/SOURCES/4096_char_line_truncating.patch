@@ -1,0 +1,17 @@
+--- a/lib/FusionInventory/Agent/Tools/Unix.pm	2012-05-29 11:20:24.000000000 +0200
++++ b/lib/FusionInventory/Agent/Tools/Unix.pm	2014-01-03 15:27:00.000000000 +0100
+@@ -288,6 +288,13 @@
+         my $time = $10;
+         my $cmd = $11;
+ 
++        # Rudder #4314/Alex Tkatchenko: Workaround for a CFEngine bug that truncates
++        # lines exceeding 4096 chars.
++        #
++        # See https://cfengine.com/dev/issues/3882 for defails.
++
++        $cmd = substr $cmd,0,4076 if length($cmd) > 4076;
++
+ 	# try to get a consistant time format
+         my $begin;
+         if ($started =~ /^(\d{1,2}):(\d{2})/) {
+
