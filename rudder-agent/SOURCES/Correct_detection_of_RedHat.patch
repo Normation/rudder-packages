@@ -1,0 +1,31 @@
+From ac3943edeaa98b75ee767bc94b23647ff4594320 Mon Sep 17 00:00:00 2001
+From: Nicolas CHARLES <nicolas.charles@normation.com>
+Date: Tue, 14 Jan 2014 17:23:05 +0100
+Subject: [PATCH] Correcting Scientific support
+
+---
+ .../Agent/Task/Inventory/Input/Linux/Distro/NonLSB.pm              | 7 +++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/lib/FusionInventory/Agent/Task/Inventory/Input/Linux/Distro/NonLSB.pm b/lib/FusionInventory/Agent/Task/Inventory/Input/Linux/Distro/NonLSB.pm
+index 619a0f2..3618a18 100644
+--- a/lib/FusionInventory/Agent/Task/Inventory/Input/Linux/Distro/NonLSB.pm
++++ b/lib/FusionInventory/Agent/Task/Inventory/Input/Linux/Distro/NonLSB.pm
+@@ -103,6 +103,13 @@ sub _getDistroData {
+         $release = $template;
+     }
+ 
++    # If the detected OS is RedHat, but the release contains Scientific, then it is Scientific
++    if ($name =~ /RedHat/) {
++        if ($release =~ /Scientific/) {
++            # this is really a scientific linux, we have to change the name
++            $name = "Scientific";
++        }
++    }
++
+     my $data = {
+         NAME      => $name,
+         VERSION   => $version,
+-- 
+1.8.1.5
+
