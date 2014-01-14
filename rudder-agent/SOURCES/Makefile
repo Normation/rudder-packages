@@ -63,7 +63,7 @@ localdepends: ./initial-promises ./files ./fusioninventory-agent ./tokyocabinet-
 	tar zvxf $(TMP_DIR)/fusion.tgz -C $(TMP_DIR)
 	mv $(TMP_DIR)/FusionInventory-Agent-$(FUSION_RELEASE) ./fusioninventory-agent
 	$(PATCH) -d ./fusioninventory-agent -p1 < ./SuSE_service_pack.patch
-	$(PATCH) -d ./fusioninventory-agent -p1 < ./Scientific_linux_distro_name.patch
+	$(PATCH) -d ./fusioninventory-agent -p1 < ./Correct_detection_of_RedHat.patch
 	$(PATCH) -d ./fusioninventory-agent -p1 < ./Oracle_linux_distro_name.patch
 	$(PATCH) -d ./fusioninventory-agent -p1 < ./4096_char_line_truncating.patch
 	# Fix a lsusb invocation that crashes some SLES machines
