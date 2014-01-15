@@ -1,17 +1,17 @@
-From ac3943edeaa98b75ee767bc94b23647ff4594320 Mon Sep 17 00:00:00 2001
+From fd9b755ea8512b00f082abbfda44b11f4d709b98 Mon Sep 17 00:00:00 2001
 From: Nicolas CHARLES <nicolas.charles@normation.com>
-Date: Tue, 14 Jan 2014 17:23:05 +0100
-Subject: [PATCH] Correcting Scientific support
+Date: Wed, 15 Jan 2014 09:25:24 +0100
+Subject: [PATCH] Correcting Scientific Linux Support
 
 ---
- .../Agent/Task/Inventory/Input/Linux/Distro/NonLSB.pm              | 7 +++++++
+ .../Agent/Task/Inventory/Input/Linux/Distro/NonLSB.pm             | 8 ++++++++
  1 file changed, 8 insertions(+)
 
 diff --git a/lib/FusionInventory/Agent/Task/Inventory/Input/Linux/Distro/NonLSB.pm b/lib/FusionInventory/Agent/Task/Inventory/Input/Linux/Distro/NonLSB.pm
-index 619a0f2..3618a18 100644
+index 619a0f2..ac5baee 100644
 --- a/lib/FusionInventory/Agent/Task/Inventory/Input/Linux/Distro/NonLSB.pm
 +++ b/lib/FusionInventory/Agent/Task/Inventory/Input/Linux/Distro/NonLSB.pm
-@@ -103,6 +103,13 @@ sub _getDistroData {
+@@ -103,6 +103,14 @@ sub _getDistroData {
          $release = $template;
      }
  
