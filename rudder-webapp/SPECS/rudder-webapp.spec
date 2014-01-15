@@ -221,6 +221,14 @@ then
 		cp -a %{rudderdir}/share/techniques /var/rudder/configuration-repository/
 fi
 
+# Add required includes in the SLES apache2 configuration
+%if 0%{?sles_version}
+if ! grep -qE "^. /etc/sysconfig/rudder-apache$" /etc/sysconfig/apache2
+then
+	echo -e '# This sources the modules/defines needed by Rudder\n. /etc/sysconfig/rudder-apache' >> /etc/sysconfig/apache2
+do
+%endif
+
 # Update /etc/sysconfig/apache2 in case an old module loading entry has already been created by Rudder
 if grep -q 'APACHE_MODULES="${APACHE_MODULES} rewrite dav dav_fs proxy proxy_http' /etc/sysconfig/apache2
 then
