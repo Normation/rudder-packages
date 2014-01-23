@@ -56,6 +56,7 @@ Source2: rudder-init.sh
 Source4: %{logrotatefile}
 Source5: rudder-server-root.init
 Source6: rudder-passwords.conf
+Source7: rudder-root-rename
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
@@ -67,7 +68,7 @@ Rudder is an open source configuration management and audit solution.
 
 This package is essentially a meta-package to install all components required to
 run a Rudder root server on one machine. It also installs some required files
-(rudder-init.sh and uuid to root).
+(rudder-init.sh, rudder-root-rename and uuid to root).
 
 
 #=================================================
@@ -136,6 +137,7 @@ rm -rf %{buildroot}
 %defattr(-, root, root, 0755)
 %config(noreplace,missingok) %{_sysconfdir}/logrotate.d/rudder
 %{rudderdir}/bin/rudder-init.sh
+%{rudderdir}/bin/rudder-root-rename
 /var/cfengine/inputs
 %attr(0755, root, root) /etc/init.d/rudder-server-root
 %config(noreplace) %{rudderdir}/etc/rudder-passwords.conf
