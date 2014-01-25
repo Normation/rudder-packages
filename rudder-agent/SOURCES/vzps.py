@@ -51,11 +51,10 @@ def main():
                 print('Invalid CTID')
                 sys.exit(1)
             CTID = sys.argv[2]
+            if len(sys.argv) >= 4:
+                ps_args = sys.argv[3:]
         else:
             ps_args = sys.argv[1:]
-
-    if len(sys.argv) >= 4:
-        ps_args = sys.argv[3:]
 
     # Join ps_args if it's a list
     if isinstance(ps_args, list):

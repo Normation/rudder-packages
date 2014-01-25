@@ -248,6 +248,8 @@ install -m 644 %{SOURCE6} %{buildroot}/etc/ld.so.conf.d/rudder.conf
 
 install -m 755 %{SOURCE7} %{buildroot}/opt/rudder/bin/check-rudder-agent
 
+install -m 755 %{SOURCE7} %{buildroot}/opt/rudder/bin/vzps.py
+
 %pre -n rudder-agent
 #=================================================
 # Pre Installation

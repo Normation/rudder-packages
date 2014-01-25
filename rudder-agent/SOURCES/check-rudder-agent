@@ -62,7 +62,7 @@ fi
 # If there are more than 8 agent/executor processes, we should kill them, and purge the tcdb database
 if [ ${NB_CF_PROCESS_RUNNING} -gt 8 ]; then
   echo -n "WARNING: Too many instance of CFEngine processes running. Killing them, and purging the TokyoCabinet database..."
-  echo "${CF_PROCESS_RUNNING}" | awk 'BEGIN { OFS=" "} {print $2 }' | xargs kill -9
+  echo "${CF_PROCESS_RUNNING}" | awk 'BEGIN { OFS=" "} {print $2 }' | xargs kill -9 || true
   /etc/init.d/rudder-agent forcestop || true
   rm -f ${CFE_DIR}/state/cf_lock.tdcb
   rm -f ${CFE_DIR}/state/cf_lock.tdcb.lock
