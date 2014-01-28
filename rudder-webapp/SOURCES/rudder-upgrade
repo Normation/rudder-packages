@@ -459,7 +459,6 @@ fi
 # Get the old value if applicable
 if egrep -q "^rudder.autoDeployOnModification" /opt/rudder/etc/rudder-web.properties; then
 	AUTODEPLOY_BOOL=$(grep ^rudder.autoDeployOnModification /opt/rudder/etc/rudder-web.properties|sed "s/.*=\(.*\)/\1/")
-fi
 
 # Reverse the value (if autodeploy is enabled, workflows aren't enabled by default)
 if [ "z${AUTODEPLOY_BOOL}" = "ztrue" ]; then
@@ -483,6 +482,8 @@ check_and_add_config_property rudder.workflow.enabled "
 # in the application.
 #
 rudder.workflow.enabled=${WORKFLOWS_BOOL:-"false"}"
+
+fi # End of "2.6.0 : Add the workflows properties and replace the autoDeployOnModification property" section
 
 # - 2.6.0 : Add modification id column to change request table
 RES=$(su - postgres -c "psql -t -d rudder -c \"select count(attname) from pg_attribute where attrelid = (select oid from pg_class where relname = 'changerequest') and attname = 'modificationid'\"")
@@ -558,12 +559,15 @@ fi
 
 for i in rudder.ui.changeMessage.enabled rudder.ui.changeMessage.mandatory rudder.ui.changeMessage.explanation rudder.workflow.enabled rudder.workflow.self.validation rudder.workflow.self.deployment
 do
+    # First, check if the property is in the file (if not we don't need to migrate it)
+    if grep -e "^${i}[ \t]*=" /opt/rudder/etc/rudder-web.properties > /dev/null ; then
         # Get the two lines before the property if the property exists. Then find out if the comment is here.
         RES=$(grep -B 2 -e "^${i}[ \t]*=" /opt/rudder/etc/rudder-web.properties | grep "^# DEPRECATED in Rudder 2.8.0" | wc -l)
         if [ $RES -eq 0 ]; then
                 sed -i "/^${i}[ \t]*=/i # DEPRECATED in Rudder 2.8.0\n# The property is now configurable directly in the webapp. See 'Adminstration -> Settings' page." /opt/rudder/etc/rudder-web.properties
                 echo "INFO: Property ${i} is now configurable directly in the web interface and has been migrated. It's use is deprecated in /opt/rudder/etc/rudder-web.properties."
         fi
+    fi
 done
 
 
