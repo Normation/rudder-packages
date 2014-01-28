@@ -28,13 +28,16 @@
 #
 # GPL License: http://www.gnu.org/licenses/gpl.txt
 #
-#====================================================================                               
+#====================================================================
 
+# Variables
 APACHE2_INIT=/etc/init.d/apache2
 if [ ! -x ${APACHE2_INIT} ] && [ -x /etc/init.d/httpd ]; then
 	APACHE2_INIT=/etc/init.d/httpd
 fi
+POSTGRESQL_PID_FILE=`find /var/lib -iname postmaster.pid`
 
+# Functions
 start_services()
 {
 /etc/init.d/slapd start
@@ -59,7 +62,7 @@ ${APACHE2_INIT} status
 /etc/init.d/jetty check | tail -1
 /etc/init.d/rudder-agent status
 # Add PostgreSQL PID to the output
-echo -n "postgres[$(ps axf | grep postmaster | grep -v grep | cut -d" " -f 2)]: "
+echo -n "postgres[`head -1 ${POSTGRESQL_PID_FILE}`]: "
 /etc/init.d/postgresql* status
 /etc/init.d/slapd status
 }
