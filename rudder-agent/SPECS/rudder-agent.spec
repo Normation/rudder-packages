@@ -61,6 +61,7 @@ Source5: rudder-agent.cron
 # find there all necessary libraries for tokyocabinet.
 Source6: rudder.conf
 Source7: check-rudder-agent
+Source8: vzps.py
 
 # We have PERL things in here. Do not try to outsmart me by adding dummy dependencies, you silly tool.
 AutoReq: 0
@@ -248,7 +249,7 @@ install -m 644 %{SOURCE6} %{buildroot}/etc/ld.so.conf.d/rudder.conf
 
 install -m 755 %{SOURCE7} %{buildroot}/opt/rudder/bin/check-rudder-agent
 
-install -m 755 %{SOURCE7} %{buildroot}/opt/rudder/bin/vzps.py
+install -m 755 %{SOURCE8} %{buildroot}/opt/rudder/bin/vzps.py
 
 %pre -n rudder-agent
 #=================================================
