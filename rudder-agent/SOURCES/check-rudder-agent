@@ -45,9 +45,9 @@ if [ -e "/proc/bc/0" ]; then
 fi
 
 # List the CFEngine processes running
-CF_PROCESS_RUNNING=`${PS} -efww | grep -E "${CFE_BIN_DIR}/(cf-execd|cf-agent)" | grep -v grep`
-# Count the number of processes running
-NB_CF_PROCESS_RUNNING=`echo "${CF_PROCESS_RUNNING}" | wc -l`
+CF_PROCESS_RUNNING=`${PS} -efww | grep -E "${CFE_BIN_DIR}/(cf-execd|cf-agent)" | grep -v grep | cat`
+# Count the number of processes running, filtering empty lines
+NB_CF_PROCESS_RUNNING=`echo "${CF_PROCESS_RUNNING}" | grep -v ^$ | wc -l`
 
 # If no disable file AND no process of CFEngine from Rudder, then relaunch cf-agent with a failsafe first
 # But this is applied only on servers or nodes already initialized (policy server set)
