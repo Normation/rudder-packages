@@ -76,12 +76,15 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildRequires: gcc openssl-devel bison flex pcre-devel
 Requires: pcre openssl
 
-#Specific requirements
-%if 0%{?rhel}
+# Specific requirements
+
+## For EL and Fedora
+%if 0%{?rhel} || 0%{?fedora}
 BuildRequires: make byacc
 Requires: crontabs
 %endif
 
+## For SLES
 %if 0%{?sles_version}
 Requires: cron
 %endif
@@ -96,6 +99,13 @@ Requires: dmidecode
 Requires: kernel-utils
 %endif
 
+# dmidecode is provided by "dmidecode" too on Fedora platforms, but I'm adding
+# another if block to prevent cluttering the conditions on the >= el4 one and
+# prevent possible unwanted non-matches.
+%if 0%{?fedora}
+Requires: dmidecode
+%endif
+
 ## Each tests of OS version comparison with "greater" or "lesser version than"
 ## need to test before if we compare the right OS.
 %if 0%{?rhel} && 0%{?rhel} <= 5
@@ -104,6 +114,14 @@ BuildRequires: bzip2-devel zlib-devel
 %endif
 
 %if 0%{?rhel} && 0%{?rhel} >= 6
+BuildRequires: tokyocabinet-devel
+Requires: tokyocabinet
+%define is_tokyocabinet_here true
+%endif
+
+# Fedora 7 is the first known version to officially
+# support TokyoCabinet in the official repositories
+%if 0%{?fedora} && 0%{?fedora} >= 7
 BuildRequires: tokyocabinet-devel
 Requires: tokyocabinet
 %define is_tokyocabinet_here true
