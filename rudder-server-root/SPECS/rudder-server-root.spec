@@ -102,6 +102,7 @@ cp %{SOURCE3} %{buildroot}%{rudderdir}/bin/
 cp %{SOURCE4} %{buildroot}/etc/logrotate.d/rudder
 cp %{SOURCE5} %{buildroot}/etc/init.d/rudder-server-root
 cp %{SOURCE6} %{buildroot}%{rudderdir}/etc/
+cp %{SOURCE7} %{buildroot}%{rudderdir}/bin/
 
 
 %pre -n rudder-server-root
