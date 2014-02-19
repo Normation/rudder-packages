@@ -184,11 +184,6 @@ do
   fi
   ((cpt2++))
 done
-# Make fake licenses (HACK!)
-#mkdir -p /opt/rudder/etc/promises-writer/licenses/root/
-#touch /opt/rudder/etc/promises-writer/licenses/root/license.dat
-mkdir -p /opt/rudder/etc/licenses/
-echo "<licenses></licenses>" > /opt/rudder/etc/licenses/licenses.xml
 
 # Configure initial promises
 if [ z$ANSWER6 = "zyes" ]
