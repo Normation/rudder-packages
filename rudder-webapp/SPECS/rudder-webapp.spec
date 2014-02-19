@@ -229,7 +229,7 @@ fi
 if ! grep -qE "^. /etc/sysconfig/rudder-apache$" /etc/sysconfig/apache2
 then
 	echo -e '# This sources the modules/defines needed by Rudder\n. /etc/sysconfig/rudder-apache' >> /etc/sysconfig/apache2
-do
+fi
 %endif
 
 # Update /etc/sysconfig/apache2 in case an old module loading entry has already been created by Rudder
