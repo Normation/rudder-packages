@@ -1,0 +1,4413 @@
+From c78bbada096616ef26dcb6694b6a137a2714fb5c Mon Sep 17 00:00:00 2001
+From: Kristian Amlie <kristian.amlie@cfengine.com>
+Date: Fri, 22 Nov 2013 09:25:00 +0100
+Subject: [PATCH 1/7] merge
+
+---
+ cf-agent/files_editline.c         |   5 +-
+ cf-agent/files_operators.c        |   2 +-
+ cf-agent/verify_files.c           |   2 +-
+ cf-agent/verify_files_hashes.c    |   6 +-
+ cf-agent/verify_files_utils.c     |  14 +-
+ cf-agent/verify_packages.c        |   3 +-
+ cf-execd/cf-execd-runner.c        |   5 +-
+ cf-key/cf-key-functions.c         |   7 +-
+ cf-serverd/cf-serverd-functions.c |   2 +-
+ cf-serverd/server.c               |   5 +-
+ configure.ac                      |   6 +
+ libcfnet/client_code.c            |   4 +-
+ libcompat/chdir_lock.h            |  27 ++
+ libcompat/fstatat.c               | 114 ++++++++
+ libcompat/openat.c                | 138 +++++++++
+ libpromises/cf3lex.l              |   7 +-
+ libpromises/env_context.c         |   3 +-
+ libpromises/evalfunction.c        |   7 +-
+ libpromises/files_copy.c          |   4 +-
+ libpromises/files_hashes.c        |   2 +-
+ libpromises/files_lib.c           |   8 +-
+ libpromises/parser.c              |   3 +-
+ libpromises/pipes_unix.c          |   5 +-
+ libpromises/sysinfo.c             |   3 +-
+ libpromises/unix_dir.c            |  12 +-
+ libpromises/verify_reports.c      |   5 +-
+ libutils/file_lib.c               | 268 ++++++++++++++++++
+ libutils/file_lib.h               |   5 +
+ libutils/hashes.c                 |   3 +-
+ libutils/platform.h               |   8 +
+ tests/unit/Makefile.am            |  10 +
+ tests/unit/file_lib_test.c        | 580 ++++++++++++++++++++++++++++++++++++++
+ 32 files changed, 1226 insertions(+), 47 deletions(-)
+ create mode 100644 libcompat/chdir_lock.h
+ create mode 100644 libcompat/fstatat.c
+ create mode 100644 libcompat/openat.c
+ create mode 100644 tests/unit/file_lib_test.c
+
+diff --git a/cf-agent/files_editline.c b/cf-agent/files_editline.c
+index 24ad1ae..ab8e7a7 100644
+--- a/cf-agent/files_editline.c
++++ b/cf-agent/files_editline.c
+@@ -38,6 +38,7 @@
+ #include "locks.h"
+ #include "string_lib.h"
+ #include "misc_lib.h"
++#include "file_lib.h"
+ #include "rlist.h"
+ #include "policy.h"
+ #include "ornaments.h"
+@@ -154,7 +155,7 @@ int ScheduleEditLineOperations(EvalContext *ctx, Bundle *bp, Attributes a, const
+ Bundle *MakeTemporaryBundleFromTemplate(EvalContext *ctx, Policy *policy, Attributes a, const Promise *pp)
+ {
+     FILE *fp = NULL;
+-    if ((fp = fopen(a.template, "r" )) == NULL)
++    if ((fp = safe_fopen(a.template, "r" )) == NULL)
+     {
+         cfPS(ctx, LOG_LEVEL_ERR, PROMISE_RESULT_INTERRUPTED, pp, a, "Unable to open template file '%s' to make '%s'", a.template, pp->promiser);
+         return NULL;
+@@ -1212,7 +1213,7 @@ static int InsertFileAtLocation(EvalContext *ctx, Item **start, Item *begin_ptr,
+     Item *loc = NULL;
+     int preserve_block = a.sourcetype && strcmp(a.sourcetype, "file_preserve_block") == 0;
+ 
+-    if ((fin = fopen(pp->promiser, "r")) == NULL)
++    if ((fin = safe_fopen(pp->promiser, "r")) == NULL)
+     {
+         cfPS(ctx, LOG_LEVEL_ERR, PROMISE_RESULT_INTERRUPTED, pp, a, "Could not read file '%s'. (fopen: %s)", pp->promiser, GetErrorStr());
+         return false;
+diff --git a/cf-agent/files_operators.c b/cf-agent/files_operators.c
+index 6a08367..d133e5d 100644
+--- a/cf-agent/files_operators.c
++++ b/cf-agent/files_operators.c
+@@ -287,7 +287,7 @@ static bool SaveItemListCallback(const char *dest_filename, void *param)
+     FILE *fp;
+ 
+     //saving list to file
+-    if ((fp = fopen(dest_filename, "w")) == NULL)
++    if ((fp = safe_fopen(dest_filename, "w")) == NULL)
+     {
+         Log(LOG_LEVEL_ERR, "Unable to open destination file '%s' for writing. (fopen: %s)",
+             dest_filename, GetErrorStr());
+diff --git a/cf-agent/verify_files.c b/cf-agent/verify_files.c
+index d117529..d05909c 100644
+--- a/cf-agent/verify_files.c
++++ b/cf-agent/verify_files.c
+@@ -253,7 +253,7 @@ static void VerifyFilePromise(EvalContext *ctx, char *path, Promise *pp)
+         }
+ 
+         ChopLastNode(basedir);
+-        if (chdir(basedir))
++        if (safe_chdir(basedir))
+         {
+             Log(LOG_LEVEL_ERR, "Failed to chdir into '%s'", basedir);
+         }
+diff --git a/cf-agent/verify_files_hashes.c b/cf-agent/verify_files_hashes.c
+index 2252735..f1e5e38 100644
+--- a/cf-agent/verify_files_hashes.c
++++ b/cf-agent/verify_files_hashes.c
+@@ -243,8 +243,8 @@ int CompareBinaryFiles(char *file1, char *file2, struct stat *sstat, struct stat
+ 
+     if ((fc.servers == NULL) || (strcmp(fc.servers->item, "localhost") == 0))
+     {
+-        fd1 = open(file1, O_RDONLY | O_BINARY, 0400);
+-        fd2 = open(file2, O_RDONLY | O_BINARY, 0400);
++        fd1 = safe_open(file1, O_RDONLY | O_BINARY, 0400);
++        fd2 = safe_open(file2, O_RDONLY | O_BINARY, 0400);
+ 
+         do
+         {
+@@ -389,7 +389,7 @@ void LogHashChange(char *file, FileState status, char *msg, Promise *pp)
+     }
+ #endif /* !__MINGW32__ */
+ 
+-    if ((fp = fopen(fname, "a")) == NULL)
++    if ((fp = safe_fopen(fname, "a")) == NULL)
+     {
+         Log(LOG_LEVEL_ERR, "Could not write to the hash change log. (fopen: %s)", GetErrorStr());
+         return;
+diff --git a/cf-agent/verify_files_utils.c b/cf-agent/verify_files_utils.c
+index 21f195c..29cf45e 100644
+--- a/cf-agent/verify_files_utils.c
++++ b/cf-agent/verify_files_utils.c
+@@ -550,7 +550,7 @@ static void PurgeLocalFiles(EvalContext *ctx, Item *filelist, char *localdir, At
+ 
+ /* chdir to minimize the risk of race exploits during copy (which is inherently dangerous) */
+ 
+-    if (chdir(localdir) == -1)
++    if (safe_chdir(localdir) == -1)
+     {
+         Log(LOG_LEVEL_VERBOSE, "Can't chdir to local directory '%s'. (chdir: %s)", localdir, GetErrorStr());
+         return;
+@@ -1285,8 +1285,8 @@ int CopyRegularFile(EvalContext *ctx, char *source, char *dest, struct stat ssta
+ #ifdef __APPLE__
+     if (rsrcfork)
+     {                           /* Can't just "mv" the resource fork, unfortunately */
+-        rsrcrd = open(new, O_RDONLY | O_BINARY);
+-        rsrcwd = open(dest, O_WRONLY | O_BINARY | O_CREAT | O_TRUNC, 0600);
++        rsrcrd = safe_open(new, O_RDONLY | O_BINARY);
++        rsrcwd = safe_open(dest, O_WRONLY | O_BINARY | O_CREAT | O_TRUNC, 0600);
+ 
+         if (rsrcrd == -1 || rsrcwd == -1)
+         {
+@@ -2009,7 +2009,7 @@ int DepthSearch(EvalContext *ctx, char *name, struct stat *sb, int rlevel, Attri
+         Log(LOG_LEVEL_DEBUG, "Direct file reference '%s', no search implied", name);
+         snprintf(basedir, sizeof(basedir), "%s", name);
+         ChopLastNode(basedir);
+-        if (chdir(basedir))
++        if (safe_chdir(basedir))
+         {
+             Log(LOG_LEVEL_ERR, "Failed to chdir into '%s'", basedir);
+             return false;
+@@ -2129,7 +2129,7 @@ int DepthSearch(EvalContext *ctx, char *name, struct stat *sb, int rlevel, Attri
+ 
+ static int PushDirState(EvalContext *ctx, char *name, struct stat *sb)
+ {
+-    if (chdir(name) == -1)
++    if (safe_chdir(name) == -1)
+     {
+         Log(LOG_LEVEL_INFO, "Could not change to directory '%s', mode '%04jo' in tidy. (chdir: %s)",
+             name, (uintmax_t)(sb->st_mode & 07777), GetErrorStr());
+@@ -2150,7 +2150,7 @@ static bool PopDirState(int goback, char *name, struct stat *sb, Recursion r)
+ {
+     if (goback && (r.travlinks))
+     {
+-        if (chdir(name) == -1)
++        if (safe_chdir(name) == -1)
+         {
+             Log(LOG_LEVEL_ERR, "Error in backing out of recursive travlink descent securely to '%s'. (chdir: %s)",
+                 name, GetErrorStr());
+@@ -2164,7 +2164,7 @@ static bool PopDirState(int goback, char *name, struct stat *sb, Recursion r)
+     }
+     else if (goback)
+     {
+-        if (chdir("..") == -1)
++        if (safe_chdir("..") == -1)
+         {
+             Log(LOG_LEVEL_ERR, "Error in backing out of recursive descent securely to '%s'. (chdir: %s)",
+                 name, GetErrorStr());
+diff --git a/cf-agent/verify_packages.c b/cf-agent/verify_packages.c
+index 1e4ec7e..f861d5c 100644
+--- a/cf-agent/verify_packages.c
++++ b/cf-agent/verify_packages.c
+@@ -28,6 +28,7 @@
+ #include "dir.h"
+ #include "files_names.h"
+ #include "files_interfaces.h"
++#include "file_lib.h"
+ #include "vars.h"
+ #include "conversion.h"
+ #include "expand.h"
+@@ -127,7 +128,7 @@ void VerifyPackagesPromise(EvalContext *ctx, Promise *pp)
+ 
+ // Start by reseting the root directory in case yum tries to glob regexs(!)
+ 
+-    if (chdir("/") != 0)
++    if (safe_chdir("/") != 0)
+     {
+         Log(LOG_LEVEL_ERR, "Failed to chdir into '/'");
+     }
+diff --git a/cf-execd/cf-execd-runner.c b/cf-execd/cf-execd-runner.c
+index a577785..b3825b3 100644
+--- a/cf-execd/cf-execd-runner.c
++++ b/cf-execd/cf-execd-runner.c
+@@ -34,6 +34,7 @@
+ #include "mutex.h"
+ #include "exec_tools.h"
+ #include "misc_lib.h"
++#include "file_lib.h"
+ #include "assert.h"
+ 
+ #ifdef HAVE_NOVA
+@@ -353,8 +354,8 @@ static int CompareResult(const char *filename, const char *prev_file)
+ 
+     int rtn = 0;
+ 
+-    FILE *old_fp = fopen(prev_file, "r");
+-    FILE *new_fp = fopen(filename, "r");
++    FILE *old_fp = safe_fopen(prev_file, "r");
++    FILE *new_fp = safe_fopen(filename, "r");
+     if (old_fp && new_fp)
+     {
+         const char *errptr;
+diff --git a/cf-key/cf-key-functions.c b/cf-key/cf-key-functions.c
+index a839c46..3fb95f8 100644
+--- a/cf-key/cf-key-functions.c
++++ b/cf-key/cf-key-functions.c
+@@ -35,6 +35,7 @@
+ #include "communication.h"
+ #include "env_context.h"
+ #include "crypto.h"
++#include "file_lib.h"
+ 
+ #include "cf-key-functions.h"
+ 
+@@ -53,7 +54,7 @@ RSA* LoadPublicKey(const char* filename)
+     RSA* key;
+     static char *passphrase = "Cfengine passphrase";
+ 
+-    fp = fopen(filename, "r");
++    fp = safe_fopen(filename, "r");
+     if (fp == NULL)
+     {
+         Log(LOG_LEVEL_ERR, "Cannot open file '%s'. (fopen: %s)", filename, GetErrorStr());
+@@ -253,7 +254,7 @@ void KeepKeyPromises(const char *public_key_file, const char *private_key_file)
+         return;
+     }
+ 
+-    fd = open(private_key_file, O_WRONLY | O_CREAT | O_TRUNC, 0600);
++    fd = safe_open(private_key_file, O_WRONLY | O_CREAT | O_TRUNC, 0600);
+ 
+     if (fd < 0)
+     {
+@@ -279,7 +280,7 @@ void KeepKeyPromises(const char *public_key_file, const char *private_key_file)
+ 
+     fclose(fp);
+ 
+-    fd = open(public_key_file, O_WRONLY | O_CREAT | O_TRUNC, 0600);
++    fd = safe_open(public_key_file, O_WRONLY | O_CREAT | O_TRUNC, 0600);
+ 
+     if (fd < 0)
+     {
+diff --git a/cf-serverd/cf-serverd-functions.c b/cf-serverd/cf-serverd-functions.c
+index 24efa1e..f4becd2 100644
+--- a/cf-serverd/cf-serverd-functions.c
++++ b/cf-serverd/cf-serverd-functions.c
+@@ -617,7 +617,7 @@ static int GenerateAvahiConfig(const char *path)
+ {
+     FILE *fout;
+     Writer *writer = NULL;
+-    fout = fopen(path, "w+");
++    fout = safe_fopen(path, "w+");
+     if (fout == NULL)
+     {
+         Log(LOG_LEVEL_ERR, "Unable to open '%s'", path);
+diff --git a/cf-serverd/server.c b/cf-serverd/server.c
+index da0119d..874295e 100644
+--- a/cf-serverd/server.c
++++ b/cf-serverd/server.c
+@@ -41,6 +41,7 @@
+ #include "net.h"
+ #include "rlist.h"
+ #include "misc_lib.h"
++#include "file_lib.h"
+ #include "cf-serverd-enterprise-stubs.h"
+ #include "audit.h"
+ 
+@@ -2491,7 +2492,7 @@ static void CfGetFile(ServerFileGetState *args)
+ 
+ /* File transfer */
+ 
+-    if ((fd = open(filename, O_RDONLY)) == -1)
++    if ((fd = safe_open(filename, O_RDONLY)) == -1)
+     {
+         Log(LOG_LEVEL_ERR, "Open error of file '%s'. (open: %s)",
+             filename, GetErrorStr());
+@@ -2612,7 +2613,7 @@ static void CfEncryptGetFile(ServerFileGetState *args)
+ 
+     EVP_CIPHER_CTX_init(&ctx);
+ 
+-    if ((fd = open(filename, O_RDONLY)) == -1)
++    if ((fd = safe_open(filename, O_RDONLY)) == -1)
+     {
+         Log(LOG_LEVEL_ERR, "Open error of file '%s'. (open: %s)", filename, GetErrorStr());
+         FailedTransfer(sd);
+diff --git a/configure.ac b/configure.ac
+index 04c463a..83bb166 100755
+--- a/configure.ac
++++ b/configure.ac
+@@ -750,6 +750,12 @@ AC_REPLACE_FUNCS(pthread_attr_setstacksize)
+ AC_CHECK_DECLS(pthread_sigmask, [], [], [[#include <signal.h>]])
+ AC_REPLACE_FUNCS(pthread_sigmask)
+ 
++AC_CHECK_DECLS([openat], [], [], [[#include <fcntl.h>]])
++AC_CHECK_DECLS([fstatat], [], [], [[#include <sys/stat.h>]])
++AC_REPLACE_FUNCS(openat fstatat)
++
++AC_CHECK_DECLS(socketpair, [], [], [[#include <sys/socket.h>]])
++
+ dnl ######################################################################
+ dnl Check for sa_len in struct sockaddr
+ dnl ######################################################################
+diff --git a/libcfnet/client_code.c b/libcfnet/client_code.c
+index 0df91d4..c85eadc 100644
+--- a/libcfnet/client_code.c
++++ b/libcfnet/client_code.c
+@@ -717,7 +717,7 @@ int CopyRegularFileNet(char *source, char *new, off_t size, AgentConnection *con
+ 
+     unlink(new);                /* To avoid link attacks */
+ 
+-    if ((dd = open(new, O_WRONLY | O_CREAT | O_TRUNC | O_EXCL | O_BINARY, 0600)) == -1)
++    if ((dd = safe_open(new, O_WRONLY | O_CREAT | O_TRUNC | O_EXCL | O_BINARY, 0600)) == -1)
+     {
+         Log(LOG_LEVEL_ERR,
+             "NetCopy to destination '%s:%s' security - failed attempt to exploit a race? (Not copied) (open: %s)",
+@@ -877,7 +877,7 @@ int EncryptCopyRegularFileNet(char *source, char *new, off_t size, AgentConnecti
+ 
+     unlink(new);                /* To avoid link attacks */
+ 
+-    if ((dd = open(new, O_WRONLY | O_CREAT | O_TRUNC | O_EXCL | O_BINARY, 0600)) == -1)
++    if ((dd = safe_open(new, O_WRONLY | O_CREAT | O_TRUNC | O_EXCL | O_BINARY, 0600)) == -1)
+     {
+         Log(LOG_LEVEL_ERR,
+             "NetCopy to destination '%s:%s' security - failed attempt to exploit a race? (Not copied). (open: %s)",
+diff --git a/libcompat/chdir_lock.h b/libcompat/chdir_lock.h
+new file mode 100644
+index 0000000..dde7ce5
+--- /dev/null
++++ b/libcompat/chdir_lock.h
+@@ -0,0 +1,27 @@
++/*
++   Copyright (C) CFEngine AS
++
++   This file is part of CFEngine 3 - written and maintained by CFEngine AS.
++
++   This program is free software; you can redistribute it and/or modify it
++   under the terms of the GNU General Public License as published by the
++   Free Software Foundation; version 3.
++
++   This program is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++   GNU General Public License for more details.
++
++  You should have received a copy of the GNU General Public License
++  along with this program; if not, write to the Free Software
++  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
++
++  To the extent this program is licensed as part of the Enterprise
++  versions of CFEngine, the applicable Commercial Open Source License
++  (COSL) may apply to this file if you as a licensee so wish it. See
++  included file COSL.txt.
++*/
++
++#include <pthread.h>
++
++extern pthread_mutex_t CHDIR_LOCK;
+diff --git a/libcompat/fstatat.c b/libcompat/fstatat.c
+new file mode 100644
+index 0000000..2aad195
+--- /dev/null
++++ b/libcompat/fstatat.c
+@@ -0,0 +1,114 @@
++/*
++   Copyright (C) CFEngine AS
++
++   This file is part of CFEngine 3 - written and maintained by CFEngine AS.
++
++   This program is free software; you can redistribute it and/or modify it
++   under the terms of the GNU General Public License as published by the
++   Free Software Foundation; version 3.
++
++   This program is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++   GNU General Public License for more details.
++
++  You should have received a copy of the GNU General Public License
++  along with this program; if not, write to the Free Software
++  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
++
++  To the extent this program is licensed as part of the Enterprise
++  versions of CFEngine, the applicable Commercial Open Source License
++  (COSL) may apply to this file if you as a licensee so wish it. See
++  included file COSL.txt.
++*/
++
++#include <chdir_lock.h>
++#include <misc_lib.h>
++#include <logging.h>
++
++#include <fcntl.h>
++#include <unistd.h>
++#include <sys/stat.h>
++#include <errno.h>
++
++#ifndef __MINGW32__
++
++// Using fchdir() is ugly but it's the only way to be secure.
++// See comments in openat.c.
++int fstatat(int dirfd, const char *pathname, struct stat *buf, int flags)
++{
++    int cwd;
++    int mutex_err;
++    int result;
++    int saved_errno;
++    int fchdir_ret;
++
++    mutex_err = pthread_mutex_lock(&CHDIR_LOCK);
++    if (mutex_err)
++    {
++        ProgrammingError("Error when locking CHDIR_LOCK. Should never happen. (pthread_mutex_lock: '%s')",
++                         GetErrorStrFromCode(mutex_err));
++    }
++
++    cwd = open(".", O_RDONLY | O_DIRECTORY);
++    if (cwd < 0)
++    {
++        mutex_err = pthread_mutex_unlock(&CHDIR_LOCK);
++        if (mutex_err)
++        {
++            ProgrammingError("Error when unlocking CHDIR_LOCK. Should never happen. (pthread_mutex_unlock: '%s')",
++                             GetErrorStrFromCode(mutex_err));
++        }
++
++        return -1;
++    }
++
++    if (fchdir(dirfd) < 0)
++    {
++        mutex_err = pthread_mutex_unlock(&CHDIR_LOCK);
++        if (mutex_err)
++        {
++            ProgrammingError("Error when unlocking CHDIR_LOCK. Should never happen. (pthread_mutex_unlock: '%s')",
++                             GetErrorStrFromCode(mutex_err));
++        }
++
++        close(cwd);
++        return -1;
++    }
++
++    if (flags & AT_SYMLINK_NOFOLLOW)
++    {
++        result = lstat(pathname, buf);
++    }
++    else
++    {
++        result = stat(pathname, buf);
++    }
++    saved_errno = errno;
++    fchdir_ret = fchdir(cwd);
++    close(cwd);
++
++    mutex_err = pthread_mutex_unlock(&CHDIR_LOCK);
++    if (mutex_err)
++    {
++        ProgrammingError("Error when unlocking CHDIR_LOCK. Should never happen. (pthread_mutex_unlock: '%s')",
++                         GetErrorStrFromCode(mutex_err));
++    }
++
++    if (fchdir_ret < 0)
++    {
++        Log(LOG_LEVEL_WARNING, "Could not return to original working directory in '%s'. "
++            "Things may not behave as expected. (fchdir: '%s')", __FUNCTION__, GetErrorStr());
++        return -1;
++    }
++
++    if (result < 0)
++    {
++        errno = saved_errno;
++        return -1;
++    }
++
++    return result;
++}
++
++#endif // !__MINGW32__
+diff --git a/libcompat/openat.c b/libcompat/openat.c
+new file mode 100644
+index 0000000..e82b475
+--- /dev/null
++++ b/libcompat/openat.c
+@@ -0,0 +1,138 @@
++/*
++   Copyright (C) CFEngine AS
++
++   This file is part of CFEngine 3 - written and maintained by CFEngine AS.
++
++   This program is free software; you can redistribute it and/or modify it
++   under the terms of the GNU General Public License as published by the
++   Free Software Foundation; version 3.
++
++   This program is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++   GNU General Public License for more details.
++
++  You should have received a copy of the GNU General Public License
++  along with this program; if not, write to the Free Software
++  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
++
++  To the extent this program is licensed as part of the Enterprise
++  versions of CFEngine, the applicable Commercial Open Source License
++  (COSL) may apply to this file if you as a licensee so wish it. See
++  included file COSL.txt.
++*/
++
++#include <chdir_lock.h>
++#include <misc_lib.h>
++#include <logging.h>
++
++#include <fcntl.h>
++#include <errno.h>
++#include <unistd.h>
++#include <stdarg.h>
++
++#ifndef __MINGW32__
++
++// To prevent several threads from stepping on each other's toes
++// when using fchdir().
++pthread_mutex_t CHDIR_LOCK = PTHREAD_MUTEX_INITIALIZER;
++
++/*
++ * Using fchdir() is ugly but it's the only way to be secure.
++ * Using fchdir() in file opening means that we can potentially
++ * conflict with chdir()/fchdir() being used elsewhere. For this to be
++ * safe, the program must fulfill at least one of the following
++ * criteria:
++ *   1. Be single threaded.
++ *   2. Not use chdir() anywhere else but here.
++ *   3. Do all file operations (including chdir) in one thread.
++ *   4. Use the CHDIR_LOCK in this file.
++ * Currently, cf-agent fulfills criterion 1. All the others fulfill
++ * criterion 2.
++ */
++int openat(int dirfd, const char *pathname, int flags, ...)
++{
++    mode_t mode;
++    int cwd;
++    int mutex_err;
++    int fd;
++    int saved_errno;
++    int fchdir_ret;
++
++    if (flags & O_CREAT)
++    {
++        va_list ap;
++        va_start(ap, flags);
++        mode = va_arg(ap, mode_t);
++        va_end(ap);
++    }
++    else
++    {
++        mode = 0;
++    }
++
++    mutex_err = pthread_mutex_lock(&CHDIR_LOCK);
++    if (mutex_err)
++    {
++        ProgrammingError("Error when locking CHDIR_LOCK. Should never happen. (pthread_mutex_lock: '%s')",
++                         GetErrorStrFromCode(mutex_err));
++    }
++
++    cwd = open(".", O_RDONLY | O_DIRECTORY);
++    if (cwd < 0)
++    {
++        mutex_err = pthread_mutex_unlock(&CHDIR_LOCK);
++        if (mutex_err)
++        {
++            ProgrammingError("Error when unlocking CHDIR_LOCK. Should never happen. (pthread_mutex_unlock: '%s')",
++                             GetErrorStrFromCode(mutex_err));
++        }
++        return -1;
++    }
++
++    if (fchdir(dirfd) < 0)
++    {
++        mutex_err = pthread_mutex_unlock(&CHDIR_LOCK);
++        if (mutex_err)
++        {
++            ProgrammingError("Error when unlocking CHDIR_LOCK. Should never happen. (pthread_mutex_unlock: '%s')",
++                             GetErrorStrFromCode(mutex_err));
++        }
++
++        close(cwd);
++        return -1;
++    }
++
++    fd = open(pathname, flags, mode);
++    saved_errno = errno;
++
++    fchdir_ret = fchdir(cwd);
++    close(cwd);
++
++    mutex_err = pthread_mutex_unlock(&CHDIR_LOCK);
++    if (mutex_err)
++    {
++        ProgrammingError("Error when unlocking CHDIR_LOCK. Should never happen. (pthread_mutex_unlock: '%s')",
++                         GetErrorStrFromCode(mutex_err));
++    }
++
++    if (fchdir_ret < 0)
++    {
++        if (fd >= 0)
++        {
++            close(fd);
++        }
++        Log(LOG_LEVEL_WARNING, "Could not return to original working directory in '%s'. "
++            "Things may not behave as expected. (fchdir: '%s')", __FUNCTION__, GetErrorStr());
++        return -1;
++    }
++    if (fd < 0)
++    {
++        errno = saved_errno;
++        return -1;
++    }
++
++    return fd;
++}
++
++#endif // !__MINGW32__
+diff --git a/libpromises/cf3lex.l b/libpromises/cf3lex.l
+index e01e20a..cd830b5 100644
+--- a/libpromises/cf3lex.l
++++ b/libpromises/cf3lex.l
+@@ -29,10 +29,11 @@
+ /*                                                                 */
+ /*******************************************************************/
+ 
+-#include "platform.h"
++#include <platform.h>
+ 
+-#include "cf3parse.h"
+-#include "parser_state.h"
++#include <cf3parse.h>
++#include <parser_state.h>
++#include <file_lib.h>
+ 
+ /* yyinput/input are generated and unused */
+ 
+diff --git a/libpromises/env_context.c b/libpromises/env_context.c
+index db85f53..6f823d4 100644
+--- a/libpromises/env_context.c
++++ b/libpromises/env_context.c
+@@ -33,6 +33,7 @@
+ #include "matching.h"
+ #include "string_lib.h"
+ #include "misc_lib.h"
++#include "file_lib.h"
+ #include "assoc.h"
+ #include "scope.h"
+ #include "vars.h"
+@@ -1689,7 +1690,7 @@ static void SummarizeTransaction(EvalContext *ctx, TransactionContext tc, const
+                 }
+             }
+ 
+-            FILE *fout = fopen(logname, "a");
++            FILE *fout = safe_fopen(logname, "a");
+ 
+             if (fout == NULL)
+             {
+diff --git a/libpromises/evalfunction.c b/libpromises/evalfunction.c
+index a1773dc..3a97aec 100644
+--- a/libpromises/evalfunction.c
++++ b/libpromises/evalfunction.c
+@@ -52,6 +52,7 @@
+ #include "exec_tools.h"
+ #include "policy.h"
+ #include "misc_lib.h"
++#include "file_lib.h"
+ #include "fncall.h"
+ #include "audit.h"
+ #include "sort.h"
+@@ -1567,7 +1568,7 @@ static FnCallResult FnCallGetFields(EvalContext *ctx, FnCall *fp, Rlist *finalar
+     char *split = RlistScalarValue(finalargs->next->next);
+     char *array_lval = RlistScalarValue(finalargs->next->next->next);
+ 
+-    if ((fin = fopen(filename, "r")) == NULL)
++    if ((fin = safe_fopen(filename, "r")) == NULL)
+     {
+         Log(LOG_LEVEL_ERR, "File '%s' could not be read in getfields(). (fopen: %s)", filename, GetErrorStr());
+         return (FnCallResult) { FNCALL_FAILURE };
+@@ -1639,7 +1640,7 @@ static FnCallResult FnCallCountLinesMatching(EvalContext *ctx, FnCall *fp, Rlist
+     char *regex = RlistScalarValue(finalargs);
+     char *filename = RlistScalarValue(finalargs->next);
+ 
+-    if ((fin = fopen(filename, "r")) == NULL)
++    if ((fin = safe_fopen(filename, "r")) == NULL)
+     {
+         Log(LOG_LEVEL_VERBOSE, "File '%s' could not be read in countlinesmatching(). (fopen: %s)", filename, GetErrorStr());
+         snprintf(retval, CF_SMALLBUF - 1, "0");
+@@ -3578,7 +3579,7 @@ static FnCallResult FnCallRegLine(EvalContext *ctx, FnCall *fp, Rlist *finalargs
+ 
+     strcpy(buffer, "!any");
+ 
+-    if ((fin = fopen(argv1, "r")) != NULL)
++    if ((fin = safe_fopen(argv1, "r")) != NULL)
+     {
+         for (;;)
+         {
+diff --git a/libpromises/files_copy.c b/libpromises/files_copy.c
+index a3fad09..bd7ca93 100644
+--- a/libpromises/files_copy.c
++++ b/libpromises/files_copy.c
+@@ -117,7 +117,7 @@ bool CopyRegularFileDisk(const char *source, const char *destination)
+     char *buf = 0;
+     bool result = false;
+ 
+-    if ((sd = open(source, O_RDONLY | O_BINARY)) == -1)
++    if ((sd = safe_open(source, O_RDONLY | O_BINARY)) == -1)
+     {
+         Log(LOG_LEVEL_INFO, "Can't copy '%s'. (open: %s)", source, GetErrorStr());
+         goto end;
+@@ -135,7 +135,7 @@ bool CopyRegularFileDisk(const char *source, const char *destination)
+ 
+     unlink(destination);                /* To avoid link attacks */
+ 
+-    if ((dd = open(destination, O_WRONLY | O_CREAT | O_TRUNC | O_EXCL | O_BINARY, statbuf.st_mode)) == -1)
++    if ((dd = safe_open(destination, O_WRONLY | O_CREAT | O_TRUNC | O_EXCL | O_BINARY, statbuf.st_mode)) == -1)
+     {
+         Log(LOG_LEVEL_INFO, "Unable to open destination file while copying '%s' to '%s'. (open: %s)", source, destination, GetErrorStr());
+         goto end;
+diff --git a/libpromises/files_hashes.c b/libpromises/files_hashes.c
+index 5ecaa9d..db6bae9 100644
+--- a/libpromises/files_hashes.c
++++ b/libpromises/files_hashes.c
+@@ -67,7 +67,7 @@ void HashFile(char *filename, unsigned char digest[EVP_MAX_MD_SIZE + 1], HashMet
+     unsigned char buffer[1024];
+     const EVP_MD *md = NULL;
+ 
+-    if ((file = fopen(filename, "rb")) == NULL)
++    if ((file = safe_fopen(filename, "rb")) == NULL)
+     {
+         Log(LOG_LEVEL_INFO, "Cannot open file for hashing '%s'. (fopen: %s)", filename, GetErrorStr());
+     }
+diff --git a/libpromises/files_lib.c b/libpromises/files_lib.c
+index 7d48938..c5ea68f 100644
+--- a/libpromises/files_lib.c
++++ b/libpromises/files_lib.c
+@@ -90,7 +90,7 @@ int RawSaveItemList(const Item *liststart, const char *file)
+ 
+     unlink(new);                /* Just in case of races */
+ 
+-    if ((fp = fopen(new, "w")) == NULL)
++    if ((fp = safe_fopen(new, "w")) == NULL)
+     {
+         Log(LOG_LEVEL_ERR, "Couldn't write file '%s'. (fopen: %s)", new, GetErrorStr());
+         return false;
+@@ -142,7 +142,7 @@ ssize_t FileRead(const char *filename, char *buffer, size_t bufsize)
+ 
+ bool FileWriteOver(char *filename, char *contents)
+ {
+-    FILE *fp = fopen(filename, "w");
++    FILE *fp = safe_fopen(filename, "w");
+ 
+     if(fp == NULL)
+     {
+@@ -460,7 +460,7 @@ int LoadFileAsItemList(Item **liststart, const char *file, EditDefaults edits)
+         return false;
+     }
+ 
+-    if ((fp = fopen(file, "r")) == NULL)
++    if ((fp = safe_fopen(file, "r")) == NULL)
+     {
+         Log(LOG_LEVEL_INFO, "Couldn't read file '%s' for editing. (fopen: %s)", file, GetErrorStr());
+         return false;
+@@ -711,7 +711,7 @@ void CreateEmptyFile(char *name)
+         }
+     }
+ 
+-    if ((tempfd = open(name, O_CREAT | O_EXCL | O_WRONLY, 0600)) < 0)
++    if ((tempfd = safe_open(name, O_CREAT | O_EXCL | O_WRONLY, 0600)) < 0)
+     {
+         Log(LOG_LEVEL_ERR, "Couldn't open a file '%s'. (open: %s)", name, GetErrorStr());
+     }
+diff --git a/libpromises/parser.c b/libpromises/parser.c
+index a46bdff..0a25798 100644
+--- a/libpromises/parser.c
++++ b/libpromises/parser.c
+@@ -26,6 +26,7 @@
+ #include "parser_state.h"
+ 
+ #include "misc_lib.h"
++#include "file_lib.h"
+ 
+ #include <errno.h>
+ 
+@@ -87,7 +88,7 @@ Policy *ParserParseFile(const char *path, unsigned int warnings, unsigned int wa
+ 
+     strncpy(P.filename, path, CF_MAXVARSIZE);
+ 
+-    yyin = fopen(path, "r");
++    yyin = safe_fopen(path, "r");
+     if (yyin == NULL)
+     {
+         Log(LOG_LEVEL_ERR, "While opening file '%s' for parsing. (fopen: %s)", path, GetErrorStr());
+diff --git a/libpromises/pipes_unix.c b/libpromises/pipes_unix.c
+index bc6d0eb..7c03c62 100644
+--- a/libpromises/pipes_unix.c
++++ b/libpromises/pipes_unix.c
+@@ -29,6 +29,7 @@
+ #include "rlist.h"
+ #include "policy.h"
+ #include "env_context.h"
++#include "file_lib.h"
+ 
+ static int CfSetuid(uid_t uid, gid_t gid);
+ 
+@@ -286,7 +287,7 @@ FILE *cf_popensetuid(const char *command, const char *type, uid_t uid, gid_t gid
+ 
+         if (chdirv && (strlen(chdirv) != 0))
+         {
+-            if (chdir(chdirv) == -1)
++            if (safe_chdir(chdirv) == -1)
+             {
+                 Log(LOG_LEVEL_ERR, "Couldn't chdir to '%s'. (chdir: %s)", chdirv, GetErrorStr());
+                 ArgFree(argv);
+@@ -474,7 +475,7 @@ FILE *cf_popen_shsetuid(const char *command, const char *type, uid_t uid, gid_t
+ 
+         if (chdirv && (strlen(chdirv) != 0))
+         {
+-            if (chdir(chdirv) == -1)
++            if (safe_chdir(chdirv) == -1)
+             {
+                 Log(LOG_LEVEL_ERR, "Couldn't chdir to '%s'. (chdir: %s)", chdirv, GetErrorStr());
+                 return NULL;
+diff --git a/libpromises/sysinfo.c b/libpromises/sysinfo.c
+index 0c49868..0c65841 100644
+--- a/libpromises/sysinfo.c
++++ b/libpromises/sysinfo.c
+@@ -36,6 +36,7 @@
+ #include "unix.h"
+ #include "string_lib.h"
+ #include "misc_lib.h"
++#include "file_lib.h"
+ #include "rlist.h"
+ #include "audit.h"
+ 
+@@ -2266,7 +2267,7 @@ static bool ReadLine(const char *filename, char *buf, int bufsize)
+ 
+ static FILE *ReadFirstLine(const char *filename, char *buf, int bufsize)
+ {
+-    FILE *fp = fopen(filename, "r");
++    FILE *fp = safe_fopen(filename, "r");
+ 
+     if (fp == NULL)
+     {
+diff --git a/libpromises/unix_dir.c b/libpromises/unix_dir.c
+index 0c953d9..ac2423b 100644
+--- a/libpromises/unix_dir.c
++++ b/libpromises/unix_dir.c
+@@ -24,6 +24,7 @@
+ 
+ #include "dir.h"
+ #include "dir_priv.h"
++#include "file_lib.h"
+ 
+ 
+ struct Dir_
+@@ -38,10 +39,19 @@ static size_t GetDirentBufferSize(size_t path_len);
+ Dir *DirOpen(const char *dirname)
+ {
+     Dir *ret = xcalloc(1, sizeof(Dir));
++    int dirfd;
+ 
+-    ret->dirh = opendir(dirname);
++    dirfd = safe_open(dirname, O_RDONLY | O_DIRECTORY);
++    if (dirfd < 0)
++    {
++        free(ret);
++        return NULL;
++    }
++
++    ret->dirh = fdopendir(dirfd);
+     if (ret->dirh == NULL)
+     {
++        close(dirfd);
+         free(ret);
+         return NULL;
+     }
+diff --git a/libpromises/verify_reports.c b/libpromises/verify_reports.c
+index ad9fdc0..35f522b 100644
+--- a/libpromises/verify_reports.c
++++ b/libpromises/verify_reports.c
+@@ -35,6 +35,7 @@
+ #include "locks.h"
+ #include "string_lib.h"
+ #include "misc_lib.h"
++#include "file_lib.h"
+ #include "policy.h"
+ #include "scope.h"
+ #include "ornaments.h"
+@@ -119,7 +120,7 @@ void VerifyReportPromise(EvalContext *ctx, Promise *pp)
+ 
+ static void ReportToFile(const char *logfile, const char *message)
+ {
+-    FILE *fp = fopen(logfile, "a");
++    FILE *fp = safe_fopen(logfile, "a");
+     if (fp == NULL)
+     {
+         Log(LOG_LEVEL_ERR, "Could not open log file '%s', message '%s'. (fopen: %s)", logfile, message, GetErrorStr());
+@@ -143,7 +144,7 @@ static void PrintFile(EvalContext *ctx, Attributes a, Promise *pp)
+         return;
+     }
+ 
+-    if ((fp = fopen(a.report.filename, "r")) == NULL)
++    if ((fp = safe_fopen(a.report.filename, "r")) == NULL)
+     {
+         cfPS(ctx, LOG_LEVEL_ERR, PROMISE_RESULT_INTERRUPTED, pp, a, "Printing of file '%s' was not possible. (fopen: %s)", a.report.filename, GetErrorStr());
+         return;
+diff --git a/libutils/file_lib.c b/libutils/file_lib.c
+index 635b810..a40fe4e 100644
+--- a/libutils/file_lib.c
++++ b/libutils/file_lib.c
+@@ -80,3 +80,271 @@ int FullRead(int fd, char *ptr, size_t len)
+ 
+     return total_read;
+ }
++
++#ifdef TEST_SYMLINK_ATOMICITY
++void test_switch_symlink();
++#define TEST_SYMLINK_SWITCH_POINT test_switch_symlink();
++#else
++#define TEST_SYMLINK_SWITCH_POINT
++#endif
++
++/**
++ * Opens a file safely. It will follow symlinks, but only if the symlink is trusted,
++ * that is, if the owner of the symlink and the owner of the target are the same.
++ * All components are checked, even symlinks encountered in earlier parts of the
++ * path name.
++ *
++ * It should always be used when opening a file or directory that is not guaranteed
++ * to be owned by root.
++ *
++ * @param pathname The path to open.
++ * @param flags Same flags as for system open().
++ * @param ... Optional mode argument, as per system open().
++ * @return Same errors as open().
++ */
++int safe_open(const char *pathname, int flags, ...)
++{
++    if (!pathname)
++    {
++        errno = EINVAL;
++        return -1;
++    }
++
++    mode_t mode;
++    if (flags & O_CREAT)
++    {
++        va_list ap;
++        va_start(ap, flags);
++        mode = va_arg(ap, int);
++        va_end(ap);
++    }
++    else
++    {
++        mode = 0;
++    }
++
++#ifdef __MINGW32__
++    // Windows gets off easy. No symlinks there.
++    return open(pathname, flags, mode);
++#else // !__MINGW32__
++
++    char path[strlen(pathname) + 1];
++    strcpy(path, pathname);
++    int currentfd;
++    const char *first_dir;
++    char *next_component;
++    bool trunc = false;
++    int orig_flags = flags;
++
++    if (flags & O_TRUNC)
++    {
++        trunc = true;
++        /* We need to check after we have opened the file whether we opened the
++         * right one. But if we truncate it, the damage is already done, we have
++         * destroyed the contents. So save that flag and apply the truncation
++         * afterwards instead. */
++        flags &= ~O_TRUNC;
++    }
++
++    if (path[0] == '/')
++    {
++        first_dir = "/";
++        next_component = path + 1;
++    }
++    else
++    {
++        first_dir = ".";
++        next_component = path;
++    }
++    if (!*next_component)
++    {
++        next_component = NULL;
++    }
++    currentfd = open(first_dir, O_RDONLY | O_DIRECTORY);
++    if (currentfd < 0)
++    {
++        return -1;
++    }
++
++    while (next_component)
++    {
++        char *component = next_component;
++        next_component = strchr(component + 1, '/');
++        if (next_component)
++        {
++            *(next_component++) = '\0';
++        }
++
++        struct stat stat_before, stat_after;
++        int stat_before_result = fstatat(currentfd, component, &stat_before, AT_SYMLINK_NOFOLLOW);
++        if (stat_before_result < 0
++            && (errno != ENOENT
++                || next_component // Meaning "not a leaf".
++                || !(flags & O_CREAT)))
++        {
++            close(currentfd);
++            return -1;
++        }
++
++        TEST_SYMLINK_SWITCH_POINT
++
++        if (!next_component)
++        {
++            // Last component.
++            if (stat_before_result < 0)
++            {
++                // Doesn't exist. Make *sure* we create it.
++                flags |= O_EXCL;
++            }
++            else
++            {
++                // Already exists. Make sure we *don't* create it.
++                flags &= ~O_CREAT;
++            }
++            int filefd = openat(currentfd, component, flags, mode);
++            close(currentfd);
++            if (filefd < 0)
++            {
++                if (stat_before_result < 0 && errno == EEXIST)
++                {
++                    errno = EACCES;
++                }
++                else if (stat_before_result >= 0 && orig_flags & O_CREAT && errno == ENOENT)
++                {
++                    errno = EACCES;
++                }
++                return -1;
++            }
++            currentfd = filefd;
++        }
++        else
++        {
++            int new_currentfd = openat(currentfd, component, O_RDONLY | O_DIRECTORY);
++            close(currentfd);
++            if (new_currentfd < 0)
++            {
++                return -1;
++            }
++            currentfd = new_currentfd;
++        }
++
++        if (stat_before_result == 0)
++        {
++            if (fstat(currentfd, &stat_after) < 0)
++            {
++                close(currentfd);
++                return -1;
++            }
++            if (stat_before.st_uid != stat_after.st_uid || stat_before.st_gid != stat_after.st_gid)
++            {
++                close(currentfd);
++                errno = EACCES;
++                return -1;
++            }
++        }
++    }
++
++    if (trunc)
++    {
++        if (ftruncate(currentfd, 0) < 0)
++        {
++            close(currentfd);
++            return -1;
++        }
++    }
++
++    return currentfd;
++#endif // !__MINGW32__
++}
++
++/**
++ * Opens a file safely. It will follow symlinks, but only if the symlink is trusted,
++ * that is, if the owner of the symlink and the owner of the target are the same.
++ * All components are checked, even symlinks encountered in earlier parts of the
++ * path name.
++ *
++ * It should always be used when opening a directory that is not guaranteed to be
++ * owned by root.
++ *
++ * @param pathname The path to open.
++ * @param flags Same mode as for system fopen().
++ * @return Same errors as fopen().
++ */
++FILE *safe_fopen(const char *path, const char *mode)
++{
++    if (!path || !mode)
++    {
++        errno = EINVAL;
++        return NULL;
++    }
++
++    int flags = 0;
++    for (int c = 0; mode[c]; c++)
++    {
++        switch (mode[c])
++        {
++        case 'r':
++            flags |= O_RDONLY;
++            break;
++        case 'w':
++            flags |= O_WRONLY | O_TRUNC | O_CREAT;
++            break;
++        case 'a':
++            flags |= O_WRONLY | O_CREAT;
++            break;
++        case '+':
++            flags &= ~(O_RDONLY | O_WRONLY);
++            flags |= O_RDWR;
++            break;
++        default:
++            break;
++        }
++    }
++    int fd = safe_open(path, flags, 0666);
++    if (fd < 0)
++    {
++        return NULL;
++    }
++    FILE *ret = fdopen(fd, mode);
++    if (!ret)
++    {
++        close(fd);
++        return NULL;
++    }
++
++    if (mode[0] == 'a')
++    {
++        if (fseek(ret, 0, SEEK_END) < 0)
++        {
++            fclose(ret);
++            return NULL;
++        }
++    }
++
++    return ret;
++}
++
++/**
++ * Use this instead of chdir(). It changes into the directory safely, using safe_open().
++ * @param path Path to change into.
++ * @return Same return values as chdir().
++ */
++int safe_chdir(const char *path)
++{
++#ifdef __MINGW32__
++    return chdir(path);
++#else
++    int fd = safe_open(path, O_RDONLY | O_DIRECTORY);
++    if (fd < 0)
++    {
++        return -1;
++    }
++    if (fchdir(fd) < 0)
++    {
++        close(fd);
++        return -1;
++    }
++    close(fd);
++    return 0;
++#endif
++}
+diff --git a/libutils/file_lib.h b/libutils/file_lib.h
+index 5084768..62fdeef 100644
+--- a/libutils/file_lib.h
++++ b/libutils/file_lib.h
+@@ -35,4 +35,9 @@ int FullWrite(int desc, const char *ptr, size_t len);
+    Return amount of bytes read upon success, -1 otherwise */
+ int FullRead(int desc, char *ptr, size_t len);
+ 
++int safe_open(const char *pathname, int flags, ...);
++FILE *safe_fopen(const char *path, const char *mode);
++
++int safe_chdir(const char *path);
++
+ #endif
+diff --git a/libutils/hashes.c b/libutils/hashes.c
+index b6ab43b..22edf98 100644
+--- a/libutils/hashes.c
++++ b/libutils/hashes.c
+@@ -23,6 +23,7 @@
+ */
+ 
+ #include "hashes.h"
++#include "file_lib.h"
+ 
+ int OatHash(const char *key, unsigned int max)
+ {
+@@ -46,7 +47,7 @@ int OatHash(const char *key, unsigned int max)
+ 
+ int FileChecksum(const char *filename, unsigned char digest[EVP_MAX_MD_SIZE + 1])
+ {
+-    FILE *file = fopen(filename, "rb");
++    FILE *file = safe_fopen(filename, "rb");
+     if (!file)
+     {
+         printf("%s can't be opened\n", filename);
+diff --git a/libutils/platform.h b/libutils/platform.h
+index 5f1b64f..86c5c72 100644
+--- a/libutils/platform.h
++++ b/libutils/platform.h
+@@ -558,6 +558,14 @@ char *rpl_ctime(const time_t *t);
+ # define NGROUPS 20
+ #endif
+ 
++#if !HAVE_DECL_OPENAT
++int openat(int dirfd, const char *pathname, int flags, ...);
++int fstatat(int dirfd, const char *pathname, struct stat *buf, int flags);
++#ifndef AT_SYMLINK_NOFOLLOW
++#define AT_SYMLINK_NOFOLLOW 0x1000
++#endif
++#endif
++
+ /*******************************************************************/
+ /*  Windows                                                        */
+ /*******************************************************************/
+diff --git a/tests/unit/Makefile.am b/tests/unit/Makefile.am
+index 649647b..fb1b281 100644
+--- a/tests/unit/Makefile.am
++++ b/tests/unit/Makefile.am
+@@ -51,6 +51,7 @@ check_PROGRAMS = \
+ 	thread_test \
+ 	package_versions_compare_test \
+ 	files_lib_test \
++	file_lib_test \
+ 	map_test \
+ 	parser_test \
+ 	policy_test \
+@@ -168,6 +169,15 @@ package_versions_compare_test_CPPFLAGS += -I$(abs_top_srcdir)/nova/libcfagent
+ package_versions_compare_test_LDADD += ../../nova/libcfagent/libcfagent.la
+ endif
+ 
++file_lib_test_SOURCES = file_lib_test.c \
++	../../libutils/file_lib.c \
++	../../libutils/logging.c \
++	../../libutils/misc_lib.c \
++	../../libutils/string_lib.c \
++	../../libutils/writer.c
++file_lib_test_LDADD = libtest.la
++file_lib_test_CPPFLAGS = $(AM_CPPFLAGS) -DTEST_SYMLINK_ATOMICITY
++
+ sort_test_SOURCES = sort_test.c ../../libpromises/sort.c
+ sort_test_LDADD = libtest.la
+ 
+diff --git a/tests/unit/file_lib_test.c b/tests/unit/file_lib_test.c
+new file mode 100644
+index 0000000..39525c3
+--- /dev/null
++++ b/tests/unit/file_lib_test.c
+@@ -0,0 +1,580 @@
++/*
++   Copyright (C) CFEngine AS
++
++   This file is part of CFEngine 3 - written and maintained by CFEngine AS.
++
++   This program is free software; you can redistribute it and/or modify it
++   under the terms of the GNU General Public License as published by the
++   Free Software Foundation; version 3.
++
++   This program is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++   GNU General Public License for more details.
++
++  You should have received a copy of the GNU General Public License
++  along with this program; if not, write to the Free Software
++  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
++
++  To the extent this program is licensed as part of the Enterprise
++  versions of CFEngine, the applicable Commercial Open Source License
++  (COSL) may apply to this file if you as a licensee so wish it. See
++  included file COSL.txt.
++*/
++
++#include <test.h>
++#include <file_lib.h>
++
++#include <bool.h>
++
++#define TEMP_DIR "/tmp"
++#define TEST_FILE "file_lib_test.txt"
++#define TEST_LINK "file_lib_test.link"
++#define TEST_SUBDIR "file_lib_test.sub"
++#define TEST_SUBSUBDIR "file_lib_test.sub/sub"
++#define TEST_STRING "BLUE balloon"
++#define TEST_SUBSTRING "YELLOW balloon"
++#define TEST_SUBSUBSTRING "RED balloon"
++
++// These are just a way to pass parameters into test_switch_symlink().
++// Since it can be called from CFEngine code, we need to do it like this.
++// The way COUNTDOWN works is that it counts down towards zero for each
++// component in the path passed to safe_open(). When it reaches zero,
++// the symlink will be inserted at that moment.
++int TEST_SYMLINK_COUNTDOWN = 0;
++const char *TEST_SYMLINK_NAME = "";
++const char *TEST_SYMLINK_TARGET = "";
++bool TEST_SYMLINK_NONROOT = false;
++
++void test_switch_symlink()
++{
++    if (--TEST_SYMLINK_COUNTDOWN == 0) {
++        rmdir(TEST_SYMLINK_NAME);
++        unlink(TEST_SYMLINK_NAME);
++        assert_int_equal(symlink(TEST_SYMLINK_TARGET, TEST_SYMLINK_NAME), 0);
++        // If we already are root, we must force the link to be non-root,
++        // otherwise the test may have no purpose.
++        if (TEST_SYMLINK_NONROOT && getuid() == 0)
++        {
++            // 100 exists in most installations, but it doesn't really matter.
++            assert_int_equal(lchown(TEST_SYMLINK_NAME, 100, 100), 0);
++        }
++    }
++}
++
++void chdir_or_exit(const char *path)
++{
++    if (chdir(path) < 0)
++    {
++        // Don't risk writing into folders we shouldn't. Just bail.
++        exit(1);
++    }
++}
++
++void setup_tempfiles()
++{
++    chdir_or_exit(TEMP_DIR);
++    mkdir(TEST_SUBDIR, 0755);
++    mkdir(TEST_SUBSUBDIR, 0755);
++    unlink(TEST_FILE);
++    unlink(TEST_LINK);
++    unlink(TEST_SUBSUBDIR "/" TEST_FILE);
++    unlink(TEST_SUBDIR "/" TEST_FILE);
++    int fd = open(TEMP_DIR "/" TEST_FILE, O_WRONLY | O_CREAT | O_TRUNC, 0644);
++    int write_result = write(fd, TEST_STRING, strlen(TEST_STRING));
++    close(fd);
++    fd = open(TEMP_DIR "/" TEST_SUBDIR "/" TEST_FILE, O_WRONLY | O_CREAT | O_TRUNC, 0644);
++    write_result = write(fd, TEST_SUBSTRING, strlen(TEST_SUBSTRING));
++    close(fd);
++    fd = open(TEMP_DIR "/" TEST_SUBSUBDIR "/" TEST_FILE, O_WRONLY | O_CREAT | O_TRUNC, 0644);
++    write_result = write(fd, TEST_SUBSUBSTRING, strlen(TEST_SUBSUBSTRING));
++    close(fd);
++
++    (void)write_result;
++}
++
++void check_contents(int fd, const char *str)
++{
++    char buf[strlen(str) + 1];
++    assert_int_equal(read(fd, buf, strlen(str)), strlen(str));
++    buf[strlen(str)] = '\0';
++    assert_string_equal(buf, str);
++}
++
++void test_safe_open_currentdir()
++{
++    setup_tempfiles();
++
++    int fd;
++    assert_true((fd = safe_open(TEST_FILE, O_RDONLY)) >= 0);
++    check_contents(fd, TEST_STRING);
++    close(fd);
++}
++
++void test_safe_open_subdir()
++{
++    setup_tempfiles();
++
++    int fd;
++    assert_true((fd = safe_open(TEST_SUBDIR "/" TEST_FILE, O_RDONLY)) >= 0);
++    check_contents(fd, TEST_SUBSTRING);
++    close(fd);
++}
++
++void test_safe_open_subsubdir()
++{
++    setup_tempfiles();
++
++    int fd;
++    assert_true((fd = safe_open(TEST_SUBSUBDIR "/" TEST_FILE, O_RDONLY)) >= 0);
++    check_contents(fd, TEST_SUBSUBSTRING);
++    close(fd);
++}
++
++void test_safe_open_updir()
++{
++    setup_tempfiles();
++
++    chdir_or_exit(TEST_SUBDIR);
++
++    int fd;
++    assert_true((fd = safe_open("../" TEST_FILE, O_RDONLY)) >= 0);
++    check_contents(fd, TEST_STRING);
++    close(fd);
++}
++
++void test_safe_open_upupdir()
++{
++    setup_tempfiles();
++
++    chdir_or_exit(TEST_SUBSUBDIR);
++
++    int fd;
++    assert_true((fd = safe_open("../../" TEST_FILE, O_RDONLY)) >= 0);
++    check_contents(fd, TEST_STRING);
++    close(fd);
++}
++
++void test_safe_open_generic_relative_dir()
++{
++    setup_tempfiles();
++
++    int fd;
++    assert_true((fd = safe_open(TEST_SUBSUBDIR "/../" TEST_FILE, O_RDONLY)) >= 0);
++    check_contents(fd, TEST_SUBSTRING);
++    close(fd);
++}
++
++void test_safe_open_generic_absolute_dir()
++{
++    setup_tempfiles();
++
++    int fd;
++    assert_true((fd = safe_open(TEMP_DIR "/"
++                                TEST_SUBDIR "/../"
++                                TEST_SUBSUBDIR "/../"
++                                TEST_FILE, O_RDONLY)) >= 0);
++    check_contents(fd, TEST_SUBSTRING);
++    close(fd);
++}
++
++void test_safe_open_unsafe_symlink()
++{
++    setup_tempfiles();
++
++    TEST_SYMLINK_COUNTDOWN = 1;
++    TEST_SYMLINK_NAME = TEMP_DIR "/" TEST_LINK;
++    TEST_SYMLINK_TARGET = "/etc/passwd";
++    TEST_SYMLINK_NONROOT = true;
++    test_switch_symlink();
++
++    assert_true(safe_open(TEMP_DIR "/" TEST_LINK, O_RDONLY) < 0);
++    assert_int_equal(errno, EACCES);
++}
++
++void test_safe_open_safe_symlink()
++{
++    setup_tempfiles();
++
++    TEST_SYMLINK_COUNTDOWN = 1;
++    TEST_SYMLINK_NAME = TEMP_DIR "/" TEST_LINK;
++    TEST_SYMLINK_TARGET = TEMP_DIR "/" TEST_FILE;
++    TEST_SYMLINK_NONROOT = false;
++    test_switch_symlink();
++
++    int fd;
++    assert_true((fd = safe_open(TEMP_DIR "/" TEST_LINK, O_RDONLY)) >= 0);
++    check_contents(fd, TEST_STRING);
++    close(fd);
++}
++
++void test_safe_open_unsafe_inserted_symlink()
++{
++    setup_tempfiles();
++
++    TEST_SYMLINK_COUNTDOWN = 1;
++    TEST_SYMLINK_NAME = TEMP_DIR "/" TEST_LINK;
++    TEST_SYMLINK_TARGET = "/etc/passwd";
++    TEST_SYMLINK_NONROOT = true;
++    // Not calling this function will call it right in the middle of the
++    // safe_open() instead.
++    //test_switch_symlink();
++
++    assert_true(safe_open(TEST_LINK, O_RDONLY) < 0);
++    assert_int_equal(errno, ENOENT);
++}
++
++void test_safe_open_safe_inserted_symlink()
++{
++    setup_tempfiles();
++
++    TEST_SYMLINK_COUNTDOWN = 1;
++    TEST_SYMLINK_NAME = TEMP_DIR "/" TEST_LINK;
++    TEST_SYMLINK_TARGET = TEMP_DIR "/" TEST_FILE;
++    TEST_SYMLINK_NONROOT = false;
++    // Not calling this function will call it right in the middle of the
++    // safe_open() instead.
++    //test_switch_symlink();
++
++    assert_true(safe_open(TEST_LINK, O_RDONLY) < 0);
++    assert_int_equal(errno, ENOENT);
++}
++
++void test_safe_open_unsafe_switched_symlink()
++{
++    setup_tempfiles();
++
++    TEST_SYMLINK_COUNTDOWN = 1;
++    TEST_SYMLINK_NAME = TEMP_DIR "/" TEST_FILE;
++    TEST_SYMLINK_TARGET = "/etc/passwd";
++    TEST_SYMLINK_NONROOT = true;
++    // Not calling this function will call it right in the middle of the
++    // safe_open() instead.
++    //test_switch_symlink();
++
++    assert_true(safe_open(TEST_FILE, O_RDONLY) < 0);
++    assert_int_equal(errno, EACCES);
++}
++
++void test_safe_open_safe_switched_symlink()
++{
++    setup_tempfiles();
++
++    TEST_SYMLINK_COUNTDOWN = 2;
++    TEST_SYMLINK_NAME = TEMP_DIR "/" TEST_FILE;
++    TEST_SYMLINK_TARGET = TEMP_DIR "/" TEST_SUBDIR "/" TEST_FILE;
++    TEST_SYMLINK_NONROOT = false;
++    // Not calling this function will call it right in the middle of the
++    // safe_open() instead.
++    //test_switch_symlink();
++
++    int fd;
++    assert_true((fd = safe_open(TEMP_DIR "/" TEST_FILE, O_RDONLY)) >= 0);
++    check_contents(fd, TEST_SUBSTRING);
++    close(fd);
++}
++
++void test_safe_open_unsafe_dir_symlink()
++{
++    setup_tempfiles();
++
++    TEST_SYMLINK_COUNTDOWN = 1;
++    TEST_SYMLINK_NAME = TEMP_DIR "/" TEST_LINK;
++    TEST_SYMLINK_TARGET = "/etc";
++    TEST_SYMLINK_NONROOT = true;
++    test_switch_symlink();
++
++    assert_true(safe_open(TEMP_DIR "/" TEST_LINK "/passwd", O_RDONLY) < 0);
++    assert_int_equal(errno, EACCES);
++}
++
++void test_safe_open_safe_dir_symlink()
++{
++    setup_tempfiles();
++
++    TEST_SYMLINK_COUNTDOWN = 1;
++    TEST_SYMLINK_NAME = TEMP_DIR "/" TEST_LINK;
++    TEST_SYMLINK_TARGET = TEST_SUBDIR;
++    TEST_SYMLINK_NONROOT = false;
++    test_switch_symlink();
++
++    int fd;
++    assert_true((fd = safe_open(TEST_LINK "/" TEST_FILE, O_RDONLY)) >= 0);
++    check_contents(fd, TEST_SUBSTRING);
++    close(fd);
++}
++
++void test_safe_open_unsafe_inserted_dir_symlink()
++{
++    setup_tempfiles();
++
++    TEST_SYMLINK_COUNTDOWN = 1;
++    TEST_SYMLINK_NAME = TEMP_DIR "/" TEST_LINK;
++    TEST_SYMLINK_TARGET = "/etc";
++    TEST_SYMLINK_NONROOT = true;
++    // Not calling this function will call it right in the middle of the
++    // safe_open() instead.
++    //test_switch_symlink();
++
++    assert_true(safe_open(TEST_LINK "/passwd", O_RDONLY) < 0);
++    assert_int_equal(errno, ENOENT);
++}
++
++void test_safe_open_safe_inserted_dir_symlink()
++{
++    setup_tempfiles();
++
++    TEST_SYMLINK_COUNTDOWN = 1;
++    TEST_SYMLINK_NAME = TEMP_DIR "/" TEST_LINK;
++    TEST_SYMLINK_TARGET = TEST_SUBDIR;
++    TEST_SYMLINK_NONROOT = false;
++    // Not calling this function will call it right in the middle of the
++    // safe_open() instead.
++    //test_switch_symlink();
++
++    assert_true(safe_open(TEST_LINK "/" TEST_FILE, O_RDONLY) < 0);
++    assert_int_equal(errno, ENOENT);
++}
++
++void test_safe_open_unsafe_switched_dir_symlink()
++{
++    setup_tempfiles();
++
++    assert_int_equal(mkdir(TEMP_DIR "/" TEST_LINK, 0755), 0);
++
++    TEST_SYMLINK_COUNTDOWN = 1;
++    TEST_SYMLINK_NAME = TEMP_DIR "/" TEST_LINK;
++    TEST_SYMLINK_TARGET = "/etc";
++    TEST_SYMLINK_NONROOT = true;
++    // Not calling this function will call it right in the middle of the
++    // safe_open() instead.
++    //test_switch_symlink();
++
++    assert_true(safe_open(TEST_LINK "/passwd", O_RDONLY) < 0);
++    assert_int_equal(errno, EACCES);
++}
++
++void test_safe_open_safe_switched_dir_symlink()
++{
++    setup_tempfiles();
++
++    assert_int_equal(mkdir(TEMP_DIR "/" TEST_LINK, 0755), 0);
++
++    TEST_SYMLINK_COUNTDOWN = 1;
++    TEST_SYMLINK_NAME = TEMP_DIR "/" TEST_LINK;
++    TEST_SYMLINK_TARGET = TEST_SUBDIR;
++    TEST_SYMLINK_NONROOT = false;
++    // Not calling this function will call it right in the middle of the
++    // safe_open() instead.
++    //test_switch_symlink();
++
++    int fd;
++    assert_true((fd = safe_open(TEST_LINK "/" TEST_FILE, O_RDONLY)) >= 0);
++    check_contents(fd, TEST_SUBSTRING);
++    close(fd);
++}
++
++void test_safe_open_create_inserted_symlink()
++{
++    setup_tempfiles();
++
++    TEST_SYMLINK_COUNTDOWN = 1;
++    TEST_SYMLINK_NAME = TEMP_DIR "/" TEST_LINK;
++    TEST_SYMLINK_TARGET = TEMP_DIR "/" TEST_FILE;
++    TEST_SYMLINK_NONROOT = true;
++    // Not calling this function will call it right in the middle of the
++    // safe_open() instead.
++    //test_switch_symlink();
++
++    assert_true(safe_open(TEST_LINK, O_RDONLY | O_CREAT, 0644) < 0);
++    assert_int_equal(errno, EACCES);
++}
++
++void test_safe_open_create_switched_symlink()
++{
++    setup_tempfiles();
++
++    TEST_SYMLINK_COUNTDOWN = 1;
++    TEST_SYMLINK_NAME = TEMP_DIR "/" TEST_FILE;
++    TEST_SYMLINK_TARGET = "/etc/passwd";
++    TEST_SYMLINK_NONROOT = true;
++    // Not calling this function will call it right in the middle of the
++    // safe_open() instead.
++    //test_switch_symlink();
++
++    assert_true(safe_open(TEST_FILE, O_RDONLY | O_CREAT, 0644) < 0);
++    assert_int_equal(errno, EACCES);
++}
++
++void test_safe_open_dangling_symlink()
++{
++    setup_tempfiles();
++
++    TEST_SYMLINK_COUNTDOWN = 1;
++    TEST_SYMLINK_NAME = TEMP_DIR "/" TEST_FILE;
++    TEST_SYMLINK_TARGET = "/etc/file-that-for-sure-does-not-exist";
++    TEST_SYMLINK_NONROOT = true;
++    // Not calling this function will call it right in the middle of the
++    // safe_open() instead.
++    //test_switch_symlink();
++
++    assert_true(safe_open(TEST_FILE, O_RDONLY | O_CREAT, 0644) < 0);
++    assert_int_equal(errno, EACCES);
++}
++
++void test_safe_open_root()
++{
++    int fd;
++    struct stat statbuf;
++    assert_true((fd = safe_open("/", O_RDONLY | O_DIRECTORY)) >= 0);
++    assert_int_equal(fchdir(fd), 0);
++    assert_int_equal(stat("etc", &statbuf), 0);
++    close(fd);
++}
++
++void test_safe_fopen()
++{
++    setup_tempfiles();
++
++    FILE *fptr;
++
++    char buf = 'a';
++
++    assert_true(fptr = safe_fopen(TEST_FILE, "r"));
++    assert_int_equal(fread(&buf, 1, 1, fptr), 1);
++    assert_false(ferror(fptr));
++    clearerr(fptr);
++    assert_int_not_equal(fwrite(&buf, 1, 1, fptr), 1);
++    assert_true(ferror(fptr));
++    clearerr(fptr);
++    fclose(fptr);
++
++    assert_true(fptr = safe_fopen(TEST_FILE, "a"));
++    assert_int_not_equal(fread(&buf, 1, 1, fptr), 1);
++    assert_true(ferror(fptr));
++    clearerr(fptr);
++    assert_int_equal(fwrite(&buf, 1, 1, fptr), 1);
++    assert_false(ferror(fptr));
++    clearerr(fptr);
++    fclose(fptr);
++
++    assert_true(fptr = safe_fopen(TEST_FILE, "r+"));
++    assert_int_equal(fread(&buf, 1, 1, fptr), 1);
++    assert_false(ferror(fptr));
++    clearerr(fptr);
++    assert_int_equal(fwrite(&buf, 1, 1, fptr), 1);
++    assert_false(ferror(fptr));
++    clearerr(fptr);
++    fclose(fptr);
++
++    assert_true(fptr = safe_fopen(TEST_FILE, "a+"));
++    assert_int_not_equal(fread(&buf, 1, 1, fptr), 1);
++    assert_false(ferror(fptr));
++    clearerr(fptr);
++    assert_int_equal(fwrite(&buf, 1, 1, fptr), 1);
++    assert_false(ferror(fptr));
++    clearerr(fptr);
++    fclose(fptr);
++
++    assert_true(fptr = safe_fopen(TEST_FILE, "w"));
++    assert_int_not_equal(fread(&buf, 1, 1, fptr), 1);
++    assert_true(ferror(fptr));
++    clearerr(fptr);
++    assert_int_equal(fwrite(&buf, 1, 1, fptr), 1);
++    assert_false(ferror(fptr));
++    clearerr(fptr);
++    fclose(fptr);
++
++    assert_true(fptr = safe_fopen(TEST_FILE, "w+"));
++    assert_int_not_equal(fread(&buf, 1, 1, fptr), 1);
++    assert_false(ferror(fptr));
++    clearerr(fptr);
++    assert_int_equal(fwrite(&buf, 1, 1, fptr), 1);
++    assert_false(ferror(fptr));
++    clearerr(fptr);
++    fclose(fptr);
++
++    unlink(TEST_FILE);
++    assert_false(fptr = safe_fopen(TEST_FILE, "r"));
++
++    unlink(TEST_FILE);
++    assert_true(fptr = safe_fopen(TEST_FILE, "a"));
++    assert_int_not_equal(fread(&buf, 1, 1, fptr), 1);
++    assert_true(ferror(fptr));
++    clearerr(fptr);
++    assert_int_equal(fwrite(&buf, 1, 1, fptr), 1);
++    assert_false(ferror(fptr));
++    clearerr(fptr);
++    fclose(fptr);
++
++    unlink(TEST_FILE);
++    assert_true(fptr = safe_fopen(TEST_FILE, "w"));
++    assert_int_not_equal(fread(&buf, 1, 1, fptr), 1);
++    assert_true(ferror(fptr));
++    clearerr(fptr);
++    assert_int_equal(fwrite(&buf, 1, 1, fptr), 1);
++    assert_false(ferror(fptr));
++    clearerr(fptr);
++    fclose(fptr);
++
++    unlink(TEST_FILE);
++    assert_false(fptr = safe_fopen(TEST_FILE, "r+"));
++
++    unlink(TEST_FILE);
++    assert_true(fptr = safe_fopen(TEST_FILE, "a+"));
++    assert_int_not_equal(fread(&buf, 1, 1, fptr), 1);
++    assert_false(ferror(fptr));
++    clearerr(fptr);
++    assert_int_equal(fwrite(&buf, 1, 1, fptr), 1);
++    assert_false(ferror(fptr));
++    clearerr(fptr);
++    fclose(fptr);
++
++    unlink(TEST_FILE);
++    assert_true(fptr = safe_fopen(TEST_FILE, "w+"));
++    assert_int_not_equal(fread(&buf, 1, 1, fptr), 1);
++    assert_false(ferror(fptr));
++    clearerr(fptr);
++    assert_int_equal(fwrite(&buf, 1, 1, fptr), 1);
++    assert_false(ferror(fptr));
++    clearerr(fptr);
++    fclose(fptr);
++}
++
++int main()
++{
++    PRINT_TEST_BANNER();
++
++    const UnitTest tests[] =
++        {
++            unit_test(test_safe_open_currentdir),
++            unit_test(test_safe_open_subdir),
++            unit_test(test_safe_open_subsubdir),
++            unit_test(test_safe_open_updir),
++            unit_test(test_safe_open_upupdir),
++            unit_test(test_safe_open_generic_relative_dir),
++            unit_test(test_safe_open_generic_absolute_dir),
++            unit_test(test_safe_open_unsafe_symlink),
++            unit_test(test_safe_open_safe_symlink),
++            unit_test(test_safe_open_unsafe_inserted_symlink),
++            unit_test(test_safe_open_safe_inserted_symlink),
++            unit_test(test_safe_open_unsafe_switched_symlink),
++            unit_test(test_safe_open_safe_switched_symlink),
++            unit_test(test_safe_open_unsafe_dir_symlink),
++            unit_test(test_safe_open_safe_dir_symlink),
++            unit_test(test_safe_open_unsafe_inserted_dir_symlink),
++            unit_test(test_safe_open_safe_inserted_dir_symlink),
++            unit_test(test_safe_open_unsafe_switched_dir_symlink),
++            unit_test(test_safe_open_safe_switched_dir_symlink),
++            unit_test(test_safe_open_create_inserted_symlink),
++            unit_test(test_safe_open_create_switched_symlink),
++            unit_test(test_safe_open_dangling_symlink),
++            unit_test(test_safe_open_root),
++
++            unit_test(test_safe_fopen),
++        };
++
++    int ret = run_tests(tests);
++
++    return ret;
++}
+-- 
+1.8.1.5
+
+
+From 9e4297bc10aaae7e2d863b1368ca47979e92b9e1 Mon Sep 17 00:00:00 2001
+From: Kristian Amlie <kristian.amlie@cfengine.com>
+Date: Tue, 26 Nov 2013 09:32:44 +0100
+Subject: [PATCH 2/7] Work around fdopendir() missing on some platforms.
+ (cherry picked from commit 19be8b73b5ee94b890ca09ccf7346ea923b36c1c)
+
+---
+ libpromises/unix_dir.c | 29 ++++++++++++++++++++++++-----
+ 1 file changed, 24 insertions(+), 5 deletions(-)
+
+diff --git a/libpromises/unix_dir.c b/libpromises/unix_dir.c
+index ac2423b..2bfa8c3 100644
+--- a/libpromises/unix_dir.c
++++ b/libpromises/unix_dir.c
+@@ -39,23 +39,42 @@ static size_t GetDirentBufferSize(size_t path_len);
+ Dir *DirOpen(const char *dirname)
+ {
+     Dir *ret = xcalloc(1, sizeof(Dir));
+-    int dirfd;
++    int safe_fd;
+ 
+-    dirfd = safe_open(dirname, O_RDONLY | O_DIRECTORY);
+-    if (dirfd < 0)
++    safe_fd = safe_open(dirname, O_RDONLY | O_DIRECTORY);
++    if (safe_fd < 0)
+     {
+         free(ret);
+         return NULL;
+     }
+ 
+-    ret->dirh = fdopendir(dirfd);
++    ret->dirh = opendir(dirname);
+     if (ret->dirh == NULL)
+     {
+-        close(dirfd);
++        close(safe_fd);
+         free(ret);
+         return NULL;
+     }
+ 
++    struct stat safe_stat, dir_stat;
++    bool stat_failed = fstat(safe_fd, &safe_stat) < 0 || fstat(dirfd(ret->dirh), &dir_stat) < 0;
++    close(safe_fd);
++    if (stat_failed)
++    {
++        closedir(ret->dirh);
++        free(ret);
++        return NULL;
++    }
++
++    // Make sure we opened the same file descriptor as safe_open did.
++    if (safe_stat.st_dev != dir_stat.st_dev || safe_stat.st_ino != dir_stat.st_ino)
++    {
++        closedir(ret->dirh);
++        free(ret);
++        errno = EACCES;
++        return NULL;
++    }
++
+     size_t dirent_buf_size = GetDirentBufferSize(GetNameMax(ret->dirh));
+ 
+     ret->entrybuf = xcalloc(1, dirent_buf_size);
+-- 
+1.8.1.5
+
+
+From 36d4f93b1675572d822056462266e6dff41a2a7a Mon Sep 17 00:00:00 2001
+From: Kristian Amlie <kristian.amlie@cfengine.com>
+Date: Tue, 26 Nov 2013 10:18:16 +0100
+Subject: [PATCH 3/7] Don't use O_DIRECTORY flag, which is Linux specific.
+
+Directories will fail when we try to chdir into them anyway, so all
+we lose is the early warning.
+(cherry picked from commit fd0488f19bc8325bbb51171dd6fc69b074d2b51c)
+---
+ libcompat/fstatat.c        | 2 +-
+ libcompat/openat.c         | 2 +-
+ libpromises/unix_dir.c     | 2 +-
+ libutils/file_lib.c        | 6 +++---
+ tests/unit/file_lib_test.c | 2 +-
+ 5 files changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/libcompat/fstatat.c b/libcompat/fstatat.c
+index 2aad195..f0376ab 100644
+--- a/libcompat/fstatat.c
++++ b/libcompat/fstatat.c
+@@ -50,7 +50,7 @@ int fstatat(int dirfd, const char *pathname, struct stat *buf, int flags)
+                          GetErrorStrFromCode(mutex_err));
+     }
+ 
+-    cwd = open(".", O_RDONLY | O_DIRECTORY);
++    cwd = open(".", O_RDONLY);
+     if (cwd < 0)
+     {
+         mutex_err = pthread_mutex_unlock(&CHDIR_LOCK);
+diff --git a/libcompat/openat.c b/libcompat/openat.c
+index e82b475..7efb4e6 100644
+--- a/libcompat/openat.c
++++ b/libcompat/openat.c
+@@ -78,7 +78,7 @@ int openat(int dirfd, const char *pathname, int flags, ...)
+                          GetErrorStrFromCode(mutex_err));
+     }
+ 
+-    cwd = open(".", O_RDONLY | O_DIRECTORY);
++    cwd = open(".", O_RDONLY);
+     if (cwd < 0)
+     {
+         mutex_err = pthread_mutex_unlock(&CHDIR_LOCK);
+diff --git a/libpromises/unix_dir.c b/libpromises/unix_dir.c
+index 2bfa8c3..21e21ae 100644
+--- a/libpromises/unix_dir.c
++++ b/libpromises/unix_dir.c
+@@ -41,7 +41,7 @@ Dir *DirOpen(const char *dirname)
+     Dir *ret = xcalloc(1, sizeof(Dir));
+     int safe_fd;
+ 
+-    safe_fd = safe_open(dirname, O_RDONLY | O_DIRECTORY);
++    safe_fd = safe_open(dirname, O_RDONLY);
+     if (safe_fd < 0)
+     {
+         free(ret);
+diff --git a/libutils/file_lib.c b/libutils/file_lib.c
+index a40fe4e..cf71ea7 100644
+--- a/libutils/file_lib.c
++++ b/libutils/file_lib.c
+@@ -160,7 +160,7 @@ int safe_open(const char *pathname, int flags, ...)
+     {
+         next_component = NULL;
+     }
+-    currentfd = open(first_dir, O_RDONLY | O_DIRECTORY);
++    currentfd = open(first_dir, O_RDONLY);
+     if (currentfd < 0)
+     {
+         return -1;
+@@ -219,7 +219,7 @@ int safe_open(const char *pathname, int flags, ...)
+         }
+         else
+         {
+-            int new_currentfd = openat(currentfd, component, O_RDONLY | O_DIRECTORY);
++            int new_currentfd = openat(currentfd, component, O_RDONLY);
+             close(currentfd);
+             if (new_currentfd < 0)
+             {
+@@ -334,7 +334,7 @@ int safe_chdir(const char *path)
+ #ifdef __MINGW32__
+     return chdir(path);
+ #else
+-    int fd = safe_open(path, O_RDONLY | O_DIRECTORY);
++    int fd = safe_open(path, O_RDONLY);
+     if (fd < 0)
+     {
+         return -1;
+diff --git a/tests/unit/file_lib_test.c b/tests/unit/file_lib_test.c
+index 39525c3..9849d82 100644
+--- a/tests/unit/file_lib_test.c
++++ b/tests/unit/file_lib_test.c
+@@ -426,7 +426,7 @@ void test_safe_open_root()
+ {
+     int fd;
+     struct stat statbuf;
+-    assert_true((fd = safe_open("/", O_RDONLY | O_DIRECTORY)) >= 0);
++    assert_true((fd = safe_open("/", O_RDONLY)) >= 0);
+     assert_int_equal(fchdir(fd), 0);
+     assert_int_equal(stat("etc", &statbuf), 0);
+     close(fd);
+-- 
+1.8.1.5
+
+
+From 4dc7c31f5f30b46e401f5dff271e00e04ff2ca6e Mon Sep 17 00:00:00 2001
+From: Kristian Amlie <kristian.amlie@cfengine.com>
+Date: Tue, 26 Nov 2013 10:19:48 +0100
+Subject: [PATCH 4/7] Switch back to test folder after each test.
+
+Otherwise the test framework may try to write into the wrong
+directory.
+(cherry picked from commit 7828a2ad7a4efb1799b8c9208c33e03f3af83aea)
+---
+ tests/unit/file_lib_test.c | 74 ++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 74 insertions(+)
+
+diff --git a/tests/unit/file_lib_test.c b/tests/unit/file_lib_test.c
+index 9849d82..a79c2f6 100644
+--- a/tests/unit/file_lib_test.c
++++ b/tests/unit/file_lib_test.c
+@@ -46,6 +46,8 @@ const char *TEST_SYMLINK_NAME = "";
+ const char *TEST_SYMLINK_TARGET = "";
+ bool TEST_SYMLINK_NONROOT = false;
+ 
++static int ORIG_DIR = -1;
++
+ void test_switch_symlink()
+ {
+     if (--TEST_SYMLINK_COUNTDOWN == 0) {
+@@ -71,6 +73,17 @@ void chdir_or_exit(const char *path)
+     }
+ }
+ 
++void save_test_dir()
++{
++    ORIG_DIR = open(".", O_RDONLY);
++    assert_true(ORIG_DIR >= 0);
++}
++
++void close_test_dir()
++{
++    close(ORIG_DIR);
++}
++
+ void setup_tempfiles()
+ {
+     chdir_or_exit(TEMP_DIR);
+@@ -93,6 +106,15 @@ void setup_tempfiles()
+     (void)write_result;
+ }
+ 
++void return_to_test_dir()
++{
++    if (fchdir(ORIG_DIR) < 0)
++    {
++        // Don't risk writing into folders we shouldn't. Just bail.
++        exit(1);
++    }
++}
++
+ void check_contents(int fd, const char *str)
+ {
+     char buf[strlen(str) + 1];
+@@ -109,6 +131,8 @@ void test_safe_open_currentdir()
+     assert_true((fd = safe_open(TEST_FILE, O_RDONLY)) >= 0);
+     check_contents(fd, TEST_STRING);
+     close(fd);
++
++    return_to_test_dir();
+ }
+ 
+ void test_safe_open_subdir()
+@@ -119,6 +143,8 @@ void test_safe_open_subdir()
+     assert_true((fd = safe_open(TEST_SUBDIR "/" TEST_FILE, O_RDONLY)) >= 0);
+     check_contents(fd, TEST_SUBSTRING);
+     close(fd);
++
++    return_to_test_dir();
+ }
+ 
+ void test_safe_open_subsubdir()
+@@ -129,6 +155,8 @@ void test_safe_open_subsubdir()
+     assert_true((fd = safe_open(TEST_SUBSUBDIR "/" TEST_FILE, O_RDONLY)) >= 0);
+     check_contents(fd, TEST_SUBSUBSTRING);
+     close(fd);
++
++    return_to_test_dir();
+ }
+ 
+ void test_safe_open_updir()
+@@ -141,6 +169,8 @@ void test_safe_open_updir()
+     assert_true((fd = safe_open("../" TEST_FILE, O_RDONLY)) >= 0);
+     check_contents(fd, TEST_STRING);
+     close(fd);
++
++    return_to_test_dir();
+ }
+ 
+ void test_safe_open_upupdir()
+@@ -153,6 +183,8 @@ void test_safe_open_upupdir()
+     assert_true((fd = safe_open("../../" TEST_FILE, O_RDONLY)) >= 0);
+     check_contents(fd, TEST_STRING);
+     close(fd);
++
++    return_to_test_dir();
+ }
+ 
+ void test_safe_open_generic_relative_dir()
+@@ -163,6 +195,8 @@ void test_safe_open_generic_relative_dir()
+     assert_true((fd = safe_open(TEST_SUBSUBDIR "/../" TEST_FILE, O_RDONLY)) >= 0);
+     check_contents(fd, TEST_SUBSTRING);
+     close(fd);
++
++    return_to_test_dir();
+ }
+ 
+ void test_safe_open_generic_absolute_dir()
+@@ -176,6 +210,8 @@ void test_safe_open_generic_absolute_dir()
+                                 TEST_FILE, O_RDONLY)) >= 0);
+     check_contents(fd, TEST_SUBSTRING);
+     close(fd);
++
++    return_to_test_dir();
+ }
+ 
+ void test_safe_open_unsafe_symlink()
+@@ -190,6 +226,8 @@ void test_safe_open_unsafe_symlink()
+ 
+     assert_true(safe_open(TEMP_DIR "/" TEST_LINK, O_RDONLY) < 0);
+     assert_int_equal(errno, EACCES);
++
++    return_to_test_dir();
+ }
+ 
+ void test_safe_open_safe_symlink()
+@@ -206,6 +244,8 @@ void test_safe_open_safe_symlink()
+     assert_true((fd = safe_open(TEMP_DIR "/" TEST_LINK, O_RDONLY)) >= 0);
+     check_contents(fd, TEST_STRING);
+     close(fd);
++
++    return_to_test_dir();
+ }
+ 
+ void test_safe_open_unsafe_inserted_symlink()
+@@ -222,6 +262,8 @@ void test_safe_open_unsafe_inserted_symlink()
+ 
+     assert_true(safe_open(TEST_LINK, O_RDONLY) < 0);
+     assert_int_equal(errno, ENOENT);
++
++    return_to_test_dir();
+ }
+ 
+ void test_safe_open_safe_inserted_symlink()
+@@ -238,6 +280,8 @@ void test_safe_open_safe_inserted_symlink()
+ 
+     assert_true(safe_open(TEST_LINK, O_RDONLY) < 0);
+     assert_int_equal(errno, ENOENT);
++
++    return_to_test_dir();
+ }
+ 
+ void test_safe_open_unsafe_switched_symlink()
+@@ -254,6 +298,8 @@ void test_safe_open_unsafe_switched_symlink()
+ 
+     assert_true(safe_open(TEST_FILE, O_RDONLY) < 0);
+     assert_int_equal(errno, EACCES);
++
++    return_to_test_dir();
+ }
+ 
+ void test_safe_open_safe_switched_symlink()
+@@ -272,6 +318,8 @@ void test_safe_open_safe_switched_symlink()
+     assert_true((fd = safe_open(TEMP_DIR "/" TEST_FILE, O_RDONLY)) >= 0);
+     check_contents(fd, TEST_SUBSTRING);
+     close(fd);
++
++    return_to_test_dir();
+ }
+ 
+ void test_safe_open_unsafe_dir_symlink()
+@@ -286,6 +334,8 @@ void test_safe_open_unsafe_dir_symlink()
+ 
+     assert_true(safe_open(TEMP_DIR "/" TEST_LINK "/passwd", O_RDONLY) < 0);
+     assert_int_equal(errno, EACCES);
++
++    return_to_test_dir();
+ }
+ 
+ void test_safe_open_safe_dir_symlink()
+@@ -302,6 +352,8 @@ void test_safe_open_safe_dir_symlink()
+     assert_true((fd = safe_open(TEST_LINK "/" TEST_FILE, O_RDONLY)) >= 0);
+     check_contents(fd, TEST_SUBSTRING);
+     close(fd);
++
++    return_to_test_dir();
+ }
+ 
+ void test_safe_open_unsafe_inserted_dir_symlink()
+@@ -318,6 +370,8 @@ void test_safe_open_unsafe_inserted_dir_symlink()
+ 
+     assert_true(safe_open(TEST_LINK "/passwd", O_RDONLY) < 0);
+     assert_int_equal(errno, ENOENT);
++
++    return_to_test_dir();
+ }
+ 
+ void test_safe_open_safe_inserted_dir_symlink()
+@@ -334,6 +388,8 @@ void test_safe_open_safe_inserted_dir_symlink()
+ 
+     assert_true(safe_open(TEST_LINK "/" TEST_FILE, O_RDONLY) < 0);
+     assert_int_equal(errno, ENOENT);
++
++    return_to_test_dir();
+ }
+ 
+ void test_safe_open_unsafe_switched_dir_symlink()
+@@ -352,6 +408,8 @@ void test_safe_open_unsafe_switched_dir_symlink()
+ 
+     assert_true(safe_open(TEST_LINK "/passwd", O_RDONLY) < 0);
+     assert_int_equal(errno, EACCES);
++
++    return_to_test_dir();
+ }
+ 
+ void test_safe_open_safe_switched_dir_symlink()
+@@ -372,6 +430,8 @@ void test_safe_open_safe_switched_dir_symlink()
+     assert_true((fd = safe_open(TEST_LINK "/" TEST_FILE, O_RDONLY)) >= 0);
+     check_contents(fd, TEST_SUBSTRING);
+     close(fd);
++
++    return_to_test_dir();
+ }
+ 
+ void test_safe_open_create_inserted_symlink()
+@@ -388,6 +448,8 @@ void test_safe_open_create_inserted_symlink()
+ 
+     assert_true(safe_open(TEST_LINK, O_RDONLY | O_CREAT, 0644) < 0);
+     assert_int_equal(errno, EACCES);
++
++    return_to_test_dir();
+ }
+ 
+ void test_safe_open_create_switched_symlink()
+@@ -404,6 +466,8 @@ void test_safe_open_create_switched_symlink()
+ 
+     assert_true(safe_open(TEST_FILE, O_RDONLY | O_CREAT, 0644) < 0);
+     assert_int_equal(errno, EACCES);
++
++    return_to_test_dir();
+ }
+ 
+ void test_safe_open_dangling_symlink()
+@@ -420,6 +484,8 @@ void test_safe_open_dangling_symlink()
+ 
+     assert_true(safe_open(TEST_FILE, O_RDONLY | O_CREAT, 0644) < 0);
+     assert_int_equal(errno, EACCES);
++
++    return_to_test_dir();
+ }
+ 
+ void test_safe_open_root()
+@@ -430,6 +496,8 @@ void test_safe_open_root()
+     assert_int_equal(fchdir(fd), 0);
+     assert_int_equal(stat("etc", &statbuf), 0);
+     close(fd);
++
++    return_to_test_dir();
+ }
+ 
+ void test_safe_fopen()
+@@ -539,6 +607,8 @@ void test_safe_fopen()
+     assert_false(ferror(fptr));
+     clearerr(fptr);
+     fclose(fptr);
++
++    return_to_test_dir();
+ }
+ 
+ int main()
+@@ -547,6 +617,8 @@ int main()
+ 
+     const UnitTest tests[] =
+         {
++            unit_test(save_test_dir),
++
+             unit_test(test_safe_open_currentdir),
+             unit_test(test_safe_open_subdir),
+             unit_test(test_safe_open_subsubdir),
+@@ -572,6 +644,8 @@ int main()
+             unit_test(test_safe_open_root),
+ 
+             unit_test(test_safe_fopen),
++
++            unit_test(close_test_dir),
+         };
+ 
+     int ret = run_tests(tests);
+-- 
+1.8.1.5
+
+
+From 5c5ec47047a70408af14a7836e74b1af98254bdf Mon Sep 17 00:00:00 2001
+From: Kristian Amlie <kristian.amlie@cfengine.com>
+Date: Tue, 26 Nov 2013 10:52:02 +0100
+Subject: [PATCH 5/7] Don't use GetErrorStrFromCode(), which is not defined in
+ 3.5.x.
+
+---
+ libcompat/fstatat.c | 9 +++++----
+ libcompat/openat.c  | 9 +++++----
+ 2 files changed, 10 insertions(+), 8 deletions(-)
+
+diff --git a/libcompat/fstatat.c b/libcompat/fstatat.c
+index f0376ab..3ecec8c 100644
+--- a/libcompat/fstatat.c
++++ b/libcompat/fstatat.c
+@@ -30,6 +30,7 @@
+ #include <unistd.h>
+ #include <sys/stat.h>
+ #include <errno.h>
++#include <string.h>
+ 
+ #ifndef __MINGW32__
+ 
+@@ -47,7 +48,7 @@ int fstatat(int dirfd, const char *pathname, struct stat *buf, int flags)
+     if (mutex_err)
+     {
+         ProgrammingError("Error when locking CHDIR_LOCK. Should never happen. (pthread_mutex_lock: '%s')",
+-                         GetErrorStrFromCode(mutex_err));
++                         strerror(mutex_err));
+     }
+ 
+     cwd = open(".", O_RDONLY);
+@@ -57,7 +58,7 @@ int fstatat(int dirfd, const char *pathname, struct stat *buf, int flags)
+         if (mutex_err)
+         {
+             ProgrammingError("Error when unlocking CHDIR_LOCK. Should never happen. (pthread_mutex_unlock: '%s')",
+-                             GetErrorStrFromCode(mutex_err));
++                             strerror(mutex_err));
+         }
+ 
+         return -1;
+@@ -69,7 +70,7 @@ int fstatat(int dirfd, const char *pathname, struct stat *buf, int flags)
+         if (mutex_err)
+         {
+             ProgrammingError("Error when unlocking CHDIR_LOCK. Should never happen. (pthread_mutex_unlock: '%s')",
+-                             GetErrorStrFromCode(mutex_err));
++                             strerror(mutex_err));
+         }
+ 
+         close(cwd);
+@@ -92,7 +93,7 @@ int fstatat(int dirfd, const char *pathname, struct stat *buf, int flags)
+     if (mutex_err)
+     {
+         ProgrammingError("Error when unlocking CHDIR_LOCK. Should never happen. (pthread_mutex_unlock: '%s')",
+-                         GetErrorStrFromCode(mutex_err));
++                         strerror(mutex_err));
+     }
+ 
+     if (fchdir_ret < 0)
+diff --git a/libcompat/openat.c b/libcompat/openat.c
+index 7efb4e6..31c7533 100644
+--- a/libcompat/openat.c
++++ b/libcompat/openat.c
+@@ -30,6 +30,7 @@
+ #include <errno.h>
+ #include <unistd.h>
+ #include <stdarg.h>
++#include <string.h>
+ 
+ #ifndef __MINGW32__
+ 
+@@ -75,7 +76,7 @@ int openat(int dirfd, const char *pathname, int flags, ...)
+     if (mutex_err)
+     {
+         ProgrammingError("Error when locking CHDIR_LOCK. Should never happen. (pthread_mutex_lock: '%s')",
+-                         GetErrorStrFromCode(mutex_err));
++                         strerror(mutex_err));
+     }
+ 
+     cwd = open(".", O_RDONLY);
+@@ -85,7 +86,7 @@ int openat(int dirfd, const char *pathname, int flags, ...)
+         if (mutex_err)
+         {
+             ProgrammingError("Error when unlocking CHDIR_LOCK. Should never happen. (pthread_mutex_unlock: '%s')",
+-                             GetErrorStrFromCode(mutex_err));
++                             strerror(mutex_err));
+         }
+         return -1;
+     }
+@@ -96,7 +97,7 @@ int openat(int dirfd, const char *pathname, int flags, ...)
+         if (mutex_err)
+         {
+             ProgrammingError("Error when unlocking CHDIR_LOCK. Should never happen. (pthread_mutex_unlock: '%s')",
+-                             GetErrorStrFromCode(mutex_err));
++                             strerror(mutex_err));
+         }
+ 
+         close(cwd);
+@@ -113,7 +114,7 @@ int openat(int dirfd, const char *pathname, int flags, ...)
+     if (mutex_err)
+     {
+         ProgrammingError("Error when unlocking CHDIR_LOCK. Should never happen. (pthread_mutex_unlock: '%s')",
+-                         GetErrorStrFromCode(mutex_err));
++                         strerror(mutex_err));
+     }
+ 
+     if (fchdir_ret < 0)
+-- 
+1.8.1.5
+
+
+From ccaf231609f0f352d9e02f6037d906efdb623c50 Mon Sep 17 00:00:00 2001
+From: Mikhail Gusarov <mikhail.gusarov@cfengine.com>
+Date: Tue, 26 Nov 2013 09:40:25 +0100
+Subject: [PATCH 6/7] va_arg is not well-defined for shorter-than-int arguments
+
+Use int instead of mode_t, as the latter is either int or short
+(cherry picked from commit e471bfd58655521fbb5474b49ec85ece174eeee7)
+---
+ libcompat/openat.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/libcompat/openat.c b/libcompat/openat.c
+index 31c7533..23bd6dd 100644
+--- a/libcompat/openat.c
++++ b/libcompat/openat.c
+@@ -64,7 +64,7 @@ int openat(int dirfd, const char *pathname, int flags, ...)
+     {
+         va_list ap;
+         va_start(ap, flags);
+-        mode = va_arg(ap, mode_t);
++        mode = va_arg(ap, int);
+         va_end(ap);
+     }
+     else
+-- 
+1.8.1.5
+
+
+From 983ddf88c2dc3e682a8da495b6878c910df1f733 Mon Sep 17 00:00:00 2001
+From: Kristian Amlie <kristian.amlie@cfengine.com>
+Date: Thu, 28 Nov 2013 16:51:15 +0100
+Subject: [PATCH 7/7] Correcting file handling
+
+---
+ cf-agent/verify_files_hashes.c |   2 +-
+ cf-agent/verify_files_utils.c  |  12 +-
+ configure.ac                   |   3 +-
+ libcompat/Makefile.am          |   1 +
+ libcompat/chdir_lock.h         |  27 --
+ libcompat/fchownat.c           |  72 +++++
+ libcompat/fstatat.c            |  92 ++----
+ libcompat/generic_at.c         | 133 ++++++++
+ libcompat/generic_at.h         |  27 ++
+ libcompat/openat.c             | 119 ++------
+ libpromises/files_copy.c       |   5 +-
+ libpromises/files_lib.c        |  10 +-
+ libutils/file_lib.c            | 113 ++++++-
+ libutils/file_lib.h            |   6 +
+ tests/unit/file_lib_test.c     | 680 +++++++++++++++++++++++++++++++++++++----
+ 15 files changed, 1044 insertions(+), 258 deletions(-)
+ delete mode 100644 libcompat/chdir_lock.h
+ create mode 100644 libcompat/fchownat.c
+ create mode 100644 libcompat/generic_at.c
+ create mode 100644 libcompat/generic_at.h
+
+diff --git a/cf-agent/verify_files_hashes.c b/cf-agent/verify_files_hashes.c
+index f1e5e38..afd5383 100644
+--- a/cf-agent/verify_files_hashes.c
++++ b/cf-agent/verify_files_hashes.c
+@@ -400,5 +400,5 @@ void LogHashChange(char *file, FileState status, char *msg, Promise *pp)
+     fprintf(fp, "%ld,%s,%s,%c,%s\n", (long) now, handle, file, FileStateToChar(status), msg);
+     fclose(fp);
+ 
+-    chmod(fname, perm);
++    safe_chmod(fname, perm);
+ }
+diff --git a/cf-agent/verify_files_utils.c b/cf-agent/verify_files_utils.c
+index 29cf45e..8b9f286 100644
+--- a/cf-agent/verify_files_utils.c
++++ b/cf-agent/verify_files_utils.c
+@@ -1620,7 +1620,7 @@ static void VerifyName(EvalContext *ctx, char *path, struct stat *sb, Attributes
+         }
+         else
+         {
+-            chmod(path, newperm);
++            safe_chmod(path, newperm);
+ 
+             if (!FileInRepository(newname))
+             {
+@@ -1905,7 +1905,7 @@ void VerifyFileAttributes(EvalContext *ctx, char *file, struct stat *dstat, Attr
+ 
+             if (!DONTDO)
+             {
+-                if (chmod(file, newperm & 07777) == -1)
++                if (safe_chmod(file, newperm & 07777) == -1)
+                 {
+                     Log(LOG_LEVEL_ERR, "chmod failed on '%s'. (chmod: %s)", file, GetErrorStr());
+                     break;
+@@ -2880,7 +2880,7 @@ static void TruncateFile(char *name)
+     }
+     else
+     {
+-        if ((fd = creat(name, 000)) == -1)      /* dummy mode ignored */
++        if ((fd = safe_creat(name, 000)) == -1)      /* dummy mode ignored */
+         {
+             Log(LOG_LEVEL_ERR, "Failed to create or truncate file '%s'. (creat: %s)", name, GetErrorStr());
+         }
+@@ -3085,7 +3085,7 @@ int VerifyOwner(EvalContext *ctx, char *file, Promise *pp, Attributes attr, stru
+             {
+ # ifdef HAVE_LCHOWN
+                 Log(LOG_LEVEL_DEBUG, "Using lchown function");
+-                if (lchown(file, uid, gid) == -1)
++                if (safe_lchown(file, uid, gid) == -1)
+                 {
+                     Log(LOG_LEVEL_INFO, "Cannot set ownership on link '%s'. (lchown: %s)", file, GetErrorStr());
+                 }
+@@ -3111,7 +3111,7 @@ int VerifyOwner(EvalContext *ctx, char *file, Promise *pp, Attributes attr, stru
+ 
+                 if (!S_ISLNK(sb->st_mode))
+                 {
+-                    if (chown(file, uid, gid) == -1)
++                    if (safe_chown(file, uid, gid) == -1)
+                     {
+                         cfPS(ctx, LOG_LEVEL_INFO, PROMISE_RESULT_DENIED, pp, attr, "Cannot set ownership on file '%s'. (chown: %s)",
+                              file, GetErrorStr());
+@@ -3347,7 +3347,7 @@ int CfCreateFile(EvalContext *ctx, char *file, Promise *pp, Attributes attr)
+ 
+             MakeParentDirectory(file, attr.move_obstructions);
+ 
+-            if ((fd = creat(file, filemode)) == -1)
++            if ((fd = safe_creat(file, filemode)) == -1)
+             {
+                 cfPS(ctx, LOG_LEVEL_INFO, PROMISE_RESULT_FAIL, pp, attr, "Error creating file '%s', mode '%04jo'. (creat: %s)",
+                      file, (uintmax_t)filemode, GetErrorStr());
+diff --git a/configure.ac b/configure.ac
+index 83bb166..3cf626f 100755
+--- a/configure.ac
++++ b/configure.ac
+@@ -752,7 +752,8 @@ AC_REPLACE_FUNCS(pthread_sigmask)
+ 
+ AC_CHECK_DECLS([openat], [], [], [[#include <fcntl.h>]])
+ AC_CHECK_DECLS([fstatat], [], [], [[#include <sys/stat.h>]])
+-AC_REPLACE_FUNCS(openat fstatat)
++AC_CHECK_DECLS([fchownat], [], [], [[#include <unistd.h>]])
++AC_REPLACE_FUNCS(openat fstatat fchownat)
+ 
+ AC_CHECK_DECLS(socketpair, [], [], [[#include <sys/socket.h>]])
+ 
+diff --git a/libcompat/Makefile.am b/libcompat/Makefile.am
+index 6da0ba4..dd23d94 100644
+--- a/libcompat/Makefile.am
++++ b/libcompat/Makefile.am
+@@ -5,6 +5,7 @@ AM_CPPFLAGS = -I$(top_srcdir)/libutils				# platform.h
+ libcompat_la_LIBADD = $(LTLIBOBJS)
+ 
+ libcompat_la_SOURCES = \
++	generic_at.c generic_at.h \
+ 	getopt.c \
+ 	getopt1.c
+ 
+diff --git a/libcompat/chdir_lock.h b/libcompat/chdir_lock.h
+deleted file mode 100644
+index dde7ce5..0000000
+--- a/libcompat/chdir_lock.h
++++ /dev/null
+@@ -1,27 +0,0 @@
+-/*
+-   Copyright (C) CFEngine AS
+-
+-   This file is part of CFEngine 3 - written and maintained by CFEngine AS.
+-
+-   This program is free software; you can redistribute it and/or modify it
+-   under the terms of the GNU General Public License as published by the
+-   Free Software Foundation; version 3.
+-
+-   This program is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-   GNU General Public License for more details.
+-
+-  You should have received a copy of the GNU General Public License
+-  along with this program; if not, write to the Free Software
+-  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+-
+-  To the extent this program is licensed as part of the Enterprise
+-  versions of CFEngine, the applicable Commercial Open Source License
+-  (COSL) may apply to this file if you as a licensee so wish it. See
+-  included file COSL.txt.
+-*/
+-
+-#include <pthread.h>
+-
+-extern pthread_mutex_t CHDIR_LOCK;
+diff --git a/libcompat/fchownat.c b/libcompat/fchownat.c
+new file mode 100644
+index 0000000..76316c7
+--- /dev/null
++++ b/libcompat/fchownat.c
+@@ -0,0 +1,72 @@
++/*
++   Copyright (C) CFEngine AS
++
++   This file is part of CFEngine 3 - written and maintained by CFEngine AS.
++
++   This program is free software; you can redistribute it and/or modify it
++   under the terms of the GNU General Public License as published by the
++   Free Software Foundation; version 3.
++
++   This program is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++   GNU General Public License for more details.
++
++  You should have received a copy of the GNU General Public License
++  along with this program; if not, write to the Free Software
++  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
++
++  To the extent this program is licensed as part of the Enterprise
++  versions of CFEngine, the applicable Commercial Open Source License
++  (COSL) may apply to this file if you as a licensee so wish it. See
++  included file COSL.txt.
++*/
++
++#include <platform.h>
++#include <misc_lib.h>
++#include <logging.h>
++#include <generic_at.h>
++
++#include <fcntl.h>
++#include <unistd.h>
++#include <errno.h>
++
++#ifndef __MINGW32__
++
++typedef struct
++{
++    const char *pathname;
++    uid_t owner;
++    gid_t group;
++    int flags;
++} fchownat_data;
++
++static int fchownat_inner(void *generic_data)
++{
++    fchownat_data *data = generic_data;
++    if (data->flags & AT_SYMLINK_NOFOLLOW)
++    {
++        return lchown(data->pathname, data->owner, data->group);
++    }
++    else
++    {
++        return chown(data->pathname, data->owner, data->group);
++    }
++}
++
++static void cleanup(ARG_UNUSED void *generic_data)
++{
++}
++
++int fchownat(int dirfd, const char *pathname, uid_t owner, gid_t group, int flags)
++{
++    fchownat_data data;
++    data.pathname = pathname;
++    data.owner = owner;
++    data.group = group;
++    data.flags = flags;
++
++    return generic_at_function(dirfd, &fchownat_inner, &cleanup, &data);
++}
++
++#endif // !__MINGW32__
+diff --git a/libcompat/fstatat.c b/libcompat/fstatat.c
+index 3ecec8c..8571079 100644
+--- a/libcompat/fstatat.c
++++ b/libcompat/fstatat.c
+@@ -23,93 +23,49 @@
+ */
+ 
+ #include <chdir_lock.h>
++#include <platform.h>
+ #include <misc_lib.h>
+ #include <logging.h>
++#include <generic_at.h>
+ 
+ #include <fcntl.h>
+ #include <unistd.h>
+ #include <sys/stat.h>
+-#include <errno.h>
+-#include <string.h>
+ 
+ #ifndef __MINGW32__
+ 
+-// Using fchdir() is ugly but it's the only way to be secure.
+-// See comments in openat.c.
+-int fstatat(int dirfd, const char *pathname, struct stat *buf, int flags)
++typedef struct
+ {
+-    int cwd;
+-    int mutex_err;
+-    int result;
+-    int saved_errno;
+-    int fchdir_ret;
+-
+-    mutex_err = pthread_mutex_lock(&CHDIR_LOCK);
+-    if (mutex_err)
+-    {
+-        ProgrammingError("Error when locking CHDIR_LOCK. Should never happen. (pthread_mutex_lock: '%s')",
+-                         strerror(mutex_err));
+-    }
++    const char *pathname;
++    struct stat *buf;
++    int flags;
++} fstatat_data;
+ 
+-    cwd = open(".", O_RDONLY);
+-    if (cwd < 0)
+-    {
+-        mutex_err = pthread_mutex_unlock(&CHDIR_LOCK);
+-        if (mutex_err)
+-        {
+-            ProgrammingError("Error when unlocking CHDIR_LOCK. Should never happen. (pthread_mutex_unlock: '%s')",
+-                             strerror(mutex_err));
+-        }
+-
+-        return -1;
+-    }
+-
+-    if (fchdir(dirfd) < 0)
+-    {
+-        mutex_err = pthread_mutex_unlock(&CHDIR_LOCK);
+-        if (mutex_err)
+-        {
+-            ProgrammingError("Error when unlocking CHDIR_LOCK. Should never happen. (pthread_mutex_unlock: '%s')",
+-                             strerror(mutex_err));
+-        }
+-
+-        close(cwd);
+-        return -1;
+-    }
+-
+-    if (flags & AT_SYMLINK_NOFOLLOW)
++static int fstatat_inner(void *generic_data)
++{
++    fstatat_data *data = generic_data;
++    if (data->flags & AT_SYMLINK_NOFOLLOW)
+     {
+-        result = lstat(pathname, buf);
++        return lstat(data->pathname, data->buf);
+     }
+     else
+     {
+-        result = stat(pathname, buf);
+-    }
+-    saved_errno = errno;
+-    fchdir_ret = fchdir(cwd);
+-    close(cwd);
+-
+-    mutex_err = pthread_mutex_unlock(&CHDIR_LOCK);
+-    if (mutex_err)
+-    {
+-        ProgrammingError("Error when unlocking CHDIR_LOCK. Should never happen. (pthread_mutex_unlock: '%s')",
+-                         strerror(mutex_err));
++        return stat(data->pathname, data->buf);
+     }
++}
+ 
+-    if (fchdir_ret < 0)
+-    {
+-        Log(LOG_LEVEL_WARNING, "Could not return to original working directory in '%s'. "
+-            "Things may not behave as expected. (fchdir: '%s')", __FUNCTION__, GetErrorStr());
+-        return -1;
+-    }
++static void cleanup(ARG_UNUSED void *generic_data)
++{
++}
+ 
+-    if (result < 0)
+-    {
+-        errno = saved_errno;
+-        return -1;
+-    }
++int fstatat(int dirfd, const char *pathname, struct stat *buf, int flags)
++{
++    fstatat_data data;
++    data.pathname = pathname;
++    data.buf = buf;
++    data.flags = flags;
+ 
+-    return result;
++    return generic_at_function(dirfd, &fstatat_inner, &cleanup, &data);
+ }
+ 
+ #endif // !__MINGW32__
+diff --git a/libcompat/generic_at.c b/libcompat/generic_at.c
+new file mode 100644
+index 0000000..6923ffa
+--- /dev/null
++++ b/libcompat/generic_at.c
+@@ -0,0 +1,133 @@
++/*
++   Copyright (C) CFEngine AS
++
++   This file is part of CFEngine 3 - written and maintained by CFEngine AS.
++
++   This program is free software; you can redistribute it and/or modify it
++   under the terms of the GNU General Public License as published by the
++   Free Software Foundation; version 3.
++
++   This program is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++   GNU General Public License for more details.
++
++  You should have received a copy of the GNU General Public License
++  along with this program; if not, write to the Free Software
++  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
++
++  To the extent this program is licensed as part of the Enterprise
++  versions of CFEngine, the applicable Commercial Open Source License
++  (COSL) may apply to this file if you as a licensee so wish it. See
++  included file COSL.txt.
++*/
++
++#include <platform.h>
++#include <misc_lib.h>
++#include <logging.h>
++
++#include <errno.h>
++#include <unistd.h>
++#include <string.h>
++
++#ifndef __MINGW32__
++
++/*
++ * Implements a generic interface to implement the POSIX-2008 *at
++ * functions (openat, fstatat, fchownat, etc.).
++ */
++
++/*
++ * This function uses fchdir() to preserve integrity when querying
++ * a file from a directory descriptor. It's ugly but it's the only way
++ * to be secure.
++ * Using fchdir() in *at functions means that we can potentially
++ * conflict with chdir()/fchdir() being used elsewhere. For this to be
++ * safe, the program must fulfill at least one of the following
++ * criteria:
++ *   1. Be single threaded.
++ *   2. Not use chdir() anywhere else but here.
++ *   3. Do all file operations (including chdir) in one thread.
++ *   4. Use the CHDIR_LOCK in this file.
++ * Currently, cf-agent fulfills criterion 1. All the others fulfill
++ * criterion 2.
++ */
++
++// To prevent several threads from stepping on each other's toes
++// when using fchdir().
++static pthread_mutex_t CHDIR_LOCK = PTHREAD_MUTEX_INITIALIZER;
++
++/**
++ * Generic *at function.
++ * @param dirfd File descriptor pointing to directory to do lookup in.
++ * @param func Function to call while in the directory.
++ * @param cleanup Function to call if we need to clean up because of a failed call.
++ * @param data Private data for the supplied functions.
++ */
++int generic_at_function(int dirfd, int (*func)(void *data), void (*cleanup)(void *data), void *data)
++{
++    int cwd;
++    int mutex_err;
++    int saved_errno;
++    int fchdir_ret;
++
++    mutex_err = pthread_mutex_lock(&CHDIR_LOCK);
++    if (mutex_err)
++    {
++        UnexpectedError("Error when locking CHDIR_LOCK. Should never happen. (pthread_mutex_lock: '%s')",
++                        strerror(mutex_err));
++    }
++
++    cwd = open(".", O_RDONLY);
++    if (cwd < 0)
++    {
++        mutex_err = pthread_mutex_unlock(&CHDIR_LOCK);
++        if (mutex_err)
++        {
++            UnexpectedError("Error when unlocking CHDIR_LOCK. Should never happen. (pthread_mutex_unlock: '%s')",
++                            strerror(mutex_err));
++        }
++        return -1;
++    }
++
++    if (fchdir(dirfd) < 0)
++    {
++        close(cwd);
++
++        mutex_err = pthread_mutex_unlock(&CHDIR_LOCK);
++        if (mutex_err)
++        {
++            UnexpectedError("Error when unlocking CHDIR_LOCK. Should never happen. (pthread_mutex_unlock: '%s')",
++                            strerror(mutex_err));
++        }
++
++        return -1;
++    }
++
++    int result = func(data);
++    saved_errno = errno;
++
++    fchdir_ret = fchdir(cwd);
++    close(cwd);
++
++    mutex_err = pthread_mutex_unlock(&CHDIR_LOCK);
++    if (mutex_err)
++    {
++        UnexpectedError("Error when unlocking CHDIR_LOCK. Should never happen. (pthread_mutex_unlock: '%s')",
++                        strerror(mutex_err));
++    }
++
++    if (fchdir_ret < 0)
++    {
++        cleanup(data);
++        Log(LOG_LEVEL_WARNING, "Could not return to original working directory in '%s'. "
++            "Things may not behave as expected. (fchdir: '%s')", __FUNCTION__, GetErrorStr());
++        return -1;
++    }
++
++    errno = saved_errno;
++
++    return result;
++}
++
++#endif // !__MINGW32__
+diff --git a/libcompat/generic_at.h b/libcompat/generic_at.h
+new file mode 100644
+index 0000000..7427a85
+--- /dev/null
++++ b/libcompat/generic_at.h
+@@ -0,0 +1,27 @@
++/*
++   Copyright (C) CFEngine AS
++
++   This file is part of CFEngine 3 - written and maintained by CFEngine AS.
++
++   This program is free software; you can redistribute it and/or modify it
++   under the terms of the GNU General Public License as published by the
++   Free Software Foundation; version 3.
++
++   This program is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++   GNU General Public License for more details.
++
++  You should have received a copy of the GNU General Public License
++  along with this program; if not, write to the Free Software
++  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
++
++  To the extent this program is licensed as part of the Enterprise
++  versions of CFEngine, the applicable Commercial Open Source License
++  (COSL) may apply to this file if you as a licensee so wish it. See
++  included file COSL.txt.
++*/
++
++#ifndef __MINGW32__
++int generic_at_function(int dirfd, int (*func)(void *data), void (*cleanup)(void *data), void *data);
++#endif
+diff --git a/libcompat/openat.c b/libcompat/openat.c
+index 23bd6dd..c0b183e 100644
+--- a/libcompat/openat.c
++++ b/libcompat/openat.c
+@@ -23,117 +23,62 @@
+ */
+ 
+ #include <chdir_lock.h>
++#include <platform.h>
+ #include <misc_lib.h>
+ #include <logging.h>
++#include <generic_at.h>
+ 
+ #include <fcntl.h>
+-#include <errno.h>
+ #include <unistd.h>
+ #include <stdarg.h>
+-#include <string.h>
+ 
+ #ifndef __MINGW32__
+ 
+-// To prevent several threads from stepping on each other's toes
+-// when using fchdir().
+-pthread_mutex_t CHDIR_LOCK = PTHREAD_MUTEX_INITIALIZER;
++typedef struct
++{
++    const char *pathname;
++    int flags;
++    mode_t mode;
++    int fd;
++} openat_data;
++
++static int openat_inner(void *generic_data)
++{
++    openat_data *data = generic_data;
++    data->fd = open(data->pathname, data->flags, data->mode);
++    return data->fd;
++}
++
++static void cleanup(void *generic_data)
++{
++    openat_data *data = generic_data;
++    if (data->fd >= 0)
++    {
++        close(data->fd);
++    }
++}
+ 
+-/*
+- * Using fchdir() is ugly but it's the only way to be secure.
+- * Using fchdir() in file opening means that we can potentially
+- * conflict with chdir()/fchdir() being used elsewhere. For this to be
+- * safe, the program must fulfill at least one of the following
+- * criteria:
+- *   1. Be single threaded.
+- *   2. Not use chdir() anywhere else but here.
+- *   3. Do all file operations (including chdir) in one thread.
+- *   4. Use the CHDIR_LOCK in this file.
+- * Currently, cf-agent fulfills criterion 1. All the others fulfill
+- * criterion 2.
+- */
+ int openat(int dirfd, const char *pathname, int flags, ...)
+ {
+-    mode_t mode;
+-    int cwd;
+-    int mutex_err;
++    openat_data data;
+     int fd;
+-    int saved_errno;
+-    int fchdir_ret;
+ 
++    data.pathname = pathname;
++    data.flags = flags;
+     if (flags & O_CREAT)
+     {
+         va_list ap;
+         va_start(ap, flags);
+-        mode = va_arg(ap, int);
++        data.mode = va_arg(ap, int);
+         va_end(ap);
+     }
+     else
+     {
+-        mode = 0;
+-    }
+-
+-    mutex_err = pthread_mutex_lock(&CHDIR_LOCK);
+-    if (mutex_err)
+-    {
+-        ProgrammingError("Error when locking CHDIR_LOCK. Should never happen. (pthread_mutex_lock: '%s')",
+-                         strerror(mutex_err));
+-    }
+-
+-    cwd = open(".", O_RDONLY);
+-    if (cwd < 0)
+-    {
+-        mutex_err = pthread_mutex_unlock(&CHDIR_LOCK);
+-        if (mutex_err)
+-        {
+-            ProgrammingError("Error when unlocking CHDIR_LOCK. Should never happen. (pthread_mutex_unlock: '%s')",
+-                             strerror(mutex_err));
+-        }
+-        return -1;
+-    }
+-
+-    if (fchdir(dirfd) < 0)
+-    {
+-        mutex_err = pthread_mutex_unlock(&CHDIR_LOCK);
+-        if (mutex_err)
+-        {
+-            ProgrammingError("Error when unlocking CHDIR_LOCK. Should never happen. (pthread_mutex_unlock: '%s')",
+-                             strerror(mutex_err));
+-        }
+-
+-        close(cwd);
+-        return -1;
+-    }
+-
+-    fd = open(pathname, flags, mode);
+-    saved_errno = errno;
+-
+-    fchdir_ret = fchdir(cwd);
+-    close(cwd);
+-
+-    mutex_err = pthread_mutex_unlock(&CHDIR_LOCK);
+-    if (mutex_err)
+-    {
+-        ProgrammingError("Error when unlocking CHDIR_LOCK. Should never happen. (pthread_mutex_unlock: '%s')",
+-                         strerror(mutex_err));
+-    }
+-
+-    if (fchdir_ret < 0)
+-    {
+-        if (fd >= 0)
+-        {
+-            close(fd);
+-        }
+-        Log(LOG_LEVEL_WARNING, "Could not return to original working directory in '%s'. "
+-            "Things may not behave as expected. (fchdir: '%s')", __FUNCTION__, GetErrorStr());
+-        return -1;
+-    }
+-    if (fd < 0)
+-    {
+-        errno = saved_errno;
+-        return -1;
++        data.mode = 0;
+     }
++    data.fd = -1;
+ 
+-    return fd;
++    return generic_at_function(dirfd, &openat_inner, &cleanup, &data);
+ }
+ 
+ #endif // !__MINGW32__
+diff --git a/libpromises/files_copy.c b/libpromises/files_copy.c
+index bd7ca93..e5637ff 100644
+--- a/libpromises/files_copy.c
++++ b/libpromises/files_copy.c
+@@ -31,6 +31,7 @@
+ #include "instrumentation.h"
+ #include "policy.h"
+ #include "files_lib.h"
++#include "file_lib.h"
+ #include "string_lib.h"
+ #include "acl_tools.h"
+ 
+@@ -177,13 +178,13 @@ bool CopyFilePermissionsDisk(const char *source, const char *destination)
+         return false;
+     }
+ 
+-    if (chmod(destination, statbuf.st_mode) != 0)
++    if (safe_chmod(destination, statbuf.st_mode) != 0)
+     {
+         Log(LOG_LEVEL_INFO, "Can't copy permissions '%s'. (chmod: %s)", source, GetErrorStr());
+         return false;
+     }
+ 
+-    if (chown(destination, statbuf.st_uid, statbuf.st_gid) != 0)
++    if (safe_chown(destination, statbuf.st_uid, statbuf.st_gid) != 0)
+     {
+         Log(LOG_LEVEL_INFO, "Can't copy permissions '%s'. (chown: %s)", source, GetErrorStr());
+         return false;
+diff --git a/libpromises/files_lib.c b/libpromises/files_lib.c
+index c5ea68f..46b1e27 100644
+--- a/libpromises/files_lib.c
++++ b/libpromises/files_lib.c
+@@ -674,21 +674,21 @@ void RotateFiles(char *name, int number)
+         return;
+     }
+ 
+-    chmod(to, statbuf.st_mode);
+-    if (chown(to, statbuf.st_uid, statbuf.st_gid))
++    safe_chmod(to, statbuf.st_mode);
++    if (safe_chown(to, statbuf.st_uid, statbuf.st_gid))
+     {
+         UnexpectedError("Failed to chown %s", to);
+     }
+-    chmod(name, 0600);       /* File must be writable to empty .. */
++    safe_chmod(name, 0600);       /* File must be writable to empty .. */
+ 
+-    if ((fd = creat(name, statbuf.st_mode)) == -1)
++    if ((fd = safe_creat(name, statbuf.st_mode)) == -1)
+     {
+         Log(LOG_LEVEL_ERR, "Failed to create new '%s' in disable(rotate). (creat: %s)",
+             name, GetErrorStr());
+     }
+     else
+     {
+-        if (chown(name, statbuf.st_uid, statbuf.st_gid))  /* NT doesn't have fchown */
++        if (safe_chown(name, statbuf.st_uid, statbuf.st_gid))  /* NT doesn't have fchown */
+         {
+             UnexpectedError("Failed to chown '%s'", name);
+         }
+diff --git a/libutils/file_lib.c b/libutils/file_lib.c
+index cf71ea7..34ba487 100644
+--- a/libutils/file_lib.c
++++ b/libutils/file_lib.c
+@@ -333,7 +333,7 @@ int safe_chdir(const char *path)
+ {
+ #ifdef __MINGW32__
+     return chdir(path);
+-#else
++#else // !__MINGW32__
+     int fd = safe_open(path, O_RDONLY);
+     if (fd < 0)
+     {
+@@ -346,5 +346,114 @@ int safe_chdir(const char *path)
+     }
+     close(fd);
+     return 0;
+-#endif
++#endif // !__MINGW32__
++}
++
++/**
++ * Use this instead of chown(). It changes file owner safely, using safe_open().
++ * @param path Path to operate on.
++ * @param owner Owner.
++ * @param group Group.
++ * @return Same return values as chown().
++ */
++int safe_chown(const char *path, uid_t owner, gid_t group)
++{
++#ifdef __MINGW32__
++    return chown(path, owner, group);
++#else // !__MINGW32__
++    int fd = safe_open(path, 0);
++    if (fd < 0)
++    {
++        return -1;
++    }
++
++    int ret = fchown(fd, owner, group);
++    close(fd);
++    return ret;
++#endif // !__MINGW32__
++}
++
++/**
++ * Use this instead of lchown(). It changes file owner safely, using safe_open().
++ * @param path Path to operate on.
++ * @param owner Owner.
++ * @param group Group.
++ * @return Same return values as lchown().
++ */
++#ifndef __MINGW32__
++int safe_lchown(const char *path, uid_t owner, gid_t group)
++{
++    if (*path == '\0')
++    {
++        errno = EINVAL;
++        return -1;
++    }
++
++    size_t orig_size = strlen(path);
++    char parent_dir[orig_size + 1];
++    char *slash_pos = strrchr(path, '/');
++    const char *leaf;
++    if (slash_pos)
++    {
++        strcpy(parent_dir, path);
++        // Same value, but relative to parent_dir.
++        leaf = slash_pos = &parent_dir[slash_pos - path];
++        leaf++;
++        // Remove all superflous slashes, but not if it's the root slash.
++        while (*slash_pos == '/' && slash_pos != parent_dir)
++        {
++            *(slash_pos--) = '\0';
++        }
++    }
++    else
++    {
++        parent_dir[0] = '.';
++        parent_dir[1] = '\0';
++        leaf = path;
++    }
++
++    int parent_fd = safe_open(parent_dir, O_RDONLY);
++    if (parent_fd < 0)
++    {
++        return -1;
++    }
++
++    int ret = fchownat(parent_fd, leaf, owner, group, AT_SYMLINK_NOFOLLOW);
++    close(parent_fd);
++    return ret;
++}
++#endif // !__MINGW32__
++
++/**
++ * Use this instead of chmod(). It changes file permissions safely, using safe_open().
++ * @param path Path to operate on.
++ * @param mode Permissions.
++ * @return Same return values as chmod().
++ */
++int safe_chmod(const char *path, mode_t mode)
++{
++#ifdef __MINGW32__
++    return chmod(path, mode);
++#else // !__MINGW32__
++    int fd = safe_open(path, 0);
++    if (fd < 0)
++    {
++        return -1;
++    }
++
++    int ret = fchmod(fd, mode);
++    close(fd);
++    return ret;
++#endif // !__MINGW32__
++}
++
++/**
++ * Use this instead of creat(). It creates a file safely, using safe_open().
++ * @param path Path to operate on.
++ * @param mode Permissions.
++ * @return Same return values as creat().
++ */
++int safe_creat(const char *pathname, mode_t mode)
++{
++    return safe_open(pathname, O_CREAT | O_WRONLY | O_TRUNC, mode);
+ }
+diff --git a/libutils/file_lib.h b/libutils/file_lib.h
+index 62fdeef..b0acb5a 100644
+--- a/libutils/file_lib.h
++++ b/libutils/file_lib.h
+@@ -39,5 +39,11 @@ int safe_open(const char *pathname, int flags, ...);
+ FILE *safe_fopen(const char *path, const char *mode);
+ 
+ int safe_chdir(const char *path);
++int safe_chown(const char *path, uid_t owner, gid_t group);
++int safe_chmod(const char *path, mode_t mode);
++#ifndef __MINGW32__
++int safe_lchown(const char *path, uid_t owner, gid_t group);
++#endif
++int safe_creat(const char *pathname, mode_t mode);
+ 
+ #endif
+diff --git a/tests/unit/file_lib_test.c b/tests/unit/file_lib_test.c
+index a79c2f6..7047fa3 100644
+--- a/tests/unit/file_lib_test.c
++++ b/tests/unit/file_lib_test.c
+@@ -27,9 +27,10 @@
+ 
+ #include <bool.h>
+ 
+-#define TEMP_DIR "/tmp"
++#define TEMP_DIR "/tmp/file_lib_test"
+ #define TEST_FILE "file_lib_test.txt"
+ #define TEST_LINK "file_lib_test.link"
++#define TEST_DIR "file_lib_test.dir"
+ #define TEST_SUBDIR "file_lib_test.sub"
+ #define TEST_SUBSUBDIR "file_lib_test.sub/sub"
+ #define TEST_STRING "BLUE balloon"
+@@ -44,11 +45,10 @@
+ int TEST_SYMLINK_COUNTDOWN = 0;
+ const char *TEST_SYMLINK_NAME = "";
+ const char *TEST_SYMLINK_TARGET = "";
+-bool TEST_SYMLINK_NONROOT = false;
+ 
+ static int ORIG_DIR = -1;
+ 
+-void test_switch_symlink()
++void test_switch_symlink(void)
+ {
+     if (--TEST_SYMLINK_COUNTDOWN == 0) {
+         rmdir(TEST_SYMLINK_NAME);
+@@ -56,7 +56,7 @@ void test_switch_symlink()
+         assert_int_equal(symlink(TEST_SYMLINK_TARGET, TEST_SYMLINK_NAME), 0);
+         // If we already are root, we must force the link to be non-root,
+         // otherwise the test may have no purpose.
+-        if (TEST_SYMLINK_NONROOT && getuid() == 0)
++        if (getuid() == 0)
+         {
+             // 100 exists in most installations, but it doesn't really matter.
+             assert_int_equal(lchown(TEST_SYMLINK_NAME, 100, 100), 0);
+@@ -64,7 +64,13 @@ void test_switch_symlink()
+     }
+ }
+ 
+-void chdir_or_exit(const char *path)
++static void complain_missing_sudo(const char *function)
++{
++    printf("WARNING!!! %s will not run without root privileges.\n"
++           "Tried using sudo with no luck.\n", function);
++}
++
++static void chdir_or_exit(const char *path)
+ {
+     if (chdir(path) < 0)
+     {
+@@ -73,40 +79,60 @@ void chdir_or_exit(const char *path)
+     }
+ }
+ 
+-void save_test_dir()
++static void save_test_dir(void)
+ {
+     ORIG_DIR = open(".", O_RDONLY);
+     assert_true(ORIG_DIR >= 0);
+ }
+ 
+-void close_test_dir()
++static void close_test_dir(void)
+ {
+     close(ORIG_DIR);
+ }
+ 
+-void setup_tempfiles()
++static void clear_tempfiles(void)
++{
++    unlink(TEMP_DIR "/" TEST_FILE);
++    unlink(TEMP_DIR "/" TEST_LINK);
++    unlink(TEMP_DIR "/" TEST_SUBSUBDIR "/" TEST_FILE);
++    unlink(TEMP_DIR "/" TEST_SUBDIR "/" TEST_FILE);
++    rmdir(TEMP_DIR "/" TEST_SUBSUBDIR);
++    rmdir(TEMP_DIR "/" TEST_SUBDIR);
++    rmdir(TEMP_DIR);
++}
++
++static void setup_tempfiles(void)
+ {
++    clear_tempfiles();
++
++    mkdir(TEMP_DIR, 0755);
+     chdir_or_exit(TEMP_DIR);
+     mkdir(TEST_SUBDIR, 0755);
+     mkdir(TEST_SUBSUBDIR, 0755);
+-    unlink(TEST_FILE);
+-    unlink(TEST_LINK);
+-    unlink(TEST_SUBSUBDIR "/" TEST_FILE);
+-    unlink(TEST_SUBDIR "/" TEST_FILE);
+     int fd = open(TEMP_DIR "/" TEST_FILE, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+-    int write_result = write(fd, TEST_STRING, strlen(TEST_STRING));
++    int result = write(fd, TEST_STRING, strlen(TEST_STRING));
+     close(fd);
+     fd = open(TEMP_DIR "/" TEST_SUBDIR "/" TEST_FILE, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+-    write_result = write(fd, TEST_SUBSTRING, strlen(TEST_SUBSTRING));
++    result = write(fd, TEST_SUBSTRING, strlen(TEST_SUBSTRING));
+     close(fd);
+     fd = open(TEMP_DIR "/" TEST_SUBSUBDIR "/" TEST_FILE, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+-    write_result = write(fd, TEST_SUBSUBSTRING, strlen(TEST_SUBSUBSTRING));
++    result = write(fd, TEST_SUBSUBSTRING, strlen(TEST_SUBSUBSTRING));
+     close(fd);
+ 
+-    (void)write_result;
++    if (getuid() == 0)
++    {
++        // 100 exists in most installations, but it doesn't really matter.
++        result = chown(TEMP_DIR "/" TEST_FILE, 100, 100);
++        result = chown(TEMP_DIR "/" TEST_SUBDIR "/" TEST_FILE, 100, 100);
++        result = chown(TEMP_DIR "/" TEST_SUBSUBDIR "/" TEST_FILE, 100, 100);
++        result = chown(TEMP_DIR "/" TEST_SUBDIR, 100, 100);
++        result = chown(TEMP_DIR "/" TEST_SUBSUBDIR, 100, 100);
++    }
++
++    (void)result;
+ }
+ 
+-void return_to_test_dir()
++static void return_to_test_dir(void)
+ {
+     if (fchdir(ORIG_DIR) < 0)
+     {
+@@ -115,7 +141,7 @@ void return_to_test_dir()
+     }
+ }
+ 
+-void check_contents(int fd, const char *str)
++static void check_contents(int fd, const char *str)
+ {
+     char buf[strlen(str) + 1];
+     assert_int_equal(read(fd, buf, strlen(str)), strlen(str));
+@@ -123,7 +149,7 @@ void check_contents(int fd, const char *str)
+     assert_string_equal(buf, str);
+ }
+ 
+-void test_safe_open_currentdir()
++static void test_safe_open_currentdir(void)
+ {
+     setup_tempfiles();
+ 
+@@ -135,7 +161,7 @@ void test_safe_open_currentdir()
+     return_to_test_dir();
+ }
+ 
+-void test_safe_open_subdir()
++static void test_safe_open_subdir(void)
+ {
+     setup_tempfiles();
+ 
+@@ -147,7 +173,7 @@ void test_safe_open_subdir()
+     return_to_test_dir();
+ }
+ 
+-void test_safe_open_subsubdir()
++static void test_safe_open_subsubdir(void)
+ {
+     setup_tempfiles();
+ 
+@@ -159,7 +185,7 @@ void test_safe_open_subsubdir()
+     return_to_test_dir();
+ }
+ 
+-void test_safe_open_updir()
++static void test_safe_open_updir(void)
+ {
+     setup_tempfiles();
+ 
+@@ -173,7 +199,7 @@ void test_safe_open_updir()
+     return_to_test_dir();
+ }
+ 
+-void test_safe_open_upupdir()
++static void test_safe_open_upupdir(void)
+ {
+     setup_tempfiles();
+ 
+@@ -187,7 +213,7 @@ void test_safe_open_upupdir()
+     return_to_test_dir();
+ }
+ 
+-void test_safe_open_generic_relative_dir()
++static void test_safe_open_generic_relative_dir(void)
+ {
+     setup_tempfiles();
+ 
+@@ -199,7 +225,7 @@ void test_safe_open_generic_relative_dir()
+     return_to_test_dir();
+ }
+ 
+-void test_safe_open_generic_absolute_dir()
++static void test_safe_open_generic_absolute_dir(void)
+ {
+     setup_tempfiles();
+ 
+@@ -214,14 +240,42 @@ void test_safe_open_generic_absolute_dir()
+     return_to_test_dir();
+ }
+ 
+-void test_safe_open_unsafe_symlink()
++static void test_safe_open_extra_slashes_relative(void)
++{
++    setup_tempfiles();
++
++    int fd;
++    assert_true((fd = safe_open(TEST_SUBSUBDIR "//..////" TEST_FILE, O_RDONLY)) >= 0);
++    check_contents(fd, TEST_SUBSTRING);
++    close(fd);
++
++    return_to_test_dir();
++}
++
++static void test_safe_open_extra_slashes_absolute(void)
++{
++    setup_tempfiles();
++
++    chdir_or_exit(TEST_SUBSUBDIR);
++
++    int fd;
++    assert_true((fd = safe_open("/" TEMP_DIR "/"
++                                TEST_SUBDIR "//..//"
++                                TEST_SUBSUBDIR "/..//"
++                                TEST_FILE, O_RDONLY)) >= 0);
++    check_contents(fd, TEST_SUBSTRING);
++    close(fd);
++
++    return_to_test_dir();
++}
++
++static void test_safe_open_unsafe_symlink(void)
+ {
+     setup_tempfiles();
+ 
+     TEST_SYMLINK_COUNTDOWN = 1;
+     TEST_SYMLINK_NAME = TEMP_DIR "/" TEST_LINK;
+     TEST_SYMLINK_TARGET = "/etc/passwd";
+-    TEST_SYMLINK_NONROOT = true;
+     test_switch_symlink();
+ 
+     assert_true(safe_open(TEMP_DIR "/" TEST_LINK, O_RDONLY) < 0);
+@@ -230,14 +284,13 @@ void test_safe_open_unsafe_symlink()
+     return_to_test_dir();
+ }
+ 
+-void test_safe_open_safe_symlink()
++static void test_safe_open_safe_symlink(void)
+ {
+     setup_tempfiles();
+ 
+     TEST_SYMLINK_COUNTDOWN = 1;
+     TEST_SYMLINK_NAME = TEMP_DIR "/" TEST_LINK;
+     TEST_SYMLINK_TARGET = TEMP_DIR "/" TEST_FILE;
+-    TEST_SYMLINK_NONROOT = false;
+     test_switch_symlink();
+ 
+     int fd;
+@@ -248,14 +301,13 @@ void test_safe_open_safe_symlink()
+     return_to_test_dir();
+ }
+ 
+-void test_safe_open_unsafe_inserted_symlink()
++static void test_safe_open_unsafe_inserted_symlink(void)
+ {
+     setup_tempfiles();
+ 
+     TEST_SYMLINK_COUNTDOWN = 1;
+     TEST_SYMLINK_NAME = TEMP_DIR "/" TEST_LINK;
+     TEST_SYMLINK_TARGET = "/etc/passwd";
+-    TEST_SYMLINK_NONROOT = true;
+     // Not calling this function will call it right in the middle of the
+     // safe_open() instead.
+     //test_switch_symlink();
+@@ -266,14 +318,13 @@ void test_safe_open_unsafe_inserted_symlink()
+     return_to_test_dir();
+ }
+ 
+-void test_safe_open_safe_inserted_symlink()
++static void test_safe_open_safe_inserted_symlink(void)
+ {
+     setup_tempfiles();
+ 
+     TEST_SYMLINK_COUNTDOWN = 1;
+     TEST_SYMLINK_NAME = TEMP_DIR "/" TEST_LINK;
+     TEST_SYMLINK_TARGET = TEMP_DIR "/" TEST_FILE;
+-    TEST_SYMLINK_NONROOT = false;
+     // Not calling this function will call it right in the middle of the
+     // safe_open() instead.
+     //test_switch_symlink();
+@@ -284,14 +335,13 @@ void test_safe_open_safe_inserted_symlink()
+     return_to_test_dir();
+ }
+ 
+-void test_safe_open_unsafe_switched_symlink()
++static void test_safe_open_unsafe_switched_symlink(void)
+ {
+     setup_tempfiles();
+ 
+     TEST_SYMLINK_COUNTDOWN = 1;
+     TEST_SYMLINK_NAME = TEMP_DIR "/" TEST_FILE;
+     TEST_SYMLINK_TARGET = "/etc/passwd";
+-    TEST_SYMLINK_NONROOT = true;
+     // Not calling this function will call it right in the middle of the
+     // safe_open() instead.
+     //test_switch_symlink();
+@@ -302,14 +352,13 @@ void test_safe_open_unsafe_switched_symlink()
+     return_to_test_dir();
+ }
+ 
+-void test_safe_open_safe_switched_symlink()
++static void test_safe_open_safe_switched_symlink(void)
+ {
+     setup_tempfiles();
+ 
+-    TEST_SYMLINK_COUNTDOWN = 2;
++    TEST_SYMLINK_COUNTDOWN = 3;
+     TEST_SYMLINK_NAME = TEMP_DIR "/" TEST_FILE;
+     TEST_SYMLINK_TARGET = TEMP_DIR "/" TEST_SUBDIR "/" TEST_FILE;
+-    TEST_SYMLINK_NONROOT = false;
+     // Not calling this function will call it right in the middle of the
+     // safe_open() instead.
+     //test_switch_symlink();
+@@ -322,14 +371,13 @@ void test_safe_open_safe_switched_symlink()
+     return_to_test_dir();
+ }
+ 
+-void test_safe_open_unsafe_dir_symlink()
++static void test_safe_open_unsafe_dir_symlink(void)
+ {
+     setup_tempfiles();
+ 
+     TEST_SYMLINK_COUNTDOWN = 1;
+     TEST_SYMLINK_NAME = TEMP_DIR "/" TEST_LINK;
+     TEST_SYMLINK_TARGET = "/etc";
+-    TEST_SYMLINK_NONROOT = true;
+     test_switch_symlink();
+ 
+     assert_true(safe_open(TEMP_DIR "/" TEST_LINK "/passwd", O_RDONLY) < 0);
+@@ -338,14 +386,13 @@ void test_safe_open_unsafe_dir_symlink()
+     return_to_test_dir();
+ }
+ 
+-void test_safe_open_safe_dir_symlink()
++static void test_safe_open_safe_dir_symlink(void)
+ {
+     setup_tempfiles();
+ 
+     TEST_SYMLINK_COUNTDOWN = 1;
+     TEST_SYMLINK_NAME = TEMP_DIR "/" TEST_LINK;
+     TEST_SYMLINK_TARGET = TEST_SUBDIR;
+-    TEST_SYMLINK_NONROOT = false;
+     test_switch_symlink();
+ 
+     int fd;
+@@ -356,14 +403,13 @@ void test_safe_open_safe_dir_symlink()
+     return_to_test_dir();
+ }
+ 
+-void test_safe_open_unsafe_inserted_dir_symlink()
++static void test_safe_open_unsafe_inserted_dir_symlink(void)
+ {
+     setup_tempfiles();
+ 
+     TEST_SYMLINK_COUNTDOWN = 1;
+     TEST_SYMLINK_NAME = TEMP_DIR "/" TEST_LINK;
+     TEST_SYMLINK_TARGET = "/etc";
+-    TEST_SYMLINK_NONROOT = true;
+     // Not calling this function will call it right in the middle of the
+     // safe_open() instead.
+     //test_switch_symlink();
+@@ -374,14 +420,13 @@ void test_safe_open_unsafe_inserted_dir_symlink()
+     return_to_test_dir();
+ }
+ 
+-void test_safe_open_safe_inserted_dir_symlink()
++static void test_safe_open_safe_inserted_dir_symlink(void)
+ {
+     setup_tempfiles();
+ 
+     TEST_SYMLINK_COUNTDOWN = 1;
+     TEST_SYMLINK_NAME = TEMP_DIR "/" TEST_LINK;
+     TEST_SYMLINK_TARGET = TEST_SUBDIR;
+-    TEST_SYMLINK_NONROOT = false;
+     // Not calling this function will call it right in the middle of the
+     // safe_open() instead.
+     //test_switch_symlink();
+@@ -392,16 +437,19 @@ void test_safe_open_safe_inserted_dir_symlink()
+     return_to_test_dir();
+ }
+ 
+-void test_safe_open_unsafe_switched_dir_symlink()
++static void test_safe_open_unsafe_switched_dir_symlink(void)
+ {
+     setup_tempfiles();
+ 
+     assert_int_equal(mkdir(TEMP_DIR "/" TEST_LINK, 0755), 0);
++    if (getuid() == 0)
++    {
++        assert_int_equal(chown(TEMP_DIR "/" TEST_LINK, 100, 100), 0);
++    }
+ 
+     TEST_SYMLINK_COUNTDOWN = 1;
+     TEST_SYMLINK_NAME = TEMP_DIR "/" TEST_LINK;
+     TEST_SYMLINK_TARGET = "/etc";
+-    TEST_SYMLINK_NONROOT = true;
+     // Not calling this function will call it right in the middle of the
+     // safe_open() instead.
+     //test_switch_symlink();
+@@ -412,16 +460,19 @@ void test_safe_open_unsafe_switched_dir_symlink()
+     return_to_test_dir();
+ }
+ 
+-void test_safe_open_safe_switched_dir_symlink()
++static void test_safe_open_safe_switched_dir_symlink(void)
+ {
+     setup_tempfiles();
+ 
+     assert_int_equal(mkdir(TEMP_DIR "/" TEST_LINK, 0755), 0);
++    if (getuid() == 0)
++    {
++        assert_int_equal(chown(TEMP_DIR "/" TEST_LINK, 100, 100), 0);
++    }
+ 
+     TEST_SYMLINK_COUNTDOWN = 1;
+     TEST_SYMLINK_NAME = TEMP_DIR "/" TEST_LINK;
+     TEST_SYMLINK_TARGET = TEST_SUBDIR;
+-    TEST_SYMLINK_NONROOT = false;
+     // Not calling this function will call it right in the middle of the
+     // safe_open() instead.
+     //test_switch_symlink();
+@@ -434,14 +485,13 @@ void test_safe_open_safe_switched_dir_symlink()
+     return_to_test_dir();
+ }
+ 
+-void test_safe_open_create_inserted_symlink()
++static void test_safe_open_create_inserted_symlink(void)
+ {
+     setup_tempfiles();
+ 
+     TEST_SYMLINK_COUNTDOWN = 1;
+     TEST_SYMLINK_NAME = TEMP_DIR "/" TEST_LINK;
+     TEST_SYMLINK_TARGET = TEMP_DIR "/" TEST_FILE;
+-    TEST_SYMLINK_NONROOT = true;
+     // Not calling this function will call it right in the middle of the
+     // safe_open() instead.
+     //test_switch_symlink();
+@@ -452,14 +502,13 @@ void test_safe_open_create_inserted_symlink()
+     return_to_test_dir();
+ }
+ 
+-void test_safe_open_create_switched_symlink()
++static void test_safe_open_create_switched_symlink(void)
+ {
+     setup_tempfiles();
+ 
+     TEST_SYMLINK_COUNTDOWN = 1;
+     TEST_SYMLINK_NAME = TEMP_DIR "/" TEST_FILE;
+     TEST_SYMLINK_TARGET = "/etc/passwd";
+-    TEST_SYMLINK_NONROOT = true;
+     // Not calling this function will call it right in the middle of the
+     // safe_open() instead.
+     //test_switch_symlink();
+@@ -470,14 +519,13 @@ void test_safe_open_create_switched_symlink()
+     return_to_test_dir();
+ }
+ 
+-void test_safe_open_dangling_symlink()
++static void test_safe_open_dangling_symlink(void)
+ {
+     setup_tempfiles();
+ 
+     TEST_SYMLINK_COUNTDOWN = 1;
+     TEST_SYMLINK_NAME = TEMP_DIR "/" TEST_FILE;
+     TEST_SYMLINK_TARGET = "/etc/file-that-for-sure-does-not-exist";
+-    TEST_SYMLINK_NONROOT = true;
+     // Not calling this function will call it right in the middle of the
+     // safe_open() instead.
+     //test_switch_symlink();
+@@ -488,7 +536,7 @@ void test_safe_open_dangling_symlink()
+     return_to_test_dir();
+ }
+ 
+-void test_safe_open_root()
++static void test_safe_open_root(void)
+ {
+     int fd;
+     struct stat statbuf;
+@@ -500,7 +548,7 @@ void test_safe_open_root()
+     return_to_test_dir();
+ }
+ 
+-void test_safe_fopen()
++static void test_safe_fopen(void)
+ {
+     setup_tempfiles();
+ 
+@@ -611,8 +659,495 @@ void test_safe_fopen()
+     return_to_test_dir();
+ }
+ 
+-int main()
++static void test_safe_chown_plain_file(void)
++{
++    if (getuid() != 0)
++    {
++        complain_missing_sudo(__FUNCTION__);
++        return;
++    }
++
++    setup_tempfiles();
++
++    struct stat statbuf;
++
++    assert_int_equal(chown(TEST_FILE, 100, 100), 0);
++    assert_int_equal(stat(TEST_FILE, &statbuf), 0);
++    assert_int_equal(statbuf.st_uid, 100);
++    assert_int_equal(statbuf.st_gid, 100);
++    assert_int_equal(safe_chown(TEST_FILE, 0, 0), 0);
++    assert_int_equal(stat(TEST_FILE, &statbuf), 0);
++    assert_int_equal(statbuf.st_uid, 0);
++    assert_int_equal(statbuf.st_gid, 0);
++
++    return_to_test_dir();
++}
++
++static void test_safe_chown_relative_file(void)
++{
++    if (getuid() != 0)
++    {
++        complain_missing_sudo(__FUNCTION__);
++        return;
++    }
++
++    setup_tempfiles();
++
++    struct stat statbuf;
++
++    assert_int_equal(chown(TEST_SUBSUBDIR "/" TEST_FILE, 100, 100), 0);
++    assert_int_equal(stat(TEST_SUBSUBDIR "/" TEST_FILE, &statbuf), 0);
++    assert_int_equal(statbuf.st_uid, 100);
++    assert_int_equal(statbuf.st_gid, 100);
++    assert_int_equal(safe_chown(TEST_SUBSUBDIR "/" TEST_FILE, 0, 0), 0);
++    assert_int_equal(stat(TEST_SUBSUBDIR "/" TEST_FILE, &statbuf), 0);
++    assert_int_equal(statbuf.st_uid, 0);
++    assert_int_equal(statbuf.st_gid, 0);
++
++    return_to_test_dir();
++}
++
++static void test_safe_chown_absolute_file(void)
++{
++    if (getuid() != 0)
++    {
++        complain_missing_sudo(__FUNCTION__);
++        return;
++    }
++
++    setup_tempfiles();
++
++    struct stat statbuf;
++
++    assert_int_equal(chown(TEMP_DIR "/" TEST_SUBSUBDIR "/" TEST_FILE, 100, 100), 0);
++    assert_int_equal(stat(TEMP_DIR "/" TEST_SUBSUBDIR "/" TEST_FILE, &statbuf), 0);
++    assert_int_equal(statbuf.st_uid, 100);
++    assert_int_equal(statbuf.st_gid, 100);
++    assert_int_equal(safe_chown(TEMP_DIR "/" TEST_SUBSUBDIR "/" TEST_FILE, 0, 0), 0);
++    assert_int_equal(stat(TEMP_DIR "/" TEST_SUBSUBDIR "/" TEST_FILE, &statbuf), 0);
++    assert_int_equal(statbuf.st_uid, 0);
++    assert_int_equal(statbuf.st_gid, 0);
++
++    return_to_test_dir();
++}
++
++static void test_safe_chown_file_extra_slashes(void)
++{
++    if (getuid() != 0)
++    {
++        complain_missing_sudo(__FUNCTION__);
++        return;
++    }
++
++    setup_tempfiles();
++
++    struct stat statbuf;
++
++    assert_int_equal(chown("/" TEMP_DIR "////" TEST_SUBSUBDIR "//" TEST_FILE, 100, 100), 0);
++    assert_int_equal(stat("/" TEMP_DIR "////" TEST_SUBSUBDIR "//" TEST_FILE, &statbuf), 0);
++    assert_int_equal(statbuf.st_uid, 100);
++    assert_int_equal(statbuf.st_gid, 100);
++    assert_int_equal(safe_chown("/" TEMP_DIR "////" TEST_SUBSUBDIR "//" TEST_FILE, 0, 0), 0);
++    assert_int_equal(stat("/" TEMP_DIR "////" TEST_SUBSUBDIR "//" TEST_FILE, &statbuf), 0);
++    assert_int_equal(statbuf.st_uid, 0);
++    assert_int_equal(statbuf.st_gid, 0);
++
++    return_to_test_dir();
++}
++
++static void test_safe_chown_plain_directory(void)
++{
++    if (getuid() != 0)
++    {
++        complain_missing_sudo(__FUNCTION__);
++        return;
++    }
++
++    setup_tempfiles();
++
++    struct stat statbuf;
++
++    assert_int_equal(chown(TEST_SUBDIR, 100, 100), 0);
++    assert_int_equal(stat(TEST_SUBDIR, &statbuf), 0);
++    assert_int_equal(statbuf.st_uid, 100);
++    assert_int_equal(statbuf.st_gid, 100);
++    assert_int_equal(safe_chown(TEST_SUBDIR, 0, 0), 0);
++    assert_int_equal(stat(TEST_SUBDIR, &statbuf), 0);
++    assert_int_equal(statbuf.st_uid, 0);
++    assert_int_equal(statbuf.st_gid, 0);
++
++    return_to_test_dir();
++}
++
++static void test_safe_chown_unsafe_link(void)
++{
++    if (getuid() != 0)
++    {
++        complain_missing_sudo(__FUNCTION__);
++        return;
++    }
++
++    setup_tempfiles();
++
++    struct stat statbuf;
++
++    TEST_SYMLINK_COUNTDOWN = 1;
++    TEST_SYMLINK_NAME = TEMP_DIR "/" TEST_FILE;
++    TEST_SYMLINK_TARGET = TEMP_DIR "/" TEST_SUBDIR "/" TEST_FILE;
++    // Not calling this function will call it right in the middle of the
++    // safe_open() instead.
++    //test_switch_symlink();
++
++    assert_int_equal(chown(TEST_SUBDIR "/" TEST_FILE, 0, 0), 0);
++    assert_int_equal(stat(TEST_SUBDIR "/" TEST_FILE, &statbuf), 0);
++    assert_int_equal(statbuf.st_uid, 0);
++    assert_int_equal(statbuf.st_gid, 0);
++    assert_int_equal(safe_chown(TEST_FILE, 100, 100), -1);
++    assert_int_equal(errno, EACCES);
++    assert_int_equal(stat(TEST_SUBDIR "/" TEST_FILE, &statbuf), 0);
++    assert_int_equal(statbuf.st_uid, 0);
++    assert_int_equal(statbuf.st_gid, 0);
++
++    return_to_test_dir();
++}
++
++static void test_safe_lchown_plain_file(void)
++{
++    if (getuid() != 0)
++    {
++        complain_missing_sudo(__FUNCTION__);
++        return;
++    }
++
++    setup_tempfiles();
++
++    struct stat statbuf;
++
++    assert_int_equal(lchown(TEST_FILE, 100, 100), 0);
++    assert_int_equal(stat(TEST_FILE, &statbuf), 0);
++    assert_int_equal(statbuf.st_uid, 100);
++    assert_int_equal(statbuf.st_gid, 100);
++    assert_int_equal(safe_lchown(TEST_FILE, 0, 0), 0);
++    assert_int_equal(stat(TEST_FILE, &statbuf), 0);
++    assert_int_equal(statbuf.st_uid, 0);
++    assert_int_equal(statbuf.st_gid, 0);
++
++    return_to_test_dir();
++}
++
++static void test_safe_lchown_relative_file(void)
++{
++    if (getuid() != 0)
++    {
++        complain_missing_sudo(__FUNCTION__);
++        return;
++    }
++
++    setup_tempfiles();
++
++    struct stat statbuf;
++
++    assert_int_equal(lchown(TEST_SUBSUBDIR "/" TEST_FILE, 100, 100), 0);
++    assert_int_equal(stat(TEST_SUBSUBDIR "/" TEST_FILE, &statbuf), 0);
++    assert_int_equal(statbuf.st_uid, 100);
++    assert_int_equal(statbuf.st_gid, 100);
++    assert_int_equal(safe_lchown(TEST_SUBSUBDIR "/" TEST_FILE, 0, 0), 0);
++    assert_int_equal(stat(TEST_SUBSUBDIR "/" TEST_FILE, &statbuf), 0);
++    assert_int_equal(statbuf.st_uid, 0);
++    assert_int_equal(statbuf.st_gid, 0);
++
++    return_to_test_dir();
++}
++
++static void test_safe_lchown_absolute_file(void)
++{
++    if (getuid() != 0)
++    {
++        complain_missing_sudo(__FUNCTION__);
++        return;
++    }
++
++    setup_tempfiles();
++
++    struct stat statbuf;
++
++    assert_int_equal(lchown(TEMP_DIR "/" TEST_SUBSUBDIR "/" TEST_FILE, 100, 100), 0);
++    assert_int_equal(stat(TEMP_DIR "/" TEST_SUBSUBDIR "/" TEST_FILE, &statbuf), 0);
++    assert_int_equal(statbuf.st_uid, 100);
++    assert_int_equal(statbuf.st_gid, 100);
++    assert_int_equal(safe_lchown(TEMP_DIR "/" TEST_SUBSUBDIR "/" TEST_FILE, 0, 0), 0);
++    assert_int_equal(stat(TEMP_DIR "/" TEST_SUBSUBDIR "/" TEST_FILE, &statbuf), 0);
++    assert_int_equal(statbuf.st_uid, 0);
++    assert_int_equal(statbuf.st_gid, 0);
++
++    return_to_test_dir();
++}
++
++static void test_safe_lchown_file_extra_slashes(void)
++{
++    if (getuid() != 0)
++    {
++        complain_missing_sudo(__FUNCTION__);
++        return;
++    }
++
++    setup_tempfiles();
++
++    struct stat statbuf;
++
++    assert_int_equal(lchown("/" TEMP_DIR "////" TEST_SUBSUBDIR "//" TEST_FILE, 100, 100), 0);
++    assert_int_equal(stat("/" TEMP_DIR "////" TEST_SUBSUBDIR "//" TEST_FILE, &statbuf), 0);
++    assert_int_equal(statbuf.st_uid, 100);
++    assert_int_equal(statbuf.st_gid, 100);
++    assert_int_equal(safe_lchown("/" TEMP_DIR "////" TEST_SUBSUBDIR "//" TEST_FILE, 0, 0), 0);
++    assert_int_equal(stat("/" TEMP_DIR "////" TEST_SUBSUBDIR "//" TEST_FILE, &statbuf), 0);
++    assert_int_equal(statbuf.st_uid, 0);
++    assert_int_equal(statbuf.st_gid, 0);
++
++    return_to_test_dir();
++}
++
++static void test_safe_lchown_plain_directory(void)
++{
++    if (getuid() != 0)
++    {
++        complain_missing_sudo(__FUNCTION__);
++        return;
++    }
++
++    setup_tempfiles();
++
++    struct stat statbuf;
++
++    assert_int_equal(lchown(TEST_SUBDIR, 100, 100), 0);
++    assert_int_equal(stat(TEST_SUBDIR, &statbuf), 0);
++    assert_int_equal(statbuf.st_uid, 100);
++    assert_int_equal(statbuf.st_gid, 100);
++    assert_int_equal(safe_lchown(TEST_SUBDIR, 0, 0), 0);
++    assert_int_equal(stat(TEST_SUBDIR, &statbuf), 0);
++    assert_int_equal(statbuf.st_uid, 0);
++    assert_int_equal(statbuf.st_gid, 0);
++
++    return_to_test_dir();
++}
++
++static void test_safe_lchown_unsafe_link(void)
++{
++    if (getuid() != 0)
++    {
++        complain_missing_sudo(__FUNCTION__);
++        return;
++    }
++
++    setup_tempfiles();
++
++    struct stat statbuf;
++
++    TEST_SYMLINK_COUNTDOWN = 1;
++    TEST_SYMLINK_NAME = TEMP_DIR "/" TEST_FILE;
++    TEST_SYMLINK_TARGET = TEMP_DIR "/" TEST_SUBDIR "/" TEST_FILE;
++    // Not calling this function will call it right in the middle of the
++    // safe_open() instead.
++    //test_switch_symlink();
++
++    assert_int_equal(lchown(TEST_SUBDIR "/" TEST_FILE, 0, 0), 0);
++    assert_int_equal(stat(TEST_SUBDIR "/" TEST_FILE, &statbuf), 0);
++    assert_int_equal(statbuf.st_uid, 0);
++    assert_int_equal(statbuf.st_gid, 0);
++    // Unsafe links should succeed, because we are operating on the *link*, not the target.
++    assert_int_equal(safe_lchown(TEST_FILE, 100, 100), 0);
++    assert_int_equal(stat(TEST_SUBDIR "/" TEST_FILE, &statbuf), 0);
++    assert_int_equal(statbuf.st_uid, 0);
++    assert_int_equal(statbuf.st_gid, 0);
++
++    return_to_test_dir();
++}
++
++static void test_safe_lchown_unsafe_link_to_directory(void)
++{
++    if (getuid() != 0)
++    {
++        complain_missing_sudo(__FUNCTION__);
++        return;
++    }
++
++    setup_tempfiles();
++
++    struct stat statbuf;
++
++    TEST_SYMLINK_COUNTDOWN = 1;
++    TEST_SYMLINK_NAME = TEMP_DIR "/" TEST_LINK;
++    TEST_SYMLINK_TARGET = TEMP_DIR "/" TEST_SUBDIR;
++    test_switch_symlink();
++
++    assert_int_equal(lchown(TEST_SUBDIR "/" TEST_FILE, 0, 0), 0);
++    assert_int_equal(stat(TEST_SUBDIR "/" TEST_FILE, &statbuf), 0);
++    assert_int_equal(statbuf.st_uid, 0);
++    assert_int_equal(statbuf.st_gid, 0);
++    assert_int_equal(lchown(TEST_SUBDIR, 0, 0), 0);
++    assert_int_equal(stat(TEST_SUBDIR, &statbuf), 0);
++    assert_int_equal(statbuf.st_uid, 0);
++    assert_int_equal(statbuf.st_gid, 0);
++    assert_int_equal(safe_lchown(TEST_LINK "/" TEST_FILE, 100, 100), -1);
++    assert_int_equal(errno, EACCES);
++
++    assert_int_equal(lchown(TEST_SUBDIR "/" TEST_FILE, 100, 100), 0);
++    assert_int_equal(stat(TEST_SUBDIR "/" TEST_FILE, &statbuf), 0);
++    assert_int_equal(statbuf.st_uid, 100);
++    assert_int_equal(statbuf.st_gid, 100);
++    assert_int_equal(lchown(TEST_SUBDIR, 100, 100), 0);
++    assert_int_equal(stat(TEST_SUBDIR, &statbuf), 0);
++    assert_int_equal(statbuf.st_uid, 100);
++    assert_int_equal(statbuf.st_gid, 100);
++    assert_int_equal(safe_lchown(TEST_LINK "/" TEST_FILE, 100, 100), 0);
++    assert_int_equal(stat(TEST_SUBDIR "/" TEST_FILE, &statbuf), 0);
++    assert_int_equal(statbuf.st_uid, 100);
++    assert_int_equal(statbuf.st_gid, 100);
++
++    return_to_test_dir();
++}
++
++static void test_safe_chmod_plain_file(void)
++{
++    setup_tempfiles();
++
++    struct stat statbuf;
++
++    assert_int_equal(chmod(TEST_FILE, 0777), 0);
++    assert_int_equal(stat(TEST_FILE, &statbuf), 0);
++    assert_int_equal(statbuf.st_mode & 0777, 0777);
++    assert_int_equal(safe_chmod(TEST_FILE, 0644), 0);
++    assert_int_equal(stat(TEST_FILE, &statbuf), 0);
++    assert_int_equal(statbuf.st_mode & 0777, 0644);
++
++    return_to_test_dir();
++}
++
++static void test_safe_chmod_relative_file(void)
++{
++    setup_tempfiles();
++
++    struct stat statbuf;
++
++    assert_int_equal(chmod(TEST_SUBDIR "/" TEST_FILE, 0777), 0);
++    assert_int_equal(stat(TEST_SUBDIR "/" TEST_FILE, &statbuf), 0);
++    assert_int_equal(statbuf.st_mode & 0777, 0777);
++    assert_int_equal(safe_chmod(TEST_SUBDIR "/" TEST_FILE, 0644), 0);
++    assert_int_equal(stat(TEST_SUBDIR "/" TEST_FILE, &statbuf), 0);
++    assert_int_equal(statbuf.st_mode & 0777, 0644);
++
++    return_to_test_dir();
++}
++
++static void test_safe_chmod_absolute_file(void)
++{
++    setup_tempfiles();
++
++    struct stat statbuf;
++
++    assert_int_equal(chmod(TEMP_DIR "/" TEST_SUBDIR "/" TEST_FILE, 0777), 0);
++    assert_int_equal(stat(TEMP_DIR "/" TEST_SUBDIR "/" TEST_FILE, &statbuf), 0);
++    assert_int_equal(statbuf.st_mode & 0777, 0777);
++    assert_int_equal(safe_chmod(TEMP_DIR "/" TEST_SUBDIR "/" TEST_FILE, 0644), 0);
++    assert_int_equal(stat(TEMP_DIR "/" TEST_SUBDIR "/" TEST_FILE, &statbuf), 0);
++    assert_int_equal(statbuf.st_mode & 0777, 0644);
++
++    return_to_test_dir();
++}
++
++static void test_safe_chmod_extra_slashes(void)
++{
++    setup_tempfiles();
++
++    struct stat statbuf;
++
++    assert_int_equal(chmod("/" TEMP_DIR "///" TEST_SUBDIR "//" TEST_FILE, 0777), 0);
++    assert_int_equal(stat("/" TEMP_DIR "///" TEST_SUBDIR "//" TEST_FILE, &statbuf), 0);
++    assert_int_equal(statbuf.st_mode & 0777, 0777);
++    assert_int_equal(safe_chmod("/" TEMP_DIR "///" TEST_SUBDIR "//" TEST_FILE, 0644), 0);
++    assert_int_equal(stat("/" TEMP_DIR "///" TEST_SUBDIR "//" TEST_FILE, &statbuf), 0);
++    assert_int_equal(statbuf.st_mode & 0777, 0644);
++
++    return_to_test_dir();
++}
++
++static void test_safe_chmod_unsafe_link(void)
+ {
++    if (getuid() != 0)
++    {
++        complain_missing_sudo(__FUNCTION__);
++        return;
++    }
++
++    setup_tempfiles();
++
++    struct stat statbuf;
++
++    TEST_SYMLINK_COUNTDOWN = 1;
++    TEST_SYMLINK_NAME = TEMP_DIR "/" TEST_FILE;
++    TEST_SYMLINK_TARGET = TEMP_DIR "/" TEST_SUBDIR "/" TEST_FILE;
++    // Not calling this function will call it right in the middle of the
++    // safe_open() instead.
++    //test_switch_symlink();
++
++    assert_int_equal(chown(TEST_SUBDIR "/" TEST_FILE, 0, 0), 0);
++
++    assert_int_equal(chmod(TEST_SUBDIR "/" TEST_FILE, 0777), 0);
++    assert_int_equal(stat(TEST_SUBDIR "/" TEST_FILE, &statbuf), 0);
++    assert_int_equal(statbuf.st_mode & 0777, 0777);
++    assert_int_equal(safe_chmod(TEST_FILE, 0644), -1);
++    assert_int_equal(errno, EACCES);
++    assert_int_equal(stat(TEST_SUBDIR "/" TEST_FILE, &statbuf), 0);
++    assert_int_equal(statbuf.st_mode & 0777, 0777);
++
++    return_to_test_dir();
++}
++
++static void test_safe_creat_exists(void)
++{
++    setup_tempfiles();
++
++    int fd;
++    struct stat buf;
++    assert_true((fd = safe_creat(TEST_FILE, 0644)) >= 0);
++    assert_int_equal(fstat(fd, &buf), 0);
++    assert_int_equal(buf.st_size, 0);
++    close(fd);
++
++    return_to_test_dir();
++}
++
++static void test_safe_creat_doesnt_exist(void)
++{
++    setup_tempfiles();
++
++    int fd;
++    struct stat buf;
++    unlink(TEST_FILE);
++    assert_true((fd = safe_creat(TEST_FILE, 0644)) >= 0);
++    assert_int_equal(fstat(fd, &buf), 0);
++    assert_int_equal(buf.st_size, 0);
++    close(fd);
++
++    return_to_test_dir();
++}
++
++static void try_gaining_root_privileges(int argc, char **argv)
++{
++    if (system("sudo -n /bin/true") == 0)
++    {
++        execlp("sudo", "sudo", "-n", argv[0], NULL);
++        // Should never get here.
++    }
++}
++
++int main(int argc, char **argv)
++{
++    if (getuid() != 0)
++    {
++        try_gaining_root_privileges(argc, argv);
++    }
++
+     PRINT_TEST_BANNER();
+ 
+     const UnitTest tests[] =
+@@ -626,6 +1161,8 @@ int main()
+             unit_test(test_safe_open_upupdir),
+             unit_test(test_safe_open_generic_relative_dir),
+             unit_test(test_safe_open_generic_absolute_dir),
++            unit_test(test_safe_open_extra_slashes_relative),
++            unit_test(test_safe_open_extra_slashes_absolute),
+             unit_test(test_safe_open_unsafe_symlink),
+             unit_test(test_safe_open_safe_symlink),
+             unit_test(test_safe_open_unsafe_inserted_symlink),
+@@ -645,7 +1182,32 @@ int main()
+ 
+             unit_test(test_safe_fopen),
+ 
++            unit_test(test_safe_chown_plain_file),
++            unit_test(test_safe_chown_relative_file),
++            unit_test(test_safe_chown_absolute_file),
++            unit_test(test_safe_chown_file_extra_slashes),
++            unit_test(test_safe_chown_plain_directory),
++            unit_test(test_safe_chown_unsafe_link),
++
++            unit_test(test_safe_lchown_plain_file),
++            unit_test(test_safe_lchown_relative_file),
++            unit_test(test_safe_lchown_absolute_file),
++            unit_test(test_safe_lchown_file_extra_slashes),
++            unit_test(test_safe_lchown_plain_directory),
++            unit_test(test_safe_lchown_unsafe_link),
++            unit_test(test_safe_lchown_unsafe_link_to_directory),
++
++            unit_test(test_safe_chmod_plain_file),
++            unit_test(test_safe_chmod_relative_file),
++            unit_test(test_safe_chmod_absolute_file),
++            unit_test(test_safe_chmod_extra_slashes),
++            unit_test(test_safe_chmod_unsafe_link),
++
++            unit_test(test_safe_creat_exists),
++            unit_test(test_safe_creat_doesnt_exist),
++
+             unit_test(close_test_dir),
++            unit_test(clear_tempfiles),
+         };
+ 
+     int ret = run_tests(tests);
+-- 
+1.8.1.5
+
