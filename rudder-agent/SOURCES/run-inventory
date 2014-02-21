@@ -1,3 +1,9 @@
 #!/bin/sh
-/opt/rudder/bin/perl -I /opt/rudder/lib/perl5 /opt/rudder/bin/fusioninventory-agent --config=none "$@"
+#
+# This script runs an inventory using the FusionInventory agent.
+# It also sources from /etc/profile beforehand, too fetch environment
+# variables to be inserted into the inventory.
 
+. /etc/profile
+
+/opt/rudder/bin/perl -I /opt/rudder/lib/perl5 /opt/rudder/bin/fusioninventory-agent --config=none "$@"
