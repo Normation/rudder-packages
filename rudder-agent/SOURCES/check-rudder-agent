@@ -44,6 +44,8 @@ if [ -e "/proc/bc/0" ]; then
   fi
 fi
 
+LAST_UPDATE_FILE=${CFE_DIR}/last_successful_inputs_update
+
 # List the CFEngine processes running
 CF_PROCESS_RUNNING=`${PS} -efww | grep -E "${CFE_BIN_DIR}/(cf-execd|cf-agent)" | grep -v grep | cat`
 # Count the number of processes running, filtering empty lines
@@ -57,6 +59,18 @@ if [ ! -e ${CFE_DISABLE_FILE} -a ${NB_CF_PROCESS_RUNNING} -eq 0 -a -f ${CFE_DIR}
   ${CFE_BIN_DIR}/cf-agent >/dev/null 2>&1
   echo " Done"
 fi
+
+# Check for the age of the last update file
+# if it is older than 10 minutes, we need to kill the lock file on tcdb database
+if [ ! -e ${LAST_UPDATE_FILE} ]; then
+  # The file ${LAST_UPDATE_FILE} is not yet present, this node is probably 
+  # not accepted yet.
+elif test `find ${LAST_UPDATE_FILE} -mmin +10`; then
+  echo -n "WARNING: The file ${LAST_UPDATE_FILE} is older than 10 minutes, the agent are probably stuck. Purging the TokyoCabinet lock file..."
+  rm -f ${CFE_DIR}/state/cf_lock.tdcb.lock
+  echo " Done";
+fi
+
 
 # Check for anomalous number of CFEngine processes
 # If there are more than 8 agent/executor processes, we should kill them, and purge the tcdb database
