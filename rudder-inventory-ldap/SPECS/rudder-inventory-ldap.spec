@@ -85,6 +85,12 @@ BuildRequires: db4-devel openssl-devel libtool-ltdl-devel
 Requires: db4
 %endif
 
+# Currently, rudder-inventory-ldap installs files under /opt/rudder, so shouldn't conflict
+# with standard slapd packages. However, the init and defaults scripts are the
+# same as a standard slapd installation, so they do conflict.
+# This will be removed in the future.
+Conflicts: slapd, openldap-servers
+
 %description
 Rudder is an open source configuration management and audit solution.
 
