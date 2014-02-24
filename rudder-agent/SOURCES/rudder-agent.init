@@ -46,6 +46,9 @@
 # Author: Jonathan Clarke <jonathan.clarke@normation.com>
 #====================================================================
 
+# Source environment variables from /etc/profile
+. /etc/profile
+
 # Array indexes
 CFEXECD=0
 CFSERVERD=1
