@@ -88,6 +88,12 @@ Requires: jre >= 1.6
 
 Requires: rudder-inventory-ldap
 
+# Currently, rudder-jetty installs file under /opt/rudder, so shouldn't conflict
+# with standard jetty packages. However, the init and defaults scripts are the
+# same as a standard jetty installation, so they do conflict.
+# This will be removed in the future.
+Conflicts: jetty, jetty-hightide-server, jetty6, jetty7, jetty8, jetty9
+
 %description
 Rudder is an open source configuration management and audit solution.
 
