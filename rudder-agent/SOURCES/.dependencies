@@ -3,3 +3,5 @@ SLES10:gcc openssl-devel bison flex pcre-devel db42-devel zlib-devel
 RHEL3:gcc openssl-devel bison flex pcre-devel make byacc zlib-devel bzip2-devel kernel-utils
 RHEL5:gcc openssl-devel bison flex pcre-devel make db4-devel byacc zlib-devel bzip2-devel
 RHEL6:gcc openssl-devel bison flex pcre-devel make db4-devel byacc tokyocabinet-devel
+FEDORA18:gcc openssl-devel bison flex pcre-devel make db4-devel byacc tokyocabinet-devel
+FEDORA20:gcc openssl-devel bison flex pcre-devel make db4-devel byacc tokyocabinet-devel
