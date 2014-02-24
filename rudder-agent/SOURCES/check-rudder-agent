@@ -64,7 +64,8 @@ fi
 # if it is older than 10 minutes, we need to kill the lock file on tcdb database
 if [ ! -e ${LAST_UPDATE_FILE} ]; then
   # The file ${LAST_UPDATE_FILE} is not yet present, this node is probably 
-  # not accepted yet.
+  # not accepted yet. Do nothing
+  :
 elif test `find ${LAST_UPDATE_FILE} -mmin +10`; then
   echo -n "WARNING: The file ${LAST_UPDATE_FILE} is older than 10 minutes, the agent are probably stuck. Purging the TokyoCabinet lock file..."
   rm -f ${CFE_DIR}/state/cf_lock.tdcb.lock
