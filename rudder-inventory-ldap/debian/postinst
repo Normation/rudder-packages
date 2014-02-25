@@ -58,8 +58,8 @@ case "$1" in
 
 				# Stop OpenLDAP - use forcestop to avoid the init script failing
 				# when trying to do the backup with bad libdb versions
-				echo -n "INFO: Stopping slapd..."
-				invoke-rc.d slapd forcestop >/dev/null 2>&1
+				echo -n "INFO: Stopping rudder-slapd..."
+				invoke-rc.d rudder-slapd forcestop >/dev/null 2>&1
 				echo " Done"
 
 				# Backup the old database
@@ -71,8 +71,8 @@ case "$1" in
 				/opt/rudder/sbin/slapadd -q -l ${BACKUP_LDIF}
 
 				# Start OpenLDAP
-				echo -n "INFO: Starting slapd..."
-				invoke-rc.d slapd start >/dev/null 2>&1
+				echo -n "INFO: Starting rudder-slapd..."
+				invoke-rc.d rudder-slapd start >/dev/null 2>&1
 				echo " Done"
 
 				echo "INFO: OpenLDAP database was successfully upgraded to new format"
@@ -90,18 +90,18 @@ case "$1" in
 			ls  /var/rudder/ldap/openldap-data/*.bdb | xargs -n 1 -I{} basename {} .bdb | sort | egrep -v '^(dn2id|id2entry)' > ${SLAPD_ACTUAL_INDEXES}
 			if ! diff ${SLAPD_DEFINED_INDEXES} ${SLAPD_ACTUAL_INDEXES} > /dev/null; then
 				echo -n "INFO: OpenLDAP indexes are not up to date, reindexing..."
-				invoke-rc.d slapd stop >/dev/null 2>&1
+				invoke-rc.d rudder-slapd stop >/dev/null 2>&1
 				/opt/rudder/sbin/slapindex >/dev/null 2>&1
-				invoke-rc.d slapd start >/dev/null 2>&1
+				invoke-rc.d rudder-slapd start >/dev/null 2>&1
 				echo " Done."
 			fi
 		fi
 		# Remove temporary files about LDAP indexes
 		rm -f ${SLAPD_DEFINED_INDEXES} ${SLAPD_ACTUAL_INDEXES}
 
-		# Restart slapd to take schema changes into account
-		echo -n "INFO: Restarting slapd..."
-		invoke-rc.d slapd restart >/dev/null 2>&1
+		# Restart rudder-slapd to take schema changes into account
+		echo -n "INFO: Restarting rudder-slapd..."
+		invoke-rc.d rudder-slapd restart >/dev/null 2>&1
 		echo " Done"
 
     ;;
