@@ -36,11 +36,12 @@ if [ ! -x ${APACHE2_INIT} ] && [ -x /etc/init.d/httpd ]; then
 	APACHE2_INIT=/etc/init.d/httpd
 fi
 POSTGRESQL_PID_FILE=`find /var/lib -iname postmaster.pid`
+SLAPD_INIT=/etc/init.d/rudder-slapd
 
 # Functions
 start_services()
 {
-/etc/init.d/slapd start
+${SLAPD_INIT} start
 /etc/init.d/postgresql* start
 /etc/init.d/rudder-agent start
 ${APACHE2_INIT} start
@@ -53,7 +54,7 @@ ${APACHE2_INIT} stop
 /etc/init.d/jetty stop
 /etc/init.d/rudder-agent stop
 /etc/init.d/postgresql* stop
-/etc/init.d/slapd stop
+${SLAPD_INIT} stop
 }
 
 status_services()
@@ -64,7 +65,7 @@ ${APACHE2_INIT} status
 # Add PostgreSQL PID to the output
 echo -n "postgres[`head -1 ${POSTGRESQL_PID_FILE}`]: "
 /etc/init.d/postgresql* status
-/etc/init.d/slapd status
+${SLAPD_INIT} status
 }
 
 case "$1" in

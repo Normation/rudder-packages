@@ -9,7 +9,6 @@ Homepage: http://www.rudder-project.org
 Package: rudder-inventory-ldap
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, rsyslog
-Conflicts: slapd
 # Replaces and Breaks rudder-webapp (<= 2.4.0~beta1) because file
 # /opt/rudder/share/upgrade-tools/rudder-upgrade-LDAP-schema-2.3-2.4-PI-PT-CR-names-changed.pl
 # was moved from rudder-webapp to rudder-inventory-ldap in 2.4.0~beta2

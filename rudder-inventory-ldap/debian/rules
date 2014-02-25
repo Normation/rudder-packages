@@ -79,7 +79,7 @@ binary-arch: install
 #	dh_installlogrotate
 #	dh_installmime
 #	dh_python
-	dh_installinit -R --name=slapd # restart after upgrade (instead of stop, upgrade, start)
+	dh_installinit -R --name=rudder-slapd # restart after upgrade (instead of stop, upgrade, start)
 #	dh_installcron
 #	dh_installinfo
 	dh_installman

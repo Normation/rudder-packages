@@ -42,6 +42,7 @@ cpt2=0
 # Check if promises already exist for CFEngine community
 INITREP=/var/rudder/cfengine-community/inputs
 INITPRO=`ls ${INITREP} 2>/dev/null | wc -l`
+SLAPD_INIT="/etc/init.d/rudder-slapd"
 
 Pause()
 {
@@ -202,7 +203,7 @@ then
   echo " done."
 fi
 # LDAP (re)initialization
-/etc/init.d/slapd stop &> $TMP_LOG
+${SLAPD_INIT} stop &> $TMP_LOG
 if [ $LDAPCHK -gt 0 ]
 then
   if [ z$LDAPRESET = "zyes" ]
@@ -243,7 +244,7 @@ echo -n "Restarting services..."
 
 # Start the whole infrastructure
 /etc/init.d/rudder-agent restart >> ${TMP_LOG} 2>&1
-if [ -e ${LDAPDATA_PATH} ]; then /etc/init.d/slapd start >> ${TMP_LOG} 2>&1; fi
+if [ -e ${LDAPDATA_PATH} ]; then ${SLAPD_INIT} start >> ${TMP_LOG} 2>&1; fi
 /etc/init.d/jetty restart >> ${TMP_LOG} 2>&1 || echo "WARNING: Jetty failed to start, maybe there is not enough RAM or swap on the machine. Skipping..."
 echo " done."
 
