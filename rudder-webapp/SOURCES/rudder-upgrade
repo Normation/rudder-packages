@@ -47,6 +47,7 @@ set -e
 # - 2.8.0 : Add the property to configure execution of agent reports frequency
 # - 2.8.0 : Deprecate properties that are now handled directly in the webapp (validation workflow and change Message)
 # - 2.9.0 : File Format migration from 4 to 5
+# - 2.10.0 : Add waiting.inventory.queue property for ldap-inventory endpoint
 #####################################################################################
 
 # Some variables
@@ -416,6 +417,14 @@ do
     fi
 done
 
+# - 2.10.0 : Add waiting.inventory.queue property for ldap-inventory endpoint
+check_and_add_config_property waiting.inventory.queue.size "
+# Max number of reports waiting to be processed internally.
+# For a rough estimation, you can consider that a report in queue
+# takes 5 MB, so to handle 50 (default), the application will
+# need around 250 MB of spare memory.
+
+waiting.inventory.queue.size=50"
 
 # For every upgrade, we force the root server to run a new inventory on the next CFEngine run
 touch /opt/rudder/etc/force_inventory
