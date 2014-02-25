@@ -54,7 +54,7 @@ binary-arch: build install
 #	dh_installpam
 #	dh_installmime
 #	dh_python
-	dh_installinit --no-start --name=jetty
+	dh_installinit --no-start
 #	dh_installcron
 #	dh_installinfo
 #	dh_installman

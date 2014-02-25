@@ -304,7 +304,7 @@ fi
 echo "********************************************************************************"
 echo "rudder-webapp has been upgraded, but for the upgrade to take effect, please"
 echo "restart the jetty application server as follows:"
-echo "# /sbin/service jetty restart"
+echo "# /sbin/service rudder-jetty restart"
 echo "********************************************************************************"
 
 #=================================================
