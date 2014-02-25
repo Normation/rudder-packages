@@ -44,6 +44,7 @@ localdepends: ./jetty7
 	patch -p0 -s < jetty-init-umask.patch
 	patch -p0 -s < jetty-init-stop-fix.patch
 	patch -p0 -s < jetty-init-sizecheck.patch
+	patch -p0 -s < jetty-init-use-rudder-jetty-defaults.patch
 
 	cp ./jetty7/bin/jetty.sh ./jetty7/bin/jetty-debian.sh
 	cp ./jetty7/bin/jetty.sh ./jetty7/bin/jetty-sles.sh
@@ -52,16 +53,16 @@ localdepends: ./jetty7
 	patch -p0 -s < jetty-init-lsb-fix-sles.patch
 
 	# Provide jetty's init script to the debian package's standard location
-	cp ./jetty7/bin/jetty-debian.sh ../debian/jetty.init
-	cp ./rudder-jetty.default ../debian/jetty.default
+	cp ./jetty7/bin/jetty-debian.sh ../debian/rudder-jetty.init
+	cp ./rudder-jetty.default ../debian/rudder-jetty.default
 
 /usr/bin/wget:
 	sudo aptitude --assume-yes install wget
 
 localclean:
 	rm -rf ./jetty7
-	rm -f ../debian/jetty.init
-	rm -f ../debian/jetty.default
+	rm -f ../debian/rudder-jetty.init
+	rm -f ../debian/rudder-jetty.default
 
 veryclean:
 	rm -f ./rudder-sources.tar.bz2
