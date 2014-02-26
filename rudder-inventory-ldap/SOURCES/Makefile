@@ -22,7 +22,7 @@ OPENLDAP_RELEASE = 2.4.30
 RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
 WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget
 
-localdepends: ./openldap-source ./DB_CONFIG ./rudder.schema ./inventory.schema ./slapd.conf ../debian/rudder-agent.init ../debian/rudder-agent.default
+localdepends: ./openldap-source ./DB_CONFIG ./rudder.schema ./inventory.schema ./slapd.conf ../debian/rudder-slapd.init ../debian/rudder-slapd.default
 	rm -rf ./openldap.tgz
 
 ./openldap-source: /usr/bin/wget
