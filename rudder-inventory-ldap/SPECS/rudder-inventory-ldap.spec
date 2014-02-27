@@ -152,7 +152,7 @@ install -m 644 %{SOURCE6} %{buildroot}/var/rudder/ldap/openldap-data/
 
 # Syslog configuration
 mkdir -p %{buildroot}/etc/rsyslog.d
-cp %{_sourcedir}/rsyslog/slapd.conf %{buildroot}/etc/rsyslog.d/slapd.conf
+cp %{_sourcedir}/rsyslog/rudder-slapd.conf %{buildroot}/etc/rsyslog.d/rudder-slapd.conf
 
 
 %pre -n rudder-inventory-ldap
@@ -282,7 +282,7 @@ rm -rf %{buildroot}
 %files -n rudder-inventory-ldap
 %defattr(-, root, root, 0755)
 %{rudderlogdir}/ldap
-%config(noreplace) /etc/rsyslog.d/slapd.conf
+%config(noreplace) /etc/rsyslog.d/rudder-slapd.conf
 %config(noreplace) /var/rudder/ldap/openldap-data/DB_CONFIG
 /var/rudder/run
 /opt/rudder/etc
