@@ -101,7 +101,7 @@ diff -Naur ../cfengine-3.5.2/libpromises/classes.c ./libpromises/classes.c
  const char *VPSOPTS[PLATFORM_CONTEXT_MAX] =
  {
      "",
-+    "-eo user,pid,ppid,pgid,pcpu,pmem,vsz,pri,rss,nlwp,stime,time,args", /* vz with vzps */
++    "-eo user,pid,ppid,pgid,pcpu,pmem,vsz,pri,rss,thcount,stime,time,args", /* vz with vzps */
      "-ef",                      /* hpux */
      "-N -eo user,pid,ppid,pgid,pcpu,pmem,vsz,ni,stat,st=STIME,time,args",  /* aix */
      "-eo user,pid,ppid,pgid,pcpu,pmem,vsz,ni,rss,nlwp,stime,time,args",        /* linux */
