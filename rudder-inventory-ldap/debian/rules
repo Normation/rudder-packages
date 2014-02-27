@@ -68,7 +68,7 @@ binary-arch: install
 	dh_installdocs
 	dh_installexamples
 	dh_install
-	dh_install SOURCES/rsyslog/slapd.conf /etc/rsyslog.d/
+	dh_install SOURCES/rsyslog/rudder-slapd.conf /etc/rsyslog.d/
 	dh_install SOURCES/slapd.conf /opt/rudder/etc/openldap/
 	dh_install SOURCES/inventory.schema /opt/rudder/etc/openldap/schema/
 	dh_install SOURCES/rudder.schema /opt/rudder/etc/openldap/schema/
