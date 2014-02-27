@@ -52,7 +52,7 @@ diff -Naur ../source/cfengine-3.4.4/src/classes.c ./src/classes.c
  const char *VPSOPTS[HARD_CLASSES_MAX] =
  {
      "",
-+    "-eo user,pid,ppid,pgid,pcpu,pmem,vsz,pri,rss,nlwp,stime,time,args", /* vz with vzps */
++    "-eo user,pid,ppid,pgid,pcpu,pmem,vsz,pri,rss,thcount,stime,time,args", /* vz with vzps */
      "-ef",                      /* hpux */
      "-N -eo user,pid,ppid,pgid,pcpu,pmem,vsz,ni,stat,st=STIME,time,args",  /* aix */
      "-eo user,pid,ppid,pgid,pcpu,pmem,vsz,pri,rss,nlwp,stime,time,args",        /* linux */
