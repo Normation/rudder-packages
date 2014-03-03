@@ -9,7 +9,7 @@
 # description: OpenLDAP
 #
 ### BEGIN INIT INFO
-# Provides:          slapd
+# Provides:          rudder-slapd
 # Required-Start:    $remote_fs $syslog
 # Required-Stop:     $remote_fs $syslog
 # Should-Start:      $network $time
