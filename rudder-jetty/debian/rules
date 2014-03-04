@@ -47,6 +47,7 @@ binary-arch: build install
 #	dh_installdocs
 #	dh_installexamples
 	dh_install --sourcedir=$(CURDIR)/SOURCES jetty7 /opt/rudder
+	dh_install --sourcedir=$(CURDIR)/SOURCES rudder-jetty.conf /opt/rudder/etc
 #	dh_installmenu
 #	dh_installdebconf
 #	dh_installlogrotate
@@ -54,7 +55,7 @@ binary-arch: build install
 #	dh_installpam
 #	dh_installmime
 #	dh_python
-	dh_installinit --no-start --name=jetty
+	dh_installinit --no-start
 #	dh_installcron
 #	dh_installinfo
 #	dh_installman

@@ -53,6 +53,7 @@ Group: Applications/System
 
 #Source1: jetty7/bin/jetty.sh
 Source2: rudder-jetty.default
+Source3: rudder-jetty.conf
 
 Patch1: jetty-init-sles.patch
 Patch2: jetty-init-rudder.patch
@@ -87,12 +88,6 @@ Requires: jre >= 1.6
 %endif
 
 Requires: rudder-inventory-ldap
-
-# Currently, rudder-jetty installs file under /opt/rudder, so shouldn't conflict
-# with standard jetty packages. However, the init and defaults scripts are the
-# same as a standard jetty installation, so they do conflict.
-# This will be removed in the future.
-Conflicts: jetty, jetty-hightide-server, jetty6, jetty7, jetty8, jetty9
 
 %description
 Rudder is an open source configuration management and audit solution.
@@ -130,6 +125,7 @@ echo "No build"
 rm -rf %{buildroot}
 
 mkdir -p %{buildroot}/opt/rudder
+mkdir -p %{buildroot}/opt/rudder/etc
 mkdir -p %{buildroot}%{rudderlogdir}/webapp
 mkdir -p %{buildroot}/var/rudder/run
 
@@ -141,8 +137,9 @@ cp -a jetty7 %{buildroot}/opt/rudder
 # Init script
 mkdir -p %{buildroot}/etc/init.d
 mkdir -p %{buildroot}/etc/default
-install -m 755 jetty7/bin/jetty-sles.sh %{buildroot}/etc/init.d/jetty
-install -m 644 %{SOURCE2} %{buildroot}/etc/default/jetty
+install -m 755 jetty7/bin/jetty-sles.sh %{buildroot}/etc/init.d/rudder-jetty
+install -m 644 %{SOURCE2} %{buildroot}/etc/default/rudder-jetty
+install -m 644 %{SOURCE3} %{buildroot}/opt/rudder/etc/rudder-jetty.conf
 
 %pre -n rudder-jetty
 #=================================================
@@ -164,9 +161,9 @@ fi
 if [ $1 -eq 1 ]
 then
 	# Set rudder-agent as service
-	/sbin/chkconfig --add jetty
+	/sbin/chkconfig --add rudder-jetty
 	%if 0%{?rhel} >= 6
-	/sbin/chkconfig jetty on
+	/sbin/chkconfig rudder-jetty on
 	%endif
 fi
 
@@ -182,10 +179,12 @@ rm -rf %{buildroot}
 %files -n rudder-jetty
 %defattr(-, root, root, 0755)
 /opt/rudder/jetty7
+/opt/rudder/etc
 %{rudderlogdir}/webapp
 /var/rudder/run
-/etc/init.d/jetty
-/etc/default/jetty
+/etc/init.d/rudder-jetty
+/etc/default/rudder-jetty
+%config(noreplace) /opt/rudder/etc/rudder-jetty.conf
 
 #=================================================
 # Changelog

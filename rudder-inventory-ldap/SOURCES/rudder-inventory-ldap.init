@@ -9,7 +9,7 @@
 # description: OpenLDAP
 #
 ### BEGIN INIT INFO
-# Provides:          slapd
+# Provides:          rudder-slapd
 # Required-Start:    $remote_fs $syslog
 # Required-Stop:     $remote_fs $syslog
 # Should-Start:      $network $time
@@ -405,7 +405,7 @@ start_slapd() {
 	# Presence of PID file
 	if [ ! -r $SLAPD_PID_FILE ]
 	then
-		message "alert" "[ALERT] no PID file for slapd"
+		message "alert" "[ALERT] no PID file for rudder-slapd"
 		exit 1
 	fi
 
@@ -413,7 +413,7 @@ start_slapd() {
 	PID=`cat $SLAPD_PID_FILE`
 	if [ ! -e /proc/$PID ]
 	then
-		message "alert" "[ALERT] slapd not running"
+		message "alert" "[ALERT] rudder-slapd not running"
 		exit 1
 	else
 		message "info" "[OK] OpenLDAP started on port $PORT and $SSLPORT"
@@ -473,7 +473,7 @@ stop_slapd() {
 	# Presence of PID file
 	if [ ! -r $SLAPD_PID_FILE ]
 	then
-		message "info" "[INFO] can't read PID file, to stop slapd try: $0 forcestop"
+		message "info" "[INFO] can't read PID file, to stop rudder-slapd try: $0 forcestop"
 		return 1
 	else
 		PID=`cat $SLAPD_PID_FILE`
@@ -486,7 +486,7 @@ stop_slapd() {
 			if [ $i -eq $TIMEOUT ]
 			then
 				# Timeout
-				message "alert" "[ALERT] slapd still running (PID $PID), try: $0 forcestop"
+				message "alert" "[ALERT] rudder-slapd still running (PID $PID), try: $0 forcestop"
 				exit 1
 			fi
 			i=`expr $i + 1`
@@ -555,16 +555,16 @@ forcestop() {
 		# Check if any slapd process are running
 		if [ `$PS_COMMAND | grep $SLAPD_BIN | grep "$slapd_services" | grep -v grep | wc -l` -eq 0 ]
 		then
-			message "info" "[INFO] Found no slapd process running with $SLAPD_SERVICES"
+			message "info" "[INFO] Found no rudder-slapd process running with $SLAPD_SERVICES"
 		else
 			# Try a killall
 			/usr/bin/killall -KILL $SLAPD_BIN
 
 			if [ $? -eq 0 ]
 			then
-				message "info" "[OK] all slapd process killed with force"
+				message "info" "[OK] all rudder-slapd process killed with force"
 			else
-				message "alert" "[ALERT] Unable to kill slapd with force"
+				message "alert" "[ALERT] Unable to kill rudder-slapd with force"
 				exit 1
 			fi
 		fi
@@ -574,9 +574,9 @@ forcestop() {
 
 		if [ $? -eq 0 ]
 		then
-			message "info" "[OK] slapd process killed with force (PID $PID)"
+			message "info" "[OK] rudder-slapd process killed with force (PID $PID)"
 		else
-			message "alert" "[ALERT] Unable to kill slapd with force (PID $PID)"
+			message "alert" "[ALERT] Unable to kill rudder-slapd with force (PID $PID)"
 			exit 1
 		fi
 	fi
@@ -651,17 +651,17 @@ display_status() {
 
 	if [ $status -eq 0 ]
 	then
-		message "info" "[INFO] Process slapd is running"
+		message "info" "[INFO] Process rudder-slapd is running"
 	fi
 
 	if [ $status -eq 1 ]
 	then
-		message "info" "[INFO] Process slapd is not running"
+		message "info" "[INFO] Process rudder-slapd is not running"
 	fi
 
 	if [ $status -eq 2 ]
 	then
-		message "info" "[INFO] Unable to determine slapd status"
+		message "info" "[INFO] Unable to determine rudder-slapd status"
 	fi
 
 	# Get detected suffix
@@ -731,7 +731,7 @@ db_recover() {
 
 	if [ $? -ne 1 ]
 	then
-		message "alert" "[ALERT] slapd is running or was not correctly shut down, aborting database recovery"
+		message "alert" "[ALERT] rudder-slapd is running or was not correctly shut down, aborting database recovery"
 		exit 1
 	fi
 
@@ -791,7 +791,7 @@ reindex() {
 
 	if [ $? -ne 1 ]
 	then
-		message "alert" "[ALERT] slapd is running or was not correctly shut down, aborting reindexing"
+		message "alert" "[ALERT] rudder-slapd is running or was not correctly shut down, aborting reindexing"
 		exit 1
 	else
 		# slapindex
@@ -828,7 +828,7 @@ removelogs() {
 
 	if [ $? -ne 1 ]
 	then
-		message "alert" "[ALERT] slapd is running or was not correctly shut down, aborting archiving"
+		message "alert" "[ALERT] rudder-slapd is running or was not correctly shut down, aborting archiving"
 		exit 1
 	fi
 

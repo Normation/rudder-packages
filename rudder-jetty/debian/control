@@ -9,7 +9,6 @@ Homepage: http://www.rudder-project.org
 Package: rudder-jetty
 Architecture: all
 Depends: ${shlibs:Depends}, ${misc:Depends}, sun-java6-jre (>=6) | java7-runtime-headless, rudder-inventory-ldap
-Conflicts: jetty, jetty-hightide-server, jetty-deb
 Description: Configuration management and audit tool - Jetty application server
  Rudder is an open source configuration management and audit solution.
  .
