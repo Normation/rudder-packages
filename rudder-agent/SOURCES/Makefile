@@ -19,7 +19,7 @@
 .DEFAULT_GOAL := localdepends
 
 RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
-CFENGINE_RELEASE = 3.5.2
+CFENGINE_RELEASE = 3.5.3
 FUSION_RELEASE = 2.2.2
 TOKYOCABINET_RELEASE = 1.4.48
 TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX)
@@ -36,10 +36,13 @@ localdepends: ./initial-promises ./files ./fusioninventory-agent ./tokyocabinet-
 	tar xvzf $(TMP_DIR)/cfengine.tgz -C $(TMP_DIR)
 	mv $(TMP_DIR)/cfengine-$(CFENGINE_RELEASE) ./cfengine-source
 	$(PATCH) -d ./cfengine-source -p1 < ./add-support-of-openVZ.patch
-	$(PATCH) -d ./cfengine-source -p1 < ./allow-purging-of-directory-in-copy.patch
-	$(PATCH) -d ./cfengine-source -p1 < ./prevent-cfengine-from-running-cf-promises-always.patch
 	$(PATCH) -d ./cfengine-source -p1 < ./cfengine-report-on-package-removal.patch
 	$(PATCH) -d ./cfengine-source -p1 < ./dont-remove-blank-line-in-templates.patch
+	$(PATCH) -d ./cfengine-source -p1 < ./000-partially-revert-a-change-intended-to-alter-the-log-.patch
+	$(PATCH) -d ./cfengine-source -p1 < ./0001-Tiny-optimization-in-safe_open.patch
+	$(PATCH) -d ./cfengine-source -p1 < ./0002-Fix-failure-to-open-paths-ending-in-a-slash.patch
+	$(PATCH) -d ./cfengine-source -p1 < ./0003-Fix-incorrect-return-value-for-empty-string-in-safe_.patch
+	$(PATCH) -d ./cfengine-source -p1 < ./0004-Make-safe_open-treat-trailing-slashes-like-open.patch
 
 ./tokyocabinet-source: /usr/bin/wget
 	# Original URL: http://fallabs.com/tokyocabinet/tokyocabinet-${TOKYOCABINET_RELEASE}.tar.gz
