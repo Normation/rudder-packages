@@ -1,0 +1,63 @@
+From 63e83158d516bbc14cb8648c721c3720143d5244 Mon Sep 17 00:00:00 2001
+From: Kristian Amlie <kristian.amlie@cfengine.com>
+Date: Tue, 7 Jan 2014 07:54:57 +0100
+Subject: [PATCH] Fix failure to open paths ending in a slash.
+
+Redmine #3905.
+
+(cherry picked from commit 7fc5a0a65ebe0920b881a338b89482656bafeae6)
+---
+ libutils/file_lib.c        |  4 ++++
+ tests/unit/file_lib_test.c | 14 ++++++++++++++
+ 2 files changed, 18 insertions(+)
+
+diff --git a/libutils/file_lib.c b/libutils/file_lib.c
+index 436f3b3..3a664df 100644
+--- a/libutils/file_lib.c
++++ b/libutils/file_lib.c
+@@ -176,6 +176,10 @@ int safe_open(const char *pathname, int flags, ...)
+             *next_component = '\0';
+             // Eliminate double slashes.
+             while (*(++next_component) == '/') { /*noop*/ }
++            if (!*next_component)
++            {
++                next_component = NULL;
++            }
+         }
+ 
+         struct stat stat_before, stat_after;
+diff --git a/tests/unit/file_lib_test.c b/tests/unit/file_lib_test.c
+index 7047fa3..9f85875 100644
+--- a/tests/unit/file_lib_test.c
++++ b/tests/unit/file_lib_test.c
+@@ -548,6 +548,19 @@ static void test_safe_open_root(void)
+     return_to_test_dir();
+ }
+ 
++static void test_safe_open_ending_slashes(void)
++{
++    setup_tempfiles();
++
++    int fd;
++    assert_true((fd = safe_open(TEMP_DIR "/"
++                                TEST_FILE "///", O_RDONLY)) >= 0);
++    check_contents(fd, TEST_STRING);
++    close(fd);
++
++    return_to_test_dir();
++}
++
+ static void test_safe_fopen(void)
+ {
+     setup_tempfiles();
+@@ -1179,6 +1192,7 @@ int main(int argc, char **argv)
+             unit_test(test_safe_open_create_switched_symlink),
+             unit_test(test_safe_open_dangling_symlink),
+             unit_test(test_safe_open_root),
++            unit_test(test_safe_open_ending_slashes),
+ 
+             unit_test(test_safe_fopen),
+ 
+-- 
+1.8.1.5
+

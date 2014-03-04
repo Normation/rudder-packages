@@ -1,0 +1,91 @@
+From 806cb00af851f53da00eb68f127162f0ee1f36ac Mon Sep 17 00:00:00 2001
+From: Kristian Amlie <kristian.amlie@cfengine.com>
+Date: Thu, 23 Jan 2014 10:14:24 +0100
+Subject: [PATCH] Make safe_open() treat trailing slashes like open().
+
+(cherry picked from commit 027257631489a04cce1d77ed66d49893eff68475)
+---
+ libutils/file_lib.c        | 11 +++++++++++
+ tests/unit/file_lib_test.c | 28 +++++++++++++++++++++++++---
+ 2 files changed, 36 insertions(+), 3 deletions(-)
+
+diff --git a/libutils/file_lib.c b/libutils/file_lib.c
+index b50b403..688370a 100644
+--- a/libutils/file_lib.c
++++ b/libutils/file_lib.c
+@@ -177,8 +177,11 @@ int safe_open(const char *pathname, int flags, ...)
+     {
+         char *component = next_component;
+         next_component = strchr(component + 1, '/');
++        // Used to restore the slashes in the final path component.
++        char *restore_slash = NULL;
+         if (next_component)
+         {
++            restore_slash = next_component;
+             *next_component = '\0';
+             // Eliminate double slashes.
+             while (*(++next_component) == '/') { /*noop*/ }
+@@ -186,6 +189,10 @@ int safe_open(const char *pathname, int flags, ...)
+             {
+                 next_component = NULL;
+             }
++            else
++            {
++                restore_slash = NULL;
++            }
+         }
+ 
+         struct stat stat_before, stat_after;
+@@ -214,6 +221,10 @@ int safe_open(const char *pathname, int flags, ...)
+                 // Already exists. Make sure we *don't* create it.
+                 flags &= ~O_CREAT;
+             }
++            if (restore_slash)
++            {
++                *restore_slash = '/';
++            }
+             int filefd = openat(currentfd, component, flags, mode);
+             close(currentfd);
+             if (filefd < 0)
+diff --git a/tests/unit/file_lib_test.c b/tests/unit/file_lib_test.c
+index a187cd0..7a0aeed 100644
+--- a/tests/unit/file_lib_test.c
++++ b/tests/unit/file_lib_test.c
+@@ -553,9 +553,31 @@ static void test_safe_open_ending_slashes(void)
+     setup_tempfiles();
+ 
+     int fd;
+-    assert_true((fd = safe_open(TEMP_DIR "/"
+-                                TEST_FILE "///", O_RDONLY)) >= 0);
+-    check_contents(fd, TEST_STRING);
++    // Whether a regular file with ending slash fails to open is platform dependent,
++    // so should be the same as open().
++    fd = open(TEMP_DIR "/" TEST_FILE "///", O_RDONLY);
++    bool ending_file_slash_ok;
++    if (fd >= 0)
++    {
++        close(fd);
++        ending_file_slash_ok = true;
++    }
++    else
++    {
++        ending_file_slash_ok = false;
++    }
++    fd = safe_open(TEMP_DIR "/" TEST_FILE "///", O_RDONLY);
++    assert_true(ending_file_slash_ok ? (fd >= 0) : (fd < 0));
++    if (fd >= 0)
++    {
++        close(fd);
++    }
++    else
++    {
++        assert_int_equal(errno, ENOTDIR);
++    }
++
++    assert_true((fd = safe_open(TEMP_DIR "/", O_RDONLY)) >= 0);
+     close(fd);
+ 
+     return_to_test_dir();
+-- 
+1.8.1.5
+
