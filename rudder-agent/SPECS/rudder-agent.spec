@@ -187,7 +187,7 @@ cd %{_sourcedir}
 export CFLAGS="$RPM_OPT_FLAGS"
 export CXXFLAGS="$RPM_OPT_FLAGS"
 
-%if %{is_tokyocabinet_here} == "false"
+%if "%{is_tokyocabinet_here}" != "true"
 # Remove all remaining files from temporary build folder before to compile tokyocabinet
 rm -rf %{buildroot}
 # Compile Tokyocabinet library and install it in /opt/rudder/lib
@@ -199,7 +199,7 @@ make install DESTDIR=%{buildroot}
 
 # Prepare CFEngine 3.4.x build
 cd %{_sourcedir}/cfengine-source
-%if %{is_tokyocabinet_here} == "false"
+%if "%{is_tokyocabinet_here}" != "true"
 ## Define path of tokyocabinet if built before instead of being provided by the system.
 %define tokyocabinet_arg "--with-tokyocabinet=%{buildroot}%{rudderdir}"
 %else
@@ -213,7 +213,7 @@ make %{?_smp_mflags}
 # Installation
 #=================================================
 %install
-%if %{is_tokyocabinet_here} == "true"
+%if "%{is_tokyocabinet_here}" == "true"
 # Remove all remaining files from temporary build folder since no actions should
 # have been made before in this directory (if tokyocabinet has not been
 # built).
@@ -261,7 +261,7 @@ install -m 755 %{SOURCE3} %{buildroot}/opt/rudder/bin/run-inventory
 # Install an empty uuid.hive file before generating an uuid
 cp %{SOURCE4} %{buildroot}%{rudderdir}/etc/
 
-%if %{is_tokyocabinet_here} == "false" && 0%{?rhel} != 3
+%if "%{is_tokyocabinet_here}" != "true" && 0%{?rhel} != 3
 # Install /etc/ld.so.conf.d/rudder.conf in order to use libraries
 # contained in /opt/rudder/lib like tokyocabinet
 install -m 644 %{SOURCE6} %{buildroot}/etc/ld.so.conf.d/rudder.conf
@@ -319,7 +319,7 @@ then
 fi
 
 # Reload configuration of ldd if new configuration has been added
-%if %{is_tokyocabinet_here} == "false" && 0%{?rhel} != 3
+%if "%{is_tokyocabinet_here}" != "true" && 0%{?rhel} != 3
 if [ -f /etc/ld.so.conf.d/rudder.conf ]; then
 	ldconfig
 fi
@@ -327,7 +327,7 @@ fi
 
 # Reload configuration of ldd if new configuration has been added,
 # CentOS 3 style.
-%if %{is_tokyocabinet_here} == "false" && 0%{?rhel} == 3
+%if "%{is_tokyocabinet_here}" != "true" && 0%{?rhel} == 3
 if [ ! `grep "/opt/rudder/lib" /etc/ld.so.conf` ]; then
 	echo "/opt/rudder/lib" >> /etc/ld.so.conf
 fi
@@ -508,7 +508,7 @@ rm -rf %{buildroot}
 /etc/cron.d/rudder-agent
 %{ruddervardir}
 %attr(0600, -, -) %dir %{ruddervardir}/cfengine-community/ppkeys
-%if %{is_tokyocabinet_here} == "false" && 0%{?rhel} != 3
+%if "%{is_tokyocabinet_here}" != "true" && 0%{?rhel} != 3
 %config(noreplace) /etc/ld.so.conf.d/rudder.conf
 %endif
 
