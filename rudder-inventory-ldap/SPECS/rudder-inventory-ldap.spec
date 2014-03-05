@@ -53,7 +53,7 @@ Summary: Configuration management and audit tool - OpenLDAP
 Name: %{real_name}
 Version: %{real_version}
 Release: 1%{?dist}
-Epoch: 1299256513
+Epoch: 0
 License: OpenLDAP public license
 URL: http://www.rudder-project.org
 
