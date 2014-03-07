@@ -27,7 +27,7 @@ WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget
 PATCH := /usr/bin/patch
 FIND := /usr/bin/find
 
-localdepends: ./initial-promises ./files ./fusioninventory-agent ./tokyocabinet-source ./cfengine-source ../debian/rudder-agent.init ../debian/rudder-agent.default ./rudder-agent.cron ../debian/rudder-agent.cron.d
+localdepends: ./initial-promises ./detect_os.sh ./files ./fusioninventory-agent ./tokyocabinet-source ./cfengine-source ../debian/rudder-agent.init ../debian/rudder-agent.default ./rudder-agent.cron ../debian/rudder-agent.cron.d
 	rm -rf $(TMP_DIR)
 
 ./cfengine-source: /usr/bin/wget
@@ -60,6 +60,10 @@ localdepends: ./initial-promises ./files ./fusioninventory-agent ./tokyocabinet-
 ./initial-promises: ./rudder-sources
 	rm -rf ./initial-promises/
 	cp -a ./rudder-sources/rudder-techniques/initial-promises/node-server/ ./initial-promises
+
+# Needed for perl-prepare.sh
+./detect_os.sh: ./rudder-sources
+	cp ./rudder-sources/rudder-packages/detect_os.sh ./detect_os.sh
 
 ./fusioninventory-agent: /usr/bin/wget
 	#Original URL: http://search.cpan.org/CPAN/authors/id/F/FU/FUSINV/FusionInventory-Agent-$(FUSION_RELEASE).tar.gz
@@ -138,6 +142,7 @@ localclean:
 	rm -rf ./cfengine-source
 	rm -rf ./tokyocabinet-source
 	rm -rf ./initial-promises
+	rm -rf ./detect_os.sh
 	rm -f ../debian/rudder-agent.init
 	rm -f ../debian/rudder-agent.default
 	rm -rf ./FusionInventory-Agent-$(FUSION_RELEASE)
