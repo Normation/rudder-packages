@@ -89,8 +89,9 @@ buildPerl () {
     cd $BUILDDIR
     gunzip < $FILEDIR/perl-$PERLVERSION.tar.gz | tar xvf -
     cd perl-$PERLVERSION
-    
+
     ./Configure -Dnoextensions=ODBM_File -Duserelocatableinc -Dusethreads -des -Dcc="gcc" -Dinstallprefix=$PERL_PREFIX -Dsiteprefix=$PERL_PREFIX -Dprefix=$PERL_PREFIX
+
     $MAKE
     $MAKE install DESTDIR=$TMP/perl
 
@@ -127,8 +128,8 @@ echo $archive
 gunzip < $archive | tar xvf -
 CPANM=$BUILDDIR/App-cpanminus-1.0004/bin/cpanm
 
-# If we are ona RHEL 3, remove unwanted arguments to wget
-if [ "${OSVERSION}" -eq 3 -a "z${OS}" == "zRHEL" ]; then
+# If we are on RHEL 3, remove unwanted arguments to wget
+if [ "z${OS}" == "zRHEL" -a "${OSVERSION}" -eq 3 ]; then
 	sed -i "s/--retry-connrefused //" $BUILDDIR/App-cpanminus-1.0004/bin/cpanm
 fi
 
@@ -146,11 +147,18 @@ for modName in $MODULES; do
 done
 
 cd $PWD/../../fusioninventory-agent
+
 mkdir -p $TMP/perl$PERL_PREFIX/share/fusion-utils && cp -a share/* $TMP/perl$PERL_PREFIX/share/fusion-utils
+
 PERL_MM_USE_DEFAULT=1 $TMP/perl$PERL_PREFIX/bin/perl Makefile.PL --default PREFIX=$PERL_PREFIX
 $MAKE install DESTDIR=$TMP/perl
 
-cp -a lib/FusionInventory $TMP/perl$PERL_PREFIX/lib/perl5/
+# If we are on AIX, use an alternative cp syntax
+if [ "z${OS}" == "zAIX" ]; then
+	cp -hpPr lib/FusionInventory $TMP/perl$PERL_PREFIX/lib/perl5/
+else
+	cp -a lib/FusionInventory $TMP/perl$PERL_PREFIX/lib/perl5/
+fi
 
 #Restoring PATH
 PATH=$OLD_PATH

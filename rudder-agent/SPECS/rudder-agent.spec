@@ -34,6 +34,7 @@
 %define rudderdir            /opt/rudder
 %define ruddervardir         /var/rudder
 %define rudderlogdir         /var/log/rudder
+
 # is_tokyocabinet_here checks if to build CFEngine we will need to build 
 # Tokyocabinet or if a package already exists on the system.
 # Default value is true in order to handle cases which are not caught below
@@ -145,6 +146,14 @@ Requires: pmtools
 %define is_tokyocabinet_here false
 %endif
 
+%define install_command install
+%define cp_a_command    cp -a
+
+%if "%{?_os}" == "aix"
+%define install_command installbsd
+%define cp_a_command    cp -hpPr
+%endif
+
 # Replaces rudder-cfengine-community since 2.4.0~beta3
 Provides: rudder-cfengine-community
 Obsoletes: rudder-cfengine-community
@@ -182,7 +191,6 @@ FusionInventory.
 cd %{_sourcedir}
 
 %{_sourcedir}/perl-prepare.sh
-
 
 # Ensure an appropriate environment for the compiler
 export CFLAGS="$RPM_OPT_FLAGS"
@@ -243,21 +251,21 @@ mkdir -p %{buildroot}/etc/ld.so.conf.d
 %endif
 
 # Init script
-install -m 755 %{SOURCE1} %{buildroot}/etc/init.d/rudder-agent
-install -m 644 %{SOURCE2} %{buildroot}/etc/default/rudder-agent
+%{install_command} -m 755 %{SOURCE1} %{buildroot}/etc/init.d/rudder-agent
+%{install_command} -m 644 %{SOURCE2} %{buildroot}/etc/default/rudder-agent
 
 # Cron
 mkdir -p %{buildroot}/etc/cron.d
-install -m 644 %{SOURCE5} %{buildroot}/etc/cron.d/rudder-agent
+%{install_command} -m 644 %{SOURCE5} %{buildroot}/etc/cron.d/rudder-agent
 
 # Initial promises
-cp -a %{_sourcedir}/initial-promises %{buildroot}%{rudderdir}/share/
+cp -r %{_sourcedir}/initial-promises %{buildroot}%{rudderdir}/share/
 
 # Fusion
-cp -a %{_sourcedir}/perl-custom/opt/rudder/* %{buildroot}%{rudderdir}
+%{cp_a_command} %{_sourcedir}/perl-custom/opt/rudder/* %{buildroot}%{rudderdir}
 
 # Wrapper script
-install -m 755 %{SOURCE3} %{buildroot}/opt/rudder/bin/run-inventory
+%{install_command} -m 755 %{SOURCE3} %{buildroot}/opt/rudder/bin/run-inventory
 
 # Install an empty uuid.hive file before generating an uuid
 cp %{SOURCE4} %{buildroot}%{rudderdir}/etc/
@@ -265,15 +273,15 @@ cp %{SOURCE4} %{buildroot}%{rudderdir}/etc/
 %if "%{is_tokyocabinet_here}" != "true" && 0%{?rhel} != 3
 # Install /etc/ld.so.conf.d/rudder.conf in order to use libraries
 # contained in /opt/rudder/lib like tokyocabinet
-install -m 644 %{SOURCE6} %{buildroot}/etc/ld.so.conf.d/rudder.conf
+%{install_command} -m 644 %{SOURCE6} %{buildroot}/etc/ld.so.conf.d/rudder.conf
 %endif
 
-install -m 755 %{SOURCE7} %{buildroot}/opt/rudder/bin/check-rudder-agent
+%{install_command} -m 755 %{SOURCE7} %{buildroot}/opt/rudder/bin/check-rudder-agent
 
-install -m 755 %{SOURCE8} %{buildroot}/opt/rudder/bin/vzps.py
+%{install_command} -m 755 %{SOURCE8} %{buildroot}/opt/rudder/bin/vzps.py
 
 # Install a profile script to make cf-* part of the PATH
-install -m 644 %{SOURCE9} %{buildroot}/etc/profile.d/rudder-agent.sh
+%{install_command} -m 644 %{SOURCE9} %{buildroot}/etc/profile.d/rudder-agent.sh
 
 %pre -n rudder-agent
 #=================================================
@@ -284,11 +292,11 @@ install -m 644 %{SOURCE9} %{buildroot}/etc/profile.d/rudder-agent.sh
 if [ $1 -eq 2 ];then
 	# Keep a backup copy of Rudder agent init and cron files to prevent http://www.rudder-project.org/redmine/issues/3995
 	mkdir -p /var/backups/rudder
-	cp -af /etc/init.d/rudder-agent /var/backups/rudder/rudder-agent.init-$(date +%Y%m%d)
+	%{install_command} -m 755 /etc/init.d/rudder-agent /var/backups/rudder/rudder-agent.init-$(date +%Y%m%d)
 	echo "INFO: A back up copy of the /etc/init.d/rudder-agent has been created in /var/backups/rudder"
-	cp -af /etc/default/rudder-agent /var/backups/rudder/rudder-agent.default-$(date +%Y%m%d)
+	%{install_command} -m 644 /etc/default/rudder-agent /var/backups/rudder/rudder-agent.default-$(date +%Y%m%d)
 	echo "INFO: A back up copy of the /etc/default/rudder-agent has been created in /var/backups/rudder"
-	cp -af /etc/cron.d/rudder-agent /var/backups/rudder/rudder-agent.cron-$(date +%Y%m%d)
+	%{install_command} -m 644 /etc/cron.d/rudder-agent /var/backups/rudder/rudder-agent.cron-$(date +%Y%m%d)
 	echo "INFO: A back up copy of the /etc/cron.d/rudder-agent has been created in /var/backups/rudder"
 fi
 
@@ -365,7 +373,7 @@ fi
 if [ ${CFRUDDER_FIRST_INSTALL} -ne 1 -a -x /etc/init.d/rudder-agent ]; then /sbin/service rudder-agent stop; fi
 
 # Copy CFEngine binaries
-cp -a -f /opt/rudder/bin/cf-* /var/rudder/cfengine-community/bin/
+%{cp_a_command} -f /opt/rudder/bin/cf-* /var/rudder/cfengine-community/bin/
 NB_COPIED_BINARIES=`ls -1 /var/rudder/cfengine-community/bin/ | wc -l`
 if [ ${NB_COPIED_BINARIES} -gt 0 ];then echo "CFEngine binaries copied to workdir"; fi
 
@@ -462,7 +470,7 @@ cp -f /opt/rudder/etc/uuid.hive /var/backups/rudder/uuid-$(date +%Y%m%d).hive
 echo "INFO: A back up copy of the /opt/rudder/etc/uuid.hive has been created in /var/backups/rudder"
 
 # Keep a backup copy of CFEngine ppkeys
-cp -af /var/rudder/cfengine-community/ppkeys/ /var/backups/rudder/ppkeys-$(date +%Y%m%d)
+%{cp_a_command} -f /var/rudder/cfengine-community/ppkeys/ /var/backups/rudder/ppkeys-$(date +%Y%m%d)
 echo "INFO: A back up copy of the /var/rudder/cfengine-community/ppkeys has been created in /var/backups/rudder"
 
 
