@@ -5,7 +5,7 @@
 #==============================================
 #
 ### BEGIN INIT INFO
-# Provides:			rudder
+# Provides:		rudder
 # Required-Start:	$local_fs $remote_fs $network $syslog
 # Required-Stop:	$local_fs $remote_fs $network $syslog
 # Default-Start:	2 3 4 5
@@ -31,40 +31,47 @@
 #====================================================================
 
 # Variables
+
+## Init scripts
 APACHE2_INIT=/etc/init.d/apache2
 if [ ! -x ${APACHE2_INIT} ] && [ -x /etc/init.d/httpd ]; then
 	APACHE2_INIT=/etc/init.d/httpd
 fi
-POSTGRESQL_PID_FILE=`find /var/lib -iname postmaster.pid`
 SLAPD_INIT=/etc/init.d/rudder-slapd
+JETTY_INIT=/etc/init.d/rudder-jetty
+RUDDER_AGENT_INIT=/etc/init.d/rudder-agent
+POSTGRESQL_INIT=/etc/init.d/postgresql
+
+## PID files
+POSTGRESQL_PID_FILE=`find /var/lib -iname postmaster.pid`
 
 # Functions
 start_services()
 {
 ${SLAPD_INIT} start
-/etc/init.d/postgresql* start
-/etc/init.d/rudder-agent start
+${POSTGRESQL_INIT}* start
+${RUDDER_AGENT_INIT} start
 ${APACHE2_INIT} start
-/etc/init.d/jetty start
+${JETTY_INIT} start
 }
 
 stop_services()
 {
 ${APACHE2_INIT} stop
-/etc/init.d/jetty stop
-/etc/init.d/rudder-agent stop
-/etc/init.d/postgresql* stop
+${JETTY_INIT} stop
+${RUDDER_AGENT_INIT} stop
+${POSTGRESQL_INIT}* stop
 ${SLAPD_INIT} stop
 }
 
 status_services()
 {
 ${APACHE2_INIT} status
-/etc/init.d/jetty check | tail -1
-/etc/init.d/rudder-agent status
+${JETTY_INIT} check | tail -1
+${RUDDER_AGENT_INIT} status
 # Add PostgreSQL PID to the output
 echo -n "postgres[`head -1 ${POSTGRESQL_PID_FILE}`]: "
-/etc/init.d/postgresql* status
+${POSTGRESQL_INIT}* status
 ${SLAPD_INIT} status
 }
 
