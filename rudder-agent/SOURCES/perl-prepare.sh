@@ -32,7 +32,7 @@ if [ ! -f 'perl-prepare.sh' ]; then
     fi
 fi
 
-source ../../../scripts/detect_os.sh
+. detect_os.sh
 
 ROOT="$PWD/.."
 MAKE="make"

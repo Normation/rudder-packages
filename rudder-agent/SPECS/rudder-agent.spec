@@ -63,6 +63,7 @@ Source6: rudder.conf
 Source7: check-rudder-agent
 Source8: vzps.py
 Source9: rudder-agent.sh
+Source10: detect_os.sh
 
 # We have PERL things in here. Do not try to outsmart me by adding dummy dependencies, you silly tool.
 AutoReq: 0
