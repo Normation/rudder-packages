@@ -38,7 +38,7 @@ Summary: NCF - CFEngine framework
 Name: %{real_name}
 Version: %{real_version}
 Release: 1%{?dist}
-Epoch: 1299256513
+Epoch: 0
 License: GPLv3
 URL: http://www.ncf-project.org
 

@@ -45,7 +45,7 @@ Summary: Configuration management and audit tool - Jetty application server
 Name: %{real_name}
 Version: %{real_version}
 Release: 1%{?dist}
-Epoch: 1299256513
+Epoch: 0
 License: APLv2.0
 URL: http://www.rudder-project.org
 
