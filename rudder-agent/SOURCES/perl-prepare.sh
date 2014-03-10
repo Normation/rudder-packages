@@ -129,7 +129,7 @@ gunzip < $archive | tar xvf -
 CPANM=$BUILDDIR/App-cpanminus-1.0004/bin/cpanm
 
 # If we are on RHEL 3, remove unwanted arguments to wget
-if [ "z${OS}" == "zRHEL" -a "${OSVERSION}" -eq 3 ]; then
+if [ "z${OS}" == "zRHEL" -a "z${OSVERSION}" == "z3" ]; then
 	sed -i "s/--retry-connrefused //" $BUILDDIR/App-cpanminus-1.0004/bin/cpanm
 fi
 
