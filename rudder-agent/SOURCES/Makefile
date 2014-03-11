@@ -23,7 +23,7 @@ CFENGINE_RELEASE = 3.5.3
 FUSION_RELEASE = 2.2.2
 TOKYOCABINET_RELEASE = 1.4.48
 TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX)
-WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget
+WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget -q
 PATCH := /usr/bin/patch
 FIND := /usr/bin/find
 
@@ -33,7 +33,7 @@ localdepends: ./initial-promises ./detect_os.sh ./files ./fusioninventory-agent 
 ./cfengine-source: /usr/bin/wget
 	# Original URL: http://cfengine.com/source-code/download?file=cfengine-$(CFENGINE_RELEASE).tar.gz
 	$(WGET) -O $(TMP_DIR)/cfengine.tgz http://www.normation.com/tarball/cfengine-$(CFENGINE_RELEASE).tar.gz
-	tar xvzf $(TMP_DIR)/cfengine.tgz -C $(TMP_DIR)
+	tar xzf $(TMP_DIR)/cfengine.tgz -C $(TMP_DIR)
 	mv $(TMP_DIR)/cfengine-$(CFENGINE_RELEASE) ./cfengine-source
 	$(PATCH) -d ./cfengine-source -p1 < ./add-support-of-openVZ.patch
 	$(PATCH) -d ./cfengine-source -p1 < ./cfengine-report-on-package-removal.patch
@@ -47,7 +47,7 @@ localdepends: ./initial-promises ./detect_os.sh ./files ./fusioninventory-agent 
 ./tokyocabinet-source: /usr/bin/wget
 	# Original URL: http://fallabs.com/tokyocabinet/tokyocabinet-${TOKYOCABINET_RELEASE}.tar.gz
 	$(WGET) -O $(TMP_DIR)/tokyocabinet.tgz http://www.normation.com/tarball/tokyocabinet-${TOKYOCABINET_RELEASE}.tar.gz
-	tar xvzf $(TMP_DIR)/tokyocabinet.tgz -C $(TMP_DIR)
+	tar xzf $(TMP_DIR)/tokyocabinet.tgz -C $(TMP_DIR)
 	mv $(TMP_DIR)/tokyocabinet-$(TOKYOCABINET_RELEASE) ./tokyocabinet-source
 
 ./rudder-sources.tar.bz2:
@@ -68,7 +68,7 @@ localdepends: ./initial-promises ./detect_os.sh ./files ./fusioninventory-agent 
 ./fusioninventory-agent: /usr/bin/wget
 	#Original URL: http://search.cpan.org/CPAN/authors/id/F/FU/FUSINV/FusionInventory-Agent-$(FUSION_RELEASE).tar.gz
 	$(WGET) -O $(TMP_DIR)/fusion.tgz http://www.normation.com/tarball/FusionInventory-Agent-$(FUSION_RELEASE).tar.gz
-	tar zvxf $(TMP_DIR)/fusion.tgz -C $(TMP_DIR)
+	tar zxf $(TMP_DIR)/fusion.tgz -C $(TMP_DIR)
 	mv $(TMP_DIR)/FusionInventory-Agent-$(FUSION_RELEASE) ./fusioninventory-agent
 	$(PATCH) -d ./fusioninventory-agent -p1 < ./SuSE_service_pack.patch
 	$(PATCH) -d ./fusioninventory-agent -p1 < ./Correct_detection_of_RedHat.patch

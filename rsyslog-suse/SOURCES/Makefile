@@ -19,7 +19,7 @@
 .DEFAULT_GOAL := localdepends
 
 TMP_DIR := $(shell mktemp -dq)
-WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget
+WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget -q
 
 localdepends: 
 

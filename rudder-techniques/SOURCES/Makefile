@@ -20,6 +20,8 @@
 
 RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
 
+WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget -q
+
 localdepends: ./rudder-sources
 
 ./rudder-sources.tar.bz2:

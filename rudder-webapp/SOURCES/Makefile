@@ -17,7 +17,7 @@
 #####################################################################################
 
 MAVEN_RELEASE = 3.0.4
-WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget
+WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget -q
 
 .DEFAULT_GOAL := localdepends
 
@@ -34,7 +34,7 @@ localdepends: ./rudder-sources ./maven2/bin/mvn ./rudder-users.xml ./rudder-doc 
 	$(WGET) -O ./maven.tgz http://www.normation.com/tarball/apache-maven-$(MAVEN_RELEASE)-bin.tar.gz
 
 ./maven2/bin/mvn: ./maven.tgz
-	tar -xvzf ./maven.tgz -C .
+	tar -xzf ./maven.tgz -C .
 	rm -rf ./maven2
 	mv ./apache-maven-$(MAVEN_RELEASE) ./maven2
 
