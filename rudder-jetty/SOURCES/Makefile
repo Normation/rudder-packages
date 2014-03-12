@@ -18,8 +18,8 @@
 
 .DEFAULT_GOAL := localdepends
 
-JETTY_RELEASE = 7.2.2
-DATE_RELEASE = 20101205
+JETTY_RELEASE = 7.6.14
+DATE_RELEASE = 20131031
 TMP_DIR := $(shell mktemp -dq)
 WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget
 
