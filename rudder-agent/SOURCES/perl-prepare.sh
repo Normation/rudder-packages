@@ -49,6 +49,13 @@ NO_CLEANUP=0
 OLD_PATH=$PATH
 NO_PERL_REBUILD=0
 
+# If we are on AIX, use an alternative cp syntax
+if [ "z${OS}" == "zAIX" ]; then
+	CP_A="cp -hpPr"
+else
+	CP_A="cp -a"
+fi
+
 buildDmidecode () {
     cd $TMP
     gunzip < $FILEDIR/dmidecode-$DMIDECODE_VERSION.tar.gz | tar xvf -
@@ -148,17 +155,12 @@ done
 
 cd $PWD/../../fusioninventory-agent
 
-mkdir -p $TMP/perl$PERL_PREFIX/share/fusion-utils && cp -a share/* $TMP/perl$PERL_PREFIX/share/fusion-utils
+mkdir -p $TMP/perl$PERL_PREFIX/share/fusion-utils && ${CP_A} share/* $TMP/perl$PERL_PREFIX/share/fusion-utils
 
 PERL_MM_USE_DEFAULT=1 $TMP/perl$PERL_PREFIX/bin/perl Makefile.PL --default PREFIX=$PERL_PREFIX
 $MAKE install DESTDIR=$TMP/perl
 
-# If we are on AIX, use an alternative cp syntax
-if [ "z${OS}" == "zAIX" ]; then
-	cp -hpPr lib/FusionInventory $TMP/perl$PERL_PREFIX/lib/perl5/
-else
-	cp -a lib/FusionInventory $TMP/perl$PERL_PREFIX/lib/perl5/
-fi
+${CP_A} lib/FusionInventory $TMP/perl$PERL_PREFIX/lib/perl5/
 
 #Restoring PATH
 PATH=$OLD_PATH
