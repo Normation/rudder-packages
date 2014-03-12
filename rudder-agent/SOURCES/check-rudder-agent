@@ -28,6 +28,13 @@ CFE_DIR=/var/rudder/cfengine-community
 CFE_BIN_DIR=${CFE_DIR}/bin
 CFE_DISABLE_FILE=/opt/rudder/etc/disable-agent
 
+# If we are on AIX, use an alternative cp syntax
+if [ "z$(uname -s)" == "zAIX" ]; then
+  CP_A="cp -hpPr"
+else
+  CP_A="cp -a"
+fi
+
 # Detect the correct ps tool to use
 # Supported tools are ps, vzps, and the rudder supplied vzps.py
 PS=ps
@@ -98,7 +105,7 @@ if [ ! -e ${UUID_FILE} ]; then
   fi
   if [ -f ${LATEST_BACKUPED_UUID} ]; then
     echo -n "WARNING: The UUID of the node does not exist. The lastest backup (${LATEST_BACKUPED_UUID}) will be recovered..."
-    cp -a ${LATEST_BACKUPED_UUID} ${UUID_FILE} >/dev/null 2>&1
+    ${CP_A} ${LATEST_BACKUPED_UUID} ${UUID_FILE} >/dev/null 2>&1
     echo " Done"
   else
     echo -n "WARNING: The UUID of the node does not exist and no backup exist. A new one will be generated..."
@@ -134,7 +141,7 @@ if [ ! -e ${FILE_TO_RESTORE} ]; then
   fi
   if [ -f ${LATEST_BACKUPED_FILES} ]; then
     echo -n "WARNING: The file ${FILE_TO_RESTORE} does not exist. The lastest backup (${LATEST_BACKUPED_FILES}) will be recovered..."
-    cp -a ${LATEST_BACKUPED_FILES} ${FILE_TO_RESTORE} >/dev/null 2>&1
+    ${CP_A} ${LATEST_BACKUPED_FILES} ${FILE_TO_RESTORE} >/dev/null 2>&1
     echo " Done"
   else
     echo "WARNING: The file ${FILE_TO_RESTORE} does not exist and no backup exist. Please reinstall the rudder-agent package"
