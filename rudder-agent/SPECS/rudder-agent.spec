@@ -152,6 +152,7 @@ Requires: pmtools
 %if "%{?_os}" == "aix"
 %define install_command installbsd
 %define cp_a_command    cp -hpPr
+%define is_tokyocabinet_here false
 %endif
 
 # Replaces rudder-cfengine-community since 2.4.0~beta3
