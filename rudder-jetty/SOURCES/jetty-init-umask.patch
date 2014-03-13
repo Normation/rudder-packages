@@ -1,29 +1,24 @@
---- jetty7/bin/jetty.sh	2012-07-02 11:17:27.318484236 +0200
-+++ jetty7/bin/jetty.sh	2012-07-02 11:17:51.146483797 +0200
-@@ -422,6 +422,8 @@
+--- jetty7/bin/jetty.sh.orig	2014-03-13 00:55:51.261843139 +0100
++++ jetty7/bin/jetty.sh	2014-03-13 00:56:57.505715067 +0100
+@@ -431,6 +431,8 @@
  ##################################################
  case "$ACTION" in
    start)
-+    UMASK="0027" 
-+    echo "Setting umask to ${UMASK}" 
++    UMASK="0027"
++    echo "Setting umask to ${UMASK}"
      echo -n "Starting Jetty: "
  
      if (( NO_START )); then 
-@@ -436,7 +438,7 @@
-       then
+@@ -446,10 +448,11 @@
          CH_USER="-c$JETTY_USER"
        fi
--      if start-stop-daemon -S -p"$JETTY_PID" $CH_USER -d"$JETTY_HOME" -b -m -a "$JAVA" -- "${RUN_ARGS[@]}" --daemon
-+      if start-stop-daemon -k ${UMASK} -S -p"$JETTY_PID" $CH_USER -d"$JETTY_HOME" -b -m -a "$JAVA" -- "${RUN_ARGS[@]}" --daemon
-       then
-         sleep 1
-         if running "$JETTY_PID"
-@@ -448,7 +450,7 @@
-       fi
+ 
+-      start-stop-daemon -S -p"$JETTY_PID" $CH_USER -d"$JETTY_HOME" -b -m -a "$JAVA" -- "${RUN_ARGS[@]}" --daemon
++      start-stop-daemon -k ${UMASK} -S -p"$JETTY_PID" $CH_USER -d"$JETTY_HOME" -b -m -a "$JAVA" -- "${RUN_ARGS[@]}" --daemon
  
      else
--
-+      umask ${UMASK}  
+ 
++      umask ${UMASK}
        if [ -f "$JETTY_PID" ]
        then
          if running $JETTY_PID

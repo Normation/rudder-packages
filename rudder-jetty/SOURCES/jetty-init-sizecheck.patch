@@ -1,10 +1,9 @@
---- jetty7/bin/jetty.sh	2013-08-29 11:11:06.359931946 +0200
-+++ jetty7/bin/jetty.sh	2013-08-29 11:15:57.979928668 +0200
-@@ -115,7 +115,20 @@
+--- jetty7/bin/jetty.sh.orig	2014-03-13 01:12:07.659327820 +0100
++++ jetty7/bin/jetty.sh	2014-03-13 01:10:00.507714504 +0100
+@@ -134,6 +134,18 @@
    source "$1"
  }
  
--
 +# Gets the memory size (Xmx+MaxPermSize) needed by Java megabytes as argument.
 +# Checks if there is enough available RAM + Swap to contain the JVM.
 +checkAvailableRam()
@@ -13,17 +12,15 @@
 +  # margin (leave some memory for the OS)
 +  TOTAL_MEM_NEEDED=$((((${1})*100)/90))
 +  TOTAL_MEM_AVAILABLE=$(($(free -m|awk '/^Mem:/{print $2}')+$(free -m|awk '/^Swap:/{print $2}')))
-+  if [ ${TOTAL_MEM_AVAILABLE} -gt ${TOTAL_MEM_NEEDED} ]; then
-+    echo "INFO: There is enough memory to start Jetty."
-+  else
++  if [ ${TOTAL_MEM_AVAILABLE} -le ${TOTAL_MEM_NEEDED} ]; then
 +    echo "WARNING: Not enough free memory to start Jetty (about ${TOTAL_MEM_NEEDED}MB are needed). Trying anyway, but the application is likely to fail."
 +  fi
 +}
  
+ 
  ##################################################
- # Get the action & configs
-@@ -319,6 +332,13 @@
- fi
+@@ -351,6 +363,13 @@
+ rm -f $JETTY_STATE
  
  ##################################################
 +# Set default JVM parameters, to be
@@ -36,37 +33,19 @@
  # Setup JAVA if unset
  ##################################################
  if [ -z "$JAVA" ]
-@@ -383,15 +403,17 @@
- #####################################################
- if (( DEBUG ))
- then
--  echo "JETTY_HOME     =  $JETTY_HOME"
--  echo "JETTY_CONF     =  $JETTY_CONF"
--  echo "JETTY_RUN      =  $JETTY_RUN"
--  echo "JETTY_PID      =  $JETTY_PID"
--  echo "JETTY_ARGS     =  $JETTY_ARGS"
--  echo "CONFIGS        =  ${CONFIGS[*]}"
--  echo "JAVA_OPTIONS   =  ${JAVA_OPTIONS[*]}"
--  echo "JAVA           =  $JAVA"
--  echo "RUN_CMD        =  ${RUN_CMD}"
-+  echo "JETTY_HOME       =  $JETTY_HOME"
-+  echo "JETTY_CONF       =  $JETTY_CONF"
-+  echo "JETTY_RUN        =  $JETTY_RUN"
-+  echo "JETTY_PID        =  $JETTY_PID"
-+  echo "JETTY_ARGS       =  $JETTY_ARGS"
-+  echo "CONFIGS          =  ${CONFIGS[*]}"
-+  echo "JAVA_XMX         =  ${JAVA_XMX}"
+@@ -421,6 +440,8 @@
+   echo "JETTY_PID      =  $JETTY_PID"
+   echo "JETTY_ARGS     =  $JETTY_ARGS"
+   echo "CONFIGS        =  ${CONFIGS[*]}"
++  echo "JAVA_XMX       =  ${JAVA_XMX}"
 +  echo "JAVA_MAXPERMSIZE =  ${JAVA_MAXPERMSIZE}"
-+  echo "JAVA_OPTIONS     =  ${JAVA_OPTIONS[*]}"
-+  echo "JAVA             =  $JAVA"
-+  echo "RUN_CMD          =  ${RUN_CMD}"
- fi
- 
- #####################################################
-@@ -424,6 +446,10 @@
+   echo "JAVA_OPTIONS   =  ${JAVA_OPTIONS[*]}"
+   echo "JAVA           =  $JAVA"
+   echo "RUN_CMD        =  ${RUN_CMD}"
+@@ -433,6 +454,10 @@
    start)
-     UMASK="0027" 
-     echo "Setting umask to ${UMASK}" 
+     UMASK="0027"
+     echo "Setting umask to ${UMASK}"
 +
 +    # Checking if enough RAM is available for Jetty to use
 +    checkAvailableRam $((${JAVA_XMX}+${JAVA_MAXPERMSIZE}))
@@ -74,36 +53,12 @@
      echo -n "Starting Jetty: "
  
      if (( NO_START )); then 
-@@ -571,18 +597,20 @@
- 
-   check)
-     echo "Checking arguments to Jetty: "
--    echo "JETTY_HOME     =  $JETTY_HOME"
--    echo "JETTY_CONF     =  $JETTY_CONF"
--    echo "JETTY_RUN      =  $JETTY_RUN"
--    echo "JETTY_PID      =  $JETTY_PID"
--    echo "JETTY_PORT     =  $JETTY_PORT"
--    echo "JETTY_LOGS     =  $JETTY_LOGS"
--    echo "START_INI      =  $START_INI"
--    echo "CONFIGS        =  ${CONFIGS[*]}"
--    echo "JAVA_OPTIONS   =  ${JAVA_OPTIONS[*]}"
--    echo "JAVA           =  $JAVA"
--    echo "CLASSPATH      =  $CLASSPATH"
--    echo "RUN_CMD        =  ${RUN_CMD[*]}"
-+    echo "JETTY_HOME       =  $JETTY_HOME"
-+    echo "JETTY_CONF       =  $JETTY_CONF"
-+    echo "JETTY_RUN        =  $JETTY_RUN"
-+    echo "JETTY_PID        =  $JETTY_PID"
-+    echo "JETTY_PORT       =  $JETTY_PORT"
-+    echo "JETTY_LOGS       =  $JETTY_LOGS"
-+    echo "START_INI        =  $START_INI"
-+    echo "CONFIGS          =  ${CONFIGS[*]}"
-+    echo "JAVA_XMX         =  ${JAVA_XMX}"
+@@ -583,6 +608,8 @@
+     echo "JETTY_LOGS     =  $JETTY_LOGS"
+     echo "START_INI      =  $START_INI"
+     echo "CONFIGS        =  ${CONFIGS[*]}"
++    echo "JAVA_XMX       =  ${JAVA_XMX}"
 +    echo "JAVA_MAXPERMSIZE =  ${JAVA_MAXPERMSIZE}"
-+    echo "JAVA_OPTIONS     =  ${JAVA_OPTIONS[*]}"
-+    echo "JAVA             =  $JAVA"
-+    echo "CLASSPATH        =  $CLASSPATH"
-+    echo "RUN_CMD          =  ${RUN_CMD[*]}"
-     echo
-     
-     if [ -f "$JETTY_RUN/jetty.pid" ]
+     echo "JAVA_OPTIONS   =  ${JAVA_OPTIONS[*]}"
+     echo "JAVA           =  $JAVA"
+     echo "CLASSPATH      =  $CLASSPATH"
