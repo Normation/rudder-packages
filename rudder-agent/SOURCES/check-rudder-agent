@@ -49,7 +49,7 @@ if [ ! -e ${UUID_FILE} ]; then
   if [ -d ${BACKUP_DIR} ]; then
     LATEST_BACKUPED_UUID=$(ls -v1 ${BACKUP_DIR}uuid-*.hive | tail -n1)
   fi
-  if [ -f ${LATEST_BACKUPED_UUID} ]; then
+  if [ "z${LATEST_BACKUPED_UUID}" != "z" ]; then
     echo -n "WARNING: The UUID of the node does not exist. The lastest backup (${LATEST_BACKUPED_UUID}) will be recovered..."
     cp -a ${LATEST_BACKUPED_UUID} ${UUID_FILE} >/dev/null 2>&1
     echo " Done"
@@ -85,7 +85,7 @@ if [ ! -e ${FILE_TO_RESTORE} ]; then
   if [ -d ${BACKUP_DIR} ]; then
     LATEST_BACKUPED_FILES=$(ls -v1 ${BACKUP_DIR}rudder-agent.${FILE_TYPE}-* | tail -n1)
   fi
-  if [ -f ${LATEST_BACKUPED_FILES} ]; then
+  if [ "z${LATEST_BACKUPED_FILES}" != "z" ]; then
     echo -n "WARNING: The file ${FILE_TO_RESTORE} does not exist. The lastest backup (${LATEST_BACKUPED_FILES}) will be recovered..."
     cp -a ${LATEST_BACKUPED_FILES} ${FILE_TO_RESTORE} >/dev/null 2>&1
     echo " Done"
