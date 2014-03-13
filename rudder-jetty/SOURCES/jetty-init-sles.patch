@@ -1,22 +1,20 @@
---- jetty7/bin/jetty-sles.sh 2010-12-06 19:26:42.000000000 +0100
-+++ jetty7/bin/jetty-sles.sh 2011-07-27 17:39:27.866582165 +0200
-@@ -443,7 +443,8 @@
+--- jetty7/bin/jetty.sh.orig	2014-03-13 14:05:22.080605960 +0100
++++ jetty7/bin/jetty.sh	2014-03-13 14:06:07.388526581 +0100
+@@ -464,7 +464,7 @@
        exit
      fi
  
--    if type start-stop-daemon > /dev/null 2>&1 
-+    #if type start-stop-daemon > /dev/null 2>&1 
-+	if [ "$START_STOP_DAEMON" = "1" ] && type start-stop-daemon > /dev/null 2>&1
+-    if [ $UID -eq 0 ] && type start-stop-daemon > /dev/null 2>&1 
++    if [ "$START_STOP_DAEMON" = "1" ] && [ $UID -eq 0 ] && type start-stop-daemon > /dev/null 2>&1 
      then
        unset CH_USER
        if [ -n "$JETTY_USER" ]
-@@ -497,7 +498,8 @@
+@@ -521,7 +521,7 @@
  
    stop)
      echo -n "Stopping Jetty: "
--    if type start-stop-daemon > /dev/null 2>&1; then
-+    #if type start-stop-daemon > /dev/null 2>&1; then
-+	if [ "$START_STOP_DAEMON" = "1" ] && type start-stop-daemon > /dev/null 2>&1; then
+-    if [ $UID -eq 0 ] && type start-stop-daemon > /dev/null 2>&1; then
++    if [ "$START_STOP_DAEMON" = "1" ] && [ $UID -eq 0 ] && type start-stop-daemon > /dev/null 2>&1; then
        start-stop-daemon -K -p"$JETTY_PID" -d"$JETTY_HOME" -a "$JAVA" -s HUP
        
        TIMEOUT=30
