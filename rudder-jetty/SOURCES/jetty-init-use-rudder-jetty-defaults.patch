@@ -1,27 +1,18 @@
---- jetty7/bin/jetty.sh	2014-02-25 14:30:19.343794595 +0100
-+++ jetty7/bin/jetty.sh	2014-02-25 14:50:45.732183652 +0100
-@@ -11,7 +11,7 @@
+--- jetty7/bin/jetty.sh.orig	2014-03-13 01:14:20.518910880 +0100
++++ jetty7/bin/jetty.sh	2014-03-13 01:15:31.630682858 +0100
+@@ -173,11 +173,10 @@
+   ETC=$HOME/etc
+ fi
  
- # Configuration files
- #
--# /etc/default/jetty
-+# /etc/default/rudder-jetty
- #   If it exists, this is read at the start of script. It may perform any 
- #   sequence of shell commands, like setting relevant environment variables.
- #
-@@ -149,12 +149,9 @@
- ##################################################
- # Read any configuration files
- ##################################################
--for CONFIG in /etc/default/jetty{,7} $HOME/.jettyrc; do
+-for CONFIG in $ETC/default/jetty{,7} $HOME/.jettyrc; do
 -  if [ -f "$CONFIG" ] ; then 
 -    readConfig "$CONFIG"
 -  fi
 -done
--
-+if [ -f "/etc/default/rudder-jetty" ] ; then 
-+  readConfig "/etc/default/rudder-jetty"
++CONFIG=/etc/default/rudder-jetty
++if [ -f "$CONFIG" ] ; then 
++  readConfig "$CONFIG"
 +fi
  
+ 
  ##################################################
- # Set tmp if not already set.
