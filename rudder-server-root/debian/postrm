@@ -20,12 +20,12 @@ set -e
 
 
 case "$1" in
-    purge|remove|upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
-		if dpkg-maintscript-helper supports mv_conffile 2>/dev/null; then
-			dpkg-maintscript-helper mv_conffile /etc/logrotate.d/rudder-server-root /etc/logrotate.d/rudder -- "$@"
-		fi
+    remove|upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
     ;;
-
+    purge)
+        # Clean up all logrotate leftovers
+        rm -rf /etc/logrotate.d/rudder*
+    ;;
     *)
         echo "postrm called with unknown argument \`$1'" >&2
         exit 1
