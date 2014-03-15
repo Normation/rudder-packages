@@ -104,6 +104,16 @@ case "$1" in
 		invoke-rc.d rudder-slapd restart >/dev/null 2>&1
 		echo " Done"
 
+		# Check if Rudder LDAP has already been initialize previously
+		LDAPCHK=`/opt/rudder/sbin/slapcat  | grep "^dn: " | wc -l`
+		if [ $LDAPCHK -eq 0 ]; then
+			echo "**************************************************************"
+			echo "Rudder LDAP service is now installed but not configured."
+			echo "Please run /opt/rudder/bin/rudder-ldap-init.sh if this"
+			echo "is a standalone LDAP service or /opt/rudder/bin/rudder-init.sh"
+			echo "if this is a full rudder-server-root installation"
+			echo "**************************************************************"
+		fi
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
