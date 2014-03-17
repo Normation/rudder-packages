@@ -239,12 +239,12 @@ echo " done."
 echo -n "Restarting services..."
 
 # Launch manually a single cf-agent instance to set passwords everywhere
-/opt/rudder/bin/cf-agent &> $TMP_LOG
+/opt/rudder/bin/cf-agent -b root_password_check_file,root_password_check_ldap,root_password_check_psql,root_password_check_dav &> $TMP_LOG
 
 # Start the whole infrastructure
-/etc/init.d/rudder-agent restart >> $TMP_LOG 2&>1
 if [ -e $LDAPDATA_PATH ]; then /etc/init.d/slapd start >> $TMP_LOG 2&>1; fi
 /etc/init.d/jetty restart >> $TMP_LOG 2&>1 || echo "WARNING: Jetty failed to start, maybe there is not enough RAM or swap on the machine. Skipping..."
+/etc/init.d/rudder-agent restart >> $TMP_LOG 2&>1
 echo " done."
 
 echo
