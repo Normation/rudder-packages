@@ -132,7 +132,6 @@ mkdir -p %{buildroot}/var/rudder/run
 cd %{_topdir}/SOURCES
 
 cp -a jetty7 %{buildroot}/opt/rudder
-# tar zvxf jetty7.tgz -C %{buildroot}/opt/rudder
 
 # Init script
 mkdir -p %{buildroot}/etc/init.d

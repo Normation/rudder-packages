@@ -103,13 +103,6 @@ rudder-agent package installed) and for configuration rules and parameters.
 #=================================================
 %prep
 
-# rm -rf source rudder inputs
-# wget -O openldap.tar.gz ftp://ftp.openldap.org/pub/OpenLDAP/openldap-release/openldap-%{openldap_release}.tgz
-# gzip -dc openldap.tar.gz | tar -xvvf -
-# mv openldap-%{openldap_release} source
-# git clone --depth 1 ssh://git@git.normation.com:5190/rudder.git
-# cd rudder && git checkout %{GIT_BRANCH_RUDDER}
-
 cp -rf %{_sourcedir}/openldap-source %{_builddir}
 
 #=================================================

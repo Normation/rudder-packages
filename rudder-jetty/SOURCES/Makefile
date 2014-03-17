@@ -21,7 +21,7 @@
 JETTY_RELEASE = 7.6.14
 DATE_RELEASE = 20131031
 TMP_DIR := $(shell mktemp -dq)
-WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget
+WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget -q
 
 localdepends: ./jetty7
 
@@ -29,7 +29,7 @@ localdepends: ./jetty7
 	# Download and uncompress the Jetty distribution
 	# Original URL: http://dist.codehaus.org/jetty/jetty-hightide-$(JETTY_RELEASE)/jetty-hightide-$(JETTY_RELEASE).v$(DATE_RELEASE).tar.gz
 	$(WGET) -O $(TMP_DIR)/jetty.tgz http://www.normation.com/tarball/jetty-hightide-$(JETTY_RELEASE).v$(DATE_RELEASE).tar.gz
-	tar xvzf $(TMP_DIR)/jetty.tgz -C $(TMP_DIR)
+	tar xzf $(TMP_DIR)/jetty.tgz -C $(TMP_DIR)
 	mv $(TMP_DIR)/jetty-hightide-$(JETTY_RELEASE).v$(DATE_RELEASE) ./jetty7
 	rm -rf $(TMP_DIR)
 

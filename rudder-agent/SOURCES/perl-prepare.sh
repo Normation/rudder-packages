@@ -58,7 +58,7 @@ fi
 
 buildDmidecode () {
     cd $TMP
-    gunzip < $FILEDIR/dmidecode-$DMIDECODE_VERSION.tar.gz | tar xvf -
+    gunzip < $FILEDIR/dmidecode-$DMIDECODE_VERSION.tar.gz | tar xf -
     cd dmidecode-$DMIDECODE_VERSION
     $MAKE
     cp dmidecode $PERL_PREFIX/bin
@@ -94,7 +94,7 @@ buildPerl () {
     fi
 
     cd $BUILDDIR
-    gunzip < $FILEDIR/perl-$PERLVERSION.tar.gz | tar xvf -
+    gunzip < $FILEDIR/perl-$PERLVERSION.tar.gz | tar xf -
     cd perl-$PERLVERSION
 
     ./Configure -Dnoextensions=ODBM_File -Duserelocatableinc -Dusethreads -des -Dcc="gcc" -Dinstallprefix=$PERL_PREFIX -Dsiteprefix=$PERL_PREFIX -Dprefix=$PERL_PREFIX
@@ -123,7 +123,7 @@ if [ "$NO_PERL_REBUILD" = "0" ]; then
 fi
 
 cd $BUILDDIR
-gunzip < $FILEDIR/Crypt-SSLeay-0.57.tar.gz | tar xvf -
+gunzip < $FILEDIR/Crypt-SSLeay-0.57.tar.gz | tar xf -
 cd Crypt-SSLeay-0.57
 PERL_MM_USE_DEFAULT=1 $TMP/perl$PERL_PREFIX/bin/perl Makefile.PL --default INSTALL_BASE=$TMP/perl$PERL_PREFIX
 $MAKE install
@@ -132,7 +132,7 @@ cd $BUILDDIR
 echo $PWD
 archive=`ls $FILEDIR/App-cpanminus-*.tar.gz`
 echo $archive
-gunzip < $archive | tar xvf -
+gunzip < $archive | tar xf -
 CPANM=$BUILDDIR/App-cpanminus-1.0004/bin/cpanm
 
 # If we are on RHEL 3, remove unwanted arguments to wget
