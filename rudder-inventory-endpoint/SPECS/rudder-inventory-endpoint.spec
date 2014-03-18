@@ -60,6 +60,7 @@ URL: http://www.rudder-project.org
 Group: Applications/System
 
 Source1: inventory-web.properties
+Source2: rudder-inventory-endpoint-upgrade
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
@@ -106,6 +107,8 @@ mkdir -p %{buildroot}/opt/rudder/etc/
 
 cp %{_builddir}/rudder-sources/ldap-inventory/inventory-provisioning-web/target/inventory-provisioning-web*.war %{buildroot}/opt/rudder/jetty7/webapps/endpoint.war
 cp %{SOURCE1} %{buildroot}/opt/rudder/etc/
+cp %{SOURCE2} %{buildroot}%{rudderdir}/bin/
+
 
 %pre -n rudder-inventory-endpoint
 #=================================================
@@ -116,6 +119,11 @@ cp %{SOURCE1} %{buildroot}/opt/rudder/etc/
 #=================================================
 # Post Installation
 #=================================================
+
+# Run any upgrades
+echo "INFO: Launching script to check if a migration is needed"
+%{rudderdir}/bin/rudder-inventory-endpoint-upgrade
+echo "INFO: End of migration script"
 
 echo "Restarting syslogd ..."
 %{sysloginitscript} restart

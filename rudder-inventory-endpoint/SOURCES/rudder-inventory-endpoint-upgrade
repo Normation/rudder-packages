@@ -1,0 +1,60 @@
+#!/bin/bash
+
+set -e
+
+#####################################################################################
+# Copyright 2014 Normation SAS
+#####################################################################################
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, Version 3.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+################################################################################
+
+#####################################################################################
+# Upgrade script for Rudder
+#####################################################################################
+# Currently this script doesn't discriminate on versions, it just always runs
+# all the tests and tries to upgrade what it can. It may in the future.
+#
+# This is mostly OK, because adding unused properties to the
+# /opt/rudder/etc/inventory-web.properties configuration file is harmless.
+#
+# Upgrade checks currently implemented:
+# - 2.10.0 : Add waiting.inventory.queue property for ldap-inventory endpoint
+#####################################################################################
+
+
+# Helper function
+# Function to check if a property exists in a configuration file and add it if not
+# Parameters:
+# - $1 = property name
+# - $2 = value to add
+function check_and_add_config_property {
+    PROPERTY_NAME=$1
+    PROPERTY_VALUE=$2
+    ATTRIBUTESET=`grep "^${PROPERTY_NAME}[ \t]*=" /opt/rudder/etc/inventory-web.properties | wc -l`
+    if [ ${ATTRIBUTESET} -eq 0 ]; then
+        echo "${PROPERTY_VALUE}" >> /opt/rudder/etc/inventory-web.properties
+        echo "INFO: New configuration property ${PROPERTY_NAME} added to /opt/rudder/etc/inventory-web.properties"
+    fi
+}
+
+# - 2.10.0 : Add waiting.inventory.queue property for ldap-inventory endpoint
+check_and_add_config_property waiting.inventory.queue.size "
+# Max number of reports waiting to be processed internally.
+# For a rough estimation, you can consider that a report in queue
+# takes 5 MB, so to handle 50 (default), the application will
+# need around 250 MB of spare memory.
+
+waiting.inventory.queue.size=50"
+
