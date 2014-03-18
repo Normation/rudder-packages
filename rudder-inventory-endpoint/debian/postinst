@@ -20,7 +20,13 @@ set -e
 
 case "$1" in
     configure)
-		invoke-rc.d rsyslog restart
+
+	# Run any upgrades
+	echo "INFO: Launching script to check if a migration is needed"
+	/opt/rudder/bin/rudder-inventory-endpoint-upgrade
+	echo "INFO: End of migration script"
+
+	invoke-rc.d rsyslog restart
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
