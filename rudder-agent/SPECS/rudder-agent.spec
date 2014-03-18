@@ -150,7 +150,7 @@ Requires: pmtools
 %define cp_a_command    cp -a
 
 %if "%{?_os}" == "aix"
-%define install_command installbsd
+%define install_command installbsd -c
 %define cp_a_command    cp -hpPr
 %endif
 
