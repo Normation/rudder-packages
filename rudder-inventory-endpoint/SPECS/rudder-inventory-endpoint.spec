@@ -104,6 +104,7 @@ rm -rf %{buildroot}
 
 mkdir -p %{buildroot}/opt/rudder/jetty7/webapps/
 mkdir -p %{buildroot}/opt/rudder/etc/
+mkdir -p %{buildroot}%{rudderdir}/bin/
 
 cp %{_builddir}/rudder-sources/ldap-inventory/inventory-provisioning-web/target/inventory-provisioning-web*.war %{buildroot}/opt/rudder/jetty7/webapps/endpoint.war
 cp %{SOURCE1} %{buildroot}/opt/rudder/etc/
@@ -139,8 +140,9 @@ rm -rf %{buildroot}
 #=================================================
 %files -n rudder-inventory-endpoint
 %defattr(-, root, root, 0755)
-/opt/rudder/jetty7/webapps/
-/opt/rudder/etc/
+%{rudderdir}/jetty7/webapps/
+%{rudderdir}/bin/
+%{rudderdir}/etc/
 %config(noreplace) /opt/rudder/etc/inventory-web.properties
 
 #=================================================
