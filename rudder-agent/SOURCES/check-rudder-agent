@@ -29,7 +29,7 @@ CFE_BIN_DIR=${CFE_DIR}/bin
 CFE_DISABLE_FILE=/opt/rudder/etc/disable-agent
 
 # If we are on AIX, use an alternative cp syntax
-if [ "z$(uname -s)" == "zAIX" ]; then
+if [ "z$(uname -s)" = "zAIX" ]; then
   CP_A="cp -hpPr"
 else
   CP_A="cp -a"
