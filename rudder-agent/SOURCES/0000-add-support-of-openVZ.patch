@@ -1,0 +1,175 @@
+diff --git a/cf-agent/nfs.c b/cf-agent/nfs.c
+index a2e345a..8fba83f 100644
+--- a/cf-agent/nfs.c
++++ b/cf-agent/nfs.c
+@@ -51,6 +51,7 @@ static void DeleteThisItem(Item **liststart, Item *entry);
+ static const char *VMOUNTCOMM[PLATFORM_CONTEXT_MAX] =
+ {
+     "",
++    "/bin/mount -va",           /* virt_host_vz_vzps */
+     "/sbin/mount -ea",          /* hpux */
+     "/usr/sbin/mount -t nfs",   /* aix */
+     "/bin/mount -va",           /* linux */
+@@ -72,6 +73,7 @@ static const char *VMOUNTCOMM[PLATFORM_CONTEXT_MAX] =
+ static const char *VUNMOUNTCOMM[PLATFORM_CONTEXT_MAX] =
+ {
+     "",
++    "/bin/umount",              /* virt_host_vz_vzps */
+     "/sbin/umount",             /* hpux */
+     "/usr/sbin/umount",         /* aix */
+     "/bin/umount",              /* linux */
+@@ -93,6 +95,7 @@ static const char *VUNMOUNTCOMM[PLATFORM_CONTEXT_MAX] =
+ static const char *VMOUNTOPTS[PLATFORM_CONTEXT_MAX] =
+ {
+     "",
++    "defaults",                 /* virt_host_vz_vzps */
+     "bg,hard,intr",             /* hpux */
+     "bg,hard,intr",             /* aix */
+     "defaults",                 /* linux */
+diff --git a/cf-monitord/mon_network.c b/cf-monitord/mon_network.c
+index fd81385..f387ad3 100644
+--- a/cf-monitord/mon_network.c
++++ b/cf-monitord/mon_network.c
+@@ -75,6 +75,7 @@ static const Sock ECGSOCKS[ATTR] =     /* extended to map old to new using enum
+ static const char *VNETSTAT[PLATFORM_CONTEXT_MAX] =
+ {
+     "-",
++    "/bin/netstat -rn",         /* virt_host_vz_vzps */
+     "/usr/bin/netstat -rn",     /* hpux */
+     "/usr/bin/netstat -rn",     /* aix */
+     "/bin/netstat -rn",         /* linux */
+diff --git a/libpromises/classes.c b/libpromises/classes.c
+index 6cc4be0..9d4c486 100644
+--- a/libpromises/classes.c
++++ b/libpromises/classes.c
+@@ -27,6 +27,7 @@
+ const char *CLASSTEXT[PLATFORM_CONTEXT_MAX] =
+ {
+     "<unknown>",
++    "virt_host_vz_vzps",
+     "hpux",
+     "aix",
+     "linux",
+@@ -48,6 +49,7 @@ const char *CLASSTEXT[PLATFORM_CONTEXT_MAX] =
+ const char *VPSCOMM[PLATFORM_CONTEXT_MAX] =
+ {
+     "",
++    "/bin/vzps -E 0",           /* vz with vzps */
+     "/bin/ps",                  /* hpux */
+     "/bin/ps",                  /* aix */
+     "/bin/ps",                  /* linux */
+@@ -72,6 +74,7 @@ const char *VPSCOMM[PLATFORM_CONTEXT_MAX] =
+ const char *VPSOPTS[PLATFORM_CONTEXT_MAX] =
+ {
+     "",
++    "-o user,pid,ppid,pgid,pcpu,pmem,vsz,pri,rss,nlwp,stime,time,args", /* vz with vzps */
+     "-ef",                      /* hpux */
+     "-N -eo user,pid,ppid,pgid,pcpu,pmem,vsz,ni,stat,st=STIME,time,args",  /* aix */
+     "-eo user,pid,ppid,pgid,pcpu,pmem,vsz,ni,rss,nlwp,stime,time,args",        /* linux */
+@@ -93,6 +96,7 @@ const char *VPSOPTS[PLATFORM_CONTEXT_MAX] =
+ const char *VFSTAB[PLATFORM_CONTEXT_MAX] =
+ {
+     "-",
++    "/etc/fstab",               /* vz with vzps */
+     "/etc/fstab",               /* hpux */
+     "/etc/filesystems",         /* aix */
+     "/etc/fstab",               /* linux */
+diff --git a/libpromises/sysinfo.c b/libpromises/sysinfo.c
+index 0c49868..5d6c1d4 100644
+--- a/libpromises/sysinfo.c
++++ b/libpromises/sysinfo.c
+@@ -76,6 +76,7 @@ static int VM_Version(EvalContext *ctx);
+ static int Xen_Domain(EvalContext *ctx);
+ static int EOS_Version(EvalContext *ctx);
+ static int MiscOS(EvalContext *ctx);
++static void OpenVZ_Detect(EvalContext *ctx);
+ 
+ #ifdef XEN_CPUID_SUPPORT
+ static void Xen_Cpuid(uint32_t idx, uint32_t *eax, uint32_t *ebx, uint32_t *ecx, uint32_t *edx);
+@@ -91,6 +92,7 @@ static void GetCPUInfo(EvalContext *ctx);
+ static const char *CLASSATTRIBUTES[PLATFORM_CONTEXT_MAX][3] =
+ {
+     {"-", "-", "-"},            /* as appear here are matched. The fields are sysname and machine */
++    {"virt_host_vz_vzps", ".*", ".*"},      /* VZ Host with vzps installed (virt_host_vz_vzps) */
+     {"hp-ux", ".*", ".*"},      /* hpux */
+     {"aix", ".*", ".*"},        /* aix */
+     {"linux", ".*", ".*"},      /* linux */
+@@ -112,6 +114,7 @@ static const char *CLASSATTRIBUTES[PLATFORM_CONTEXT_MAX][3] =
+ static const char *VRESOLVCONF[PLATFORM_CONTEXT_MAX] =
+ {
+     "-",
++    "/etc/resolv.conf",         /* virt_host_vz_vzps */
+     "/etc/resolv.conf",         /* hpux */
+     "/etc/resolv.conf",         /* aix */
+     "/etc/resolv.conf",         /* linux */
+@@ -133,6 +136,7 @@ static const char *VRESOLVCONF[PLATFORM_CONTEXT_MAX] =
+ static const char *VMAILDIR[PLATFORM_CONTEXT_MAX] =
+ {
+     "-",
++    "/var/spool/mail",          /* virt_host_vz_vzps */
+     "/var/mail",                /* hpux */
+     "/var/spool/mail",          /* aix */
+     "/var/spool/mail",          /* linux */
+@@ -154,6 +158,7 @@ static const char *VMAILDIR[PLATFORM_CONTEXT_MAX] =
+ static const char *VEXPORTS[PLATFORM_CONTEXT_MAX] =
+ {
+     "-",
++    "/etc/exports",             /* virt_host_vz_vzps */
+     "/etc/exports",             /* hpux */
+     "/etc/exports",             /* aix */
+     "/etc/exports",             /* linux */
+@@ -951,6 +956,11 @@ void OSClasses(EvalContext *ctx)
+     {
+         MiscOS(ctx);
+     }
++
++    if (stat("/proc/self/status", &statbuf) != -1)
++    {
++        OpenVZ_Detect(ctx);
++    }
+     
+ #ifdef XEN_CPUID_SUPPORT
+     else if (Xen_Hv_Check())
+@@ -2205,6 +2215,42 @@ static int Xen_Domain(EvalContext *ctx)
+ }
+ 
+ /******************************************************************/
++static void OpenVZ_Detect(EvalContext *ctx)
++{
++/* paths to file defining the type of vm (guest or host) */
++#define OPENVZ_HOST_FILENAME "/proc/bc/0"
++#define OPENVZ_GUEST_FILENAME "/proc/vz"
++/* path to the vzps binary */
++#define OPENVZ_VZPS_FILE "/bin/vzps"
++    struct stat statbuf;
++
++    /* The file /proc/bc/0 is present on host
++       The file /proc/vz is present on guest
++       If the host has /bin/vzps, we should use it for checking processes
++    */
++
++    if (stat(OPENVZ_HOST_FILENAME, &statbuf) != -1)
++    {
++        Log(LOG_LEVEL_VERBOSE, "This appears to be an OpenVZ/Virtuozzo/Parallels Cloud Server host system.\n");
++        EvalContextHeapAddHard(ctx, "virt_host_vz");
++        /* if the file /bin/vzps is there, it is safe to use the processes promise type */ 
++        if (stat(OPENVZ_VZPS_FILE, &statbuf) != -1)
++        {
++            EvalContextHeapAddHard(ctx, "virt_host_vz_vzps");
++        }
++        else
++        {
++            Log(LOG_LEVEL_NOTICE, "This OpenVZ/Virtuozzo/Parallels Cloud Server host system does not have vzps installed; the processes promise type may not work as expected.\n");
++        }
++    }
++    else if (stat(OPENVZ_GUEST_FILENAME, &statbuf) != -1)
++    {
++        Log(LOG_LEVEL_VERBOSE, "This appears to be an OpenVZ/Virtuozzo/Parallels Cloud Server guest system.\n");
++        EvalContextHeapAddHard(ctx, "virt_guest_vz");
++    }
++}
++
++/******************************************************************/
+ 
+ #ifdef XEN_CPUID_SUPPORT
+ 
