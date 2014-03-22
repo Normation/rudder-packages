@@ -29,12 +29,17 @@
 #=================================================
 # Variables
 #=================================================
-%define real_name            rudder-agent
+%define real_name           rudder-agent
+%define real_version        2.9.2
+%define real_release        1%{?dist}
 
-%define rudderdir            /opt/rudder
-%define ruddervardir         /var/rudder
-%define rudderlogdir         /var/log/rudder
+%define cfengine_version    3.5.2
+%define tokyocab_version    1.4.48
+%define finventory_version  2.2.2
 
+%define rudderdir           /opt/rudder
+%define ruddervardir        /var/rudder
+%define rudderlogdir        /var/log/rudder
 # is_tokyocabinet_here checks if to build CFEngine we will need to build 
 # Tokyocabinet or if a package already exists on the system.
 # Default value is true in order to handle cases which are not caught below
@@ -43,36 +48,76 @@
 #=================================================
 # Header
 #=================================================
-Summary: Configuration management and audit tool - agent
-Name: %{real_name}
-Version: %{real_version}
-Release: 1%{?dist}
-Epoch: 0
-License: GPLv3
-URL: http://www.rudder-project.org
+Summary:    Configuration management and audit tool - agent
+Name:       %{real_name}
+Version:    %{real_version}
+Release:    %{real_release}
+#Epoch:      1299256513 - version + release should be sufficient
+License:    GPLv3
+URL:        http://www.rudder-project.org
+Group:      Applications/System
 
-Group: Applications/System
+#=================================================
+# Sources
+#=================================================
+# Applications sources
+Source0:    http://www.normation.com/tarball/cfengine-%{cfengine_version}.tar.gz
+Source1:    http://www.rudder-project.org/archives/rudder-sources-%{real_version}.tar.bz2
+Source2:    http://www.normation.com/tarball/tokyocabinet-%{tokyocab_version}.tar.gz
+Source3:    http://www.normation.com/tarball/FusionInventory-Agent-%{finventory_version}.tar.gz
 
-Source1: rudder-agent.init
-Source2: rudder-agent.default
-Source3: run-inventory
-Source4: uuid.hive
-Source5: rudder-agent.cron
+Source10:   http://www.normation.com/tarball/App-cpanminus-1.0004.tar.gz
+Source11:   http://www.normation.com/tarball/Archive-Extract-0.42.tar.gz
+Source12:   http://www.normation.com/tarball/Compress-Raw-Bzip2-2.027.tar.gz
+Source13:   http://www.normation.com/tarball/Compress-Raw-Zlib-2.027.tar.gz
+Source14:   http://www.normation.com/tarball/Crypt-SSLeay-0.57.tar.gz
+Source15:   http://www.normation.com/tarball/Digest-MD5-2.39.tar.gz
+Source16:   http://www.normation.com/tarball/HTML-Parser-3.65.tar.gz
+Source17:   http://www.normation.com/tarball/HTML-Tagset-3.20.tar.gz
+Source18:   http://www.normation.com/tarball/IO-Compress-2.027.tar.gz
+Source19:   http://www.normation.com/tarball/IO-Socket-SSL-1.33.tar.gz
+Source20:   http://www.normation.com/tarball/libwww-perl-5.836.tar.gz
+Source21:   http://www.normation.com/tarball/Net-IP-1.25.tar.gz
+Source22:   http://www.normation.com/tarball/perl-5.12.4.tar.gz
+Source23:   http://www.normation.com/tarball/UNIVERSAL-require-0.13.tar.gz
+Source24:   http://www.normation.com/tarball/URI-1.56.tar.gz
+Source25:   http://www.normation.com/tarball/XML-SAX-0.96.tar.gz
+Source26:   http://www.normation.com/tarball/XML-Simple-2.18.tar.gz
+Source27:   http://www.normation.com/tarball/File-Which-1.09.tar.gz
+Source28:   http://www.normation.com/tarball/XML-TreePP-0.41.tar.gz
+
+# Files
+Source50: rudder-agent.init
+Source51: rudder-agent.default
+Source52: run-inventory
+Source53: uuid.hive
+Source54: rudder-agent.cron
 # This file will contain path of /opt/rudder/lib for ld which will
 # find there all necessary libraries for tokyocabinet.
-Source6: rudder.conf
-Source7: check-rudder-agent
-Source8: vzps.py
-Source9: rudder-agent.sh
-Source10: detect_os.sh
+Source55: rudder.conf
+Source56: check-rudder-agent
+Source57: vzps.py
+Source58: rudder-agent.sh
+Source59: perl-prepare.sh
+Source60: detect_os.sh
+
+# Patches
+%if 0%{?rhel} == 4
+Patch0:     0000-fix-missing-headers-el4.patch
+%endif
+Patch1:     0000-add-support-of-openVZ.patch
+Patch2:     0001-allow-purging-of-directory-in-copy.patch
+Patch3:     0002-prevent-cfengine-from-running-cf-promises-always.patch
+Patch4:     0003-cfengine-report-on-package-removal.patch
+
+Patch10:    0010-SuSE_service_pack.patch
+Patch11:    0011-Correct_detection_of_RedHat.patch
+Patch12:    0012-Oracle_linux_distro_name.patch
+Patch13:    0013-4096_char_line_truncating.patch
 
 # We have PERL things in here. Do not try to outsmart me by adding dummy dependencies, you silly tool.
 AutoReq: 0
 AutoProv: 0
-
-%if 0%{?rhel} == 4
-Patch1: fix-missing-headers
-%endif
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
@@ -146,14 +191,6 @@ Requires: pmtools
 %define is_tokyocabinet_here false
 %endif
 
-%define install_command install
-%define cp_a_command    cp -a
-
-%if "%{?_os}" == "aix"
-%define install_command installbsd -c
-%define cp_a_command    cp -hpPr
-%endif
-
 # Replaces rudder-cfengine-community since 2.4.0~beta3
 Provides: rudder-cfengine-community
 Obsoletes: rudder-cfengine-community
@@ -179,9 +216,28 @@ FusionInventory.
 # Source preparation
 #=================================================
 %prep
+%setup -n %{name}-%{version} -c -T
+
+# Extract sources
+for source in %{SOURCE0} %{SOURCE1} %{SOURCE2} %{SOURCE3} %{SOURCE22}; do
+    %{__tar} xf ${source}
+done
+
+# Apply patches
+cd %{_builddir}/%{name}-%{version}/cfengine-%{cfengine_version}
 %if 0%{?rhel} == 4
-%patch1 -p1
+%patch0 -p1
 %endif
+%patch1 -p1
+%patch2 -p1
+%patch3 -p1
+%patch4 -p1
+
+cd %{_builddir}/%{name}-%{version}/FusionInventory-Agent-%{finventory_version}
+%patch10 -p1
+%patch11 -p1
+%patch12 -p1
+%patch13 -p1
 
 #=================================================
 # Building
@@ -192,11 +248,13 @@ cd %{_sourcedir}
 
 %{_sourcedir}/perl-prepare.sh
 
-# Ensure an appropriate environment for the compiler
-export CFLAGS="$RPM_OPT_FLAGS"
-export CXXFLAGS="$RPM_OPT_FLAGS"
 
-%if "%{is_tokyocabinet_here}" != "true"
+# Ensure an appropriate environment for the compiler
+export CFLAGS="$RPM_OPT_FLAGS -fpie -fstack-protector-all"
+export CXXFLAGS="$RPM_OPT_FLAGS -fpie -fstack-protector-all"
+export LDFLAGS="-pie -Wl,-z,relro -Wl,-z,now"
+
+%if %{is_tokyocabinet_here} == "false"
 # Remove all remaining files from temporary build folder before to compile tokyocabinet
 rm -rf %{buildroot}
 # Compile Tokyocabinet library and install it in /opt/rudder/lib
@@ -208,7 +266,7 @@ make install DESTDIR=%{buildroot}
 
 # Prepare CFEngine 3.4.x build
 cd %{_sourcedir}/cfengine-source
-%if "%{is_tokyocabinet_here}" != "true"
+%if %{is_tokyocabinet_here} == "false"
 ## Define path of tokyocabinet if built before instead of being provided by the system.
 %define tokyocabinet_arg "--with-tokyocabinet=%{buildroot}%{rudderdir}"
 %else
@@ -222,7 +280,7 @@ make %{?_smp_mflags}
 # Installation
 #=================================================
 %install
-%if "%{is_tokyocabinet_here}" == "true"
+%if %{is_tokyocabinet_here} == "true"
 # Remove all remaining files from temporary build folder since no actions should
 # have been made before in this directory (if tokyocabinet has not been
 # built).
@@ -251,37 +309,37 @@ mkdir -p %{buildroot}/etc/ld.so.conf.d
 %endif
 
 # Init script
-%{install_command} -m 755 %{SOURCE1} %{buildroot}/etc/init.d/rudder-agent
-%{install_command} -m 644 %{SOURCE2} %{buildroot}/etc/default/rudder-agent
+install -m 755 %{SOURCE1} %{buildroot}/etc/init.d/rudder-agent
+install -m 644 %{SOURCE2} %{buildroot}/etc/default/rudder-agent
 
 # Cron
 mkdir -p %{buildroot}/etc/cron.d
-%{install_command} -m 644 %{SOURCE5} %{buildroot}/etc/cron.d/rudder-agent
+install -m 644 %{SOURCE5} %{buildroot}/etc/cron.d/rudder-agent
 
 # Initial promises
-cp -r %{_sourcedir}/initial-promises %{buildroot}%{rudderdir}/share/
+cp -a %{_sourcedir}/initial-promises %{buildroot}%{rudderdir}/share/
 
 # Fusion
-%{cp_a_command} %{_sourcedir}/perl-custom/opt/rudder/* %{buildroot}%{rudderdir}
+cp -a %{_sourcedir}/perl-custom/opt/rudder/* %{buildroot}%{rudderdir}
 
 # Wrapper script
-%{install_command} -m 755 %{SOURCE3} %{buildroot}/opt/rudder/bin/run-inventory
+install -m 755 %{SOURCE3} %{buildroot}/opt/rudder/bin/run-inventory
 
 # Install an empty uuid.hive file before generating an uuid
 cp %{SOURCE4} %{buildroot}%{rudderdir}/etc/
 
-%if "%{is_tokyocabinet_here}" != "true" && 0%{?rhel} != 3
+%if %{is_tokyocabinet_here} == "false" && 0%{?rhel} != 3
 # Install /etc/ld.so.conf.d/rudder.conf in order to use libraries
 # contained in /opt/rudder/lib like tokyocabinet
-%{install_command} -m 644 %{SOURCE6} %{buildroot}/etc/ld.so.conf.d/rudder.conf
+install -m 644 %{SOURCE6} %{buildroot}/etc/ld.so.conf.d/rudder.conf
 %endif
 
-%{install_command} -m 755 %{SOURCE7} %{buildroot}/opt/rudder/bin/check-rudder-agent
+install -m 755 %{SOURCE7} %{buildroot}/opt/rudder/bin/check-rudder-agent
 
-%{install_command} -m 755 %{SOURCE8} %{buildroot}/opt/rudder/bin/vzps.py
+install -m 755 %{SOURCE8} %{buildroot}/opt/rudder/bin/vzps.py
 
 # Install a profile script to make cf-* part of the PATH
-%{install_command} -m 644 %{SOURCE9} %{buildroot}/etc/profile.d/rudder-agent.sh
+install -m 644 %{SOURCE9} %{buildroot}/etc/profile.d/rudder-agent.sh
 
 %pre -n rudder-agent
 #=================================================
@@ -292,11 +350,11 @@ cp %{SOURCE4} %{buildroot}%{rudderdir}/etc/
 if [ $1 -eq 2 ];then
 	# Keep a backup copy of Rudder agent init and cron files to prevent http://www.rudder-project.org/redmine/issues/3995
 	mkdir -p /var/backups/rudder
-	%{install_command} -m 755 /etc/init.d/rudder-agent /var/backups/rudder/rudder-agent.init-$(date +%Y%m%d)
+	cp -af /etc/init.d/rudder-agent /var/backups/rudder/rudder-agent.init-$(date +%Y%m%d)
 	echo "INFO: A back up copy of the /etc/init.d/rudder-agent has been created in /var/backups/rudder"
-	%{install_command} -m 644 /etc/default/rudder-agent /var/backups/rudder/rudder-agent.default-$(date +%Y%m%d)
+	cp -af /etc/default/rudder-agent /var/backups/rudder/rudder-agent.default-$(date +%Y%m%d)
 	echo "INFO: A back up copy of the /etc/default/rudder-agent has been created in /var/backups/rudder"
-	%{install_command} -m 644 /etc/cron.d/rudder-agent /var/backups/rudder/rudder-agent.cron-$(date +%Y%m%d)
+	cp -af /etc/cron.d/rudder-agent /var/backups/rudder/rudder-agent.cron-$(date +%Y%m%d)
 	echo "INFO: A back up copy of the /etc/cron.d/rudder-agent has been created in /var/backups/rudder"
 fi
 
@@ -328,7 +386,7 @@ then
 fi
 
 # Reload configuration of ldd if new configuration has been added
-%if "%{is_tokyocabinet_here}" != "true" && 0%{?rhel} != 3
+%if %{is_tokyocabinet_here} == "false" && 0%{?rhel} != 3
 if [ -f /etc/ld.so.conf.d/rudder.conf ]; then
 	ldconfig
 fi
@@ -336,7 +394,7 @@ fi
 
 # Reload configuration of ldd if new configuration has been added,
 # CentOS 3 style.
-%if "%{is_tokyocabinet_here}" != "true" && 0%{?rhel} == 3
+%if %{is_tokyocabinet_here} == "false" && 0%{?rhel} == 3
 if [ ! `grep "/opt/rudder/lib" /etc/ld.so.conf` ]; then
 	echo "/opt/rudder/lib" >> /etc/ld.so.conf
 fi
@@ -373,7 +431,7 @@ fi
 if [ ${CFRUDDER_FIRST_INSTALL} -ne 1 -a -x /etc/init.d/rudder-agent ]; then /sbin/service rudder-agent stop; fi
 
 # Copy CFEngine binaries
-%{cp_a_command} -f /opt/rudder/bin/cf-* /var/rudder/cfengine-community/bin/
+cp -a -f /opt/rudder/bin/cf-* /var/rudder/cfengine-community/bin/
 NB_COPIED_BINARIES=`ls -1 /var/rudder/cfengine-community/bin/ | wc -l`
 if [ ${NB_COPIED_BINARIES} -gt 0 ];then echo "CFEngine binaries copied to workdir"; fi
 
@@ -470,7 +528,7 @@ cp -f /opt/rudder/etc/uuid.hive /var/backups/rudder/uuid-$(date +%Y%m%d).hive
 echo "INFO: A back up copy of the /opt/rudder/etc/uuid.hive has been created in /var/backups/rudder"
 
 # Keep a backup copy of CFEngine ppkeys
-%{cp_a_command} -f /var/rudder/cfengine-community/ppkeys/ /var/backups/rudder/ppkeys-$(date +%Y%m%d)
+cp -af /var/rudder/cfengine-community/ppkeys/ /var/backups/rudder/ppkeys-$(date +%Y%m%d)
 echo "INFO: A back up copy of the /var/rudder/cfengine-community/ppkeys has been created in /var/backups/rudder"
 
 
@@ -517,7 +575,7 @@ rm -rf %{buildroot}
 /etc/cron.d/rudder-agent
 %{ruddervardir}
 %attr(0600, -, -) %dir %{ruddervardir}/cfengine-community/ppkeys
-%if "%{is_tokyocabinet_here}" != "true" && 0%{?rhel} != 3
+%if %{is_tokyocabinet_here} == "false" && 0%{?rhel} != 3
 %config(noreplace) /etc/ld.so.conf.d/rudder.conf
 %endif
 
