@@ -32,7 +32,7 @@ if [ ! -f 'perl-prepare.sh' ]; then
     fi
 fi
 
-. detect_os.sh
+source ../../../scripts/detect_os.sh
 
 ROOT="$PWD/.."
 MAKE="make"
@@ -49,16 +49,9 @@ NO_CLEANUP=0
 OLD_PATH=$PATH
 NO_PERL_REBUILD=0
 
-# If we are on AIX, use an alternative cp syntax
-if [ "z${OS}" == "zAIX" ]; then
-	CP_A="cp -hpPr"
-else
-	CP_A="cp -a"
-fi
-
 buildDmidecode () {
     cd $TMP
-    gunzip < $FILEDIR/dmidecode-$DMIDECODE_VERSION.tar.gz | tar xf -
+    gunzip < $FILEDIR/dmidecode-$DMIDECODE_VERSION.tar.gz | tar xvf -
     cd dmidecode-$DMIDECODE_VERSION
     $MAKE
     cp dmidecode $PERL_PREFIX/bin
@@ -94,11 +87,10 @@ buildPerl () {
     fi
 
     cd $BUILDDIR
-    gunzip < $FILEDIR/perl-$PERLVERSION.tar.gz | tar xf -
+    gunzip < $FILEDIR/perl-$PERLVERSION.tar.gz | tar xvf -
     cd perl-$PERLVERSION
-
+    
     ./Configure -Dnoextensions=ODBM_File -Duserelocatableinc -Dusethreads -des -Dcc="gcc" -Dinstallprefix=$PERL_PREFIX -Dsiteprefix=$PERL_PREFIX -Dprefix=$PERL_PREFIX
-
     $MAKE
     $MAKE install DESTDIR=$TMP/perl
 
@@ -123,7 +115,7 @@ if [ "$NO_PERL_REBUILD" = "0" ]; then
 fi
 
 cd $BUILDDIR
-gunzip < $FILEDIR/Crypt-SSLeay-0.57.tar.gz | tar xf -
+gunzip < $FILEDIR/Crypt-SSLeay-0.57.tar.gz | tar xvf -
 cd Crypt-SSLeay-0.57
 PERL_MM_USE_DEFAULT=1 $TMP/perl$PERL_PREFIX/bin/perl Makefile.PL --default INSTALL_BASE=$TMP/perl$PERL_PREFIX
 $MAKE install
@@ -132,11 +124,11 @@ cd $BUILDDIR
 echo $PWD
 archive=`ls $FILEDIR/App-cpanminus-*.tar.gz`
 echo $archive
-gunzip < $archive | tar xf -
+gunzip < $archive | tar xvf -
 CPANM=$BUILDDIR/App-cpanminus-1.0004/bin/cpanm
 
-# If we are on RHEL 3, remove unwanted arguments to wget
-if [ "z${OS}" == "zRHEL" -a "z${OSVERSION}" == "z3" ]; then
+# If we are ona RHEL 3, remove unwanted arguments to wget
+if [ "${OSVERSION}" -eq 3 -a "z${OS}" == "zRHEL" ]; then
 	sed -i "s/--retry-connrefused //" $BUILDDIR/App-cpanminus-1.0004/bin/cpanm
 fi
 
@@ -154,13 +146,11 @@ for modName in $MODULES; do
 done
 
 cd $PWD/../../fusioninventory-agent
-
-mkdir -p $TMP/perl$PERL_PREFIX/share/fusion-utils && ${CP_A} share/* $TMP/perl$PERL_PREFIX/share/fusion-utils
-
+mkdir -p $TMP/perl$PERL_PREFIX/share/fusion-utils && cp -a share/* $TMP/perl$PERL_PREFIX/share/fusion-utils
 PERL_MM_USE_DEFAULT=1 $TMP/perl$PERL_PREFIX/bin/perl Makefile.PL --default PREFIX=$PERL_PREFIX
 $MAKE install DESTDIR=$TMP/perl
 
-${CP_A} lib/FusionInventory $TMP/perl$PERL_PREFIX/lib/perl5/
+cp -a lib/FusionInventory $TMP/perl$PERL_PREFIX/lib/perl5/
 
 #Restoring PATH
 PATH=$OLD_PATH
