@@ -87,8 +87,6 @@ Requires: java-1.7.0-openjdk
 Requires: jre >= 1.6
 %endif
 
-Requires: rudder-inventory-ldap
-
 %description
 Rudder is an open source configuration management and audit solution.
 
