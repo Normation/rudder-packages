@@ -4,7 +4,7 @@ diff -Naurw debian/control debian-new/control
 @@ -2,7 +2,7 @@
  Section: admin
  Priority: extra
- Maintainer: Nicolas Perron <nicolas.perron@normation.com>
+ Maintainer: Rudder packaging team <rudder-packaging@rudder-project.org>
 -Build-Depends: debhelper (>= 7), libssl-dev, bison, gcc, flex, libpcre3-dev, libtokyocabinet-dev
 +Build-Depends: debhelper (>= 7), libssl-dev, bison, gcc, flex, libpcre3-dev, zlib1g-dev, libbz2-dev
  Standards-Version: 3.8.0
