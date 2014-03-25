@@ -283,6 +283,9 @@ cp %{SOURCE4} %{buildroot}%{rudderdir}/etc/
 # Install a profile script to make cf-* part of the PATH
 %{install_command} -m 644 %{SOURCE9} %{buildroot}/etc/profile.d/rudder-agent.sh
 
+# Build a list of files to include in this package for use in the %files section below
+find %{buildroot}%{rudderdir} %{buildroot}%{ruddervardir} -type f | sed "s,%{buildroot},," | grep -v "%{rudderdir}/etc/uuid.hive" | grep -v "%{ruddervardir}/cfengine-community/ppkeys" > %{_builddir}/file.list.%{name}
+
 %pre -n rudder-agent
 #=================================================
 # Pre Installation
@@ -503,19 +506,19 @@ fi
 #=================================================
 %clean
 rm -rf %{buildroot}
+rm -f %{_builddir}/file.list.%{name}
 
 #=================================================
 # Files
 #=================================================
-%files -n rudder-agent
+# Files from %{rudderdir} and %{ruddervardir} are automatically added via the -f option
+%files -n rudder-agent -f %{_builddir}/file.list.%{name}
 %defattr(-, root, root, 0755)
-%{rudderdir}
 %config(noreplace) %{rudderdir}/etc/uuid.hive
 /etc/profile.d/rudder-agent.sh
 /etc/init.d/rudder-agent
 /etc/default/rudder-agent
 /etc/cron.d/rudder-agent
-%{ruddervardir}
 %attr(0600, -, -) %dir %{ruddervardir}/cfengine-community/ppkeys
 %if "%{is_tokyocabinet_here}" != "true" && 0%{?rhel} != 3
 %config(noreplace) /etc/ld.so.conf.d/rudder.conf
