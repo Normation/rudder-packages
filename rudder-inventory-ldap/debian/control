@@ -1,7 +1,7 @@
 Source: rudder-inventory-ldap
 Section: net
 Priority: extra
-Maintainer: Jonathan Clarke <jonathan.clarke@normation.com>
+Maintainer: Rudder packaging team <rudder-packaging@rudder-project.org>
 Build-Depends: debhelper (>= 7), libdb-dev, libltdl3-dev, libssl-dev, libsasl2-dev
 Standards-Version: 3.8.0
 Homepage: http://www.rudder-project.org

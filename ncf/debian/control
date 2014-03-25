@@ -1,7 +1,7 @@
 Source: ncf
 Section: admin
 Priority: extra
-Maintainer: Matthieu Cerda <matthieu.cerda@normation.com>
+Maintainer: Rudder packaging team <rudder-packaging@rudder-project.org>
 Build-Depends: debhelper (>= 7)
 Standards-Version: 3.8.0
 Homepage: http://www.ncf-project.org
