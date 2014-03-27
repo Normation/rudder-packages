@@ -476,7 +476,7 @@ rudder.auth.ldap.connection.bind.password=secret
 # login by the user. 
 #
 rudder.auth.ldap.searchbase=ou=People
-rudder.auth.ldap.filter=(&(uuid={0})(objectclass=person))
+rudder.auth.ldap.filter=(&(uid={0})(objectclass=person))
 
 #
 # An AD example would be:
