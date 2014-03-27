@@ -231,12 +231,11 @@ make %{?_smp_mflags}
 # Build of and embeded library (here, tokyocabinet)is an exception.
 rm -rf %{buildroot}
 %endif
+
 cd %{_sourcedir}/cfengine-source
 make install DESTDIR=%{buildroot} STRIP=""
 
 # Directories
-mkdir -p %{buildroot}/etc/init.d
-mkdir -p %{buildroot}/etc/default
 mkdir -p %{buildroot}/etc/profile.d
 mkdir -p %{buildroot}%{rudderdir}
 mkdir -p %{buildroot}%{rudderdir}/etc
@@ -251,8 +250,13 @@ mkdir -p %{buildroot}/etc/ld.so.conf.d
 %endif
 
 # Init script
+# AIX does not use init scripts, instead we set up a subsystem in the post scriptlet below
+%if "%{?_os}" != "aix"
+mkdir -p %{buildroot}/etc/init.d
+mkdir -p %{buildroot}/etc/default
 %{install_command} -m 755 %{SOURCE1} %{buildroot}/etc/init.d/rudder-agent
 %{install_command} -m 644 %{SOURCE2} %{buildroot}/etc/default/rudder-agent
+%endif
 
 # Cron
 mkdir -p %{buildroot}/etc/cron.d
@@ -322,7 +326,13 @@ fi
 if [ $1 -eq 1 ]
 then
 	# Set rudder-agent as service
+%if "%{?_os}" == "aix"
+	mkssys -s rudder-agent -p %{ruddervardir}/cfengine-community/bin/cf-execd -u root -S -n15 -f9
+	echo "rudder-agent:23456789:respawn:/usr/bin/startsrc -s rudder-agent" >> /etc/inittab
+	# No need to tell init to re-read /etc/inittab, it does it automatically every 60 seconds
+%else
 	/sbin/chkconfig --add rudder-agent
+%endif
 	%if 0%{?rhel} >= 6
 	/sbin/chkconfig rudder-agent on
 	%endif
@@ -373,7 +383,11 @@ if [ ! -e /opt/rudder/etc/disable-agent ]; then
 	touch /opt/rudder/etc/disable-agent
 fi
 
+%if "%{?_os}" == "aix"
+if [ ${CFRUDDER_FIRST_INSTALL} -ne 1 ]; then /usr/bin/stopsrc -s rudder-agent; fi
+%else
 if [ ${CFRUDDER_FIRST_INSTALL} -ne 1 -a -x /etc/init.d/rudder-agent ]; then /sbin/service rudder-agent stop; fi
+%endif
 
 # Copy CFEngine binaries
 %{cp_a_command} -f /opt/rudder/bin/cf-* /var/rudder/cfengine-community/bin/
@@ -413,7 +427,11 @@ then
 	then
 		if [ -r /var/rudder/cfengine-community/inputs/failsafe.cf -o -r /var/rudder/cfengine-community/inputs/promises.cf ]
 		then
+%if "%{?_os}" == "aix"
+			/usr/bin/startsrc -s rudder-agent
+%else
 			/sbin/service rudder-agent start
+%endif
 		fi
 	else
 		echo "********************************************************************************"
