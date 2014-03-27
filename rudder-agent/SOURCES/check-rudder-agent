@@ -156,6 +156,10 @@ if [ ! $(whoami) = 'root' ];then echo "You must be root"; exit; fi
 # Launch each check with a certain order
 check_and_fix_rudder_uuid
 check_and_fix_cfengine_processes
-check_and_fix_specific_rudder_agent_file /etc/init.d/rudder-agent init
-check_and_fix_specific_rudder_agent_file /etc/default/rudder-agent default
-check_and_fix_specific_rudder_agent_file /etc/cron.d/rudder-agent cron
+
+# The following files are not present on AIX systems
+if [ "z$(uname -s)" != "zAIX" ]; then
+  check_and_fix_specific_rudder_agent_file /etc/init.d/rudder-agent init
+  check_and_fix_specific_rudder_agent_file /etc/default/rudder-agent default
+  check_and_fix_specific_rudder_agent_file /etc/cron.d/rudder-agent cron
+fi

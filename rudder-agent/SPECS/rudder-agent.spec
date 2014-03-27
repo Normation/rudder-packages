@@ -206,14 +206,16 @@ make %{?_smp_mflags}
 make install DESTDIR=%{buildroot}
 %endif
 
-# Prepare CFEngine 3.4.x build
+# Prepare CFEngine build
 cd %{_sourcedir}/cfengine-source
+
 %if "%{is_tokyocabinet_here}" != "true"
 ## Define path of tokyocabinet if built before instead of being provided by the system.
 %define tokyocabinet_arg "--with-tokyocabinet=%{buildroot}%{rudderdir}"
 %else
 %define tokyocabinet_arg ""
 %endif
+
 ./configure --build=%_target --prefix=%{rudderdir} --with-workdir=%{ruddervardir}/cfengine-community --enable-static=yes --enable-shared=no %{tokyocabinet_arg}
 
 make %{?_smp_mflags}
@@ -236,18 +238,12 @@ cd %{_sourcedir}/cfengine-source
 make install DESTDIR=%{buildroot} STRIP=""
 
 # Directories
-mkdir -p %{buildroot}/etc/profile.d
 mkdir -p %{buildroot}%{rudderdir}
 mkdir -p %{buildroot}%{rudderdir}/etc
 mkdir -p %{buildroot}%{ruddervardir}/cfengine-community/bin
 mkdir -p %{buildroot}%{ruddervardir}/cfengine-community/inputs
 mkdir -p %{buildroot}%{ruddervardir}/tmp
 mkdir -p %{buildroot}%{ruddervardir}/tools
-
-# ld.so.conf.d is not supported on CentOS 3
-%if 0%{?rhel} != 3
-mkdir -p %{buildroot}/etc/ld.so.conf.d
-%endif
 
 # Init script
 # AIX does not use init scripts, instead we set up a subsystem in the post scriptlet below
@@ -259,8 +255,11 @@ mkdir -p %{buildroot}/etc/default
 %endif
 
 # Cron
+# AIX does not support cron.d
+%if "%{?_os}" != "aix"
 mkdir -p %{buildroot}/etc/cron.d
 %{install_command} -m 644 %{SOURCE5} %{buildroot}/etc/cron.d/rudder-agent
+%endif
 
 # Initial promises
 cp -r %{_sourcedir}/initial-promises %{buildroot}%{rudderdir}/share/
@@ -274,9 +273,11 @@ cp -r %{_sourcedir}/initial-promises %{buildroot}%{rudderdir}/share/
 # Install an empty uuid.hive file before generating an uuid
 cp %{SOURCE4} %{buildroot}%{rudderdir}/etc/
 
+# ld.so.conf.d is not supported on CentOS 3
 %if "%{is_tokyocabinet_here}" != "true" && 0%{?rhel} != 3
 # Install /etc/ld.so.conf.d/rudder.conf in order to use libraries
 # contained in /opt/rudder/lib like tokyocabinet
+mkdir -p %{buildroot}/etc/ld.so.conf.d
 %{install_command} -m 644 %{SOURCE6} %{buildroot}/etc/ld.so.conf.d/rudder.conf
 %endif
 
@@ -285,7 +286,11 @@ cp %{SOURCE4} %{buildroot}%{rudderdir}/etc/
 %{install_command} -m 755 %{SOURCE8} %{buildroot}/opt/rudder/bin/vzps.py
 
 # Install a profile script to make cf-* part of the PATH
+# AIX does not support profile.d and /etc/profile should not be modified, so we don't do this on AIX at all
+%if "%{?_os}" != "aix"
+mkdir -p %{buildroot}/etc/profile.d
 %{install_command} -m 644 %{SOURCE9} %{buildroot}/etc/profile.d/rudder-agent.sh
+%endif
 
 # Build a list of files to include in this package for use in the %files section below
 find %{buildroot}%{rudderdir} %{buildroot}%{ruddervardir} -type f | sed "s,%{buildroot},," | grep -v "%{rudderdir}/etc/uuid.hive" | grep -v "%{ruddervardir}/cfengine-community/ppkeys" > %{_builddir}/file.list.%{name}
@@ -405,7 +410,8 @@ fi
 RUDDER_UUID=`cat /opt/rudder/etc/uuid.hive 2>/dev/null || true`
 if ! /var/rudder/cfengine-community/bin/cf-promises >/dev/null 2>&1 && [ "z${RUDDER_UUID}" != "zroot" ]
 then
-	rsync --delete -aq /opt/rudder/share/initial-promises/ /var/rudder/cfengine-community/inputs/
+	rm -rf /var/rudder/cfengine-community/inputs/*
+	%{cp_a_command} /opt/rudder/share/initial-promises/* /var/rudder/cfengine-community/inputs/
 fi
 
 # Migration to CFEngine 3.5: Correct a specific Technique that breaks the most recent CFEngine versions
@@ -500,6 +506,14 @@ echo "INFO: A back up copy of the /var/rudder/cfengine-community/ppkeys has been
 # Post Uninstallation
 #=================================================
 
+%if "%{?_os}" == "aix"
+# AIX doesn't have a pidof command, let's define it
+function pidof {
+  # Yeah, "grep -v grep" is ugly, but we can't use the [u]nique trick on a variable
+  ps -A | grep "$1" | grep -v grep | awk '{print $1}';
+}
+%endif
+
 # Do it only during uninstallation
 if [ $1 -eq 0 ]; then
   # Make sure that CFEngine is not running anymore
@@ -533,10 +547,12 @@ rm -f %{_builddir}/file.list.%{name}
 %files -n rudder-agent -f %{_builddir}/file.list.%{name}
 %defattr(-, root, root, 0755)
 %config(noreplace) %{rudderdir}/etc/uuid.hive
+%if "%{?_os}" != "aix"
 /etc/profile.d/rudder-agent.sh
 /etc/init.d/rudder-agent
 /etc/default/rudder-agent
 /etc/cron.d/rudder-agent
+%endif
 %attr(0600, -, -) %dir %{ruddervardir}/cfengine-community/ppkeys
 %if "%{is_tokyocabinet_here}" != "true" && 0%{?rhel} != 3
 %config(noreplace) /etc/ld.so.conf.d/rudder.conf
