@@ -245,6 +245,10 @@ make install DESTDIR=%{buildroot} STRIP=""
 # Directories
 mkdir -p %{buildroot}%{rudderdir}
 mkdir -p %{buildroot}%{rudderdir}/etc
+mkdir -p %{buildroot}%{ruddervardir}/cfengine-community/bin
+mkdir -p %{buildroot}%{ruddervardir}/cfengine-community/inputs
+mkdir -p %{buildroot}%{ruddervardir}/tmp
+mkdir -p %{buildroot}%{ruddervardir}/tools
 
 # Init script
 # AIX does not use init scripts, instead we set up a subsystem in the post scriptlet below
@@ -570,10 +574,6 @@ rm -f %{_builddir}/file.list.%{name}
 /etc/cron.d/rudder-agent
 %endif
 %attr(0600, -, -) %dir %{ruddervardir}/cfengine-community/ppkeys
-%dir %{ruddervardir}/cfengine-community/bin
-%dir %{ruddervardir}/cfengine-community/inputs
-%dir %{ruddervardir}/tmp
-%dir %{ruddervardir}/tools
 %if "%{is_tokyocabinet_here}" != "true" && 0%{?rhel} != 3
 %config(noreplace) /etc/ld.so.conf.d/rudder.conf
 %endif
