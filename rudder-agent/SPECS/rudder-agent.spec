@@ -572,6 +572,10 @@ rm -f %{_builddir}/file.list.%{name}
 /etc/cron.d/rudder-agent
 %endif
 %attr(0600, -, -) %dir %{ruddervardir}/cfengine-community/ppkeys
+%dir %{ruddervardir}/cfengine-community/bin
+%dir %{ruddervardir}/cfengine-community/inputs
+%dir %{ruddervardir}/tmp
+%dir %{ruddervardir}/tools
 %if "%{is_tokyocabinet_here}" != "true" && 0%{?rhel} != 3
 %config(noreplace) /etc/ld.so.conf.d/rudder.conf
 %endif
