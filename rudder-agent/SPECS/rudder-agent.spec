@@ -469,6 +469,7 @@ then
 	echo " Done."
 fi
 
+%if "%{?_os}" != "aix"
 # Add temporary cron for checking UUID. This cron is created in postinst
 # in order to remove it later without complains of the package manager.
 CHECK_RUDDER_AGENT_CRON=`grep "/opt/rudder/bin/check-rudder-agent" /etc/cron.d/rudder-agent | wc -l`
@@ -485,6 +486,7 @@ fi
 if [ -f ${TMP_CRON} ]; then
 	chmod 644 ${TMP_CRON}
 fi
+%endif
 
 # launch rudder agent check script, it will generate an UUID on first install or repair it if needed
 /opt/rudder/bin/check-rudder-agent
