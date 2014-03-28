@@ -414,11 +414,15 @@ then
 	%{cp_a_command} /opt/rudder/share/initial-promises/* /var/rudder/cfengine-community/inputs/
 fi
 
+# This fix is required for upgrades from 2.6 or earlier. Since we didn't support AIX on those versions,
+# we don't need it. And it breaks on AIX because their "sed" doesn't have a "-i" option. Grrr.
+%if "%{?_os}" != "aix"
 # Migration to CFEngine 3.5: Correct a specific Technique that breaks the most recent CFEngine versions
 if [ -f /var/rudder/cfengine-community/inputs/distributePolicy/1.0/passwordCheck.cf ]
 then
 	sed -i 's%^\(.*ALTER USER rudder WITH PASSWORD.*p.psql_password.*\)"",$%\1""%' /var/rudder/cfengine-community/inputs/distributePolicy/1.0/passwordCheck.cf
 fi
+%endif
 
 # Remove the lock on CFEngine
 if [ ${I_SET_THE_LOCK} -eq 1 ]; then
