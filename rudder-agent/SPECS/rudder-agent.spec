@@ -464,9 +464,9 @@ fi
 # Create a key if we don't have one yet
 if [ ! -f /var/rudder/cfengine-community/ppkeys/localhost.priv ]
 then
-	echo -n "INFO: Creating keys for CFEngine agent..."
+	echo "INFO: Creating keys for CFEngine agent..."
 	/var/rudder/cfengine-community/bin/cf-key > /dev/null 2>&1
-	echo " Done."
+	echo "INFO: Created a new key for CFEngine agent in /var/rudder/cfengine-community/ppkeys/"
 fi
 
 # Add temporary cron for checking UUID. This cron is created in postinst
