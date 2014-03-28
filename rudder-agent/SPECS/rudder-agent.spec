@@ -293,7 +293,7 @@ mkdir -p %{buildroot}/etc/profile.d
 %endif
 
 # Build a list of files to include in this package for use in the %files section below
-find %{buildroot}%{rudderdir} %{buildroot}%{ruddervardir} -type f -o -type s | sed "s,%{buildroot},," | sed "s,\.py$,\.py*," | grep -v "%{rudderdir}/etc/uuid.hive" | grep -v "%{ruddervardir}/cfengine-community/ppkeys" > %{_builddir}/file.list.%{name}
+find %{buildroot}%{rudderdir} %{buildroot}%{ruddervardir} -type f -o -type l | sed "s,%{buildroot},," | sed "s,\.py$,\.py*," | grep -v "%{rudderdir}/etc/uuid.hive" | grep -v "%{ruddervardir}/cfengine-community/ppkeys" > %{_builddir}/file.list.%{name}
 
 %pre -n rudder-agent
 #=================================================
