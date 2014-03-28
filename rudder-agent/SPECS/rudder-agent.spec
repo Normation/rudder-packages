@@ -66,6 +66,11 @@ Source8: vzps.py
 Source9: rudder-agent.sh
 Source10: detect_os.sh
 
+# uuidgen doesn't exist on AIX, so we provide a simple shell compatible version
+%if "%{?_os}" == "aix"
+Source100: uuidgen
+%endif
+
 # We have PERL things in here. Do not try to outsmart me by adding dummy dependencies, you silly tool.
 AutoReq: 0
 AutoProv: 0
@@ -292,6 +297,12 @@ mkdir -p %{buildroot}/etc/profile.d
 %{install_command} -m 644 %{SOURCE9} %{buildroot}/etc/profile.d/rudder-agent.sh
 %endif
 
+# Install the uuidgen command on AIX
+%if "%{?_os}" == "aix"
+mkdir -p %{buildroot}%{rudderdir}/bin
+%{install_command} -m 644 %{SOURCE100} %{buildroot}%{rudderdir}/bin/
+%endif
+
 # Build a list of files to include in this package for use in the %files section below
 find %{buildroot}%{rudderdir} %{buildroot}%{ruddervardir} -type f -o -type l | sed "s,%{buildroot},," | sed "s,\.py$,\.py*," | grep -v "%{rudderdir}/etc/uuid.hive" | grep -v "%{ruddervardir}/cfengine-community/ppkeys" > %{_builddir}/file.list.%{name}
 
@@ -316,6 +327,9 @@ fi
 #=================================================
 # Post Installation
 #=================================================
+
+# Ensure our PATH includes Rudder's bin dir (for uuidgen on AIX in particular)
+export PATH=%{rudderdir}/bin/:$PATH
 
 CFRUDDER_FIRST_INSTALL=0
 

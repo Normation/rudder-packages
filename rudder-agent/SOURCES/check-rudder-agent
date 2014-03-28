@@ -19,6 +19,9 @@
 
 set -e
 
+# Ensure our PATH includes Rudder's bin dir (for uuidgen on AIX in particular)
+export PATH=/opt/rudder/bin/:$PATH
+
 BACKUP_DIR=/var/backups/rudder/
 
 check_and_fix_cfengine_processes() {
