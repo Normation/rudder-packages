@@ -24,13 +24,6 @@ export PATH=/opt/rudder/bin/:$PATH
 
 BACKUP_DIR=/var/backups/rudder/
 
-check_and_fix_cfengine_processes() {
-
-# Default variables for CFEngine binaries and disable files
-CFE_DIR=/var/rudder/cfengine-community
-CFE_BIN_DIR=${CFE_DIR}/bin
-CFE_DISABLE_FILE=/opt/rudder/etc/disable-agent
-
 # If we are on AIX, use alternative commands and options
 if [ "z$(uname -s)" = "zAIX" ]; then
   CP_A="cp -hpPr"
@@ -47,6 +40,13 @@ function echo_n {
     echo -n $*
   fi
 }
+
+check_and_fix_cfengine_processes() {
+
+# Default variables for CFEngine binaries and disable files
+CFE_DIR=/var/rudder/cfengine-community
+CFE_BIN_DIR=${CFE_DIR}/bin
+CFE_DISABLE_FILE=/opt/rudder/etc/disable-agent
 
 # Detect the correct ps tool to use
 # Supported tools are ps, vzps, and the rudder supplied vzps.py
