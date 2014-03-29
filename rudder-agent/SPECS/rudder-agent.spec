@@ -300,7 +300,7 @@ mkdir -p %{buildroot}/etc/profile.d
 # Install the uuidgen command on AIX
 %if "%{?_os}" == "aix"
 mkdir -p %{buildroot}%{rudderdir}/bin
-%{install_command} -m 644 %{SOURCE100} %{buildroot}%{rudderdir}/bin/
+%{install_command} -m 755 %{SOURCE100} %{buildroot}%{rudderdir}/bin/
 %endif
 
 # Build a list of files to include in this package for use in the %files section below
