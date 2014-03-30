@@ -346,8 +346,8 @@ if [ $1 -eq 1 ]
 then
 	# Set rudder-agent as service
 %if "%{?_os}" == "aix"
-	mkssys -s rudder-agent -p %{ruddervardir}/cfengine-community/bin/cf-execd -u root -S -n15 -f9
-	echo "rudder-agent:23456789:respawn:/usr/bin/startsrc -s rudder-agent" >> /etc/inittab
+	/usr/bin/mkssys -s rudder-agent -p %{ruddervardir}/cfengine-community/bin/cf-execd -a "-F" -u root -S -n15 -f9 -R
+	/usr/sbin/mkitab "rudder-agent:23456789:once:/usr/bin/startsrc -s rudder-agent"
 	# No need to tell init to re-read /etc/inittab, it does it automatically every 60 seconds
 %else
 	/sbin/chkconfig --add rudder-agent
@@ -462,7 +462,11 @@ then
 		echo "rudder-agent has been updated, but was not started as it is disabled."
 		echo "To enable rudder agent, you have to remove disable file, and start rudder-agent:"
 		echo "# rm -f /opt/rudder/etc/disable-agent"
+%if "%{?_os}" == "aix"
+		echo "# startsrc -s rudder-agent"
+%else
 		echo "# /sbin/service rudder-agent start"
+%endif
 		echo "********************************************************************************"
 	fi
 else
@@ -470,7 +474,11 @@ else
 	echo "rudder-agent has been installed (not started). This host can be a Rudder node."
 	echo "To get started, configure your Rudder server's hostname and launch the agent:"
 	echo "# echo 'rudder.server' > /var/rudder/cfengine-community/policy_server.dat"
+%if "%{?_os}" == "aix"
+	echo "# startsrc -s rudder-agent"
+%else
 	echo "# service rudder-agent start"
+%endif
 	echo "This node will then appear in the Rudder web interface under 'Accept new nodes'."
 	echo "********************************************************************************"
 fi
