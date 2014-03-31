@@ -33,7 +33,7 @@ else
   PS_OPTIONS="-efww"
 fi
 
-function echo_n {
+echo_n() {
   if [ "z$(uname -s)" = "zAIX" ]; then
     /usr/bin/echo "$*\c"
   else
