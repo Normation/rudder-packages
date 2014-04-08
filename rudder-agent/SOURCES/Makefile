@@ -20,7 +20,7 @@
 
 RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
 CFENGINE_RELEASE = 3.5.3
-FUSION_RELEASE = 2.2.2
+FUSION_RELEASE = 2.3.6
 TOKYOCABINET_RELEASE = 1.4.48
 TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX)
 WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget -q
@@ -66,13 +66,10 @@ localdepends: ./initial-promises ./detect_os.sh ./files ./fusioninventory-agent 
 	cp ./rudder-sources/rudder-packages/detect_os.sh ./detect_os.sh
 
 ./fusioninventory-agent: /usr/bin/wget
-	#Original URL: http://search.cpan.org/CPAN/authors/id/F/FU/FUSINV/FusionInventory-Agent-$(FUSION_RELEASE).tar.gz
+	#Original URL: http://search.cpan.org/CPAN/authors/id/G/GR/GROUSSE/FusionInventory-Agent-$(FUSION_RELEASE).tar.gz
 	$(WGET) -O $(TMP_DIR)/fusion.tgz http://www.normation.com/tarball/FusionInventory-Agent-$(FUSION_RELEASE).tar.gz
 	tar zxf $(TMP_DIR)/fusion.tgz -C $(TMP_DIR)
 	mv $(TMP_DIR)/FusionInventory-Agent-$(FUSION_RELEASE) ./fusioninventory-agent
-	$(PATCH) -d ./fusioninventory-agent -p1 < ./SuSE_service_pack.patch
-	$(PATCH) -d ./fusioninventory-agent -p1 < ./Correct_detection_of_RedHat.patch
-	$(PATCH) -d ./fusioninventory-agent -p1 < ./Oracle_linux_distro_name.patch
 	$(PATCH) -d ./fusioninventory-agent -p1 < ./4096_char_line_truncating.patch
 	$(PATCH) -d ./fusioninventory-agent -p0 < ./fusinv-install-d-mkdir-p.patch
 	# Fix a lsusb invocation that crashes some SLES machines
