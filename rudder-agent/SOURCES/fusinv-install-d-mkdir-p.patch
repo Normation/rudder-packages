@@ -1,6 +1,6 @@
---- Makefile.PL.orig	2014-03-13 00:27:37.478644378 +0100
-+++ Makefile.PL	2014-03-13 00:27:37.106645811 +0100
-@@ -158,7 +158,8 @@
+--- Makefile.PL.orig	2014-01-14 21:28:07.000000000 +0100
++++ Makefile.PL	2014-04-08 15:20:24.302230407 +0200
+@@ -199,7 +199,8 @@
      $install .= <<'EOF';
  
  config_install :
@@ -10,7 +10,7 @@
  	if [ -f $(DESTDIR)/$(SYSCONFDIR)/agent.cfg ]; then \
  	    install -m 644 etc/agent.cfg $(DESTDIR)$(SYSCONFDIR)/agent.cfg.new; \
  	else \
-@@ -166,9 +167,9 @@
+@@ -207,11 +208,11 @@
  	fi
  
  data_install :
@@ -18,7 +18,10 @@
 +	mkdir -p $(DESTDIR)$(DATADIR) $(DESTDIR)$(DATADIR)/html
 +	chown 755 $(DESTDIR)$(DATADIR) $(DESTDIR)$(DATADIR)/html
  	install -m 644 share/pci.ids $(DESTDIR)$(DATADIR)/
+ 	install -m 644 share/usb.ids $(DESTDIR)$(DATADIR)/
+ 	install -m 644 share/sysobjectid.*.ids $(DESTDIR)$(DATADIR)/
 -	install -d -m 755 $(DESTDIR)$(DATADIR)/html
  	install -m 644 share/html/* $(DESTDIR)$(DATADIR)/html
  EOF
      return $install;
+
