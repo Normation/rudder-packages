@@ -85,6 +85,7 @@ localdepends: ./initial-promises ./detect_os.sh ./files ./fusioninventory-agent 
 	mv $(TMP_DIR)/FusionInventory-Agent-2.3.6 ./fusioninventory-agent-2.3.6
 	$(PATCH) -d ./fusioninventory-agent-2.3.6 -p1 < ./patches/fusioninventory/2.3.6/0001-4096-char-line-truncation.patch
 	$(PATCH) -d ./fusioninventory-agent-2.3.6 -p1 < ./patches/fusioninventory/2.3.6/0002-install-d-mkdir-p.patch
+	$(PATCH) -d ./fusioninventory-agent-2.3.6 -p1 < ./patches/fusioninventory/2.3.6/0003-unix-ps-etime-usage.patch
 	$(PATCH) -d ./fusioninventory-agent-2.3.6 -p1 < ./patches/fusioninventory/2.3.6/0004-aix-microcode-version-retrieval.patch
 	# Fix a lsusb invocation that crashes some SLES machines
 	$(FIND) ./fusioninventory-agent-2.3.6 -iname "USB.pm" -exec rm "{}" \;
