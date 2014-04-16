@@ -1,0 +1,27 @@
+--- a/Makefile.PL	2014-01-14 21:28:07.000000000 +0100
++++ a/Makefile.PL	2014-04-08 15:20:24.302230407 +0200
+@@ -199,7 +199,8 @@
+     $install .= <<'EOF';
+ 
+ config_install :
+-	install -d -m 755 $(DESTDIR)$(SYSCONFDIR)
++	mkdir -p $(DESTDIR)$(SYSCONFDIR)
++	chown 755 $(DESTDIR)$(SYSCONFDIR)
+ 	if [ -f $(DESTDIR)/$(SYSCONFDIR)/agent.cfg ]; then \
+ 	    install -m 644 etc/agent.cfg $(DESTDIR)$(SYSCONFDIR)/agent.cfg.new; \
+ 	else \
+@@ -207,11 +208,11 @@
+ 	fi
+ 
+ data_install :
+-	install -d -m 755 $(DESTDIR)$(DATADIR)
++	mkdir -p $(DESTDIR)$(DATADIR) $(DESTDIR)$(DATADIR)/html
++	chown 755 $(DESTDIR)$(DATADIR) $(DESTDIR)$(DATADIR)/html
+ 	install -m 644 share/pci.ids $(DESTDIR)$(DATADIR)/
+ 	install -m 644 share/usb.ids $(DESTDIR)$(DATADIR)/
+ 	install -m 644 share/sysobjectid.*.ids $(DESTDIR)$(DATADIR)/
+-	install -d -m 755 $(DESTDIR)$(DATADIR)/html
+ 	install -m 644 share/html/* $(DESTDIR)$(DATADIR)/html
+ EOF
+     return $install;
+
