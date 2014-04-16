@@ -24,12 +24,20 @@
 
 set -e
 
+echo "perl_prepare.sh, Perl prebuilt constructor for FusionInventory."
+echo ""
+
 if [ ! -f 'perl-prepare.sh' ]; then
     cd SOURCES
     if [ ! -f 'perl-prepare.sh' ]; then
-        echo "Please run the script in the root directory"
+        echo "ERROR: Please run the script in the root directory"
         exit 1
     fi
+fi
+
+if [ $# -ne 1 ]; then
+	echo "ERROR: Missing arguments."
+	echo "Usage: $0 <fusioninventory folder>"
 fi
 
 . detect_os.sh
@@ -48,6 +56,7 @@ FINALDIR=$PWD
 NO_CLEANUP=0
 OLD_PATH=$PATH
 NO_PERL_REBUILD=0
+FUSIONINVENTORY_FOLDER="${1}"
 
 # If we are on AIX, use an alternative cp syntax
 if [ "z${OS}" == "zAIX" ]; then
@@ -153,7 +162,7 @@ for modName in $MODULES; do
     installMod $modName
 done
 
-cd $PWD/../../fusioninventory-agent
+cd ${FUSIONINVENTORY_FOLDER}
 
 mkdir -p $TMP/perl$PERL_PREFIX/share/fusion-utils && ${CP_A} share/* $TMP/perl$PERL_PREFIX/share/fusion-utils
 
