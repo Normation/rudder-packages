@@ -1,0 +1,31 @@
+--- a/lib/FusionInventory/Agent/Tools/Unix.pm	2013-11-20 13:47:06.000000000 +0100
++++ a/lib/FusionInventory/Agent/Tools/Unix.pm	2014-04-08 15:15:38.024794665 +0200
+@@ -262,6 +262,13 @@
+         my $vsz   = $3;
+         my $cmd   = $4;
+ 
++        # Rudder #4314/Alex Tkatchenko: Workaround for a CFEngine bug that truncates
++        # lines exceeding 4096 chars.
++        #
++        # See https://cfengine.com/dev/issues/3882 for defails.
++
++        $cmd = substr $cmd,0,4076 if length($cmd) > 4076;
++
+         push @processes, {
+             USER          => $user,
+             PID           => $pid,
+@@ -316,6 +323,13 @@
+         my $start = $7;
+         my $cmd   = $8;
+ 
++        # Rudder #4314/Alex Tkatchenko: Workaround for a CFEngine bug that truncates
++        # lines exceeding 4096 chars.
++        #
++        # See https://cfengine.com/dev/issues/3882 for defails.
++
++        $cmd = substr $cmd,0,4076 if length($cmd) > 4076;
++
+         push @processes, {
+             USER          => $user,
+             PID           => $pid,
+
