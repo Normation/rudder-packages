@@ -153,12 +153,10 @@ Requires: pmtools
 
 %define install_command        install
 %define cp_a_command           cp -a
-%define fusioninventory_folder %{_sourcedir}/fusioninventory-agent
 
 %if "%{?_os}" == "aix"
 %define install_command        installbsd -c
 %define cp_a_command           cp -hpPr
-%define fusioninventory_folder %{_sourcedir}/fusioninventory-agent-2.3.6
 %endif
 
 # Replaces rudder-cfengine-community since 2.4.0~beta3
@@ -197,7 +195,7 @@ FusionInventory.
 
 cd %{_sourcedir}
 
-%{_sourcedir}/perl-prepare.sh %{fusioninventory_folder}
+%{_sourcedir}/perl-prepare.sh %{_sourcedir}/fusioninventory-agent
 
 # Ensure an appropriate environment for the compiler
 export CFLAGS="$RPM_OPT_FLAGS"
