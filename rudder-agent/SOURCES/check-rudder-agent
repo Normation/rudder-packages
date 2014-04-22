@@ -21,12 +21,21 @@ set -e
 
 BACKUP_DIR=/var/backups/rudder/
 
-check_and_fix_cfengine_processes() {
-
 # Default variables for CFEngine binaries and disable files
 CFE_DIR=/var/rudder/cfengine-community
 CFE_BIN_DIR=${CFE_DIR}/bin
 CFE_DISABLE_FILE=/opt/rudder/etc/disable-agent
+
+LAST_UPDATE_FILE=${CFE_DIR}/last_successful_inputs_update
+
+UUID_FILE=/opt/rudder/etc/uuid.hive
+
+clean_cf_lock_files() {
+  rm -f ${CFE_DIR}/state/cf_lock.tcdb
+  rm -f ${CFE_DIR}/state/cf_lock.tcdb.lock
+}
+
+check_and_fix_cfengine_processes() {
 
 # Detect the correct ps tool to use
 # Supported tools are ps, vzps, and the rudder supplied vzps.py
@@ -43,8 +52,6 @@ if [ -e "/proc/bc/0" ]; then
     PS="${RUDDERPS} -E 0"
   fi
 fi
-
-LAST_UPDATE_FILE=${CFE_DIR}/last_successful_inputs_update
 
 # List the CFEngine processes running
 CF_PROCESS_RUNNING=`${PS} -efww | grep -E "${CFE_BIN_DIR}/(cf-execd|cf-agent)" | grep -v grep | cat`
@@ -68,7 +75,7 @@ if [ ! -e ${LAST_UPDATE_FILE} ]; then
   :
 elif test `find ${LAST_UPDATE_FILE} -mmin +10`; then
   echo -n "WARNING: The file ${LAST_UPDATE_FILE} is older than 10 minutes, the agent is probably stuck. Purging the TokyoCabinet lock file..."
-  rm -f ${CFE_DIR}/state/cf_lock.tcdb.lock
+  clean_cf_lock_files
   echo " Done";
 fi
 
@@ -79,16 +86,14 @@ if [ ${NB_CF_PROCESS_RUNNING} -gt 8 ]; then
   echo -n "WARNING: Too many instance of CFEngine processes running. Killing them, and purging the TokyoCabinet database..."
   echo "${CF_PROCESS_RUNNING}" | awk 'BEGIN { OFS=" "} {print $2 }' | xargs kill -9 || true
   /etc/init.d/rudder-agent forcestop || true
-  rm -f ${CFE_DIR}/state/cf_lock.tcdb
-  rm -f ${CFE_DIR}/state/cf_lock.tcdb.lock
+  clean_cf_lock_files
   echo " Done"
 fi
 }
 
 check_and_fix_rudder_uuid() {
 
-# Default variables about UUID file and its backups
-UUID_FILE=/opt/rudder/etc/uuid.hive
+# Default variable about UUID backup
 LATEST_BACKUPED_UUID=""
 
 # Generate a UUID if we don't have one yet
