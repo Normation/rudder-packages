@@ -87,14 +87,18 @@ if [ ! -e ${CFE_DISABLE_FILE} -a ${NB_CF_PROCESS_RUNNING} -eq 0 -a -f ${CFE_DIR}
   echo " Done"
 fi
 
+
+RUN_INTERVAL=`cat /var/rudder/cfengine-community/inputs/run_interval`
+CHECK_INTERVAL=`expr ${RUN_INTERVAL} * 2`
+
 # Check for the age of the last update file
-# if it is older than 10 minutes, we need to kill the lock file on tcdb database
+# if it is older than CHECK_INTERVAL minutes, we need to kill the lock file on tcdb database
 if [ ! -e ${LAST_UPDATE_FILE} ]; then
   # The file ${LAST_UPDATE_FILE} is not yet present, this node is probably 
   # not accepted yet. Do nothing
   :
-elif test `find ${LAST_UPDATE_FILE} -mmin +10`; then
-  echo_n "WARNING: The file ${LAST_UPDATE_FILE} is older than 10 minutes, the agent is probably stuck. Purging the TokyoCabinet lock file..."
+elif test `find ${LAST_UPDATE_FILE} -mmin +${CHECK_INTERVAL}`; then
+  echo_n "WARNING: The file ${LAST_UPDATE_FILE} is older than ${CHECK_INTERVAL} minutes, the agent is probably stuck. Purging the TokyoCabinet lock file..."
   clean_cf_lock_files
   echo " Done";
 fi
