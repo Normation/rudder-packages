@@ -83,7 +83,7 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
 
 BuildRequires: jdk >= 1.6
-Requires: rudder-jetty rudder-inventory-ldap rudder-inventory-endpoint rudder-reports rudder-techniques ncf %{apache} %{apache_tools} git-core rsync openssl
+Requires: rudder-jetty rudder-techniques ncf %{apache} %{apache_tools} git-core rsync openssl
 
 %if 0%{?rhel}
 Requires: mod_ssl
