@@ -62,7 +62,7 @@ Source7: rudder-root-rename
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
 
-Requires: rudder-webapp, rudder-inventory-endpoint, rudder-inventory-ldap, rudder-agent, curl
+Requires: rudder-webapp, rudder-inventory-endpoint, rudder-inventory-ldap, rudder-reports, rudder-agent, curl
 
 %description
 Rudder is an open source configuration management and audit solution.
