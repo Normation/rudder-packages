@@ -65,6 +65,7 @@ Source7: check-rudder-agent
 Source8: vzps.py
 Source9: rudder-agent.sh
 Source10: detect_os.sh
+Source11: rudder-perl
 
 # uuidgen doesn't exist on AIX, so we provide a simple shell compatible version
 %if "%{?_os}" == "aix"
@@ -291,6 +292,8 @@ mkdir -p %{buildroot}/etc/ld.so.conf.d
 %{install_command} -m 755 %{SOURCE7} %{buildroot}/opt/rudder/bin/check-rudder-agent
 
 %{install_command} -m 755 %{SOURCE8} %{buildroot}/opt/rudder/bin/vzps.py
+
+%{install_command} -m 755 %{SOURCE11} %{buildroot}/opt/rudder/bin/rudder-perl
 
 # Install a profile script to make cf-* part of the PATH
 # AIX does not support profile.d and /etc/profile should not be modified, so we don't do this on AIX at all
