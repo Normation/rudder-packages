@@ -83,6 +83,8 @@ binary-arch: install
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ check-rudder-agent /opt/rudder/bin/
 	# Install script to get local processes on VZ systems
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ vzps.py /opt/rudder/bin/
+	# Install a script to run things in rudder's Perl environment
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-perl /opt/rudder/bin/
 	dh_installcron
 #	dh_installinfo
 	dh_installman
