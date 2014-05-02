@@ -74,8 +74,8 @@ localdepends: ./initial-promises ./detect_os.sh ./files ./fusioninventory-agent 
 	$(PATCH) -d ./fusioninventory-agent -p1 < ./patches/fusioninventory/0002-install-d-mkdir-p.patch
 	$(PATCH) -d ./fusioninventory-agent -p1 < ./patches/fusioninventory/0003-unix-ps-etime-usage.patch
 	$(PATCH) -d ./fusioninventory-agent -p1 < ./patches/fusioninventory/0004-aix-microcode-version-retrieval.patch
-	# Fix a lsusb invocation that crashes some SLES machines
-	$(FIND) ./fusioninventory-agent-2.3.6 -iname "USB.pm" -exec rm "{}" \;
+	# Fix a lsusb invocation that crashes some SLES machines
+	$(FIND) ./fusioninventory-agent -iname "USB.pm" -exec rm "{}" \;
 
 ./files: /usr/bin/wget
 	mkdir ./files
