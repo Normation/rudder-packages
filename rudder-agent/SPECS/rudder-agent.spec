@@ -151,12 +151,12 @@ Requires: pmtools
 %define is_tokyocabinet_here false
 %endif
 
-%define install_command install
-%define cp_a_command    cp -a
+%define install_command        install
+%define cp_a_command           cp -a
 
 %if "%{?_os}" == "aix"
-%define install_command installbsd -c
-%define cp_a_command    cp -hpPr
+%define install_command        installbsd -c
+%define cp_a_command           cp -hpPr
 %endif
 
 # Replaces rudder-cfengine-community since 2.4.0~beta3
@@ -195,7 +195,7 @@ FusionInventory.
 
 cd %{_sourcedir}
 
-%{_sourcedir}/perl-prepare.sh
+%{_sourcedir}/perl-prepare.sh %{_sourcedir}/fusioninventory-agent
 
 # Ensure an appropriate environment for the compiler
 export CFLAGS="$RPM_OPT_FLAGS"

@@ -20,7 +20,7 @@
 
 RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
 CFENGINE_RELEASE = 3.5.3
-FUSION_RELEASE = 2.2.2
+FUSION_RELEASE = 2.3.6
 TOKYOCABINET_RELEASE = 1.4.48
 TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX)
 WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget -q
@@ -35,14 +35,14 @@ localdepends: ./initial-promises ./detect_os.sh ./files ./fusioninventory-agent 
 	$(WGET) -O $(TMP_DIR)/cfengine.tgz http://www.normation.com/tarball/cfengine-$(CFENGINE_RELEASE).tar.gz
 	tar xzf $(TMP_DIR)/cfengine.tgz -C $(TMP_DIR)
 	mv $(TMP_DIR)/cfengine-$(CFENGINE_RELEASE) ./cfengine-source
-	$(PATCH) -d ./cfengine-source -p1 < ./add-support-of-openVZ.patch
-	$(PATCH) -d ./cfengine-source -p1 < ./cfengine-report-on-package-removal.patch
-	$(PATCH) -d ./cfengine-source -p1 < ./dont-remove-blank-line-in-templates.patch
-	$(PATCH) -d ./cfengine-source -p1 < ./000-partially-revert-a-change-intended-to-alter-the-log-.patch
-	$(PATCH) -d ./cfengine-source -p1 < ./0001-Tiny-optimization-in-safe_open.patch
-	$(PATCH) -d ./cfengine-source -p1 < ./0002-Fix-failure-to-open-paths-ending-in-a-slash.patch
-	$(PATCH) -d ./cfengine-source -p1 < ./0003-Fix-incorrect-return-value-for-empty-string-in-safe_.patch
-	$(PATCH) -d ./cfengine-source -p1 < ./0004-Make-safe_open-treat-trailing-slashes-like-open.patch
+	$(PATCH) -d ./cfengine-source -p1 < ./patches/cfengine/0001-add-support-for-openvz.patch
+	$(PATCH) -d ./cfengine-source -p1 < ./patches/cfengine/0002-cfengine-report-on-package-removal.patch
+	$(PATCH) -d ./cfengine-source -p1 < ./patches/cfengine/0003-dont-remove-blank-line-in-templates.patch
+	$(PATCH) -d ./cfengine-source -p1 < ./patches/cfengine/0004-partially-revert-a-change-intended-to-alter-the-log.patch
+	$(PATCH) -d ./cfengine-source -p1 < ./patches/cfengine/0005-tiny-optimization-in-safe-open.patch
+	$(PATCH) -d ./cfengine-source -p1 < ./patches/cfengine/0006-fix-failure-to-open-paths-ending-in-a-slash.patch
+	$(PATCH) -d ./cfengine-source -p1 < ./patches/cfengine/0007-fix-incorrect-return-value-for-empty-string-in-safe.patch
+	$(PATCH) -d ./cfengine-source -p1 < ./patches/cfengine/0008-make-safe-open-treat-trailing-slashes-like-open.patch
 
 ./tokyocabinet-source: /usr/bin/wget
 	# Original URL: http://fallabs.com/tokyocabinet/tokyocabinet-${TOKYOCABINET_RELEASE}.tar.gz
@@ -66,17 +66,16 @@ localdepends: ./initial-promises ./detect_os.sh ./files ./fusioninventory-agent 
 	cp ./rudder-sources/rudder-packages/detect_os.sh ./detect_os.sh
 
 ./fusioninventory-agent: /usr/bin/wget
-	#Original URL: http://search.cpan.org/CPAN/authors/id/F/FU/FUSINV/FusionInventory-Agent-$(FUSION_RELEASE).tar.gz
+	#Original URL: http://search.cpan.org/CPAN/authors/id/G/GR/GROUSSE/FusionInventory-Agent-$(FUSION_RELEASE).tar.gz
 	$(WGET) -O $(TMP_DIR)/fusion.tgz http://www.normation.com/tarball/FusionInventory-Agent-$(FUSION_RELEASE).tar.gz
 	tar zxf $(TMP_DIR)/fusion.tgz -C $(TMP_DIR)
 	mv $(TMP_DIR)/FusionInventory-Agent-$(FUSION_RELEASE) ./fusioninventory-agent
-	$(PATCH) -d ./fusioninventory-agent -p1 < ./SuSE_service_pack.patch
-	$(PATCH) -d ./fusioninventory-agent -p1 < ./Correct_detection_of_RedHat.patch
-	$(PATCH) -d ./fusioninventory-agent -p1 < ./Oracle_linux_distro_name.patch
-	$(PATCH) -d ./fusioninventory-agent -p1 < ./4096_char_line_truncating.patch
-	$(PATCH) -d ./fusioninventory-agent -p0 < ./fusinv-install-d-mkdir-p.patch
+	$(PATCH) -d ./fusioninventory-agent -p1 < ./patches/fusioninventory/0001-4096-char-line-truncation.patch
+	$(PATCH) -d ./fusioninventory-agent -p1 < ./patches/fusioninventory/0002-install-d-mkdir-p.patch
+	$(PATCH) -d ./fusioninventory-agent -p1 < ./patches/fusioninventory/0003-unix-ps-etime-usage.patch
+	$(PATCH) -d ./fusioninventory-agent -p1 < ./patches/fusioninventory/0004-aix-microcode-version-retrieval.patch
 	# Fix a lsusb invocation that crashes some SLES machines
-	$(FIND) ./fusioninventory-agent -iname "USB.pm" -exec rm "{}" \;
+	$(FIND) ./fusioninventory-agent-2.3.6 -iname "USB.pm" -exec rm "{}" \;
 
 ./files: /usr/bin/wget
 	mkdir ./files
@@ -146,8 +145,6 @@ localclean:
 	rm -rf ./detect_os.sh
 	rm -f ../debian/rudder-agent.init
 	rm -f ../debian/rudder-agent.default
-	rm -rf ./FusionInventory-Agent-$(FUSION_RELEASE)
-	rm -f ./FusionInventory-Agent-$(FUSION_RELEASE).tar.gz
 	rm -rf ./fusioninventory-agent
 	rm -rf ./tmp
 	rm -rf ./perl-custom
