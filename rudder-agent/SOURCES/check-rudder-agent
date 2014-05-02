@@ -89,7 +89,7 @@ fi
 
 
 RUN_INTERVAL=`cat /var/rudder/cfengine-community/inputs/run_interval`
-CHECK_INTERVAL=`expr ${RUN_INTERVAL} * 2`
+CHECK_INTERVAL=`expr ${RUN_INTERVAL} \* 2`
 
 # Check for the age of the last update file
 # if it is older than CHECK_INTERVAL minutes, we need to kill the lock file on tcdb database
