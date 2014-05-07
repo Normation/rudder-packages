@@ -15,7 +15,7 @@ configure: configure-stamp
 configure-stamp:
 	dh_testdir
 	# Add here commands to configure the package.
-	cd SOURCES && ./perl-prepare.sh
+	cd SOURCES && ./perl-prepare.sh $(CURDIR)/SOURCES/fusioninventory-agent
 	cd SOURCES/cfengine-source && ./configure --prefix=/opt/rudder --with-workdir=/var/rudder/cfengine-community --enable-static=yes --enable-shared=no
 
 	touch configure-stamp
