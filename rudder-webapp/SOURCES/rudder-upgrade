@@ -76,6 +76,8 @@ set -e
 # - 2.6.0 : Add the property to enable/disable workflow self deployment
 # - 2.6.0 : Check the LDAP and PostgreSQL daemons status before upgrading
 # - 2.6.6 : Migration DB schema to modify indexes on RudderSysEvents to improve nodes list display
+# - 2.6.13 : Migration DB schema to modify type on RudderSysEvents id from integer to bigint
+# - 2.6.13 : Migration DB schema to modify type on archivedRudderSysEvents id from integer to bigint
 #####################################################################################
 
 # Some variables
@@ -422,6 +424,18 @@ fi
 RES=$(su - postgres -c "psql -t -d rudder -c \"select count(attname) from pg_attribute where attrelid = (select oid from pg_class where relname = 'expectedreports') and attname = 'unexpandedcomponentsvalues'\"")
 if [ $RES -eq 0 ]; then
         psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.5-2.6-unexpanded-value.sql > /dev/null
+fi
+
+# Upgrade database schema from 2.6.x to 2.6.13 if necessary - first part: transform id type in ruddersysevents table to bigint.
+RES=$(su - postgres -c "psql -t -d rudder -c \"select count(*) from information_schema.columns where table_name='ruddersysevents' and column_name='id' and data_type='integer';\"")
+if [ ${RES} -eq 1 ]; then
+        psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.6-2.6-reports-id-type.sql > /dev/null
+fi
+
+# Upgrade database schema from 2.6.x to 2.6.13 if necessary - Second part: transform id type in arcchivedruddersysevents table to bigint.
+RES=$(su - postgres -c "psql -t -d rudder -c \"select count(*) from information_schema.columns where table_name='archivedruddersysevents' and column_name='id' and data_type='integer';\"")
+if [ ${RES} -eq 1 ]; then
+        psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.6-2.6-archivedreports-id-type.sql > /dev/null
 fi
 
 # Upgrade LDAP schema from 2.3 to 2.4 if necessary: On RPM-like systems, we must upgrade the slapd.conf file manually
