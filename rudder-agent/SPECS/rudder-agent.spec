@@ -65,6 +65,7 @@ Source7: check-rudder-agent
 Source8: vzps.py
 Source9: rudder-agent.sh
 Source10: detect_os.sh
+Source11: rudder-perl
 
 # uuidgen doesn't exist on AIX, so we provide a simple shell compatible version
 %if "%{?_os}" == "aix"
@@ -153,10 +154,12 @@ Requires: pmtools
 
 %define install_command        install
 %define cp_a_command           cp -a
+%define fusioninventory_folder %{_sourcedir}/fusioninventory-agent
 
 %if "%{?_os}" == "aix"
 %define install_command        installbsd -c
 %define cp_a_command           cp -hpPr
+%define fusioninventory_folder %{_sourcedir}/fusioninventory-agent-2.3.6
 %endif
 
 # Replaces rudder-cfengine-community since 2.4.0~beta3
@@ -195,7 +198,7 @@ FusionInventory.
 
 cd %{_sourcedir}
 
-%{_sourcedir}/perl-prepare.sh %{_sourcedir}/fusioninventory-agent
+%{_sourcedir}/perl-prepare.sh %{fusioninventory_folder}
 
 # Ensure an appropriate environment for the compiler
 export CFLAGS="$RPM_OPT_FLAGS"
@@ -290,6 +293,8 @@ mkdir -p %{buildroot}/etc/ld.so.conf.d
 
 %{install_command} -m 755 %{SOURCE8} %{buildroot}/opt/rudder/bin/vzps.py
 
+%{install_command} -m 755 %{SOURCE11} %{buildroot}/opt/rudder/bin/rudder-perl
+
 # Install a profile script to make cf-* part of the PATH
 # AIX does not support profile.d and /etc/profile should not be modified, so we don't do this on AIX at all
 %if "%{?_os}" != "aix"
@@ -313,14 +318,15 @@ find %{buildroot}%{rudderdir} %{buildroot}%{ruddervardir} -type f -o -type l | s
 
 # Do this only during upgrade process
 if [ $1 -eq 2 ];then
+%if "%{?_os}" != "aix"
 	# Keep a backup copy of Rudder agent init and cron files to prevent http://www.rudder-project.org/redmine/issues/3995
 	mkdir -p /var/backups/rudder
-	%{install_command} -m 755 /etc/init.d/rudder-agent /var/backups/rudder/rudder-agent.init-$(date +%Y%m%d)
-	echo "INFO: A back up copy of the /etc/init.d/rudder-agent has been created in /var/backups/rudder"
-	%{install_command} -m 644 /etc/default/rudder-agent /var/backups/rudder/rudder-agent.default-$(date +%Y%m%d)
-	echo "INFO: A back up copy of the /etc/default/rudder-agent has been created in /var/backups/rudder"
-	%{install_command} -m 644 /etc/cron.d/rudder-agent /var/backups/rudder/rudder-agent.cron-$(date +%Y%m%d)
-	echo "INFO: A back up copy of the /etc/cron.d/rudder-agent has been created in /var/backups/rudder"
+	%{install_command} -m 755 /etc/init.d/rudder-agent /var/backups/rudder/rudder-agent.init-$(date +%Y%m%d) && echo "INFO: A back up copy of the /etc/init.d/rudder-agent has been created in /var/backups/rudder"
+	%{install_command} -m 644 /etc/default/rudder-agent /var/backups/rudder/rudder-agent.default-$(date +%Y%m%d) && echo "INFO: A back up copy of the /etc/default/rudder-agent has been created in /var/backups/rudder"
+	%{install_command} -m 644 /etc/cron.d/rudder-agent /var/backups/rudder/rudder-agent.cron-$(date +%Y%m%d) && echo "INFO: A back up copy of the /etc/cron.d/rudder-agent has been created in /var/backups/rudder"
+%else
+	echo "INFO: No init script / cron script backup necessary on AIX builds yet. Skipping...
+%endif
 fi
 
 %post -n rudder-agent
@@ -551,6 +557,7 @@ if [ $1 -eq 0 ]; then
     fi
   done
 
+%if "%{?_os}" != "aix"
   # Remove the cron script we create at installation to prevent mail
   # flooding, re-installation surprises, and general system garbage.
   rm -f /etc/cron.d/rudder-agent
@@ -558,6 +565,9 @@ if [ $1 -eq 0 ]; then
   # Make sure that Rudder agent specific files have been removed
   rm -f /etc/init.d/rudder-agent
   rm -f /etc/default/rudder-agent
+%endif
+
+  # Remove UUID in any case
   rm -f /opt/rudder/etc/uuid.hive
 fi
 
