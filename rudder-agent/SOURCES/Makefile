@@ -27,7 +27,7 @@ WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget -q
 PATCH := /usr/bin/patch
 FIND := /usr/bin/find
 
-localdepends: ./initial-promises ./detect_os.sh ./files ./fusioninventory-agent ./fusioninventory-agent-2.3.6 ./tokyocabinet-source ./cfengine-source ../debian/rudder-agent.init ../debian/rudder-agent.default ./rudder-agent.cron ../debian/rudder-agent.cron.d
+localdepends: ./initial-promises ./detect_os.sh ./files ./fusioninventory-agent ./tokyocabinet-source ./cfengine-source ../debian/rudder-agent.init ../debian/rudder-agent.default ./rudder-agent.cron ../debian/rudder-agent.cron.d
 	rm -rf $(TMP_DIR)
 
 ./cfengine-source: /usr/bin/wget
@@ -76,18 +76,6 @@ localdepends: ./initial-promises ./detect_os.sh ./files ./fusioninventory-agent 
 	$(PATCH) -d ./fusioninventory-agent -p1 < ./patches/fusioninventory/0004-aix-microcode-version-retrieval.patch
 	# Fix a lsusb invocation that crashes some SLES machines
 	$(FIND) ./fusioninventory-agent -iname "USB.pm" -exec rm "{}" \;
-
-./fusioninventory-agent-2.3.6: /usr/bin/wget
-	#Original URL: http://search.cpan.org/CPAN/authors/id/G/GR/GROUSSE/FusionInventory-Agent-$(FUSION_RELEASE).tar.gz
-	$(WGET) -O $(TMP_DIR)/fusion-2.3.6.tgz http://www.normation.com/tarball/FusionInventory-Agent-2.3.6.tar.gz
-	tar zxf $(TMP_DIR)/fusion-2.3.6.tgz -C $(TMP_DIR)
-	mv $(TMP_DIR)/FusionInventory-Agent-2.3.6 ./fusioninventory-agent-2.3.6
-	$(PATCH) -d ./fusioninventory-agent-2.3.6 -p1 < ./patches/fusioninventory/2.3.6/0001-4096-char-line-truncation.patch
-	$(PATCH) -d ./fusioninventory-agent-2.3.6 -p1 < ./patches/fusioninventory/2.3.6/0002-install-d-mkdir-p.patch
-	$(PATCH) -d ./fusioninventory-agent-2.3.6 -p1 < ./patches/fusioninventory/2.3.6/0003-unix-ps-etime-usage.patch
-	$(PATCH) -d ./fusioninventory-agent-2.3.6 -p1 < ./patches/fusioninventory/2.3.6/0004-aix-microcode-version-retrieval.patch
-	# Fix a lsusb invocation that crashes some SLES machines
-	$(FIND) ./fusioninventory-agent-2.3.6 -iname "USB.pm" -exec rm "{}" \;
 
 ./files: /usr/bin/wget
 	mkdir ./files
