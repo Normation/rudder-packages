@@ -115,6 +115,19 @@ if [ ${NB_CF_PROCESS_RUNNING} -gt 8 ]; then
 fi
 }
 
+# Check the size of the cf_lock.tcdb file
+check_and_fix_cf_lock() {
+  MAX_CF_LOCK_SIZE=10485760
+  if [ -e "${CFE_DIR}/state/cf_lock.tcdb" ]; then
+    CF_LOCK_SIZE=`stat -c%s "${CFE_DIR}/state/cf_lock.tcdb"`
+    if [ ${CF_LOCK_SIZE} -ge ${MAX_CF_LOCK_SIZE} ]; then
+      echo -n "WARNING: The file ${CFE_DIR}/state/cf_lock.tcdb is too big ( ${CF_LOCK_SIZE} bytes), purging it..."
+      clean_cf_lock_files
+      echo " Done"
+    fi
+  fi
+}
+
 check_and_fix_rudder_uuid() {
 
 # Default variable about UUID backup
@@ -178,6 +191,7 @@ if [ ! $(whoami) = 'root' ];then echo "You must be root"; exit; fi
 # Launch each check with a certain order
 check_and_fix_rudder_uuid
 check_and_fix_cfengine_processes
+check_and_fix_cf_lock
 
 # The following files are not present on AIX systems
 if [ "z$(uname -s)" != "zAIX" ]; then
