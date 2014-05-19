@@ -78,6 +78,7 @@ Source1: rudder-users.xml
 Source2: rudder.xml
 Source3: rudder-networks.conf
 Source5: rudder-upgrade
+Source6: rudder-upgrade-database
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
@@ -170,8 +171,13 @@ cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/
 cp %{_sourcedir}/rudder-upgrade-LDAP-schema-2.6-2.7-add-global-parameter-ou.ldif %{buildroot}%{rudderdir}/share/upgrade-tools/
 cp %{_sourcedir}/rudder-upgrade-LDAP-schema-2.6-2.7-add-default-global-parameter.ldif %{buildroot}%{rudderdir}/share/upgrade-tools/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.6-2.6-index-reports.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
+cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-change-ids-in-tables.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
+cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-migrate-reports-per-node.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
+
 
 cp %{SOURCE5} %{buildroot}%{rudderdir}/bin/
+cp %{SOURCE6} %{buildroot}%{rudderdir}/bin/
+
 
 # Install documentation
 cp -rf %{_builddir}/rudder-doc/pdf %{buildroot}/usr/share/doc/rudder
@@ -340,6 +346,7 @@ rm -rf %{buildroot}
 %config(noreplace) %{rudderdir}/etc/rudder-networks.conf
 %config(noreplace) /etc/sysconfig/rudder-apache
 /usr/share/doc/rudder
+%{rudderdir}/bin/rudder-upgrade-database
 
 #=================================================
 # Changelog
