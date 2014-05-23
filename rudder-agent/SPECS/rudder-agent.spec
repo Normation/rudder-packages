@@ -323,7 +323,7 @@ if [ $1 -eq 2 ];then
 	%{install_command} -m 644 /etc/default/rudder-agent /var/backups/rudder/rudder-agent.default-$(date +%Y%m%d) && echo "INFO: A back up copy of the /etc/default/rudder-agent has been created in /var/backups/rudder"
 	%{install_command} -m 644 /etc/cron.d/rudder-agent /var/backups/rudder/rudder-agent.cron-$(date +%Y%m%d) && echo "INFO: A back up copy of the /etc/cron.d/rudder-agent has been created in /var/backups/rudder"
 %else
-	echo "INFO: No init script / cron script backup necessary on AIX builds yet. Skipping...
+	echo "INFO: No init script / cron script backup necessary on AIX builds yet. Skipping..."
 %endif
 fi
 
