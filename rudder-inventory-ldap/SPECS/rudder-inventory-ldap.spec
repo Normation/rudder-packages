@@ -65,6 +65,7 @@ Source3: slapd.conf
 Source4: inventory.schema
 Source5: rudder.schema
 Source6: DB_CONFIG
+Source7: rudder-ldap-init.sh
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
@@ -125,7 +126,7 @@ make %{?_smp_mflags}
 %install
 rm -rf %{buildroot}
 
-mkdir -p %{buildroot}/opt/rudder
+mkdir -p %{buildroot}/opt/rudder/bin
 mkdir -p %{buildroot}%{rudderlogdir}/ldap
 mkdir -p %{buildroot}/var/rudder/ldap/openldap-data
 mkdir -p %{buildroot}/var/rudder/run
@@ -142,6 +143,7 @@ install -m 644 %{SOURCE3} %{buildroot}/opt/rudder/etc/openldap/slapd.conf
 install -m 644 %{SOURCE4} %{buildroot}/opt/rudder/etc/openldap/schema/
 install -m 644 %{SOURCE5} %{buildroot}/opt/rudder/etc/openldap/schema/
 install -m 644 %{SOURCE6} %{buildroot}/var/rudder/ldap/openldap-data/
+install -m 755 %{SOURCE7} %{buildroot}/opt/rudder/bin/
 
 # Syslog configuration
 mkdir -p %{buildroot}/etc/rsyslog.d
@@ -262,6 +264,17 @@ rm -f ${SLAPD_DEFINED_INDEXES} ${SLAPD_ACTUAL_INDEXES}
 echo -n "INFO: Restarting rudder-slapd..."
 /sbin/service rudder-slapd restart >/dev/null 2>&1
 echo " Done"
+
+# Check if Rudder LDAP has already been initialize previously
+LDAPCHK=`/opt/rudder/sbin/slapcat  | grep "^dn: " | wc -l`
+if [ $LDAPCHK -eq 0 ]; then
+  echo "**************************************************************"
+  echo "Rudder LDAP service is now installed but not configured."
+  echo "Please run /opt/rudder/bin/rudder-ldap-init.sh if this"
+  echo "is a standalone LDAP service or /opt/rudder/bin/rudder-init.sh"
+  echo "if this is a full rudder-server-root installation"
+  echo "**************************************************************"
+fi
 
 #=================================================
 # Cleaning

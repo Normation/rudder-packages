@@ -101,51 +101,7 @@ else
 	echo "It can be run as many times as you want."
 
 	# Menu
-	# 1st Step: Definition HOSTNAME
-	echo
-	echo -n "Please enter the fully qualified domain name that will be used to access the web interface of the Rudder server (i.e rudder.example.com): "
-	read ANSWER1
-	# 2nd Step: Definition SERVER_ALLOWED_NETWORK
-	while [ z$again = "zyes" ]
-	do
-	  again=''
-	  while ! echo "${ALLOWEDNETWORK[$cpt]}" | grep "$REGEXPCHK1"
-	  do
-		echo
-		echo -n "Enter network allowed to access server (i.e 192.168.0.0/24): "
-		read ALLOWEDNETWORK[$cpt]
-	  done
-	  echo "Network(s) added:"
-	  for i in ${ALLOWEDNETWORK[*]}
-	  do
-		echo $i
-	  done
-	  while ! echo "$again" | grep "^\(yes\|no\)$";do echo -n "Add more networks? (yes/no) ";read again;done
-	  ((cpt++))
-	done
-	# 4th Step: Demo Sample
-	while ! echo "$ANSWER4" | grep "^\(yes\|no\)$"
-	do
-	  echo
-	  echo -n "Do you want to add sample data (for demos)? (yes/no) "
-	  read ANSWER4
-	done
-	# 5th Step: LDAP Check
-	LDAPDATA_PATH=/var/rudder/ldap/openldap-data/
-	if [ -e ${LDAPDATA_PATH}DB_CONFIG ]
-	then
-	  LDAPCHK=`/opt/rudder/sbin/slapcat  | grep "^dn: " | wc -l`
-	  if [ $LDAPCHK -gt 0 ]
-	  then
-		while ! echo "$LDAPRESET" | grep "^\(yes\|no\)$"
-		do
-		  echo
-		  echo -ne "An LDAP database has been detected.\nDo you want to reinitialize it? (yes/no) "
-		  read LDAPRESET
-		done
-	  fi
-	fi
-	#6th Step: Initial Promises
+	#1st Step: Initial Promises
 	if [ ${INITPRO} -ne 0 ]
 	then
 	  while ! echo "$ANSWER6" | grep "^\(yes\|no\)$"
@@ -160,33 +116,13 @@ else
 fi
 # Review
 echo
-echo Hostname: "$ANSWER1"
-echo Allowed networks: "${ALLOWEDNETWORK[*]}"
-echo Add sample data? "$ANSWER4"
-if [ $LDAPCHK -gt 0 ]
-then
-  echo Reinitialize LDAP database? "$LDAPRESET"
-fi
 if [ ${INITPRO} -ne 0 ];then
 	echo Reset Initial Promises? "$ANSWER6"
 fi
 echo
 Pause
+
 # Set Configuration
-# Formatting allowed network
-# NET will modify init-policy-server.ldif and NET 2 cf-served.cf
-for i in ${ALLOWEDNETWORK[*]}
-do
-  if [ $cpt2 -eq 0 ]
-  then
-    NET=`echo $i | sed $REGEXP`
-    NET2="'$NET'"
-  else
-    NET="$NET\ndirectiveVariable: ALLOWEDNETWORK[$cpt2]: `echo $i | sed $REGEXP`"
-    NET2="$NET2, '`echo $i | sed $REGEXP`'"
-  fi
-  ((cpt2++))
-done
 
 # Configure initial promises
 if [ z$ANSWER6 = "zyes" ]
@@ -204,26 +140,14 @@ then
   echo "127.0.0.1"> /var/rudder/cfengine-community/policy_server.dat
   echo " done."
 fi
-# LDAP (re)initialization
-${SLAPD_INIT} stop &> $TMP_LOG
-if [ $LDAPCHK -gt 0 ]
+
+# Configure LDAP
+if [ $# -gt 0 ]
 then
-  if [ z$LDAPRESET = "zyes" ]
-  then
-    echo -n "Initializing LDAP database..."
-    rm -f /var/rudder/ldap/openldap-data/{alock,__db.*,*.bdb,log.*}
-    LDAPInit
-  fi
+  /opt/rudder/bin/rudder-ldap-init.sh ${ANSWER1} ${ANSWER4} ${LDAPRESET} ${ALLOWEDNETWORK[0]}
 else
-  echo -n "Initializing LDAP database..."
-  LDAPInit
+  /opt/rudder/bin/rudder-ldap-init.sh
 fi
-# Check if Demo sample have to be added
-if [ z$ANSWER4 = "zyes" ]
-then
-    /opt/rudder/sbin/slapadd -l $INITDEMO_PATH &> $TMP_LOG
-fi
-echo " done."
 
 # Update the password file used by Rudder with random password
 
