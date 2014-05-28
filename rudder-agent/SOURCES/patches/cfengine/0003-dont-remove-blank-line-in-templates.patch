@@ -1,0 +1,125 @@
+From 193935482fd215a569325a54e986e8f8e39989c3 Mon Sep 17 00:00:00 2001
+From: Nicolas CHARLES <nicolas.charles@normation.com>
+Date: Mon, 24 Feb 2014 14:01:22 +0100
+Subject: [PATCH] Backporting f0dd1f0483fe5f234c9dc82405a057e4d6db0b10 and f8c7dca55ed8d99212564ea130666de4bd5e0931 on 3.5
+ branch
+
+---
+ cf-agent/files_editline.c | 41 +++++++++++++++++++++++++++++++++--------
+ 1 file changed, 33 insertions(+), 8 deletions(-)
+
+diff --git a/cf-agent/files_editline.c b/cf-agent/files_editline.c
+index 24ad1ae..9913228 100644
+--- a/cf-agent/files_editline.c
++++ b/cf-agent/files_editline.c
+@@ -173,6 +173,7 @@ Bundle *MakeTemporaryBundleFromTemplate(EvalContext *ctx, Policy *policy, Attrib
+         PromiseType *tp = BundleAppendPromiseType(bp, "insert_lines");
+         Promise *np = NULL;
+         Item *lines = NULL;
++        Item *stack = NULL;
+         char context[CF_BUFSIZE] = "any";
+         int lineno = 0;
+         size_t level = 0;
+@@ -211,8 +212,7 @@ Bundle *MakeTemporaryBundleFromTemplate(EvalContext *ctx, Policy *policy, Attrib
+ 
+                 if (strcmp(op, "BEGIN") == 0)
+                 {
+-                    // start new buffer
+-
++                    PrependItem(&stack, context, NULL);
+                     if (++level > 1)
+                     {
+                         cfPS(ctx, LOG_LEVEL_ERR, PROMISE_RESULT_INTERRUPTED, pp, a, "Template file '%s' contains nested blocks which are not allowed, near line %d", a.template, lineno);
+@@ -224,8 +224,13 @@ Bundle *MakeTemporaryBundleFromTemplate(EvalContext *ctx, Policy *policy, Attrib
+ 
+                 if (strcmp(op, "END") == 0)
+                 {
+-                    // install buffer
+                     level--;
++                    if (stack != NULL)
++                       {
++                       strcpy(context, stack->name);
++                       DeleteItem(&stack, stack);
++                       }
++
+                 }
+ 
+                 if (strcmp(op + strlen(op)-2, "::") == 0)
+@@ -264,7 +269,10 @@ Bundle *MakeTemporaryBundleFromTemplate(EvalContext *ctx, Policy *policy, Attrib
+             {
+                 if (level > 0)
+                 {
+-                    AppendItem(&lines, buffer, NULL);
++                    if (IsDefinedClass(ctx, context, PromiseGetNamespace(pp))) // This is ok because template is basically a closure
++                    {
++                        AppendItem(&lines, buffer, context);
++                    }
+                 }
+                 else
+                 {
+@@ -557,11 +565,11 @@ static void VerifyLineInsertions(EvalContext *ctx, Promise *pp, EditContext *edc
+ {
+     Item **start = &(edcontext->file_start), *match, *prev;
+     Item *begin_ptr, *end_ptr;
+-    Attributes a = { {0} };
+     CfLock thislock;
+     char lockname[CF_BUFSIZE];
+ 
+-    a = GetInsertionAttributes(ctx, pp);
++    Attributes a = GetInsertionAttributes(ctx, pp);
++    int preserve_block = a.sourcetype && strcmp(a.sourcetype, "preserve_block") == 0;
+     a.transaction.ifelapsed = CF_EDIT_IFELAPSED;
+ 
+     if (!SanityCheckInsertions(a))
+@@ -586,7 +594,17 @@ static void VerifyLineInsertions(EvalContext *ctx, Promise *pp, EditContext *edc
+         return;
+     }
+ 
+-    snprintf(lockname, CF_BUFSIZE - 1, "insertline-%s-%s", pp->promiser, edcontext->filename);
++
++    if (preserve_block)
++    {
++        // promise to insert duplicates on first pass only
++        snprintf(lockname, CF_BUFSIZE - 1, "insertline-%s-%s-%lu", pp->promiser, edcontext->filename, (long unsigned int) pp->org_pp);
++    }
++    else
++    {
++        snprintf(lockname, CF_BUFSIZE - 1, "insertline-%s-%s", pp->promiser, edcontext->filename);
++    }
++
+     thislock = AcquireLock(ctx, lockname, VUQNAME, CFSTARTTIME, a.transaction, pp, true);
+ 
+     if (thislock.lock == NULL)
+@@ -699,6 +717,7 @@ If no such region matches, begin_ptr and end_ptr should point to CF_UNDEFINED_IT
+ static int InsertMultipleLinesToRegion(EvalContext *ctx, Item **start, Item *begin_ptr, Item *end_ptr, Attributes a, Promise *pp, EditContext *edcontext)
+ {
+     Item *ip, *prev = CF_UNDEFINED_ITEM;
++    int preserve_block = a.sourcetype && strcmp(a.sourcetype, "preserve_block") == 0;
+ 
+     // Insert at the start of the file
+     
+@@ -728,6 +747,12 @@ static int InsertMultipleLinesToRegion(EvalContext *ctx, Item **start, Item *beg
+     {
+         for (ip = *start; ip != NULL; ip = ip->next)
+         {
++            if (!preserve_block && MatchRegion(pp->promiser, ip, end_ptr, true))
++            {
++                cfPS(ctx, LOG_LEVEL_VERBOSE, PROMISE_RESULT_NOOP, pp, a, "Promised chunk '%s' exists within selected region of %s (promise kept)", pp->promiser, edcontext->filename);
++                return false;
++            }
++
+             if (ip->next != NULL && ip->next == end_ptr)
+             {
+                 return InsertMultipleLinesAtLocation(ctx, start, begin_ptr, end_ptr, ip, prev, a, pp, edcontext);
+@@ -1316,7 +1341,7 @@ static int InsertCompoundLineAtLocation(EvalContext *ctx, char *chunk, Item **st
+     char *sp;
+     int preserve_block = a.sourcetype && (strcmp(a.sourcetype, "preserve_block") == 0 || strcmp(a.sourcetype, "file_preserve_block") == 0);
+ 
+-    if (MatchRegion(chunk, location, NULL, false))
++    if (!preserve_block && MatchRegion(chunk, location, NULL, false))
+     {
+         cfPS(ctx, LOG_LEVEL_VERBOSE, PROMISE_RESULT_NOOP, pp, a, "Promised chunk '%s' exists within selected region of %s (promise kept)", pp->promiser, edcontext->filename);
+         return false;
+-- 
+1.8.1.5
+

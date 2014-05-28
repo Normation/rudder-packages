@@ -22,10 +22,12 @@ set -e
 # Ensure our PATH includes Rudder's bin dir (for uuidgen on AIX in particular)
 export PATH=/opt/rudder/bin/:$PATH
 
+# Variables
 BACKUP_DIR=/var/backups/rudder/
+OS_FAMILY=$(uname -s)
 
 # If we are on AIX, use alternative commands and options
-if [ "z$(uname -s)" = "zAIX" ]; then
+if [ "z${OS_FAMILY}" = "zAIX" ]; then
   CP_A="cp -hpPr"
   PS_OPTIONS="-ef"
 else
@@ -34,7 +36,7 @@ else
 fi
 
 echo_n() {
-  if [ "z$(uname -s)" = "zAIX" ]; then
+  if [ "z${OS_FAMILY}" = "zAIX" ]; then
     /usr/bin/echo "$*\c"
   else
     echo -n $*
@@ -109,10 +111,25 @@ fi
 if [ ${NB_CF_PROCESS_RUNNING} -gt 8 ]; then
   echo_n "WARNING: Too many instance of CFEngine processes running. Killing them, and purging the TokyoCabinet database..."
   echo "${CF_PROCESS_RUNNING}" | awk 'BEGIN { OFS=" "} {print $2 }' | xargs kill -9 || true
-  /etc/init.d/rudder-agent forcestop || true
+  if [ "z${OS_FAMILY}" != "zAIX" ]; then
+    /etc/init.d/rudder-agent forcestop || true
+  fi
   clean_cf_lock_files
   echo " Done"
 fi
+}
+
+# Check the size of the cf_lock.tcdb file
+check_and_fix_cf_lock() {
+  MAX_CF_LOCK_SIZE=10485760
+  if [ -e "${CFE_DIR}/state/cf_lock.tcdb" ]; then
+    CF_LOCK_SIZE=`stat -c%s "${CFE_DIR}/state/cf_lock.tcdb"`
+    if [ ${CF_LOCK_SIZE} -ge ${MAX_CF_LOCK_SIZE} ]; then
+      echo -n "WARNING: The file ${CFE_DIR}/state/cf_lock.tcdb is too big ( ${CF_LOCK_SIZE} bytes), purging it..."
+      clean_cf_lock_files
+      echo " Done"
+    fi
+  fi
 }
 
 check_and_fix_rudder_uuid() {
@@ -178,9 +195,10 @@ if [ ! $(whoami) = 'root' ];then echo "You must be root"; exit; fi
 # Launch each check with a certain order
 check_and_fix_rudder_uuid
 check_and_fix_cfengine_processes
+check_and_fix_cf_lock
 
 # The following files are not present on AIX systems
-if [ "z$(uname -s)" != "zAIX" ]; then
+if [ "z${OS_FAMILY}" != "zAIX" ]; then
   check_and_fix_specific_rudder_agent_file /etc/init.d/rudder-agent init
   check_and_fix_specific_rudder_agent_file /etc/default/rudder-agent default
   check_and_fix_specific_rudder_agent_file /etc/cron.d/rudder-agent cron
