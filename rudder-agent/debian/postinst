@@ -33,6 +33,9 @@ case "$1" in
 		fi
     fi
 
+		# Reload the linker cache (to acknowledge LMDB's presence if needed)
+		if [ -e /etc/ld.so.conf.d/rudder.conf ]; then ldconfig; fi
+
 		# Copy new binaries to workdir, make sure daemons are stopped first
 
 		# Set a "lock" to avoid CFEngine being restarted during the upgrade process
