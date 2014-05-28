@@ -19,15 +19,15 @@
 .DEFAULT_GOAL := localdepends
 
 RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
-CFENGINE_RELEASE = 3.6.0b1
+CFENGINE_RELEASE = 3.5.3
 FUSION_RELEASE = 2.3.6
-LMDB_RELEASE = 0.9.11
+TOKYOCABINET_RELEASE = 1.4.48
 TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX)
 WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget -q
 PATCH := /usr/bin/patch
 FIND := /usr/bin/find
 
-localdepends: ./initial-promises ./detect_os.sh ./files ./fusioninventory-agent ./lmdb-source ./cfengine-source ../debian/rudder-agent.init ../debian/rudder-agent.default ./rudder-agent.cron ../debian/rudder-agent.cron.d
+localdepends: ./initial-promises ./detect_os.sh ./files ./fusioninventory-agent ./tokyocabinet-source ./cfengine-source ../debian/rudder-agent.init ../debian/rudder-agent.default ./rudder-agent.cron ../debian/rudder-agent.cron.d
 	rm -rf $(TMP_DIR)
 
 ./cfengine-source: /usr/bin/wget
@@ -35,16 +35,23 @@ localdepends: ./initial-promises ./detect_os.sh ./files ./fusioninventory-agent 
 	$(WGET) -O $(TMP_DIR)/cfengine.tgz http://www.normation.com/tarball/cfengine-$(CFENGINE_RELEASE).tar.gz
 	tar xzf $(TMP_DIR)/cfengine.tgz -C $(TMP_DIR)
 	mv $(TMP_DIR)/cfengine-$(CFENGINE_RELEASE) ./cfengine-source
-	# No patches to apply
+	$(PATCH) -d ./cfengine-source -p1 < ./patches/cfengine/0001-add-support-for-openvz.patch
+	$(PATCH) -d ./cfengine-source -p1 < ./patches/cfengine/0002-cfengine-report-on-package-removal.patch
+	$(PATCH) -d ./cfengine-source -p1 < ./patches/cfengine/0003-dont-remove-blank-line-in-templates.patch
+	$(PATCH) -d ./cfengine-source -p1 < ./patches/cfengine/0004-partially-revert-a-change-intended-to-alter-the-log.patch
+	$(PATCH) -d ./cfengine-source -p1 < ./patches/cfengine/0005-tiny-optimization-in-safe-open.patch
+	$(PATCH) -d ./cfengine-source -p1 < ./patches/cfengine/0006-fix-failure-to-open-paths-ending-in-a-slash.patch
+	$(PATCH) -d ./cfengine-source -p1 < ./patches/cfengine/0007-fix-incorrect-return-value-for-empty-string-in-safe.patch
+	$(PATCH) -d ./cfengine-source -p1 < ./patches/cfengine/0008-make-safe-open-treat-trailing-slashes-like-open.patch
 
-./lmdb-source: /usr/bin/wget
-	# Original URL: http://ftp.fr.debian.org/debian/pool/main/l/lmdb/lmdb_$(LMDB_RELEASE).orig.tar.xz
-	$(WGET) -O $(TMP_DIR)/lmdb.tgz http://www.normation.com/tarball/lmdb-$(LMDB_RELEASE).tar.gz
-	tar xzf $(TMP_DIR)/lmdb.tgz -C $(TMP_DIR)
-	mv $(TMP_DIR)/lmdb-$(LMDB_RELEASE) ./lmdb-source
+./tokyocabinet-source: /usr/bin/wget
+	# Original URL: http://fallabs.com/tokyocabinet/tokyocabinet-${TOKYOCABINET_RELEASE}.tar.gz
+	$(WGET) -O $(TMP_DIR)/tokyocabinet.tgz http://www.normation.com/tarball/tokyocabinet-${TOKYOCABINET_RELEASE}.tar.gz
+	tar xzf $(TMP_DIR)/tokyocabinet.tgz -C $(TMP_DIR)
+	mv $(TMP_DIR)/tokyocabinet-$(TOKYOCABINET_RELEASE) ./tokyocabinet-source
 
 ./rudder-sources.tar.bz2:
-	$(WGET) -O rudder-sources.tar.bz2 http://www.rudder-project.org/archives/rudder-sources-$(RUDDER_VERSION_TO_PACKAGE).tar.bz2
+	$(WGET) -O rudder-sources.tar.bz2 http://www.rudder-project.org/archives/rudder-sources-${RUDDER_VERSION_TO_PACKAGE}.tar.bz2
 
 ./rudder-sources: ./rudder-sources.tar.bz2
 	tar -xjf rudder-sources.tar.bz2
@@ -133,7 +140,7 @@ localdepends: ./initial-promises ./detect_os.sh ./files ./fusioninventory-agent 
 
 localclean:
 	rm -rf ./cfengine-source
-	rm -rf ./lmdb-source
+	rm -rf ./tokyocabinet-source
 	rm -rf ./initial-promises
 	rm -rf ./detect_os.sh
 	rm -f ../debian/rudder-agent.init

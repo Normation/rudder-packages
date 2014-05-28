@@ -35,10 +35,10 @@
 %define ruddervardir         /var/rudder
 %define rudderlogdir         /var/log/rudder
 
-# is_lmdb_here checks if to build CFEngine we will need to build LMDB or if
-# a package already exists on the system.
-# Default value is true in order to handle cases which are not caught below.
-%define is_lmdb_here true
+# is_tokyocabinet_here checks if to build CFEngine we will need to build 
+# Tokyocabinet or if a package already exists on the system.
+# Default value is true in order to handle cases which are not caught below
+%define is_tokyocabinet_here true
 
 #=================================================
 # Header
@@ -59,7 +59,7 @@ Source3: run-inventory
 Source4: uuid.hive
 Source5: rudder-agent.cron
 # This file will contain path of /opt/rudder/lib for ld which will
-# find there all necessary libraries for LMDB.
+# find there all necessary libraries for tokyocabinet.
 Source6: rudder.conf
 Source7: check-rudder-agent
 Source8: vzps.py
@@ -72,8 +72,7 @@ Source11: rudder-perl
 Source100: uuidgen
 %endif
 
-# Prevent dependency auto-generation, that tries to be helpful by detecting Perl dependencies from
-# FusionInventory. We handle that with the perl standalone installation already.
+# We have PERL things in here. Do not try to outsmart me by adding dummy dependencies, you silly tool.
 AutoReq: 0
 AutoProv: 0
 
@@ -117,22 +116,40 @@ Requires: kernel-utils
 Requires: dmidecode
 %endif
 
-# LMDB handling (builtin or OS-provided)
-
-## 1 - RHEL: No LMDB yet
-%if 0%{?rhel}
-%define is_lmdb_here false
+## Each tests of OS version comparison with "greater" or "lesser version than"
+## need to test before if we compare the right OS.
+%if 0%{?rhel} && 0%{?rhel} <= 5
+BuildRequires: bzip2-devel zlib-devel
+%define is_tokyocabinet_here false
 %endif
 
-## 2 - Fedora: No LMDB yet
-%if 0%{?fedora}
-%define is_lmdb_here false
+%if 0%{?rhel} && 0%{?rhel} >= 6
+BuildRequires: tokyocabinet-devel
+Requires: tokyocabinet
+%define is_tokyocabinet_here true
 %endif
 
-## 3 - SLES: No LMDB yet
-%if 0%{?sles_version}
+# Fedora 7 is the first known version to officially
+# support TokyoCabinet in the official repositories
+%if 0%{?fedora} && 0%{?fedora} >= 7
+BuildRequires: tokyocabinet-devel
+Requires: tokyocabinet
+%define is_tokyocabinet_here true
+%endif
+
+%if 0%{?sles_version} && 0%{?sles_version} >= 11
+BuildRequires: libbz2-devel zlib-devel
 Requires: pmtools
-%define is_lmdb_here false
+%define is_tokyocabinet_here false
+%endif
+
+## Contents of package 'libbz2-devel' in SLES 11 is included in the package of bzip2
+## in SLES 10 which is on the system by default.
+## cf http://linux.derkeiler.com/Mailing-Lists/SuSE/2003-11/2640.html
+%if 0%{?sles_version} == 10
+BuildRequires: zlib-devel
+Requires: pmtools
+%define is_tokyocabinet_here false
 %endif
 
 %define install_command        install
@@ -147,12 +164,15 @@ Requires: pmtools
 Provides: rudder-cfengine-community
 Obsoletes: rudder-cfengine-community
 
-# Use our own dependency generator
+# We have PERL things in here. Do not try to outsmart me by adding dummy dependencies, you silly tool.
+# Same for TokyoCabinet, don't require the libs when we bundle them in this package, duh.
+AutoProv: 0
 %global _use_internal_dependency_generator 0
 %global __find_requires_orig %{__find_requires}
-%define __find_requires %{_sourcedir}/filter-reqs.pl %{is_lmdb_here} %{__find_requires_orig}
+%define __find_requires %{_sourcedir}/filter-reqs.pl %{is_tokyocabinet_here} %{__find_requires_orig}
 %global __find_provides_orig %{__find_provides}
-%define __find_provides %{_sourcedir}/filter-reqs.pl %{is_lmdb_here} %{__find_provides_orig}
+%define __find_provides %{_sourcedir}/filter-reqs.pl %{is_tokyocabinet_here} %{__find_provides_orig}
+
 
 %description
 Rudder is an open source configuration management and audit solution.
@@ -182,32 +202,27 @@ cd %{_sourcedir}
 export CFLAGS="$RPM_OPT_FLAGS"
 export CXXFLAGS="$RPM_OPT_FLAGS"
 
-%if "%{is_lmdb_here}" != "true"
-# Remove all remaining files from the temporary build folder before compiling LMDB
+%if "%{is_tokyocabinet_here}" != "true"
+# Remove all remaining files from temporary build folder before to compile tokyocabinet
 rm -rf %{buildroot}
-
-# Compile LMDB library and install it in /opt/rudder/lib
-
-# LMDB's Makefile does not know how to create destination files, do it ourselves
-for i in bin lib include man/man1; do mkdir -p %{buildroot}%{rudderdir}/$i; done
-
-cd %{_sourcedir}/lmdb-source/libraries/liblmdb
-
+# Compile Tokyocabinet library and install it in /opt/rudder/lib
+cd %{_sourcedir}/tokyocabinet-source
+./configure --prefix=%{rudderdir}
 make %{?_smp_mflags}
-make install prefix=%{rudderdir} DESTDIR=%{buildroot}
+make install DESTDIR=%{buildroot}
 %endif
 
 # Prepare CFEngine build
 cd %{_sourcedir}/cfengine-source
 
-%if "%{is_lmdb_here}" != "true"
-## Define path of LMDB if built before instead of being provided by the system.
-%define lmdb_arg "--with-lmdb=%{buildroot}%{rudderdir}"
+%if "%{is_tokyocabinet_here}" != "true"
+## Define path of tokyocabinet if built before instead of being provided by the system.
+%define tokyocabinet_arg "--with-tokyocabinet=%{buildroot}%{rudderdir}"
 %else
-%define lmdb_arg ""
+%define tokyocabinet_arg ""
 %endif
 
-./configure --build=%_target --prefix=%{rudderdir} --with-workdir=%{ruddervardir}/cfengine-community --enable-static=yes --enable-shared=no %{lmdb_arg}
+./configure --build=%_target --prefix=%{rudderdir} --with-workdir=%{ruddervardir}/cfengine-community --enable-static=yes --enable-shared=no %{tokyocabinet_arg}
 
 make %{?_smp_mflags}
 
@@ -215,12 +230,13 @@ make %{?_smp_mflags}
 # Installation
 #=================================================
 %install
-%if "%{is_lmdb_here}" == "true"
+%if "%{is_tokyocabinet_here}" == "true"
 # Remove all remaining files from temporary build folder since no actions should
-# have been made before in this directory (if LMDB has not been built).
+# have been made before in this directory (if tokyocabinet has not been
+# built).
 # Besides, all actions should not have been made before macro 'install', so removing all 
 # the files from %{buildroot} should be made at the begining of macro 'install'.
-# Build of and embedded library (here, LMDB) is an exception.
+# Build of and embeded library (here, tokyocabinet)is an exception.
 rm -rf %{buildroot}
 %endif
 
@@ -264,9 +280,9 @@ cp -r %{_sourcedir}/initial-promises %{buildroot}%{rudderdir}/share/
 cp %{SOURCE4} %{buildroot}%{rudderdir}/etc/
 
 # ld.so.conf.d is not supported on CentOS 3
-%if "%{is_lmdb_here}" != "true" && 0%{?rhel} != 3
+%if "%{is_tokyocabinet_here}" != "true" && 0%{?rhel} != 3
 # Install /etc/ld.so.conf.d/rudder.conf in order to use libraries
-# contained in /opt/rudder/lib like LMDB
+# contained in /opt/rudder/lib like tokyocabinet
 mkdir -p %{buildroot}/etc/ld.so.conf.d
 %{install_command} -m 644 %{SOURCE6} %{buildroot}/etc/ld.so.conf.d/rudder.conf
 %endif
@@ -348,7 +364,7 @@ then
 fi
 
 # Reload configuration of ldd if new configuration has been added
-%if "%{is_lmdb_here}" != "true" && 0%{?rhel} != 3
+%if "%{is_tokyocabinet_here}" != "true" && 0%{?rhel} != 3
 if [ -f /etc/ld.so.conf.d/rudder.conf ]; then
 	ldconfig
 fi
@@ -356,7 +372,7 @@ fi
 
 # Reload configuration of ldd if new configuration has been added,
 # CentOS 3 style.
-%if "%{is_lmdb_here}" != "true" && 0%{?rhel} == 3
+%if "%{is_tokyocabinet_here}" != "true" && 0%{?rhel} == 3
 if [ ! `grep "/opt/rudder/lib" /etc/ld.so.conf` ]; then
 	echo "/opt/rudder/lib" >> /etc/ld.so.conf
 fi
@@ -578,7 +594,7 @@ rm -f %{_builddir}/file.list.%{name}
 %dir %{ruddervardir}/cfengine-community/inputs
 %dir %{ruddervardir}/tmp
 %dir %{ruddervardir}/tools
-%if "%{is_lmdb_here}" != "true" && 0%{?rhel} != 3
+%if "%{is_tokyocabinet_here}" != "true" && 0%{?rhel} != 3
 %config(noreplace) /etc/ld.so.conf.d/rudder.conf
 %endif
 
