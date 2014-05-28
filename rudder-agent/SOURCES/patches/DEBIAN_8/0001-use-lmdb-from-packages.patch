@@ -5,8 +5,8 @@ diff -Naurw debian/control debian-new/control
  Section: admin
  Priority: extra
  Maintainer: Rudder packaging team <rudder-packaging@rudder-project.org>
--Build-Depends: debhelper (>= 7), libssl-dev, bison, gcc, flex, libpcre3-dev, libpam0g-dev
-+Build-Depends: debhelper (>= 7), libssl-dev, bison, gcc, flex, libpcre3-dev, libpam0g-dev, liblmdb-dev
+-Build-Depends: debhelper (>= 7), libssl-dev, bison, gcc, flex, libpcre3-dev
++Build-Depends: debhelper (>= 7), libssl-dev, bison, gcc, flex, libpcre3-dev, liblmdb-dev
  Standards-Version: 3.8.0
  Homepage: http://www.rudder-project.org
  
@@ -26,8 +26,8 @@ diff -Naurw debian/rules debian-new/rules
 -	for i in bin lib include man/man1; do mkdir -p $(CURDIR)/debian/tmp/opt/rudder/$$i; done
 -	cd SOURCES/lmdb-source/libraries/liblmdb && make
 -	cd SOURCES/lmdb-source/libraries/liblmdb && make install prefix=/opt/rudder DESTDIR=$(CURDIR)/debian/tmp
--	# Prepare CFEngine 3.6.x build with defined path of LMDB
--	cd SOURCES/cfengine-source && ./configure --prefix=/opt/rudder --with-workdir=/var/rudder/cfengine-community --enable-static=yes --enable-shared=no --with-lmdb=$(CURDIR)/debian/tmp/opt/rudder
+-	# Prepare CFEngine 3.6.x build with defined path of tokyocabinet library
+-	cd SOURCES/cfengine-source && ./configure --prefix=/opt/rudder --with-workdir=/var/rudder/cfengine-community --enable-static=yes --enable-shared=no --with-tokyocabinet=$(CURDIR)/debian/tmp/opt/rudder
 +	cd SOURCES/cfengine-source && ./configure --prefix=/opt/rudder --with-workdir=/var/rudder/cfengine-community --enable-static=yes --enable-shared=no
  
  	touch configure-stamp
