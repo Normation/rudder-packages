@@ -32,8 +32,6 @@ localdepends: ./jetty7
 	tar xzf $(TMP_DIR)/jetty.tgz -C $(TMP_DIR)
 	mv $(TMP_DIR)/jetty-hightide-$(JETTY_RELEASE).v$(DATE_RELEASE) ./jetty7
 	rm -rf $(TMP_DIR)
-	# Remove javadoc which is a waste of 34M on production
-	rm -rf ./jetty7/javadoc
 
 	# Change default log directory for jetty
 	sed -i 's/default=\".\/logs\"/default=\"\/var\/log\/rudder\/webapp\"/g' ./jetty7/etc/jetty-logging.xml
