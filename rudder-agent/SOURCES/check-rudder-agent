@@ -19,6 +19,9 @@
 
 set -e
 
+# Source /etc/profile to gather environment variables from the system and the user
+. /etc/profile
+
 # Ensure our PATH includes Rudder's bin dir (for uuidgen on AIX in particular)
 export PATH=/opt/rudder/bin/:$PATH
 
