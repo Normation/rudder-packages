@@ -1,0 +1,205 @@
+#!/bin/sh
+#####################################################################################
+# Copyright 2013 Normation SAS
+#####################################################################################
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, Version 3.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#####################################################################################
+
+set -e
+
+# Ensure our PATH includes Rudder's bin dir (for uuidgen on AIX in particular)
+export PATH=/opt/rudder/bin/:$PATH
+
+# Variables
+BACKUP_DIR=/var/backups/rudder/
+OS_FAMILY=$(uname -s)
+
+# If we are on AIX, use alternative commands and options
+if [ "z${OS_FAMILY}" = "zAIX" ]; then
+  CP_A="cp -hpPr"
+  PS_OPTIONS="-ef"
+else
+  CP_A="cp -a"
+  PS_OPTIONS="-efww"
+fi
+
+echo_n() {
+  if [ "z${OS_FAMILY}" = "zAIX" ]; then
+    /usr/bin/echo "$*\c"
+  else
+    echo -n $*
+  fi
+}
+
+# Default variables for CFEngine binaries and disable files
+CFE_DIR=/var/rudder/cfengine-community
+CFE_BIN_DIR=${CFE_DIR}/bin
+CFE_DISABLE_FILE=/opt/rudder/etc/disable-agent
+
+LAST_UPDATE_FILE=${CFE_DIR}/last_successful_inputs_update
+
+UUID_FILE=/opt/rudder/etc/uuid.hive
+
+clean_cf_lock_files() {
+  rm -f ${CFE_DIR}/state/cf_lock.tcdb
+  rm -f ${CFE_DIR}/state/cf_lock.tcdb.lock
+}
+
+check_and_fix_cfengine_processes() {
+
+# Detect the correct ps tool to use
+# Supported tools are ps, vzps, and the rudder supplied vzps.py
+PS=ps
+VZPS=/bin/vzps
+RUDDERPS=/opt/rudder/bin/vzps.py
+
+# Detect if we are a VZ host
+if [ -e "/proc/bc/0" ]; then
+  # Detect if vzps is present
+  if [ -e ${VZPS} ]; then
+    PS="${VZPS} -E 0"
+  else
+    PS="${RUDDERPS} -E 0"
+  fi
+fi
+
+# List the CFEngine processes running
+CF_PROCESS_RUNNING=`${PS} ${PS_OPTIONS} | grep -E "${CFE_BIN_DIR}/(cf-execd|cf-agent)" | grep -v grep | cat`
+# Count the number of processes running, filtering empty lines
+NB_CF_PROCESS_RUNNING=`echo "${CF_PROCESS_RUNNING}" | grep -v ^$ | wc -l`
+
+# If no disable file AND no process of CFEngine from Rudder, then relaunch cf-agent with a failsafe first
+# But this is applied only on servers or nodes already initialized (policy server set)
+if [ ! -e ${CFE_DISABLE_FILE} -a ${NB_CF_PROCESS_RUNNING} -eq 0 -a -f ${CFE_DIR}/policy_server.dat ]; then
+  echo_n "WARNING: No disable file detected and no CFEngine process neither. Relaunching CFEngine processes..."
+  ${CFE_BIN_DIR}/cf-agent -f failsafe.cf >/dev/null 2>&1
+  ${CFE_BIN_DIR}/cf-agent >/dev/null 2>&1
+  echo " Done"
+fi
+
+
+RUN_INTERVAL=`cat /var/rudder/cfengine-community/inputs/run_interval`
+CHECK_INTERVAL=`expr ${RUN_INTERVAL} \* 2`
+
+# Check for the age of the last update file
+# if it is older than CHECK_INTERVAL minutes, we need to kill the lock file on tcdb database
+if [ ! -e ${LAST_UPDATE_FILE} ]; then
+  # The file ${LAST_UPDATE_FILE} is not yet present, this node is probably 
+  # not accepted yet. Do nothing
+  :
+elif test `find ${LAST_UPDATE_FILE} -mmin +${CHECK_INTERVAL}`; then
+  echo_n "WARNING: The file ${LAST_UPDATE_FILE} is older than ${CHECK_INTERVAL} minutes, the agent is probably stuck. Purging the TokyoCabinet lock file..."
+  clean_cf_lock_files
+  echo " Done";
+fi
+
+
+# Check for anomalous number of CFEngine processes
+# If there are more than 8 agent/executor processes, we should kill them, and purge the tcdb database
+if [ ${NB_CF_PROCESS_RUNNING} -gt 8 ]; then
+  echo_n "WARNING: Too many instance of CFEngine processes running. Killing them, and purging the TokyoCabinet database..."
+  echo "${CF_PROCESS_RUNNING}" | awk 'BEGIN { OFS=" "} {print $2 }' | xargs kill -9 || true
+  if [ "z${OS_FAMILY}" != "zAIX" ]; then
+    /etc/init.d/rudder-agent forcestop || true
+  fi
+  clean_cf_lock_files
+  echo " Done"
+fi
+}
+
+# Check the size of the cf_lock.tcdb file
+check_and_fix_cf_lock() {
+  MAX_CF_LOCK_SIZE=10485760
+  if [ -e "${CFE_DIR}/state/cf_lock.tcdb" ]; then
+    CF_LOCK_SIZE=`stat -c%s "${CFE_DIR}/state/cf_lock.tcdb"`
+    if [ ${CF_LOCK_SIZE} -ge ${MAX_CF_LOCK_SIZE} ]; then
+      echo -n "WARNING: The file ${CFE_DIR}/state/cf_lock.tcdb is too big ( ${CF_LOCK_SIZE} bytes), purging it..."
+      clean_cf_lock_files
+      echo " Done"
+    fi
+  fi
+}
+
+check_and_fix_rudder_uuid() {
+
+# Default variable about UUID backup
+LATEST_BACKUPED_UUID=""
+
+# Generate a UUID if we don't have one yet
+if [ ! -e ${UUID_FILE} ]; then
+  if [ -d ${BACKUP_DIR} ]; then
+    LATEST_BACKUPED_UUID=$(ls -v1 ${BACKUP_DIR}uuid-*.hive | tail -n1)
+  fi
+  if [ "z${LATEST_BACKUPED_UUID}" != "z" ]; then
+    echo_n "WARNING: The UUID of the node does not exist. The lastest backup (${LATEST_BACKUPED_UUID}) will be recovered..."
+    ${CP_A} ${LATEST_BACKUPED_UUID} ${UUID_FILE} >/dev/null 2>&1
+    echo " Done"
+  else
+    echo_n "WARNING: The UUID of the node does not exist and no backup exist. A new one will be generated..."
+    uuidgen > ${UUID_FILE}
+    echo " Done"
+  fi
+else
+  # UUID is valid only if it has been generetaed by uuidgen or if it is set to 'root' for policy server
+  CHECK_UUID=`cat /opt/rudder/etc/uuid.hive | grep -E "^[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}|root" | wc -l`
+  # If the UUID is not valid, regenerate it
+  if [ ${CHECK_UUID} -ne 1 ]; then
+    echo_n "INFO: Creating a new UUID for Rudder as the existing one is invalid..."
+    # Keep a backup of UUID even if it is not valid
+    mkdir -p /var/backups/rudder
+    cp -f /opt/rudder/etc/uuid.hive /var/backups/rudder/uuid-$(date +%Y%m%d).hive
+    # Generate a new one
+    uuidgen > ${UUID_FILE}
+    echo " Done."
+  fi
+fi
+}
+
+
+check_and_fix_specific_rudder_agent_file() {
+
+FILE_TO_RESTORE=$1
+FILE_TYPE=$2
+LATEST_BACKUPED_FILES=""
+
+if [ ! -e ${FILE_TO_RESTORE} ]; then
+  if [ -d ${BACKUP_DIR} ]; then
+    LATEST_BACKUPED_FILES=$(ls -v1 ${BACKUP_DIR}rudder-agent.${FILE_TYPE}-* | tail -n1)
+  fi
+  if [ "z${LATEST_BACKUPED_FILES}" != "z" ]; then
+    echo_n "WARNING: The file ${FILE_TO_RESTORE} does not exist. The lastest backup (${LATEST_BACKUPED_FILES}) will be recovered..."
+    ${CP_A} ${LATEST_BACKUPED_FILES} ${FILE_TO_RESTORE} >/dev/null 2>&1
+    echo " Done"
+  else
+    echo "WARNING: The file ${FILE_TO_RESTORE} does not exist and no backup exist. Please reinstall the rudder-agent package"
+  fi
+fi
+}
+
+
+# Ensure script is executed by root
+if [ ! $(whoami) = 'root' ];then echo "You must be root"; exit; fi
+
+# Launch each check with a certain order
+check_and_fix_rudder_uuid
+check_and_fix_cfengine_processes
+check_and_fix_cf_lock
+
+# The following files are not present on AIX systems
+if [ "z${OS_FAMILY}" != "zAIX" ]; then
+  check_and_fix_specific_rudder_agent_file /etc/init.d/rudder-agent init
+  check_and_fix_specific_rudder_agent_file /etc/default/rudder-agent default
+  check_and_fix_specific_rudder_agent_file /etc/cron.d/rudder-agent cron
+fi
