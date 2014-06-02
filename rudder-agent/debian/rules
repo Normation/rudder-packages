@@ -23,6 +23,8 @@ configure-stamp:
 	for i in bin lib include man/man1; do mkdir -p $(CURDIR)/debian/tmp/opt/rudder/$$i; done
 	cd SOURCES/lmdb-source/libraries/liblmdb && make
 	cd SOURCES/lmdb-source/libraries/liblmdb && make install prefix=/opt/rudder DESTDIR=$(CURDIR)/debian/tmp
+	# If there is no configure, bootstrap with autogen.sh first
+	cd SOURCES/cfengine-source && [ -x ./configure ] || NO_CONFIGURE=1 ./autogen.sh
 	# Prepare CFEngine 3.6.x build with defined path of LMDB
 	cd SOURCES/cfengine-source && ./configure --prefix=/opt/rudder --with-workdir=/var/rudder/cfengine-community --enable-static=yes --enable-shared=no --with-lmdb=$(CURDIR)/debian/tmp/opt/rudder
 

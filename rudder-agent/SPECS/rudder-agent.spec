@@ -84,7 +84,7 @@ Patch1: fix-missing-headers
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 #Generic requirement
-BuildRequires: gcc openssl-devel bison flex pcre-devel
+BuildRequires: gcc openssl-devel bison flex pcre-devel autoconf automake libtool
 Requires: pcre openssl
 
 # Specific requirements
@@ -206,6 +206,11 @@ cd %{_sourcedir}/cfengine-source
 %else
 %define lmdb_arg ""
 %endif
+
+# If there is no configure, bootstrap with autogen.sh first
+if [ ! -x ./configure ]; then
+  NO_CONFIGURE=1 ./autogen.sh
+fi
 
 ./configure --build=%_target --prefix=%{rudderdir} --with-workdir=%{ruddervardir}/cfengine-community --enable-static=yes --enable-shared=no %{lmdb_arg}
 
