@@ -1,8 +1,0 @@
-rudder-node (2.11.0-0) wheezy; urgency=low
-
-  * Initial package 
-  * Initial package, using rudder-agent as a base
-  * Removed fusion-inventory code
-  * Removed legacy code
-
- -- Matthieu CERDA <matthieu.cerda@normation.com>  Fri, 30 May 2014 16:55:27 +0200

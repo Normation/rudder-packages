@@ -1,9 +1,0 @@
-#!/bin/sh
-#
-# This script runs an inventory using the FusionInventory agent.
-# It also sources from /etc/profile beforehand, too fetch environment
-# variables to be inserted into the inventory.
-
-. /etc/profile
-
-/usr/bin/fusioninventory-agent --config=none "$@"
