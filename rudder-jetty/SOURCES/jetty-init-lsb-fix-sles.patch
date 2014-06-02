@@ -8,7 +8,7 @@
 +#
 +### BEGIN INIT INFO
 +# Provides:                     rudder-jetty
-+# Required-Start:               $local_fs $remote_fs $network rudder-slapd
++# Required-Start:               $local_fs $remote_fs $network
 +# Should-Start:
 +# Should-Stop:
 +# Required-Stop:                $local_fs $remote_fs $network
