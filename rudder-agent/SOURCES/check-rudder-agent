@@ -140,7 +140,7 @@ check_and_fix_cf_lock() {
   if [ -e "${CFE_DIR}/state/cf_lock.tcdb" ]; then
     CF_LOCK_SIZE=`stat -c%s "${CFE_DIR}/state/cf_lock.tcdb"`
     if [ ${CF_LOCK_SIZE} -ge ${MAX_CF_LOCK_SIZE} ]; then
-      echo -n "WARNING: The file ${CFE_DIR}/state/cf_lock.tcdb is too big ( ${CF_LOCK_SIZE} bytes), purging it..."
+      echo_n "WARNING: The file ${CFE_DIR}/state/cf_lock.tcdb is too big ( ${CF_LOCK_SIZE} bytes), purging it..."
       clean_cf_lock_files
       echo " Done"
     fi
