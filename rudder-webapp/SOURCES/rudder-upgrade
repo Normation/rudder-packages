@@ -48,6 +48,7 @@ set -e
 # - 2.8.0 : Deprecate properties that are now handled directly in the webapp (validation workflow and change Message)
 # - 2.9.0 : File Format migration from 4 to 5
 # - 2.10.0 : Add properties to enable and configure the LDAP authentication
+# - 2.11.0 : Add LDAP entries for Server Roles system Technique/Directive/Rule
 #####################################################################################
 
 # Some variables
@@ -396,6 +397,14 @@ if [ ${LDAP_EXISTS} -ne 0 ]; then
         DN=$(echo ${line} | sed 's/^dn: \(.*\)$/\1/')
         echo -e "${DN}\napiAccountId=${NEW_UUID}" | /opt/rudder/bin/ldapmodrdn -H ldap://localhost -x -w "${LDAP_PASSWORD}" -D "${LDAP_USER}" > /dev/null 2>&1
       done
+    echo " Done."
+  fi
+
+  # - 2.11.0: Add LDAP entries for Server Roles system Technique, Directive and Rule
+  LDAP_TEST_SERVER_ROLES_RULE=$(/opt/rudder/sbin/slapcat 2>/dev/null | grep "dn: ruleId=server-roles,ou=Rules,ou=Rudder,cn=rudder-configuration" | wc -l)
+  if [ ${LDAP_TEST_SERVER_ROLES_RULE} -eq 0 ]; then
+    echo -n "INFO: Adding System Technique, Directive and Rule to manage Rudder Server Roles..."
+    /opt/rudder/bin/ldapadd -x -D "${LDAP_USER}" -w "${LDAP_PASSWORD}" -H ldap://localhost -f ${RUDDER_UPGRADE_TOOLS}/ldapMigration-2.10-2.11-add-server-roles.ldif >/dev/null 2>&1
     echo " Done."
   fi
 fi
