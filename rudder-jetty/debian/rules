@@ -48,6 +48,7 @@ binary-arch: build install
 #	dh_installexamples
 	dh_install --sourcedir=$(CURDIR)/SOURCES jetty7 /opt/rudder
 	dh_install --sourcedir=$(CURDIR)/SOURCES rudder-jetty.conf /opt/rudder/etc
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-jetty /opt/rudder/etc/server-roles.d/
 #	dh_installmenu
 #	dh_installdebconf
 #	dh_installlogrotate

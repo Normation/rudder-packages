@@ -48,6 +48,7 @@ Group: Applications/System
 
 Source1: rudder-sources
 Source2: rudder.conf
+Source3: rudder-reports
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
@@ -93,10 +94,13 @@ calculate compliance to given configuration rules.
 rm -rf %{buildroot}
 # Directories
 mkdir -p %{buildroot}%{rudderdir}/etc/postgresql/
+mkdir -p %{buildroot}%{rudderdir}/etc/server-roles.d/
 mkdir -p %{buildroot}/etc/rsyslog.d
 
 cp %{SOURCE1}/rudder/rudder-core/src/main/resources/reportsSchema.sql %{buildroot}%{rudderdir}/etc/postgresql/
 cp -a %{SOURCE2} %{buildroot}/etc/rsyslog.d/rudder.conf
+
+install -m 644 %{SOURCE3} %{buildroot}/opt/rudder/etc/server-roles.d/
 
 %pre -n rudder-reports
 #=================================================
@@ -191,6 +195,7 @@ rm -rf %{buildroot}
 %files -n rudder-reports
 %defattr(-, root, root, 0755)
 %{rudderdir}/etc/postgresql/reportsSchema.sql
+%{rudderdir}/etc/server-roles.d/
 /etc/rsyslog.d/rudder.conf
 
 #=================================================
