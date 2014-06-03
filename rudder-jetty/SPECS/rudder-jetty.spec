@@ -54,6 +54,7 @@ Group: Applications/System
 #Source1: jetty7/bin/jetty.sh
 Source2: rudder-jetty.default
 Source3: rudder-jetty.conf
+Source4: rudder-jetty
 
 Patch1: jetty-init-sles.patch
 Patch2: jetty-init-rudder.patch
@@ -123,7 +124,8 @@ echo "No build"
 rm -rf %{buildroot}
 
 mkdir -p %{buildroot}/opt/rudder
-mkdir -p %{buildroot}/opt/rudder/etc
+mkdir -p %{buildroot}/opt/rudder/etc/
+mkdir -p %{buildroot}/opt/rudder/etc/server-roles.d/
 mkdir -p %{buildroot}%{rudderlogdir}/webapp
 mkdir -p %{buildroot}/var/rudder/run
 
@@ -137,6 +139,8 @@ mkdir -p %{buildroot}/etc/default
 install -m 755 jetty7/bin/jetty-sles.sh %{buildroot}/etc/init.d/rudder-jetty
 install -m 644 %{SOURCE2} %{buildroot}/etc/default/rudder-jetty
 install -m 644 %{SOURCE3} %{buildroot}/opt/rudder/etc/rudder-jetty.conf
+
+install -m 644 %{SOURCE4} %{buildroot}/opt/rudder/etc/server-roles.d/
 
 %pre -n rudder-jetty
 #=================================================

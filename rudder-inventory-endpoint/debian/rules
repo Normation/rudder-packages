@@ -67,6 +67,7 @@ binary-arch: install
 	dh_install --SOURCEDIR=$(CURDIR)/BUILD/ endpoint.war /opt/rudder/jetty7/webapps/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ inventory-web.properties /opt/rudder/etc/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-inventory-endpoint-upgrade /opt/rudder/bin/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-inventory-endpoint /opt/rudder/etc/server-roles.d/
 #	dh_installmenu
 #	dh_installdebconf
 #	dh_installlogrotate
