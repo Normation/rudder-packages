@@ -21,7 +21,6 @@ set -e
 
 BACKUP_DIR=/var/backups/rudder/
 
-<<<<<<< HEAD
 # Default variables for CFEngine binaries and disable files
 CFE_DIR=/var/rudder/cfengine-community
 CFE_BIN_DIR=${CFE_DIR}/bin
