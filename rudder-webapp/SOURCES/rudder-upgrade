@@ -286,6 +286,13 @@ if [ $RES -eq 0 ]; then
   echo " Done."
 fi
 
+# Detect if we'd need to upgrade the database keys to use bigint rather than integer
+RES=$(su - postgres -c "psql -t -d rudder -c \"select count(*) from information_schema.columns where table_name='ruddersysevents' and column_name='id' and data_type='integer';\"")
+if [ ${RES} -eq 1 ]; then
+  echo "WARN: Your database uses an old format, with keys stored in Integer rather than Bigint. On large installation this may cause some issue, please run the script /opt/rudder/bin/rudder-upgrade-database"
+fi
+
+
 ## Change attribute from dn:ruleId=inventory-all,ou=Rules,ou=Rudder,cn=rudder-configuration
 ## Check if ruleTarget attribute contains all nodes or all except policy server and LDAP is setting up
 CHECK_INVENTORY_TARGET=`/opt/rudder/bin/ldapsearch -H ldap://localhost -x -w ${LDAP_PASSWORD} -D ${LDAP_USER} -b "ruleId=inventory-all,ou=Rules,ou=Rudder,cn=rudder-configuration" -LLL "(ruleTarget=*)" >/dev/null 2>&1 | grep "^ruleTarget: special:all$" | wc -l`

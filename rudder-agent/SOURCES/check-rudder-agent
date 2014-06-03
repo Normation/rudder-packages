@@ -19,6 +19,9 @@
 
 set -e
 
+# Source /etc/profile to gather environment variables from the system and the user
+. /etc/profile
+
 # Ensure our PATH includes Rudder's bin dir (for uuidgen on AIX in particular)
 export PATH=/opt/rudder/bin/:$PATH
 
@@ -59,64 +62,76 @@ clean_cf_lock_files() {
 
 check_and_fix_cfengine_processes() {
 
-# Detect the correct ps tool to use
-# Supported tools are ps, vzps, and the rudder supplied vzps.py
-PS=ps
-VZPS=/bin/vzps
-RUDDERPS=/opt/rudder/bin/vzps.py
+  # Detect the correct ps tool to use
+  # Supported tools are ps, vzps, and the rudder supplied vzps.py
+  PS=ps
+  VZPS=/bin/vzps
+  RUDDERPS=/opt/rudder/bin/vzps.py
 
-# Detect if we are a VZ host
-if [ -e "/proc/bc/0" ]; then
-  # Detect if vzps is present
-  if [ -e ${VZPS} ]; then
-    PS="${VZPS} -E 0"
-  else
-    PS="${RUDDERPS} -E 0"
+  # Detect if we are a VZ host
+  if [ -e "/proc/bc/0" ]; then
+    # Detect if vzps is present
+    if [ -e ${VZPS} ]; then
+      PS="${VZPS} -E 0"
+    else
+      PS="${RUDDERPS} -E 0"
+    fi
   fi
-fi
 
-# List the CFEngine processes running
-CF_PROCESS_RUNNING=`${PS} ${PS_OPTIONS} | grep -E "${CFE_BIN_DIR}/(cf-execd|cf-agent)" | grep -v grep | cat`
-# Count the number of processes running, filtering empty lines
-NB_CF_PROCESS_RUNNING=`echo "${CF_PROCESS_RUNNING}" | grep -v ^$ | wc -l`
-
-# If no disable file AND no process of CFEngine from Rudder, then relaunch cf-agent with a failsafe first
-# But this is applied only on servers or nodes already initialized (policy server set)
-if [ ! -e ${CFE_DISABLE_FILE} -a ${NB_CF_PROCESS_RUNNING} -eq 0 -a -f ${CFE_DIR}/policy_server.dat ]; then
-  echo_n "WARNING: No disable file detected and no CFEngine process neither. Relaunching CFEngine processes..."
-  ${CFE_BIN_DIR}/cf-agent -f failsafe.cf >/dev/null 2>&1
-  ${CFE_BIN_DIR}/cf-agent >/dev/null 2>&1
-  echo " Done"
-fi
-
-
-RUN_INTERVAL=`cat /var/rudder/cfengine-community/inputs/run_interval`
-CHECK_INTERVAL=`expr ${RUN_INTERVAL} \* 2`
-
-# Check for the age of the last update file
-# if it is older than CHECK_INTERVAL minutes, we need to kill the lock file on tcdb database
-if [ ! -e ${LAST_UPDATE_FILE} ]; then
-  # The file ${LAST_UPDATE_FILE} is not yet present, this node is probably 
-  # not accepted yet. Do nothing
-  :
-elif test `find ${LAST_UPDATE_FILE} -mmin +${CHECK_INTERVAL}`; then
-  echo_n "WARNING: The file ${LAST_UPDATE_FILE} is older than ${CHECK_INTERVAL} minutes, the agent is probably stuck. Purging the TokyoCabinet lock file..."
-  clean_cf_lock_files
-  echo " Done";
-fi
-
-
-# Check for anomalous number of CFEngine processes
-# If there are more than 8 agent/executor processes, we should kill them, and purge the tcdb database
-if [ ${NB_CF_PROCESS_RUNNING} -gt 8 ]; then
-  echo_n "WARNING: Too many instance of CFEngine processes running. Killing them, and purging the TokyoCabinet database..."
-  echo "${CF_PROCESS_RUNNING}" | awk 'BEGIN { OFS=" "} {print $2 }' | xargs kill -9 || true
-  if [ "z${OS_FAMILY}" != "zAIX" ]; then
-    /etc/init.d/rudder-agent forcestop || true
+  # If there are more than on cf-execd process, we must kill them
+  # A standard kill won't kill them, so the -9 is necessary to make sure they are stopped
+  # They will be restarted by the next check, if the disable file is not set
+  # List the cf-execd processes running (without the path, they can be run manually)
+  CF_EXECD_RUNNING=`${PS} ${PS_OPTIONS} | grep -E "cf-execd" | grep -v grep | cat`
+  NB_CF_EXECD_RUNNING=`echo "${CF_EXECD_RUNNING}" | grep -v ^$ | wc -l`
+  if [ ${NB_CF_EXECD_RUNNING} -gt 1 ]; then
+    echo_n "WARNING: Too many instance of CFEngine cf-execd processes running. Killing them..."
+    echo "${CF_EXECD_RUNNING}" | awk 'BEGIN { OFS=" "} {print $2 }' | xargs kill -9 || true
+    echo " Done"
   fi
-  clean_cf_lock_files
-  echo " Done"
-fi
+
+
+  # List the CFEngine processes running
+  CF_PROCESS_RUNNING=`${PS} ${PS_OPTIONS} | grep -E "${CFE_BIN_DIR}/(cf-execd|cf-agent)" | grep -v grep | cat`
+  # Count the number of processes running, filtering empty lines
+  NB_CF_PROCESS_RUNNING=`echo "${CF_PROCESS_RUNNING}" | grep -v ^$ | wc -l`
+
+  # If no disable file AND no process of CFEngine from Rudder, then relaunch cf-agent with a failsafe first
+  # But this is applied only on servers or nodes already initialized (policy server set)
+  if [ ! -e ${CFE_DISABLE_FILE} -a ${NB_CF_PROCESS_RUNNING} -eq 0 -a -f ${CFE_DIR}/policy_server.dat ]; then
+    echo_n "WARNING: No disable file detected and no CFEngine process neither. Relaunching CFEngine processes..."
+    ${CFE_BIN_DIR}/cf-agent -f failsafe.cf >/dev/null 2>&1
+    ${CFE_BIN_DIR}/cf-agent >/dev/null 2>&1
+    echo " Done"
+  fi
+
+  RUN_INTERVAL=`cat /var/rudder/cfengine-community/inputs/run_interval`
+  CHECK_INTERVAL=`expr ${RUN_INTERVAL} \* 2`
+
+  # Check for the age of the last update file
+  # if it is older than CHECK_INTERVAL minutes, we need to kill the lock file on tcdb database
+  if [ ! -e ${LAST_UPDATE_FILE} ]; then
+    # The file ${LAST_UPDATE_FILE} is not yet present, this node is probably
+    # not accepted yet. Do nothing
+    :
+  elif test `find ${LAST_UPDATE_FILE} -mmin +${CHECK_INTERVAL}`; then
+    echo_n "WARNING: The file ${LAST_UPDATE_FILE} is older than ${CHECK_INTERVAL} minutes, the agent is probably stuck. Purging the TokyoCabinet lock file..."
+    clean_cf_lock_files
+    echo " Done";
+  fi
+
+
+  # Check for anomalous number of CFEngine processes
+  # If there are more than 8 agent/executor processes, we should kill them, and purge the tcdb database
+  if [ ${NB_CF_PROCESS_RUNNING} -gt 8 ]; then
+    echo_n "WARNING: Too many instance of CFEngine processes running. Killing them, and purging the TokyoCabinet database..."
+    echo "${CF_PROCESS_RUNNING}" | awk 'BEGIN { OFS=" "} {print $2 }' | xargs kill -9 || true
+    if [ "z${OS_FAMILY}" != "zAIX" ]; then
+      /etc/init.d/rudder-agent forcestop || true
+    fi
+    clean_cf_lock_files
+    echo " Done"
+  fi
 }
 
 # Check the size of the cf_lock.tcdb file
