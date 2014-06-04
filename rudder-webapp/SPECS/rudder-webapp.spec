@@ -79,6 +79,7 @@ Source2: rudder.xml
 Source3: rudder-networks.conf
 Source5: rudder-upgrade
 Source6: rudder-upgrade-database
+Source7: rudder-webapp
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
@@ -128,6 +129,7 @@ rm -rf %{buildroot}
 mkdir -p %{buildroot}%{rudderdir}/etc/
 mkdir -p %{buildroot}%{rudderdir}/etc/ssl/
 mkdir -p %{buildroot}%{rudderdir}/etc/plugins/
+mkdir -p %{buildroot}%{rudderdir}/etc/server-roles.d/
 mkdir -p %{buildroot}%{rudderdir}/bin/
 mkdir -p %{buildroot}%{rudderdir}/jetty7/webapps/
 mkdir -p %{buildroot}%{rudderdir}/jetty7/contexts/
@@ -178,6 +180,7 @@ cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/
 cp %{SOURCE5} %{buildroot}%{rudderdir}/bin/
 cp %{SOURCE6} %{buildroot}%{rudderdir}/bin/
 
+install -m 644 %{SOURCE7} %{buildroot}/opt/rudder/etc/server-roles.d/
 
 # Install documentation
 cp -rf %{_builddir}/rudder-doc/pdf %{buildroot}/usr/share/doc/rudder

@@ -58,6 +58,7 @@ Source4: %{logrotatefile}
 Source5: rudder-server-root.init
 Source6: rudder-passwords.conf
 Source7: rudder-root-rename
+Source8: rudder-server-root
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
@@ -92,6 +93,7 @@ mkdir -p %{buildroot}/var/cfengine/
 mkdir -p %{buildroot}/var/cfengine/inputs
 mkdir -p %{buildroot}%{rudderdir}/bin/
 mkdir -p %{buildroot}%{rudderdir}/etc/
+mkdir -p %{buildroot}%{rudderdir}/etc/server-roles.d/
 mkdir -p %{buildroot}%{ruddervardir}/cfengine-community/
 mkdir -p %{buildroot}/etc/logrotate.d/
 mkdir -p %{buildroot}/etc/init.d
@@ -103,6 +105,8 @@ cp %{SOURCE4} %{buildroot}/etc/logrotate.d/rudder
 cp %{SOURCE5} %{buildroot}/etc/init.d/rudder-server-root
 cp %{SOURCE6} %{buildroot}%{rudderdir}/etc/
 cp %{SOURCE7} %{buildroot}%{rudderdir}/bin/
+
+install -m 644 %{SOURCE8} %{buildroot}/opt/rudder/etc/server-roles.d/
 
 %pre -n rudder-server-root
 #=================================================
@@ -138,6 +142,7 @@ rm -rf %{buildroot}
 %files -n rudder-server-root
 %defattr(-, root, root, 0755)
 %config(noreplace,missingok) %{_sysconfdir}/logrotate.d/rudder
+%{rudderdir}/etc/
 %{rudderdir}/bin/rudder-node-to-relay
 %{rudderdir}/bin/rudder-init.sh
 %{rudderdir}/bin/rudder-root-rename

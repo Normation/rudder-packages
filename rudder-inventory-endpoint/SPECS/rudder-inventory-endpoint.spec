@@ -61,6 +61,7 @@ Group: Applications/System
 
 Source1: inventory-web.properties
 Source2: rudder-inventory-endpoint-upgrade
+Source3: rudder-inventory-endpoint
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
@@ -104,12 +105,14 @@ rm -rf %{buildroot}
 
 mkdir -p %{buildroot}/opt/rudder/jetty7/webapps/
 mkdir -p %{buildroot}/opt/rudder/etc/
+mkdir -p %{buildroot}/opt/rudder/etc/server-roles.d/
 mkdir -p %{buildroot}%{rudderdir}/bin/
 
 cp %{_builddir}/rudder-sources/ldap-inventory/inventory-provisioning-web/target/inventory-provisioning-web*.war %{buildroot}/opt/rudder/jetty7/webapps/endpoint.war
 cp %{SOURCE1} %{buildroot}/opt/rudder/etc/
 cp %{SOURCE2} %{buildroot}%{rudderdir}/bin/
 
+install -m 644 %{SOURCE3} %{buildroot}/opt/rudder/etc/server-roles.d/
 
 %pre -n rudder-inventory-endpoint
 #=================================================

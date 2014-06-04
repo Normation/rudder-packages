@@ -19,9 +19,11 @@
 .DEFAULT_GOAL := localdepends
 
 RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
+
 CFENGINE_RELEASE = 3.6.0rc1
 FUSION_RELEASE = 2.3.6
 LMDB_RELEASE = 0.9.11
+
 TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX)
 WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget -q
 PATCH := /usr/bin/patch
