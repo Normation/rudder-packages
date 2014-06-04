@@ -41,7 +41,8 @@ cpt=0
 cpt2=0
 # Check if promises already exist for CFEngine community
 INITREP=/var/rudder/cfengine-community/inputs
-INITPRO=`ls ${INITREP} 2>/dev/null | wc -l`
+# File containing the policy server IP
+POLICY_SERVER_FILE=/var/rudder/cfengine-community/policy_server.dat
 
 SLAPD_INIT="/etc/init.d/rudder-slapd"
 JETTY_INIT="/etc/init.d/rudder-jetty"
@@ -76,6 +77,25 @@ LDAPInit()
   ErrorCheck
   /opt/rudder/sbin/slapadd -l $INITPOLICY_PATH &> $TMP_LOG
   ErrorCheck
+}
+
+# Generate the promises at the temporaty location
+# Takes two arguments:
+#  - The hostname
+#  - The computed allowed network
+function generate_promises_at_temporary_location() {
+  local HOSTNAME=$1
+  local COMPUTED_ALLOWED_NETWORKS=$2
+
+  cp -r /opt/rudder/share/initial-promises/ ${TMP_DIR}/community
+  find $TMP_DIR/community -name "cf-served.cf" -type f -exec sed -i "s@'%%POLICY_SERVER_ALLOWED_NETWORKS%%'@$COMPUTED_ALLOWED_NETWORKS@g" {} \;
+  find $TMP_DIR/community -type f -exec sed -i "s/%%POLICY_SERVER_HOSTNAME%%/$HOSTNAME/g" {} \;
+}
+
+# Reset the policy server hostname
+function reset_policy_server() {
+  echo "127.0.0.1" > /var/cfengine/policy_server.dat
+  echo "127.0.0.1"> /var/rudder/cfengine-community/policy_server.dat
 }
 
 #Check if arg are used
@@ -145,8 +165,40 @@ else
 		done
 	  fi
 	fi
-	#6th Step: Initial Promises
-	if [ ${INITPRO} -ne 0 ]
+fi
+
+# Before continuing asking questions, we need to generate the initial promises
+# as they should be, to check whether the actual promises on this host need resetting
+
+# One, compute the networks
+
+# Format allowed networks
+# NET will modify init-policy-server.ldif and NET 2 cf-served.cf
+for i in ${ALLOWEDNETWORK[*]}
+do
+	if [ $cpt2 -eq 0 ]
+	then
+		NET=`echo $i | sed $REGEXP`
+		NET2="'$NET'"
+	else
+		NET="$NET\ndirectiveVariable: ALLOWEDNETWORK[$cpt2]: `echo $i | sed $REGEXP`"
+		NET2="$NET2, '`echo $i | sed $REGEXP`'"
+	fi
+	((cpt2++))
+done
+
+# Two, generate the initial promises
+generate_promises_at_temporary_location "${ANSWER1}" "${NET2}"
+
+# Three, compare the generated promises with what is on the FS
+diff -Naur ${INITREP} ${TMP_DIR}/community > /dev/null
+DIFFERENT_PROMISES=$?
+
+# 6th Step: Ask about resetting initial promises
+# Check again if this script got arguments, to know whether we need to interactively ask
+if [ $# -eq 0 ]
+then
+	if [ ${DIFFERENT_PROMISES} -ne 0 ]
 	then
 	  while ! echo "$ANSWER6" | grep "^\(yes\|no\)$"
 	  do
@@ -155,9 +207,10 @@ else
 		read ANSWER6
 	  done
 	else
-	  ANSWER6="yes"
+	  ANSWER6="no"
 	fi
 fi
+
 # Review
 echo
 echo Hostname: "$ANSWER1"
@@ -167,43 +220,32 @@ if [ $LDAPCHK -gt 0 ]
 then
   echo Reinitialize LDAP database? "$LDAPRESET"
 fi
-if [ ${INITPRO} -ne 0 ];then
+if [ ${DIFFERENT_PROMISES} -ne 0 ];then
 	echo Reset Initial Promises? "$ANSWER6"
 fi
 echo
 Pause
-# Set Configuration
-# Formatting allowed network
-# NET will modify init-policy-server.ldif and NET 2 cf-served.cf
-for i in ${ALLOWEDNETWORK[*]}
-do
-  if [ $cpt2 -eq 0 ]
-  then
-    NET=`echo $i | sed $REGEXP`
-    NET2="'$NET'"
-  else
-    NET="$NET\ndirectiveVariable: ALLOWEDNETWORK[$cpt2]: `echo $i | sed $REGEXP`"
-    NET2="$NET2, '`echo $i | sed $REGEXP`'"
-  fi
-  ((cpt2++))
-done
 
 # Configure initial promises
 if [ z$ANSWER6 = "zyes" ]
 then
   echo -n "Configuring and installing initial CFEngine promises..."
-  cp -r /opt/rudder/share/initial-promises/ $TMP_DIR/community
-  find $TMP_DIR/community -name "cf-served.cf" -type f -exec sed -i "s@'%%POLICY_SERVER_ALLOWED_NETWORKS%%'@$NET2@g" {} \;
-  find $TMP_DIR/community -type f -exec sed -i "s/%%POLICY_SERVER_HOSTNAME%%/$ANSWER1/g" {} \;
-  find $TMP_DIR/community -type f -exec sed -i "s#%%POLICY_SERVER_ALLOWED_NETWORKS%%#$NET#g" {} \;
   rm -rf /var/rudder/cfengine-community/inputs/*
   rm -rf /var/cfengine/inputs/*
   cp -r $TMP_DIR/community/* /var/rudder/cfengine-community/inputs/
   cp -r $TMP_DIR/community/* /var/cfengine/inputs/
-  echo "127.0.0.1" > /var/cfengine/policy_server.dat
-  echo "127.0.0.1"> /var/rudder/cfengine-community/policy_server.dat
-  echo " done."
+  reset_policy_server
+  echo " Done."
 fi
+
+# Enforce that policy_server.dat exists
+if [ ! -e ${POLICY_SERVER_FILE} ]
+then
+  echo -n "Initializing IP address of the server..."
+  reset_policy_server
+  echo " Done."
+fi
+
 # LDAP (re)initialization
 ${SLAPD_INIT} stop &> $TMP_LOG
 if [ $LDAPCHK -gt 0 ]
