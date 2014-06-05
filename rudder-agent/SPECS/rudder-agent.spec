@@ -135,6 +135,15 @@ Requires: pmtools
 %define is_lmdb_here false
 %endif
 
+# AIX builds support TokyoCabinet via M. Perzl's
+# packages.
+# cf http://www.perzl.org/aix/
+%if 0%{?aix}
+BuildRequires: tokyocabinet-devel
+Requires: tokyocabinet
+%define is_tokyocabinet_here true
+%endif
+
 %define install_command        install
 %define cp_a_command           cp -a
 
