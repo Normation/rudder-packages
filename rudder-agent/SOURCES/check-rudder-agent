@@ -81,10 +81,13 @@ check_and_fix_cfengine_processes() {
   fi
 
   # Check for the age of the last update file
-  # if it is older than 10 minutes, we need to kill the lock file on tcdb database
-  if [ ! -e ${LAST_UPDATE_FILE} ]; then
-    # The file ${LAST_UPDATE_FILE} is not yet present, this node is probably 
-    # not accepted yet. Do nothing
+  # if it is older than 10 minutes, and the disable file is not defined, we 
+  # need to kill the lock file on tcdb database
+  if [ ! -e ${LAST_UPDATE_FILE} -o -e ${CFE_DISABLE_FILE} ]; then
+    # Either the file ${LAST_UPDATE_FILE} is not yet present, and this node is
+    # probably not accepted yet, either the file ${CFE_DISABLE_FILE} is present, so
+    # the agent won't update the ${LAST_UPDATE_FILE}.
+    # In both case, do nothing
     :
   elif test `find ${LAST_UPDATE_FILE} -mmin +10`; then
     echo -n "WARNING: The file ${LAST_UPDATE_FILE} is older than 10 minutes, the agent is probably stuck. Purging the TokyoCabinet lock file..."
