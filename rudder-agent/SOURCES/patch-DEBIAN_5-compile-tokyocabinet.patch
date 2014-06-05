@@ -33,7 +33,7 @@ diff -Naurw debian/rules debian-new/rules
 +	# dh_prep has been moved from 'install' target since we need to build tokyocabinet first
 +	dh_prep
  	# Add here commands to configure the package.
- 	cd SOURCES && ./perl-prepare.sh
+	cd SOURCES && ./perl-prepare.sh $(CURDIR)/SOURCES/fusioninventory-agent
 -	cd SOURCES/cfengine-source && ./configure --prefix=/opt/rudder --with-workdir=/var/rudder/cfengine-community --enable-static=yes --enable-shared=no
 +	# Compile Tokyocabinet library and install it in /opt/rudder/lib 
 +	cd SOURCES/tokyocabinet-source && ./configure --prefix=/opt/rudder
