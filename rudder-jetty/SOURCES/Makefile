@@ -42,7 +42,6 @@ localdepends: ./jetty7
 	sed -i 's/\(<Set\ name=\"host\"><Property\ name=\"jetty.host\"\ \)\(\/>\)/\1default="127.0.0.1"\2/g' ./jetty7/etc/jetty.xml
 
 	# Change jetty.sh before distincts files
-	patch -p0 -s < jetty-init-rudder.patch
 	patch -p0 -s < jetty-init-umask.patch
 	patch -p0 -s < jetty-init-stop-fix.patch
 	patch -p0 -s < jetty-init-sizecheck.patch

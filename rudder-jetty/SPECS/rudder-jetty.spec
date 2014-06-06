@@ -88,6 +88,16 @@ Requires: java-1.7.0-openjdk
 Requires: jre >= 1.6
 %endif
 
+# We are providing Jetty, but the name of the provided element depends of the
+# OS flavour.
+
+
+%if 0%{?rhel} || 0%{?fedora}
+Provides: jetty-eclipse jetty-server
+%endif
+
+# No Jetty provided by SLES...
+
 %description
 Rudder is an open source configuration management and audit solution.
 
