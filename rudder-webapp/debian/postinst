@@ -19,6 +19,11 @@ set -e
 
 case "$1" in
     configure)
+
+  # Currently, we assume that the server where the webapp is installed
+  # is the root server. Force the UUID.
+  echo 'root' > /opt/rudder/etc/uuid.hive
+
   echo -n "INFO: Restarting syslog..."
   invoke-rc.d rsyslog restart >/dev/null 2>&1
   echo "Done"
