@@ -113,6 +113,14 @@ localdepends: ./initial-promises ./detect_os.sh ./files ./fusioninventory-agent 
 	$(WGET) -O ./files/File-Which-1.09.tar.gz http://www.normation.com/tarball/File-Which-1.09.tar.gz
 	#Original URL: http://www.cpan.org/modules/by-module/XML/XML-TreePP-0.41.tar.gz
 	$(WGET) -O ./files/XML-TreePP-0.41.tar.gz http://www.normation.com/tarball/XML-TreePP-0.41.tar.gz
+	#Original URL: http://search.cpan.org/CPAN/authors/id/P/PE/PERIGRIN/XML-NamespaceSupport-1.11.tar.gz
+	$(WGET) -O ./files/XML-NamespaceSupport-1.11.tar.gz http://www.normation.com/tarball/XML-NamespaceSupport-1.11.tar.gz
+	#Original URL: http://search.cpan.org/CPAN/authors/id/A/AD/ADAMK/Test-Script-1.07.tar.gz
+	$(WGET) -O ./files/Test-Script-1.07.tar.gz http://www.normation.com/tarball/Test-Script-1.07.tar.gz
+	#Original URL: http://search.cpan.org/CPAN/authors/id/K/KW/KWILLIAMS/Probe-Perl-0.03.tar.gz
+	$(WGET) -O ./files/Probe-Perl-0.03.tar.gz http://www.normation.com/tarball/Probe-Perl-0.03.tar.gz
+	#Original URL: http://search.cpan.org/CPAN/authors/id/R/RJ/RJBS/IPC-Run3-0.048.tar.gz
+	$(WGET) -O ./files/IPC-Run3-0.048.tar.gz http://www.normation.com/tarball/IPC-Run3-0.048.tar.gz
 
 ../debian/rudder-agent.init:
 	cp ./rudder-agent.init ../debian/
