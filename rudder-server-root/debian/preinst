@@ -16,9 +16,6 @@ set -e
 
 case "$1" in
     install|upgrade)
-		if dpkg-maintscript-helper supports mv_conffile 2>/dev/null; then
-			dpkg-maintscript-helper mv_conffile /etc/logrotate.d/rudder-server-root /etc/logrotate.d/rudder -- "$@"
-		fi
     ;;
 
     abort-upgrade)

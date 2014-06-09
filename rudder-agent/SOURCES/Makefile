@@ -20,7 +20,7 @@
 
 RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
 
-CFENGINE_RELEASE = 3.6.0rc1
+CFENGINE_RELEASE = 3.6rc2-build1
 FUSION_RELEASE = 2.3.6
 LMDB_RELEASE = 0.9.11
 
@@ -33,10 +33,10 @@ localdepends: ./initial-promises ./detect_os.sh ./files ./fusioninventory-agent 
 	rm -rf $(TMP_DIR)
 
 ./cfengine-source: /usr/bin/wget
-	# Original URL: http://cfengine.com/source-code/download?file=cfengine-$(CFENGINE_RELEASE).tar.gz
-	$(WGET) -O $(TMP_DIR)/cfengine.tgz http://www.normation.com/tarball/cfengine-$(CFENGINE_RELEASE).tar.gz
+	# Original URL: https://github.com/cfengine/core/archive/$(CFENGINE_RELEASE).tar.gz
+	$(WGET) -O $(TMP_DIR)/cfengine.tgz http://www.normation.com/tarball/cfengine/core-$(CFENGINE_RELEASE).tar.gz
 	tar xzf $(TMP_DIR)/cfengine.tgz -C $(TMP_DIR)
-	mv $(TMP_DIR)/cfengine-$(CFENGINE_RELEASE) ./cfengine-source
+	mv $(TMP_DIR)/core-$(CFENGINE_RELEASE) ./cfengine-source
 	# No patches to apply
 
 ./lmdb-source: /usr/bin/wget

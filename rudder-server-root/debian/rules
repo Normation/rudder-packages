@@ -57,7 +57,7 @@ binary-arch: install
 	dh_installinit --noscripts --no-start --no-restart-on-upgrade --name=rudder-server-root
 #	dh_installmenu
 #	dh_installdebconf
-	dh_installlogrotate --name=rudder
+#	dh_installlogrotate
 #	dh_installmime
 #	dh_python
 #	dh_installcron
