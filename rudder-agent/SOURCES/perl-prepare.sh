@@ -89,8 +89,9 @@ buildPerl () {
     cd $BUILDDIR
     gunzip < $FILEDIR/perl-$PERLVERSION.tar.gz | tar xvf -
     cd perl-$PERLVERSION
-    
+
     ./Configure -Dnoextensions=ODBM_File -Duserelocatableinc -Dusethreads -des -Dcc="gcc" -Dinstallprefix=$PERL_PREFIX -Dsiteprefix=$PERL_PREFIX -Dprefix=$PERL_PREFIX
+
     $MAKE
     $MAKE install DESTDIR=$TMP/perl
 
