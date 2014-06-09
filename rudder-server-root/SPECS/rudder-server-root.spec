@@ -145,7 +145,6 @@ rm -rf %{buildroot}
 #=================================================
 %files -n rudder-server-root
 %defattr(-, root, root, 0755)
-%config(noreplace,missingok) %{_sysconfdir}/logrotate.d/rudder
 %{rudderdir}/etc/
 %{rudderdir}/bin/rudder-node-to-relay
 %{rudderdir}/bin/rudder-init.sh
