@@ -200,7 +200,7 @@ echo -n "INFO: Setting Apache HTTPd as a boot service..."
 %endif
 echo " Done"
 
-echo -n "INFO: Restrating syslog..."
+echo -n "INFO: Restarting syslog..."
 %{sysloginitscript} restart > /dev/null
 echo " Done"
 
