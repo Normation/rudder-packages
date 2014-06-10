@@ -80,6 +80,9 @@ Source3: rudder-networks.conf
 Source5: rudder-upgrade
 Source6: rudder-upgrade-database
 Source7: rudder-webapp
+Source10: rudder-init.sh
+Source11: rudder-node-to-relay
+Source12: rudder-root-rename
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
@@ -146,6 +149,11 @@ mkdir -p %{buildroot}/etc/%{apache_vhost_dir}/
 mkdir -p %{buildroot}/etc/sysconfig/
 mkdir -p %{buildroot}/usr/share/doc/rudder
 
+# Install helper scripts
+cp %{SOURCE10} %{buildroot}%{rudderdir}/bin/
+cp %{SOURCE11} %{buildroot}%{rudderdir}/bin/
+cp %{SOURCE12} %{buildroot}%{rudderdir}/bin/
+
 cp %{SOURCE1} %{buildroot}%{rudderdir}/etc/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/ldap/bootstrap.ldif %{buildroot}%{rudderdir}/share/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/ldap/init-policy-server.ldif %{buildroot}%{rudderdir}/share/
@@ -195,6 +203,10 @@ cp -rf %{_builddir}/rudder-doc/html %{buildroot}/usr/share/doc/rudder
 #=================================================
 # Post Installation
 #=================================================
+
+# Currently, we assume that the server where the webapp is installed
+# is the root server. Force the UUID.
+echo 'root' > /opt/rudder/etc/uuid.hive
 
 echo -n "INFO: Setting Apache HTTPd as a boot service..."
 /sbin/chkconfig --add %{apache} 2&> /dev/null
@@ -333,6 +345,9 @@ rm -rf %{buildroot}
 %config(noreplace) %{rudderdir}/etc/rudder-users.xml
 %config(noreplace) %{rudderdir}/etc/logback.xml
 %{rudderdir}/bin/
+%{rudderdir}/bin/rudder-node-to-relay
+%{rudderdir}/bin/rudder-init.sh
+%{rudderdir}/bin/rudder-root-rename
 %{rudderdir}/jetty7/webapps/
 %{rudderdir}/jetty7/rudder-plugins/
 %{rudderdir}/jetty7/contexts/rudder.xml
