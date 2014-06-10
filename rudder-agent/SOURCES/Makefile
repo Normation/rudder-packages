@@ -38,6 +38,8 @@ localdepends: ./initial-promises ./detect_os.sh ./files ./fusioninventory-agent 
 	tar xzf $(TMP_DIR)/cfengine.tgz -C $(TMP_DIR)
 	mv $(TMP_DIR)/core-$(CFENGINE_RELEASE) ./cfengine-source
 	# No patches to apply
+	# Bootstrap the package using autogen before compilation
+	cd cfengine-source && NO_CONFIGURE=1 ./autogen.sh
 
 ./lmdb-source: /usr/bin/wget
 	# Original URL: http://ftp.fr.debian.org/debian/pool/main/l/lmdb/lmdb_$(LMDB_RELEASE).orig.tar.xz
