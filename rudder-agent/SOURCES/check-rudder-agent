@@ -105,7 +105,14 @@ check_and_fix_cfengine_processes() {
     echo " Done"
   fi
 
-  RUN_INTERVAL=`cat /var/rudder/cfengine-community/inputs/run_interval`
+  # Get the value of rudder-agent run interval from file /var/rudder/cfengine-community/inputs/run_interval
+  if [ -f /var/rudder/cfengine-community/inputs/run_interval ]; then
+    RUN_INTERVAL=`cat /var/rudder/cfengine-community/inputs/run_interval`
+  else
+    # File does not exists, use default value 5
+    RUN_INTERVAL=5
+  fi
+
   CHECK_INTERVAL=`expr ${RUN_INTERVAL} \* 2`
 
   # Check for the age of the last update file
