@@ -20,13 +20,18 @@ set -e
 case "$1" in
 	remove|upgrade|deconfigure)
 		# Keep a backup copy of uuid.hive
-		mkdir -p /var/backups/rudder
-		cp -f /opt/rudder/etc/uuid.hive /var/backups/rudder/uuid-$(date +%Y%m%d).hive
-		echo "INFO: A back up copy of the /opt/rudder/etc/uuid.hive has been created in /var/backups/rudder"
+    if [ -f /opt/rudder/etc/uuid.hive ]; then
+		  mkdir -p /var/backups/rudder
+		  cp -f /opt/rudder/etc/uuid.hive /var/backups/rudder/uuid-$(date +%Y%m%d).hive
+		  echo "INFO: A back up copy of the /opt/rudder/etc/uuid.hive has been created in /var/backups/rudder"
+    fi
 
 		# Keep a backup copy of CFEngine ppkeys
-		cp -af /var/rudder/cfengine-community/ppkeys/ /var/backups/rudder/ppkeys-$(date +%Y%m%d)
-		echo "INFO: A back up copy of the /var/rudder/cfengine-community/ppkeys has been created in /var/backups/rudder"
+    if [ -d /var/rudder/cfengine-community/ppkeys/ ]; then
+		  mkdir -p /var/backups/rudder
+		  cp -af /var/rudder/cfengine-community/ppkeys/ /var/backups/rudder/ppkeys-$(date +%Y%m%d)
+		  echo "INFO: A back up copy of the /var/rudder/cfengine-community/ppkeys has been created in /var/backups/rudder"
+    fi
 	;;
 
 	failed-upgrade)
