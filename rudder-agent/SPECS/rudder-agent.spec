@@ -316,10 +316,13 @@ find %{buildroot}%{rudderdir} %{buildroot}%{ruddervardir} -type f -o -type l | s
 if [ $1 -eq 2 ];then
 %if "%{?_os}" != "aix"
 	# Keep a backup copy of Rudder agent init and cron files to prevent http://www.rudder-project.org/redmine/issues/3995
-	mkdir -p /var/backups/rudder
-	%{install_command} -m 755 /etc/init.d/rudder-agent /var/backups/rudder/rudder-agent.init-$(date +%Y%m%d) && echo "INFO: A back up copy of the /etc/init.d/rudder-agent has been created in /var/backups/rudder"
-	%{install_command} -m 644 /etc/default/rudder-agent /var/backups/rudder/rudder-agent.default-$(date +%Y%m%d) && echo "INFO: A back up copy of the /etc/default/rudder-agent has been created in /var/backups/rudder"
-	%{install_command} -m 644 /etc/cron.d/rudder-agent /var/backups/rudder/rudder-agent.cron-$(date +%Y%m%d) && echo "INFO: A back up copy of the /etc/cron.d/rudder-agent has been created in /var/backups/rudder"
+  for i in init.d default cron.d; do
+    if [ -f /etc/${i}/rudder-agent ]; then
+	    mkdir -p /var/backups/rudder
+      if [ "${i}" = "init.d" ]; then mode=755; else mode=644; fi
+	    %{install_command} -m ${mode} /etc/${i}/rudder-agent /var/backups/rudder/rudder-agent.$(basename ${i} .d)-$(date +%Y%m%d) && echo "INFO: A back up copy of /etc/${i}/rudder-agent has been created in /var/backups/rudder"
+    fi
+  done
 %else
 	echo "INFO: No init script / cron script backup necessary on AIX builds yet. Skipping..."
 %endif
@@ -512,7 +515,6 @@ if [ -f ${TMP_CRON} ]; then
 fi
 %endif
 
-# launch rudder agent check script, it will generate an UUID on first install or repair it if needed
 /opt/rudder/bin/check-rudder-agent
 
 %preun -n rudder-agent
@@ -521,14 +523,20 @@ fi
 #=================================================
 
 # Do it during upgrade and uninstall
+
 # Keep a backup copy of uuid.hive
-mkdir -p /var/backups/rudder
-cp -f /opt/rudder/etc/uuid.hive /var/backups/rudder/uuid-$(date +%Y%m%d).hive
-echo "INFO: A back up copy of the /opt/rudder/etc/uuid.hive has been created in /var/backups/rudder"
+if [ -f /opt/rudder/etc/uuid.hive ]; then
+  mkdir -p /var/backups/rudder
+  cp -f /opt/rudder/etc/uuid.hive /var/backups/rudder/uuid-$(date +%Y%m%d).hive
+  echo "INFO: A back up copy of the /opt/rudder/etc/uuid.hive has been created in /var/backups/rudder"
+fi
 
 # Keep a backup copy of CFEngine ppkeys
-%{cp_a_command} -f /var/rudder/cfengine-community/ppkeys/ /var/backups/rudder/ppkeys-$(date +%Y%m%d)
-echo "INFO: A back up copy of the /var/rudder/cfengine-community/ppkeys has been created in /var/backups/rudder"
+if [ -d /var/rudder/cfengine-community/ppkeys/ ]; then
+  mkdir -p /var/backups/rudder
+  %{cp_a_command} -f /var/rudder/cfengine-community/ppkeys/ /var/backups/rudder/ppkeys-$(date +%Y%m%d)
+  echo "INFO: A back up copy of the /var/rudder/cfengine-community/ppkeys has been created in /var/backups/rudder"
+fi
 
 
 %postun -n rudder-agent
