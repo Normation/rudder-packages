@@ -66,37 +66,37 @@ LDAP_CREDENTIALS=`grep -E "^ldap.auth(dn|pw)[ \t]*=" /opt/rudder/etc/rudder-web.
 SQL_CREDENTIALS=`grep -E "^rudder.jdbc.(username|password)[ \t]*=" /opt/rudder/etc/rudder-web.properties | wc -l`
 
 if [ -f /opt/rudder/etc/rudder-web.properties -a ${LDAP_CREDENTIALS} -eq 2 ]; then
-        # Get the LDAP database access credentials from the rudder-web.properties file
-        LDAP_USER=`grep -E "^ldap.authdn[ \t]*=" /opt/rudder/etc/rudder-web.properties |cut -d "=" -f 2-`
-        LDAP_PASSWORD=`grep -E "^ldap.authpw[ \t]*=" /opt/rudder/etc/rudder-web.properties |cut -d "=" -f 2-`
+  # Get the LDAP database access credentials from the rudder-web.properties file
+  LDAP_USER=`grep -E "^ldap.authdn[ \t]*=" /opt/rudder/etc/rudder-web.properties |cut -d "=" -f 2-`
+  LDAP_PASSWORD=`grep -E "^ldap.authpw[ \t]*=" /opt/rudder/etc/rudder-web.properties |cut -d "=" -f 2-`
 else
-        # No LDAP database access credentials in rudder-web.properties, use slapd.conf instead.
-        echo "WARNING: LDAP credentials are missing in /opt/rudder/etc/rudder-web.properties. Using /opt/rudder/etc/openldap/slapd.conf as a reference instead."
-        if [ -f /opt/rudder/etc/openldap/slapd.conf ]; then
-                LDAP_USER=`grep "^rootdn" /opt/rudder/etc/openldap/slapd.conf | sed "s/\w*\s*['\"]\?\([^\"']*\)['\"]\?$/\1/"`
-                LDAP_PASSWORD=`grep "^rootpw" /opt/rudder/etc/openldap/slapd.conf | sed "s/\w*\s*['\"]\?\([^\"']*\)['\"]\?$/\1/"`
-        else
-                echo "ERROR: /opt/rudder/etc/openldap/slapd.conf doesn't exist."
-                exit 1
-        fi
+  # No LDAP database access credentials in rudder-web.properties, use slapd.conf instead.
+  echo "WARNING: LDAP credentials are missing in /opt/rudder/etc/rudder-web.properties. Using /opt/rudder/etc/openldap/slapd.conf as a reference instead."
+  if [ -f /opt/rudder/etc/openldap/slapd.conf ]; then
+    LDAP_USER=`grep "^rootdn" /opt/rudder/etc/openldap/slapd.conf | sed "s/\w*\s*['\"]\?\([^\"']*\)['\"]\?$/\1/"`
+    LDAP_PASSWORD=`grep "^rootpw" /opt/rudder/etc/openldap/slapd.conf | sed "s/\w*\s*['\"]\?\([^\"']*\)['\"]\?$/\1/"`
+  else
+    echo "ERROR: /opt/rudder/etc/openldap/slapd.conf doesn't exist."
+    exit 1
+  fi
 fi
 
 if [ -f /opt/rudder/etc/rudder-web.properties -a ${SQL_CREDENTIALS} -eq 2 ]; then
-        # Get the SQL database access credentials from the rudder-web.properties file
-        SQL_USER=`grep -E "^rudder.jdbc.username[ \t]*=" /opt/rudder/etc/rudder-web.properties |cut -d "=" -f 2-`
-        SQL_PASSWORD=`grep -E "^rudder.jdbc.password[ \t]*=" /opt/rudder/etc/rudder-web.properties |cut -d "=" -f 2-`
+  # Get the SQL database access credentials from the rudder-web.properties file
+  SQL_USER=`grep -E "^rudder.jdbc.username[ \t]*=" /opt/rudder/etc/rudder-web.properties |cut -d "=" -f 2-`
+  SQL_PASSWORD=`grep -E "^rudder.jdbc.password[ \t]*=" /opt/rudder/etc/rudder-web.properties |cut -d "=" -f 2-`
 else
-        echo "ERROR: Unable to find SQL access credentials in /opt/rudder/etc/rudder-web.properties."
-        exit 1
+  echo "ERROR: Unable to find SQL access credentials in /opt/rudder/etc/rudder-web.properties."
+  exit 1
 fi
 
 GIT_BRANCH_IS_SET=`grep -E "^rudder.(ptlib|techniqueLibrary).git.refs.path=" /opt/rudder/etc/rudder-web.properties | wc -l`
 if [ ${GIT_BRANCH_IS_SET} -eq 1 ]; then
-	GIT_BRANCH=$(grep -E "^rudder.(ptlib|techniqueLibrary).git.refs.path=" /opt/rudder/etc/rudder-web.properties |cut -d "=" -f 2- | sed "s@\(refs/heads/\)\?\(refs/tags/\)\?\(refs/remote/origin/\)\?\(.*\)@\4@")
+  GIT_BRANCH=$(grep -E "^rudder.(ptlib|techniqueLibrary).git.refs.path=" /opt/rudder/etc/rudder-web.properties |cut -d "=" -f 2- | sed "s@\(refs/heads/\)\?\(refs/tags/\)\?\(refs/remote/origin/\)\?\(.*\)@\4@")
 else
-	echo "The rudder.ptlib.git.refs.path attribute in rudder-web.properties does not seem to be set"
-	echo "Using 'master' by default"
-	GIT_BRANCH="master"
+  echo "The rudder.ptlib.git.refs.path attribute in rudder-web.properties does not seem to be set"
+  echo "Using 'master' by default"
+  GIT_BRANCH="master"
 fi
 
 # Helper function
@@ -105,13 +105,13 @@ fi
 # - $1 = property name
 # - $2 = value to add
 function check_and_add_config_property {
-    PROPERTY_NAME=$1
-    PROPERTY_VALUE=$2
-    ATTRIBUTESET=`grep "^${PROPERTY_NAME}[ \t]*=" /opt/rudder/etc/rudder-web.properties | wc -l`
-    if [ ${ATTRIBUTESET} -eq 0 ]; then
-        echo "${PROPERTY_VALUE}" >> /opt/rudder/etc/rudder-web.properties
-        echo "INFO: New configuration property ${PROPERTY_NAME} added to /opt/rudder/etc/rudder-web.properties"
-    fi
+PROPERTY_NAME=$1
+PROPERTY_VALUE=$2
+ATTRIBUTESET=`grep "^${PROPERTY_NAME}[ \t]*=" /opt/rudder/etc/rudder-web.properties | wc -l`
+if [ ${ATTRIBUTESET} -eq 0 ]; then
+  echo "${PROPERTY_VALUE}" >> /opt/rudder/etc/rudder-web.properties
+  echo "INFO: New configuration property ${PROPERTY_NAME} added to /opt/rudder/etc/rudder-web.properties"
+fi
 }
 
 # Helper function
@@ -120,34 +120,34 @@ function check_and_add_config_property {
 # - $1 = command to execute
 # - $2 = service name
 retry_wrapper() {
-    tries=0; MAXTRIES=10;
-    while [ ${tries} -lt ${MAXTRIES} ]; do
-        eval ${1} && RET_SSH=0 || RET_SSH=$?
-        # Did we succeed?
-        if [ ${RET_SSH} -eq 0 ]; then break; fi
-        # OK, we failed
-        tries=$((${tries}+1))
-        if [ ${tries} -ge ${MAXTRIES} ]; then
-            echo "${2} service verification failed after ${MAXTRIES} tries. Aborting the migration."
-            echo "Please restart the Rudder service, and start the migration script again:"
-            echo "# /etc/init.d/rudder-server-root restart"
-            echo "# /opt/rudder/bin/rudder-upgrade"
-            /bin/false
-        else
-            echo -n "."
-            /bin/sleep 2
-        fi
-    done
+  tries=0; MAXTRIES=10;
+  while [ ${tries} -lt ${MAXTRIES} ]; do
+    eval ${1} && RET_SSH=0 || RET_SSH=$?
+    # Did we succeed?
+    if [ ${RET_SSH} -eq 0 ]; then break; fi
+    # OK, we failed
+    tries=$((${tries}+1))
+    if [ ${tries} -ge ${MAXTRIES} ]; then
+      echo "${2} service verification failed after ${MAXTRIES} tries. Aborting the migration."
+      echo "Please restart the Rudder service, and start the migration script again:"
+      echo "# /etc/init.d/rudder-server-root restart"
+      echo "# /opt/rudder/bin/rudder-upgrade"
+      /bin/false
+    else
+      echo -n "."
+      /bin/sleep 2
+    fi
+  done
 }
 
 # Helper function
 # Function to trigger a Technique library reload
 # Parameters: N/A
 function trigger_technique_library_reload {
-    if [ ! -f /opt/rudder/etc/force_technique_reload ]; then
-        echo "INFO: A Technique library reload is needed and has been scheduled."
-        touch /opt/rudder/etc/force_technique_reload
-    fi
+if [ ! -f /opt/rudder/etc/force_technique_reload ]; then
+  echo "INFO: A Technique library reload is needed and has been scheduled."
+  touch /opt/rudder/etc/force_technique_reload
+fi
 }
 
 # Helper function
@@ -156,18 +156,18 @@ function trigger_technique_library_reload {
 # - $1 = origin directory
 # - $2 = destination directory (in configuration repository)
 function update_rudder_repository_from_system_directory {
-    # Prime work variables first
-    SRCTECHDIR="${1}"
-    TRGTECHDIR="${CONFIGURATION_REPOSITORY}/${2}"
+# Prime work variables first
+SRCTECHDIR="${1}"
+TRGTECHDIR="${CONFIGURATION_REPOSITORY}/${2}"
 
-    if [ -d ${SRCTECHDIR} -a -d ${TRGTECHDIR} ]; then
-        if ! diff -Naur ${SRCTECHDIR} ${TRGTECHDIR} >/dev/null 2>&1; then
-            rsync --delete -rptgoq ${SRCTECHDIR} ${TRGTECHDIR}
-            cd ${CONFIGURATION_REPOSITORY}/ && git add -A ${2} && git commit -m "Upgrade system Techniques from ${SRCTECHDIR} - automatically done by rudder-upgrade script" >/dev/null 2>&1
-            # Schedule a Technique library reload because of the update
-            trigger_technique_library_reload
-        fi
-    fi
+if [ -d ${SRCTECHDIR} -a -d ${TRGTECHDIR} ]; then
+  if ! diff -Naur ${SRCTECHDIR} ${TRGTECHDIR} >/dev/null 2>&1; then
+    rsync --delete -rptgoq ${SRCTECHDIR} ${TRGTECHDIR}
+    cd ${CONFIGURATION_REPOSITORY}/ && git add -A ${2} && git commit -m "Upgrade system Techniques from ${SRCTECHDIR} - automatically done by rudder-upgrade script" >/dev/null 2>&1
+    # Schedule a Technique library reload because of the update
+    trigger_technique_library_reload
+  fi
+fi
 }
 
 # - All versions: Check if access credentials in rudder-web.properties/inventory-web.properties match the ones from rudder-passwords.conf
@@ -228,7 +228,7 @@ fi
 
 # Before doing anything on git, set the branch to the Technique Reference Library branch
 if [ -d ${CONFIGURATION_REPOSITORY}/.git ];then
-	cd ${CONFIGURATION_REPOSITORY}/ && git checkout ${GIT_BRANCH} >/dev/null 2>&1
+  cd ${CONFIGURATION_REPOSITORY}/ && git checkout ${GIT_BRANCH} >/dev/null 2>&1
 fi
 
 # Check the LDAP and PostgreSQL daemons status before upgrading
@@ -252,31 +252,31 @@ do
   fi
 done
 if [ ${OLDEST_EVENTLOG_VERSION} -eq 1 ]; then
-    # File Format migration : version 1 (2.3) to 2 (2.4) : Check if an event log has File format 1
-    # The migration is not supported anymore, explain that you should upgrade first to 2.6 before
-    echo "WARNING: Some event log are still based on an old file format (file format 1), please upgrade first to Rudder 2.6 or later to make this migration"
+  # File Format migration : version 1 (2.3) to 2 (2.4) : Check if an event log has File format 1
+  # The migration is not supported anymore, explain that you should upgrade first to 2.6 before
+  echo "WARNING: Some event log are still based on an old file format (file format 1), please upgrade first to Rudder 2.6 or later to make this migration"
 elif [ ${OLDEST_EVENTLOG_VERSION} -eq 2 ]; then
-    # File Format migration : version 2 (2.4) to 3 (2.4) : Check if an event log has File format 2 and set migration flag if needed
-    # Launch this script if eventlogs v2 are found
-	psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.4-2.4-set-migration-needed-flag-for-EventLog.sql > /dev/null
+  # File Format migration : version 2 (2.4) to 3 (2.4) : Check if an event log has File format 2 and set migration flag if needed
+  # Launch this script if eventlogs v2 are found
+  psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.4-2.4-set-migration-needed-flag-for-EventLog.sql > /dev/null
 fi
 
 # Upgrade database schema from 2.3 to 2.4 if necessary - eighth part: Check if archive of the eventlog exists and create it if necessary
 RES=$(su - postgres -c "psql -d rudder -t -c \"select count(1) from pg_class where relname = 'archivedruddersysevents'\"")
 if [ $RES -eq 0 ]; then
-	psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.3-2.4-archive.sql > /dev/null
+  psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.3-2.4-archive.sql > /dev/null
 fi
 
 # 2.7.0: File Format migration from 3 to 4
 RES=$(su - postgres -c "psql -t -d rudder -c \"select count(*) from (select xpath('/entry/*[@fileFormat=3]',data) AS x from eventlog) as Y where array_upper(x, 1) > 0;\"")
 if [ $RES -ne 0 ]; then
-        psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.6-2.7-set-migration-needed-flag-for-EventLog.sql > /dev/null 2>&1
+  psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.6-2.7-set-migration-needed-flag-for-EventLog.sql > /dev/null 2>&1
 fi
 
 # 2.9.0: File Format migration from 4 to 5
 RES=$(su - postgres -c "psql -t -d rudder -c \"select count(*) from (select xpath('/entry/*[@fileFormat=4]',data) AS x from eventlog) as Y where array_upper(x, 1) > 0;\"")
 if [ $RES -ne 0 ]; then
-        psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.8-2.9-set-migration-needed-flag-for-EventLog.sql > /dev/null 2>&1
+  psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.8-2.9-set-migration-needed-flag-for-EventLog.sql > /dev/null 2>&1
 fi
 
 # Upgrade database schema from 2.7 to 2.8 if necessary - Check if the execution table is present, and create it if needed.
@@ -300,11 +300,11 @@ CHECK_INVENTORY_TARGET=`/opt/rudder/bin/ldapsearch -H ldap://localhost -x -w ${L
 if [ ${LDAP_EXISTS} -ne 0 -a ${CHECK_INVENTORY_TARGET} -ne 1 ]
 then
   /opt/rudder/bin/ldapmodify -x -D ${LDAP_USER} -w ${LDAP_PASSWORD} -H ldap://localhost  >/dev/null 2>&1 << EOF
-dn: ruleId=inventory-all,ou=Rules,ou=Rudder,cn=rudder-configuration
-changetype: modify
-replace: ruleTarget
-ruleTarget: special:all
-EOF
+  dn: ruleId=inventory-all,ou=Rules,ou=Rudder,cn=rudder-configuration
+  changetype: modify
+  replace: ruleTarget
+  ruleTarget: special:all
+  EOF
 fi
 
 # Upgrade system Techniques and ncf - always do this!
@@ -343,7 +343,7 @@ fi
 # - 2.8.0 : Update logback.xml in order to have information about change requests
 if ! cat /opt/rudder/etc/logback.xml | perl -p0e 's/\n//g' | perl -p0e 's/<!--.(?:(?!-->).)*-->//g' | perl -p0e 's/> *</></g' | grep -E '<logger name="changeRequest" level="[^"]+" additivity="false">' >/dev/null 2>&1
 then
-    sed -i 's%^ *</configuration>%   <logger name="changeRequest" level="info" additivity="false">\n     <appender-ref ref="OPSLOG" />\n     <appender-ref ref="STDOUT" />\n   </logger>\n</configuration>%' /opt/rudder/etc/logback.xml
+  sed -i 's%^ *</configuration>%   <logger name="changeRequest" level="info" additivity="false">\n     <appender-ref ref="OPSLOG" />\n     <appender-ref ref="STDOUT" />\n   </logger>\n</configuration>%' /opt/rudder/etc/logback.xml
 fi
 
 # - 2.8.0 : Add the property to configure maximum days of reports treated at each run
@@ -370,6 +370,7 @@ check_and_add_config_property rudder.batch.storeAgentRunTimes.updateInterval "
 rudder.batch.storeAgentRunTimes.updateInterval=5"
 
 if [ ${LDAP_EXISTS} -ne 0 ]; then
+
   # - 2.7.0 : Migration LDAP to add the global parameter ou
   LDAP_TEST_GLOBAL_PARAMETER=$(/opt/rudder/sbin/slapcat 2>/dev/null | grep "dn: ou=Parameters,ou=Rudder,cn=rudder-configuration" | wc -l)
   if [ ${LDAP_TEST_GLOBAL_PARAMETER} -eq 0 ]; then
@@ -390,14 +391,13 @@ if [ ${LDAP_EXISTS} -ne 0 ]; then
   LDAP_TEST_OLD_API_ACCOUNTS=$(/opt/rudder/bin/ldapsearch -H ldap://localhost -x -w "${LDAP_PASSWORD}" -D "${LDAP_USER}" -b "ou=API Accounts,ou=Rudder,cn=rudder-configuration"  -LLL dn 2>/dev/null | grep "^dn: cn=" | wc -l)
   if [ ${LDAP_TEST_OLD_API_ACCOUNTS} -ne 0 ]; then
     echo -n "INFO: Renaming API accounts to have a unique ID..."
-    /opt/rudder/bin/ldapsearch -H ldap://localhost -x -w "${LDAP_PASSWORD}" -D "${LDAP_USER}" -b "ou=API Accounts,ou=Rudder,cn=rudder-configuration"  -LLL dn 2>/dev/null |\
-      grep "^dn: cn=" |\
+    /opt/rudder/bin/ldapsearch -H ldap://localhost -x -w "${LDAP_PASSWORD}" -D "${LDAP_USER}" -b "ou=API Accounts,ou=Rudder,cn=rudder-configuration"  -LLL dn 2>/dev/null | grep "^dn: cn=" | \
       while read line; do
         NEW_UUID=$(uuidgen)
         DN=$(echo ${line} | sed 's/^dn: \(.*\)$/\1/')
         echo -e "${DN}\napiAccountId=${NEW_UUID}" | /opt/rudder/bin/ldapmodrdn -H ldap://localhost -x -w "${LDAP_PASSWORD}" -D "${LDAP_USER}" > /dev/null 2>&1
       done
-    echo " Done."
+      echo " Done."
   fi
 
   # - 2.11.0: Add LDAP entries for Server Roles system Technique, Directive and Rule
@@ -407,30 +407,31 @@ if [ ${LDAP_EXISTS} -ne 0 ]; then
     /opt/rudder/bin/ldapadd -x -D "${LDAP_USER}" -w "${LDAP_PASSWORD}" -H ldap://localhost -f ${RUDDER_UPGRADE_TOOLS}/ldapMigration-2.10-2.11-add-server-roles.ldif >/dev/null 2>&1
     echo " Done."
   fi
+
 fi
 
 
 # - 2.6.6 : Migration DB schema to modify indexes on RudderSysEvents to improve nodes list display
 RES=$(su - postgres -c "psql -t -d rudder -c \"select count(oid) from pg_class where lower(relname) = 'composite_node_execution_idx'\"")
 if [ $RES -eq 0 ]; then
-        echo -n "INFO: Updating the PostgreSQL indexes, this may take several minutes..."
-        psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.6-2.6-index-reports.sql > /dev/null
-        echo " Done"
+  echo -n "INFO: Updating the PostgreSQL indexes, this may take several minutes..."
+  psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.6-2.6-index-reports.sql > /dev/null
+  echo " Done"
 fi
 
 # - 2.8.0 : Deprecate properties that are now handled directly in the webapp (validation workflow and change Message)
 
 for i in rudder.ui.changeMessage.enabled rudder.ui.changeMessage.mandatory rudder.ui.changeMessage.explanation rudder.workflow.enabled rudder.workflow.self.validation rudder.workflow.self.deployment
 do
-    # First, check if the property is in the file (if not we don't need to migrate it)
-    if grep -e "^${i}[ \t]*=" /opt/rudder/etc/rudder-web.properties > /dev/null ; then
-        # Get the two lines before the property if the property exists. Then find out if the comment is here.
-        RES=$(grep -B 2 -e "^${i}[ \t]*=" /opt/rudder/etc/rudder-web.properties | grep "^# DEPRECATED in Rudder 2.8.0" | wc -l)
-        if [ $RES -eq 0 ]; then
-                sed -i "/^${i}[ \t]*=/i # DEPRECATED in Rudder 2.8.0\n# The property is now configurable directly in the webapp. See 'Adminstration -> Settings' page." /opt/rudder/etc/rudder-web.properties
-                echo "INFO: Property ${i} is now configurable directly in the web interface and has been migrated. It's use is deprecated in /opt/rudder/etc/rudder-web.properties."
-        fi
+  # First, check if the property is in the file (if not we don't need to migrate it)
+  if grep -e "^${i}[ \t]*=" /opt/rudder/etc/rudder-web.properties > /dev/null ; then
+    # Get the two lines before the property if the property exists. Then find out if the comment is here.
+    RES=$(grep -B 2 -e "^${i}[ \t]*=" /opt/rudder/etc/rudder-web.properties | grep "^# DEPRECATED in Rudder 2.8.0" | wc -l)
+    if [ $RES -eq 0 ]; then
+      sed -i "/^${i}[ \t]*=/i # DEPRECATED in Rudder 2.8.0\n# The property is now configurable directly in the webapp. See 'Adminstration -> Settings' page." /opt/rudder/etc/rudder-web.properties
+      echo "INFO: Property ${i} is now configurable directly in the web interface and has been migrated. It's use is deprecated in /opt/rudder/etc/rudder-web.properties."
     fi
+  fi
 done
 
 # - 2.10.0 : Add properties to enable and configure the LDAP authentication
