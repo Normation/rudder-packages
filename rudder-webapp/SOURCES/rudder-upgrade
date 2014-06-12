@@ -62,7 +62,7 @@ RUDDER_NCF_SOURCE_DIRECTORY=/usr/share/ncf
 RUDDER_UPGRADE_TOOLS=${RUDDER_SHARE}/upgrade-tools
 
 # Get how many access credentials we got for LDAP and SQL in /opt/rudder/etc/rudder-web.properties
-# (should have 2 for each, user and password)
+# (should have 2 for each, user and password)
 LDAP_CREDENTIALS=$(grep -c -E "^ldap.auth(dn|pw)[ \t]*=" /opt/rudder/etc/rudder-web.properties || true)
 SQL_CREDENTIALS=$(grep -c -E "^rudder.jdbc.(username|password)[ \t]*=" /opt/rudder/etc/rudder-web.properties || true)
 
@@ -151,8 +151,8 @@ retry_wrapper() {
     if [ ${tries} -ge ${MAXTRIES} ]; then
       echo "${2} service verification failed after ${MAXTRIES} tries. Aborting the migration."
       echo "Please restart the Rudder service, and start the migration script again:"
-      echo "# /etc/init.d/rudder-server-root restart"
-      echo "# /opt/rudder/bin/rudder-upgrade"
+      echo "# /etc/init.d/rudder-server-root restart"
+      echo "# /opt/rudder/bin/rudder-upgrade"
       /bin/false
     else
       echo -n "."
@@ -177,7 +177,7 @@ fi
 # - $1 = origin directory
 # - $2 = destination directory (in configuration repository)
 update_rudder_repository_from_system_directory() {
-# Prime work variables first
+# Prime work variables first
 SRCTECHDIR="${1}"
 TRGTECHDIR="${CONFIGURATION_REPOSITORY}/${2}"
 
@@ -192,14 +192,14 @@ fi
 }
 
 # - All versions: Check if access credentials in rudder-web.properties/inventory-web.properties match the ones from rudder-passwords.conf
-# For every property file, check if the access credentials match between the property file and
-# the rudder-passwords.conf file. If not, update the properties.
+# For every property file, check if the access credentials match between the property file and
+# the rudder-passwords.conf file. If not, update the properties.
 #
-# This is to prevent an upgrade failure if the properties have been resetted during a package upgrade.
+# This is to prevent an upgrade failure if the properties have been resetted during a package upgrade.
 
 if [ -f /opt/rudder/etc/rudder-passwords.conf ]; then
 
-  # Get the passwords stored in rudder-passwords.conf
+  # Get the passwords stored in rudder-passwords.conf
   REFERENCE_LDAP_PASSWORD=$(grep -E "^RUDDER_OPENLDAP_BIND_PASSWORD:" /opt/rudder/etc/rudder-passwords.conf |cut -d ":" -f 2-)
   REFERENCE_SQL_PASSWORD=$(grep -E "^RUDDER_PSQL_PASSWORD:" /opt/rudder/etc/rudder-passwords.conf |cut -d ":" -f 2-)
 
@@ -207,9 +207,9 @@ if [ -f /opt/rudder/etc/rudder-passwords.conf ]; then
 
     echo -n "INFO: Checking if ${property_file} database access credentials are all right..."
 
-    # 1 - Check LDAP credentials on all property files
+    # 1 - Check LDAP credentials on all property files
 
-    # Get the LDAP password according to the property file
+    # Get the LDAP password according to the property file
     PROPERTY_LDAP_PASSWORD=$(grep -E "^ldap.authpw[ \t]*=" /opt/rudder/etc/${property_file} |cut -d "=" -f 2-)
     if [ "z${REFERENCE_LDAP_PASSWORD}" = "z${PROPERTY_LDAP_PASSWORD}" ]; then
       echo -n " LDAP OK, "
@@ -219,27 +219,27 @@ if [ -f /opt/rudder/etc/rudder-passwords.conf ]; then
       echo -n " LDAP Credentials updated, "
     fi
 
-    # 1 - End
+    # 1 - End
 
-    # 2 - SQL properties only apply to rudder-web.properties
+    # 2 - SQL properties only apply to rudder-web.properties
 
     if [ "z${property_file}" = "zrudder-web.properties" ]; then
-      # Get the SQL password according to the property file
+      # Get the SQL password according to the property file
       PROPERTY_SQL_PASSWORD=$(grep -E "^rudder.jdbc.password[ \t]*=" /opt/rudder/etc/${property_file} |cut -d "=" -f 2-)
       if [ "z${REFERENCE_SQL_PASSWORD}" = "z${PROPERTY_SQL_PASSWORD}" ]; then
         echo " SQL OK"
       else
-        # Credentials from the properties and the rudder-password.conf do not match, update the properties.
+        # Credentials from the properties and the rudder-password.conf do not match, update the properties.
         sed -i "s%rudder.jdbc.password[ \t]*=.*%rudder.jdbc.password=${REFERENCE_SQL_PASSWORD}%" /opt/rudder/etc/${property_file}
         SQL_PASSWORD=${REFERENCE_SQL_PASSWORD}
         echo " SQL Credentials updated"
       fi
     else
-      # The file is not relevant for SQL checking, skip it.
+      # The file is not relevant for SQL checking, skip it.
       echo " SQL skipped"
     fi
 
-    # 2 - End
+    # 2 - End
 
   done
 

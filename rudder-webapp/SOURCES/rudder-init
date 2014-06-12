@@ -58,7 +58,7 @@ POLICY_SERVER_FILE="${RUDDER_VAR}/cfengine-community/policy_server.dat"
 JETTY_INIT="service rudder-jetty"
 
 # Get how many access credentials we got for LDAP and SQL in /opt/rudder/etc/rudder-web.properties
-# (should have 2 for each, user and password)
+# (should have 2 for each, user and password)
 LDAP_CREDENTIALS=$(grep -c -E "^ldap.auth(dn|pw)[ \t]*=" /opt/rudder/etc/rudder-web.properties || true)
 SQL_CREDENTIALS=$(grep -c -E "^rudder.jdbc.(username|password)[ \t]*=" /opt/rudder/etc/rudder-web.properties || true)
 
@@ -353,15 +353,15 @@ echo " done."
 # Restart services
 echo -n "Restarting services..."
 
-# Start the whole infrastructure
+# Start the whole infrastructure
 
-## Launch manually a single cf-agent instance to set up policy server
+## Launch manually a single cf-agent instance to set up policy server
 cf-agent -b root_component_check &> "$TMP_LOG"
 
 ## Then, restart jetty
 ${JETTY_INIT} restart >> "${TMP_LOG}" 2>&1 || echo "WARNING: Jetty failed to start, maybe there is not enough RAM or swap on the machine. Skipping..."
 
-## And finally, rudder-agent
+## And finally, rudder-agent
 service rudder-agent restart >> "${TMP_LOG}" 2>&1
 
 echo " done."
