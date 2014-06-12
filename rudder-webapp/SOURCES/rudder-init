@@ -253,6 +253,7 @@ done
 generate_promises_at_temporary_location "${ANSWER1}" "${NET2}"
 
 # 3: compare the generated promises with what is on the FS
+mkdir -p ${INITREP} /var/cfengine/inputs
 diff -Naur ${INITREP} ${TMP_DIR}/community > /dev/null
 DIFFERENT_PROMISES=$?
 
