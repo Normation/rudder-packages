@@ -19,14 +19,16 @@
 
 # Rudder initialization utility
 
-#Check if script is executed by root
+# Check if script is executed by root
 if [ ! "z$(whoami)" = "zroot" ];then echo "You must be root"; exit 1; fi
 
 REGEXPCHK='^[0-9]\{1,3\}.[0-9]\{1,3\}.[0-9]\{1,3\}.[0-9]\{1,3\}\/[0-9]\{1,2\}$'
 
 # VARS
 TMP_DIR=$(mktemp -dq)
-TMP_LOG=$(mktemp -t rudder.XXXXXXXXXX.log -q)
+TMP_LOG=$(mktemp -t rudder.XXXXXXXXXX -q)
+mv ${TMP_LOG} ${TMP_LOG}.log
+TMP_LOG=${TMP_LOG}.log
 
 BOOTSTRAP_PATH=$TMP_DIR/bootstrap.ldif
 INITPOLICY_PATH=$TMP_DIR/init-policy-server.ldif
@@ -43,6 +45,9 @@ again="yes"
 
 cpt=0
 cpt2=0
+
+# Ensure our PATH includes Rudder's binaries
+export PATH=${PATH}:${RUDDER_OPT}/bin
 
 # Check if promises already exist for CFEngine community
 INITREP=/var/rudder/cfengine-community/inputs
@@ -90,15 +95,16 @@ else
 fi
 
 # Commands
-LDAP_PARAMETERS="-H ldap://${LDAP_SERVER}:${LDAP_PORT}/ -D ${LDAP_USER} -w ${LDAP_PASSWORD}"
+LDAP_PARAMETERS="-H ldap://${LDAP_SERVER}:${LDAP_PORT}/ -D ${LDAP_USER} -w ${LDAP_PASSWORD} -x"
 
 JETTY_INIT="service rudder-jetty"
 
-LDAPSEARCH="${RUDDER_OPT}/bin/ldapsearch ${LDAP_PARAMETERS} -LLL"
-LDAPMODRDN="${RUDDER_OPT}/bin/ldapmodrdn ${LDAP_PARAMETERS}"
-LDAPADD="${RUDDER_OPT}/bin/ldapadd ${LDAP_PARAMETERS}"
+LDAPSEARCH="ldapsearch ${LDAP_PARAMETERS} -LLL"
+LDAPMODRDN="ldapmodrdn ${LDAP_PARAMETERS}"
+LDAPADD="ldapadd ${LDAP_PARAMETERS}"
+LDAPDELETE="ldapdelete ${LDAP_PARAMETERS}"
 
-LDAP_EXISTS=$(${LDAPSEARCH} -b "cn=rudder-configuration" 2>/dev/null | grep -c "dn: cn=rudder-configuration" || true)
+LDAP_EXISTS=$(${LDAPSEARCH} -b "cn=rudder-configuration" -s base dn 2>/dev/null | grep -c "dn: cn=rudder-configuration" || true)
 
 PSQL="psql -q -h ${SQL_SERVER} -p ${SQL_PORT} -U ${SQL_USER}"
 
@@ -170,8 +176,6 @@ then
     LDAPRESET=${3}         # Reset LDAP ?
     ANSWER6=${4}           # Restore Initial Promises ?
     ALLOWEDNETWORK[0]=${5} # Allowed networks
-
-    LDAPCHK=1
   fi
 else
   echo
@@ -182,13 +186,13 @@ else
 
   # Menu
 
-  ## 1st Step: Définition de HOSTNAME
+  ## 1st Step: Define HOSTNAME
   echo
   echo -n "Please enter the fully qualified domain name that will be used to access the web interface of the Rudder server (i.e rudder.example.com): "
 
   read ANSWER1
 
-  ## 2nd Step: Definition SERVER_ALLOWED_NETWORK
+  ## 2nd Step: Define SERVER_ALLOWED_NETWORK
   while [ z$again = "zyes" ]
   do
     again=''
@@ -216,8 +220,7 @@ else
   done
 
   ## 4th Step: LDAP Check
-  LDAPCHK=$(${LDAPSEARCH} -b cn=rudder-configuration "(cn=rudder-configuration)" | grep -c "^dn: ")
-  if [ $LDAPCHK -gt 0 ]
+  if [ ${LDAP_EXISTS} -gt 0 ]
   then
     while ! echo "$LDAPRESET" | grep "^\(yes\|no\)$"
     do
@@ -279,7 +282,7 @@ echo
 echo Hostname: "$ANSWER1"
 echo Allowed networks: "${ALLOWEDNETWORK[*]}"
 echo Add sample data? "$ANSWER4"
-if [ $LDAPCHK -gt 0 ]
+if [ ${LDAP_EXISTS} -gt 0 ]
 then
   echo Reinitialize LDAP database? "$LDAPRESET"
 fi
@@ -314,7 +317,7 @@ then
 fi
 
 # LDAP (re)initialization
-if [ $LDAPCHK -gt 0 ]
+if [ ${LDAP_EXISTS} -gt 0 ]
 then
   if [ z$LDAPRESET = "zyes" ]
   then
@@ -333,13 +336,14 @@ then
 fi
 echo " done."
 
-# Update the password file used by Rudder with random password
-
-echo -n "Updating Rudder password file with random passwords... "
-sed -i "s%RUDDER_WEBDAV_PASSWORD.*%RUDDER_WEBDAV_PASSWORD:$(dd if=/dev/urandom count=128 bs=1 2>&1 | md5sum | cut -b-12)%" ${RUDDER_OPT}/etc/rudder-passwords.conf
-sed -i "s%RUDDER_PSQL_PASSWORD.*%RUDDER_PSQL_PASSWORD:$(dd if=/dev/urandom count=128 bs=1 2>&1 | md5sum | cut -b-12)%" ${RUDDER_OPT}/etc/rudder-passwords.conf
-sed -i "s%RUDDER_OPENLDAP_BIND_PASSWORD.*%RUDDER_OPENLDAP_BIND_PASSWORD:$(dd if=/dev/urandom count=128 bs=1 2>&1 | md5sum | cut -b-12)%" ${RUDDER_OPT}/etc/rudder-passwords.conf
-echo " done."
+# Update the password file used by Rudder with random passwords - if we are on the root server with all components ONLY
+if [ -f ${RUDDER_OPT}/etc/server-roles.d/rudder-server-root ]; then
+  echo -n "Updating Rudder password file with random passwords... "
+  sed -i "s%RUDDER_WEBDAV_PASSWORD.*%RUDDER_WEBDAV_PASSWORD:$(dd if=/dev/urandom count=128 bs=1 2>&1 | md5sum | cut -b-12)%" ${RUDDER_OPT}/etc/rudder-passwords.conf
+  sed -i "s%RUDDER_PSQL_PASSWORD.*%RUDDER_PSQL_PASSWORD:$(dd if=/dev/urandom count=128 bs=1 2>&1 | md5sum | cut -b-12)%" ${RUDDER_OPT}/etc/rudder-passwords.conf
+  sed -i "s%RUDDER_OPENLDAP_BIND_PASSWORD.*%RUDDER_OPENLDAP_BIND_PASSWORD:$(dd if=/dev/urandom count=128 bs=1 2>&1 | md5sum | cut -b-12)%" ${RUDDER_OPT}/etc/rudder-passwords.conf
+  echo " done."
+fi
 
 # Delete temp files
 echo -n "Cleaning up temporary directories..."
@@ -349,19 +353,16 @@ echo " done."
 # Restart services
 echo -n "Restarting services..."
 
-# Launch manually a single cf-agent instance to set passwords everywhere
-/opt/rudder/bin/cf-agent -b root_component_check &> $TMP_LOG
-
 # Start the whole infrastructure
 
-## Launch manually a single cf-agent instance to set passwords everywhere
-${RUDDER_OPT}/bin/cf-agent -b root_component_check &> "$TMP_LOG"
+## Launch manually a single cf-agent instance to set up policy server
+cf-agent -b root_component_check &> "$TMP_LOG"
 
 ## Then, restart jetty
 ${JETTY_INIT} restart >> "${TMP_LOG}" 2>&1 || echo "WARNING: Jetty failed to start, maybe there is not enough RAM or swap on the machine. Skipping..."
 
 ## And finally, rudder-agent
-/etc/init.d/rudder-agent restart >> "${TMP_LOG}" 2>&1
+service rudder-agent restart >> "${TMP_LOG}" 2>&1
 
 echo " done."
 

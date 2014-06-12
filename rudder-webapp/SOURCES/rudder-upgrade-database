@@ -150,7 +150,7 @@ migrate_reports() {
       migrate_per_nodes all
     ;;
     4)
-      ${ECHO} "OK, exiting now."
+      ${ECHO} "OK, exiting now. Relaunch this script to proceed with the migration."
       exit 0
     ;;
   esac

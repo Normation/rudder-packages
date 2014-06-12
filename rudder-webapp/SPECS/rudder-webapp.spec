@@ -43,6 +43,7 @@
 %define htpasswd_cmd        htpasswd2
 %define sysloginitscript    /etc/init.d/syslog
 %define apache_vhost_dir    %{apache}/vhosts.d
+%define ldap_clients        openldap2-client
 %endif
 %if 0%{?el5}
 %define apache              httpd
@@ -51,6 +52,7 @@
 %define htpasswd_cmd        htpasswd
 %define sysloginitscript    /etc/init.d/syslog
 %define apache_vhost_dir    %{apache}/conf.d
+%define ldap_clients        openldap-clients
 %endif
 %if 0%{?el6}
 %define apache              httpd
@@ -59,6 +61,7 @@
 %define htpasswd_cmd        htpasswd
 %define sysloginitscript    /etc/init.d/rsyslog
 %define apache_vhost_dir    %{apache}/conf.d
+%define ldap_clients        openldap-clients
 %endif
 
 #=================================================
@@ -88,7 +91,7 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
 
 BuildRequires: jdk >= 1.6
-Requires: rudder-jetty rudder-techniques ncf %{apache} %{apache_tools} git-core rsync openssl
+Requires: rudder-jetty rudder-techniques ncf %{apache} %{apache_tools} git-core rsync openssl %{ldap_clients}
 
 %if 0%{?rhel}
 Requires: mod_ssl
