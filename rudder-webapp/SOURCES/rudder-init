@@ -1,0 +1,375 @@
+#!/bin/bash
+#####################################################################################
+# Copyright 2011 Normation SAS
+#####################################################################################
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, Version 3.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#####################################################################################
+
+# Rudder initialization utility
+
+# Check if script is executed by root
+if [ ! "z$(whoami)" = "zroot" ];then echo "You must be root"; exit 1; fi
+
+REGEXPCHK='^[0-9]\{1,3\}.[0-9]\{1,3\}.[0-9]\{1,3\}.[0-9]\{1,3\}\/[0-9]\{1,2\}$'
+
+# VARS
+TMP_DIR=$(mktemp -dq)
+TMP_LOG=$(mktemp -t rudder.XXXXXXXXXX -q)
+mv ${TMP_LOG} ${TMP_LOG}.log
+TMP_LOG=${TMP_LOG}.log
+
+BOOTSTRAP_PATH=$TMP_DIR/bootstrap.ldif
+INITPOLICY_PATH=$TMP_DIR/init-policy-server.ldif
+INITDEMO_PATH=$TMP_DIR/demo-data.ldif
+
+RUDDER_OPT="/opt/rudder"
+RUDDER_VAR="/var/rudder"
+
+RUDDER_CONTEXT=$(grep contextPath ${RUDDER_OPT}/share/webapps/rudder.xml | sed "s@^\s*<Set name=\"contextPath\">\(.*\)</Set>@\1@")
+
+REGEXP='s/^\([0-9]\{1,3\}\)\(.[0-9]\{1,3\}\)\(.[0-9]\{1,3\}\)\(.[0-9]\{1,3\}.[0-9]\{1,2\}\)$/\1\\\2\\\3\\\4/g'
+
+again="yes"
+
+cpt=0
+cpt2=0
+
+# Ensure our PATH includes Rudder's binaries
+export PATH=${PATH}:${RUDDER_OPT}/bin
+
+# Check if promises already exist for CFEngine community
+INITREP=/var/rudder/cfengine-community/inputs
+
+# File containing the policy server IP
+POLICY_SERVER_FILE="${RUDDER_VAR}/cfengine-community/policy_server.dat"
+
+JETTY_INIT="service rudder-jetty"
+
+# Get how many access credentials we got for LDAP and SQL in /opt/rudder/etc/rudder-web.properties
+# (should have 2 for each, user and password)
+LDAP_CREDENTIALS=$(grep -c -E "^ldap.auth(dn|pw)[ \t]*=" /opt/rudder/etc/rudder-web.properties || true)
+SQL_CREDENTIALS=$(grep -c -E "^rudder.jdbc.(username|password)[ \t]*=" /opt/rudder/etc/rudder-web.properties || true)
+
+TOTAL_CREDENTIALS=$(echo "${LDAP_CREDENTIALS}+${SQL_CREDENTIALS}" | bc)
+
+if [ -f /opt/rudder/etc/rudder-web.properties -a ${TOTAL_CREDENTIALS} -eq 4 ]; then
+  # Get the database access credentials from the rudder-web.properties file
+  LDAP_USER="$(grep -E '^ldap.authdn[ \t]*=' ${RUDDER_OPT}/etc/rudder-web.properties | cut -d "=" -f 2-)"
+  LDAP_PASSWORD="$(grep -E '^ldap.authpw[ \t]*=' ${RUDDER_OPT}/etc/rudder-web.properties | cut -d "=" -f 2-)"
+  LDAP_SERVER="$(grep -E '^ldap.host[ \t]*=' ${RUDDER_OPT}/etc/rudder-web.properties | cut -d '=' -f 2-)"
+  LDAP_PORT="$(grep -E '^ldap.port[ \t]*=' ${RUDDER_OPT}/etc/rudder-web.properties | cut -d '=' -f 2-)"
+
+  SQL_USER="$(grep -E '^rudder.jdbc.username[ \t]*=' ${RUDDER_OPT}/etc/rudder-web.properties | cut -d "=" -f 2-)"
+  SQL_PASSWORD="$(grep -E '^rudder.jdbc.password[ \t]*=' ${RUDDER_OPT}/etc/rudder-web.properties | cut -d "=" -f 2-)"
+  SQL_SERVER="$(grep -E '^rudder.jdbc.url[ \t]*=' ${RUDDER_OPT}/etc/rudder-web.properties | cut -d '=' -f 2- | sed 's%^.*://\(.*\):\(.*\)/.*$%\1%')"
+  SQL_PORT="$(grep -E '^rudder.jdbc.url[ \t]*=' ${RUDDER_OPT}/etc/rudder-web.properties | cut -d '=' -f 2- | sed 's%^.*://\(.*\):\(.*\)/.*$%\2%')"
+
+  PGPASSWORD="${SQL_PASSWORD}"
+else
+  # No database access credentials in rudder-web.properties... Try anyway using "guessed" values.
+  echo "WARNING: Database access credentials are missing in /opt/rudder/etc/rudder-web.properties, trying to guess adequate values."
+  LDAP_USER=$(grep "^rootdn" /opt/rudder/etc/openldap/slapd.conf | sed "s/\w*\s*['\"]\?\([^\"']*\)['\"]\?$/\1/")
+  LDAP_PASSWORD=$(grep "^rootpw" /opt/rudder/etc/openldap/slapd.conf | sed "s/\w*\s*['\"]\?\([^\"']*\)['\"]\?$/\1/")
+  LDAP_SERVER='localhost'
+  LDAP_PORT='389'
+
+  SQL_USER="rudder"
+  SQL_PASSWORD="undefined"
+  SQL_SERVER="localhost"
+  SQL_PORT="5432"
+
+  # We rely on .pgpass instead
+  unset PGPASSWORD
+fi
+
+# Commands
+LDAP_PARAMETERS="-H ldap://${LDAP_SERVER}:${LDAP_PORT}/ -D ${LDAP_USER} -w ${LDAP_PASSWORD} -x"
+
+JETTY_INIT="service rudder-jetty"
+
+LDAPSEARCH="ldapsearch ${LDAP_PARAMETERS} -LLL"
+LDAPMODRDN="ldapmodrdn ${LDAP_PARAMETERS}"
+LDAPADD="ldapadd ${LDAP_PARAMETERS}"
+LDAPDELETE="ldapdelete ${LDAP_PARAMETERS}"
+
+LDAP_EXISTS=$(${LDAPSEARCH} -b "cn=rudder-configuration" -s base dn 2>/dev/null | grep -c "dn: cn=rudder-configuration" || true)
+
+PSQL="psql -q -h ${SQL_SERVER} -p ${SQL_PORT} -U ${SQL_USER}"
+
+Pause()
+{
+  key=""
+  echo -n Hit any key to continue....
+  stty -icanon
+  key=$(dd count=1 2>/dev/null)
+  stty icanon
+}
+
+ErrorCheck()
+{
+  if [ $? -ne 0 ]
+  then
+    echo "ERROR: Execution failed! Aborting."
+    echo "An error occured. Please check $TMP_LOG for details."
+    exit
+  fi
+}
+
+LDAPInit()
+{
+  cp /opt/rudder/share/bootstrap.ldif $BOOTSTRAP_PATH
+  cp /opt/rudder/share/init-policy-server.ldif $INITPOLICY_PATH
+  cp /opt/rudder/share/demo-data.ldif $INITDEMO_PATH
+
+  sed -i "s/^\([^#].*\)%%POLICY_SERVER_HOSTNAME%%/\1$ANSWER1/g" $INITPOLICY_PATH
+  sed -i "s#^\([^#].*\)%%POLICY_SERVER_ALLOWED_NETWORKS%%#\1$NET#g" $INITPOLICY_PATH
+
+  ${LDAPADD} -f $BOOTSTRAP_PATH &> $TMP_LOG
+  ErrorCheck
+
+  ${LDAPADD} -f $INITPOLICY_PATH &> $TMP_LOG
+  ErrorCheck
+}
+
+# Generate the promises at the temporaty location
+# Takes two arguments:
+#  - The hostname
+#  - The computed allowed network
+function generate_promises_at_temporary_location() {
+  local HOSTNAME=$1
+  local COMPUTED_ALLOWED_NETWORKS=$2
+
+  cp -r /opt/rudder/share/initial-promises/ ${TMP_DIR}/community
+
+  find $TMP_DIR/community -name "cf-served.cf" -type f -exec sed -i "s@'%%POLICY_SERVER_ALLOWED_NETWORKS%%'@$COMPUTED_ALLOWED_NETWORKS@g" {} \;
+  find $TMP_DIR/community -type f -exec sed -i "s/%%POLICY_SERVER_HOSTNAME%%/$HOSTNAME/g" {} \;
+}
+
+# Reset the policy server hostname
+function reset_policy_server() {
+  echo "127.0.0.1" > /var/cfengine/policy_server.dat
+  echo "127.0.0.1" > /var/rudder/cfengine-community/policy_server.dat
+}
+
+# Check if some arguments have been given
+if [ $# -gt 0 ]
+then
+  if [ $# -lt 5 ]
+  then
+    echo "ERROR: usage is: ${0} hostname DemoData LDAPReset InitialPromisesReset AllowedNetwork1 [AllowedNetwork2]..."
+    exit 1
+  else
+    ANSWER1=${1}           # Hostname
+    ANSWER4=${2}           # Install demo samples ?
+    LDAPRESET=${3}         # Reset LDAP ?
+    ANSWER6=${4}           # Restore Initial Promises ?
+    ALLOWEDNETWORK[0]=${5} # Allowed networks
+  fi
+else
+  echo
+  echo "Welcome to the Rudder initialization utility"
+  echo
+  echo "This utility configures a Rudder root server, and may be"
+  echo "called again if reconfiguration is required."
+
+  # Menu
+
+  ## 1st Step: Define HOSTNAME
+  echo
+  echo -n "Please enter the fully qualified domain name that will be used to access the web interface of the Rudder server (i.e rudder.example.com): "
+
+  read ANSWER1
+
+  ## 2nd Step: Define SERVER_ALLOWED_NETWORK
+  while [ z$again = "zyes" ]
+  do
+    again=''
+    while ! echo "${ALLOWEDNETWORK[$cpt]}" | grep "$REGEXPCHK"
+    do
+      echo
+      echo -n "Enter network allowed to access server (i.e 192.168.0.0/24): "
+      read ALLOWEDNETWORK[$cpt]
+    done
+    echo "Network(s) added:"
+    for i in ${ALLOWEDNETWORK[*]}
+    do
+      echo $i
+    done
+    while ! echo "$again" | grep "^\(yes\|no\)$";do echo -n "Add more networks? (yes/no) ";read again;done
+    ((cpt++))
+  done
+
+  ## 3rd Step: Demo Sample
+  while ! echo "$ANSWER4" | grep "^\(yes\|no\)$"
+  do
+    echo
+    echo -n "Do you want to add sample data (for demos)? (yes/no) "
+    read ANSWER4
+  done
+
+  ## 4th Step: LDAP Check
+  if [ ${LDAP_EXISTS} -gt 0 ]
+  then
+    while ! echo "$LDAPRESET" | grep "^\(yes\|no\)$"
+    do
+      echo
+      echo -ne "An LDAP database has been detected.\nDo you want to reinitialize it? (yes/no) "
+      read LDAPRESET
+    done
+  fi
+fi
+
+# Before continuing asking questions, we need to generate the initial promises
+# as they should be, to check whether the actual promises on this host need resetting
+
+## 1: Format allowed networks
+## NET will modify init-policy-server.ldif and NET 2 cf-served.cf
+for i in ${ALLOWEDNETWORK[*]}
+do
+  if [ $cpt2 -eq 0 ]
+  then
+    NET=$(echo $i | sed $REGEXP)
+    NET2="'$NET'"
+  else
+    NET="$NET\ndirectiveVariable: ALLOWEDNETWORK[$cpt2]: $(echo $i | sed $REGEXP)"
+    NET2="$NET2, '$(echo $i | sed $REGEXP)'"
+  fi
+  ((cpt2++))
+done
+
+# 2: generate the initial promises
+generate_promises_at_temporary_location "${ANSWER1}" "${NET2}"
+
+# 3: compare the generated promises with what is on the FS
+diff -Naur ${INITREP} ${TMP_DIR}/community > /dev/null
+DIFFERENT_PROMISES=$?
+
+#
+# Now, let's resume asking questions.
+#
+
+# 5th Step: Ask about resetting initial promises
+# Check again if this script got arguments, to know whether we need to interactively ask
+if [ $# -eq 0 ]
+then
+  if [ ${DIFFERENT_PROMISES} -ne 0 ]
+  then
+    while ! echo "$ANSWER6" | grep "^\(yes\|no\)$"
+    do
+      echo
+      echo -n "Do you want to reset initial promises ? (yes/no) "
+      read ANSWER6
+    done
+  else
+    ANSWER6="no"
+  fi
+fi
+
+# Review
+echo
+echo Hostname: "$ANSWER1"
+echo Allowed networks: "${ALLOWEDNETWORK[*]}"
+echo Add sample data? "$ANSWER4"
+if [ ${LDAP_EXISTS} -gt 0 ]
+then
+  echo Reinitialize LDAP database? "$LDAPRESET"
+fi
+if [ ${DIFFERENT_PROMISES} -ne 0 ];then
+  echo Reset Initial Promises? "$ANSWER6"
+fi
+echo
+Pause
+
+# Configure initial promises
+if [ z$ANSWER6 = "zyes" ]
+then
+  echo -n "Configuring and installing initial CFEngine promises..."
+
+  rm -rf /var/rudder/cfengine-community/inputs/*
+  rm -rf /var/cfengine/inputs/*
+
+  cp -r $TMP_DIR/community/* /var/rudder/cfengine-community/inputs/
+  cp -r $TMP_DIR/community/* /var/cfengine/inputs/
+
+  reset_policy_server
+
+  echo " Done."
+fi
+
+# Enforce that policy_server.dat exists
+if [ ! -e ${POLICY_SERVER_FILE} ]
+then
+  echo -n "Initializing IP address of the server..."
+  reset_policy_server
+  echo " Done."
+fi
+
+# LDAP (re)initialization
+if [ ${LDAP_EXISTS} -gt 0 ]
+then
+  if [ z$LDAPRESET = "zyes" ]
+  then
+    echo -n "Initializing LDAP database..."
+    ${LDAPDELETE} -r "cn=rudder-configuration"
+    LDAPInit
+  fi
+else
+  echo -n "Initializing LDAP database..."
+  LDAPInit
+fi
+# Check if Demo sample have to be added
+if [ z$ANSWER4 = "zyes" ]
+then
+  ${LDAPADD} -f $INITDEMO_PATH &> $TMP_LOG
+fi
+echo " done."
+
+# Update the password file used by Rudder with random passwords - if we are on the root server with all components ONLY
+if [ -f ${RUDDER_OPT}/etc/server-roles.d/rudder-server-root ]; then
+  echo -n "Updating Rudder password file with random passwords... "
+  sed -i "s%RUDDER_WEBDAV_PASSWORD.*%RUDDER_WEBDAV_PASSWORD:$(dd if=/dev/urandom count=128 bs=1 2>&1 | md5sum | cut -b-12)%" ${RUDDER_OPT}/etc/rudder-passwords.conf
+  sed -i "s%RUDDER_PSQL_PASSWORD.*%RUDDER_PSQL_PASSWORD:$(dd if=/dev/urandom count=128 bs=1 2>&1 | md5sum | cut -b-12)%" ${RUDDER_OPT}/etc/rudder-passwords.conf
+  sed -i "s%RUDDER_OPENLDAP_BIND_PASSWORD.*%RUDDER_OPENLDAP_BIND_PASSWORD:$(dd if=/dev/urandom count=128 bs=1 2>&1 | md5sum | cut -b-12)%" ${RUDDER_OPT}/etc/rudder-passwords.conf
+  echo " done."
+fi
+
+# Delete temp files
+echo -n "Cleaning up temporary directories..."
+rm -rf $TMP_DIR
+echo " done."
+
+# Restart services
+echo -n "Restarting services..."
+
+# Start the whole infrastructure
+
+## Launch manually a single cf-agent instance to set up policy server
+cf-agent -b root_component_check &> "$TMP_LOG"
+
+## Then, restart jetty
+${JETTY_INIT} restart >> "${TMP_LOG}" 2>&1 || echo "WARNING: Jetty failed to start, maybe there is not enough RAM or swap on the machine. Skipping..."
+
+## And finally, rudder-agent
+service rudder-agent restart >> "${TMP_LOG}" 2>&1
+
+echo " done."
+
+echo
+echo "Reinitialization complete."
+echo
+echo "Rudder is currently reloading, and will soon be"
+echo "available on: https://${ANSWER1}${RUDDER_CONTEXT}"
+echo
+echo "Thank you for using Rudder\!"

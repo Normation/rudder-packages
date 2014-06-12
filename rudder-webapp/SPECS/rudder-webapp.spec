@@ -43,6 +43,7 @@
 %define htpasswd_cmd        htpasswd2
 %define sysloginitscript    /etc/init.d/syslog
 %define apache_vhost_dir    %{apache}/vhosts.d
+%define ldap_clients        openldap2-client
 %endif
 %if 0%{?el5}
 %define apache              httpd
@@ -51,6 +52,7 @@
 %define htpasswd_cmd        htpasswd
 %define sysloginitscript    /etc/init.d/syslog
 %define apache_vhost_dir    %{apache}/conf.d
+%define ldap_clients        openldap-clients
 %endif
 %if 0%{?el6}
 %define apache              httpd
@@ -59,6 +61,7 @@
 %define htpasswd_cmd        htpasswd
 %define sysloginitscript    /etc/init.d/rsyslog
 %define apache_vhost_dir    %{apache}/conf.d
+%define ldap_clients        openldap-clients
 %endif
 
 #=================================================
@@ -80,7 +83,7 @@ Source3: rudder-networks.conf
 Source5: rudder-upgrade
 Source6: rudder-upgrade-database
 Source7: rudder-webapp
-Source10: rudder-init.sh
+Source10: rudder-init
 Source11: rudder-node-to-relay
 Source12: rudder-root-rename
 
@@ -88,7 +91,7 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
 
 BuildRequires: jdk >= 1.6
-Requires: rudder-jetty rudder-techniques ncf %{apache} %{apache_tools} git-core rsync openssl
+Requires: rudder-jetty rudder-techniques ncf %{apache} %{apache_tools} git-core rsync openssl %{ldap_clients}
 
 %if 0%{?rhel}
 Requires: mod_ssl
@@ -151,6 +154,10 @@ mkdir -p %{buildroot}/usr/share/doc/rudder
 
 # Install helper scripts
 cp %{SOURCE10} %{buildroot}%{rudderdir}/bin/
+
+# %{rudderdir}/bin/rudder-init.sh -> %{rudderdir}/bin/rudder-init
+ln -sf %{rudderdir}/bin/rudder-init %{buildroot}%{rudderdir}/bin/rudder-init.sh
+
 cp %{SOURCE11} %{buildroot}%{rudderdir}/bin/
 cp %{SOURCE12} %{buildroot}%{rudderdir}/bin/
 
@@ -346,6 +353,7 @@ rm -rf %{buildroot}
 %config(noreplace) %{rudderdir}/etc/logback.xml
 %{rudderdir}/bin/
 %{rudderdir}/bin/rudder-node-to-relay
+%{rudderdir}/bin/rudder-init
 %{rudderdir}/bin/rudder-init.sh
 %{rudderdir}/bin/rudder-root-rename
 %{rudderdir}/jetty7/webapps/
