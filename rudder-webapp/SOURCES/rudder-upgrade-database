@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 set -e
 
@@ -21,16 +21,16 @@ set -e
 #####################################################################################
 
 #####################################################################################
-# Upgrade script for Rudder database
+# Upgrade utility for Rudder database
 #####################################################################################
-# This script upgrade existing Rudder database installation, to change the format of
+# This utility upgrade existing Rudder database installation, to change the format of
 # the id used, from int to bigint
 # To minimize impact on production, the migration is done in two parts
 # - it stop the web interface, rename the reports table, create a new one with proper
 #   format of id, restart the web interface
 # - migrate the reports node by node from the old table to the new table
 #
-# This script is interactive, and gives four choices
+# This utility is interactive, and gives four choices
 # - drop all previous reports (super fast)
 # - keep latest reports for each node (not so fast)
 # - keep everything (very slow)
@@ -39,31 +39,56 @@ set -e
 #####################################################################################
 
 # Some variables
+ECHO="/bin/echo"
+
 RUDDER_SHARE=/opt/rudder/share
 RUDDER_UPGRADE_TOOLS=${RUDDER_SHARE}/upgrade-tools
 
 # The int type in PostreSQL supports up to 2^31-1 entries, which is 2147483647
-readonly MAX_REPORTS=2147483647
+MAX_REPORTS=2147483647
 
-echo "Upgrade script for Rudder database."
-echo ""
-echo "This script updates the format of all the id used, from Integer to BigInt"
-echo "Please note that it will stop the Rudder web interface temporarily at the beginning of the migration, for a few seconds"
+if [ -f /opt/rudder/etc/rudder-web.properties ]; then
+  SQL_USER="$(grep -E '^rudder.jdbc.username[ \t]*=' ${RUDDER_OPT}/etc/rudder-web.properties | cut -d "=" -f 2-)"
+  SQL_PASSWORD="$(grep -E '^rudder.jdbc.password[ \t]*=' ${RUDDER_OPT}/etc/rudder-web.properties | cut -d "=" -f 2-)"
+  SQL_SERVER="$(grep -E '^rudder.jdbc.url[ \t]*=' ${RUDDER_OPT}/etc/rudder-web.properties | cut -d '=' -f 2- | sed 's%^.*://\(.*\):\(.*\)/.*$%\1%')"
+  SQL_PORT="$(grep -E '^rudder.jdbc.url[ \t]*=' ${RUDDER_OPT}/etc/rudder-web.properties | cut -d '=' -f 2- | sed 's%^.*://\(.*\):\(.*\)/.*$%\2%')"
 
-function drop_old_table() {
-  echo -n "Dropping the table ruddersysevents_old..."
+  PGPASSWORD="${SQL_PASSWORD}"
+else
+  # No database access credentials in rudder-web.properties... Try anyway using "guessed" values.
+  echo "WARNING: Database access credentials are missing in /opt/rudder/etc/rudder-web.properties, trying to guess adequate values."
 
-  psql -U rudder -h localhost -d rudder -c "DROP TABLE ruddersysevents_old;" > /dev/null
+  SQL_USER="rudder"
+  SQL_PASSWORD="undefined"
+  SQL_SERVER="localhost"
+  SQL_PORT="5432"
 
-  echo " Done"
+  # We rely on .pgpass instead
+  unset PGPASSWORD
+fi
 
+# Commands
+JETTY_INIT="service rudder-jetty"
+PSQL="psql -q -h ${SQL_SERVER} -p ${SQL_PORT} -U ${SQL_USER}"
+
+${ECHO} "Upgrade utility for Rudder database."
+${ECHO} ""
+${ECHO} "This utility updates the format of all the id used, from Integer to BigInt"
+${ECHO} "Please note that it will stop the Rudder web interface temporarily at the beginning of the migration, for a few seconds"
+
+# Remove the old ruddersysevents table
+drop_old_table() {
+  ${ECHO} -n "Dropping the table ruddersysevents_old..."
+  ${PSQL} -d rudder -c "DROP TABLE ruddersysevents_old;" > /dev/null
+  ${ECHO} " Done"
 }
 
-# migrating reports per nodes, can accept a number of reports, or "all" as parameters
-function migrate_per_nodes() {
+# Migrate the reports per nodes, can accept a number of reports, or "all" as parameters
+migrate_per_nodes() {
+
   NB_REPORT_REQUESTED=$1
 
-  # define the number of reports to migrate per node
+  # Define the number of reports to migrate per node
   # The allows values are number, or the special value "all"
   # If it is all, then we say we migrate at least 1G report per node (SQL don't accept 'all' as a limit)
   if [ "z${NB_REPORT_REQUESTED}" = "zall" ]; then
@@ -72,120 +97,122 @@ function migrate_per_nodes() {
     NB_REPORTS=${NB_REPORT_REQUESTED}
   fi
 
-  echo "Migrating reports per node"
+  ${ECHO} "Migrating reports per node"
 
-  while [ $(su - postgres -c "psql -t -d rudder -c \"select count(*) from  (select distinct(nodeid) from ruddersysevents_old) as T;\"") -gt 0 ]
+  while [ "$(${PSQL} -t -d rudder -c 'select count(*) from (select distinct(nodeid) from ruddersysevents_old) as T;')" -gt 0 ]
   do
     # We must remove the spaces from the node id fetched
-    CURRENT_NODE=$(su - postgres -c "psql -t -d rudder -c \"select nodeid from ruddersysevents_old limit 1;\" | tr -d ' '")
-    echo -n "Migrating ${NB_REPORT_REQUESTED} reports for node ${CURRENT_NODE}..."
+    CURRENT_NODE=$(${PSQL} -t -d rudder -c "select nodeid from ruddersysevents_old limit 1;" | tr -d ' ')
 
-    psql -q -U rudder -h localhost -d rudder -v nodeid="'${CURRENT_NODE}'" -v nb=${NB_REPORTS} -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-migrate-reports-per-node.sql > /dev/null
+    ${ECHO} -n "Migrating ${NB_REPORT_REQUESTED} reports for node ${CURRENT_NODE}..."
+    ${PSQL} -d rudder -v nodeid="'${CURRENT_NODE}'" -v nb=${NB_REPORTS} -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-migrate-reports-per-node.sql > /dev/null
 
-    echo " Done"
+    ${ECHO} " Done"
   done
 
-  drop_old_table  
+  drop_old_table
+
 }
 
 # Migrate the reports
-function migrate_reports {
-  echo -n "Checking the number of entries to migrate..."
-  TO_MIGRATE=$(su - postgres -c "psql -t -d rudder -c \"select count(*) from ruddersysevents_old;\"")
-  NB_NODES=$(su - postgres -c "psql -t -d rudder -c \"select count(*) from (select distinct(nodeid) from ruddersysevents_old) as T;\"")
-  echo " Done"
+migrate_reports() {
+  ${ECHO} -n "Checking the number of entries to migrate..."
+  TO_MIGRATE=$(${PSQL} -t -d rudder -c "select count(*) from ruddersysevents_old;")
+  NB_NODES=$(${PSQL} -t -d rudder -c "select count(*) from (select distinct(nodeid) from ruddersysevents_old) as T;")
+  ${ECHO} " Done"
 
-  echo ""
+  ${ECHO} ""
+  ${ECHO} "The table has been migrated, but there are still ${TO_MIGRATE} reports to migrate for ${NB_NODES} nodes"
+  ${ECHO} "This migration can be quite long, so you may choose to:"
+  ${ECHO} " 1 - Destroy all the previous reports (if you don't need them)"
+  ${ECHO} " 2 - Migrate only the last 1000 reports per node (this can take up to 2 minutes per nodes)"
+  ${ECHO} " 3 - Migrate all the reports (this can take from several minutes to several hours)"
+  ${ECHO} " 4 - Decide later, you can run this utility again"
+  ${ECHO} ""
 
-  echo "The table has been migrated, but there are still ${TO_MIGRATE} reports to migrate for ${NB_NODES} nodes"
-  echo "This migration can be quite long, so you may choose to:"
-  echo " 1 - Destroy all the previous reports (if you don't need them)"
-  echo " 2 - Migrate only the last 1000 reports per node (this can take up to 2 minutes per nodes)"
-  echo " 3 - Migrate all the reports (this can take from several minutes to several hours)"
-  echo " 4 - Decide later, you can run this script again"
-  echo ""
   QUESTION_MIGRATE="Please choose 1-4: "
-  echo -n "${QUESTION_MIGRATE}"
+  ${ECHO} -n "${QUESTION_MIGRATE}"
   read REPORTS_MIGRATION
 
-  while ! echo "${REPORTS_MIGRATION}" | grep "^[1-4]$" > /dev/null; do
-    echo -n "${QUESTION_MIGRATE}"
+  while ! ${ECHO} "${REPORTS_MIGRATION}" | grep "^[1-4]$" > /dev/null; do
+    ${ECHO} -n "${QUESTION_MIGRATE}"
     read REPORTS_MIGRATION
   done
 
   case ${REPORTS_MIGRATION} in
     1)
       drop_old_table
-    ;;
+      ;;
     2)
       migrate_per_nodes 1000
-    ;;
+      ;;
     3)
       migrate_per_nodes all
     ;;
     4)
-      echo "Exiting; you can restart the script to proceed with the migration"
+      ${ECHO} "OK, exiting now."
       exit 0
     ;;
   esac
-}
 
+}
 
 # Migrate a table
-function migrate_table {
-  CURRENT_MAX_ID=$(su - postgres -c "psql -t -d rudder -c \"select nextval('serial');\"")
+migrate_table() {
+  CURRENT_MAX_ID=$(${PSQL} -t -d rudder -c "select nextval('serial');")
   PERCENT=$((100*${CURRENT_MAX_ID}/${MAX_REPORTS}))
-  echo -n "${CURRENT_MAX_ID} lines used, approximately ${PERCENT}% of total available"
+
+  ${ECHO} -n "${CURRENT_MAX_ID} lines used, approximately ${PERCENT}% of total available"
+
   if [ ${PERCENT} -lt 30 ]; then
-    echo ", you may migrate later."
+    ${ECHO} ", you may migrate later."
   else
-    echo ", you should migrate."
+    ${ECHO} ", you should migrate."
   fi
- 
-  echo "Please note that this script will stop the Rudder Web Interface for several seconds during the first part of the migration"
- 
+
+  ${ECHO} "Please note that this utility will stop the Rudder Web Interface for several seconds during the first part of the migration"
+
   QUESTION_MIGRATE="Do you want to migrate now? (y/n)"
-  echo -n ${QUESTION_MIGRATE}
+  ${ECHO} -n ${QUESTION_MIGRATE}
   read MIGRATE
-  while ! echo "${MIGRATE}" | grep "^\([Yy][Ee]\?[Ss]\?\|[Nn][Oo]\?\)$" > /dev/null; do echo -n "${QUESTION_MIGRATE}"; read MIGRATE; done
-  
-  if echo "${MIGRATE}" | grep ^[Nn][Oo]\?$; then
-    echo "Exiting"
+
+  while ! ${ECHO} "${MIGRATE}" | grep "^\([Yy][Ee]\?[Ss]\?\|[Nn][Oo]\?\)$" > /dev/null; do ${ECHO} -n "${QUESTION_MIGRATE}"; read MIGRATE; done
+
+  if ${ECHO} "${MIGRATE}" | grep "^[Nn][Oo]\?$"; then
+    ${ECHO} "Exiting"
     exit 0
   else
-    echo -n "Stopping the Rudder web interface..."
-    /etc/init.d/rudder-jetty stop > /dev/null
-    echo " Done."
+    ${ECHO} -n "Stopping the Rudder web interface..."
+    ${JETTY_INIT} stop > /dev/null
+    ${ECHO} " Done."
 
-    echo -n "Renaming the old tables, and recreating new ones with proper id format..."
-    psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-change-ids-in-tables.sql > /dev/null
-    echo " Done"
+    ${ECHO} -n "Renaming the old tables, and recreating new ones with proper id format..."
+    ${PSQL} -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-change-ids-in-tables.sql > /dev/null
+    ${ECHO} " Done"
 
-    echo -n "Restarting the Rudder web interface..."
-    /etc/init.d/rudder-jetty start > /dev/null || echo "WARNING: Jetty failed to start. Skipping..."
-    echo " Done."
-
+    ${ECHO} -n "Restarting the Rudder web interface..."
+    ${JETTY_INIT} start > /dev/null || ${ECHO} "WARNING: Jetty failed to start. Skipping..."
+    ${ECHO} " Done."
   fi
+
   migrate_reports
+
 }
 
+${ECHO} -n "Checking the database..."
 
-echo -n "Checking the database..."
-INT_USED=$(su - postgres -c "psql -t -d rudder -c \"select count(*) from information_schema.columns where table_name='ruddersysevents' and column_name='id' and data_type='integer';\"")
-OLD_CREATED=$(su - postgres -c "psql -t -d rudder -c \"select count(*) from information_schema.tables where table_name='ruddersysevents_old';\"")
-
+INT_USED=$(${PSQL} -t -d rudder -c "select count(*) from information_schema.columns where table_name='ruddersysevents' and column_name='id' and data_type='integer';")
+OLD_CREATED=$(${PSQL} -t -d rudder -c "select count(*) from information_schema.tables where table_name='ruddersysevents_old';")
 
 if [ ${INT_USED} -eq 0 ]; then
   if [ ${OLD_CREATED} -eq 0 ]; then
-    echo "The ruddersysevents IDs have already been migrated. Nothing to do. Exiting"
+    ${ECHO} "The ruddersysevents IDs have already been migrated. Nothing to do. Exiting"
     exit 0
   else
-    echo "The type of the ruddersysevents ID has already been changed, but the migration appears to have been interrupted. Continuing where we left off..."
+    ${ECHO} "The type of the ruddersysevents ID has already been changed, but the migration appears to have been interrupted. Continuing where we left off..."
     migrate_reports
   fi
 else
-  echo "The ruddersysevents IDs need migrating. Let's go!"
+  ${ECHO} "The ruddersysevents IDs need migrating. Let's go\!"
   migrate_table
 fi
-
-

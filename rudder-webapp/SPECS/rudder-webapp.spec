@@ -80,7 +80,7 @@ Source3: rudder-networks.conf
 Source5: rudder-upgrade
 Source6: rudder-upgrade-database
 Source7: rudder-webapp
-Source10: rudder-init.sh
+Source10: rudder-init
 Source11: rudder-node-to-relay
 Source12: rudder-root-rename
 
@@ -151,6 +151,10 @@ mkdir -p %{buildroot}/usr/share/doc/rudder
 
 # Install helper scripts
 cp %{SOURCE10} %{buildroot}%{rudderdir}/bin/
+
+# %{rudderdir}/bin/rudder-init.sh -> %{rudderdir}/bin/rudder-init
+ln -sf %{rudderdir}/bin/rudder-init %{buildroot}%{rudderdir}/bin/rudder-init.sh
+
 cp %{SOURCE11} %{buildroot}%{rudderdir}/bin/
 cp %{SOURCE12} %{buildroot}%{rudderdir}/bin/
 
@@ -346,6 +350,7 @@ rm -rf %{buildroot}
 %config(noreplace) %{rudderdir}/etc/logback.xml
 %{rudderdir}/bin/
 %{rudderdir}/bin/rudder-node-to-relay
+%{rudderdir}/bin/rudder-init
 %{rudderdir}/bin/rudder-init.sh
 %{rudderdir}/bin/rudder-root-rename
 %{rudderdir}/jetty7/webapps/
