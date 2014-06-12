@@ -79,12 +79,8 @@ run a Rudder root server on one machine. It also installs some useful files
 %install
 rm -rf %{buildroot}
 # Directories
-mkdir -p %{buildroot}/var/cfengine/
-mkdir -p %{buildroot}/var/cfengine/inputs
-mkdir -p %{buildroot}%{rudderdir}/bin/
 mkdir -p %{buildroot}%{rudderdir}/etc/
 mkdir -p %{buildroot}%{rudderdir}/etc/server-roles.d/
-mkdir -p %{buildroot}%{ruddervardir}/cfengine-community/
 mkdir -p %{buildroot}/etc/init.d
 
 # Others
@@ -140,7 +136,6 @@ rm -rf %{buildroot}
 %files -n rudder-server-root
 %defattr(-, root, root, 0755)
 %{rudderdir}/etc/
-/var/cfengine/inputs
 %attr(0755, root, root) /etc/init.d/rudder-server-root
 %config(noreplace) %{rudderdir}/etc/rudder-passwords.conf
 %attr(0600, root, root) %{rudderdir}/etc/rudder-passwords.conf
