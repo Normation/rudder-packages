@@ -47,7 +47,6 @@ Group: Applications/System
 
 Source1: rudder-sources
 Source5: rudder-server-root.init
-Source6: rudder-passwords.conf
 Source8: rudder-server-root
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -85,7 +84,6 @@ mkdir -p %{buildroot}/etc/init.d
 
 # Others
 cp %{SOURCE5} %{buildroot}/etc/init.d/rudder-server-root
-cp %{SOURCE6} %{buildroot}%{rudderdir}/etc/
 
 install -m 644 %{SOURCE8} %{buildroot}/opt/rudder/etc/server-roles.d/
 
@@ -137,8 +135,6 @@ rm -rf %{buildroot}
 %defattr(-, root, root, 0755)
 %{rudderdir}/etc/
 %attr(0755, root, root) /etc/init.d/rudder-server-root
-%config(noreplace) %{rudderdir}/etc/rudder-passwords.conf
-%attr(0600, root, root) %{rudderdir}/etc/rudder-passwords.conf
 
 #=================================================
 # Changelog
