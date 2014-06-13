@@ -210,6 +210,8 @@ if [ -f /opt/rudder/etc/rudder-passwords.conf ]; then
 
     echo -n "INFO: Checking if ${property_file} database access credentials are all right..."
 
+    if [ ! -e /opt/rudder/etc/${property_file} ]; then echo " non existant, skipping"; continue; fi
+
     # 1 - Check LDAP credentials on all property files
 
     # Get the LDAP password according to the property file
