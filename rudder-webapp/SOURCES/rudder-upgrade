@@ -55,6 +55,9 @@ set -e
 RUDDER_OPT="/opt/rudder"
 RUDDER_VAR="/var/rudder"
 
+# Ensure our PATH includes Rudder's binaries
+export PATH=${PATH}:${RUDDER_OPT}/bin
+
 CONFIGURATION_REPOSITORY="${RUDDER_VAR}/configuration-repository"
 
 RUDDER_SHARE=/opt/rudder/share
@@ -103,9 +106,9 @@ LDAP_PARAMETERS="-H ldap://${LDAP_SERVER}:${LDAP_PORT}/ -D ${LDAP_USER} -w ${LDA
 
 JETTY_INIT="service rudder-jetty"
 
-LDAPSEARCH="${RUDDER_OPT}/bin/ldapsearch ${LDAP_PARAMETERS} -LLL"
-LDAPMODRDN="${RUDDER_OPT}/bin/ldapmodrdn ${LDAP_PARAMETERS}"
-LDAPADD="${RUDDER_OPT}/bin/ldapadd ${LDAP_PARAMETERS}"
+LDAPSEARCH="ldapsearch ${LDAP_PARAMETERS} -LLL"
+LDAPMODRDN="ldapmodrdn ${LDAP_PARAMETERS}"
+LDAPADD="ldapadd ${LDAP_PARAMETERS}"
 
 LDAP_EXISTS=$(${LDAPSEARCH} -b "cn=rudder-configuration" -s base dn 2>/dev/null | grep -c "dn: cn=rudder-configuration" || true)
 
@@ -393,7 +396,7 @@ rudder.batch.storeAgentRunTimes.updateInterval=5"
 if [ ${LDAP_EXISTS} -ne 0 ]; then
 
   # - 2.7.0 : Migration LDAP to add the global parameter ou
-  LDAP_TEST_GLOBAL_PARAMETER=$(${LDAPSEARCH} -b "ou=Parameters,ou=Rudder,cn=rudder-configuration" -s base dn" 2>/dev/null | grep -c "dn: ou=Parameters" || true)
+  LDAP_TEST_GLOBAL_PARAMETER=$(${LDAPSEARCH} -b "ou=Parameters,ou=Rudder,cn=rudder-configuration" -s base dn 2>/dev/null | grep -c "dn: ou=Parameters" || true)
   if [ ${LDAP_TEST_GLOBAL_PARAMETER} -eq 0 ]; then
     echo -n "INFO: The Rudder OpenLDAP schema is not up to date, adding Global Parameter ou..."
     ${LDAPADD} -f ${RUDDER_UPGRADE_TOOLS}/rudder-upgrade-LDAP-schema-2.6-2.7-add-global-parameter-ou.ldif >/dev/null 2>&1
