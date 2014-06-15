@@ -102,6 +102,24 @@ else
   unset PGPASSWORD
 fi
 
+# Override any server values with those from ${RUDDER_ROLES_FILE}
+RUDDER_ROLES_FILE="${RUDDER_VAR}/cfengine-community/inputs/rudder-server-roles.conf"
+if [ -f ${RUDDER_ROLES_FILE} ]; then
+  for role in rudder-db rudder-ldap; do
+    ROLE_HOSTNAME=$(grep "^${role}:" ${RUDDER_ROLES_FILE} | cut -d: -f2 | cut -d, -f1 | tr -d " ")
+    if [ ! -z ${ROLE_HOSTNAME} ]; then
+      case "${role}" in
+        rudder-ldap)
+          LDAP_SERVER=${ROLE_HOSTNAME}
+          ;;
+        rudder-db)
+          SQL_SERVER=${ROLE_HOSTNAME}
+          ;;
+      esac
+    fi
+  done
+fi
+
 # Commands
 LDAP_PARAMETERS="-H ldap://${LDAP_SERVER}:${LDAP_PORT}/ -D ${LDAP_USER} -w ${LDAP_PASSWORD} -x"
 
