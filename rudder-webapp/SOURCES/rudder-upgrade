@@ -49,6 +49,7 @@ set -e
 # - 2.9.0 : File Format migration from 4 to 5
 # - 2.10.0 : Add properties to enable and configure the LDAP authentication
 # - 2.11.0 : Add LDAP entries for Server Roles system Technique/Directive/Rule
+# - 2.11.0 : Add the properties to configure Rudder roles
 #####################################################################################
 
 # Some variables
@@ -545,6 +546,34 @@ check_and_add_config_property rudder.debug.nodeconfiguration.path "#
 # named i\"rudder.debug.nodeconfiguration\" in logback.xml
 #
 rudder.debug.nodeconfiguration.path=/var/log/rudder/nodeConfigurations"
+
+# - 2.11.0 : Add properties to define the role of servers
+check_and_add_config_property rudder.server-roles.webapp "
+#
+# Rudder roles definition
+#
+# Allow to define which hosts have the roles ldap, db and front when
+# using a split architecture of Rudder
+# The file containing the roles will be generated in:
+# /var/rudder/configuration-repository/inputs/rudder-server-roles.conf
+#
+# The allowed values, for each parameter are
+# - autodetect (default): the roles are automatically detected based on inventories (based on the presence of files in /opt/rudder/etc/server-roles.d/)
+# - anything else (hostname, ip, or list of hostname or ip, seperated by commas): the
+#   content that will be used inside the role file
+
+# The hosts with the ldap role
+rudder.server-roles.ldap=autodetect
+
+# The hosts with the db role
+rudder.server-roles.db=autodetect
+
+# The hosts with the front role
+rudder.server-roles.front=autodetect
+
+# The hosts with the webapp role
+rudder.server-roles.webapp=autodetect"
+
 
 # For every upgrade, we force the root server to run a new inventory on the next CFEngine run
 touch /opt/rudder/etc/force_inventory
