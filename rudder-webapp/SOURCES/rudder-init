@@ -37,6 +37,8 @@ INITDEMO_PATH=$TMP_DIR/demo-data.ldif
 RUDDER_OPT="/opt/rudder"
 RUDDER_VAR="/var/rudder"
 
+RUDDER_ROLES_FILE="${RUDDER_VAR}/cfengine-community/inputs/rudder-server-roles.conf"
+
 RUDDER_CONTEXT=$(grep contextPath ${RUDDER_OPT}/share/webapps/rudder.xml | sed "s@^\s*<Set name=\"contextPath\">\(.*\)</Set>@\1@")
 
 REGEXP='s/^\([0-9]\{1,3\}\)\(.[0-9]\{1,3\}\)\(.[0-9]\{1,3\}\)\(.[0-9]\{1,3\}.[0-9]\{1,2\}\)$/\1\\\2\\\3\\\4/g'
@@ -76,7 +78,7 @@ if [ -f /opt/rudder/etc/rudder-web.properties -a ${TOTAL_CREDENTIALS} -eq 4 ]; t
   SQL_SERVER="$(grep -E '^rudder.jdbc.url[ \t]*=' ${RUDDER_OPT}/etc/rudder-web.properties | cut -d '=' -f 2- | sed 's%^.*://\(.*\):\(.*\)/.*$%\1%')"
   SQL_PORT="$(grep -E '^rudder.jdbc.url[ \t]*=' ${RUDDER_OPT}/etc/rudder-web.properties | cut -d '=' -f 2- | sed 's%^.*://\(.*\):\(.*\)/.*$%\2%')"
 
-  PGPASSWORD="${SQL_PASSWORD}"
+  export PGPASSWORD="${SQL_PASSWORD}"
 else
   # No database access credentials in rudder-web.properties... Try anyway using "guessed" values.
   echo "WARNING: Database access credentials are missing in /opt/rudder/etc/rudder-web.properties, trying to guess adequate values."
@@ -94,10 +96,30 @@ else
   unset PGPASSWORD
 fi
 
+# Override any server values with those from ${RUDDER_ROLES_FILE}
+if [ -f ${RUDDER_ROLES_FILE} ]; then
+  for role in rudder-db rudder-ldap rudder-inventory-endpoint; do
+    ROLE_HOSTNAME=$(grep "^${role}:" ${RUDDER_ROLES_FILE} | cut -d: -f2 | cut -d, -f1 | tr -d " ")
+    if [ ! -z ${ROLE_HOSTNAME} ]; then
+      case "${role}" in
+        rudder-ldap)
+          LDAP_SERVER=${ROLE_HOSTNAME}
+          sed -i "s%^ldap.host *=.*$%ldap.host=${LDAP_SERVER}%" ${RUDDER_OPT}/etc/rudder-web.properties
+          ;;
+        rudder-db)
+          SQL_SERVER=${ROLE_HOSTNAME}
+          sed -i "s%^rudder.jdbc.url *=.*$%rudder.jdbc.url=jdbc:postgresql://${SQL_SERVER}:5432/rudder%" ${RUDDER_OPT}/etc/rudder-web.properties
+          ;;
+        rudder-inventory-endpoint)
+          sed -i "s%^rudder.endpoint.cmdb *=.*$/rudder.endpoint.cmdb=http://${ROLE_HOSTNAME}:8080/endpoint/upload/%" ${RUDDER_OPT}/etc/rudder-web.properties
+          ;;
+      esac
+    fi
+  done
+fi
+
 # Commands
 LDAP_PARAMETERS="-H ldap://${LDAP_SERVER}:${LDAP_PORT}/ -D ${LDAP_USER} -w ${LDAP_PASSWORD} -x"
-
-JETTY_INIT="service rudder-jetty"
 
 LDAPSEARCH="ldapsearch ${LDAP_PARAMETERS} -LLL"
 LDAPMODRDN="ldapmodrdn ${LDAP_PARAMETERS}"
@@ -253,6 +275,7 @@ done
 generate_promises_at_temporary_location "${ANSWER1}" "${NET2}"
 
 # 3: compare the generated promises with what is on the FS
+mkdir -p ${INITREP} /var/cfengine/inputs
 diff -Naur ${INITREP} ${TMP_DIR}/community > /dev/null
 DIFFERENT_PROMISES=$?
 
@@ -279,6 +302,8 @@ fi
 
 # Review
 echo
+echo "SUMMARY OF OPTIONS:"
+echo
 echo Hostname: "$ANSWER1"
 echo Allowed networks: "${ALLOWEDNETWORK[*]}"
 echo Add sample data? "$ANSWER4"
@@ -297,11 +322,17 @@ if [ z$ANSWER6 = "zyes" ]
 then
   echo -n "Configuring and installing initial CFEngine promises..."
 
+  # Preserve rudder-server-roles.conf
+  mv ${RUDDER_ROLES_FILE} ${TMP_DIR}/
+
   rm -rf /var/rudder/cfengine-community/inputs/*
   rm -rf /var/cfengine/inputs/*
 
   cp -r $TMP_DIR/community/* /var/rudder/cfengine-community/inputs/
   cp -r $TMP_DIR/community/* /var/cfengine/inputs/
+
+  # Restore rudder-server-roles.conf
+  mv ${TMP_DIR}/$(basename ${RUDDER_ROLES_FILE}) ${RUDDER_ROLES_FILE}
 
   reset_policy_server
 
@@ -335,6 +366,7 @@ then
   ${LDAPADD} -f $INITDEMO_PATH &> $TMP_LOG
 fi
 echo " done."
+echo
 
 # Update the password file used by Rudder with random passwords - if we are on the root server with all components ONLY
 if [ -f ${RUDDER_OPT}/etc/server-roles.d/rudder-server-root ]; then
@@ -343,6 +375,13 @@ if [ -f ${RUDDER_OPT}/etc/server-roles.d/rudder-server-root ]; then
   sed -i "s%RUDDER_PSQL_PASSWORD.*%RUDDER_PSQL_PASSWORD:$(dd if=/dev/urandom count=128 bs=1 2>&1 | md5sum | cut -b-12)%" ${RUDDER_OPT}/etc/rudder-passwords.conf
   sed -i "s%RUDDER_OPENLDAP_BIND_PASSWORD.*%RUDDER_OPENLDAP_BIND_PASSWORD:$(dd if=/dev/urandom count=128 bs=1 2>&1 | md5sum | cut -b-12)%" ${RUDDER_OPT}/etc/rudder-passwords.conf
   echo " done."
+else
+  echo "This appears to be a distributed Rudder server setup."
+  echo "You should manually change the passwords for the WebDAV, PostgreSQL and OpenLDAP"
+  echo "services now, and reflect these changes across all servers".
+  echo "This cannot be done automatically currently."
+  echo "See http://www.rudder-project.org/rudder-doc-latest/rudder-doc.html#password-management"
+  echo
 fi
 
 # Delete temp files

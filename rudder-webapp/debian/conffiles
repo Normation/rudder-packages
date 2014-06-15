@@ -5,3 +5,4 @@
 /etc/apache2/sites-available/rudder-vhost
 /etc/apache2/sites-available/rudder-vhost-ssl
 /opt/rudder/etc/rudder-networks.conf
+/opt/rudder/etc/rudder-passwords.conf

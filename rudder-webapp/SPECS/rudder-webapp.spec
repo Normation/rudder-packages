@@ -86,6 +86,7 @@ Source7: rudder-webapp
 Source10: rudder-init
 Source11: rudder-node-to-relay
 Source12: rudder-root-rename
+Source13: rudder-passwords.conf
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
@@ -196,6 +197,7 @@ cp %{SOURCE5} %{buildroot}%{rudderdir}/bin/
 cp %{SOURCE6} %{buildroot}%{rudderdir}/bin/
 
 install -m 644 %{SOURCE7} %{buildroot}/opt/rudder/etc/server-roles.d/
+cp %{SOURCE13} %{buildroot}%{rudderdir}/etc/
 
 # Install documentation
 cp -rf %{_builddir}/rudder-doc/pdf %{buildroot}/usr/share/doc/rudder
@@ -351,6 +353,9 @@ rm -rf %{buildroot}
 %config(noreplace) %{rudderdir}/etc/rudder-web.properties
 %config(noreplace) %{rudderdir}/etc/rudder-users.xml
 %config(noreplace) %{rudderdir}/etc/logback.xml
+%config(noreplace) %{rudderdir}/etc/rudder-passwords.conf
+%attr(0600, root, root) %{rudderdir}/etc/rudder-passwords.conf
+
 %{rudderdir}/bin/
 %{rudderdir}/bin/rudder-node-to-relay
 %{rudderdir}/bin/rudder-init

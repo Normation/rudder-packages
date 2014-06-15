@@ -16,7 +16,7 @@ configure: configure-stamp
 configure-stamp:
 	dh_testdir
 	# Add here commands to configure the package.
-	cd SOURCES/openldap-source && ./configure --prefix=/opt/rudder --enable-dynamic --enable-debug --enable-modules --enable-hdb=mod --enable-monitor=mod --enable-dynlist=mod --with-cyrus-sasl
+	cd SOURCES/openldap-source && ./configure --prefix=/opt/rudder --libdir=/opt/rudder/lib/ldap --enable-dynamic --enable-debug --enable-modules --enable-hdb=mod --enable-monitor=mod --enable-dynlist=mod --with-cyrus-sasl
 
 	touch configure-stamp
 
@@ -74,6 +74,7 @@ binary-arch: install
 	dh_install SOURCES/rudder.schema /opt/rudder/etc/openldap/schema/
 	dh_install SOURCES/DB_CONFIG /var/rudder/ldap/openldap-data/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-inventory-ldap /opt/rudder/etc/server-roles.d/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-ldap /opt/rudder/etc/server-roles.d/
 #	dh_installmenu
 #	dh_installdebconf
 #	dh_installlogrotate

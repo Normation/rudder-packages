@@ -56,8 +56,8 @@ LAST_UPDATE_FILE=${CFE_DIR}/last_successful_inputs_update
 UUID_FILE=/opt/rudder/etc/uuid.hive
 
 clean_cf_lock_files() {
-  rm -f ${CFE_DIR}/state/cf_lock.tcdb
-  rm -f ${CFE_DIR}/state/cf_lock.tcdb.lock
+  rm -f ${CFE_DIR}/state/cf_lock.lmdb
+  rm -f ${CFE_DIR}/state/cf_lock.lmdb.lock
 }
 
 check_and_fix_cfengine_processes() {
@@ -117,7 +117,7 @@ check_and_fix_cfengine_processes() {
 
   # Check for the age of the last update file
   # if it is older than CHECK_INTERVAL minutes, and the disable file is not defined, we
-  # need to kill the lock file on tcdb database
+  # need to kill the lock file on CFEngine's lock database
   if [ ! -e ${LAST_UPDATE_FILE} -o -e ${CFE_DISABLE_FILE} ]; then
     # Either the file ${LAST_UPDATE_FILE} is not yet present, and this node is
     # probably not accepted yet, either the file ${CFE_DISABLE_FILE} is present, so
@@ -132,7 +132,7 @@ check_and_fix_cfengine_processes() {
 
 
   # Check for anomalous number of CFEngine processes
-  # If there are more than 8 agent/executor processes, we should kill them, and purge the tcdb database
+  # If there are more than 8 agent/executor processes, we should kill them, and purge CFEngine's lock database
   if [ ${NB_CF_PROCESS_RUNNING} -gt 8 ]; then
     echo_n "WARNING: Too many instance of CFEngine processes running. Killing them, and purging the TokyoCabinet database..."
     echo "${CF_PROCESS_RUNNING}" | awk 'BEGIN { OFS=" "} {print $2 }' | xargs kill -9 || true
@@ -144,13 +144,13 @@ check_and_fix_cfengine_processes() {
   fi
 }
 
-# Check the size of the cf_lock.tcdb file
+# Check the size of the cf_lock.lmdb file
 check_and_fix_cf_lock() {
   MAX_CF_LOCK_SIZE=10485760
-  if [ -e "${CFE_DIR}/state/cf_lock.tcdb" ]; then
-    CF_LOCK_SIZE=`stat -c%s "${CFE_DIR}/state/cf_lock.tcdb"`
+  if [ -e "${CFE_DIR}/state/cf_lock.lmdb" ]; then
+    CF_LOCK_SIZE=`stat -c%s "${CFE_DIR}/state/cf_lock.lmdb"`
     if [ ${CF_LOCK_SIZE} -ge ${MAX_CF_LOCK_SIZE} ]; then
-      echo_n "WARNING: The file ${CFE_DIR}/state/cf_lock.tcdb is too big ( ${CF_LOCK_SIZE} bytes), purging it..."
+      echo_n "WARNING: The file ${CFE_DIR}/state/cf_lock.lmdb is too big ( ${CF_LOCK_SIZE} bytes), purging it..."
       clean_cf_lock_files
       echo " Done"
     fi

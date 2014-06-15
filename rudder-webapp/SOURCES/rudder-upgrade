@@ -49,11 +49,15 @@ set -e
 # - 2.9.0 : File Format migration from 4 to 5
 # - 2.10.0 : Add properties to enable and configure the LDAP authentication
 # - 2.11.0 : Add LDAP entries for Server Roles system Technique/Directive/Rule
+# - 2.11.0 : Add the properties to configure Rudder roles
 #####################################################################################
 
 # Some variables
 RUDDER_OPT="/opt/rudder"
 RUDDER_VAR="/var/rudder"
+
+# Ensure our PATH includes Rudder's binaries
+export PATH=${PATH}:${RUDDER_OPT}/bin
 
 CONFIGURATION_REPOSITORY="${RUDDER_VAR}/configuration-repository"
 
@@ -80,7 +84,7 @@ if [ -f /opt/rudder/etc/rudder-web.properties -a ${TOTAL_CREDENTIALS} -eq 4 ]; t
   SQL_SERVER="$(grep -E '^rudder.jdbc.url[ \t]*=' ${RUDDER_OPT}/etc/rudder-web.properties | cut -d '=' -f 2- | sed 's%^.*://\(.*\):\(.*\)/.*$%\1%')"
   SQL_PORT="$(grep -E '^rudder.jdbc.url[ \t]*=' ${RUDDER_OPT}/etc/rudder-web.properties | cut -d '=' -f 2- | sed 's%^.*://\(.*\):\(.*\)/.*$%\2%')"
 
-  PGPASSWORD="${SQL_PASSWORD}"
+  export PGPASSWORD="${SQL_PASSWORD}"
 else
   # No database access credentials in rudder-web.properties... Try anyway using "guessed" values.
   echo "WARNING: Database access credentials are missing in /opt/rudder/etc/rudder-web.properties, trying to guess adequate values."
@@ -98,14 +102,32 @@ else
   unset PGPASSWORD
 fi
 
+# Override any server values with those from ${RUDDER_ROLES_FILE}
+RUDDER_ROLES_FILE="${RUDDER_VAR}/cfengine-community/inputs/rudder-server-roles.conf"
+if [ -f ${RUDDER_ROLES_FILE} ]; then
+  for role in rudder-db rudder-ldap; do
+    ROLE_HOSTNAME=$(grep "^${role}:" ${RUDDER_ROLES_FILE} | cut -d: -f2 | cut -d, -f1 | tr -d " ")
+    if [ ! -z ${ROLE_HOSTNAME} ]; then
+      case "${role}" in
+        rudder-ldap)
+          LDAP_SERVER=${ROLE_HOSTNAME}
+          ;;
+        rudder-db)
+          SQL_SERVER=${ROLE_HOSTNAME}
+          ;;
+      esac
+    fi
+  done
+fi
+
 # Commands
 LDAP_PARAMETERS="-H ldap://${LDAP_SERVER}:${LDAP_PORT}/ -D ${LDAP_USER} -w ${LDAP_PASSWORD} -x"
 
 JETTY_INIT="service rudder-jetty"
 
-LDAPSEARCH="${RUDDER_OPT}/bin/ldapsearch ${LDAP_PARAMETERS} -LLL"
-LDAPMODRDN="${RUDDER_OPT}/bin/ldapmodrdn ${LDAP_PARAMETERS}"
-LDAPADD="${RUDDER_OPT}/bin/ldapadd ${LDAP_PARAMETERS}"
+LDAPSEARCH="ldapsearch ${LDAP_PARAMETERS} -LLL"
+LDAPMODRDN="ldapmodrdn ${LDAP_PARAMETERS}"
+LDAPADD="ldapadd ${LDAP_PARAMETERS}"
 
 LDAP_EXISTS=$(${LDAPSEARCH} -b "cn=rudder-configuration" -s base dn 2>/dev/null | grep -c "dn: cn=rudder-configuration" || true)
 
@@ -206,6 +228,8 @@ if [ -f /opt/rudder/etc/rudder-passwords.conf ]; then
   for property_file in rudder-web.properties inventory-web.properties; do
 
     echo -n "INFO: Checking if ${property_file} database access credentials are all right..."
+
+    if [ ! -e /opt/rudder/etc/${property_file} ]; then echo " non existant, skipping"; continue; fi
 
     # 1 - Check LDAP credentials on all property files
 
@@ -393,7 +417,7 @@ rudder.batch.storeAgentRunTimes.updateInterval=5"
 if [ ${LDAP_EXISTS} -ne 0 ]; then
 
   # - 2.7.0 : Migration LDAP to add the global parameter ou
-  LDAP_TEST_GLOBAL_PARAMETER=$(${LDAPSEARCH} -b "ou=Parameters,ou=Rudder,cn=rudder-configuration" -s base dn" 2>/dev/null | grep -c "dn: ou=Parameters" || true)
+  LDAP_TEST_GLOBAL_PARAMETER=$(${LDAPSEARCH} -b "ou=Parameters,ou=Rudder,cn=rudder-configuration" -s base dn 2>/dev/null | grep -c "dn: ou=Parameters" || true)
   if [ ${LDAP_TEST_GLOBAL_PARAMETER} -eq 0 ]; then
     echo -n "INFO: The Rudder OpenLDAP schema is not up to date, adding Global Parameter ou..."
     ${LDAPADD} -f ${RUDDER_UPGRADE_TOOLS}/rudder-upgrade-LDAP-schema-2.6-2.7-add-global-parameter-ou.ldif >/dev/null 2>&1
@@ -540,6 +564,37 @@ check_and_add_config_property rudder.debug.nodeconfiguration.path "#
 # named i\"rudder.debug.nodeconfiguration\" in logback.xml
 #
 rudder.debug.nodeconfiguration.path=/var/log/rudder/nodeConfigurations"
+
+# - 2.11.0 : Add properties to define the role of servers
+check_and_add_config_property rudder.server-roles.webapp "
+#
+# Rudder roles definition
+#
+# Allow to define which hosts have the roles ldap, db and front when
+# using a split architecture of Rudder
+# The file containing the roles will be generated in:
+# /var/rudder/configuration-repository/inputs/rudder-server-roles.conf
+#
+# The allowed values, for each parameter are
+# - autodetect (default): the roles are automatically detected based on inventories (based on the presence of files in /opt/rudder/etc/server-roles.d/)
+# - anything else (hostname, ip, or list of hostname or ip, seperated by commas): the
+#   content that will be used inside the role file
+
+# The hosts with the LDAP server role
+rudder.server-roles.ldap=autodetect
+
+# The hosts with the inventory endpoint role
+rudder.server-roles.inventory-endpoint=autodetect
+
+# The hosts with the db role
+rudder.server-roles.db=autodetect
+
+# The hosts with the front role
+rudder.server-roles.front=autodetect
+
+# The hosts with the webapp role
+rudder.server-roles.webapp=autodetect"
+
 
 # For every upgrade, we force the root server to run a new inventory on the next CFEngine run
 touch /opt/rudder/etc/force_inventory
