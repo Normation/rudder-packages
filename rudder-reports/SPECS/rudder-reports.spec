@@ -49,6 +49,7 @@ Group: Applications/System
 Source1: rudder-sources
 Source2: rudder.conf
 Source3: rudder-reports
+Source4: rudder-db
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
@@ -101,6 +102,7 @@ cp %{SOURCE1}/rudder/rudder-core/src/main/resources/reportsSchema.sql %{buildroo
 cp -a %{SOURCE2} %{buildroot}/etc/rsyslog.d/rudder.conf
 
 install -m 644 %{SOURCE3} %{buildroot}/opt/rudder/etc/server-roles.d/
+install -m 644 %{SOURCE4} %{buildroot}/opt/rudder/etc/server-roles.d/
 
 %pre -n rudder-reports
 #=================================================
