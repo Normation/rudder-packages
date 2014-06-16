@@ -1,0 +1,15 @@
+diff --git a/libcfnet/tls_generic.c b/libcfnet/tls_generic.c
+index 7191c58..f7f23d9 100644
+--- a/libcfnet/tls_generic.c
++++ b/libcfnet/tls_generic.c
+@@ -731,8 +731,10 @@ void TLSSetDefaultOptions(SSL_CTX *ssl_ctx)
+     /* No session resumption or renegotiation for now. */
+     options |= SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION;
+ 
++#ifdef SSL_OP_NO_TICKET
+     /* Disable another way of resuption, session tickets (RFC 5077). */
+     options |= SSL_OP_NO_TICKET;
++#endif
+ 
+     SSL_CTX_set_options(ssl_ctx, options);
+ 
