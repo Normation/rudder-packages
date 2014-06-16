@@ -236,6 +236,15 @@ make %{?_smp_mflags}
 # the files from %{buildroot} should be made at the begining of macro 'install'.
 # Build of and embedded library (here, LMDB) is an exception.
 rm -rf %{buildroot}
+%else
+
+# Reinstall LMDB because RPM rm -rf %{buildroot} for a reason I don't understand
+# TODO: Fix this nasty hack!
+
+# LMDB's Makefile does not know how to create destination files, do it ourselves
+for i in bin lib include man/man1; do mkdir -p %{buildroot}%{rudderdir}/$i; done
+cd %{_sourcedir}/lmdb-source/libraries/liblmdb
+make install prefix=%{rudderdir} DESTDIR=%{buildroot}
 %endif
 
 cd %{_sourcedir}/cfengine-source
