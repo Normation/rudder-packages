@@ -35,28 +35,13 @@ set -e
 #####################################################################################
 
 ECHO=/bin/echo
+RUDDER_OPT=/opt/rudder
 
 usage() {
 	${ECHO} "Usage: $0 <UUID of the node to make a relay server>"
 }
 
-# Get the LDAP access credentials
 RELAY_UUID=$1
-LDAP_EXISTS=$(/opt/rudder/sbin/slapcat 2>/dev/null | grep "rudder-configuration" | wc -l)
-LDAP_CREDENTIALS=`grep -E "^ldap.(authdn|authpw)=" /opt/rudder/etc/rudder-web.properties | wc -l`
-if [ -f /opt/rudder/etc/rudder-web.properties -a ${LDAP_CREDENTIALS} -eq 2 ]; then
-        LDAP_USER=$(grep -E "^ldap.authdn=" /opt/rudder/etc/rudder-web.properties |cut -d "=" -f 2-)
-        LDAP_PASSWORD=$(grep -E "^ldap.authpw=" /opt/rudder/etc/rudder-web.properties |cut -d "=" -f 2-)
-else
-        ${ECHO} "WARNING: LDAP properties are missing in /opt/rudder/etc/rudder-web.properties"
-        if [ -f /opt/rudder/etc/openldap/slapd.conf ]; then
-                LDAP_USER=$(grep "^rootdn" /opt/rudder/etc/openldap/slapd.conf | sed "s/\w*\s*['\"]\?\([^\"']*\)['\"]\?$/\1/")
-                LDAP_PASSWORD=$(grep "^rootpw" /opt/rudder/etc/openldap/slapd.conf | sed "s/\w*\s*['\"]\?\([^\"']*\)['\"]\?$/\1/")
-        else
-                ${ECHO} "ERROR: /opt/rudder/etc/openldap/slapd.conf doesn't exist"
-                exit 1
-        fi
-fi
 
 # Check arguments
 if [ "${RELAY_UUID}" = "" ]; then
@@ -70,14 +55,55 @@ fi
 
 ${ECHO} -e "Rudder relay installation script starting, using UUID ${RELAY_UUID}.\n"
 
+# Get how many access credentials we got for LDAP and SQL in /opt/rudder/etc/rudder-web.properties
+# (should have 2 for each, user and password)
+LDAP_CREDENTIALS=$(grep -c -E "^ldap.auth(dn|pw)[ \t]*=" /opt/rudder/etc/rudder-web.properties || true)
+
+if [ -f /opt/rudder/etc/rudder-web.properties -a ${LDAP_CREDENTIALS} -eq 2 ]; then
+  # Get the database access credentials from the rudder-web.properties file
+  LDAP_USER="$(grep -E '^ldap.authdn[ \t]*=' ${RUDDER_OPT}/etc/rudder-web.properties | cut -d "=" -f 2-)"
+  LDAP_PASSWORD="$(grep -E '^ldap.authpw[ \t]*=' ${RUDDER_OPT}/etc/rudder-web.properties | cut -d "=" -f 2-)"
+  LDAP_SERVER="$(grep -E '^ldap.host[ \t]*=' ${RUDDER_OPT}/etc/rudder-web.properties | cut -d '=' -f 2-)"
+  LDAP_PORT="$(grep -E '^ldap.port[ \t]*=' ${RUDDER_OPT}/etc/rudder-web.properties | cut -d '=' -f 2-)"
+else
+  # No database access credentials in rudder-web.properties... Try anyway using "guessed" values.
+  echo "WARNING: Database access credentials are missing in /opt/rudder/etc/rudder-web.properties, trying to guess adequate values."
+  LDAP_USER=$(grep "^rootdn" /opt/rudder/etc/openldap/slapd.conf | sed "s/\w*\s*['\"]\?\([^\"']*\)['\"]\?$/\1/")
+  LDAP_PASSWORD=$(grep "^rootpw" /opt/rudder/etc/openldap/slapd.conf | sed "s/\w*\s*['\"]\?\([^\"']*\)['\"]\?$/\1/")
+  LDAP_SERVER='localhost'
+  LDAP_PORT='389'
+fi
+
+# Override any server values with those from ${RUDDER_ROLES_FILE}
+RUDDER_ROLES_FILE="${RUDDER_VAR}/cfengine-community/inputs/rudder-server-roles.conf"
+if [ -f ${RUDDER_ROLES_FILE} ]; then
+  role=rudder-ldap
+  ROLE_HOSTNAME=$(grep "^${role}:" ${RUDDER_ROLES_FILE} | cut -d: -f2 | cut -d, -f1 | tr -d " ")
+  if [ ! -z ${ROLE_HOSTNAME} ]; then
+    LDAP_SERVER=${ROLE_HOSTNAME}
+  fi
+fi
+
+# Commands
+LDAP_PARAMETERS="-H ldap://${LDAP_SERVER}:${LDAP_PORT}/ -D ${LDAP_USER} -w ${LDAP_PASSWORD} -x"
+
+JETTY_INIT="service rudder-jetty"
+
+LDAPSEARCH="ldapsearch ${LDAP_PARAMETERS} -LLL"
+LDAPMODRDN="ldapmodrdn ${LDAP_PARAMETERS}"
+LDAPADD="ldapadd ${LDAP_PARAMETERS}"
+LDAPDELETE="ldapdelete ${LDAP_PARAMETERS}"
+
+PSQL="psql -q -h ${SQL_SERVER} -p ${SQL_PORT} -U ${SQL_USER}"
+
 #######################################################################################################################
 ## Delete the old entries
 #######################################################################################################################
 
-EXISTING_NODEID=$(/opt/rudder/bin/ldapsearch -H ldap://localhost -x -D "${LDAP_USER}" -w ${LDAP_PASSWORD} -s base -b "nodeGroupId=hasPolicyServer-${RELAY_UUID},groupCategoryId=SystemGroups,groupCategoryId=GroupRoot,ou=Rudder,cn=rudder-configuration" -LLL nodeId 2>/dev/null | grep "^nodeId:" || true)
-EXISTING_NETWORKS=$(/opt/rudder/bin/ldapsearch -H ldap://localhost -x -D "${LDAP_USER}" -w ${LDAP_PASSWORD} -s base -b "directiveId=common-root,activeTechniqueId=common,techniqueCategoryId=Rudder Internal,techniqueCategoryId=Active Techniques,ou=Rudder,cn=rudder-configuration" -LLL directiveVariable 2>/dev/null | grep "^directiveVariable: ALLOWEDNETWORK\[" || true)
-EXISTING_TYPE=$(/opt/rudder/bin/ldapsearch -H ldap://localhost -x -D "${LDAP_USER}" -w ${LDAP_PASSWORD}  -s base -b "nodeId=${RELAY_UUID},ou=Nodes,cn=rudder-configuration" -LLL isSystem 2>/dev/null | grep "^isSystem:" || true)
-RELAY_HOSTNAME=$(/opt/rudder/bin/ldapsearch -H ldap://localhost -x -D "${LDAP_USER}" -w ${LDAP_PASSWORD} -s base -b "nodeId=${RELAY_UUID},ou=Nodes,ou=Accepted Inventories,ou=Inventories,cn=rudder-configuration" -LLL nodeHostname 2>/dev/null | grep "^nodeHostname:" | sed 's%nodeHostname: %%' || true)
+EXISTING_NODEID=$(${LDAPSEARCH} -s base -b "nodeGroupId=hasPolicyServer-${RELAY_UUID},groupCategoryId=SystemGroups,groupCategoryId=GroupRoot,ou=Rudder,cn=rudder-configuration" nodeId 2>/dev/null | grep "^nodeId:" || true)
+EXISTING_NETWORKS=$(${LDAPSEARCH} -s base -b "directiveId=common-root,activeTechniqueId=common,techniqueCategoryId=Rudder Internal,techniqueCategoryId=Active Techniques,ou=Rudder,cn=rudder-configuration" directiveVariable 2>/dev/null | grep "^directiveVariable: ALLOWEDNETWORK\[" || true)
+EXISTING_TYPE=$(${LDAPSEARCH} -s base -b "nodeId=${RELAY_UUID},ou=Nodes,cn=rudder-configuration" isSystem 2>/dev/null | grep "^isSystem:" || true)
+RELAY_HOSTNAME=$(${LDAPSEARCH} -s base -b "nodeId=${RELAY_UUID},ou=Nodes,ou=Accepted Inventories,ou=Inventories,cn=rudder-configuration" nodeHostname 2>/dev/null | grep "^nodeHostname:" | sed 's%nodeHostname: %%' || true)
 
 if [ "${RELAY_HOSTNAME}" = "" ]; then
 	${ECHO} "ERROR: Cannot find the machine (inventory not found), aborting."
@@ -98,8 +124,8 @@ TMPFILE=`mktemp`
 ${ECHO} -n "INFO: Deleting old entries if applicable. Backups will be stored in ${TMPFILE}..."
 
 ${ECHO} "# $0: Transforming ${RELAY_UUID} (${RELAY_HOSTNAME}) into a Rudder relay server on `date`" > ${TMPFILE}
-/opt/rudder/bin/ldapsearch -H ldap://localhost -x -D "${LDAP_USER}" -w ${LDAP_PASSWORD} -s base -b "nodeId=${RELAY_UUID},ou=Nodes,cn=rudder-configuration" >> ${TMPFILE}
-/opt/rudder/bin/ldapdelete -H ldap://localhost -x -D "${LDAP_USER}" -w ${LDAP_PASSWORD} "nodeId=${RELAY_UUID},ou=Nodes,cn=rudder-configuration" >/dev/null
+${LDAPSEARCH} -s base -b "nodeId=${RELAY_UUID},ou=Nodes,cn=rudder-configuration" >> ${TMPFILE}
+${LDAPDELETE} "nodeId=${RELAY_UUID},ou=Nodes,cn=rudder-configuration" >/dev/null
 
 ${ECHO} " Done."
 
@@ -108,7 +134,7 @@ ${ECHO} " Done."
 #######################################################################################################################
 
 ${ECHO} -n "INFO: Changing the machine type to relay server..."
-/opt/rudder/bin/ldapadd -H ldap://localhost -x -D "${LDAP_USER}" -w ${LDAP_PASSWORD} <<EOF >/dev/null 2>&1 || echo -n " entries already exist."
+${LDAPADD} <<EOF >/dev/null 2>&1 || echo -n " entries already exist."
 dn: nodeId=${RELAY_UUID},ou=Nodes,cn=rudder-configuration
 objectClass: top
 objectClass: rudderNode
@@ -126,7 +152,7 @@ ${ECHO} " Done."
 #######################################################################################################################
 
 ${ECHO} -n "INFO: Adding special group entries for relay server..."
-/opt/rudder/bin/ldapadd -H ldap://localhost -x -D "${LDAP_USER}" -w ${LDAP_PASSWORD} <<EOF >/dev/null 2>&1 || echo -n " entries already exist."
+${LDAPADD} <<EOF >/dev/null 2>&1 || echo -n " entries already exist."
 dn: nodeGroupId=hasPolicyServer-${RELAY_UUID},groupCategoryId=SystemGroups,groupCategoryId=GroupRoot,ou=Rudder,cn=rudder-configuration
 objectClass: nodeGroup
 objectClass: top
@@ -155,7 +181,7 @@ ${ECHO} " Done."
 #######################################################################################################################
 
 ${ECHO} -n "INFO: Adding special Directives for relay server..."
-/opt/rudder/bin/ldapadd -H ldap://localhost -x -D "${LDAP_USER}" -w ${LDAP_PASSWORD} <<EOF >/dev/null 2>&1 || echo -n " entries already exist."
+${LDAPADD} <<EOF >/dev/null 2>&1 || echo -n " entries already exist."
 dn: directiveId=${RELAY_UUID}-distributePolicy,activeTechniqueId=distributePolicy,techniqueCategoryId=Rudder Internal,techniqueCategoryId=Active Techniques,ou=Rudder,cn=rudder-configuration
 objectClass: directive
 objectClass: top
@@ -197,7 +223,7 @@ ${ECHO} " Done."
 #######################################################################################################################
 
 ${ECHO} -n "INFO: Adding special Rules for relay server..."
-/opt/rudder/bin/ldapadd -H ldap://localhost -x -D "${LDAP_USER}" -w ${LDAP_PASSWORD} <<EOF >/dev/null 2>&1 || echo -n " entries already exist."
+${LDAPADD} <<EOF >/dev/null 2>&1 || echo -n " entries already exist."
 dn: ruleId=${RELAY_UUID}-DP,ou=Rules,ou=Rudder,cn=rudder-configuration
 objectClass: rule
 objectClass: top

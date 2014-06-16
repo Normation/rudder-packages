@@ -5,3 +5,4 @@ var/rudder/cfengine-community/inputs
 var/rudder/cfengine-community/bin
 opt/rudder/etc
 var/rudder/tmp
+var/log/rudder/install

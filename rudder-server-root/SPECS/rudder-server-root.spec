@@ -47,7 +47,6 @@ Group: Applications/System
 
 Source1: rudder-sources
 Source5: rudder-server-root.init
-Source6: rudder-passwords.conf
 Source8: rudder-server-root
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -79,17 +78,12 @@ run a Rudder root server on one machine. It also installs some useful files
 %install
 rm -rf %{buildroot}
 # Directories
-mkdir -p %{buildroot}/var/cfengine/
-mkdir -p %{buildroot}/var/cfengine/inputs
-mkdir -p %{buildroot}%{rudderdir}/bin/
 mkdir -p %{buildroot}%{rudderdir}/etc/
 mkdir -p %{buildroot}%{rudderdir}/etc/server-roles.d/
-mkdir -p %{buildroot}%{ruddervardir}/cfengine-community/
 mkdir -p %{buildroot}/etc/init.d
 
 # Others
 cp %{SOURCE5} %{buildroot}/etc/init.d/rudder-server-root
-cp %{SOURCE6} %{buildroot}%{rudderdir}/etc/
 
 install -m 644 %{SOURCE8} %{buildroot}/opt/rudder/etc/server-roles.d/
 
@@ -140,10 +134,7 @@ rm -rf %{buildroot}
 %files -n rudder-server-root
 %defattr(-, root, root, 0755)
 %{rudderdir}/etc/
-/var/cfengine/inputs
 %attr(0755, root, root) /etc/init.d/rudder-server-root
-%config(noreplace) %{rudderdir}/etc/rudder-passwords.conf
-%attr(0600, root, root) %{rudderdir}/etc/rudder-passwords.conf
 
 #=================================================
 # Changelog

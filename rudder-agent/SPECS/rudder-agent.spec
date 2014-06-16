@@ -248,6 +248,7 @@ mkdir -p %{buildroot}%{ruddervardir}/cfengine-community/bin
 mkdir -p %{buildroot}%{ruddervardir}/cfengine-community/inputs
 mkdir -p %{buildroot}%{ruddervardir}/tmp
 mkdir -p %{buildroot}%{ruddervardir}/tools
+mkdir -p %{buildroot}%{rudderlogdir}/install
 
 # Init script
 # AIX does not use init scripts, instead we set up a subsystem in the post scriptlet below
@@ -332,6 +333,8 @@ fi
 #=================================================
 # Post Installation
 #=================================================
+
+echo "$(date) - Starting rudder-agent post installation script" >> %{rudderlogdir}/install/rudder-agent.log
 
 # Ensure our PATH includes Rudder's bin dir (for uuidgen on AIX in particular)
 export PATH=%{rudderdir}/bin/:$PATH
@@ -492,7 +495,7 @@ fi
 if [ ! -f /var/rudder/cfengine-community/ppkeys/localhost.priv ]
 then
 	echo "INFO: Creating keys for CFEngine agent..."
-	/var/rudder/cfengine-community/bin/cf-key > /dev/null 2>&1
+	/var/rudder/cfengine-community/bin/cf-key >> %{rudderlogdir}/install/rudder-agent.log 2>&1
 	echo "INFO: Created a new key for CFEngine agent in /var/rudder/cfengine-community/ppkeys/"
 fi
 
@@ -603,6 +606,7 @@ rm -f %{_builddir}/file.list.%{name}
 %if "%{is_lmdb_here}" != "true" && 0%{?rhel} != 3
 %config(noreplace) /etc/ld.so.conf.d/rudder.conf
 %endif
+%{rudderlogdir}/install
 
 #=================================================
 # Changelog

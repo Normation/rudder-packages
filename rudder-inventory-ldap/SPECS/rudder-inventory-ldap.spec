@@ -66,6 +66,7 @@ Source4: inventory.schema
 Source5: rudder.schema
 Source6: DB_CONFIG
 Source7: rudder-inventory-ldap
+Source8: rudder-ldap
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
@@ -116,7 +117,7 @@ cd openldap-source
 export CFLAGS="$RPM_OPT_FLAGS"
 export CXXFLAGS="$RPM_OPT_FLAGS"
 
-./configure --build=%_target --prefix=%{rudderdir} --enable-dynamic --enable-debug --enable-modules --enable-hdb=mod --enable-monitor=mod --enable-dynlist=mod --with-cyrus-sasl
+./configure --build=%_target --prefix=%{rudderdir} --libdir=%{rudderdir}/lib/ldap --enable-dynamic --enable-debug --enable-modules --enable-hdb=mod --enable-monitor=mod --enable-dynlist=mod --with-cyrus-sasl
 
 make %{?_smp_mflags} depend
 make %{?_smp_mflags}
@@ -146,6 +147,7 @@ install -m 644 %{SOURCE5} %{buildroot}/opt/rudder/etc/openldap/schema/
 install -m 644 %{SOURCE6} %{buildroot}/var/rudder/ldap/openldap-data/
 
 install -m 644 %{SOURCE7} %{buildroot}/opt/rudder/etc/server-roles.d/
+install -m 644 %{SOURCE8} %{buildroot}/opt/rudder/etc/server-roles.d/
 
 # Syslog configuration
 mkdir -p %{buildroot}/etc/rsyslog.d
