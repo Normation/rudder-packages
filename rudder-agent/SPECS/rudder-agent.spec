@@ -198,12 +198,15 @@ rm -rf %{buildroot}
 # Compile LMDB library and install it in /opt/rudder/lib
 
 # LMDB's Makefile does not know how to create destination files, do it ourselves
-for i in bin lib include man/man1; do mkdir -p %{buildroot}%{rudderdir}/$i; done
+for i in bin lib include man/man1; do mkdir -p %{rudderdir}/$i; done
 
 cd %{_sourcedir}/lmdb-source/libraries/liblmdb
 
 make %{?_smp_mflags}
-make install prefix=%{rudderdir} DESTDIR=%{buildroot}
+
+# First install goes to the local %{rudderdir} to prevent linking issues during
+# CFEngine build
+make install prefix=%{rudderdir}
 %endif
 
 # Prepare CFEngine build
@@ -211,7 +214,7 @@ cd %{_sourcedir}/cfengine-source
 
 %if "%{is_lmdb_here}" != "true"
 ## Define path of LMDB if built before instead of being provided by the system.
-%define lmdb_arg "--with-lmdb=%{buildroot}%{rudderdir}"
+%define lmdb_arg "--with-lmdb=%{rudderdir}"
 %else
 %define lmdb_arg ""
 %endif
@@ -244,6 +247,8 @@ rm -rf %{buildroot}
 # LMDB's Makefile does not know how to create destination files, do it ourselves
 for i in bin lib include man/man1; do mkdir -p %{buildroot}%{rudderdir}/$i; done
 cd %{_sourcedir}/lmdb-source/libraries/liblmdb
+
+# Now, we install lmdb in %{buildroot} to package it
 make install prefix=%{rudderdir} DESTDIR=%{buildroot}
 %endif
 
