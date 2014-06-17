@@ -135,13 +135,9 @@ Requires: pmtools
 %define is_lmdb_here false
 %endif
 
-# AIX builds support TokyoCabinet via M. Perzl's
-# packages.
-# cf http://www.perzl.org/aix/
+## 4 - AIX: No LMDB yet
 %if "%{?_os}" == "aix"
-BuildRequires: tokyocabinet-devel
-Requires: tokyocabinet
-%define is_tokyocabinet_here true
+%define is_lmdb_here false
 %endif
 
 %define install_command        install
