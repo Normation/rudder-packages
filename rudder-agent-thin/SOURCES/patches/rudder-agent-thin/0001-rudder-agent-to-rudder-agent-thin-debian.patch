@@ -1,6 +1,6 @@
-diff -Naurw rudder-agent-thin/debian/changelog rudder-agent-thin-new/debian/changelog
+diff -Naur a/changelog b/changelog
 --- a/changelog	2014-03-04 10:06:26.535100944 +0100
-+++ b/changelog	2014-06-03 13:10:06.383037881 +0200
++++ b/changelog	2014-06-18 17:17:23.327002487 +0200
 @@ -1,23 +1,6 @@
 -rudder-agent (2.3.0~alpha~git-0) lenny; urgency=low
 +rudder-agent-thin (2.11.0~git-0) wheezy; urgency=low
@@ -29,16 +29,16 @@ diff -Naurw rudder-agent-thin/debian/changelog rudder-agent-thin-new/debian/chan
 -
 - -- Nicolas Perron <nicolas.perrone@normation.com>  Wed, 23 Feb 2011 18:16:27 +0100
 + -- Matthieu CERDA <matthieu.cerda@normation.com>  Fri, 30 May 2014 16:55:27 +0200
-diff -Naurw rudder-agent-thin/debian/control rudder-agent-thin-new/debian/control
---- a/control	2014-06-02 15:06:39.853856384 +0200
-+++ b/control	2014-06-03 14:39:05.080668602 +0200
+diff -Naur a/control b/control
+--- a/control	2014-06-18 17:21:17.979798215 +0200
++++ b/control	2014-06-18 17:21:34.867855637 +0200
 @@ -1,4 +1,4 @@
 -Source: rudder-agent
 +Source: rudder-agent-thin
  Section: admin
  Priority: extra
  Maintainer: Rudder packaging team <rudder-packaging@rudder-project.org>
-@@ -6,19 +6,15 @@
+@@ -6,19 +6,14 @@
  Standards-Version: 3.8.0
  Homepage: http://www.rudder-project.org
  
@@ -49,15 +49,14 @@ diff -Naurw rudder-agent-thin/debian/control rudder-agent-thin-new/debian/contro
 -# The dependencies below are defined in order to use rudder-agent
 -# for the server. This will add capabilities to send inventories
 -# from the server itself.
--Provides: rudder-cfengine-community
--Conflicts: rudder-cfengine-community
+-Provides: rudder-cfengine-community, rudder-agent
+-Conflicts: rudder-cfengine-community, rudder-agent-thin
 -Replaces: rudder-cfengine-community, rudder-server-root (<< 2.4.0~beta2)
 -Breaks: rudder-server-root (<< 2.4.0~beta2)
 -Description: Configuration management and audit tool - agent
 +Depends: ${shlibs:Depends}, ${misc:Depends}, uuid-runtime, dmidecode, cron, fusioninventory-agent
 +Provides: rudder-agent
 +Conflicts: rudder-agent
-+Replaces: rudder-agent
 +Description: Configuration management and audit tool
   Rudder is an open source configuration management and audit solution.
   .
@@ -66,9 +65,9 @@ diff -Naurw rudder-agent-thin/debian/control rudder-agent-thin-new/debian/contro
 - FusionInventory.
 + managed by Rudder. It is based on CFEngine Community.
 +
-diff -Naurw rudder-agent-thin/debian/copyright rudder-agent-thin-new/debian/copyright
+diff -Naur a/copyright b/copyright
 --- a/copyright	2014-03-04 10:06:26.535100944 +0100
-+++ b/copyright	2014-06-03 13:12:20.887453677 +0200
++++ b/copyright	2014-06-18 17:17:23.327002487 +0200
 @@ -1,24 +1,20 @@
  This package was debianized by:
  
@@ -107,9 +106,9 @@ diff -Naurw rudder-agent-thin/debian/copyright rudder-agent-thin-new/debian/copy
 -
 -    Copyright (C) 2010 Normation SAS
 -
-diff -Naurw rudder-agent-thin/debian/rules rudder-agent-thin-new/debian/rules
---- a/rules	2014-06-02 15:06:39.853856384 +0200
-+++ b/rules	2014-06-03 14:34:14.799666968 +0200
+diff -Naur a/rules b/rules
+--- a/rules	2014-06-09 18:27:58.573365796 +0200
++++ b/rules	2014-06-18 17:17:23.327002487 +0200
 @@ -16,8 +16,6 @@
  	dh_testdir
  	# dh_prep has been moved from 'install' target since we need to build LMDB first
@@ -142,3 +141,4 @@ diff -Naurw rudder-agent-thin/debian/rules rudder-agent-thin-new/debian/rules
  #	dh_installinfo
  	dh_installman
  	dh_link
+

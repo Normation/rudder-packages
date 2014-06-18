@@ -1,6 +1,6 @@
-diff -Naurw rudder-agent-thin/SPECS/rudder-agent.spec rudder-agent-thin-new/SPECS/rudder-agent.spec
---- a/rudder-agent.spec	2014-06-02 15:06:39.853856384 +0200
-+++ b/rudder-agent.spec	2014-06-03 14:47:26.554384425 +0200
+diff -Naur a/rudder-agent.spec b/rudder-agent.spec
+--- a/rudder-agent.spec	2014-06-18 17:19:52.943506879 +0200
++++ b/rudder-agent.spec	2014-06-18 17:20:39.131665576 +0200
 @@ -17,7 +17,7 @@
  #####################################################################################
  
@@ -38,18 +38,19 @@ diff -Naurw rudder-agent-thin/SPECS/rudder-agent.spec rudder-agent-thin-new/SPEC
  %if 0%{?rhel} == 4
  Patch1: fix-missing-headers
  %endif
-@@ -85,7 +79,9 @@
+@@ -85,9 +79,9 @@
  
- #Generic requirement
+ # Generic requirements
  BuildRequires: gcc openssl-devel bison flex pcre-devel autoconf automake libtool
 -Requires: pcre openssl
 +Requires: pcre openssl fusioninventory-agent fusioninventory-agent-task-inventory
-+Provides: rudder-agent
-+Obsoletes: rudder-agent
+ Provides: rudder-agent
+-Conflicts: rudder-agent-thin
++Conflicts: rudder-agent
  
  # Specific requirements
  
-@@ -143,23 +139,11 @@
+@@ -150,23 +144,11 @@
  %define cp_a_command           cp -hpPr
  %endif
  
@@ -74,7 +75,7 @@ diff -Naurw rudder-agent-thin/SPECS/rudder-agent.spec rudder-agent-thin-new/SPEC
  
  #=================================================
  # Source preparation
-@@ -176,8 +160,6 @@
+@@ -183,8 +165,6 @@
  
  cd %{_sourcedir}
  
@@ -83,7 +84,7 @@ diff -Naurw rudder-agent-thin/SPECS/rudder-agent.spec rudder-agent-thin-new/SPEC
  # Ensure an appropriate environment for the compiler
  export CFLAGS="$RPM_OPT_FLAGS"
  export CXXFLAGS="$RPM_OPT_FLAGS"
-@@ -259,9 +241,6 @@
+@@ -281,9 +261,6 @@
  # Initial promises
  cp -r %{_sourcedir}/initial-promises %{buildroot}%{rudderdir}/share/
  
@@ -93,7 +94,7 @@ diff -Naurw rudder-agent-thin/SPECS/rudder-agent.spec rudder-agent-thin-new/SPEC
  # Wrapper script
  %{install_command} -m 755 %{SOURCE3} %{buildroot}/opt/rudder/bin/run-inventory
  
-@@ -280,8 +259,6 @@
+@@ -302,8 +279,6 @@
  
  %{install_command} -m 755 %{SOURCE8} %{buildroot}/opt/rudder/bin/vzps.py
  
@@ -102,7 +103,7 @@ diff -Naurw rudder-agent-thin/SPECS/rudder-agent.spec rudder-agent-thin-new/SPEC
  # Install a profile script to make cf-* part of the PATH
  # AIX does not support profile.d and /etc/profile should not be modified, so we don't do this on AIX at all
  %if "%{?_os}" != "aix"
-@@ -298,7 +275,7 @@
+@@ -320,7 +295,7 @@
  # Build a list of files to include in this package for use in the %files section below
  find %{buildroot}%{rudderdir} %{buildroot}%{ruddervardir} -type f -o -type l | sed "s,%{buildroot},," | sed "s,\.py$,\.py*," | grep -v "%{rudderdir}/etc/uuid.hive" | grep -v "%{ruddervardir}/cfengine-community/ppkeys" > %{_builddir}/file.list.%{name}
  
@@ -111,7 +112,7 @@ diff -Naurw rudder-agent-thin/SPECS/rudder-agent.spec rudder-agent-thin-new/SPEC
  #=================================================
  # Pre Installation
  #=================================================
-@@ -316,7 +293,7 @@
+@@ -341,7 +316,7 @@
  %endif
  fi
  
@@ -120,8 +121,8 @@ diff -Naurw rudder-agent-thin/SPECS/rudder-agent.spec rudder-agent-thin-new/SPEC
  #=================================================
  # Post Installation
  #=================================================
-@@ -506,7 +483,7 @@
- # launch rudder agent check script, it will generate an UUID on first install or repair it if needed
+@@ -532,7 +507,7 @@
+ 
  /opt/rudder/bin/check-rudder-agent
  
 -%preun -n rudder-agent
@@ -129,8 +130,8 @@ diff -Naurw rudder-agent-thin/SPECS/rudder-agent.spec rudder-agent-thin-new/SPEC
  #=================================================
  # Pre Uninstallation
  #=================================================
-@@ -522,7 +499,7 @@
- echo "INFO: A back up copy of the /var/rudder/cfengine-community/ppkeys has been created in /var/backups/rudder"
+@@ -554,7 +529,7 @@
+ fi
  
  
 -%postun -n rudder-agent
@@ -138,7 +139,7 @@ diff -Naurw rudder-agent-thin/SPECS/rudder-agent.spec rudder-agent-thin-new/SPEC
  #=================================================
  # Post Uninstallation
  #=================================================
-@@ -569,7 +546,7 @@
+@@ -601,7 +576,7 @@
  # Files
  #=================================================
  # Files from %{rudderdir} and %{ruddervardir} are automatically added via the -f option
@@ -147,7 +148,7 @@ diff -Naurw rudder-agent-thin/SPECS/rudder-agent.spec rudder-agent-thin-new/SPEC
  %defattr(-, root, root, 0755)
  %config(noreplace) %{rudderdir}/etc/uuid.hive
  %if "%{?_os}" != "aix"
-@@ -591,15 +568,8 @@
+@@ -624,15 +599,8 @@
  # Changelog
  #=================================================
  %changelog
@@ -168,3 +169,4 @@ diff -Naurw rudder-agent-thin/SPECS/rudder-agent.spec rudder-agent-thin-new/SPEC
 +- Removed fusion-inventory code
 +- Removed legacy code
 +
+
