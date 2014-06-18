@@ -83,9 +83,11 @@ Patch1: fix-missing-headers
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
-#Generic requirement
+# Generic requirements
 BuildRequires: gcc openssl-devel bison flex pcre-devel autoconf automake libtool
 Requires: pcre openssl
+Provides: rudder-agent
+Conflicts: rudder-agent-thin
 
 # Specific requirements
 

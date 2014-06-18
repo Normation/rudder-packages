@@ -12,8 +12,8 @@ Depends: ${shlibs:Depends}, ${misc:Depends}, uuid-runtime, dmidecode, cron
 # The dependencies below are defined in order to use rudder-agent
 # for the server. This will add capabilities to send inventories
 # from the server itself.
-Provides: rudder-cfengine-community
-Conflicts: rudder-cfengine-community
+Provides: rudder-cfengine-community, rudder-agent
+Conflicts: rudder-cfengine-community, rudder-agent-thin
 Replaces: rudder-cfengine-community, rudder-server-root (<< 2.4.0~beta2)
 Breaks: rudder-server-root (<< 2.4.0~beta2)
 Description: Configuration management and audit tool - agent
