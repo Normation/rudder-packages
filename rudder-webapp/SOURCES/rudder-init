@@ -111,7 +111,7 @@ if [ -f ${RUDDER_ROLES_FILE} ]; then
           sed -i "s%^rudder.jdbc.url *=.*$%rudder.jdbc.url=jdbc:postgresql://${SQL_SERVER}:5432/rudder%" ${RUDDER_OPT}/etc/rudder-web.properties
           ;;
         rudder-inventory-endpoint)
-          sed -i "s%^rudder.endpoint.cmdb *=.*$/rudder.endpoint.cmdb=http://${ROLE_HOSTNAME}:8080/endpoint/upload/%" ${RUDDER_OPT}/etc/rudder-web.properties
+          sed -i "s%^rudder.endpoint.cmdb *=.*$%rudder.endpoint.cmdb=http://${ROLE_HOSTNAME}:8080/endpoint/upload/%" ${RUDDER_OPT}/etc/rudder-web.properties
           ;;
       esac
     fi
