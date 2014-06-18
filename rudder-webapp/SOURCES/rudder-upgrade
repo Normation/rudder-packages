@@ -70,7 +70,7 @@ RUDDER_UPGRADE_TOOLS=${RUDDER_SHARE}/upgrade-tools
 LDAP_CREDENTIALS=$(grep -c -E "^ldap.auth(dn|pw)[ \t]*=" /opt/rudder/etc/rudder-web.properties || true)
 SQL_CREDENTIALS=$(grep -c -E "^rudder.jdbc.(username|password)[ \t]*=" /opt/rudder/etc/rudder-web.properties || true)
 
-TOTAL_CREDENTIALS=$(echo "${LDAP_CREDENTIALS}+${SQL_CREDENTIALS}" | bc)
+TOTAL_CREDENTIALS=$((LDAP_CREDENTIALS+SQL_CREDENTIALS))
 
 if [ -f /opt/rudder/etc/rudder-web.properties -a ${TOTAL_CREDENTIALS} -eq 4 ]; then
   # Get the database access credentials from the rudder-web.properties file
