@@ -1,5 +1,5 @@
 #####################################################################################
-# Copyright 2012 Normation SAS
+# Copyright 2014 Normation SAS
 #####################################################################################
 #
 # This program is free software: you can redistribute it and/or modify
@@ -17,24 +17,29 @@
 #####################################################################################
 
 #=================================================
-# Specification file for ncf
+# Specification file for ncf-api-virtualenv
 #
-# Install the ncf framework
+# Install the ncf framework API Python virtual
+# environment
 #
-# Copyright (C) 2013 Normation
+# Copyright (C) 2014 Normation
 #=================================================
 
 #=================================================
 # Variables
 #=================================================
-%define real_name        ncf
-%define installdir       /usr/share
-%define bindir           /usr/bin
+
+# What is the package name
+%define real_name        ncf-api-virtualenv
+
+# Where should the package contents be installed
+%define installdir       /usr/share/%{real_name}
 
 #=================================================
 # Header
 #=================================================
-Summary: ncf - CFEngine framework
+
+Summary: ncf API Virtualenv - ncf API Python virtual environment
 Name: %{real_name}
 Version: %{real_version}
 Release: 1%{?dist}
@@ -44,19 +49,26 @@ URL: http://www.ncf.io
 
 Group: Applications/System
 
-Source1: rudder-sources
+Source1: ncf_api_flask_app.wsgi
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
 
-#BuildRequires: gcc
+# Disable dependency auto-generation, to prevent Python requirements
+# autodetection, which is not desired here.
+AutoReq: 0
+AutoProv: 0
 
 # Add Requires here - order is important
+Requires: python ncf
 
 %description
 ncf is a CFEngine framework aimed at helping newcomers on CFEngine
 to be more quickly operationnal and old timers to spend less time
 focusing on low level details and have more time for fun things.
+
+This package provides a Python virtual environment to make the use
+of the ncf API easier.
 
 #=================================================
 # Source preparation
@@ -68,6 +80,27 @@ focusing on low level details and have more time for fun things.
 #=================================================
 %build
 
+# Go into SOURCES
+cd %{_sourcedir}
+
+# Build Virtualenv
+python virtualenv.py %{real_name}
+
+# Get all requirements via pip
+%{real_name}/bin/pip install -r %{_sourcedir}/rudder-sources/ncf/api/requirements.txt
+
+# Clean up unwanted binaries
+if [ "z%{real_name}" != "" ]; then
+  for i in easy_install python pip; do
+      rm -f %{real_name}/bin/${i}*
+  done
+else
+  echo "WARNING: Skipping Virtualenv cleanup, as it"
+  echo "WARNING: would operate on /bin ..."
+  echo "WARNING: Please make sure the real_name macro"
+  echo "WARNING: is defined"
+fi
+
 #=================================================
 # Installation
 #=================================================
@@ -75,23 +108,22 @@ focusing on low level details and have more time for fun things.
 
 rm -rf %{buildroot}
 
-# Directories
+# Directories
+
 mkdir -p %{buildroot}%{installdir}/
-mkdir -p %{buildroot}%{bindir}/
 
-cp -r %{SOURCE1}/ncf/ %{buildroot}%{installdir}/
+# Files
 
-# Create a symlink to make ncf available as part of the
-# default PATH
-ln -sf %{installdir}/ncf/ncf %{buildroot}%{bindir}/ncf
+cp -r %{real_name}/* %{buildroot}%{installdir}/
 
-%pre -n ncf
+install -m 644 %{SOURCE1} %{buildroot}%{installdir}/
+
+%pre -n ncf-api-virtualenv
 #=================================================
 # Pre Installation
 #=================================================
 
-
-%post -n ncf
+%post -n ncf-api-virtualenv
 #=================================================
 # Post Installation
 #=================================================
@@ -106,14 +138,13 @@ rm -rf %{buildroot}
 #=================================================
 # Files
 #=================================================
-%files -n ncf
+%files -n ncf-api-virtualenv
 %defattr(-, root, root, 0755)
-%{installdir}/ncf/
-%{bindir}/ncf
+%{installdir}/
 
 #=================================================
 # Changelog
 #=================================================
 %changelog
-* Thu Dec 05 2013 - Matthieu CERDA <matthieu.cerda@normation.com> 0.2013120500-1
+* Thu Jun 16 2014 - Matthieu CERDA <matthieu.cerda@normation.com> 0.2014160600-1
 - Initial release
