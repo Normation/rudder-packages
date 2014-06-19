@@ -39,6 +39,7 @@ localdepends: ./initial-promises ./detect_os.sh ./files ./fusioninventory-agent 
 	mv $(TMP_DIR)/core-$(CFENGINE_RELEASE) ./cfengine-source
 	# Apply patches
 	$(PATCH) -d ./cfengine-source -p1 < ./patches/cfengine/0001-fix-unsupported-openssl-options.patch
+	$(PATCH) -d ./cfengine-source -p1 < ./patches/cfengine/0002-explicitely-use-pthreads-during-lmdb-presence-detection.patch
 	# Bootstrap the package using autogen before compilation
 	cd cfengine-source && NO_CONFIGURE=1 ./autogen.sh
 
