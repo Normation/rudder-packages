@@ -83,9 +83,11 @@ Patch1: fix-missing-headers
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
-#Generic requirement
+# Generic requirements
 BuildRequires: gcc openssl-devel bison flex pcre-devel autoconf automake libtool
 Requires: pcre openssl
+Provides: rudder-agent
+Conflicts: rudder-agent-thin
 
 # Specific requirements
 
@@ -135,13 +137,9 @@ Requires: pmtools
 %define is_lmdb_here false
 %endif
 
-# AIX builds support TokyoCabinet via M. Perzl's
-# packages.
-# cf http://www.perzl.org/aix/
+## 4 - AIX: No LMDB yet
 %if "%{?_os}" == "aix"
-BuildRequires: tokyocabinet-devel
-Requires: tokyocabinet
-%define is_tokyocabinet_here true
+%define is_lmdb_here false
 %endif
 
 %define install_command        install
@@ -198,12 +196,15 @@ rm -rf %{buildroot}
 # Compile LMDB library and install it in /opt/rudder/lib
 
 # LMDB's Makefile does not know how to create destination files, do it ourselves
-for i in bin lib include man/man1; do mkdir -p %{buildroot}%{rudderdir}/$i; done
+for i in bin lib include man/man1; do mkdir -p %{rudderdir}/$i; done
 
 cd %{_sourcedir}/lmdb-source/libraries/liblmdb
 
 make %{?_smp_mflags}
-make install prefix=%{rudderdir} DESTDIR=%{buildroot}
+
+# First install goes to the local %{rudderdir} to prevent linking issues during
+# CFEngine build
+make install prefix=%{rudderdir}
 %endif
 
 # Prepare CFEngine build
@@ -211,7 +212,7 @@ cd %{_sourcedir}/cfengine-source
 
 %if "%{is_lmdb_here}" != "true"
 ## Define path of LMDB if built before instead of being provided by the system.
-%define lmdb_arg "--with-lmdb=%{buildroot}%{rudderdir}"
+%define lmdb_arg "--with-lmdb=%{rudderdir}"
 %else
 %define lmdb_arg ""
 %endif
@@ -236,6 +237,17 @@ make %{?_smp_mflags}
 # the files from %{buildroot} should be made at the begining of macro 'install'.
 # Build of and embedded library (here, LMDB) is an exception.
 rm -rf %{buildroot}
+%else
+
+# Reinstall LMDB because RPM rm -rf %{buildroot} for a reason I don't understand
+# TODO: Fix this nasty hack!
+
+# LMDB's Makefile does not know how to create destination files, do it ourselves
+for i in bin lib include man/man1; do mkdir -p %{buildroot}%{rudderdir}/$i; done
+cd %{_sourcedir}/lmdb-source/libraries/liblmdb
+
+# Now, we install lmdb in %{buildroot} to package it
+make install prefix=%{rudderdir} DESTDIR=%{buildroot}
 %endif
 
 cd %{_sourcedir}/cfengine-source

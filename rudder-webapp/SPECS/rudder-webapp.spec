@@ -94,6 +94,9 @@ BuildArch: noarch
 BuildRequires: jdk >= 1.6
 Requires: rudder-jetty rudder-techniques ncf %{apache} %{apache_tools} git-core rsync openssl %{ldap_clients}
 
+# We need the psql client so that we can run database checks and upgrades (rudder-upgrade, in particular)
+Requires: postgresql
+
 %if 0%{?rhel}
 Requires: mod_ssl
 %endif
