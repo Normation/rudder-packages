@@ -21,6 +21,11 @@ set -e
 case "$1" in
     configure)
 
+	# Create a symlink to the Jetty context if necessary
+	if [ -d "/opt/rudder/jetty7/contexts" ]; then
+		ln -sf /opt/rudder/share/webapps/endpoint.xml /opt/rudder/jetty7/contexts/endpoint.xml
+	fi
+
 	# Run any upgrades
 	echo "INFO: Launching script to check if a migration is needed"
 	/opt/rudder/bin/rudder-inventory-endpoint-upgrade
