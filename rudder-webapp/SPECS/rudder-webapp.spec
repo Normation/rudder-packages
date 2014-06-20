@@ -87,6 +87,7 @@ Source10: rudder-init
 Source11: rudder-node-to-relay
 Source12: rudder-root-rename
 Source13: rudder-passwords.conf
+Source14: rudder-plugin
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
@@ -173,6 +174,7 @@ ln -sf %{rudderdir}/bin/rudder-init %{buildroot}%{rudderdir}/bin/rudder-init.sh
 
 cp %{SOURCE11} %{buildroot}%{rudderdir}/bin/
 cp %{SOURCE12} %{buildroot}%{rudderdir}/bin/
+cp %{SOURCE14} %{buildroot}%{rudderdir}/bin/
 
 cp %{SOURCE1} %{buildroot}%{rudderdir}/etc/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/ldap/bootstrap.ldif %{buildroot}%{rudderdir}/share/
