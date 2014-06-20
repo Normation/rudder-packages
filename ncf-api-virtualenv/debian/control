@@ -8,7 +8,7 @@ Homepage: http://www.ncf.io
 
 Package: ncf-api-virtualenv
 Architecture: all
-Depends: ${shlibs:Depends}, ${misc:Depends}, python, ncf
+Depends: ${shlibs:Depends}, ${misc:Depends}, python, apache2, libapache2-mod-wsgi, ncf
 Suggests: cfengine3 (>=3.5.0), cfengine-community (>=3.5.0), rudder-agent (>=2.11.0)
 Description: ncf - CFEngine framework
  ncf is a CFEngine framework aimed at helping newcomers on CFEngine

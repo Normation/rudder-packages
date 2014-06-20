@@ -99,15 +99,19 @@ Requires: rudder-techniques ncf %{apache} %{apache_tools} git-core rsync openssl
 Requires: postgresql
 
 # Those jetty packages are virtual packages provided by our Jetty and the system one.
+
+## RHEL
 %if 0%{?rhel}
 Requires: mod_ssl jetty-eclipse
 %endif
 
+## Fedora
 %if 0%{?fedora}
 Requires: jetty-server
 %endif
 
-# No Jetty provided by SLES... Use our own.
+## SLES
+## No Jetty provided by SLES... Use our own.
 %if 0%{?sles}
 Requires: rudder-jetty
 %endif
