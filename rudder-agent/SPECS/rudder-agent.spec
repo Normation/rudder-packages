@@ -433,7 +433,16 @@ if [ ${CFRUDDER_FIRST_INSTALL} -ne 1 -a -x /etc/init.d/rudder-agent ]; then /sbi
 NB_COPIED_BINARIES=`ls -1 /var/rudder/cfengine-community/bin/ | wc -l`
 if [ ${NB_COPIED_BINARIES} -gt 0 ];then echo "CFEngine binaries copied to workdir"; fi
 
-# Copy initial promises if there aren't any already
+# Set up initial promises if necessary
+
+# Backup rudder-server-roles.conf
+if [ ! -e /var/rudder/cfengine-community/inputs/rudder-server-roles.conf ]
+then
+  mkdir -p /var/backups/rudder
+  cp -a /var/rudder/cfengine-community/inputs/rudder-server-roles.conf /var/backups/rudder/
+  RESTORE_SERVER_ROLES_BACKUP=1
+fi
+
 if [ ! -e /var/rudder/cfengine-community/inputs/promises.cf ]
 then
 	cp -r /opt/rudder/share/initial-promises/* /var/rudder/cfengine-community/inputs
@@ -446,6 +455,11 @@ if ! /var/rudder/cfengine-community/bin/cf-promises >/dev/null 2>&1 && [ "z${RUD
 then
 	rm -rf /var/rudder/cfengine-community/inputs/*
 	%{cp_a_command} /opt/rudder/share/initial-promises/* /var/rudder/cfengine-community/inputs/
+fi
+
+# Restore rudder-server-roles.conf if necessary
+if [ "z${RESTORE_SERVER_ROLES_BACKUP}" = "z1" ]; then
+  cp -a /var/backups/rudder/rudder-server-roles.conf /var/rudder/cfengine-community/inputs/rudder-server-roles.conf
 fi
 
 # This fix is required for upgrades from 2.6 or earlier. Since we didn't support AIX on those versions,
