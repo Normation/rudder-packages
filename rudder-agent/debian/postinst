@@ -65,7 +65,16 @@ case "$1" in
 			echo " Done."
 		fi
 
-		# Copy initial promises if there aren't any already
+		# Set up initial promises if necessary
+    
+		# Backup rudder-server-roles.conf
+		if [ ! -e /var/rudder/cfengine-community/inputs/rudder-server-roles.conf ]
+		then
+			mkdir -p /var/backups/rudder
+			cp -a /var/rudder/cfengine-community/inputs/rudder-server-roles.conf /var/backups/rudder/
+			RESTORE_SERVER_ROLES_BACKUP=1
+		fi
+
 		if [ ! -e /var/rudder/cfengine-community/inputs/promises.cf ]
 		then
 			cp -r /opt/rudder/share/initial-promises/* /var/rudder/cfengine-community/inputs
@@ -77,6 +86,11 @@ case "$1" in
 		if ! /var/rudder/cfengine-community/bin/cf-promises >/dev/null 2>&1 && [ "z${RUDDER_UUID}" != "zroot" ]
 		then
 			rsync --delete -aq /opt/rudder/share/initial-promises/ /var/rudder/cfengine-community/inputs/
+		fi
+
+		# Restore rudder-server-roles.conf if necessary
+		if [ "z${RESTORE_SERVER_ROLES_BACKUP}" = "z1" ]; then
+			cp -a /var/backups/rudder/rudder-server-roles.conf /var/rudder/cfengine-community/inputs/rudder-server-roles.conf
 		fi
 
 		# Migration to CFEngine 3.5: Correct a specific Technique that breaks the most recent CFEngine versions
