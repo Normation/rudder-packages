@@ -57,7 +57,6 @@ Source3: rudder-jetty.conf
 Source4: rudder-jetty
 
 Patch1: jetty-init-sles.patch
-Patch2: jetty-init-rudder.patch
 
 # Prevent rpmbuild to use 64 bits libraries just because of the presence
 # of one 64 bits binary in the jetty archive.
