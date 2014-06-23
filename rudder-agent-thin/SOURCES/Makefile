@@ -26,6 +26,7 @@ PATCH := /usr/bin/patch
 localdepends: ./rudder-agent.make build-sources
 
 rudder-agent.make:
+	cd ../../rudder-agent/SOURCES && make localclean
 	rsync --exclude=Makefile --exclude=filter-reqs.pl --exclude=perl-prepare.sh --exclude=rudder-perl --out-format='%n' -a ../../rudder-agent/ ../ | grep -v '^.*/$$' > rudder-agent.list
 	cp -f ../../rudder-agent/SOURCES/Makefile ./rudder-agent.make
 
