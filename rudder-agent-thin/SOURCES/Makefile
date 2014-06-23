@@ -25,18 +25,22 @@ PATCH := /usr/bin/patch
 
 localdepends: ./rudder-agent.make build-sources
 
-rudder-agent.make:
+# We need to copy rudder-agent's Makefile to make the build the most self-contained possible
+rudder-agent.make: ../../rudder-agent/SOURCES/Makefile
+	cp -f ../../rudder-agent/SOURCES/Makefile ./rudder-agent.make
+
+fetch-sources: fetch-sources-stamp
+fetch-sources-stamp:
 	# Clean up rudder-agent sources first
 	cd ../../rudder-agent/SOURCES && make localclean
 	# Make sure the debian/changelog is pristine
 	cd ../../rudder-agent/debian && git checkout changelog
 	# Get everything from rudder-agent, excluding perl thingies and Makefile
 	rsync --exclude=Makefile --exclude=filter-reqs.pl --exclude=perl-prepare.sh --exclude=rudder-perl --out-format='%n' -a ../../rudder-agent/ ../ | grep -v '^.*/$$' > rudder-agent.list
-	cp -f ../../rudder-agent/SOURCES/Makefile ./rudder-agent.make
+	touch fetch-sources-stamp
 
 build-sources: build-sources-stamp
-build-sources-stamp: rudder-agent.make
-
+build-sources-stamp: fetch-sources-stamp rudder-agent.make
 	# Bypass fusioninventory download
 	touch files fusioninventory-agent
 
@@ -55,15 +59,14 @@ build-sources-stamp: rudder-agent.make
 
 localclean: rudder-agent.make
 	$(MAKE) -f rudder-agent.make localclean
-
-clean: localclean veryclean
-
-veryclean: rudder-agent.make
-	$(MAKE) -f rudder-agent.make veryclean
-	rm -f rudder-agent.make
 	xargs -a rudder-agent.list -d'\n' -I file rm -f ../file
 	rm -rf ../SPECS ../debian
 	rm -f rudder-agent.list
+	rm -f fetch-sources-stamp
 	rm -f build-sources-stamp
+	rm -f rudder-agent.make
 
-.PHONY: localdepends clean localclean veryclean build-sources
+veryclean:
+	# N/A
+
+.PHONY: localdepends localclean veryclean fetch-sources build-sources
