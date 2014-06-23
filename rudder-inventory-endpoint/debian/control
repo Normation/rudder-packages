@@ -8,7 +8,7 @@ Homepage: http://www.rudder-project.org
 
 Package: rudder-inventory-endpoint
 Architecture: all
-Depends: ${shlibs:Depends}, ${misc:Depends}, rudder-jetty (= ${binary:Version}), rudder-inventory-ldap (= ${binary:Version})
+Depends: ${shlibs:Depends}, ${misc:Depends}, rudder-jetty (= ${binary:Version}) | jetty | jetty8, rudder-inventory-ldap (= ${binary:Version})
 Description: Configuration management and audit tool - service to receive inventory data
  Rudder is an open source configuration management and audit solution.
  .

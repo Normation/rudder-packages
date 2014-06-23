@@ -87,18 +87,29 @@ Source10: rudder-init
 Source11: rudder-node-to-relay
 Source12: rudder-root-rename
 Source13: rudder-passwords.conf
+Source14: rudder-plugin
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
 
 BuildRequires: jdk >= 1.6
-Requires: rudder-jetty rudder-techniques ncf %{apache} %{apache_tools} git-core rsync openssl %{ldap_clients}
+Requires: rudder-techniques ncf %{apache} %{apache_tools} git-core rsync openssl %{ldap_clients}
 
 # We need the psql client so that we can run database checks and upgrades (rudder-upgrade, in particular)
 Requires: postgresql
 
+# Those jetty packages are virtual packages provided by our Jetty and the system one.
 %if 0%{?rhel}
-Requires: mod_ssl
+Requires: mod_ssl jetty-eclipse
+%endif
+
+%if 0%{?fedora}
+Requires: jetty-server
+%endif
+
+# No Jetty provided by SLES... Use our own.
+%if 0%{?sles}
+Requires: rudder-jetty
 %endif
 
 %description
@@ -141,9 +152,8 @@ mkdir -p %{buildroot}%{rudderdir}/etc/ssl/
 mkdir -p %{buildroot}%{rudderdir}/etc/plugins/
 mkdir -p %{buildroot}%{rudderdir}/etc/server-roles.d/
 mkdir -p %{buildroot}%{rudderdir}/bin/
-mkdir -p %{buildroot}%{rudderdir}/jetty7/webapps/
-mkdir -p %{buildroot}%{rudderdir}/jetty7/contexts/
-mkdir -p %{buildroot}%{rudderdir}/jetty7/rudder-plugins/
+mkdir -p %{buildroot}%{rudderdir}/share/webapps/
+mkdir -p %{buildroot}%{rudderdir}/share/rudder-plugins/
 mkdir -p %{buildroot}%{rudderdir}/share/tools
 mkdir -p %{buildroot}%{rudderdir}/share/plugins/
 mkdir -p %{buildroot}%{rudderdir}/share/upgrade-tools/
@@ -164,6 +174,7 @@ ln -sf %{rudderdir}/bin/rudder-init %{buildroot}%{rudderdir}/bin/rudder-init.sh
 
 cp %{SOURCE11} %{buildroot}%{rudderdir}/bin/
 cp %{SOURCE12} %{buildroot}%{rudderdir}/bin/
+cp %{SOURCE14} %{buildroot}%{rudderdir}/bin/
 
 cp %{SOURCE1} %{buildroot}%{rudderdir}/etc/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/ldap/bootstrap.ldif %{buildroot}%{rudderdir}/share/
@@ -172,7 +183,7 @@ cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/ldap/demo-
 cp %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/configuration.properties.sample %{buildroot}%{rudderdir}/etc/rudder-web.properties
 cp %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/logback.xml %{buildroot}%{rudderdir}/etc/
 
-cp %{_builddir}/rudder-sources/rudder/rudder-web/target/rudder-web*.war %{buildroot}%{rudderdir}/jetty7/webapps/rudder.war
+cp %{_builddir}/rudder-sources/rudder/rudder-web/target/rudder-web*.war %{buildroot}%{rudderdir}/share/webapps/rudder.war
 
 cp -rf %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/load-page %{buildroot}%{rudderdir}/share/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/test/resources/script/cfe-red-button.sh %{buildroot}%{rudderdir}/bin/
@@ -181,7 +192,9 @@ cp %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/rudder-apac
 cp %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/rudder-vhost.conf %{buildroot}/etc/%{apache_vhost_dir}/rudder-vhost.conf
 cp %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/rudder-vhost-ssl.conf %{buildroot}/etc/%{apache_vhost_dir}/rudder-vhost-ssl.conf
 cp %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/apache2-sysconfig %{buildroot}/etc/sysconfig/rudder-apache
-cp %{SOURCE2} %{buildroot}%{rudderdir}/jetty7/contexts/
+
+install -m 644 %{SOURCE2} %{buildroot}%{rudderdir}/share/webapps/
+
 cp %{SOURCE3} %{buildroot}%{rudderdir}/etc/
 
 # Install upgrade tools
@@ -332,6 +345,11 @@ if [ ! -d /var/rudder/configuration-repository/ncf ]; then
 	ncf init /var/rudder/configuration-repository/ncf
 fi
 
+# Create a symlink to the Jetty context if necessary
+if [ -d "%{rudderdir}/jetty7/contexts" ]; then
+  ln -sf %{rudderdir}/share/webapps/rudder.xml %{rudderdir}/jetty7/contexts/rudder.xml
+fi
+
 # Warn the user that Jetty needs restarting. This can't be done automatically due to a bug in Jetty's init script.
 # See http://www.rudder-project.org/redmine/issues/2807
 echo "********************************************************************************"
@@ -364,9 +382,8 @@ rm -rf %{buildroot}
 %{rudderdir}/bin/rudder-init
 %{rudderdir}/bin/rudder-init.sh
 %{rudderdir}/bin/rudder-root-rename
-%{rudderdir}/jetty7/webapps/
-%{rudderdir}/jetty7/rudder-plugins/
-%{rudderdir}/jetty7/contexts/rudder.xml
+%{rudderdir}/share/webapps/
+%{rudderdir}/share/rudder-plugins/
 %{rudderdir}/share
 %{ruddervardir}/inventories/accepted-nodes-updates
 %{ruddervardir}/inventories/incoming

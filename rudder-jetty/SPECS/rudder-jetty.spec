@@ -57,7 +57,6 @@ Source3: rudder-jetty.conf
 Source4: rudder-jetty
 
 Patch1: jetty-init-sles.patch
-Patch2: jetty-init-rudder.patch
 
 # Prevent rpmbuild to use 64 bits libraries just because of the presence
 # of one 64 bits binary in the jetty archive.
@@ -87,6 +86,16 @@ Requires: java-1.7.0-openjdk
 %if 0%{!?rhel}
 Requires: jre >= 1.6
 %endif
+
+# We are providing Jetty, but the name of the provided element depends of the
+# OS flavour.
+
+
+%if 0%{?rhel} || 0%{?fedora}
+Provides: jetty-eclipse jetty-server
+%endif
+
+# No Jetty provided by SLES...
 
 %description
 Rudder is an open source configuration management and audit solution.

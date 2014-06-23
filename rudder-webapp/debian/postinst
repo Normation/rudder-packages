@@ -109,6 +109,11 @@ case "$1" in
 	fi
 
 
+  # Create a symlink to the Jetty context if necessary
+  if [ -d "/opt/rudder/jetty7/contexts" ]; then
+    ln -sf /opt/rudder/share/webapps/rudder.xml /opt/rudder/jetty7/contexts/rudder.xml
+  fi
+
   # Restart the webapp
   echo -n "INFO: Restarting Rudder webapp and inventory-endpoint..."
   if [ /etc/init.d/rudder-jetty check >/dev/null 2>&1 ];then
