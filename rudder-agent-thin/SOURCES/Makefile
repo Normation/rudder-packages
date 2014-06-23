@@ -26,7 +26,11 @@ PATCH := /usr/bin/patch
 localdepends: ./rudder-agent.make build-sources
 
 rudder-agent.make:
+	# Clean up rudder-agent sources first
 	cd ../../rudder-agent/SOURCES && make localclean
+	# Make sure the debian/changelog is pristine
+	cd ../../rudder-agent/debian && git checkout changelog
+	# Get everything from rudder-agent, excluding perl thingies and Makefile
 	rsync --exclude=Makefile --exclude=filter-reqs.pl --exclude=perl-prepare.sh --exclude=rudder-perl --out-format='%n' -a ../../rudder-agent/ ../ | grep -v '^.*/$$' > rudder-agent.list
 	cp -f ../../rudder-agent/SOURCES/Makefile ./rudder-agent.make
 
