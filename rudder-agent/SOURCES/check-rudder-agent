@@ -17,10 +17,13 @@
 #
 #####################################################################################
 
-set -e
-
 # Source /etc/profile to gather environment variables from the system and the user
 . /etc/profile
+
+# /etc/profile may contain some errors and sourcing it would lead to abort
+# the execution of check-rudder-agent. Then, the use of "set -e" should be
+# after the sourcing.
+set -e
 
 # Ensure our PATH includes Rudder's bin dir (for uuidgen on AIX in particular)
 export PATH=/opt/rudder/bin/:$PATH
