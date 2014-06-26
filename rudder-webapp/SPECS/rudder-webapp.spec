@@ -88,6 +88,8 @@ Source11: rudder-node-to-relay
 Source12: rudder-root-rename
 Source13: rudder-passwords.conf
 Source14: rudder-plugin
+Source15: ncf-hooks.d/post.write_technique.commit.sh
+Source16: ncf-hooks.d/post.write_technique.rudderify.sh
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
@@ -161,6 +163,7 @@ mkdir -p %{buildroot}%{ruddervardir}/inventories/incoming
 mkdir -p %{buildroot}%{ruddervardir}/inventories/accepted-nodes-updates
 mkdir -p %{buildroot}%{ruddervardir}/inventories/received
 mkdir -p %{buildroot}%{ruddervardir}/inventories/failed
+mkdir -p %{buildroot}%{ruddervardir}/configuration-repository/ncf/ncf-hooks.d
 mkdir -p %{buildroot}%{rudderlogdir}/apache2/
 mkdir -p %{buildroot}/etc/%{apache_vhost_dir}/
 mkdir -p %{buildroot}/etc/sysconfig/
@@ -214,6 +217,9 @@ cp %{SOURCE6} %{buildroot}%{rudderdir}/bin/
 
 install -m 644 %{SOURCE7} %{buildroot}/opt/rudder/etc/server-roles.d/
 cp %{SOURCE13} %{buildroot}%{rudderdir}/etc/
+
+install -m 755 %{SOURCE15} %{buildroot}%{ruddervardir}/configuration-repository/ncf/ncf-hooks.d
+install -m 755 %{SOURCE16} %{buildroot}%{ruddervardir}/configuration-repository/ncf/ncf-hooks.d
 
 # Install documentation
 cp -rf %{_builddir}/rudder-doc/pdf %{buildroot}/usr/share/doc/rudder
@@ -389,6 +395,7 @@ rm -rf %{buildroot}
 %{ruddervardir}/inventories/incoming
 %{ruddervardir}/inventories/received
 %{ruddervardir}/inventories/failed
+%{ruddervardir}/configuration-repository/ncf/ncf-hooks.d
 %{rudderlogdir}/apache2/
 /etc/%{apache_vhost_dir}/
 %config(noreplace) %{rudderdir}/etc/rudder-apache-common.conf
