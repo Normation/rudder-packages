@@ -29,7 +29,7 @@ case "$1" in
 		if [ $LDAPCHK -eq 0 ]; then
 			echo "************************************************************"
 			echo "Rudder is now installed but not configured."
-			echo "Please run /opt/rudder/bin/rudder-init.sh"
+			echo "Please run /opt/rudder/bin/rudder-init"
 			echo "************************************************************"
 		fi
     ;;
