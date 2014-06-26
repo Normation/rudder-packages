@@ -14,6 +14,6 @@ Description: ncf - CFEngine framework
  ncf is a CFEngine framework aimed at helping newcomers on CFEngine
  to be more quickly operationnal and old timers to spend less time
  focusing on low level details and have more time for fun things.
-
+ .
  This package provides a Python virtual environment to make the use
  of the ncf API easier.
