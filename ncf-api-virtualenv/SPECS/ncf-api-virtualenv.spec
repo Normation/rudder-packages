@@ -35,6 +35,18 @@
 # Where should the package contents be installed
 %define installdir       /usr/share/%{real_name}
 
+# Define Apache virtualhost directory
+
+## RHEL / Fedora
+%if 0%{?rhel} || 0%{?fedora}
+%define apache_vhost_dir    /etc/httpd/conf.d
+%endif
+
+## SLES
+%if 0%{?sles}
+%define apache_vhost_dir    /etc/apache2/conf.d
+%endif
+
 #=================================================
 # Header
 #=================================================
@@ -50,6 +62,7 @@ URL: http://www.ncf.io
 Group: Applications/System
 
 Source1: ncf_api_flask_app.wsgi
+Source2: ncf-api-virtualenv.conf
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
@@ -61,6 +74,18 @@ AutoProv: 0
 
 # Add Requires here - order is important
 Requires: python ncf
+
+# We need mod_wsgi to use ncf builder
+
+## RHEL & Fedora
+%if 0%{?rhel} || 0%{?fedora}
+Requires: httpd mod_wsgi
+%endif
+
+## SLES
+%if 0%{?sles}
+Requires: apache2 apache2-mod_wsgi
+%endif
 
 %description
 ncf is a CFEngine framework aimed at helping newcomers on CFEngine
@@ -111,12 +136,14 @@ rm -rf %{buildroot}
 # Directories
 
 mkdir -p %{buildroot}%{installdir}/
+mkdir -p %{buildroot}%{apache_vhost_dir}/
 
 # Files
 
 cp -r %{real_name}/* %{buildroot}%{installdir}/
 
 install -m 644 %{SOURCE1} %{buildroot}%{installdir}/
+install -m 644 %{SOURCE2} %{buildroot}%{apache_vhost_dir}/
 
 %pre -n ncf-api-virtualenv
 #=================================================
@@ -128,6 +155,19 @@ install -m 644 %{SOURCE1} %{buildroot}%{installdir}/
 # Post Installation
 #=================================================
 
+%if 0%{?rhel} || 0%{?fedora}
+# EL-based systems enable the WSGI module for apache
+# automatically, nothing to do here :)
+%endif
+
+%if 0%{?sles}
+# Enable mod_wsgi using a2enmod
+a2enmod wsgi >/dev/null 2>&1
+
+echo -n "INFO: Restarting Apache HTTPd..."
+service apache2 restart >/dev/null 2>&1
+echo " Done"
+%endif
 
 #=================================================
 # Cleaning
@@ -141,6 +181,7 @@ rm -rf %{buildroot}
 %files -n ncf-api-virtualenv
 %defattr(-, root, root, 0755)
 %{installdir}/
+%config(noreplace) %{buildroot}%{apache_vhost_dir}/%{SOURCE2}
 
 #=================================================
 # Changelog

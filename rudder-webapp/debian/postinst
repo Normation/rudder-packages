@@ -30,6 +30,7 @@ case "$1" in
 
   SITES_TO_DISABLE="default rudder-default rudder-default-ssl"
   SITES_TO_ENABLE="rudder-vhost rudder-vhost-ssl"
+
   MODULES_TO_ENABLE="dav_fs rewrite proxy_http headers ssl"
 
   for dissite in ${SITES_TO_DISABLE}
