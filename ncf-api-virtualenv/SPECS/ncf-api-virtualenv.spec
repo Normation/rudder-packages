@@ -73,6 +73,7 @@ AutoReq: 0
 AutoProv: 0
 
 # Add Requires here - order is important
+BuildRequires: python
 Requires: python ncf
 
 # We need mod_wsgi to use ncf builder
