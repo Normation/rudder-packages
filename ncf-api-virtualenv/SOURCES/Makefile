@@ -21,16 +21,17 @@
 RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
 
 TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX)
+WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget -q
 
 localdepends: ./rudder-sources
 	# N/A
 
 ./rudder-sources.tar.bz2:
-        $(WGET) -O rudder-sources.tar.bz2 http://www.rudder-project.org/archives/rudder-sources-${RUDDER_VERSION_TO_PACKAGE}.tar.bz2
+	$(WGET) -O rudder-sources.tar.bz2 http://www.rudder-project.org/archives/rudder-sources-${RUDDER_VERSION_TO_PACKAGE}.tar.bz2
 
 ./rudder-sources: ./rudder-sources.tar.bz2
-        tar -xjf rudder-sources.tar.bz2
-        mv rudder-sources-*/ rudder-sources/
+	tar -xjf rudder-sources.tar.bz2
+	mv rudder-sources-*/ rudder-sources/
 
 localclean:
 	rm -rf rudder-sources
