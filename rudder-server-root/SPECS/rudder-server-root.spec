@@ -58,8 +58,7 @@ Requires: rudder-jetty, rudder-webapp, rudder-inventory-endpoint, rudder-invento
 Rudder is an open source configuration management and audit solution.
 
 This package is essentially a meta-package to install all components required to
-run a Rudder root server on one machine. It also installs some required files.
-(rudder-init, rudder-root-rename, rudder-node-to-relay and uuid to root)
+run a Rudder root server on one machine.
 
 #=================================================
 # Source preparation
