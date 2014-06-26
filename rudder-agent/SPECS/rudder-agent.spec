@@ -436,7 +436,7 @@ if [ ${NB_COPIED_BINARIES} -gt 0 ];then echo "CFEngine binaries copied to workdi
 # Set up initial promises if necessary
 
 # Backup rudder-server-roles.conf
-if [ -e /var/rudder/cfengine-community/inputs/rudder-server-roles.conf ]
+if [ ! -e /var/rudder/cfengine-community/inputs/rudder-server-roles.conf ]
 then
   mkdir -p /var/backups/rudder
   cp -a /var/rudder/cfengine-community/inputs/rudder-server-roles.conf /var/backups/rudder/
