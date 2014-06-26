@@ -88,6 +88,7 @@ binary-arch: install
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-networks.conf /opt/rudder/etc/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-passwords.conf /opt/rudder/etc/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-webapp /opt/rudder/etc/server-roles.d/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ ncf-hooks.d /var/rudder/configuration-repository/ncf/
 
 	# Install upgrade tools
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ dbMigration-2.4-2.4-set-migration-needed-flag-for-EventLog.sql /opt/rudder/share/upgrade-tools/
