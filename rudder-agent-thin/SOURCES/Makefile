@@ -59,7 +59,7 @@ build-sources-stamp: fetch-sources-stamp rudder-agent.make
 
 localclean: rudder-agent.make
 	$(MAKE) -f rudder-agent.make localclean
-	xargs -a rudder-agent.list -d'\n' -I file rm -f ../file
+	xargs -a rudder-agent.list -d'\n' -I file rm -f ../file || echo "No rudder-agent.list, skipping rsync'ed files cleanup."
 	rm -rf ../SPECS ../debian
 	rm -f rudder-agent.list
 	rm -f fetch-sources-stamp
