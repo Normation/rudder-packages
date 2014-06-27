@@ -43,7 +43,7 @@
 %endif
 
 ## SLES
-%if 0%{?sles}
+%if 0%{?sles_version}
 %define apache_vhost_dir    /etc/apache2/conf.d
 %endif
 
@@ -84,7 +84,7 @@ Requires: httpd mod_wsgi
 %endif
 
 ## SLES
-%if 0%{?sles}
+%if 0%{?sles_version}
 Requires: apache2 apache2-mod_wsgi
 %endif
 
@@ -113,7 +113,7 @@ cd %{_sourcedir}
 python virtualenv.py %{real_name}
 
 ## SLES
-%if 0%{?sles}
+%if 0%{?sles_version}
 # Using a recent pip on SLES is not possible due to
 # bad interaction between pip and an old OpenSSL.
 # See http://stackoverflow.com/questions/17416938/pip-can-not-install-anything
@@ -169,7 +169,7 @@ install -m 644 %{SOURCE2} %{buildroot}%{apache_vhost_dir}/
 # automatically, nothing to do here :)
 %endif
 
-%if 0%{?sles}
+%if 0%{?sles_version}
 # Enable mod_wsgi using a2enmod
 a2enmod wsgi >/dev/null 2>&1
 
