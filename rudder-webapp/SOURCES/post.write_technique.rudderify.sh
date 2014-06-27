@@ -22,9 +22,12 @@
 # It generates techniques files usable by Rudder, commit them in Tehcniques folder and reload the technique library
 #
 
-DESTINATION_PATH=$1
+# Variables
 
+DESTINATION_PATH=$1
 TECHNIQUE=$2
+
+# Main
 
 /usr/share/ncf/tools/ncf_rudder.py rudderify_technique /var/rudder/configuration-repository/techniques/ncf_techniques $TECHNIQUE
 
