@@ -83,6 +83,7 @@ Source3: rudder-networks.conf
 Source5: rudder-upgrade
 Source6: rudder-upgrade-database
 Source7: rudder-webapp
+Source8: rudder-web
 Source10: rudder-init
 Source11: rudder-node-to-relay
 Source12: rudder-root-rename
