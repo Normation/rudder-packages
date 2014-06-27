@@ -80,7 +80,7 @@ Requires: jetty-server
 %endif
 
 # No Jetty provided by SLES... Use our own.
-%if 0%{?sles}
+%if 0%{?sles_version}
 Requires: rudder-jetty
 %endif
 
