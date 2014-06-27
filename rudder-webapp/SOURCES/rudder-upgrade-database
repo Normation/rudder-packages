@@ -158,19 +158,18 @@ function migrate_table {
     echo " Done."
 
     echo -n "Renaming the old tables, and recreating new ones with proper id format..."
-    psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-change-ids-in-tables.sql > /dev/null
+    psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-change-ids-in-tables.sql > /dev/null 2>&1
     echo " Done"
 
     echo -n "Restarting the Rudder web interface..."
-    /etc/init.d/rudder-jetty start > /dev/null || echo "WARNING: Jetty failed to start. Skipping..."
+    /etc/init.d/rudder-jetty start > /dev/null 2>&1 || echo "WARNING: Jetty failed to start. Skipping..."
     echo " Done."
 
   fi
   migrate_reports
 }
 
-
-echo -n "Checking the database..."
+echo -n "Checking the database... "
 INT_USED=$(su - postgres -c "psql -t -d rudder -c \"select count(*) from information_schema.columns where table_name='ruddersysevents' and column_name='id' and data_type='integer';\"")
 OLD_CREATED=$(su - postgres -c "psql -t -d rudder -c \"select count(*) from information_schema.tables where table_name='ruddersysevents_old';\"")
 
