@@ -112,6 +112,14 @@ cd %{_sourcedir}
 # Build Virtualenv
 python virtualenv.py %{real_name}
 
+## SLES
+%if 0%{?sles}
+# Using a recent pip on SLES is not possible due to
+# bad interaction between pip and an old OpenSSL.
+# See http://stackoverflow.com/questions/17416938/pip-can-not-install-anything
+%{real_name}/bin/easy_install pip==1.2.1
+%endif
+
 # Get all requirements via pip
 %{real_name}/bin/pip install -r %{_sourcedir}/rudder-sources/ncf/api/requirements.txt
 
