@@ -18,6 +18,7 @@ var/rudder/inventories/incoming
 var/rudder/inventories/received
 var/rudder/inventories/failed
 var/rudder/inventories/historical
+var/rudder/configuration-repository/ncf/ncf-hooks.d
 var/log/rudder/apache2
 var/log/rudder/ldap
 var/log/rudder/reports

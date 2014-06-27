@@ -1,3 +1,4 @@
+#!/bin/sh
 #####################################################################################
 # Copyright 2014 Normation SAS
 #####################################################################################
@@ -16,31 +17,21 @@
 #
 #####################################################################################
 
-.DEFAULT_GOAL := localdepends
+#
+# That hook is designed to be run just after a technique wwas created or modified
+# It generates techniques files usable by Rudder, commit them in Tehcniques folder and reload the technique library
+#
 
-RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
+DESTINATION_PATH=$1
 
-TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX)
-WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget -q
+TECHNIQUE=$2
 
-localdepends: ./rudder-sources
-	# N/A
+/usr/share/ncf/tools/ncf_rudder.py rudderify_technique /var/rudder/configuration-repository/techniques/ncf_techniques $TECHNIQUE
 
-./rudder-sources.tar.bz2:
-	$(WGET) -O rudder-sources.tar.bz2 http://www.rudder-project.org/archives/rudder-sources-${RUDDER_VERSION_TO_PACKAGE}.tar.bz2
+cd /var/rudder/configuration-repository/techniques/
 
-./rudder-sources: ./rudder-sources.tar.bz2
-	tar -xjf rudder-sources.tar.bz2
-	mv rudder-sources-*/ rudder-sources/
+git add ncf_techniques/$TECHNIQUE
 
-localclean:
-	rm -rf rudder-sources
-	rm -f virtualenv.pyc
-	rm -rf ncf-api-virtualenv
+git commit -m "Commit meta techniques $TECHNIQUE"
 
-veryclean:
-	rm -f rudder-sources.tar.bz2
-
-clean: localclean veryclean
-
-.PHONY: localclean localdepends clean veryclean
+curl -X GET "http://localhost/rudder/api/techniqueLibrary/reload" 

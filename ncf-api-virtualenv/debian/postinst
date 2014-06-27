@@ -1,5 +1,5 @@
 #!/bin/sh
-# postinst script for rudder-server-root
+# postinst script for ncf-api-virtualenv
 #
 # see: dh_installdeb(1)
 
@@ -17,21 +17,16 @@ set -e
 # for details, see http://www.debian.org/doc/debian-policy/ or
 # the debian-policy package
 
-
 case "$1" in
     configure)
-		# This package is only installed by the root server
-		# then we can set UUID to 'root' serenly
-		echo 'root' > /opt/rudder/etc/uuid.hive
 
-		# Check if Rudder LDAP has already been initialize previously
-		LDAPCHK=`/opt/rudder/sbin/slapcat  | grep "^dn: " | wc -l`
-		if [ $LDAPCHK -eq 0 ]; then
-			echo "************************************************************"
-			echo "Rudder is now installed but not configured."
-			echo "Please run /opt/rudder/bin/rudder-init"
-			echo "************************************************************"
-		fi
+      # Enable mod_wsgi in apache
+      a2enmod wsgi >/dev/null 2>&1
+
+      echo -n "INFO: Restarting Apache HTTPd..."
+      service apache2 restart >/dev/null 2>&1
+      echo " Done"
+
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
