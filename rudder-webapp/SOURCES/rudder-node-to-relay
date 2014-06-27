@@ -100,6 +100,9 @@ PSQL="psql -q -h ${SQL_SERVER} -p ${SQL_PORT} -U ${SQL_USER}"
 ## Delete the old entries
 #######################################################################################################################
 
+# We need to read the actual UUID from LDAP to make sure we get the same case. LDAP is insensitive to this, but the
+# Rudder web interface will misbehave if the wrong case is used
+RELAY_UUID=$(${LDAPSEARCH} -s base -b "nodeId=${RELAY_UUID},ou=Nodes,ou=Accepted Inventories,ou=Inventories,cn=rudder-configuration" nodeId 2>/dev/null | grep "^nodeId:" | sed 's%nodeId: %%' || true)
 EXISTING_NODEID=$(${LDAPSEARCH} -s base -b "nodeGroupId=hasPolicyServer-${RELAY_UUID},groupCategoryId=SystemGroups,groupCategoryId=GroupRoot,ou=Rudder,cn=rudder-configuration" nodeId 2>/dev/null | grep "^nodeId:" || true)
 EXISTING_NETWORKS=$(${LDAPSEARCH} -s base -b "directiveId=common-root,activeTechniqueId=common,techniqueCategoryId=Rudder Internal,techniqueCategoryId=Active Techniques,ou=Rudder,cn=rudder-configuration" directiveVariable 2>/dev/null | grep "^directiveVariable: ALLOWEDNETWORK\[" || true)
 EXISTING_TYPE=$(${LDAPSEARCH} -s base -b "nodeId=${RELAY_UUID},ou=Nodes,cn=rudder-configuration" isSystem 2>/dev/null | grep "^isSystem:" || true)
