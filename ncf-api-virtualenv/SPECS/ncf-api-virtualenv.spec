@@ -190,7 +190,7 @@ rm -rf %{buildroot}
 %files -n ncf-api-virtualenv
 %defattr(-, root, root, 0755)
 %{installdir}/
-%config(noreplace) %{buildroot}%{apache_vhost_dir}/%{SOURCE2}
+%config(noreplace) %{apache_vhost_dir}/ncf-api-virtualenv.conf
 
 #=================================================
 # Changelog
