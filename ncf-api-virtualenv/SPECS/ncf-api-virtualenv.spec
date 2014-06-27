@@ -141,7 +141,7 @@ mkdir -p %{buildroot}%{apache_vhost_dir}/
 
 # Files
 
-cp -r %{real_name}/* %{buildroot}%{installdir}/
+cp -r %{_sourcedir}/%{real_name}/* %{buildroot}%{installdir}/
 
 install -m 644 %{SOURCE1} %{buildroot}%{installdir}/
 install -m 644 %{SOURCE2} %{buildroot}%{apache_vhost_dir}/
