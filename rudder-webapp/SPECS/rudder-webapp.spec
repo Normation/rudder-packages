@@ -83,6 +83,7 @@ Source3: rudder-networks.conf
 Source5: rudder-upgrade
 Source6: rudder-upgrade-database
 Source7: rudder-webapp
+Source8: rudder-web
 Source10: rudder-init
 Source11: rudder-node-to-relay
 Source12: rudder-root-rename
@@ -114,7 +115,7 @@ Requires: jetty-server
 
 ## SLES
 ## No Jetty provided by SLES... Use our own.
-%if 0%{?sles}
+%if 0%{?sles_version}
 Requires: rudder-jetty
 %endif
 
