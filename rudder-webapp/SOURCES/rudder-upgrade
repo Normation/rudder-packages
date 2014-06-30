@@ -566,11 +566,11 @@ check_and_add_config_property rudder.debug.nodeconfiguration.path "#
 rudder.debug.nodeconfiguration.path=/var/log/rudder/nodeConfigurations"
 
 # - 2.11.0 : Add properties to define the role of servers
-check_and_add_config_property rudder.server-roles.webapp "
+check_and_add_config_property rudder.server-roles.web "
 #
 # Rudder roles definition
 #
-# Allow to define which hosts have the roles ldap, db and front when
+# Allow to define which hosts have the roles ldap, db and relay-top when
 # using a split architecture of Rudder
 # The file containing the roles will be generated in:
 # /var/rudder/configuration-repository/inputs/rudder-server-roles.conf
@@ -589,11 +589,11 @@ rudder.server-roles.inventory-endpoint=autodetect
 # The hosts with the db role
 rudder.server-roles.db=autodetect
 
-# The hosts with the front role
-rudder.server-roles.front=autodetect
+# The hosts with the relay-top role
+rudder.server-roles.relay-top=autodetect
 
 # The hosts with the webapp role
-rudder.server-roles.webapp=autodetect"
+rudder.server-roles.web=autodetect"
 
 
 # For every upgrade, we force the root server to run a new inventory on the next CFEngine run
