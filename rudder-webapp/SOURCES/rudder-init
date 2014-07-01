@@ -265,7 +265,7 @@ do
     NET=$(echo $i | sed $REGEXP)
     NET2="'$NET'"
   else
-    NET="$NET\ndirectiveVariable: ALLOWEDNETWORK[$cpt2]: $(echo $i | sed $REGEXP)"
+    NET="$NET\ndirectiveVariable: ALLOWEDNETWORK[$cpt2]:$(echo $i | sed $REGEXP)"
     NET2="$NET2, '$(echo $i | sed $REGEXP)'"
   fi
   ((cpt2++))

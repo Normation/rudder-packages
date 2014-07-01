@@ -35,6 +35,9 @@
 # Where should the package contents be installed
 %define installdir       /usr/share/%{real_name}
 
+# The username to create
+%define user_name        ncf-api-venv
+
 # Define Apache virtualhost directory
 
 ## RHEL / Fedora
@@ -80,12 +83,12 @@ Requires: python ncf
 
 ## RHEL & Fedora
 %if 0%{?rhel} || 0%{?fedora}
-Requires: httpd mod_wsgi
+Requires: httpd mod_wsgi shadow-utils
 %endif
 
 ## SLES
 %if 0%{?sles_version}
-Requires: apache2 apache2-mod_wsgi
+Requires: apache2 apache2-mod_wsgi pwdutils
 %endif
 
 %description
@@ -154,15 +157,17 @@ cp -r %{_sourcedir}/%{real_name}/* %{buildroot}%{installdir}/
 install -m 644 %{SOURCE1} %{buildroot}%{installdir}/
 install -m 644 %{SOURCE2} %{buildroot}%{apache_vhost_dir}/
 
-%pre -n ncf-api-virtualenv
-#=================================================
-# Pre Installation
-#=================================================
-
 %post -n ncf-api-virtualenv
 #=================================================
 # Post Installation
 #=================================================
+
+# Create the package user
+if ! getent passwd %{user_name} >/dev/null; then
+  echo -n "INFO: Creating the %{user_name} user..."
+  useradd -r -m -d /var/lib/%{user_name} -c "ncf API,,," %{user_name} >/dev/null 2>&1
+  echo " Done"
+fi
 
 %if 0%{?rhel} || 0%{?fedora}
 # EL-based systems enable the WSGI module for apache
@@ -177,6 +182,21 @@ echo -n "INFO: Restarting Apache HTTPd..."
 service apache2 restart >/dev/null 2>&1
 echo " Done"
 %endif
+
+%postun -n ncf-api-virtualenv
+#=================================================
+# Post Uninstallation
+#=================================================
+
+# Do it only during uninstallation
+if [ $1 -eq 0 ]; then
+  # Remove the package user
+  if getent passwd %{user_name} >/dev/null; then
+    echo -n "INFO: Removing the %{user_name} user..."
+    userdel %{user_name} >/dev/null 2>&1
+    echo " Done"
+  fi
+fi
 
 #=================================================
 # Cleaning

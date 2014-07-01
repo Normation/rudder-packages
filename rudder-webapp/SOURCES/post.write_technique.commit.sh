@@ -22,10 +22,11 @@
 # Its goal is to commit the newly created technique with ncf-api to configuration-repository
 #
 
-
+# Variables
 DESTINATION_PATH=$1
-
 TECHNIQUE=$2
+
+# Main
 
 cd /var/rudder/configuration-repository
 
