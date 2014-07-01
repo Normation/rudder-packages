@@ -617,13 +617,20 @@ rm -f %{_builddir}/file.list.%{name}
 # Files from %{rudderdir} and %{ruddervardir} are automatically added via the -f option
 %files -n rudder-agent -f %{_builddir}/file.list.%{name}
 %defattr(-, root, root, 0755)
-%config(noreplace) %{rudderdir}/etc/uuid.hive
+
+# The following file is declared to belong to this package but will not be installed
+# This is because it is populated during post-inst scriptlet
+# This is not reflected in debian packaging, because dpkg will never replace an
+# existing file declared in conffiles
+%ghost %{rudderdir}/etc/uuid.hive
+
 %if "%{?_os}" != "aix"
 /etc/profile.d/rudder-agent.sh
 /etc/init.d/rudder-agent
 /etc/default/rudder-agent
 /etc/cron.d/rudder-agent
 %endif
+
 %attr(0600, -, -) %dir %{ruddervardir}/cfengine-community/ppkeys
 %dir %{ruddervardir}/cfengine-community/bin
 %dir %{ruddervardir}/cfengine-community/inputs
