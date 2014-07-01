@@ -27,41 +27,43 @@
 #=================================================
 # Variables
 #=================================================
-%define real_name        rudder-webapp
+%define real_name               rudder-webapp
 
-%define rudderdir        /opt/rudder
-%define ruddervardir     /var/rudder
-%define rudderlogdir     /var/log/rudder
-%define sharedir         /usr/share
+%define rudderdir               /opt/rudder
+%define ruddervardir            /var/rudder
+%define rudderlogdir            /var/log/rudder
+%define sharedir                /usr/share
+
+%define config_repository_group rudder
 
 %define maven_settings settings-external.xml
 
 %if 0%{?sles_version}
-%define apache              apache2
-%define apache_tools        apache2-utils
-%define apache_group        www
-%define htpasswd_cmd        htpasswd2
-%define sysloginitscript    /etc/init.d/syslog
-%define apache_vhost_dir    %{apache}/vhosts.d
-%define ldap_clients        openldap2-client
+%define apache                  apache2
+%define apache_tools            apache2-utils
+%define apache_group            www
+%define htpasswd_cmd            htpasswd2
+%define sysloginitscript        /etc/init.d/syslog
+%define apache_vhost_dir        %{apache}/vhosts.d
+%define ldap_clients            openldap2-client
 %endif
 %if 0%{?el5}
-%define apache              httpd
-%define apache_tools        httpd-tools
-%define apache_group        apache
-%define htpasswd_cmd        htpasswd
-%define sysloginitscript    /etc/init.d/syslog
-%define apache_vhost_dir    %{apache}/conf.d
-%define ldap_clients        openldap-clients
+%define apache                  httpd
+%define apache_tools            httpd-tools
+%define apache_group            apache
+%define htpasswd_cmd            htpasswd
+%define sysloginitscript        /etc/init.d/syslog
+%define apache_vhost_dir        %{apache}/conf.d
+%define ldap_clients            openldap-clients
 %endif
 %if 0%{?el6}
-%define apache              httpd
-%define apache_tools        httpd-tools
-%define apache_group        apache
-%define htpasswd_cmd        htpasswd
-%define sysloginitscript    /etc/init.d/rsyslog
-%define apache_vhost_dir    %{apache}/conf.d
-%define ldap_clients        openldap-clients
+%define apache                  httpd
+%define apache_tools            httpd-tools
+%define apache_group            apache
+%define htpasswd_cmd            htpasswd
+%define sysloginitscript        /etc/init.d/rsyslog
+%define apache_vhost_dir        %{apache}/conf.d
+%define ldap_clients            openldap-clients
 %endif
 
 #=================================================
@@ -272,6 +274,24 @@ then
 		ncf init /var/rudder/configuration-repository/ncf
 fi
 
+# Create the configuration-repository group if it does not exist
+if ! getent group %{config_repository_group} > /dev/null; then
+  echo -n "INFO: Creating group %{config_repository_group}..."
+  addgroup --system %{config_repository_group}
+  echo " Done"
+fi
+
+# Add the ncf-api-venv user to this group
+if ! getent group %{config_repository_group} | grep -q ncf-api-venv > /dev/null; then
+  echo -n "INFO: Adding ncf-api-venv to the %{config_repository_group} group..."
+  usermod -a -G %{config_repository_group} ncf-api-venv
+  echo " Done"
+fi
+
+# Adjust permissions on /var/rudder/configuration-repository
+chgrp -R %{config_repository_group} /var/rudder/configuration-repository
+chmod -R 2775 /var/rudder/configuration-repository
+
 # Add required includes in the SLES apache2 configuration
 %if 0%{?sles_version}
 if ! grep -qE "^. /etc/sysconfig/rudder-apache$" /etc/sysconfig/apache2
@@ -368,6 +388,21 @@ echo "rudder-webapp has been upgraded, but for the upgrade to take effect, pleas
 echo "restart the jetty application server as follows:"
 echo "# /sbin/service rudder-jetty restart"
 echo "********************************************************************************"
+
+%postun -n rudder-webapp
+#=================================================
+# Post Uninstallation
+#=================================================
+
+# Do it only during uninstallation
+if [ $1 -eq 0 ]; then
+  if getent group %{config_repository_group} > /dev/null; then
+    # Remove the configuration-repository group
+    echo -n "INFO: Removing group %{config_repository_group}..."
+    delgroup %{config_repository_group}
+    echo " Done"
+  fi
+fi
 
 #=================================================
 # Cleaning
