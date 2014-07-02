@@ -97,6 +97,20 @@ case "$1" in
 		ncf init /var/rudder/configuration-repository/ncf
 	fi
 
+  # Go into configuration-repository to manage git
+  cd /var/rudder/configuration-repository
+  # Initialize git repository if it is missing, so permissions can be set on it afterwards
+  if [ ! -d /var/rudder/configuration-repository/.git ]; then
+    git init --shared=group
+    git add .
+    git commit -m "initial commit"
+  else
+    # Set shared repository value to group if not set
+    if ! git config core.sharedRepository >/dev/null 2>&1; then
+      git config core.sharedRepository group
+    fi
+  fi
+
   # Create the configuration-repository group if it does not exist
   if ! getent group rudder > /dev/null; then
     echo -n "INFO: Creating group rudder..."
