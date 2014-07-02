@@ -26,12 +26,23 @@
 
 DESTINATION_PATH=$1
 TECHNIQUE=$2
+CATEGORY_PATH=ncf_techniques/category.xml
 
 # Main
 
 /usr/share/ncf/tools/ncf_rudder.py rudderify_technique /var/rudder/configuration-repository/techniques/ncf_techniques $TECHNIQUE
 
 cd /var/rudder/configuration-repository/techniques/
+
+# If a non-zero file exists on the filesystem...
+if [ -s "${CATEGORY_PATH}" ]; then
+  #... and is not already added in git, add it
+  HANDLED_BY_GIT=`git ls-tree -r master --name-only | grep "${CATEGORY_PATH}" | wc -l`
+  if [ ${HANDLED_BY_GIT} -eq 0 ];then
+    git add ncf_techniques/category.xml
+  fi
+fi
+
 
 git add ncf_techniques/$TECHNIQUE
 
