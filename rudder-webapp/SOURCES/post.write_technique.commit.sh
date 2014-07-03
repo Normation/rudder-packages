@@ -28,6 +28,8 @@ TECHNIQUE=$2
 
 # Main
 
+umask 007
+
 cd /var/rudder/configuration-repository
 
 git add ncf/50_techniques/$TECHNIQUE
