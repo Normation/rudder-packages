@@ -288,10 +288,6 @@ if ! getent group %{config_repository_group} | grep -q ncf-api-venv > /dev/null;
   echo " Done"
 fi
 
-# Adjust permissions on /var/rudder/configuration-repository
-chgrp -R %{config_repository_group} /var/rudder/configuration-repository
-chmod -R 2775 /var/rudder/configuration-repository
-
 # Add required includes in the SLES apache2 configuration
 %if 0%{?sles_version}
 if ! grep -qE "^. /etc/sysconfig/rudder-apache$" /etc/sysconfig/apache2
@@ -375,6 +371,24 @@ fi
 if [ ! -d /var/rudder/configuration-repository/ncf ]; then
 	ncf init /var/rudder/configuration-repository/ncf
 fi
+
+# Go into configuration-repository to manage git
+cd /var/rudder/configuration-repository
+# Initialize git repository if it is missing, so permissions can be set on it afterwards
+if [ ! -d /var/rudder/configuration-repository/.git ]; then
+  git init --shared=group
+  git add .
+  git commit -m "initial commit"
+else
+  # Set shared repository value to group if not set
+  if ! git config core.sharedRepository >/dev/null 2>&1; then
+    git config core.sharedRepository group
+  fi
+fi
+
+# Adjust permissions on /var/rudder/configuration-repository
+chgrp -R %{config_repository_group} /var/rudder/configuration-repository
+chmod -R 2775 /var/rudder/configuration-repository
 
 # Create a symlink to the Jetty context if necessary
 if [ -d "%{rudderdir}/jetty7/contexts" ]; then
