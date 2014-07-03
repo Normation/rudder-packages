@@ -388,7 +388,7 @@ fi
 
 # Adjust permissions on /var/rudder/configuration-repository
 chgrp -R %{config_repository_group} /var/rudder/configuration-repository
-chmod -R 2775 /var/rudder/configuration-repository
+chmod -R 2770 /var/rudder/configuration-repository
 
 # Create a symlink to the Jetty context if necessary
 if [ -d "%{rudderdir}/jetty7/contexts" ]; then
