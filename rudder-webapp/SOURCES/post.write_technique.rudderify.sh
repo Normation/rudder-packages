@@ -24,31 +24,40 @@
 
 # Variables
 
-DESTINATION_PATH=$1
-TECHNIQUE=$2
-CATEGORY_PATH=ncf_techniques/category.xml
+DESTINATION_PATH="${1}"
+TECHNIQUE="${2}"
+CATEGORY_PATH='ncf_techniques/category.xml'
 
 # Main
 
+## Set necessary umask to prevent permission issues (mode 770)
 umask 007
 
-/usr/share/ncf/tools/ncf_rudder.py rudderify_technique /var/rudder/configuration-repository/techniques/ncf_techniques $TECHNIQUE
+## Rudderify the new Technique
+/usr/share/ncf/tools/ncf_rudder.py rudderify_technique /var/rudder/configuration-repository/techniques/ncf_techniques "${TECHNIQUE}"
 
+## Operate on configuration-repository's git tree, in the Techniques
 cd /var/rudder/configuration-repository/techniques/
 
 # If a non-zero file exists on the filesystem...
 if [ -s "${CATEGORY_PATH}" ]; then
+
   #... and is not already added in git, add it
-  HANDLED_BY_GIT=`git ls-tree -r master --name-only | grep "${CATEGORY_PATH}" | wc -l`
-  if [ ${HANDLED_BY_GIT} -eq 0 ];then
+  HANDLED_BY_GIT=$(git ls-tree -r master --name-only | grep -c "${CATEGORY_PATH}")
+
+  if [ "${HANDLED_BY_GIT}" -eq 0 ];then
     git add ncf_techniques/category.xml
   fi
+
 fi
 
-
-git add ncf_techniques/$TECHNIQUE
-
-git commit -m "Commit meta techniques $TECHNIQUE"
+## Commit the new Technique
+git add "ncf_techniques/${TECHNIQUE}"
+git commit -q -m "Commit meta Technique ${TECHNIQUE}"
 
 # Reload technique library, bypass the ssl verification since we are on localhost
-curl -X GET "https://localhost/rudder/api/techniqueLibrary/reload" -k
+curl -s -f -k "https://localhost/rudder/api/techniqueLibrary/reload"
+
+if [ "$?" -eq 22 ]; then
+  echo "ERROR: Unable to reload the Techniques using Rudder API. Please reload them manually using Rudder web interface."
+fi
