@@ -46,6 +46,7 @@
 %define sysloginitscript        /etc/init.d/syslog
 %define apache_vhost_dir        %{apache}/vhosts.d
 %define ldap_clients            openldap2-client
+%define usermod_opt             A
 %endif
 %if 0%{?el5}
 %define apache                  httpd
@@ -55,6 +56,7 @@
 %define sysloginitscript        /etc/init.d/syslog
 %define apache_vhost_dir        %{apache}/conf.d
 %define ldap_clients            openldap-clients
+%define usermod_opt             aG
 %endif
 %if 0%{?el6}
 %define apache                  httpd
@@ -64,6 +66,7 @@
 %define sysloginitscript        /etc/init.d/rsyslog
 %define apache_vhost_dir        %{apache}/conf.d
 %define ldap_clients            openldap-clients
+%define usermod_opt             aG
 %endif
 
 #=================================================
@@ -277,14 +280,14 @@ fi
 # Create the configuration-repository group if it does not exist
 if ! getent group %{config_repository_group} > /dev/null; then
   echo -n "INFO: Creating group %{config_repository_group}..."
-  addgroup --system %{config_repository_group}
+  groupadd --system %{config_repository_group}
   echo " Done"
 fi
 
 # Add the ncf-api-venv user to this group
 if ! getent group %{config_repository_group} | grep -q ncf-api-venv > /dev/null; then
   echo -n "INFO: Adding ncf-api-venv to the %{config_repository_group} group..."
-  usermod -a -G %{config_repository_group} ncf-api-venv
+  usermod -%{usermod_opt} %{config_repository_group} ncf-api-venv
   echo " Done"
 fi
 
@@ -413,7 +416,7 @@ if [ $1 -eq 0 ]; then
   if getent group %{config_repository_group} > /dev/null; then
     # Remove the configuration-repository group
     echo -n "INFO: Removing group %{config_repository_group}..."
-    delgroup %{config_repository_group}
+    groupdel %{config_repository_group}
     echo " Done"
   fi
 fi

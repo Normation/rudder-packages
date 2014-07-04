@@ -48,4 +48,5 @@ git add ncf_techniques/$TECHNIQUE
 
 git commit -m "Commit meta techniques $TECHNIQUE"
 
-curl -X GET "http://localhost/rudder/api/techniqueLibrary/reload" 
+# Reload technique library, bypass the ssl verification since we are on localhost
+curl -X GET "https://localhost/rudder/api/techniqueLibrary/reload" -k
