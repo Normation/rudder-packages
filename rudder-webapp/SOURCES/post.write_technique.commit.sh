@@ -23,15 +23,18 @@
 #
 
 # Variables
-DESTINATION_PATH=$1
-TECHNIQUE=$2
+
+DESTINATION_PATH=${1}
+TECHNIQUE=${2}
 
 # Main
 
+## Set necessary umask to prevent permission issues (mode 770)
 umask 007
 
+## Operate on configuration-repository's git tree
 cd /var/rudder/configuration-repository
 
-git add ncf/50_techniques/$TECHNIQUE
-
-git commit -m "Commit ncf Techniques '$TECHNIQUE' in Rudder"
+## Commit the new Technique
+git add "ncf/50_techniques/${TECHNIQUE}"
+git commit -q -m "Commit ncf Technique \"${TECHNIQUE}\" in Rudder"
