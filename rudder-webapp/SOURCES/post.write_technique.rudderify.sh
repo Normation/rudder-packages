@@ -30,6 +30,8 @@ CATEGORY_PATH=ncf_techniques/category.xml
 
 # Main
 
+umask 007
+
 /usr/share/ncf/tools/ncf_rudder.py rudderify_technique /var/rudder/configuration-repository/techniques/ncf_techniques $TECHNIQUE
 
 cd /var/rudder/configuration-repository/techniques/
