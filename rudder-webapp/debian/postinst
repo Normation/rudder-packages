@@ -127,7 +127,11 @@ case "$1" in
 
   # Adjust permissions on /var/rudder/configuration-repository
   chgrp -R rudder /var/rudder/configuration-repository
-  chmod -R 2770 /var/rudder/configuration-repository
+  ## Add execution permission for ncf-api only on directories and files with user execution permission
+  chmod -R u+rwX,g+rwsX /var/rudder/configuration-repository/{ncf,techniques}
+  ## Add execution permission for ncf-apo on pre/post-hooks
+  chmod -R 2770 /var/rudder/configuration-repository/ncf/ncf-hooks.d/
+
 
 	# Only for Ubuntu:
 	## Change rsyslog port number since Ubuntu 12.04 doesn't allow to use standard
