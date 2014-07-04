@@ -114,14 +114,14 @@ case "$1" in
   # Create the configuration-repository group if it does not exist
   if ! getent group rudder > /dev/null; then
     echo -n "INFO: Creating group rudder..."
-    addgroup rudder
+    groupadd --system rudder
     echo " Done"
   fi
 
   # Add the ncf-api-venv user to this group
   if ! getent group rudder | grep -q ncf-api-venv > /dev/null; then
     echo -n "INFO: Adding ncf-api-venv to the rudder group..."
-    usermod -G rudder ncf-api-venv
+    usermod -aG rudder ncf-api-venv
     echo " Done"
   fi
 
