@@ -391,7 +391,12 @@ fi
 
 # Adjust permissions on /var/rudder/configuration-repository
 chgrp -R %{config_repository_group} /var/rudder/configuration-repository
-chmod -R 2770 /var/rudder/configuration-repository
+## Add execution permission for ncf-api only on directories and files with user execution permission
+chmod -R u+rwX,g+rwsX %{ruddervardir}/configuration-repository/.git
+chmod -R u+rwX,g+rwsX %{ruddervardir}/configuration-repository/ncf
+chmod -R u+rwX,g+rwsX %{ruddervardir}/configuration-repository/techniques
+## Add execution permission for ncf-apo on pre/post-hooks
+chmod -R 2770 %{ruddervardir}/configuration-repository/ncf/ncf-hooks.d/
 
 # Create a symlink to the Jetty context if necessary
 if [ -d "%{rudderdir}/jetty7/contexts" ]; then

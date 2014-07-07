@@ -151,11 +151,12 @@ ErrorCheck()
 
 LDAPInit()
 {
+  local HOSTNAME=$(hostname -f)
   cp /opt/rudder/share/bootstrap.ldif $BOOTSTRAP_PATH
   cp /opt/rudder/share/init-policy-server.ldif $INITPOLICY_PATH
   cp /opt/rudder/share/demo-data.ldif $INITDEMO_PATH
 
-  sed -i "s/^\([^#].*\)%%POLICY_SERVER_HOSTNAME%%/\1$ANSWER1/g" $INITPOLICY_PATH
+  sed -i "s/^\([^#].*\)%%POLICY_SERVER_HOSTNAME%%/\1$HOSTNAME/g" $INITPOLICY_PATH
   sed -i "s#^\([^#].*\)%%POLICY_SERVER_ALLOWED_NETWORKS%%#\1$NET#g" $INITPOLICY_PATH
 
   ${LDAPADD} -f $BOOTSTRAP_PATH &> $TMP_LOG
@@ -170,13 +171,11 @@ LDAPInit()
 #  - The hostname
 #  - The computed allowed network
 function generate_promises_at_temporary_location() {
-  local HOSTNAME=$1
-  local COMPUTED_ALLOWED_NETWORKS=$2
+  local COMPUTED_ALLOWED_NETWORKS=$1
 
   cp -r /opt/rudder/share/initial-promises/ ${TMP_DIR}/community
 
   find $TMP_DIR/community -name "cf-served.cf" -type f -exec sed -i "s@'%%POLICY_SERVER_ALLOWED_NETWORKS%%'@$COMPUTED_ALLOWED_NETWORKS@g" {} \;
-  find $TMP_DIR/community -type f -exec sed -i "s/%%POLICY_SERVER_HOSTNAME%%/$HOSTNAME/g" {} \;
 }
 
 # Reset the policy server hostname
@@ -193,10 +192,7 @@ then
     echo "ERROR: usage is: ${0} hostname DemoData LDAPReset InitialPromisesReset AllowedNetwork1 [AllowedNetwork2]..."
     exit 1
   else
-    ANSWER1=${1}           # Hostname
-    ANSWER4=${2}           # Install demo samples ?
     LDAPRESET=${3}         # Reset LDAP ?
-    ANSWER6=${4}           # Restore Initial Promises ?
     ALLOWEDNETWORK[0]=${5} # Allowed networks
   fi
 else
@@ -208,13 +204,7 @@ else
 
   # Menu
 
-  ## 1st Step: Define HOSTNAME
-  echo
-  echo -n "Please enter the fully qualified domain name that will be used to access the web interface of the Rudder server (i.e rudder.example.com): "
-
-  read ANSWER1
-
-  ## 2nd Step: Define SERVER_ALLOWED_NETWORK
+  ## 1st Step: Define SERVER_ALLOWED_NETWORK
   while [ z$again = "zyes" ]
   do
     again=''
@@ -231,14 +221,6 @@ else
     done
     while ! echo "$again" | grep "^\(yes\|no\)$";do echo -n "Add more networks? (yes/no) ";read again;done
     ((cpt++))
-  done
-
-  ## 3rd Step: Demo Sample
-  while ! echo "$ANSWER4" | grep "^\(yes\|no\)$"
-  do
-    echo
-    echo -n "Do you want to add sample data (for demos)? (yes/no) "
-    read ANSWER4
   done
 
   ## 4th Step: LDAP Check
@@ -272,72 +254,43 @@ do
 done
 
 # 2: generate the initial promises
-generate_promises_at_temporary_location "${ANSWER1}" "${NET2}"
+generate_promises_at_temporary_location "${NET2}"
 
 # 3: compare the generated promises with what is on the FS
 mkdir -p ${INITREP} /var/cfengine/inputs
 diff -Naur ${INITREP} ${TMP_DIR}/community > /dev/null
 DIFFERENT_PROMISES=$?
 
-#
-# Now, let's resume asking questions.
-#
-
-# 5th Step: Ask about resetting initial promises
-# Check again if this script got arguments, to know whether we need to interactively ask
-if [ $# -eq 0 ]
-then
-  if [ ${DIFFERENT_PROMISES} -ne 0 ]
-  then
-    while ! echo "$ANSWER6" | grep "^\(yes\|no\)$"
-    do
-      echo
-      echo -n "Do you want to reset initial promises ? (yes/no) "
-      read ANSWER6
-    done
-  else
-    ANSWER6="no"
-  fi
-fi
-
 # Review
 echo
 echo "SUMMARY OF OPTIONS:"
 echo
-echo Hostname: "$ANSWER1"
 echo Allowed networks: "${ALLOWEDNETWORK[*]}"
-echo Add sample data? "$ANSWER4"
 if [ ${LDAP_EXISTS} -gt 0 ]
 then
   echo Reinitialize LDAP database? "$LDAPRESET"
-fi
-if [ ${DIFFERENT_PROMISES} -ne 0 ];then
-  echo Reset Initial Promises? "$ANSWER6"
 fi
 echo
 Pause
 
 # Configure initial promises
-if [ z$ANSWER6 = "zyes" ]
-then
-  echo -n "Configuring and installing initial CFEngine promises..."
+echo -n "Configuring and installing initial CFEngine promises..."
 
-  # Preserve rudder-server-roles.conf
-  mv ${RUDDER_ROLES_FILE} ${TMP_DIR}/
+# Preserve rudder-server-roles.conf
+mv ${RUDDER_ROLES_FILE} ${TMP_DIR}/
 
-  rm -rf /var/rudder/cfengine-community/inputs/*
-  rm -rf /var/cfengine/inputs/*
+rm -rf /var/rudder/cfengine-community/inputs/*
+rm -rf /var/cfengine/inputs/*
 
-  cp -r $TMP_DIR/community/* /var/rudder/cfengine-community/inputs/
-  cp -r $TMP_DIR/community/* /var/cfengine/inputs/
+cp -r $TMP_DIR/community/* /var/rudder/cfengine-community/inputs/
+cp -r $TMP_DIR/community/* /var/cfengine/inputs/
 
-  # Restore rudder-server-roles.conf
-  mv ${TMP_DIR}/$(basename ${RUDDER_ROLES_FILE}) ${RUDDER_ROLES_FILE}
+# Restore rudder-server-roles.conf
+mv ${TMP_DIR}/$(basename ${RUDDER_ROLES_FILE}) ${RUDDER_ROLES_FILE}
 
-  reset_policy_server
+reset_policy_server
 
-  echo " Done."
-fi
+echo " Done."
 
 # Enforce that policy_server.dat exists
 if [ ! -e ${POLICY_SERVER_FILE} ]
@@ -359,11 +312,6 @@ then
 else
   echo -n "Initializing LDAP database..."
   LDAPInit
-fi
-# Check if Demo sample have to be added
-if [ z$ANSWER4 = "zyes" ]
-then
-  ${LDAPADD} -f $INITDEMO_PATH &> $TMP_LOG
 fi
 echo " done."
 echo
@@ -412,6 +360,7 @@ echo
 echo "Reinitialization complete."
 echo
 echo "Rudder is currently reloading, and will soon be"
-echo "available on: https://${ANSWER1}${RUDDER_CONTEXT}"
+echo "You can access it via https://<hostname>${RUDDER_CONTEXT}"
+echo " for example https://$(hostname -f)${RUDDER_CONTEXT}"
 echo
 echo "Thank you for using Rudder\!"
