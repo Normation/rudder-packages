@@ -179,6 +179,10 @@ mkdir -p %{buildroot}/etc/%{apache_vhost_dir}/
 mkdir -p %{buildroot}/etc/sysconfig/
 mkdir -p %{buildroot}/usr/share/doc/rudder
 
+# Emulate installation of file rudder.xml in order to be owned by package
+mkdir -p %{buildroot}%{rudderdir}/jetty7/contexts/
+touch %{buildroot}%{rudderdir}/jetty7/contexts/rudder.xml
+
 # Install helper scripts
 cp %{SOURCE10} %{buildroot}%{rudderdir}/bin/
 
@@ -444,6 +448,8 @@ rm -rf %{buildroot}
 %config(noreplace) %{rudderdir}/etc/logback.xml
 %config(noreplace) %{rudderdir}/etc/rudder-passwords.conf
 %attr(0600, root, root) %{rudderdir}/etc/rudder-passwords.conf
+# Prevent /opt/rudder/jetty7/contexts/rudder.xml to be erased during upgrade
+%ghost %{rudderdir}/jetty7/contexts/rudder.xml
 
 %{rudderdir}/bin/
 %{rudderdir}/bin/rudder-node-to-relay
