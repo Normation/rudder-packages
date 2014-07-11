@@ -41,8 +41,8 @@ set -e
 # Some variables
 ECHO="/bin/echo"
 
-RUDDER_SHARE=/opt/rudder/share
-RUDDER_UPGRADE_TOOLS=${RUDDER_SHARE}/upgrade-tools
+RUDDER_OPT=/opt/rudder
+RUDDER_UPGRADE_TOOLS=${RUDDER_OPT}/share/upgrade-tools
 
 # The int type in PostreSQL supports up to 2^31-1 entries, which is 2147483647
 MAX_REPORTS=2147483647
@@ -160,7 +160,7 @@ migrate_reports() {
 # Migrate a table
 migrate_table() {
   CURRENT_MAX_ID=$(${PSQL} -t -d rudder -c "select nextval('serial');")
-  PERCENT=$((100*${CURRENT_MAX_ID}/${MAX_REPORTS}))
+  PERCENT=$((100*CURRENT_MAX_ID/MAX_REPORTS))
 
   ${ECHO} -n "${CURRENT_MAX_ID} lines used, approximately ${PERCENT}% of total available"
 
