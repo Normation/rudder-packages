@@ -59,7 +59,7 @@ case "$1" in
   htpasswd -bc /opt/rudder/etc/htpasswd-webdav rudder rudder >/dev/null 2>&1
 
   # Move old virtual hosts out of the way
-  for OLD_VHOST in rudder-default rudder-default-ssl; do
+  for OLD_VHOST in rudder-default rudder-default-ssl rudder-vhost rudder-vhost-ssl; do
     if [ -f /etc/apache2/sites-available/${OLD_VHOST} ]; then
       echo -n "INFO: An old rudder virtual host file has been detected (${OLD_VHOST}), it will be moved to /var/backups."
       mkdir -p /var/backups
