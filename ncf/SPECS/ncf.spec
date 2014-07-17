@@ -109,6 +109,7 @@ rm -rf %{buildroot}
 %files -n ncf
 %defattr(-, root, root, 0755)
 %{installdir}/ncf/
+%config(noreplace) %{installdir}/ncf/tree/ncf.conf
 %{bindir}/ncf
 
 #=================================================
