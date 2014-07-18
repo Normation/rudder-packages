@@ -50,6 +50,7 @@ set -e
 # - 2.10.0 : Add properties to enable and configure the LDAP authentication
 # - 2.11.0 : Add LDAP entries for Server Roles system Technique/Directive/Rule
 # - 2.11.0 : Add the properties to configure Rudder roles
+# - 2.11.0 : Add LDAP entry for Group with all nodes excluding server components
 #####################################################################################
 
 # Some variables
@@ -450,6 +451,14 @@ if [ ${LDAP_EXISTS} -ne 0 ]; then
   if [ ${LDAP_TEST_SERVER_ROLES_RULE} -eq 0 ]; then
     echo -n "INFO: Adding System Technique, Directive and Rule to manage Rudder Server Roles..."
     ${LDAPADD} -f ${RUDDER_UPGRADE_TOOLS}/ldapMigration-2.10-2.11-add-server-roles.ldif >/dev/null 2>&1
+    echo " Done."
+  fi
+
+  # - 2.11.0: Add LDAP entry for Group with all nodes excluding server components
+  LDAP_TEST_SERVER_ROLES_GROUP=$(${LDAPSEARCH} -b "ruleTarget=special:all_nodes_without_role,groupCategoryId=SystemGroups,groupCategoryId=GroupRoot,ou=Rudder,cn=rudder-configuration" -s base dn 2> /dev/null | grep -c "dn: ruleTarget=special:all_nodes_without_role" || true)
+  if [ ${LDAP_TEST_SERVER_ROLES_GROUP} -eq 0 ]; then
+    echo -n "INFO: Adding system Group of all nodes that are not a Rudder server component..."
+    ${LDAPADD} -f ${RUDDER_UPGRADE_TOOLS}/ldapMigration-2.10-2.11-add-node-without-role-group.ldif >/dev/null 2>&1
     echo " Done."
   fi
 
