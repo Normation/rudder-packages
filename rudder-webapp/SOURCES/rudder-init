@@ -187,13 +187,22 @@ function reset_policy_server() {
 # Check if some arguments have been given
 if [ $# -gt 0 ]
 then
-  if [ $# -lt 5 ]
+  if [ $# -lt 2 ]
   then
-    echo "ERROR: usage is: ${0} hostname DemoData LDAPReset InitialPromisesReset AllowedNetwork1 [AllowedNetwork2]..."
+    echo "ERROR: Usage is: ${0} LDAPReset AllowedNetwork1 [AllowedNetwork2]..."
     exit 1
   else
-    LDAPRESET=${3}         # Reset LDAP ?
-    ALLOWEDNETWORK[0]=${5} # Allowed networks
+    if [ $# -ge 5 ]
+    then
+      # Using deprecated call to rudder-init
+      echo "WARNING: Using deprecated arguments"
+      echo "INFO: Usage is now: ${0} LDAPReset AllowedNetwork1 [AllowedNetwork2]..."
+      LDAPRESET=${3}         # Reset LDAP ?
+      ALLOWEDNETWORK[0]=${5} # Allowed networks
+    else
+      LDAPRESET=${1}         # Reset LDAP ?
+      ALLOWEDNETWORK[0]=${2} # Allowed networks
+    fi
   fi
 else
   echo
@@ -223,7 +232,7 @@ else
     ((cpt++))
   done
 
-  ## 4th Step: LDAP Check
+  ## 2nd Step: LDAP Check
   if [ ${LDAP_EXISTS} -gt 0 ]
   then
     while ! echo "$LDAPRESET" | grep "^\(yes\|no\)$"
