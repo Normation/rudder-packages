@@ -44,9 +44,9 @@ CONTEXT_XML='/opt/rudder/share/webapps/rudder.xml'
 echo "Rudder plugin handling utility."
 echo ""
 
-# Add an <extraClasspath> if it does not yet exist
-if ! grep -q "<extraClasspath>" ${CONTEXT_XML}; then
-  sed -i "s%</Configure>%  <extraClasspath></extraClasspath>\n\n</Configure>%" ${CONTEXT_XML}
+# Add an extraClassPath set anchor if it does not yet exist
+if ! grep -q "<Set name=\"extraClasspath\">" ${CONTEXT_XML}; then
+  sed -i "s%</Configure>%  <Set name=\"extraClasspath\"></Set>\n\n</Configure>%" ${CONTEXT_XML}
 fi
 
 # Create the PLUGINS_DIR variable
@@ -80,7 +80,7 @@ if [ "z${PLUGIN_PATH}" = "z" ]; then
 fi
 
 # Get the current extraClasspath
-CURRENT_EXT_CLASSPATH=$(grep extraClasspath ${CONTEXT_XML} | sed "s%^\s*<extraClasspath>\(.*\)</extraClasspath>%\1%")
+CURRENT_EXT_CLASSPATH=$(grep extraClasspath ${CONTEXT_XML} | sed "s%^\s*<Set name=\"extraClasspath\">\(.*\)</Set>%\1%")
 
 # Remove the legacy plugin from the extraClasspath
 if [ "${LEGACY_PLUGIN_REMOVED}" -eq 1 ]; then
@@ -124,6 +124,6 @@ fi
 FINAL_EXT_CLASSPATH=$(echo "${FINAL_EXT_CLASSPATH}" | sed "s%,,%,%" | sed "s%^,%%")
 
 # Put the final extraClassPath in the file
-sed -i "s%<extraClasspath>.*</extraClasspath>%<extraClasspath>${FINAL_EXT_CLASSPATH}</extraClasspath>%" ${CONTEXT_XML}
+sed -i "s%<Set name=\"extraClasspath\">.*</Set>%<Set name=\"extraClasspath\">${FINAL_EXT_CLASSPATH}</Set>%" ${CONTEXT_XML}
 
 echo " OK"
