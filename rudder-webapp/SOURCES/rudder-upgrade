@@ -51,6 +51,7 @@ set -e
 # - 2.11.0 : Add LDAP entries for Server Roles system Technique/Directive/Rule
 # - 2.11.0 : Add the properties to configure Rudder roles
 # - 2.11.0 : Add LDAP entry for Group with all nodes excluding server components
+# - 2.11.0 : Add LDAP attribute to root node if server role is missing
 #####################################################################################
 
 # Some variables
@@ -459,6 +460,14 @@ if [ ${LDAP_EXISTS} -ne 0 ]; then
   if [ ${LDAP_TEST_SERVER_ROLES_GROUP} -eq 0 ]; then
     echo -n "INFO: Adding system Group of all nodes that are not a Rudder server component..."
     ${LDAPADD} -f ${RUDDER_UPGRADE_TOOLS}/ldapMigration-2.10-2.11-add-node-without-role-group.ldif >/dev/null 2>&1
+    echo " Done."
+  fi
+
+  # - 2.11.0: Add LDAP attribute to root node if server role is missing
+  LDAP_TEST_ROOT_SERVER_ROLE=$(${LDAPSEARCH} -b "nodeId=root,ou=Nodes,ou=Accepted Inventories,ou=Inventories,cn=rudder-configuration" rudderServerRole 2> /dev/null | grep -c "rudderServerRole: rudder-web" || true)
+  if [ ${LDAP_TEST_ROOT_SERVER_ROLE} -eq 0 ]; then
+    echo -n "INFO: Adding 'rudder-web' server Role to root server..."
+    ${LDAPADD} -f ${RUDDER_UPGRADE_TOOLS}/ldapMigration-2.10-2.11-add-root-server-role.ldif >/dev/null 2>&1
     echo " Done."
   fi
 
