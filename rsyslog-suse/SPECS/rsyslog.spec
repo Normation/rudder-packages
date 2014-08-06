@@ -151,22 +151,22 @@ export CFLAGS="$RPM_OPT_FLAGS -fno-strict-aliasing -W -Wall"
 autoreconf -fi
 %configure			\
 %if ! 0%{install_all_modules_in_lib}
-	--with-moddirs=%{_prefix}%{_libdir}/rsyslog/ \
+  --with-moddirs=%{_prefix}%{_libdir}/rsyslog/ \
 %endif
-	--enable-largefile	\
-	--enable-pthreads	\
-	--enable-regexp		\
-	--enable-zlib		\
-	--enable-klog		\
-	--enable-inet		\
-	--enable-rsyslogd	\
-	--enable-gssapi-krb5	\
-	--enable-pgsql		\
-	--enable-mail		\
-	--enable-imfile		\
-	--enable-imtemplate	\
-	--enable-imptcp		\
-	--disable-static
+  --enable-largefile	\
+  --enable-pthreads	\
+  --enable-regexp		\
+  --enable-zlib		\
+  --enable-klog		\
+  --enable-inet		\
+  --enable-rsyslogd	\
+  --enable-gssapi-krb5	\
+  --enable-pgsql		\
+  --enable-mail		\
+  --enable-imfile		\
+  --enable-imtemplate	\
+  --enable-imptcp		\
+  --disable-static
 #
 #optional (disabled by MCE)
         # --enable-openssl      \
@@ -197,8 +197,8 @@ rm -f %{buildroot}%{_libdir}/rsyslog/*.la
 install -d -m0755 %{buildroot}%{_prefix}%{_libdir}/rsyslog
 # for mod in omgssapi.so imgssapi.so lmgssutil.so ommysql.so ompgsql.so omsnmp.so ; do
 for mod in omgssapi.so imgssapi.so lmgssutil.so ompgsql.so ; do
-	mv -f %{buildroot}%{_libdir}/rsyslog/$mod \
-	      %{buildroot}%{_prefix}%{_libdir}/rsyslog/
+  mv -f %{buildroot}%{_libdir}/rsyslog/$mod \
+        %{buildroot}%{_prefix}%{_libdir}/rsyslog/
 done
 %endif
 #
@@ -206,14 +206,14 @@ install -d -m0755 %{buildroot}%{_sysconfdir}/rsyslog.d
 install -d -m0755 %{buildroot}%{_localstatedir}/run/rsyslog
 install -d -m0755 %{buildroot}%{_localstatedir}/spool/rsyslog
 for file in rsyslog.conf rsyslog.early.conf rsyslog.d.remote.conf ; do
-	sed \
+  sed \
 %ifarch s390 s390x
-	-e 's;tty10;console;g' \
+  -e 's;tty10;console;g' \
 %endif
-	-e 's;ADDITIONAL_SOCKETS;%{additional_sockets};g' \
-	-e 's;ETC_RSYSLOG_D_GLOB;%{_sysconfdir}/rsyslog.d/*.conf;g' \
-	-e 's;RSYSLOG_SPOOL_DIR;%{_localstatedir}/spool/rsyslog;g' \
-	%{_sourcedir}/${file}.in > ${file}.$$
+  -e 's;ADDITIONAL_SOCKETS;%{additional_sockets};g' \
+  -e 's;ETC_RSYSLOG_D_GLOB;%{_sysconfdir}/rsyslog.d/*.conf;g' \
+  -e 's;RSYSLOG_SPOOL_DIR;%{_localstatedir}/spool/rsyslog;g' \
+  %{_sourcedir}/${file}.in > ${file}.$$
 done
 install    -m0600 rsyslog.conf.$$ \
                   %{buildroot}%{_sysconfdir}/rsyslog.conf
@@ -229,15 +229,15 @@ install    -m0600 %{_sourcedir}/rsyslog.sysconfig \
 rm -f doc/Makefile*
 install -d -m0755 %{buildroot}%{rsyslogdocdir}/
 find ChangeLog README AUTHORS COPYING COPYING.LESSER rsyslog.conf doc \
-	\( -type d -exec install -m755 -d   %{buildroot}%{rsyslogdocdir}/\{\} \; \) \
+  \( -type d -exec install -m755 -d   %{buildroot}%{rsyslogdocdir}/\{\} \; \) \
      -o \( -type f -exec install -m644 \{\} %{buildroot}%{rsyslogdocdir}/\{\} \; \)
 install -m644 plugins/ompgsql/createDB.sql \
-	%{buildroot}%{rsyslogdocdir}/pgsql-createDB.sql
+  %{buildroot}%{rsyslogdocdir}/pgsql-createDB.sql
 #
 
 %clean
 if [ -n "%{buildroot}" ] && [ "%{buildroot}" != "/" ] ; then
-	rm -rf "%{buildroot}"
+  rm -rf "%{buildroot}"
 fi
 
 %post

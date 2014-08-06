@@ -45,11 +45,11 @@ kern.warning;*.err;authpriv.none	|/dev/xconsole;RSYSLOG_TraditionalFileFormat
 # firewall messages into separate file and stop their further processing
 #
 if	($syslogfacility-text == 'kern') and \
-	($msg contains 'IN=' and $msg contains 'OUT=') then \
-	-/var/log/firewall;RSYSLOG_TraditionalFileFormat
+  ($msg contains 'IN=' and $msg contains 'OUT=') then \
+  -/var/log/firewall;RSYSLOG_TraditionalFileFormat
 if	($syslogfacility-text == 'kern') and \
-	($msg contains 'IN=' and $msg contains 'OUT=') then \
-	~
+  ($msg contains 'IN=' and $msg contains 'OUT=') then \
+  ~
 
 #
 # acpid messages into separate file and stop their further processing
@@ -60,20 +60,20 @@ if	($syslogfacility-text == 'kern') and \
 #
 # => up to notice (skip info and debug)
 if	($programname == 'acpid' or $syslogtag == '[acpid]:') and \
-	($syslogseverity <= 5) then \
-	-/var/log/acpid;RSYSLOG_TraditionalFileFormat
+  ($syslogseverity <= 5) then \
+  -/var/log/acpid;RSYSLOG_TraditionalFileFormat
 if	($programname == 'acpid' or $syslogtag == '[acpid]:') then \
-	~
+  ~
 
 #
 # NetworkManager into separate file and stop their further processing
 #
 if      ($programname == 'NetworkManager') or \
-	($programname startswith 'nm-') then \
-	-/var/log/NetworkManager;RSYSLOG_TraditionalFileFormat
+  ($programname startswith 'nm-') then \
+  -/var/log/NetworkManager;RSYSLOG_TraditionalFileFormat
 if      ($programname == 'NetworkManager') or \
-	($programname startswith 'nm-') then \
-	~
+  ($programname startswith 'nm-') then \
+  ~
 
 #
 # email-messages

@@ -201,17 +201,17 @@ cp %{_sourcedir}/rsyslog/rudder-slapd.conf %{buildroot}/etc/rsyslog.d/rudder-sla
 if [ $1 -gt 1 ]
 then
 
-	# When upgrading OpenLDAP, we may need to dump the database
-	# so that it can be restored from LDIF in case the new
-	# package uses a different version of BerkeleyDB (libdb)
-	TIMESTAMP=`date +%%Y%%m%%d%%H%%M%%S`
-	# Ensure backup folder exist
-	mkdir -p /var/rudder/ldap/backup/
+  # When upgrading OpenLDAP, we may need to dump the database
+  # so that it can be restored from LDIF in case the new
+  # package uses a different version of BerkeleyDB (libdb)
+  TIMESTAMP=`date +%%Y%%m%%d%%H%%M%%S`
+  # Ensure backup folder exist
+  mkdir -p /var/rudder/ldap/backup/
 
-	/opt/rudder/sbin/slapcat -b "cn=rudder-configuration" -l /var/rudder/ldap/backup/openldap-data-pre-upgrade-${TIMESTAMP}.ldif
+  /opt/rudder/sbin/slapcat -b "cn=rudder-configuration" -l /var/rudder/ldap/backup/openldap-data-pre-upgrade-${TIMESTAMP}.ldif
 
-	# Store version of libdb used to make this backup
-	echo $(ldd /opt/rudder/sbin/slapcat | grep libdb | cut -d"=" -f1) > /var/rudder/ldap/backup/openldap-data-pre-upgrade-${TIMESTAMP}.libdb-version
+  # Store version of libdb used to make this backup
+  echo $(ldd /opt/rudder/sbin/slapcat | grep libdb | cut -d"=" -f1) > /var/rudder/ldap/backup/openldap-data-pre-upgrade-${TIMESTAMP}.libdb-version
 
 fi
 
@@ -245,59 +245,59 @@ BACKUP_LDIF_REGEX="^/var/rudder/ldap/backup/openldap-data-pre-upgrade-\([0-9]\{1
 # Do we have a backup file from a previous upgrade?
 BACKUP_LDIF=$(find ${BACKUP_LDIF_PATH} -regextype sed -regex "${BACKUP_LDIF_REGEX}" 2>&1 | sort -nr | head -n1)
 if [ -n "${BACKUP_LDIF}" ]; then
-	TIMESTAMP=$(echo ${BACKUP_LDIF} | sed "s%${BACKUP_LDIF_REGEX}%\1%")
+  TIMESTAMP=$(echo ${BACKUP_LDIF} | sed "s%${BACKUP_LDIF_REGEX}%\1%")
 
-	# If this is an upgrade from an older version of rudder-inventory-ldap
-   	# we may need to drop and reimport the database if the underlying version
-	# of libdb has changed.
-	if [ -f "/var/rudder/ldap/backup/openldap-data-pre-upgrade-${TIMESTAMP}.libdb-version" ]; then
-		# Did the underlying version of libdb change?
-		current_libdb_version=$(ldd /opt/rudder/sbin/slapcat | grep libdb | cut -d"=" -f1)
-		previous_libdb_version=$(cat /var/rudder/ldap/backup/openldap-data-pre-upgrade-${TIMESTAMP}.libdb-version)
-		if [ "${current_libdb_version}" != "${previous_libdb_version}" ]; then
-			# OK, we need to remove the old DB and import the backup
-			REINIT_DB="yes"
-		fi
-	fi
+  # If this is an upgrade from an older version of rudder-inventory-ldap
+     # we may need to drop and reimport the database if the underlying version
+  # of libdb has changed.
+  if [ -f "/var/rudder/ldap/backup/openldap-data-pre-upgrade-${TIMESTAMP}.libdb-version" ]; then
+    # Did the underlying version of libdb change?
+    current_libdb_version=$(ldd /opt/rudder/sbin/slapcat | grep libdb | cut -d"=" -f1)
+    previous_libdb_version=$(cat /var/rudder/ldap/backup/openldap-data-pre-upgrade-${TIMESTAMP}.libdb-version)
+    if [ "${current_libdb_version}" != "${previous_libdb_version}" ]; then
+      # OK, we need to remove the old DB and import the backup
+      REINIT_DB="yes"
+    fi
+  fi
 
-	if [ "${REINIT_DB}" = "yes" ]; then
+  if [ "${REINIT_DB}" = "yes" ]; then
 
-		# Do we have a database backup to restore from?
-		if [ ! -f ${BACKUP_LDIF} ]; then
-			echo >&2 "ERROR: No database backup for old version. Can't upgrade rudder-inventory-ldap database..."
-			exit 1
-		fi
+    # Do we have a database backup to restore from?
+    if [ ! -f ${BACKUP_LDIF} ]; then
+      echo >&2 "ERROR: No database backup for old version. Can't upgrade rudder-inventory-ldap database..."
+      exit 1
+    fi
 
-		# Stop OpenLDAP - use forcestop to avoid the init script failing
-		# when trying to do the backup with bad libdb versions
-		echo -n "INFO: Stopping rudder-slapd..."
-		service rudder-slapd forcestop >/dev/null 2>&1
-		echo " Done"
+    # Stop OpenLDAP - use forcestop to avoid the init script failing
+    # when trying to do the backup with bad libdb versions
+    echo -n "INFO: Stopping rudder-slapd..."
+    service rudder-slapd forcestop >/dev/null 2>&1
+    echo " Done"
 
-		# Backup the old database
-		LDAP_BACKUP_DIR="/var/rudder/ldap/openldap-data-backup-upgrade-on-${TIMESTAMP}/"
-		mkdir -p "${LDAP_BACKUP_DIR}"
-		find /var/rudder/ldap/openldap-data -maxdepth 1 -mindepth 1 -not -name "DB_CONFIG" -exec mv {} ${LDAP_BACKUP_DIR} \;
+    # Backup the old database
+    LDAP_BACKUP_DIR="/var/rudder/ldap/openldap-data-backup-upgrade-on-${TIMESTAMP}/"
+    mkdir -p "${LDAP_BACKUP_DIR}"
+    find /var/rudder/ldap/openldap-data -maxdepth 1 -mindepth 1 -not -name "DB_CONFIG" -exec mv {} ${LDAP_BACKUP_DIR} \;
 
-		# Import the backed up database
-		/opt/rudder/sbin/slapadd -q -l ${BACKUP_LDIF}
+    # Import the backed up database
+    /opt/rudder/sbin/slapadd -q -l ${BACKUP_LDIF}
 
-		# Start OpenLDAP
-		echo -n "INFO: Starting rudder-slapd..."
-		service rudder-slapd start >/dev/null 2>&1
-		echo " Done"
+    # Start OpenLDAP
+    echo -n "INFO: Starting rudder-slapd..."
+    service rudder-slapd start >/dev/null 2>&1
+    echo " Done"
 
-		echo "INFO: OpenLDAP database was successfully upgraded to new format"
+    echo "INFO: OpenLDAP database was successfully upgraded to new format"
 
-		if [ -x /opt/rudder/bin/rudder-upgrade ]
-		then
-			echo "INFO: Running the Rudder upgrade script to replay LDAP migrations on the old database content..."
-			/opt/rudder/bin/rudder-upgrade
-		fi
+    if [ -x /opt/rudder/bin/rudder-upgrade ]
+    then
+      echo "INFO: Running the Rudder upgrade script to replay LDAP migrations on the old database content..."
+      /opt/rudder/bin/rudder-upgrade
+    fi
 
-		echo "INFO: You can safely remove the backups in ${LDAP_BACKUP_DIR}"
-		echo "INFO: and ${BACKUP_LDIF}"
-	fi
+    echo "INFO: You can safely remove the backups in ${LDAP_BACKUP_DIR}"
+    echo "INFO: and ${BACKUP_LDIF}"
+  fi
 fi
 
 # Need to restart to take schema changes into account

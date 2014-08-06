@@ -312,14 +312,14 @@ echo " Done"
 # Do this ONLY at first install
 if [ $1 -eq 1 ]
 then
-		echo -e '# This sources the configuration file needed by Rudder\n. /etc/sysconfig/rudder-apache' >> /etc/sysconfig/apache2
-		echo 'DAVLockDB /tmp/davlock.db' > /etc/%{apache}/conf.d/dav_mod.conf
+    echo -e '# This sources the configuration file needed by Rudder\n. /etc/sysconfig/rudder-apache' >> /etc/sysconfig/apache2
+    echo 'DAVLockDB /tmp/davlock.db' > /etc/%{apache}/conf.d/dav_mod.conf
 
-		mkdir -p /var/rudder/configuration-repository
-		mkdir -p /var/rudder/configuration-repository/shared-files
-		touch /var/rudder/configuration-repository/shared-files/.placeholder
-		cp -a %{rudderdir}/share/techniques /var/rudder/configuration-repository/
-		ncf init /var/rudder/configuration-repository/ncf
+    mkdir -p /var/rudder/configuration-repository
+    mkdir -p /var/rudder/configuration-repository/shared-files
+    touch /var/rudder/configuration-repository/shared-files/.placeholder
+    cp -a %{rudderdir}/share/techniques /var/rudder/configuration-repository/
+    ncf init /var/rudder/configuration-repository/ncf
 fi
 
 # Create the configuration-repository group if it does not exist
@@ -340,15 +340,15 @@ fi
 %if 0%{?sles_version}
 if ! grep -qE "^. /etc/sysconfig/rudder-apache$" /etc/sysconfig/apache2
 then
-	echo -e '# This sources the modules/defines needed by Rudder\n. /etc/sysconfig/rudder-apache' >> /etc/sysconfig/apache2
+  echo -e '# This sources the modules/defines needed by Rudder\n. /etc/sysconfig/rudder-apache' >> /etc/sysconfig/apache2
 fi
 %endif
 
 # Update /etc/sysconfig/apache2 in case an old module loading entry has already been created by Rudder
 if grep -q 'APACHE_MODULES="${APACHE_MODULES} rewrite dav dav_fs proxy proxy_http' /etc/sysconfig/apache2
 then
-	echo "INFO: Upgrading the /etc/sysconfig/apache2 file, Rudder needed modules for Apache are now listed in /etc/sysconfig/rudder-apache"
-	sed -i 's%APACHE_MODULES="${APACHE_MODULES} rewrite dav dav_fs proxy proxy_http.*%# This sources the Rudder needed by Rudder\n. /etc/sysconfig/rudder-apache%' /etc/sysconfig/apache2
+  echo "INFO: Upgrading the /etc/sysconfig/apache2 file, Rudder needed modules for Apache are now listed in /etc/sysconfig/rudder-apache"
+  sed -i 's%APACHE_MODULES="${APACHE_MODULES} rewrite dav dav_fs proxy proxy_http.*%# This sources the Rudder needed by Rudder\n. /etc/sysconfig/rudder-apache%' /etc/sysconfig/apache2
 fi
 
 # Add right to apache user to access /var/rudder/inventories/incoming
@@ -366,38 +366,38 @@ chmod 655 -R %{rudderdir}/share/load-page
 # If the current Rudder HTTPd configuration uses /var/log/rudder/httpd, change it
 for i in /etc/%{apache_vhost_dir}/rudder-*.conf
 do
-	if grep -q /var/log/rudder/httpd "${i}"; then
-		echo -n "INFO: Old logging configuration detected in ${i}, changing to log into %{rudderlogdir}/apache2..."
-		sed -i "s%/var/log/rudder/httpd/\(.*\).log%/var/log/rudder/apache2/\1.log%" "${i}"
-		echo " Done"
-	fi
+  if grep -q /var/log/rudder/httpd "${i}"; then
+    echo -n "INFO: Old logging configuration detected in ${i}, changing to log into %{rudderlogdir}/apache2..."
+    sed -i "s%/var/log/rudder/httpd/\(.*\).log%/var/log/rudder/apache2/\1.log%" "${i}"
+    echo " Done"
+  fi
 done
 
 # If this machine has old logging entries on RHEL, migrate them.
 if [ -d %{rudderlogdir}/httpd ]; then
-	echo -n "INFO: Old logging directory detected (%{rudderlogdir}/httpd), migrating to %{rudderlogdir}/apache2..."
-	mkdir -p %{rudderlogdir}/apache2
-	mv %{rudderlogdir}/httpd/* %{rudderlogdir}/apache2/
-	rmdir %{rudderlogdir}/httpd
-	echo " Done"
+  echo -n "INFO: Old logging directory detected (%{rudderlogdir}/httpd), migrating to %{rudderlogdir}/apache2..."
+  mkdir -p %{rudderlogdir}/apache2
+  mv %{rudderlogdir}/httpd/* %{rudderlogdir}/apache2/
+  rmdir %{rudderlogdir}/httpd
+  echo " Done"
 fi
 
 # Move old virtual hosts out of the way
 for OLD_VHOST in rudder-default rudder-default-ssl rudder-default.conf rudder-default-ssl.conf; do
-	if [ -f /etc/%{apache_vhost_dir}/${OLD_VHOST} ]; then
-		echo -n "INFO: An old rudder virtual host file has been detected (${OLD_VHOST}), it will be moved to /var/backups."
-		mkdir -p /var/backups
-		mv /etc/%{apache_vhost_dir}/${OLD_VHOST} /var/backups/${OLD_VHOST}-$(date +%s)
-		echo " Done"
-	fi
+  if [ -f /etc/%{apache_vhost_dir}/${OLD_VHOST} ]; then
+    echo -n "INFO: An old rudder virtual host file has been detected (${OLD_VHOST}), it will be moved to /var/backups."
+    mkdir -p /var/backups
+    mv /etc/%{apache_vhost_dir}/${OLD_VHOST} /var/backups/${OLD_VHOST}-$(date +%s)
+    echo " Done"
+  fi
 done
 
 # Generate the SSL certificates if needed
 if [ ! -f /opt/rudder/etc/ssl/rudder-webapp.crt ] || [ ! -f /opt/rudder/etc/ssl/rudder-webapp.key ]; then
-	echo -n "INFO: No usable SSL certificate detected for Rudder HTTP/S support, generating one automatically..."
-	openssl req -new -x509 -newkey rsa:2048 -subj "/CN=$(hostname --fqdn)/" -keyout /opt/rudder/etc/ssl/rudder-webapp.key -out /opt/rudder/etc/ssl/rudder-webapp.crt -days 1460 -nodes -sha256 >/dev/null 2>&1
-	chgrp %{apache_group} /opt/rudder/etc/ssl/rudder-webapp.key && chmod 640 /opt/rudder/etc/ssl/rudder-webapp.key
-	echo " Done"
+  echo -n "INFO: No usable SSL certificate detected for Rudder HTTP/S support, generating one automatically..."
+  openssl req -new -x509 -newkey rsa:2048 -subj "/CN=$(hostname --fqdn)/" -keyout /opt/rudder/etc/ssl/rudder-webapp.key -out /opt/rudder/etc/ssl/rudder-webapp.crt -days 1460 -nodes -sha256 >/dev/null 2>&1
+  chgrp %{apache_group} /opt/rudder/etc/ssl/rudder-webapp.key && chmod 640 /opt/rudder/etc/ssl/rudder-webapp.key
+  echo " Done"
 fi
 
 echo -n "INFO: Starting Apache HTTPd..."
@@ -415,10 +415,10 @@ echo "INFO: End of migration script"
 if [ ! -d /var/rudder/configuration-repository ]; then mkdir -p /var/rudder/configuration-repository; fi
 if [ ! -d /var/rudder/configuration-repository/shared-files ]; then mkdir -p /var/rudder/configuration-repository/shared-files; fi
 if [ ! -d /var/rudder/configuration-repository/techniques ]; then
-	cp -a %{rudderdir}/share/techniques /var/rudder/configuration-repository/
+  cp -a %{rudderdir}/share/techniques /var/rudder/configuration-repository/
 fi
 if [ ! -d /var/rudder/configuration-repository/ncf ]; then
-	ncf init /var/rudder/configuration-repository/ncf
+  ncf init /var/rudder/configuration-repository/ncf
 fi
 
 # Go into configuration-repository to manage git

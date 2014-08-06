@@ -41,7 +41,7 @@ set -e
 ECHO=/bin/echo
 
 usage() {
-	${ECHO} "Usage: $0 <new hostname for Rudder root server>"
+  ${ECHO} "Usage: $0 <new hostname for Rudder root server>"
 }
 
 # Get the LDAP access credentials
@@ -64,12 +64,12 @@ fi
 
 # Check arguments
 if [ "${RELAY_NEW_HOSTNAME}" = "" ]; then
-	${ECHO} "ERROR: Need the new host name of the Root server as an argument, aborting."
-	usage
-	exit 1
+  ${ECHO} "ERROR: Need the new host name of the Root server as an argument, aborting."
+  usage
+  exit 1
 elif [ "${RELAY_NEW_HOSTNAME}" = "new-root.example.org" ]; then
-	${ECHO} "ERROR: Please use a real host name, not the one supplied in the documentation, aborting."
-	exit 1
+  ${ECHO} "ERROR: Please use a real host name, not the one supplied in the documentation, aborting."
+  exit 1
 fi
 
 ${ECHO} -e "Rudder root server host name change script starting, using host name ${RELAY_NEW_HOSTNAME}.\n"

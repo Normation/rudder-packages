@@ -20,7 +20,7 @@ set -e
 
 
 case "$1" in
-	purge)
+  purge)
 
           # Remove the package user
           if getent passwd ncf-api-venv >/dev/null; then
@@ -29,15 +29,15 @@ case "$1" in
             echo " Done"
           fi
 
-	;;
+  ;;
 
-	remove|upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
-	;;
+  remove|upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
+  ;;
 
-	*)
-		echo "postrm called with unknown argument \`$1'" >&2
-		exit 1
-	;;
+  *)
+    echo "postrm called with unknown argument \`$1'" >&2
+    exit 1
+  ;;
 esac
 
 # dh_installdeb will replace this with shell code automatically

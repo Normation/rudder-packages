@@ -36,8 +36,8 @@ if [ ! -f 'perl-prepare.sh' ]; then
 fi
 
 if [ $# -ne 1 ]; then
-	echo "ERROR: Missing arguments."
-	echo "Usage: $0 <fusioninventory folder>"
+  echo "ERROR: Missing arguments."
+  echo "Usage: $0 <fusioninventory folder>"
 fi
 
 . detect_os.sh
@@ -59,9 +59,9 @@ FUSIONINVENTORY_FOLDER="${1}"
 
 # If we are on AIX, use an alternative cp syntax
 if [ "z${OS}" == "zAIX" ]; then
-	CP_A="cp -hpPr"
+  CP_A="cp -hpPr"
 else
-	CP_A="cp -a"
+  CP_A="cp -a"
 fi
 
 buildDmidecode () {
@@ -139,7 +139,7 @@ CPANM=$BUILDDIR/App-cpanminus-1.0004/bin/cpanm
 
 # If we are on RHEL 3, remove unwanted arguments to wget
 if [ "z${OS}" == "zRHEL" -a "z${OSVERSION}" == "z3" ]; then
-	sed -i "s/--retry-connrefused //" $BUILDDIR/App-cpanminus-1.0004/bin/cpanm
+  sed -i "s/--retry-connrefused //" $BUILDDIR/App-cpanminus-1.0004/bin/cpanm
 fi
 
 installMod "URI"

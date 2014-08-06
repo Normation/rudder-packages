@@ -35,7 +35,7 @@
 ## Init scripts
 APACHE2_INIT=/etc/init.d/apache2
 if [ ! -x ${APACHE2_INIT} ] && [ -x /etc/init.d/httpd ]; then
-	APACHE2_INIT=/etc/init.d/httpd
+  APACHE2_INIT=/etc/init.d/httpd
 fi
 SLAPD_INIT=/etc/init.d/rudder-slapd
 JETTY_INIT=/etc/init.d/rudder-jetty

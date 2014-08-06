@@ -170,11 +170,11 @@ fi
 # Do this at first install
 if [ $1 -eq 1 ]
 then
-	# Set rudder-agent as service
-	chkconfig --add rudder-jetty
-	%if 0%{?rhel} && 0%{?rhel} >= 6
-	chkconfig rudder-jetty on
-	%endif
+  # Set rudder-agent as service
+  chkconfig --add rudder-jetty
+  %if 0%{?rhel} && 0%{?rhel} >= 6
+  chkconfig rudder-jetty on
+  %endif
 fi
 
 #=================================================
