@@ -284,6 +284,11 @@ if [ ! -f /opt/rudder/etc/ssl/rudder-webapp.crt ] || [ ! -f /opt/rudder/etc/ssl/
 	echo " Done"
 fi
 
+%if 0%{?sles_version}
+# On SLES, change the Apache DocumentRoot to the OS default, unless it has already been modified
+sed -i "s%^DocumentRoot /var/www$%DocumentRoot /srv/www%" %{rudderdir}/etc/rudder-apache-common.conf
+%endif
+
 echo -n "INFO: Starting Apache HTTPd..."
 /sbin/service %{apache} start >/dev/null 2>&1
 echo " Done"
