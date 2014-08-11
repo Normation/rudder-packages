@@ -164,8 +164,8 @@ cp %{SOURCE2} %{buildroot}%{rudderdir}/jetty7/contexts/
 cp %{SOURCE3} %{buildroot}%{rudderdir}/etc/
 
 %if 0%{?sles_version}
-# On SLES, change the Apache DocumentRoot to the OS default, unless it has already been modified
-sed -i "s%^DocumentRoot /var/www$%DocumentRoot /srv/www%" %{buildroot}/etc/%{apache_vhost_dir}/rudder-default.conf
+# On SLES, change the Apache DocumentRoot to the OS default
+sed -i "s%^DocumentRoot /var/www$%DocumentRoot /srv/www%" %{buildroot}%{rudderdir}/etc/rudder-apache-common.conf
 %endif
 
 # Install upgrade tools
