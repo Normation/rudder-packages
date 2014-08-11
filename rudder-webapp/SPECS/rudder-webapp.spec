@@ -156,6 +156,11 @@ cp %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/apache2-sys
 cp %{SOURCE2} %{buildroot}%{rudderdir}/jetty7/contexts/
 cp %{SOURCE3} %{buildroot}%{rudderdir}/etc/
 
+%if 0%{?sles_version}
+# On SLES, change the Apache DocumentRoot to the OS default, unless it has already been modified
+sed -i "s%^DocumentRoot /var/www$%DocumentRoot /srv/www%" %{buildroot}/etc/%{apache_vhost_dir}/rudder-default.conf
+%endif
+
 # Install upgrade tools
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.3-2.4-groups-isDynamic.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.3-2.4-PT-history.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
