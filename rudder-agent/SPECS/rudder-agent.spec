@@ -91,7 +91,7 @@ Requires: pcre openssl
 ## For EL and Fedora
 %if 0%{?rhel} || 0%{?fedora}
 BuildRequires: make byacc
-Requires: crontabs
+Requires: crontabs net-tools
 %endif
 
 ## For SLES
