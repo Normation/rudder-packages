@@ -214,6 +214,11 @@ install -m 644 %{SOURCE2} %{buildroot}%{rudderdir}/share/webapps/
 
 cp %{SOURCE3} %{buildroot}%{rudderdir}/etc/
 
+%if 0%{?sles_version}
+# On SLES, change the Apache DocumentRoot to the OS default
+sed -i "s%^DocumentRoot /var/www$%DocumentRoot /srv/www%" %{buildroot}%{rudderdir}/etc/rudder-apache-common.conf
+%endif
+
 # Install upgrade tools
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.4-2.4-set-migration-needed-flag-for-EventLog.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.6-2.7-set-migration-needed-flag-for-EventLog.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
