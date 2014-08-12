@@ -32,20 +32,21 @@ diff -Naur a/changelog b/changelog
 diff -Naur a/control b/control
 --- a/control	2014-06-18 17:21:17.979798215 +0200
 +++ b/control	2014-06-18 17:21:34.867855637 +0200
-@@ -1,4 +1,4 @@
+@@ -1,5 +1,5 @@
+ 
 -Source: rudder-agent
 +Source: rudder-agent-thin
  Section: admin
  Priority: extra
  Maintainer: Rudder packaging team <rudder-packaging@rudder-project.org>
-@@ -6,19 +6,14 @@
+@@ -7,19 +7,13 @@
  Standards-Version: 3.8.0
  Homepage: http://www.rudder-project.org
  
 -Package: rudder-agent
 +Package: rudder-agent-thin
  Architecture: any
--Depends: ${shlibs:Depends}, ${misc:Depends}, uuid-runtime, dmidecode, cron
+-Depends: ${shlibs:Depends}, ${misc:Depends}, uuid-runtime, dmidecode, cron, net-tools
 -# The dependencies below are defined in order to use rudder-agent
 -# for the server. This will add capabilities to send inventories
 -# from the server itself.
@@ -54,7 +55,7 @@ diff -Naur a/control b/control
 -Replaces: rudder-cfengine-community, rudder-server-root (<< 2.4.0~beta2)
 -Breaks: rudder-server-root (<< 2.4.0~beta2)
 -Description: Configuration management and audit tool - agent
-+Depends: ${shlibs:Depends}, ${misc:Depends}, uuid-runtime, dmidecode, cron, fusioninventory-agent
++Depends: ${shlibs:Depends}, ${misc:Depends}, uuid-runtime, dmidecode, cron, net-tools, fusioninventory-agent
 +Provides: rudder-agent
 +Conflicts: rudder-agent
 +Description: Configuration management and audit tool
@@ -64,7 +65,6 @@ diff -Naur a/control b/control
 - managed by Rudder. It is based on two main components: CFEngine Community 3 and
 - FusionInventory.
 + managed by Rudder. It is based on CFEngine Community.
-+
 diff -Naur a/copyright b/copyright
 --- a/copyright	2014-03-04 10:06:26.535100944 +0100
 +++ b/copyright	2014-06-18 17:17:23.327002487 +0200

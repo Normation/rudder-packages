@@ -121,7 +121,7 @@ diff -Naur a/rudder-agent.spec b/rudder-agent.spec
  #=================================================
  # Post Installation
  #=================================================
-@@ -532,7 +507,7 @@
+@@ -546,7 +521,7 @@
  
  /opt/rudder/bin/check-rudder-agent
  
@@ -130,7 +130,7 @@ diff -Naur a/rudder-agent.spec b/rudder-agent.spec
  #=================================================
  # Pre Uninstallation
  #=================================================
-@@ -554,7 +529,7 @@
+@@ -568,7 +543,7 @@
  fi
  
  
@@ -139,16 +139,16 @@ diff -Naur a/rudder-agent.spec b/rudder-agent.spec
  #=================================================
  # Post Uninstallation
  #=================================================
-@@ -601,7 +576,7 @@
+@@ -615,7 +590,7 @@
  # Files
  #=================================================
  # Files from %{rudderdir} and %{ruddervardir} are automatically added via the -f option
 -%files -n rudder-agent -f %{_builddir}/file.list.%{name}
 +%files -n rudder-agent-thin -f %{_builddir}/file.list.%{name}
  %defattr(-, root, root, 0755)
- %config(noreplace) %{rudderdir}/etc/uuid.hive
- %if "%{?_os}" != "aix"
-@@ -624,15 +599,8 @@
+ 
+ # The following file is declared to belong to this package but will not be installed
+@@ -645,15 +620,8 @@
  # Changelog
  #=================================================
  %changelog
