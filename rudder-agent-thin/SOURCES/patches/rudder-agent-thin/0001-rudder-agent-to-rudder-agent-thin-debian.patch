@@ -32,14 +32,13 @@ diff -Naur a/changelog b/changelog
 diff -Naur a/control b/control
 --- a/control	2014-06-18 17:21:17.979798215 +0200
 +++ b/control	2014-06-18 17:21:34.867855637 +0200
-@@ -1,5 +1,5 @@
- 
+@@ -1,4 +1,4 @@
 -Source: rudder-agent
 +Source: rudder-agent-thin
  Section: admin
  Priority: extra
  Maintainer: Rudder packaging team <rudder-packaging@rudder-project.org>
-@@ -7,19 +7,13 @@
+@@ -6,19 +6,13 @@
  Standards-Version: 3.8.0
  Homepage: http://www.rudder-project.org
  
