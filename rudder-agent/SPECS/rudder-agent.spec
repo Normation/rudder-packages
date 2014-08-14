@@ -353,7 +353,7 @@ if [ ! -e /opt/rudder/etc/disable-agent ]; then
 	touch /opt/rudder/etc/disable-agent
 fi
 
-if [ ${CFRUDDER_FIRST_INSTALL} -ne 1 -a -x /etc/init.d/rudder-agent ]; then /sbin/service rudder-agent stop; fi
+if [ ${CFRUDDER_FIRST_INSTALL} -ne 1 -a -x /etc/init.d/rudder-agent ]; then /sbin/service rudder-agent stop || /etc/init.d/rudder-agent forcestop; fi
 
 # Copy CFEngine binaries
 cp -a -f /opt/rudder/bin/cf-* /var/rudder/cfengine-community/bin/
