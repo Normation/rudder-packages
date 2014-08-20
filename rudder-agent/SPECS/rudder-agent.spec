@@ -83,12 +83,12 @@ Requires: pcre openssl
 ## For EL and Fedora
 %if 0%{?rhel} || 0%{?fedora}
 BuildRequires: make byacc
-Requires: crontabs
+Requires: crontabs net-tools
 %endif
 
 ## For SLES
 %if 0%{?sles_version}
-Requires: cron
+Requires: cron net-tools
 %endif
 
 # dmiecode is provided in the "dmidecode" package on EL4+ and on kernel-utils
