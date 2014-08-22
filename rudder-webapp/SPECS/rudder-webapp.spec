@@ -162,6 +162,7 @@ cp %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/rudder-vhos
 cp %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/apache2-sysconfig %{buildroot}/etc/sysconfig/rudder-apache
 cp %{SOURCE2} %{buildroot}%{rudderdir}/jetty7/contexts/
 cp %{SOURCE3} %{buildroot}%{rudderdir}/etc/
+cp %{_sourcedir}/rudder-sources/ncf/tree/10_ncf_internals/list-compatible-inputs %{buildroot}%{rudderdir}/share/tools/list-compatible-inputs
 
 # Install upgrade tools
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.4-2.4-set-migration-needed-flag-for-EventLog.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
