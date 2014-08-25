@@ -284,7 +284,7 @@ echo " done."
 echo -n "Restarting services..."
 
 # Launch manually a single cf-agent instance to ensure that files are copied, and set passwords everywhere
-/opt/rudder/bin/cf-agent -b update_action,root_password_check_file,root_password_check_ldap,root_password_check_psql,root_password_check_dav &> $TMP_LOG
+/opt/rudder/bin/cf-agent -b propagatePromises,update_action,root_password_check_file,root_password_check_ldap,root_password_check_psql,root_password_check_dav &> $TMP_LOG
 
 # Start the whole infrastructure
 if [ -e ${LDAPDATA_PATH} ]; then ${SLAPD_INIT} start >> ${TMP_LOG} 2>&1; fi
