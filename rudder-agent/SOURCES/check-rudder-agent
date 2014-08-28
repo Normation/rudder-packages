@@ -62,6 +62,25 @@ LAST_UPDATE_FILE=${CFE_DIR}/last_successful_inputs_update
 
 UUID_FILE=/opt/rudder/etc/uuid.hive
 
+
+# Name of the script that loads the generic method given the agent version
+LIST_COMPATIBLE_INPUTS=list-compatible-inputs
+SRC_TOOLS_FOLDER=/opt/rudder/share/tools
+TOOLS_FOLDER=/var/rudder/tools
+
+
+# Checks that the script to load the compatible generic method is there
+# and if not, copy it from its source (if it is available)
+check_and_fix_list_compatible_inputs() {
+  if [ -e "${SRC_TOOLS_FOLDER}/${LIST_COMPATIBLE_INPUTS}" ]; then
+    if [ ! -e "${TOOLS_FOLDER}/${LIST_COMPATIBLE_INPUTS}" ]; then
+      echo_n "Warning: The script to load the compatible inputs is not there. Copying..."
+      cp ${SRC_TOOLS_FOLDER}/${LIST_COMPATIBLE_INPUTS} ${TOOLS_FOLDER}/${LIST_COMPATIBLE_INPUTS}
+      echo " Done"
+    fi
+  fi
+}
+
 clean_cf_lock_files() {
   rm -f ${CFE_DIR}/state/cf_lock.${CFENGINE_DB_EXT}
   rm -f ${CFE_DIR}/state/cf_lock.${CFENGINE_DB_EXT}.lock
@@ -232,6 +251,7 @@ if [ ! $(whoami) = 'root' ];then echo "You must be root"; exit; fi
 
 # Launch each check with a certain order
 check_and_fix_rudder_uuid
+check_and_fix_list_compatible_inputs
 check_and_fix_cfengine_processes
 check_and_fix_cf_lock
 
