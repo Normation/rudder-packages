@@ -355,7 +355,7 @@ echo -n "Restarting services..."
 # Running failsafe will create required directories (such as /var/rudder/ncf/local) and populate tools
 cf-agent -f failsafe.cf &> "$TMP_LOG"
 # Run all server-specific bundles (except propagatePromises, because they're aren't any yet)
-cf-agent -b install_rsyslogd,root_component_check &> "$TMP_LOG"
+cf-agent -b propagatePromises,install_rsyslogd,root_component_check &> "$TMP_LOG"
 
 ## Then, restart jetty
 ${JETTY_INIT} restart >> "${TMP_LOG}" 2>&1 || echo "WARNING: Jetty failed to start, maybe there is not enough RAM or swap on the machine. Skipping..."
