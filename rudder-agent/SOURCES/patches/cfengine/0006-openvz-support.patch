@@ -1,0 +1,119 @@
+diff --git a/cf-monitord/mon_processes.c b/cf-monitord/mon_processes.c
+index 7f5d70c..63a2ac9 100644
+--- a/cf-monitord/mon_processes.c
++++ b/cf-monitord/mon_processes.c
+@@ -74,7 +74,7 @@ static bool GatherProcessUsers(Item **userList, int *userListSz, int *numRootPro
+     char pscomm[CF_BUFSIZE];
+     char user[CF_MAXVARSIZE];
+ 
+-    snprintf(pscomm, CF_BUFSIZE, "%s %s", VPSCOMM[VSYSTEMHARDCLASS], VPSOPTS[VSYSTEMHARDCLASS]);
++    snprintf(pscomm, CF_BUFSIZE, "%s %s", VPSCOMM[VPSHARDCLASS], VPSOPTS[VPSHARDCLASS]);
+ 
+     if ((pp = cf_popen(pscomm, "r", true)) == NULL)
+     {
+diff --git a/libenv/sysinfo.c b/libenv/sysinfo.c
+index b91ca1f..7c897eb 100644
+--- a/libenv/sysinfo.c
++++ b/libenv/sysinfo.c
+@@ -471,6 +471,7 @@ static void GetNameInfo3(EvalContext *ctx)
+                     found = true;
+ 
+                     VSYSTEMHARDCLASS = (PlatformContext) i;
++                    VPSHARDCLASS = (PlatformContext) i; /* this one can be overriden at vz detection */
+                     EvalContextVariablePutSpecial(ctx, SPECIAL_SCOPE_SYS, "class", CLASSTEXT[i], CF_DATA_TYPE_STRING, "inventory,source=agent,attribute_name=OS type");
+                     break;
+                 }
+@@ -2340,6 +2341,7 @@ static void OpenVZ_Detect(EvalContext *ctx)
+ /* path to the vzps binary */
+ #define OPENVZ_VZPS_FILE "/bin/vzps"
+     struct stat statbuf;
++    int i;
+ 
+     /* The file /proc/bc/0 is present on host
+        The file /proc/vz is present on guest
+@@ -2354,6 +2356,15 @@ static void OpenVZ_Detect(EvalContext *ctx)
+         if (stat(OPENVZ_VZPS_FILE, &statbuf) != -1)
+         {
+             EvalContextClassPutHard(ctx, "virt_host_vz_vzps", "inventory,attribute_name=Virtual host,source=agent");
++            /* here we must redefine the value of VPSHARDCLASS */
++            for (i = 0; i < PLATFORM_CONTEXT_MAX; i++)
++            {
++                if (!strcmp(CLASSATTRIBUTES[i][0], "virt_host_vz_vzps"))
++                {
++                   VPSHARDCLASS = (PlatformContext) i;
++                   break;
++                }
++            }
+         }
+         else
+         {
+diff --git a/libpromises/cf3.extern.h b/libpromises/cf3.extern.h
+index 4eb8fc7..27e1d7d 100644
+--- a/libpromises/cf3.extern.h
++++ b/libpromises/cf3.extern.h
+@@ -48,6 +48,7 @@ extern char VPREFIX[];
+ 
+ extern char VDOMAIN[CF_MAXVARSIZE];
+ extern PlatformContext VSYSTEMHARDCLASS;
++extern PlatformContext VPSHARDCLASS; /* used to define which ps command to use*/
+ extern char VFQNAME[];
+ extern char VUQNAME[];
+ 
+diff --git a/libpromises/cf3globals.c b/libpromises/cf3globals.c
+index 71de509..3a3da9b 100644
+--- a/libpromises/cf3globals.c
++++ b/libpromises/cf3globals.c
+@@ -168,3 +168,4 @@ bool MINUSF = false; /* GLOBAL_A */
+    call external utility
+ */
+ PlatformContext VSYSTEMHARDCLASS; /* GLOBAL_E?, initialized_later */
++PlatformContext VPSHARDCLASS; /* used to define which ps command to use*/
+diff --git a/libpromises/processes_select.c b/libpromises/processes_select.c
+index ac5b044..285977e 100644
+--- a/libpromises/processes_select.c
++++ b/libpromises/processes_select.c
+@@ -683,7 +683,7 @@ static const char *GetProcessOptions(void)
+ 
+     if (IsGlobalZone())
+     {
+-        snprintf(psopts, CF_BUFSIZE, "%s,zone", VPSOPTS[VSYSTEMHARDCLASS]);
++        snprintf(psopts, CF_BUFSIZE, "%s,zone", VPSOPTS[VPSHARDCLASS]);
+         return psopts;
+     }
+ 
+@@ -696,7 +696,7 @@ static const char *GetProcessOptions(void)
+ 
+ # endif
+ 
+-    return VPSOPTS[VSYSTEMHARDCLASS];
++    return VPSOPTS[VPSHARDCLASS];
+ }
+ #endif
+ 
+@@ -761,7 +761,7 @@ int LoadProcessTable(Item **procdata)
+ 
+     const char *psopts = GetProcessOptions();
+ 
+-    snprintf(pscomm, CF_MAXLINKSIZE, "%s %s", VPSCOMM[VSYSTEMHARDCLASS], psopts);
++    snprintf(pscomm, CF_MAXLINKSIZE, "%s %s", VPSCOMM[VPSHARDCLASS], psopts);
+ 
+     Log(LOG_LEVEL_VERBOSE, "Observe process table with %s", pscomm);
+
+diff --git a/tests/unit/mon_processes_test.c b/tests/unit/mon_processes_test.c
+index 0a096a4..4842ad8 100644
+--- a/tests/unit/mon_processes_test.c
++++ b/tests/unit/mon_processes_test.c
+@@ -109,10 +109,13 @@ int main()
+ 
+ #if defined(__sun)
+     VSYSTEMHARDCLASS = PLATFORM_CONTEXT_SOLARIS;
++    VPSHARDCLASS = PLATFORM_CONTEXT_SOLARIS;
+ #elif defined(_AIX)
+     VSYSTEMHARDCLASS = PLATFORM_CONTEXT_AIX;
++    VPSHARDCLASS = PLATFORM_CONTEXT_AIX;
+ #elif defined(__linux__)
+     VSYSTEMHARDCLASS = PLATFORM_CONTEXT_LINUX;
++    VPSHARDCLASS = PLATFORM_CONTEXT_LINUX;
+ #endif
+ 
+     PRINT_TEST_BANNER(); 
