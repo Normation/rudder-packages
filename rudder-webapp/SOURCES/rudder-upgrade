@@ -2,6 +2,15 @@
 
 set -e
 
+function anomaly_handler() {
+  echo ""
+  echo "ERROR: An error happened during the step: ${STEP}"
+  echo "ERROR: The migration will now stop"
+  echo "ERROR: Please try to run /opt/rudder/bin/rudder-upgrade again"
+}
+
+trap anomaly_handler ERR INT TERM
+
 #####################################################################################
 # Copyright 2012 Normation SAS
 #####################################################################################
@@ -290,6 +299,8 @@ retry_wrapper "${PSQL} -t -d rudder -c 'select count(ruleid) from rules' >/dev/n
 echo " OK"
 
 # Upgrade database schema from 2.3 to 2.4 if necessary - seventh part: Check the lowest fileFormat version in the eventLog and update the date if necessary
+STEP="Upgrade database schema from 2.3 to 2.4 if necessary - seventh part: Check the lowest fileFormat version in the eventLog and update the date if necessary"
+
 OLDEST_EVENTLOG_VERSION=0
 for EVENTLOG_VERSION in 2 1
 do
@@ -309,24 +320,32 @@ elif [ ${OLDEST_EVENTLOG_VERSION} -eq 2 ]; then
 fi
 
 # Upgrade database schema from 2.3 to 2.4 if necessary - eighth part: Check if archive of the eventlog exists and create it if necessary
+STEP="Upgrade database schema from 2.3 to 2.4 if necessary - eighth part: Check if archive of the eventlog exists and create it if necessary"
+
 RES=$(${PSQL} -t -d rudder -c "select count(1) from pg_class where relname = 'archivedruddersysevents'")
 if [ $RES -eq 0 ]; then
   ${PSQL} -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.3-2.4-archive.sql > /dev/null
 fi
 
 # 2.7.0: File Format migration from 3 to 4
+STEP="2.7.0: File Format migration from 3 to 4"
+
 RES=$(${PSQL} -t -d rudder -c "select count(*) from (select xpath('/entry/*[@fileFormat=3]',data) AS x from eventlog) as Y where array_upper(x, 1) > 0;")
 if [ $RES -ne 0 ]; then
   ${PSQL} -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.6-2.7-set-migration-needed-flag-for-EventLog.sql > /dev/null 2>&1
 fi
 
 # 2.9.0: File Format migration from 4 to 5
+STEP="2.9.0: File Format migration from 4 to 5"
+
 RES=$(${PSQL} -t -d rudder -c "select count(*) from (select xpath('/entry/*[@fileFormat=4]',data) AS x from eventlog) as Y where array_upper(x, 1) > 0;")
 if [ $RES -ne 0 ]; then
   ${PSQL} -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.8-2.9-set-migration-needed-flag-for-EventLog.sql > /dev/null 2>&1
 fi
 
 # Upgrade database schema from 2.7 to 2.8 if necessary - Check if the execution table is present, and create it if needed.
+STEP="Upgrade database schema from 2.7 to 2.8 if necessary - Check if the execution table is present, and create it if needed."
+
 RES=$(${PSQL} -t -d rudder -c "select count(oid) from pg_class where lower(relname) = 'reportsexecution'")
 if [ $RES -eq 0 ]; then
   echo -n "INFO: Creating new table containing all nodes executions, this migration script can take a long time..."
@@ -335,14 +354,17 @@ if [ $RES -eq 0 ]; then
 fi
 
 # Detect if we'd need to upgrade the database keys to use bigint rather than integer
+STEP="Detect if we'd need to upgrade the database keys to use bigint rather than integer"
+
 RES=$(${PSQL} -t -d rudder -c "select count(*) from information_schema.columns where table_name='ruddersysevents' and column_name='id' and data_type='integer';")
 if [ ${RES} -eq 1 ]; then
   echo "WARN: Your database uses an old format, with keys stored in Integer rather than Bigint. On large installation this may cause some issue, please run the script /opt/rudder/bin/rudder-upgrade-database"
 fi
 
-
 ## Change attribute from dn:ruleId=inventory-all,ou=Rules,ou=Rudder,cn=rudder-configuration
 ## Check if ruleTarget attribute contains all nodes or all except policy server and LDAP is setting up
+STEP="Check if ruleTarget attribute contains all nodes or all except policy server and LDAP is setting up"
+
 CHECK_INVENTORY_TARGET=$(${LDAPSEARCH} -b "ruleId=inventory-all,ou=Rules,ou=Rudder,cn=rudder-configuration" '(ruleTarget=*)' >/dev/null 2>&1 | grep -c '^ruleTarget: special:all$' || true)
 
 if [ ${LDAP_EXISTS} -ne 0 -a ${CHECK_INVENTORY_TARGET} -ne 1 ]; then
@@ -355,6 +377,8 @@ EOF
 fi
 
 # Upgrade system Techniques and ncf - always do this!
+STEP="Upgrade system Techniques and ncf"
+
 update_rudder_repository_from_system_directory /opt/rudder/share/techniques/system/ techniques/system/
 
 mkdir -p /var/rudder/ncf/common
@@ -365,16 +389,22 @@ if [ -d /usr/share/ncf/tree ]; then
 fi
 
 # Make sure that ncf uses the right logger bundles (_logger_default and logger_rudder)
+STEP="Make sure that ncf uses the right logger bundles (_logger_default and logger_rudder)"
+
 if ! grep -Eq "^loggers=.*logger_rudder.*" ${RUDDER_NCF_SOURCE_DIRECTORY}/tree/ncf.conf; then
   sed -i "s%^loggers=\(.*\)%loggers=\1,logger_rudder%" ${RUDDER_NCF_SOURCE_DIRECTORY}/tree/ncf.conf
 fi
 
 # Make sure that ncf uses the right CFEngine port (5309)
+STEP="Make sure that ncf uses the right CFEngine port (5309)"
+
 if ! grep -Eq "^cfengine_port=5309" ${RUDDER_NCF_SOURCE_DIRECTORY}/tree/ncf.conf; then
   sed -i "s%^cfengine_port=.*%cfengine_port=5309%" ${RUDDER_NCF_SOURCE_DIRECTORY}/tree/ncf.conf
 fi
 
 # All versions: Check that Rudder database is able to handle backslash
+STEP="All versions: Check that Rudder database is able to handle backslash"
+
 CHECK_BACKSLASH=$(${PSQL} -t -d rudder -c "select '\\foo';" 2>/dev/null | grep -c "foo" || true)
 if [ ${CHECK_BACKSLASH} -ne 1 ]; then
   echo -n "INFO: Rudder database is not backslash compliant, fixing..."
@@ -388,12 +418,16 @@ fi
 
 
 # - 2.8.0 : Update logback.xml in order to have information about change requests
+STEP="Update logback.xml in order to have information about change requests"
+
 if ! perl -p0e 's/\n//g' < /opt/rudder/etc/logback.xml | perl -p0e 's/<!--.(?:(?!-->).)*-->//g' | perl -p0e 's/> *</></g' | grep -E '<logger name="changeRequest" level="[^"]+" additivity="false">' >/dev/null 2>&1
 then
   sed -i 's%^ *</configuration>%   <logger name="changeRequest" level="info" additivity="false">\n     <appender-ref ref="OPSLOG" />\n     <appender-ref ref="STDOUT" />\n   </logger>\n</configuration>%' /opt/rudder/etc/logback.xml
 fi
 
 # - 2.8.0 : Add the property to configure maximum days of reports treated at each run
+STEP="Add the property to configure maximum days of reports treated at each run"
+
 check_and_add_config_property rudder.batch.storeAgentRunTimes.maxDays "
 # Maximum Days of reports handled (default : 5)
 #
@@ -406,6 +440,8 @@ check_and_add_config_property rudder.batch.storeAgentRunTimes.maxDays "
 rudder.batch.storeAgentRunTimes.maxDays=5"
 
 # - 2.8.0 : Add the property to configure execution of agent reports frequency
+STEP="Add the property to configure execution of agent reports frequency"
+
 check_and_add_config_property rudder.batch.storeAgentRunTimes.updateInterval "
 # Delay before to launch of the reports executions actor (default : 5)
 # 
@@ -419,6 +455,8 @@ rudder.batch.storeAgentRunTimes.updateInterval=5"
 if [ ${LDAP_EXISTS} -ne 0 ]; then
 
   # - 2.7.0 : Migration LDAP to add the global parameter ou
+  STEP="Migration LDAP to add the global parameter ou"
+
   LDAP_TEST_GLOBAL_PARAMETER=$(${LDAPSEARCH} -b "ou=Parameters,ou=Rudder,cn=rudder-configuration" -s base dn 2>/dev/null | grep -c "dn: ou=Parameters" || true)
   if [ ${LDAP_TEST_GLOBAL_PARAMETER} -eq 0 ]; then
     echo -n "INFO: The Rudder OpenLDAP schema is not up to date, adding Global Parameter ou..."
@@ -427,6 +465,8 @@ if [ ${LDAP_EXISTS} -ne 0 ]; then
   fi
 
   # - 2.7.0 : Migration LDAP to add the default parameter for file edition
+  STEP="Migration LDAP to add the default parameter for file edition"
+
   LDAP_TEST_DEFAULT_PARAMETER=$(${LDAPSEARCH} -b "parameterName=rudder_file_edit_header,ou=Parameters,ou=Rudder,cn=rudder-configuration" parameterName 2>/dev/null | grep -c "parameterName" || true)
   if [ ${LDAP_TEST_DEFAULT_PARAMETER} -eq 0 ]; then
     echo -n "INFO: Adding default Global Parameter containing the header put in file managed by Rudder..."
@@ -435,6 +475,8 @@ if [ ${LDAP_EXISTS} -ne 0 ]; then
   fi
 
   # - 2.7.0~rc1 : LDAP migration to add a UUID to REST API accounts
+  STEP="LDAP migration to add a UUID to REST API accounts"
+
   LDAP_TEST_OLD_API_ACCOUNTS=$(${LDAPSEARCH} -b "ou=API Accounts,ou=Rudder,cn=rudder-configuration" dn 2>/dev/null | grep -c "^dn: cn=" || true)
   if [ ${LDAP_TEST_OLD_API_ACCOUNTS} -ne 0 ]; then
     echo -n "INFO: Renaming API accounts to have a unique ID..."
@@ -448,6 +490,8 @@ if [ ${LDAP_EXISTS} -ne 0 ]; then
   fi
 
   # - 2.11.0: Add LDAP entries for Server Roles system Technique, Directive and Rule
+  STEP="Add LDAP entries for Server Roles system Technique, Directive and Rule"
+
   LDAP_TEST_SERVER_ROLES_RULE=$(${LDAPSEARCH} -b "ruleId=server-roles,ou=Rules,ou=Rudder,cn=rudder-configuration" -s base dn 2> /dev/null | grep -c "dn: ruleId=server-roles" || true)
   if [ ${LDAP_TEST_SERVER_ROLES_RULE} -eq 0 ]; then
     echo -n "INFO: Adding System Technique, Directive and Rule to manage Rudder Server Roles..."
@@ -456,6 +500,8 @@ if [ ${LDAP_EXISTS} -ne 0 ]; then
   fi
 
   # - 2.11.0: Add LDAP entry for Group with all nodes excluding server components
+  STEP="Add LDAP entry for Group with all nodes excluding server components"
+
   LDAP_TEST_SERVER_ROLES_GROUP=$(${LDAPSEARCH} -b "ruleTarget=special:all_nodes_without_role,groupCategoryId=SystemGroups,groupCategoryId=GroupRoot,ou=Rudder,cn=rudder-configuration" -s base dn 2> /dev/null | grep -c "dn: ruleTarget=special:all_nodes_without_role" || true)
   if [ ${LDAP_TEST_SERVER_ROLES_GROUP} -eq 0 ]; then
     echo -n "INFO: Adding system Group of all nodes that are not a Rudder server component..."
@@ -464,6 +510,8 @@ if [ ${LDAP_EXISTS} -ne 0 ]; then
   fi
 
   # - 2.11.0: Add LDAP attribute to root node if server role is missing
+  STEP="Add LDAP attribute to root node if server role is missing"
+
   LDAP_TEST_ROOT_SERVER_ROLE=$(${LDAPSEARCH} -b "nodeId=root,ou=Nodes,ou=Accepted Inventories,ou=Inventories,cn=rudder-configuration" rudderServerRole 2> /dev/null | grep -c "rudderServerRole: rudder-web" || true)
   if [ ${LDAP_TEST_ROOT_SERVER_ROLE} -eq 0 ]; then
     echo -n "INFO: Adding 'rudder-web' server Role to root server..."
@@ -474,6 +522,8 @@ if [ ${LDAP_EXISTS} -ne 0 ]; then
 fi
 
 # - 2.6.6 : Migration DB schema to modify indexes on RudderSysEvents to improve nodes list display
+STEP="Migration DB schema to modify indexes on RudderSysEvents to improve nodes list display"
+
 RES=$(${PSQL} -t -d rudder -c "select count(oid) from pg_class where lower(relname) = 'composite_node_execution_idx'")
 if [ $RES -eq 0 ]; then
   echo -n "INFO: Updating the PostgreSQL indexes, this may take several minutes..."
@@ -482,6 +532,8 @@ if [ $RES -eq 0 ]; then
 fi
 
 # - 2.8.0 : Deprecate properties that are now handled directly in the webapp (validation workflow and change Message)
+STEP="Deprecate properties that are now handled directly in the webapp (validation workflow and change Message)"
+
 for i in rudder.ui.changeMessage.enabled rudder.ui.changeMessage.mandatory rudder.ui.changeMessage.explanation rudder.workflow.enabled rudder.workflow.self.validation rudder.workflow.self.deployment
 do
   # First, check if the property is in the file (if not we don't need to migrate it)
@@ -496,6 +548,8 @@ do
 done
 
 # - 2.10.0 : Add properties to enable and configure the LDAP authentication
+STEP="Add properties to enable and configure the LDAP authentication"
+
 check_and_add_config_property rudder.auth.ldap.enable "
 #########################
 # LDAP Authentication    #############################################################
@@ -584,6 +638,8 @@ check_and_add_config_property rudder.debug.nodeconfiguration.path "#
 rudder.debug.nodeconfiguration.path=/var/log/rudder/nodeConfigurations"
 
 # - 2.11.0 : Add properties to define the role of servers
+STEP="Add properties to define the role of servers"
+
 check_and_add_config_property rudder.server-roles.web "
 #
 # Rudder roles definition
@@ -613,6 +669,8 @@ rudder.server-roles.relay-top=autodetect
 # The hosts with the webapp role
 rudder.server-roles.web=autodetect"
 
-
 # For every upgrade, we force the root server to run a new inventory on the next CFEngine run
 touch /opt/rudder/etc/force_inventory
+
+echo ""
+echo "INFO: The migration has completed successfully."
