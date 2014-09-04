@@ -40,11 +40,10 @@ def main():
 
     # We default on host ctid
     CTID = 0
-    noCTID = False
+    CTID_provided = False
 
     # Parsing script arguments
     if len(sys.argv) == 2:
-        noCTID = True
         ps_args = sys.argv[1:]
 
     elif len(sys.argv) >= 3:
@@ -53,10 +52,10 @@ def main():
                 print('Invalid CTID')
                 sys.exit(1)
             CTID = sys.argv[2]
+            CTID_provided = True
             if len(sys.argv) >= 4:
                 ps_args = sys.argv[3:]
         else:
-            noCTID = True
             ps_args = sys.argv[1:]
 
     # Join ps_args if it's a list
@@ -79,7 +78,7 @@ def main():
     # Loop on output list
     for pline in plist:
         # No CTID provided so just act as ps
-        if noCTID:
+        if not CTID_provided:
             fadd(pline)
         else:
             # Make a list out of each line
