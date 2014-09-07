@@ -423,7 +423,7 @@ fi
 %if "%{?_os}" == "aix"
 if [ ${CFRUDDER_FIRST_INSTALL} -ne 1 ]; then /usr/bin/stopsrc -s rudder-agent; fi
 %else
-if [ ${CFRUDDER_FIRST_INSTALL} -ne 1 -a -x /etc/init.d/rudder-agent ]; then /sbin/service rudder-agent stop; fi
+if [ ${CFRUDDER_FIRST_INSTALL} -ne 1 -a -x /etc/init.d/rudder-agent ]; then /sbin/service rudder-agent stop || /etc/init.d/rudder-agent forcestop; fi
 %endif
 
 # Copy CFEngine binaries
