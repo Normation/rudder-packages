@@ -50,7 +50,7 @@ case "$1" in
 			touch /opt/rudder/etc/disable-agent
 		fi
 
-		if [ ${CFRUDDER_FIRST_INSTALL} -ne 1 -a -x /etc/init.d/rudder-agent ]; then /etc/init.d/rudder-agent stop; fi
+		if [ ${CFRUDDER_FIRST_INSTALL} -ne 1 -a -x /etc/init.d/rudder-agent ]; then /etc/init.d/rudder-agent stop || /etc/init.d/rudder-agent forcestop; fi
 
 		# Copy CFEngine binaries (Changed location from sbin/ to bin/ in version 3.4)
 		cp -a -f /opt/rudder/bin/cf-* /var/rudder/cfengine-community/bin/
