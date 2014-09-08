@@ -40,6 +40,7 @@ def main():
 
     # We default on host ctid
     CTID = 0
+    CTID_provided = False
 
     # Parsing script arguments
     if len(sys.argv) == 2:
@@ -51,6 +52,7 @@ def main():
                 print('Invalid CTID')
                 sys.exit(1)
             CTID = sys.argv[2]
+            CTID_provided = True
             if len(sys.argv) >= 4:
                 ps_args = sys.argv[3:]
         else:
@@ -75,16 +77,20 @@ def main():
 
     # Loop on output list
     for pline in plist:
-        # Make a list out of each line
-        proc_list = pline.split()
-        if proc_list and 'PID' in proc_list[1]:
-            # Add the line to flist if title line
+        # No CTID provided so just act as ps
+        if not CTID_provided:
             fadd(pline)
-        elif proc_list and os.path.isfile(os.path.join('/proc', proc_list[1], 'status')):
-            pid_read = open(os.path.join('/proc', proc_list[1], 'status'), 'rb').read()
-            if envID in pid_read:
-                # Add the line to flist if it's an openvz host process
+        else:
+            # Make a list out of each line
+            proc_list = pline.split()
+            if proc_list and 'PID' in proc_list[1]:
+                # Add the line to flist if title line
                 fadd(pline)
+            elif proc_list and os.path.isfile(os.path.join('/proc', proc_list[1], 'status')):
+                pid_read = open(os.path.join('/proc', proc_list[1], 'status'), 'rb').read()
+                if envID in pid_read:
+                    # Add the line to flist if it's an openvz host process
+                    fadd(pline)
 
     # Finally output flist which contains only openvz CTID processes
     for process_line in flist:
