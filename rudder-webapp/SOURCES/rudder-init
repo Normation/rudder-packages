@@ -96,8 +96,10 @@ else
   unset PGPASSWORD
 fi
 
-# Override any server values with those from ${RUDDER_ROLES_FILE}
-if [ -f ${RUDDER_ROLES_FILE} ]; then
+# Override any server values with those from ${RUDDER_ROLES_FILE} , unless this is a monolithic
+# Rudder server installation (to keep using localhost)
+RUDDER_ROLE_SERVER_ROOT="${RUDDER_OPT}/etc/server-roles.d/rudder-server-root"
+if [ ! -f ${RUDDER_ROLE_SERVER_ROOT} -a -f ${RUDDER_ROLES_FILE} ]; then
   for role in rudder-db rudder-ldap rudder-inventory-endpoint; do
     ROLE_HOSTNAME=$(grep "^${role}:" ${RUDDER_ROLES_FILE} | cut -d: -f2 | cut -d, -f1 | tr -d " ")
     if [ ! -z ${ROLE_HOSTNAME} ]; then
