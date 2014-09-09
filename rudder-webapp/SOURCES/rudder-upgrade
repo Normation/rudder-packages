@@ -127,10 +127,12 @@ retry_wrapper() {
         # OK, we failed
         tries=$((${tries}+1))
         if [ ${tries} -ge ${MAXTRIES} ]; then
+            echo " FAILED" # we are on a line that says "Checking ...", so finish it before printing anything else
             echo "${2} service verification failed after ${MAXTRIES} tries. Aborting the migration."
-            echo "Please restart the Rudder service, and start the migration script again:"
-            echo "# /etc/init.d/rudder-server-root restart"
-            echo "# /opt/rudder/bin/rudder-upgrade"
+            echo "Please restart the ${2} service, and start the migration script again."
+            echo "(on a single Rudder server, try service rudder-server-root restart)"
+            echo "Once it is working, run:"
+            echo "# /opt/rudder/bin/rudder-upgrade"
             /bin/false
         else
             echo -n "."
