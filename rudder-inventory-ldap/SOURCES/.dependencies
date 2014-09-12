@@ -2,3 +2,4 @@ SLES11:gcc cyrus-sasl-devel libdb-4_5-devel libopenssl-devel
 SLES10:gcc cyrus-sasl-devel db42-devel openssl-devel
 RHEL5:gcc cyrus-sasl-devel db4-devel openssl-devel libtool-ltdl-devel
 RHEL6:gcc cyrus-sasl-devel db4-devel openssl-devel libtool-ltdl-devel
+RHEL7:gcc cyrus-sasl-devel libdb-devel openssl-devel libtool-ltdl-devel
