@@ -112,9 +112,11 @@ else
   unset PGPASSWORD
 fi
 
-# Override any server values with those from ${RUDDER_ROLES_FILE}
+# Override any server values with those from ${RUDDER_ROLES_FILE}, unless this is a monolithic
+# Rudder server installation (to keep using localhost)
+RUDDER_ROLE_SERVER_ROOT="${RUDDER_OPT}/etc/server-roles.d/rudder-server-root"
 RUDDER_ROLES_FILE="${RUDDER_VAR}/cfengine-community/inputs/rudder-server-roles.conf"
-if [ -f ${RUDDER_ROLES_FILE} ]; then
+if [ ! -f ${RUDDER_ROLE_SERVER_ROOT} -a -f ${RUDDER_ROLES_FILE} ]; then
   for role in rudder-db rudder-ldap; do
     ROLE_HOSTNAME=$(grep "^${role}:" ${RUDDER_ROLES_FILE} | cut -d: -f2 | cut -d, -f1 | tr -d " ")
     if [ ! -z ${ROLE_HOSTNAME} ]; then
@@ -181,9 +183,11 @@ retry_wrapper() {
     # OK, we failed
     tries=$((${tries}+1))
     if [ ${tries} -ge ${MAXTRIES} ]; then
+      echo " FAILED" # we are on a line that says "Checking ...", so finish it before printing anything else
       echo "${2} service verification failed after ${MAXTRIES} tries. Aborting the migration."
-      echo "Please restart the Rudder service, and start the migration script again:"
-      echo "# /etc/init.d/rudder-server-root restart"
+      echo "Please restart the ${2} service, and start the migration script again."
+      echo "(on a single Rudder server, try service rudder-server-root restart)"
+      echo "Once it is working, run:"
       echo "# /opt/rudder/bin/rudder-upgrade"
       /bin/false
     else
