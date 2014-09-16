@@ -213,7 +213,6 @@ cp %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/apache2-sys
 install -m 644 %{SOURCE2} %{buildroot}%{rudderdir}/share/webapps/
 
 cp %{SOURCE3} %{buildroot}%{rudderdir}/etc/
-cp %{_sourcedir}/rudder-sources/ncf/tree/10_ncf_internals/list-compatible-inputs %{buildroot}%{rudderdir}/share/tools/list-compatible-inputs
 
 %if 0%{?sles_version}
 # On SLES, change the Apache DocumentRoot to the OS default
