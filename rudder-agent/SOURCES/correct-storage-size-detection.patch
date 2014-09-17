@@ -1,0 +1,27 @@
+commit 453edf20e157f938c8e45c890bc81c9c79b87e2a
+Author: Nicolas CHARLES <nicolas.charles@normation.com>
+Date:   Wed Sep 17 09:29:26 2014 +0200
+
+    Fixes #2718: correct condition for disk storage computation
+
+diff --git a/lib/FusionInventory/Agent/Task/Inventory/Input/Linux/Storages.pm b/lib/FusionInventory/Agent/Task/Inventory/Input/Linux/Storages.pm
+index 1b01862..12bb853 100644
+--- a/lib/FusionInventory/Agent/Task/Inventory/Input/Linux/Storages.pm
++++ b/lib/FusionInventory/Agent/Task/Inventory/Input/Linux/Storages.pm
+@@ -7,6 +7,7 @@ use English qw(-no_match_vars);
+ 
+ use FusionInventory::Agent::Tools;
+ use FusionInventory::Agent::Tools::Linux;
++use FusionInventory::Agent::Tools::Unix;
+ 
+ sub isEnabled {
+     return 1;
+@@ -93,7 +94,7 @@ sub doInventory {
+             );
+         }
+ 
+-        if ($device->{DISKSIZE} && $device->{TYPE} =~ /^cd/) {
++        if (!$device->{DISKSIZE} && $device->{TYPE} !~ /^cd/) {
+             $device->{DISKSIZE} = getDeviceCapacity(device => '/dev/' . $device->{NAME});
+         }
+ 

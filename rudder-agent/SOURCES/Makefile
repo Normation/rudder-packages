@@ -66,6 +66,7 @@ localdepends: ./initial-promises ./files ./fusioninventory-agent ./tokyocabinet-
 	$(PATCH) -d ./fusioninventory-agent -p1 < ./Correct_detection_of_RedHat.patch
 	$(PATCH) -d ./fusioninventory-agent -p1 < ./Oracle_linux_distro_name.patch
 	$(PATCH) -d ./fusioninventory-agent -p1 < ./4096_char_line_truncating.patch
+	$(PATCH) -d ./fusioninventory-agent -p1 < ./correct-storage-size-detection.patch
 	# Fix a lsusb invocation that crashes some SLES machines
 	$(FIND) ./fusioninventory-agent -iname "USB.pm" -exec rm "{}" \;
 
