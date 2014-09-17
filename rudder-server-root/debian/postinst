@@ -34,6 +34,8 @@ case "$1" in
 		fi
 
 		if dpkg-maintscript-helper supports mv_conffile 2>/dev/null; then
+			# dpkg-maintscript-helper mv_conffile appears to be dumb enough to try and mv the new file even if it doesn't exist...
+			[ -e /etc/logrotate.d/rudder ] || touch /etc/logrotate.d/rudder
 			dpkg-maintscript-helper mv_conffile /etc/logrotate.d/rudder-server-root /etc/logrotate.d/rudder -- "$@"
 		fi
     ;;
