@@ -3,5 +3,6 @@ SLES11:gcc openssl-devel bison flex autoconf automake libtool pcre-devel zlib-de
 RHEL3:gcc openssl-devel bison flex autoconf automake libtool pcre-devel make byacc zlib-devel bzip2-devel kernel-utils pam-devel
 RHEL5:gcc openssl-devel bison flex autoconf automake libtool pcre-devel make byacc zlib-devel bzip2-devel pam-devel
 RHEL6:gcc openssl-devel bison flex autoconf automake libtool pcre-devel make byacc pam-devel
+RHEL7:gcc openssl-devel bison flex autoconf automake libtool pcre-devel make byacc pam-devel
 FEDORA18:gcc openssl-devel bison flex autoconf automake libtool pcre-devel make byacc pam-devel
 FEDORA20:gcc openssl-devel bison flex autoconf automake libtool pcre-devel make byacc pam-devel
