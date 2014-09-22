@@ -108,15 +108,18 @@ install -m 644 %{SOURCE4} %{buildroot}/opt/rudder/etc/server-roles.d/
 #=================================================
 # Pre Installation
 #=================================================
+
 #Check if postgresql is started
-/sbin/service postgresql status > /dev/null
+service postgresql status > /dev/null
+
 if [ $? -ne 0 ]
 then
 %if 0%{?el6}
-  /sbin/service postgresql initdb
+  service postgresql initdb
 %endif
-  /sbin/service postgresql start
+  service postgresql start
 fi
+
 #HACK: Give rights for login without unix account
 RUDDER_PG_DEFINED=`grep "rudder" /var/lib/pgsql/data/pg_hba.conf | wc -l`
 if [ ${RUDDER_PG_DEFINED} -le 0 ]; then
@@ -125,23 +128,25 @@ if [ ${RUDDER_PG_DEFINED} -le 0 ]; then
 fi
 
 #Apply changes in postgresql
-/sbin/service postgresql reload
+service postgresql reload
 
 %post -n rudder-reports
 #=================================================
 # Post Installation
 #=================================================
+
 #Check if postgresql is started
-/sbin/service postgresql status >/dev/null 2>&1
+service postgresql status >/dev/null 2>&1
+
 if [ $? -ne 0 ]
 then
-  /sbin/service postgresql start >/dev/null 2>&1
+  service postgresql start >/dev/null 2>&1
 fi
 
 echo -n "INFO: Setting postgresql as a boot service..."
-/sbin/chkconfig --add postgresql >/dev/null 2>&1
+chkconfig --add postgresql >/dev/null 2>&1
 %if 0%{?rhel} >= 6
-/sbin/chkconfig postgresql on >/dev/null 2>&1
+chkconfig postgresql on >/dev/null 2>&1
 %endif
 echo " Done"
 
@@ -161,7 +166,6 @@ do
 done
 echo " Done"
 
-
 dbname="rudder"
 usrname="rudder"
 CHK_PG_DB=$(su - postgres -c "psql -t -c \"select count(1) from pg_catalog.pg_database where datname = '${dbname}'\"")
@@ -173,6 +177,7 @@ then
   su - postgres -c "psql -q -c \"CREATE USER ${usrname} WITH PASSWORD 'Normation'\"" >/dev/null 2>&1
   echo " Done"
 fi
+
 # Rudder database
 if [ ${CHK_PG_DB} -eq 0 ]
 then

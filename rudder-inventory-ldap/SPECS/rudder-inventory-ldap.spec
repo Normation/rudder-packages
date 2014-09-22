@@ -37,13 +37,15 @@
 %define openldap_release 2.4.23
 
 %if 0%{?sles_version} 
-%define sysloginitscript /etc/init.d/syslog
+%define syslogservicename syslog
 %endif
+
 %if 0%{?el5} 
-%define sysloginitscript /etc/init.d/syslog
+%define syslogservicename syslog
 %endif
+
 %if 0%{?el6} 
-%define sysloginitscript /etc/init.d/rsyslog
+%define syslogservicename rsyslog
 %endif
 
 #=================================================
@@ -70,21 +72,31 @@ Source8: rudder-ldap
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
-#Generic requirement
+#Generic requirements
+
 BuildRequires: gcc cyrus-sasl-devel
 Requires: rsyslog cyrus-sasl openssl
-#Specific requirement
-%if 0%{?sles_version} == 11
-BuildRequires: libdb-4_5-devel libopenssl-devel
-Requires: libdb-4_5
-%endif
+
+#Specific requirements
+
 %if 0%{?sles_version} == 10
 BuildRequires: db42-devel openssl-devel
 Requires: db42
 %endif
-%if 0%{?rhel}
+
+%if 0%{?sles_version} == 11
+BuildRequires: libdb-4_5-devel libopenssl-devel
+Requires: libdb-4_5
+%endif
+
+%if 0%{?rhel} < 7
 BuildRequires: db4-devel openssl-devel libtool-ltdl-devel
 Requires: db4
+%endif
+
+%if 0%{?rhel} >= 7
+BuildRequires: libdb-devel openssl-devel libtool-ltdl-devel
+Requires: libdb
 %endif
 
 %description
@@ -182,14 +194,14 @@ fi
 #=================================================
 
 echo -n "INFO: Setting rudder-slapd as a boot service..."
-/sbin/chkconfig --add rudder-slapd >/dev/null 2>&1
+chkconfig --add rudder-slapd >/dev/null 2>&1
 %if 0%{?rhel} >= 6
-/sbin/chkconfig rudder-slapd on
+chkconfig rudder-slapd on
 %endif
 echo " Done"
 
 echo -n "INFO: Reloading syslogd... "
-%{sysloginitscript} restart >/dev/null 2>&1
+service %{syslogservicename} restart >/dev/null 2>&1
 echo " Done"
 
 RUDDER_SHARE=/opt/rudder/share
@@ -226,7 +238,7 @@ if [ "z${BACKUP_LDIF}" != "z" ]; then
 		# Stop OpenLDAP - use forcestop to avoid the init script failing
 		# when trying to do the backup with bad libdb versions
 		echo -n "INFO: Stopping rudder-slapd..."
-		/sbin/service rudder-slapd forcestop >/dev/null 2>&1
+		service rudder-slapd forcestop >/dev/null 2>&1
 		echo " Done"
 
 		# Backup the old database
@@ -239,7 +251,7 @@ if [ "z${BACKUP_LDIF}" != "z" ]; then
 
 		# Start OpenLDAP
 		echo -n "INFO: Starting rudder-slapd..."
-		/sbin/service rudder-slapd start >/dev/null 2>&1
+		service rudder-slapd start >/dev/null 2>&1
 		echo " Done"
 
 		echo "INFO: OpenLDAP database was successfully upgraded to new format"
@@ -256,7 +268,7 @@ if [ -r /opt/rudder/etc/openldap/slapd.conf -a -e /var/rudder/ldap/openldap-data
 	ls  /var/rudder/ldap/openldap-data/*.bdb | xargs -n 1 -I{} basename {} .bdb | sort | egrep -v '^(dn2id|id2entry)' > ${SLAPD_ACTUAL_INDEXES}
 	if ! diff ${SLAPD_DEFINED_INDEXES} ${SLAPD_ACTUAL_INDEXES} > /dev/null; then
 		echo -n "INFO: OpenLDAP indexes are not up to date, reindexing..."
-		/sbin/service rudder-slapd stop >/dev/null 2>&1
+		service rudder-slapd stop >/dev/null 2>&1
 		/opt/rudder/sbin/slapindex >/dev/null 2>&1
 		echo " Done"
 	fi
@@ -266,7 +278,7 @@ rm -f ${SLAPD_DEFINED_INDEXES} ${SLAPD_ACTUAL_INDEXES}
 
 # Need to restart to take schema changes into account
 echo -n "INFO: Restarting rudder-slapd..."
-/sbin/service rudder-slapd restart >/dev/null 2>&1
+service rudder-slapd restart >/dev/null 2>&1
 echo " Done"
 
 #=================================================

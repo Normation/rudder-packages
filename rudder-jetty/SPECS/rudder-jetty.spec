@@ -171,9 +171,9 @@ fi
 if [ $1 -eq 1 ]
 then
 	# Set rudder-agent as service
-	/sbin/chkconfig --add rudder-jetty
+	chkconfig --add rudder-jetty
 	%if 0%{?rhel} >= 6
-	/sbin/chkconfig rudder-jetty on
+	chkconfig rudder-jetty on
 	%endif
 fi
 

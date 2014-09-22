@@ -37,13 +37,13 @@
 %define maven_settings settings-external.xml
 
 %if 0%{?sles_version} 
-%define sysloginitscript /etc/init.d/syslog
+%define syslogservicename syslog
 %endif
 %if 0%{?el5} 
-%define sysloginitscript /etc/init.d/syslog
+%define syslogservicename syslog
 %endif
 %if 0%{?el6} 
-%define sysloginitscript /etc/init.d/rsyslog
+%define syslogservicename rsyslog
 %endif
 
 #=================================================
@@ -152,7 +152,7 @@ echo "INFO: Launching script to check if a migration is needed"
 echo "INFO: End of migration script"
 
 echo "Restarting syslogd ..."
-%{sysloginitscript} restart
+service %{syslogservicename} restart
 
 #=================================================
 # Cleaning
