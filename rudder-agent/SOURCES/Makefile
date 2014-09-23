@@ -44,7 +44,6 @@ localdepends: ./initial-promises ./detect_os.sh ./files ./fusioninventory-agent 
 	$(PATCH) -d ./cfengine-source -p1 < ./patches/cfengine/0004-fix-zero-sized-files-from-template-when-nolocks.patch
 	$(PATCH) -d ./cfengine-source -p1 < ./patches/cfengine/0005-fix-readstringarrayidx-duplicate-lines.patch
 	$(PATCH) -d ./cfengine-source -p1 < ./patches/cfengine/0006-openvz-support.patch
-	$(PATCH) -d ./cfengine-source -p1 < ./patches/cfengine/0007-no-runlog.patch
 	# Bootstrap the package using autogen before compilation
 	cd cfengine-source && NO_CONFIGURE=1 ./autogen.sh
 
