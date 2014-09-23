@@ -43,7 +43,7 @@
 %define apache_tools            apache2-utils
 %define apache_group            www
 %define htpasswd_cmd            htpasswd2
-%define sysloginitscript        /etc/init.d/syslog
+%define syslogservicename       syslog
 %define apache_vhost_dir        %{apache}/vhosts.d
 %define ldap_clients            openldap2-client
 %define usermod_opt             A
@@ -53,7 +53,7 @@
 %define apache_tools            httpd-tools
 %define apache_group            apache
 %define htpasswd_cmd            htpasswd
-%define sysloginitscript        /etc/init.d/syslog
+%define syslogservicename       syslog
 %define apache_vhost_dir        %{apache}/conf.d
 %define ldap_clients            openldap-clients
 %define usermod_opt             aG
@@ -63,7 +63,7 @@
 %define apache_tools            httpd-tools
 %define apache_group            apache
 %define htpasswd_cmd            htpasswd
-%define sysloginitscript        /etc/init.d/rsyslog
+%define syslogservicename       rsyslog
 %define apache_vhost_dir        %{apache}/conf.d
 %define ldap_clients            openldap-clients
 %define usermod_opt             aG
@@ -260,18 +260,18 @@ cp -rf %{_builddir}/rudder-doc/html %{buildroot}/usr/share/doc/rudder
 echo 'root' > /opt/rudder/etc/uuid.hive
 
 echo -n "INFO: Setting Apache HTTPd as a boot service..."
-/sbin/chkconfig --add %{apache} 2&> /dev/null
+chkconfig --add %{apache} 2&> /dev/null
 %if 0%{?rhel} >= 6
-/sbin/chkconfig %{apache} on
+chkconfig %{apache} on
 %endif
 echo " Done"
 
 echo -n "INFO: Restarting syslog..."
-%{sysloginitscript} restart > /dev/null
+service %{syslogservicename} restart > /dev/null
 echo " Done"
 
 echo -n "INFO: Stopping Apache HTTPd..."
-/sbin/service %{apache} stop >/dev/null 2>&1
+service %{apache} stop >/dev/null 2>&1
 echo " Done"
 
 # Do this ONLY at first install
@@ -365,7 +365,7 @@ if [ ! -f /opt/rudder/etc/ssl/rudder-webapp.crt ] || [ ! -f /opt/rudder/etc/ssl/
 fi
 
 echo -n "INFO: Starting Apache HTTPd..."
-/sbin/service %{apache} start >/dev/null 2>&1
+service %{apache} start >/dev/null 2>&1
 echo " Done"
 
 # Run any upgrades
@@ -418,7 +418,7 @@ fi
 echo "********************************************************************************"
 echo "rudder-webapp has been upgraded, but for the upgrade to take effect, please"
 echo "restart the jetty application server as follows:"
-echo "# /sbin/service rudder-jetty restart"
+echo "# service rudder-jetty restart"
 echo "********************************************************************************"
 
 %postun -n rudder-webapp

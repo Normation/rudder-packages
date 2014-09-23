@@ -370,10 +370,10 @@ then
 	/usr/sbin/mkitab "rudder-agent:23456789:once:/usr/bin/startsrc -s rudder-agent"
 	# No need to tell init to re-read /etc/inittab, it does it automatically every 60 seconds
 %else
-	/sbin/chkconfig --add rudder-agent
+	chkconfig --add rudder-agent
 %endif
 	%if 0%{?rhel} >= 6
-	/sbin/chkconfig rudder-agent on
+	chkconfig rudder-agent on
 	%endif
 
 	CFRUDDER_FIRST_INSTALL=1
@@ -425,7 +425,7 @@ fi
 %if "%{?_os}" == "aix"
 if [ ${CFRUDDER_FIRST_INSTALL} -ne 1 ]; then /usr/bin/stopsrc -s rudder-agent; fi
 %else
-if [ ${CFRUDDER_FIRST_INSTALL} -ne 1 -a -x /etc/init.d/rudder-agent ]; then /sbin/service rudder-agent stop || /etc/init.d/rudder-agent forcestop; fi
+if [ ${CFRUDDER_FIRST_INSTALL} -ne 1 -a -x /etc/init.d/rudder-agent ]; then service rudder-agent stop || service rudder-agent forcestop; fi
 %endif
 
 # Copy CFEngine binaries
