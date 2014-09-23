@@ -477,6 +477,9 @@ if [ ${I_SET_THE_LOCK} -eq 1 ]; then
 	rm -f /opt/rudder/etc/disable-agent
 fi
 
+# Remove cfengine lock log file : http://www.rudder-project.org/redmine/issues/5488
+rm -f /var/rudder/cfengine-community/cf3.*.runlog*
+
 # Restart daemons if we stopped them, otherwise not
 if [ ${CFRUDDER_FIRST_INSTALL} -ne 1 ]
 then

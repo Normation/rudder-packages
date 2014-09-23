@@ -1,0 +1,22 @@
+diff -r -auN cfengine-3.6.0/libpromises/locks.c cfengine-3.6.0-patch/libpromises/locks.c
+--- cfengine-3.6.0/libpromises/locks.c	2014-04-01 16:41:01.000000000 +0200
++++ cfengine-3.6.0-patch/libpromises/locks.c	2014-09-23 12:04:57.605280296 +0200
+@@ -320,6 +320,10 @@
+ 
+ static void LogLockCompletion(char *cflog, int pid, char *str, char *op, char *operand)
+ {
++    // We don't need this function as it opens, writes and closes a file we never read or rotate
++    // Keep the function as it may be called again in the future but make it a dummy function
++    return;
++/*
+     FILE *fp;
+     char buffer[CF_MAXVARSIZE];
+     time_t tim;
+@@ -350,6 +354,7 @@
+     fprintf(fp, "%s:%s:pid=%d:%s:%s\n", buffer, str, pid, op, operand);
+ 
+     fclose(fp);
++*/
+ }
+ 
+ static void LocksCleanup(void)
