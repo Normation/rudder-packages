@@ -49,6 +49,7 @@ localdepends: ./initial-promises ./detect_os.sh ./files ./fusioninventory-agent 
 	$(PATCH) -d ./cfengine-source -p1 < ./patches/cfengine/0008-fix-promise-evaluation.patch
 	$(PATCH) -d ./cfengine-source -p1 < ./patches/cfengine/0009-dont-duplicate-text-blocks.patch
 	$(PATCH) -d ./cfengine-source -p1 < ./patches/cfengine/0010-support-large-int.patch
+	$(PATCH) -d ./cfengine-source -p1 < ./patches/cfengine/0011-cfserverd_understands_SIGHUP.patch
 
 	# Bootstrap the package using autogen before compilation
 	cd cfengine-source && NO_CONFIGURE=1 ./autogen.sh
