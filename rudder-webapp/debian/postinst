@@ -28,10 +28,21 @@ case "$1" in
   invoke-rc.d rsyslog restart >/dev/null 2>&1
   echo "Done"
 
+  APACHE_VERSION=$(apache2 -v|grep Apache|sed "s%^.*Apache/\([1-9].[1-9]\).*%\1%")
+
   SITES_TO_DISABLE="default rudder-default rudder-default-ssl"
   SITES_TO_ENABLE="rudder-vhost rudder-vhost-ssl"
 
   MODULES_TO_ENABLE="dav_fs rewrite proxy_http headers ssl"
+
+  # Migration: Clean up old vhosts if we are running Apache 2.4
+  if [ ${APACHE_VERSION} = 2.4 ]
+  then
+    for i in ${SITES_TO_ENABLE}
+    do
+      [ -e /etc/apache2/sites-enabled/${i} ] && rm -f /etc/apache2/sites-enabled/${i}
+    done
+  fi
 
   for dissite in ${SITES_TO_DISABLE}
   do
