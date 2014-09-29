@@ -85,6 +85,7 @@ Group: Applications/System
 Source1: rudder-users.xml
 Source2: rudder.xml
 Source3: rudder-networks.conf
+Source4: rudder-networks-24.conf
 Source5: rudder-upgrade
 Source6: rudder-upgrade-database
 Source7: rudder-webapp
@@ -212,7 +213,9 @@ cp %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/apache2-sys
 
 install -m 644 %{SOURCE2} %{buildroot}%{rudderdir}/share/webapps/
 
+# Copy stub rudder-networks*.conf
 cp %{SOURCE3} %{buildroot}%{rudderdir}/etc/
+cp %{SOURCE4} %{buildroot}%{rudderdir}/etc/
 
 %if 0%{?sles_version}
 # On SLES, change the Apache DocumentRoot to the OS default
@@ -476,6 +479,7 @@ rm -rf %{buildroot}
 %config(noreplace) /etc/%{apache_vhost_dir}/rudder-vhost.conf
 %config(noreplace) /etc/%{apache_vhost_dir}/rudder-vhost-ssl.conf
 %config(noreplace) %{rudderdir}/etc/rudder-networks.conf
+%config(noreplace) %{rudderdir}/etc/rudder-networks-24.conf
 %config(noreplace) /etc/sysconfig/rudder-apache
 /usr/share/doc/rudder
 %{rudderdir}/bin/rudder-upgrade-database
