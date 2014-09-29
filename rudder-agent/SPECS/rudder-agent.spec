@@ -428,6 +428,7 @@ if [ ${CFRUDDER_FIRST_INSTALL} -ne 1 -a -x /etc/init.d/rudder-agent ]; then /sbi
 
 # Copy CFEngine binaries
 %{cp_a_command} -f /opt/rudder/bin/cf-* /var/rudder/cfengine-community/bin/
+%{cp_a_command} -f /opt/rudder/bin/rpmvercmp /var/rudder/cfengine-community/bin/
 NB_COPIED_BINARIES=`ls -1 /var/rudder/cfengine-community/bin/ | wc -l`
 if [ ${NB_COPIED_BINARIES} -gt 0 ];then echo "CFEngine binaries copied to workdir"; fi
 
