@@ -58,7 +58,7 @@
 %define ldap_clients            openldap-clients
 %define usermod_opt             aG
 %endif
-%if 0%{?el6}
+%if 0%{?rhel} >= 6
 %define apache                  httpd
 %define apache_tools            httpd-tools
 %define apache_group            apache
