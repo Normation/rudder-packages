@@ -46,6 +46,7 @@ case "$1" in
 
 		# Copy CFEngine binaries (Changed location from sbin/ to bin/ in version 3.4)
 		cp -a -f /opt/rudder/bin/cf-* /var/rudder/cfengine-community/bin/
+		cp -a -f /opt/rudder/bin/rpmvercmp /var/rudder/cfengine-community/bin/
 		NB_COPIED_BINARIES=`ls -1 /var/rudder/cfengine-community/bin/ | wc -l`
 		if [ ${NB_COPIED_BINARIES} -gt 0 ];then echo "CFEngine binaries copied to workdir"; fi
 
