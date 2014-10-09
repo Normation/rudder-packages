@@ -43,6 +43,7 @@ localdepends: ./initial-promises ./detect_os.sh ./files ./fusioninventory-agent 
 	$(PATCH) -d ./cfengine-source -p1 < ./0002-Fix-failure-to-open-paths-ending-in-a-slash.patch
 	$(PATCH) -d ./cfengine-source -p1 < ./0003-Fix-incorrect-return-value-for-empty-string-in-safe_.patch
 	$(PATCH) -d ./cfengine-source -p1 < ./0004-Make-safe_open-treat-trailing-slashes-like-open.patch
+	$(PATCH) -d ./cfengine-source -p1 < ./0005-dont-duplicate-text-blocks.patch
 
 ./tokyocabinet-source: /usr/bin/wget
 	# Original URL: http://fallabs.com/tokyocabinet/tokyocabinet-${TOKYOCABINET_RELEASE}.tar.gz
