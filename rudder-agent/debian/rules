@@ -18,6 +18,11 @@ configure-stamp:
 	dh_prep
 	# Add here commands to configure the package.
 	cd SOURCES && ./perl-prepare.sh $(CURDIR)/SOURCES/fusioninventory-agent
+	# Compile and install OpenSSL
+	cd SOURCES/openssl-source && ./config --prefix=/opt/rudder --openssldir=/opt/rudder/openssl
+	cd SOURCES/openssl-source && make %{?_smp_mflags}
+	cd SOURCES/openssl-source && make test
+	cd SOURCES/openssl-source && make install DESTDIR=$(CURDIR)/debian/tmp
 	# Compile the LMDB library and install it in /opt/rudder
 	# LMDB source code does not know how to create destination folders, do it ourselves
 	for i in bin lib include man/man1; do mkdir -p $(CURDIR)/debian/tmp/opt/rudder/$$i; done
@@ -26,7 +31,7 @@ configure-stamp:
 	# If there is no configure, bootstrap with autogen.sh first
 	cd SOURCES/cfengine-source && [ -x ./configure ] || NO_CONFIGURE=1 ./autogen.sh
 	# Prepare CFEngine 3.6.x build with defined path of LMDB
-	cd SOURCES/cfengine-source && ./configure --prefix=/opt/rudder --with-workdir=/var/rudder/cfengine-community --enable-static=yes --enable-shared=no --with-lmdb=$(CURDIR)/debian/tmp/opt/rudder
+	cd SOURCES/cfengine-source && ./configure --prefix=/opt/rudder --with-workdir=/var/rudder/cfengine-community --enable-static=yes --enable-shared=no --with-openssl=$(CURDIR)/debian/tmp/opt/rudder --with-lmdb=$(CURDIR)/debian/tmp/opt/rudder
 
 	touch configure-stamp
 

@@ -189,6 +189,13 @@ cd %{_sourcedir}
 export CFLAGS="$RPM_OPT_FLAGS"
 export CXXFLAGS="$RPM_OPT_FLAGS"
 
+# Compile and install OpenSSL
+cd %{_sourcedir}/openssl-source
+./config --prefix=%{rudderdir} --openssldir=%{rudderdir}/openssl
+make %{?_smp_mflags}
+make test
+make install
+
 %if "%{is_lmdb_here}" != "true"
 # Remove all remaining files from the temporary build folder before compiling LMDB
 rm -rf %{buildroot}
@@ -222,7 +229,7 @@ if [ ! -x ./configure ]; then
   NO_CONFIGURE=1 ./autogen.sh
 fi
 
-./configure --build=%_target --prefix=%{rudderdir} --with-workdir=%{ruddervardir}/cfengine-community --enable-static=yes --enable-shared=no %{lmdb_arg}
+./configure --build=%_target --prefix=%{rudderdir} --with-workdir=%{ruddervardir}/cfengine-community --enable-static=yes --enable-shared=no --with-openssl=%{rudderdir} %{lmdb_arg}
 
 make %{?_smp_mflags}
 
