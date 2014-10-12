@@ -35,10 +35,13 @@
 %define ruddervardir         /var/rudder
 %define rudderlogdir         /var/log/rudder
 
-# is_lmdb_here checks if to build CFEngine we will need to build LMDB or if
+# use_system_lmdb checks if to build CFEngine we will need to build LMDB or if
 # a package already exists on the system.
 # Default value is true in order to handle cases which are not caught below.
-%define is_lmdb_here true
+%define use_system_lmdb true
+
+# Same goes for the use of the local OpenSSL install vs. a bundled one
+%define use_system_openssl true
 
 #=================================================
 # Header
@@ -84,8 +87,8 @@ Patch1: fix-missing-headers
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 # Generic requirements
-BuildRequires: gcc openssl-devel bison flex pcre-devel autoconf automake libtool
-Requires: pcre openssl
+BuildRequires: gcc bison flex pcre-devel autoconf automake libtool
+Requires: pcre
 Provides: rudder-agent
 Conflicts: rudder-agent-thin
 
@@ -123,24 +126,83 @@ Requires: dmidecode
 
 ## 1 - RHEL: No LMDB yet
 %if 0%{?rhel}
-%define is_lmdb_here false
+%define use_system_lmdb false
 %endif
 
 ## 2 - Fedora: No LMDB yet
 %if 0%{?fedora}
-%define is_lmdb_here false
+%define use_system_lmdb false
 %endif
 
 ## 3 - SLES: No LMDB yet
 %if 0%{?sles_version}
 Requires: pmtools
-%define is_lmdb_here false
+%define use_system_lmdb false
 %endif
 
 ## 4 - AIX: No LMDB yet
 %if "%{?_os}" == "aix"
-%define is_lmdb_here false
+%define use_system_lmdb false
 %endif
+
+# OpenSSL handling (builtin or OS-provided)
+#
+# We build and use a bundled version of OpenSSL
+# on OSes which are not maintained anymore as part
+# of their "main" support phase.
+#
+# See. http://www.rudder-project.org/redmine/issues/5147
+
+## 1 - RHEL: Bundled for pre-el5 oses
+##
+### Pre el5 have reached the end of production phase,
+### and are thus in Extended Life phase.
+### See. https://access.redhat.com/support/policy/updates/errata/
+##
+%if 0%{?rhel} && 0%{?rhel} < 5
+%define use_system_openssl false
+%else
+%define use_system_openssl true
+%endif
+
+## 2 - Fedora: Use the system one
+##
+### We work with Fedora 18 onwards, it
+### comes with OpenSSL 1.0.1e, which is
+### recent enough.
+##
+%if 0%{?fedora}
+%define use_system_openssl true
+%endif
+
+## 3 - SLES: Bundled for pre-sles11 oses
+##
+### SLES 11 OSes come with OpenSSL 0.9.8h,
+### which is recent enough.
+##
+%if 0%{?sles_version} < 11
+%define use_system_openssl false
+%else
+%define use_system_openssl true
+%endif
+
+## 4 - AIX: Bundled
+##
+### We do not want to rely on external
+### implementations of OpenSSL on AIX to
+### reduce dependencies on the base system.
+##
+%if "%{?_os}" == "aix"
+%define use_system_openssl false
+%endif
+
+## 5 - Resulting dependencies
+%if "%{use_system_openssl}" == "true"
+BuildRequires: openssl-devel
+Requires: openssl
+%endif
+
+# Common commands
 
 %define install_command        install
 %define cp_a_command           cp -a
@@ -157,9 +219,9 @@ Obsoletes: rudder-cfengine-community
 # Use our own dependency generator
 %global _use_internal_dependency_generator 0
 %global __find_requires_orig %{__find_requires}
-%define __find_requires %{_sourcedir}/filter-reqs.pl %{is_lmdb_here} %{__find_requires_orig}
+%define __find_requires %{_sourcedir}/filter-reqs.pl %{use_system_lmdb} %{__find_requires_orig}
 %global __find_provides_orig %{__find_provides}
-%define __find_provides %{_sourcedir}/filter-reqs.pl %{is_lmdb_here} %{__find_provides_orig}
+%define __find_provides %{_sourcedir}/filter-reqs.pl %{use_system_lmdb} %{__find_provides_orig}
 
 %description
 Rudder is an open source configuration management and audit solution.
@@ -189,7 +251,15 @@ cd %{_sourcedir}
 export CFLAGS="$RPM_OPT_FLAGS"
 export CXXFLAGS="$RPM_OPT_FLAGS"
 
-%if "%{is_lmdb_here}" != "true"
+%if "%{use_system_openssl}" != "true"
+# Compile and install OpenSSL
+cd %{_sourcedir}/openssl-source
+./config -fPIC --prefix=%{rudderdir} --openssldir=%{rudderdir}/openssl shared
+make %{?_smp_mflags}
+make install
+%endif
+
+%if "%{use_system_lmdb}" != "true"
 # Remove all remaining files from the temporary build folder before compiling LMDB
 rm -rf %{buildroot}
 
@@ -210,7 +280,14 @@ make install prefix=%{rudderdir}
 # Prepare CFEngine build
 cd %{_sourcedir}/cfengine-source
 
-%if "%{is_lmdb_here}" != "true"
+%if "%{use_system_openssl}" != "true"
+## Define path of OpenSSL if built before instead of being provided by the system.
+%define openssl_arg "--with-openssl=%{rudderdir}"
+%else
+%define openssl_arg ""
+%endif
+
+%if "%{use_system_lmdb}" != "true"
 ## Define path of LMDB if built before instead of being provided by the system.
 %define lmdb_arg "--with-lmdb=%{rudderdir}"
 %else
@@ -222,7 +299,7 @@ if [ ! -x ./configure ]; then
   NO_CONFIGURE=1 ./autogen.sh
 fi
 
-./configure --build=%_target --prefix=%{rudderdir} --with-workdir=%{ruddervardir}/cfengine-community --enable-static=yes --enable-shared=no %{lmdb_arg}
+./configure --build=%_target --prefix=%{rudderdir} --with-workdir=%{ruddervardir}/cfengine-community --enable-static=yes --enable-shared=no %{openssl_arg} %{lmdb_arg}
 
 make %{?_smp_mflags}
 
@@ -230,7 +307,7 @@ make %{?_smp_mflags}
 # Installation
 #=================================================
 %install
-%if "%{is_lmdb_here}" == "true"
+%if "%{use_system_lmdb}" == "true"
 # Remove all remaining files from temporary build folder since no actions should
 # have been made before in this directory (if LMDB has not been built).
 # Besides, all actions should not have been made before macro 'install', so removing all 
@@ -249,6 +326,9 @@ cd %{_sourcedir}/lmdb-source/libraries/liblmdb
 # Now, we install lmdb in %{buildroot} to package it
 make install prefix=%{rudderdir} DESTDIR=%{buildroot}
 %endif
+
+cd %{_sourcedir}/openssl-source
+make install INSTALL_PREFIX=%{buildroot}
 
 cd %{_sourcedir}/cfengine-source
 make install DESTDIR=%{buildroot} STRIP=""
@@ -291,11 +371,15 @@ cp -r %{_sourcedir}/initial-promises %{buildroot}%{rudderdir}/share/
 cp %{SOURCE4} %{buildroot}%{rudderdir}/etc/
 
 # ld.so.conf.d is not supported on CentOS 3
-%if "%{is_lmdb_here}" != "true" && 0%{?rhel} != 3
+%if 0%{?rhel} != 3
+
+%if "%{use_system_lmdb}" != "true" || "%{use_system_openssl}" != "true"
 # Install /etc/ld.so.conf.d/rudder.conf in order to use libraries
-# contained in /opt/rudder/lib like LMDB
+# contained in /opt/rudder/lib like LMDB or OpenSSL
 mkdir -p %{buildroot}/etc/ld.so.conf.d
 %{install_command} -m 644 %{SOURCE6} %{buildroot}/etc/ld.so.conf.d/rudder.conf
+%endif
+
 %endif
 
 %{install_command} -m 755 %{SOURCE7} %{buildroot}/opt/rudder/bin/check-rudder-agent
@@ -380,21 +464,30 @@ then
 fi
 
 # Reload configuration of ldd if new configuration has been added
-%if "%{is_lmdb_here}" != "true" && 0%{?rhel} != 3
+%if 0%{?rhel} != 3
+
+%if "%{use_system_lmdb}" != "true" || "%{use_system_openssl}" != "true"
 if [ -f /etc/ld.so.conf.d/rudder.conf ]; then
 	ldconfig
 fi
 %endif
 
+%endif
+
 # Reload configuration of ldd if new configuration has been added,
 # CentOS 3 style.
-%if "%{is_lmdb_here}" != "true" && 0%{?rhel} == 3
+%if 0%{?rhel} == 3
+
+%if "%{use_system_lmdb}" != "true" || "%{use_system_openssl}" != "true"
+
 if [ ! `grep "/opt/rudder/lib" /etc/ld.so.conf` ]; then
 	echo "/opt/rudder/lib" >> /etc/ld.so.conf
 fi
 
 # Reload the linker configuration
 ldconfig
+%endif
+
 %endif
 
 # Always do this
@@ -640,8 +733,12 @@ rm -f %{_builddir}/file.list.%{name}
 %dir %{ruddervardir}/cfengine-community/inputs
 %dir %{ruddervardir}/tmp
 %dir %{ruddervardir}/tools
-%if "%{is_lmdb_here}" != "true" && 0%{?rhel} != 3
+%if 0%{?rhel} != 3
+
+%if "%{use_system_lmdb}" != "true" || "%{use_system_openssl}" != "true"
 %config(noreplace) /etc/ld.so.conf.d/rudder.conf
+%endif
+
 %endif
 %{rudderlogdir}/install
 

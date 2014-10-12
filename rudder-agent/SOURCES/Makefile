@@ -23,13 +23,14 @@ RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
 CFENGINE_RELEASE = 3.6.0
 FUSION_RELEASE = 2.3.6
 LMDB_RELEASE = 0.9.11
+OPENSSL_RELEASE = 1.0.1i
 
 TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX)
 WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget -q
 PATCH := /usr/bin/patch
 FIND := /usr/bin/find
 
-localdepends: ./initial-promises ./detect_os.sh ./files ./fusioninventory-agent ./lmdb-source ./cfengine-source ../debian/rudder-agent.init ../debian/rudder-agent.default ./rudder-agent.cron ../debian/rudder-agent.cron.d
+localdepends: ./initial-promises ./detect_os.sh ./files ./fusioninventory-agent ./cfengine-source ./openssl-source ./lmdb-source ../debian/rudder-agent.init ../debian/rudder-agent.default ./rudder-agent.cron ../debian/rudder-agent.cron.d
 	rm -rf $(TMP_DIR)
 
 ./cfengine-source: /usr/bin/wget
@@ -48,6 +49,12 @@ localdepends: ./initial-promises ./detect_os.sh ./files ./fusioninventory-agent 
 	$(PATCH) -d ./cfengine-source -p1 < ./patches/cfengine/0008-fix-promise-evaluation.patch
 	# Bootstrap the package using autogen before compilation
 	cd cfengine-source && NO_CONFIGURE=1 ./autogen.sh
+
+./openssl-source: /usr/bin/wget
+	# Original URL: https://www.openssl.org/source/openssl-$(OPENSSL_RELEASE).tar.gz
+	$(WGET) -O $(TMP_DIR)/openssl.tgz http://www.normation.com/tarball/openssl/openssl-$(OPENSSL_RELEASE).tar.gz
+	tar xzf $(TMP_DIR)/openssl.tgz -C $(TMP_DIR)
+	mv $(TMP_DIR)/openssl-$(OPENSSL_RELEASE) ./openssl-source
 
 ./lmdb-source: /usr/bin/wget
 	# Original URL: http://ftp.fr.debian.org/debian/pool/main/l/lmdb/lmdb_$(LMDB_RELEASE).orig.tar.xz

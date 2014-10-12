@@ -1,0 +1,44 @@
+diff -Naur debian/control debian/control
+--- debian/control	2014-10-14 19:25:24.254087132 +0200
++++ debian/control	2014-10-15 15:09:23.986562037 +0200
+@@ -2,7 +2,7 @@
+ Section: admin
+ Priority: extra
+ Maintainer: Rudder packaging team <rudder-packaging@rudder-project.org>
+-Build-Depends: debhelper (>= 7), libssl-dev, bison, gcc, flex, autoconf, automake, libtool, libpcre3-dev, libpam0g-dev
++Build-Depends: debhelper (>= 7), bison, gcc, flex, autoconf, automake, libtool, libpcre3-dev, libpam0g-dev
+ Standards-Version: 3.8.0
+ Homepage: http://www.rudder-project.org
+ 
+diff -Naur debian/rules debian/rules
+--- debian/rules	2014-10-14 19:25:24.254087132 +0200
++++ debian/rules	2014-10-15 15:09:40.638623237 +0200
+@@ -18,6 +18,10 @@
+ 	dh_prep
+ 	# Add here commands to configure the package.
+ 	cd SOURCES && ./perl-prepare.sh $(CURDIR)/SOURCES/fusioninventory-agent
++	# Compile and install OpenSSL
++	cd SOURCES/openssl-source && ./config -fPIC --prefix=/opt/rudder --openssldir=/opt/rudder/openssl shared
++	cd SOURCES/openssl-source && make %{?_smp_mflags}
++	cd SOURCES/openssl-source && make install INSTALL_PREFIX=$(CURDIR)/debian/tmp
+ 	# Compile the LMDB library and install it in /opt/rudder
+ 	# LMDB source code does not know how to create destination folders, do it ourselves
+ 	for i in bin lib include man/man1; do mkdir -p $(CURDIR)/debian/tmp/opt/rudder/$$i; done
+@@ -26,7 +30,7 @@
+ 	# If there is no configure, bootstrap with autogen.sh first
+ 	cd SOURCES/cfengine-source && [ -x ./configure ] || NO_CONFIGURE=1 ./autogen.sh
+ 	# Prepare CFEngine 3.6.x build with defined path of LMDB
+-	cd SOURCES/cfengine-source && ./configure --prefix=/opt/rudder --with-workdir=/var/rudder/cfengine-community --enable-static=yes --enable-shared=no --with-lmdb=$(CURDIR)/debian/tmp/opt/rudder
++	cd SOURCES/cfengine-source && ./configure --prefix=/opt/rudder --with-workdir=/var/rudder/cfengine-community --enable-static=yes --enable-shared=no --with-openssl=$(CURDIR)/debian/tmp/opt/rudder --with-lmdb=$(CURDIR)/debian/tmp/opt/rudder
+ 
+ 	touch configure-stamp
+ 
+@@ -89,7 +93,7 @@
+ 	# Install an empty uuid.hive file before generating an uuid
+ 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ uuid.hive /opt/rudder/etc/
+ 	# Install /etc/ld.so.conf.d/rudder.conf in order to use libraries contain
+-	# in /opt/rudder/lib like LMDB
++	# in /opt/rudder/lib like LMDB and OpenSSL
+ 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder.conf /etc/ld.so.conf.d
+ 	# Install a verification script for cron
+ 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ check-rudder-agent /opt/rudder/bin/
