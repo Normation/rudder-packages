@@ -409,7 +409,7 @@ chmod -R u+rwX,g+rwsX %{ruddervardir}/configuration-repository/.git
 chmod -R u+rwX,g+rwsX %{ruddervardir}/configuration-repository/ncf
 chmod -R u+rwX,g+rwsX %{ruddervardir}/configuration-repository/techniques
 ## Add execution permission for ncf-apo on pre/post-hooks
-chmod -R 2770 %{ruddervardir}/configuration-repository/ncf/ncf-hooks.d/
+chmod -R 2750 %{ruddervardir}/configuration-repository/ncf/ncf-hooks.d/
 
 # Create a symlink to the Jetty context if necessary
 if [ -d "%{rudderdir}/jetty7/contexts" ]; then
