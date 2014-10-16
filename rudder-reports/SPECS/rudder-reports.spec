@@ -58,15 +58,15 @@ BuildArch: noarch
 Requires: postgresql-server >= 8
 Requires: rsyslog >= 4
 
-%if 0%{?sles_version} == 10
+%if 0%{?sles_version} && 0%{?sles_version} == 10
 Requires: %{suse_rsyslogpsl} >= 4
 %endif
 
-%if 0%{?sles_version} == 11
+%if 0%{?sles_version} && 0%{?sles_version} == 11
 Requires: %{suse_rsyslogpsl} >= 4
 %endif
 
-%if 0%{?el6}
+%if 0%{?rhel} && 0%{?rhel} >= 6
 Requires: rsyslog-pgsql >= 4
 %endif
 
@@ -114,7 +114,7 @@ service postgresql status > /dev/null
 
 if [ $? -ne 0 ]
 then
-%if 0%{?el6}
+%if 0%{?rhel} && 0%{?rhel} >= 6
   service postgresql initdb
 %endif
   service postgresql start
@@ -145,7 +145,7 @@ fi
 
 echo -n "INFO: Setting postgresql as a boot service..."
 chkconfig --add postgresql >/dev/null 2>&1
-%if 0%{?rhel} >= 6
+%if 0%{?rhel} && 0%{?rhel} >= 6
 chkconfig postgresql on >/dev/null 2>&1
 %endif
 echo " Done"
