@@ -19,11 +19,21 @@
 .DEFAULT_GOAL := localdepends
 
 OPENLDAP_RELEASE = 2.4.30
+BERKELEYDB_RELEASE = 5.1.29
+
 RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
+
 WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget
 
-localdepends: ./openldap-source ./DB_CONFIG ./rudder.schema ./inventory.schema ./slapd.conf ../debian/rudder-slapd.init ../debian/rudder-slapd.default
+localdepends: ./berkeleydb-source ./openldap-source ./DB_CONFIG ./rudder.schema ./inventory.schema ./slapd.conf ../debian/rudder-slapd.init ../debian/rudder-slapd.default
 	rm -rf ./openldap.tgz
+	rm -rf ./berkeleydb.tgz
+
+./berkeleydb-source: /usr/bin/wget
+	# Original URL: http://download.oracle.com/berkeley-db/db-$(BERKELEYDB_RELEASE).tar.gz
+	$(WGET) -O ./berkeleydb.tgz http://www.normation.com/tarball/db-$(BERKELEYDB_RELEASE).tar.gz
+	tar xzf ./berkeleydb.tgz -C .
+	mv ./db-$(BERKELEYDB_RELEASE) ./berkeleydb-source
 
 ./openldap-source: /usr/bin/wget
 	# Original URL: ftp://ftp.openldap.org/pub/OpenLDAP/openldap-release/openldap-$(OPENLDAP_RELEASE).tgz
@@ -61,6 +71,7 @@ localdepends: ./openldap-source ./DB_CONFIG ./rudder.schema ./inventory.schema .
 
 localclean:
 	rm -rf ./openldap-source
+	rm -rf ./berkeleydb-source
 	rm -rf ./slapd.conf
 	rm -rf ../debian/rudder-slapd.init
 	rm -rf ../debian/rudder-slapd.default
