@@ -36,7 +36,10 @@ fetch-sources-stamp:
 	# Make sure the debian/changelog is pristine
 	cd ../../rudder-agent/debian && git checkout changelog
 	# Get everything from rudder-agent, excluding perl thingies and Makefile
-	rsync --exclude=Makefile --exclude=filter-reqs.pl --exclude=perl-prepare.sh --exclude=rudder-perl --out-format='%n' -a ../../rudder-agent/ ../ | grep -v '^.*/$$' > rudder-agent.list
+	# We also exclude OpenSSL-specific patches from OS-dependent patches
+	# to prevent them from reaching rudder-agent-thin.
+	# See. http://www.rudder-project.org/redmine/issues/5147
+	rsync --exclude=patches/DEBIAN_3/0001-use-bundled-openssl.patch --exclude=patches/DEBIAN_4/0001-use-bundled-openssl.patch --exclude=patches/UBUNTU_10_04/0001-use-bundled-openssl.patch --exclude=Makefile --exclude=filter-reqs.pl --exclude=perl-prepare.sh --exclude=rudder-perl --out-format='%n' -a ../../rudder-agent/ ../ | grep -v '^.*/$$' > rudder-agent.list
 	touch fetch-sources-stamp
 
 build-sources: build-sources-stamp

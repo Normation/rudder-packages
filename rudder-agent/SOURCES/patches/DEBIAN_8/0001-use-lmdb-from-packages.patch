@@ -1,7 +1,7 @@
-diff -Naurw debian/control debian-new/control
---- debian/control	2014-06-02 13:13:37.358327860 +0200
-+++ debian/control	2014-06-02 13:11:25.266094413 +0200
-@@ -2,7 +2,7 @@
+diff -Naur debian/control debian/control
+--- debian/control	2014-10-14 12:33:00.341007179 +0200
++++ debian/control	2014-10-14 19:06:49.889776856 +0200
+@@ -2,13 +2,13 @@
  Section: admin
  Priority: extra
  Maintainer: Rudder packaging team <rudder-packaging@rudder-project.org>
@@ -10,22 +10,40 @@ diff -Naurw debian/control debian-new/control
  Standards-Version: 3.8.0
  Homepage: http://www.rudder-project.org
  
-diff -Naurw debian/postinst debian-new/postinst
---- debian/postinst	2014-06-02 13:13:37.358327860 +0200
-+++ debian/postinst	2014-06-02 13:11:25.266094413 +0200
-@@ -33,9 +33,6 @@
- 		fi
-     fi
+ Package: rudder-agent
+ Architecture: any
+-Depends: ${shlibs:Depends}, ${misc:Depends}, uuid-runtime, dmidecode, cron, net-tools
++Depends: ${shlibs:Depends}, ${misc:Depends}, uuid-runtime, dmidecode, cron, net-tools, liblmdb0
+ # The dependencies below are defined in order to use rudder-agent
+ # for the server. This will add capabilities to send inventories
+ # from the server itself.
+diff -Naur debian/dirs debian/dirs
+--- debian/dirs	2014-10-14 18:59:28.389854693 +0200
++++ debian/dirs	2014-10-14 19:06:49.889776856 +0200
+@@ -1,4 +1,3 @@
+-etc/ld.so.conf.d
+ etc/profile.d
+ opt/rudder
+ var/rudder/cfengine-community
+diff -Naur debian/postinst debian/postinst
+--- debian/postinst	2014-10-14 12:33:00.345007193 +0200
++++ debian/postinst	2014-10-14 19:06:49.889776856 +0200
+@@ -27,12 +27,6 @@
+ 		CFRUDDER_FIRST_INSTALL=0
+ 		if [ ! -x /var/rudder/cfengine-community/bin/cf-execd ]; then CFRUDDER_FIRST_INSTALL=1; fi
  
 -		# Reload the linker cache (to acknowledge LMDB's presence if needed)
--		if [ -e /etc/ld.so.conf.d/rudder.conf ]; then ldconfig; fi
+-		if [ -e /etc/ld.so.conf.d/rudder.conf ]; then
+-			echo "Found /etc/ld.so.conf.d/rudder.conf, running ldconfig" >> /var/log/rudder/install/rudder-agent.log
+-			ldconfig -v >> /var/log/rudder/install/rudder-agent.log 2>&1
+-		fi
 -
- 		# Copy new binaries to workdir, make sure daemons are stopped first
- 
- 		# Set a "lock" to avoid CFEngine being restarted during the upgrade process
-diff -Naurw debian/rules debian-new/rules
---- debian/rules	2014-06-02 13:13:37.358327860 +0200
-+++ debian/rules	2014-06-02 13:12:18.010187780 +0200
+ 		echo "Making sure that the permissions on the CFEngine key directory are correct..."
+     if [ -d /var/rudder/cfengine-community/ppkeys ]; then
+ 		chmod 700 /var/rudder/cfengine-community/ppkeys
+diff -Naur debian/rules debian/rules
+--- debian/rules	2014-10-14 19:12:29.981866102 +0200
++++ debian/rules	2014-10-14 19:12:39.581860944 +0200
 @@ -14,19 +14,12 @@
  configure: configure-stamp
  configure-stamp:
@@ -40,7 +58,7 @@ diff -Naurw debian/rules debian-new/rules
 -	cd SOURCES/lmdb-source/libraries/liblmdb && make
 -	cd SOURCES/lmdb-source/libraries/liblmdb && make install prefix=/opt/rudder DESTDIR=$(CURDIR)/debian/tmp
  	# If there is no configure, bootstrap with autogen.sh first
- 	cd SOURCES/cfengine-source && [ ! -x ./configure ] && NO_CONFIGURE=1 ./autogen.sh
+ 	cd SOURCES/cfengine-source && [ -x ./configure ] || NO_CONFIGURE=1 ./autogen.sh
  	# Prepare CFEngine 3.6.x build with defined path of LMDB
 -	cd SOURCES/cfengine-source && ./configure --prefix=/opt/rudder --with-workdir=/var/rudder/cfengine-community --enable-static=yes --enable-shared=no --with-lmdb=$(CURDIR)/debian/tmp/opt/rudder
 +	cd SOURCES/cfengine-source && ./configure --prefix=/opt/rudder --with-workdir=/var/rudder/cfengine-community --enable-static=yes --enable-shared=no

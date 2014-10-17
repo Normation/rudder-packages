@@ -1,3 +1,4 @@
+etc/ld.so.conf.d
 etc/profile.d
 opt/rudder
 var/rudder/cfengine-community
