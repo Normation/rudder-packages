@@ -1,0 +1,24 @@
+commit b0ec585769467872bbf240161ae9ebbaf6b53f7d
+Author: Guillaume Rousse <guillomovitch@gmail.com>
+Date:   Mon Oct 6 22:44:20 2014 +0200
+
+    first attempt to detect docker container
+    
+    closes: #2731
+
+diff --git a/lib/FusionInventory/Agent/Task/Inventory/Virtualization/Vmsystem.pm b/lib/FusionInventory/Agent/Task/Inventory/Virtualization/Vmsystem.pm
+index dbfbaa7..90d5824 100644
+--- a/lib/FusionInventory/Agent/Task/Inventory/Virtualization/Vmsystem.pm
++++ b/lib/FusionInventory/Agent/Task/Inventory/Virtualization/Vmsystem.pm
+@@ -93,6 +93,10 @@ sub doInventory {
+ sub _getType {
+     my ($logger) = @_;
+ 
++    if (-f '/.dockerinit') {
++        return 'Docker';
++    }
++
+     # Solaris zones
+     if (canRun('/usr/sbin/zoneadm')) {
+         my $zone = getZone();
+
