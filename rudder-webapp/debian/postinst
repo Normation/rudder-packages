@@ -143,7 +143,7 @@ case "$1" in
   chmod -R u+rwX,g+rwsX /var/rudder/configuration-repository/ncf
   chmod -R u+rwX,g+rwsX /var/rudder/configuration-repository/techniques
   ## Add execution permission for ncf-apo on pre/post-hooks
-  chmod -R 2770 /var/rudder/configuration-repository/ncf/ncf-hooks.d/
+  chmod -R 2750 /var/rudder/configuration-repository/ncf/ncf-hooks.d/
 
 
 	# Only for Ubuntu:
