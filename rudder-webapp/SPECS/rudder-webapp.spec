@@ -48,7 +48,7 @@
 %define ldap_clients            openldap2-client
 %define usermod_opt             A
 %endif
-%if 0%{?el5}
+%if 0%{?rhel} == 5 || 0%{?el5}
 %define apache                  httpd
 %define apache_tools            httpd-tools
 %define apache_group            apache
@@ -58,7 +58,7 @@
 %define ldap_clients            openldap-clients
 %define usermod_opt             aG
 %endif
-%if 0%{?rhel} >= 6
+%if 0%{?rhel} && 0%{?rhel} >= 6
 %define apache                  httpd
 %define apache_tools            httpd-tools
 %define apache_group            apache
@@ -264,7 +264,7 @@ echo 'root' > /opt/rudder/etc/uuid.hive
 
 echo -n "INFO: Setting Apache HTTPd as a boot service..."
 chkconfig --add %{apache} 2&> /dev/null
-%if 0%{?rhel} >= 6
+%if 0%{?rhel} && 0%{?rhel} >= 6
 chkconfig %{apache} on
 %endif
 echo " Done"

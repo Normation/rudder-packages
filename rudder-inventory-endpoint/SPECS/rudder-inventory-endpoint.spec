@@ -36,13 +36,15 @@
 
 %define maven_settings settings-external.xml
 
-%if 0%{?sles_version} 
+%if 0%{?sles_version}
 %define syslogservicename syslog
 %endif
-%if 0%{?el5} 
+
+%if 0%{?rhel} == 5 || 0%{?el5}
 %define syslogservicename syslog
 %endif
-%if 0%{?el6} 
+
+%if 0%{?rhel} && 0%{?rhel} > 5
 %define syslogservicename rsyslog
 %endif
 

@@ -80,7 +80,7 @@ Source100: uuidgen
 AutoReq: 0
 AutoProv: 0
 
-%if 0%{?rhel} == 4
+%if 0%{?rhel} && 0%{?rhel} == 4
 Patch1: fix-missing-headers
 %endif
 
@@ -234,7 +234,7 @@ FusionInventory.
 # Source preparation
 #=================================================
 %prep
-%if 0%{?rhel} == 4
+%if 0%{?rhel} && 0%{?rhel} == 4
 %patch1 -p1
 %endif
 
@@ -456,7 +456,7 @@ then
 %else
 	chkconfig --add rudder-agent
 %endif
-	%if 0%{?rhel} >= 6
+	%if 0%{?rhel} && 0%{?rhel} >= 6
 	chkconfig rudder-agent on
 	%endif
 

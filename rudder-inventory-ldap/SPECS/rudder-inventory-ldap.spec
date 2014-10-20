@@ -40,11 +40,11 @@
 %define syslogservicename syslog
 %endif
 
-%if 0%{?el5} 
+%if 0%{?rhel} == 5 || 0%{?el5}
 %define syslogservicename syslog
 %endif
 
-%if 0%{?el6} 
+%if 0%{?rhel} && 0%{?rhel} > 5
 %define syslogservicename rsyslog
 %endif
 
@@ -82,22 +82,22 @@ Requires: rsyslog cyrus-sasl openssl
 
 #Specific requirements
 
-%if 0%{?sles_version} == 10
+%if 0%{?sles_version} && 0%{?sles_version} == 10
 BuildRequires: db42-devel openssl-devel
 Requires: db42
 %endif
 
-%if 0%{?sles_version} == 11
+%if 0%{?sles_version} && 0%{?sles_version} == 11
 BuildRequires: libdb-4_5-devel libopenssl-devel
 Requires: libdb-4_5
 %endif
 
-%if 0%{?rhel} < 7
+%if 0%{?rhel} && 0%{?rhel} < 7
 BuildRequires: db4-devel openssl-devel libtool-ltdl-devel
 Requires: db4
 %endif
 
-%if 0%{?rhel} >= 7
+%if 0%{?rhel} && 0%{?rhel} >= 7
 BuildRequires: libdb-devel openssl-devel libtool-ltdl-devel
 Requires: libdb
 %endif
@@ -233,7 +233,8 @@ fi
 
 echo -n "INFO: Setting rudder-slapd as a boot service..."
 chkconfig --add rudder-slapd >/dev/null 2>&1
-%if 0%{?rhel} >= 6
+
+%if 0%{?rhel} && 0%{?rhel} >= 6
 chkconfig rudder-slapd on
 %endif
 echo " Done"

@@ -75,11 +75,11 @@ BuildArch: noarch
 # Also, I would like to have something like %elif here, but not implemented
 # in RPM yet...
 
-%if 0%{?rhel} > 6
+%if 0%{?rhel} && 0%{?rhel} > 6
 Requires: jre >= 1.7
 %endif
 
-%if 0%{?rhel} == 6
+%if 0%{?rhel} && 0%{?rhel} == 6
 Requires: java-1.7.0-openjdk
 %endif
 
@@ -172,7 +172,7 @@ if [ $1 -eq 1 ]
 then
 	# Set rudder-agent as service
 	chkconfig --add rudder-jetty
-	%if 0%{?rhel} >= 6
+	%if 0%{?rhel} && 0%{?rhel} >= 6
 	chkconfig rudder-jetty on
 	%endif
 fi
