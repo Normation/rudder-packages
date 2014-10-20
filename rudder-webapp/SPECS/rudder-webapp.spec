@@ -390,24 +390,43 @@ fi
 
 # Go into configuration-repository to manage git
 cd /var/rudder/configuration-repository
+
 # Initialize git repository if it is missing, so permissions can be set on it afterwards
 if [ ! -d /var/rudder/configuration-repository/.git ]; then
+
   git init --shared=group
+
+  # Specify default git user name and email (git will refuse to commit without them)
+  git config user.name "root user (CLI)"
+  git config user.email "root@localhost"
+
   git add .
   git commit -m "initial commit"
+
 else
+
+  # This should have been set during repository initialization, but might need to be
+  # added if we are upgrading an existing repository
+  if [ $(git config --get-regexp "user.name|user.email"|wc -l) -ne 2 ]; then
+    git config user.name "root user (CLI)"
+    git config user.email "root@localhost"
+  fi
+
   # Set shared repository value to group if not set
   if ! git config core.sharedRepository >/dev/null 2>&1; then
     git config core.sharedRepository group
   fi
+
 fi
 
 # Adjust permissions on /var/rudder/configuration-repository
 chgrp -R %{config_repository_group} /var/rudder/configuration-repository
+
 ## Add execution permission for ncf-api only on directories and files with user execution permission
 chmod -R u+rwX,g+rwsX %{ruddervardir}/configuration-repository/.git
 chmod -R u+rwX,g+rwsX %{ruddervardir}/configuration-repository/ncf
 chmod -R u+rwX,g+rwsX %{ruddervardir}/configuration-repository/techniques
+
 ## Add execution permission for ncf-apo on pre/post-hooks
 chmod -R 2750 %{ruddervardir}/configuration-repository/ncf/ncf-hooks.d/
 
