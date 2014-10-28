@@ -192,7 +192,7 @@ BACKUP_LDIF_PATH=/var/rudder/ldap/backup/
 BACKUP_LDIF_REGEX="^/var/rudder/ldap/backup/openldap-data-pre-upgrade-\([0-9]\{14\}\)\.ldif$"
 
 # Do we have a backup file from a previous upgrade?
-BACKUP_LDIF=`find ${BACKUP_LDIF_PATH} -regextype sed -regex "${BACKUP_LDIF_REGEX}" >/dev/null 2>&1 | sort -nr | head -n1`
+BACKUP_LDIF=`find ${BACKUP_LDIF_PATH} -regextype sed -regex "${BACKUP_LDIF_REGEX}" 2>&1 | sort -nr | head -n1`
 if [ "z${BACKUP_LDIF}" != "z" ]; then
 	TIMESTAMP=`echo ${BACKUP_LDIF} | sed "s%${BACKUP_LDIF_REGEX}%\1%"`
 
@@ -213,7 +213,7 @@ if [ "z${BACKUP_LDIF}" != "z" ]; then
 	if [ "z${REINIT_DB}" = "zyes" ]; then
 		# Do we have a database backup to restore from?
 		if [ ! -f ${BACKUP_LDIF} ]; then
-			echo >&2 "ERROR: No database backup for old version. Can't upgrade rudder-inventory-ldap database!"
+			echo >&2 "ERROR: No database backup for old version. Can't upgrade rudder-inventory-ldap database..."
 			exit 1
 		fi
 
