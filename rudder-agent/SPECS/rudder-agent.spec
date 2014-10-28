@@ -180,7 +180,7 @@ Requires: pmtools
 ### SLES 11 OSes come with OpenSSL 0.9.8h,
 ### which is recent enough.
 ##
-%if 0%{?sles_version} < 11
+%if 0%{?sles_version} && 0%{?sles_version} < 11
 %define use_system_openssl false
 %else
 %define use_system_openssl true
