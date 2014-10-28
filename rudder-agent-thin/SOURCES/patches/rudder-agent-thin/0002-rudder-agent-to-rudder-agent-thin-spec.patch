@@ -1,6 +1,5 @@
-diff -Naur a/rudder-agent.spec b/rudder-agent.spec
---- a/rudder-agent.spec	2014-10-21 09:42:53.844965689 +0200
-+++ b/rudder-agent.spec	2014-10-22 17:08:16.104810145 +0200
+--- a/rudder-agent.spec	2014-10-28 12:44:10.535569883 +0100
++++ b/rudder-agent.spec	2014-10-28 13:26:54.654280921 +0100
 @@ -17,7 +17,7 @@
  #####################################################################################
  
@@ -52,7 +51,18 @@ diff -Naur a/rudder-agent.spec b/rudder-agent.spec
  
  # Specific requirements
  
-@@ -212,23 +206,11 @@
+@@ -196,6 +190,10 @@
+ %define use_system_openssl false
+ %endif
+ 
++# rudder-agent-thin specific override: we ALWAYS want to use
++# the system OpenSSL version.
++%define use_system_openssl true
++
+ ## 5 - Resulting dependencies
+ %if "%{use_system_openssl}" == "true"
+ BuildRequires: openssl-devel
+@@ -212,23 +210,11 @@
  %define cp_a_command           cp -hpPr
  %endif
  
@@ -77,7 +87,7 @@ diff -Naur a/rudder-agent.spec b/rudder-agent.spec
  
  #=================================================
  # Source preparation
-@@ -245,8 +227,6 @@
+@@ -245,8 +231,6 @@
  
  cd %{_sourcedir}
  
@@ -86,7 +96,7 @@ diff -Naur a/rudder-agent.spec b/rudder-agent.spec
  # Ensure an appropriate environment for the compiler
  export CFLAGS="$RPM_OPT_FLAGS"
  export CXXFLAGS="$RPM_OPT_FLAGS"
-@@ -361,9 +341,6 @@
+@@ -363,9 +347,6 @@
  # Initial promises
  cp -r %{_sourcedir}/initial-promises %{buildroot}%{rudderdir}/share/
  
@@ -96,7 +106,7 @@ diff -Naur a/rudder-agent.spec b/rudder-agent.spec
  # Wrapper script
  %{install_command} -m 755 %{SOURCE3} %{buildroot}/opt/rudder/bin/run-inventory
  
-@@ -386,8 +363,6 @@
+@@ -388,8 +369,6 @@
  
  %{install_command} -m 755 %{SOURCE8} %{buildroot}/opt/rudder/bin/vzps.py
  
@@ -105,7 +115,7 @@ diff -Naur a/rudder-agent.spec b/rudder-agent.spec
  # Install a profile script to make cf-* part of the PATH
  # AIX does not support profile.d and /etc/profile should not be modified, so we don't do this on AIX at all
  %if "%{?_os}" != "aix"
-@@ -404,7 +379,7 @@
+@@ -406,7 +385,7 @@
  # Build a list of files to include in this package for use in the %files section below
  find %{buildroot}%{rudderdir} %{buildroot}%{ruddervardir} -type f -o -type l | sed "s,%{buildroot},," | sed "s,\.py$,\.py*," | grep -v "%{rudderdir}/etc/uuid.hive" | grep -v "%{ruddervardir}/cfengine-community/ppkeys" > %{_builddir}/file.list.%{name}
  
@@ -114,7 +124,7 @@ diff -Naur a/rudder-agent.spec b/rudder-agent.spec
  #=================================================
  # Pre Installation
  #=================================================
-@@ -425,7 +400,7 @@
+@@ -427,7 +406,7 @@
  %endif
  fi
  
@@ -123,7 +133,7 @@ diff -Naur a/rudder-agent.spec b/rudder-agent.spec
  #=================================================
  # Post Installation
  #=================================================
-@@ -643,7 +618,7 @@
+@@ -645,7 +624,7 @@
  
  /opt/rudder/bin/check-rudder-agent
  
@@ -132,7 +142,7 @@ diff -Naur a/rudder-agent.spec b/rudder-agent.spec
  #=================================================
  # Pre Uninstallation
  #=================================================
-@@ -665,7 +640,7 @@
+@@ -667,7 +646,7 @@
  fi
  
  
@@ -141,7 +151,7 @@ diff -Naur a/rudder-agent.spec b/rudder-agent.spec
  #=================================================
  # Post Uninstallation
  #=================================================
-@@ -712,7 +687,7 @@
+@@ -714,7 +693,7 @@
  # Files
  #=================================================
  # Files from %{rudderdir} and %{ruddervardir} are automatically added via the -f option
@@ -150,7 +160,7 @@ diff -Naur a/rudder-agent.spec b/rudder-agent.spec
  %defattr(-, root, root, 0755)
  
  # The following file is declared to belong to this package but will not be installed
-@@ -746,15 +721,8 @@
+@@ -748,15 +727,8 @@
  # Changelog
  #=================================================
  %changelog

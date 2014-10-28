@@ -327,8 +327,10 @@ cd %{_sourcedir}/lmdb-source/libraries/liblmdb
 make install prefix=%{rudderdir} DESTDIR=%{buildroot}
 %endif
 
+%if "%{use_system_openssl}" != "true"
 cd %{_sourcedir}/openssl-source
 make install INSTALL_PREFIX=%{buildroot}
+%endif
 
 cd %{_sourcedir}/cfengine-source
 make install DESTDIR=%{buildroot} STRIP=""
