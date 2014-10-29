@@ -39,27 +39,29 @@ trap anomaly_handler ERR INT TERM
 # /opt/rudder/etc/rudder-web.properties configuration file is harmless.
 #
 # Upgrade checks currently implemented:
-# - All versions: Check if access credentials in rudder-web.properties/inventory-web.properties match the ones from rudder-passwords.conf
-# - All versions: upgrade system Techniques automatically and reload the Technique library
-# - All versions: Check that Rudder database is able to handle backslash
-# - 2.9.0 : Upgrade ncf
-# - 2.9.0 : Make sure that ncf uses the right logger bundles (_logger_default and logger_rudder)
-# - 2.9.0 : Make sure that ncf uses the right CFEngine port (5309)
-# - 2.7.0 : Add FileFormat 3 to 4 migration script
-# - 2.7.0 : Migration LDAP to add the global parameter OU
-# - 2.7.0 : Migration LDAP to add the defaut parameter for file edition
-# - 2.7.0~rc1 : LDAP migration to add a UUID to REST API accounts
-# - 2.6.6 : Migration DB schema to modify indexes on RudderSysEvents to improve nodes list display
-# - 2.8.0 : Update logback.xml in order to have information about change requests
-# - 2.8.0 : Migration SQL to add the necessary tables for reports executions
-# - 2.8.0 : Add the property to configure maximum days of reports treated at each run
-# - 2.8.0 : Add the property to configure execution of agent reports frequency
-# - 2.8.0 : Deprecate properties that are now handled directly in the webapp (validation workflow and change Message)
-# - 2.9.0 : File Format migration from 4 to 5
-# - 2.10.0 : Add properties to enable and configure the LDAP authentication
-# - 2.11.0 : Add LDAP entries for Server Roles system Technique/Directive/Rule
-# - 2.11.0 : Add the properties to configure Rudder roles
-# - 2.11.0 : Add LDAP entry for Group with all nodes excluding server components
+# - All versions : Check if access credentials in rudder-web.properties/inventory-web.properties match the ones from rudder-passwords.conf
+# - All versions : upgrade system Techniques automatically and reload the Technique library
+# - All versions : Check that Rudder database is able to handle backslash
+# - 2.9.0        : Upgrade ncf
+# - 2.9.0        : Make sure that ncf uses the right logger bundles (_logger_default and logger_rudder)
+# - 2.9.0        : Make sure that ncf uses the right CFEngine port (5309)
+# - 2.7.0        : Add FileFormat 3 to 4 migration script
+# - 2.7.0        : Migration LDAP to add the global parameter OU
+# - 2.7.0        : Migration LDAP to add the defaut parameter for file edition
+# - 2.7.0~rc1    : LDAP migration to add a UUID to REST API accounts
+# - 2.6.6        : Migration DB schema to modify indexes on RudderSysEvents to improve nodes list display
+# - 2.8.0        : Update logback.xml in order to have information about change requests
+# - 2.8.0        : Migration SQL to add the necessary tables for reports executions
+# - 2.8.0        : Add the property to configure maximum days of reports treated at each run
+# - 2.8.0        : Add the property to configure execution of agent reports frequency
+# - 2.8.0        : Deprecate properties that are now handled directly in the webapp (validation workflow and change Message)
+# - 2.9.0        : File Format migration from 4 to 5
+# - 2.10.0       : Add properties to enable and configure the LDAP authentication
+# - 2.11.0       : Add LDAP entries for Server Roles system Technique/Directive/Rule
+# - 2.11.0       : Add the properties to configure Rudder roles
+# - 2.11.0       : Add LDAP entry for Group with all nodes excluding server components
+# - 3.0.0        : Add the nodeConfigId column in the ReportsExecution table and add the nodes_info table
+# - 3.0.0        : Add the rudder.jdbc.maxPoolSize property
 #####################################################################################
 
 # Some variables
@@ -364,6 +366,14 @@ if [ ${RES} -eq 1 ]; then
   echo "WARN: Your database uses an old format, with keys stored in Integer rather than Bigint. On large installation this may cause some issue, please run the script /opt/rudder/bin/rudder-upgrade-database"
 fi
 
+# 3.0.0: Add the nodeConfigId column in the ReportsExecution table and add the nodes_info table
+STEP="Add the nodeConfigId column in the ReportsExecution table and add the nodes_info table"
+
+RES=$(${PSQL} -t -d rudder -c "select count(1) from pg_class where relname = 'nodes_info'")
+if [ $RES -ne 0 ]; then
+  ${PSQL} -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.11-2.12-add-nodeconfigids-columns.sql > /dev/null 2>&1
+fi
+
 ## Change attribute from dn:ruleId=inventory-all,ou=Rules,ou=Rudder,cn=rudder-configuration
 ## Check if ruleTarget attribute contains all nodes or all except policy server and LDAP is setting up
 STEP="Check if ruleTarget attribute contains all nodes or all except policy server and LDAP is setting up"
@@ -661,6 +671,13 @@ rudder.server-roles.relay-top=autodetect
 
 # The hosts with the webapp role
 rudder.server-roles.web=autodetect"
+
+# - 3.0.0 : Add the rudder.jdbc.maxPoolSize property
+STEP="Add the rudder.jdbc.maxPoolSize property"
+
+check_and_add_config_property rudder.jdbc.maxPoolSize "
+# Size of the PostgreSQL connection pool
+rudder.jdbc.maxPoolSize=25"
 
 # For every upgrade, we force the root server to run a new inventory on the next CFEngine run
 touch /opt/rudder/etc/force_inventory
