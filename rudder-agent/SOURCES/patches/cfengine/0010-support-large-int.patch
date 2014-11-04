@@ -1,0 +1,141 @@
+commit 3cb4fdf981bb542520805877ef09413bbeb9f454
+Author: Nicolas CHARLES <nicolas.charles@normation.com>
+Date:   Fri Oct 31 16:52:55 2014 +0100
+
+    Backport of commit bceebac827 and 3d437b10b3 from CFEngine 3.6 to CFEngine 3.5.3 - Make sure that 99999999999 is not rejected
+
+diff --git a/libpromises/conversion.c b/libpromises/conversion.c
+index 4c4b7c6..102f9f4 100644
+--- a/libpromises/conversion.c
++++ b/libpromises/conversion.c
+@@ -359,7 +359,7 @@ bool BooleanFromString(const char *s)
+ 
+ long IntFromString(const char *s)
+ {
+-    long a = CF_NOINT;
++    long long a = CF_NOINT;
+     char c = 'X';
+     char remainder[CF_BUFSIZE];
+ 
+@@ -380,7 +380,7 @@ long IntFromString(const char *s)
+ 
+     remainder[0] = '\0';
+ 
+-    sscanf(s, "%ld%c%s", &a, &c, remainder);
++    sscanf(s, "%lld%c%s", &a, &c, remainder);
+ 
+ // Test whether remainder is space only
+ 
+@@ -421,7 +421,7 @@ long IntFromString(const char *s)
+         case '%':
+             if ((a < 0) || (a > 100))
+             {
+-                Log(LOG_LEVEL_ERR, "Percentage out of range (%ld)", a);
++                Log(LOG_LEVEL_ERR, "Percentage out of range (%lld)", a);
+                 return CF_NOINT;
+             }
+             else
+@@ -438,8 +438,26 @@ long IntFromString(const char *s)
+             break;
+         }
+     }
++    /* TODO Use strtol() instead of scanf(), it properly checks for overflow
++     * but it is prone to coding errors, so even better bring OpenBSD's
++     * strtonum() for proper conversions. */
+ 
+-    return a;
++    if (a < LONG_MIN)
++    {
++        Log(LOG_LEVEL_VERBOSE,
++           "Number '%s' underflows a long int, truncating to %ld",
++           s, LONG_MIN);
++        return LONG_MIN;
++    }
++    else if (a > LONG_MAX)
++    {
++        Log(LOG_LEVEL_VERBOSE,
++          "Number '%s' overflows a long int, truncating to %ld",
++          s, LONG_MAX);
++        return LONG_MAX;
++    }
++
++    return (long) a;
+ }
+ 
+ /****************************************************************************/
+diff --git a/libpromises/syntax.c b/libpromises/syntax.c
+index 447fa82..d1c0e33 100644
+--- a/libpromises/syntax.c
++++ b/libpromises/syntax.c
+@@ -531,7 +531,7 @@ static SyntaxTypeMatch CheckParseInt(const char *lval, const char *s, const char
+ {
+     Item *split;
+     int n;
+-    long max = CF_LOWINIT, min = CF_HIGHINIT, val;
++    long long max = CF_LOWINIT, min = CF_HIGHINIT;
+ 
+     // Numeric types are registered by range separated by comma str "min,max"
+     split = SplitString(range, ',');
+@@ -541,7 +541,7 @@ static SyntaxTypeMatch CheckParseInt(const char *lval, const char *s, const char
+         ProgrammingError("INTERN: format specifier for int rvalues is not ok for lval %s - got %d items", lval, n);
+     }
+ 
+-    sscanf(split->name, "%ld", &min);
++    sscanf(split->name, "%lld", &min);
+ 
+     if (strcmp(split->next->name, "inf") == 0)
+     {
+@@ -549,7 +549,7 @@ static SyntaxTypeMatch CheckParseInt(const char *lval, const char *s, const char
+     }
+     else
+     {
+-        sscanf(split->next->name, "%ld", &max);
++        sscanf(split->next->name, "%lld", &max);
+     }
+ 
+     DeleteItemList(split);
+@@ -564,7 +564,7 @@ static SyntaxTypeMatch CheckParseInt(const char *lval, const char *s, const char
+         return SYNTAX_TYPE_MATCH_ERROR_UNEXPANDED;
+     }
+ 
+-    val = IntFromString(s);
++    long val = IntFromString(s);
+ 
+     if (val == CF_NOINT)
+     {
+@@ -585,7 +585,7 @@ static SyntaxTypeMatch CheckParseIntRange(const char *lval, const char *s, const
+ {
+     Item *split, *ip, *rangep;
+     int n;
+-    long max = CF_LOWINIT, min = CF_HIGHINIT, val;
++    long long max = CF_LOWINIT, min = CF_HIGHINIT;
+ 
+     // Numeric types are registered by range separated by comma str "min,max"
+     if (*s == '[' || *s == '(')
+@@ -600,7 +600,7 @@ static SyntaxTypeMatch CheckParseIntRange(const char *lval, const char *s, const
+         ProgrammingError("Format specifier %s for irange rvalues is not ok for lval %s - got %d items", range, lval, n);
+     }
+ 
+-    sscanf(split->name, "%ld", &min);
++    sscanf(split->name, "%lld", &min);
+ 
+     if (strcmp(split->next->name, "inf") == 0)
+     {
+@@ -608,7 +608,7 @@ static SyntaxTypeMatch CheckParseIntRange(const char *lval, const char *s, const
+     }
+     else
+     {
+-        sscanf(split->next->name, "%ld", &max);
++        sscanf(split->next->name, "%lld", &max);
+     }
+ 
+     DeleteItemList(split);
+@@ -632,7 +632,7 @@ static SyntaxTypeMatch CheckParseIntRange(const char *lval, const char *s, const
+ 
+     for (ip = rangep; ip != NULL; ip = ip->next)
+     {
+-        val = IntFromString(ip->name);
++        long val = IntFromString(ip->name);
+ 
+         if (val > max || val < min)
+         {
