@@ -140,7 +140,7 @@ isDynamic: TRUE
 nodeGroupId: hasPolicyServer-${RELAY_UUID}
 isSystem: TRUE
 isEnabled: TRUE
-jsonNodeGroupQuery: {"select":"node","composition":"And","where":[{"objectType":"node","attribute":"policyServerId","comparator":"eq","value":"${RELAY_UUID}"}]}
+jsonNodeGroupQuery: {"select":"nodeAndPolicyServer","composition":"And","where":[{"objectType":"node","attribute":"policyServerId","comparator":"eq","value":"${RELAY_UUID}"}]}
 ${EXISTING_NODEID}
 
 dn: ruleTarget=policyServer:${RELAY_UUID},groupCategoryId=SystemGroups,groupCategoryId=GroupRoot,ou=Rudder,cn=rudder-configuration
