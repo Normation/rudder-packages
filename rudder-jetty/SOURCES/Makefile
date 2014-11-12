@@ -47,6 +47,9 @@ localdepends: ./jetty7
 	# Change jetty's default settings to listen on localhost only
 	sed -i 's/\(<Set\ name=\"host\"><Property\ name=\"jetty.host\"\ \)\(\/>\)/\1default="127.0.0.1"\2/g' ./jetty7/etc/jetty.xml
 
+	# Set jetty requestHeaderSize if not yet modified
+	grep 'Set name="requestHeaderSize"' ./jetty7/etc/jetty.xml >/dev/null || sed -i -e '/<New class="org.eclipse.jetty.server.nio.SelectChannelConnector">/s/$$/\n            <Set name="requestHeaderSize">8192<\/Set>/' ./jetty7/etc/jetty.xml
+
 	# Change jetty.sh before distincts files
 	patch -p0 -s < jetty-init-umask.patch
 	patch -p0 -s < jetty-init-stop-fix.patch

@@ -1,0 +1,88 @@
+diff --git a/cf-serverd/cf-serverd-functions.c b/cf-serverd/cf-serverd-functions.c
+index 03bef86..7148161 100644
+--- a/cf-serverd/cf-serverd-functions.c
++++ b/cf-serverd/cf-serverd-functions.c
+@@ -321,6 +321,14 @@ static void CheckFileChanges(EvalContext *ctx, Policy **policy, GenericAgentConf
+     Log(LOG_LEVEL_DEBUG, "Checking file updates for input file '%s'",
+         config->input_file);
+ 
++    /* If we force the reload of config, effectively recheck the promises */
++    if ( IsRequestReloadConfig() )
++    {
++        Log(LOG_LEVEL_VERBOSE, "Force reload of inputs files...");
++        GenericAgentCheckPolicy(config, true, true);
++        ClearRequestReloadConfig();
++    }
++
+     time_t validated_at = ReadTimestampFromPolicyValidatedFile(config, NULL);
+ 
+     if (config->agent_specific.daemon.last_validated_at < validated_at)
+@@ -547,7 +555,7 @@ void StartServer(EvalContext *ctx, Policy **policy, GenericAgentConfig *config)
+ 
+     signal(SIGINT, HandleSignalsForDaemon);
+     signal(SIGTERM, HandleSignalsForDaemon);
+-    signal(SIGHUP, SIG_IGN);
++    signal(SIGHUP, HandleSignalsForDaemon);
+     signal(SIGPIPE, SIG_IGN);
+     signal(SIGUSR1, HandleSignalsForDaemon);
+     signal(SIGUSR2, HandleSignalsForDaemon);
+diff --git a/libpromises/signals.c b/libpromises/signals.c
+index 682bf1e..a872a8d 100644
+--- a/libpromises/signals.c
++++ b/libpromises/signals.c
+@@ -26,6 +26,7 @@
+ 
+ static bool PENDING_TERMINATION = false; /* GLOBAL_X */
+ 
++static bool RELOAD_CONFIG = false; /* GLOBAL_X */
+ /********************************************************************/
+ 
+ bool IsPendingTermination(void)
+@@ -33,6 +34,15 @@ bool IsPendingTermination(void)
+     return PENDING_TERMINATION;
+ }
+ 
++bool IsRequestReloadConfig(void)
++{
++    return RELOAD_CONFIG;
++}
++
++void ClearRequestReloadConfig()
++{
++    RELOAD_CONFIG = false;
++}
+ /********************************************************************/
+ 
+ static int SIGNAL_PIPE[2] = { -1, -1 }; /* GLOBAL_C */
+@@ -144,7 +154,6 @@ void HandleSignalsForDaemon(int signum)
+     {
+     case SIGTERM:
+     case SIGINT:
+-    case SIGHUP:
+     case SIGSEGV:
+     case SIGKILL:
+     case SIGPIPE:
+@@ -156,6 +165,9 @@ void HandleSignalsForDaemon(int signum)
+     case SIGUSR2:
+         LogSetGlobalLevel(LOG_LEVEL_NOTICE);
+         break;
++    case SIGHUP:
++        RELOAD_CONFIG = true;
++        break;
+     default:
+         /* No action */
+         break;
+diff --git a/libpromises/signals.h b/libpromises/signals.h
+index bb36707..a1783b5 100644
+--- a/libpromises/signals.h
++++ b/libpromises/signals.h
+@@ -30,6 +30,9 @@
+ // check whether the running daemon should terminate after having received a signal.
+ bool IsPendingTermination(void);
+ 
++bool IsRequestReloadConfig(void);
++void ClearRequestReloadConfig();
++
+ void MakeSignalPipe(void);
+ int GetSignalPipe(void);
+ void HandleSignalsForDaemon(int signum);
