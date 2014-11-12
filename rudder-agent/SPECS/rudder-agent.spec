@@ -523,6 +523,12 @@ if [ ${CFRUDDER_FIRST_INSTALL} -ne 1 ]; then /usr/bin/stopsrc -s rudder-agent; f
 if [ ${CFRUDDER_FIRST_INSTALL} -ne 1 -a -x /etc/init.d/rudder-agent ]; then /sbin/service rudder-agent stop || /etc/init.d/rudder-agent forcestop; fi
 %endif
 
+%if "%{?_os}" == "aix"
+# On AIX, trigger slibclean to remove any unused library/binary object from memory
+# Will prevent "Text file busy" errors during the following copy
+slibclean
+%endif
+
 # Copy CFEngine binaries
 %{cp_a_command} -f /opt/rudder/bin/cf-* /var/rudder/cfengine-community/bin/
 %{cp_a_command} -f /opt/rudder/bin/rpmvercmp /var/rudder/cfengine-community/bin/
