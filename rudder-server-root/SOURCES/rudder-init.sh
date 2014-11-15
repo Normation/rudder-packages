@@ -104,7 +104,7 @@ then
     exit
   else
     ANSWER1=$1 #Hostname
-    ALLOWEDNETWORK[0]=$5 #ServerAllowed
+    ALLOWEDNETWORK=(${@:5}) #ServerAllowed
     ANSWER4=$2 #DemoSample
     LDAPRESET=$3 #LDAPRESET
     LDAPCHK=1
