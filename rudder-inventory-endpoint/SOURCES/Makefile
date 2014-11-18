@@ -23,7 +23,7 @@ WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget -q
 
 RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
 
-localdepends: ./rudder-sources ./inventory-web.properties ./maven2/bin/mvn
+localdepends: ./rudder-sources ./inventory-web.properties ./maven/bin/mvn
 
 /usr/bin/wget:
 	sudo aptitude --assume-yes install wget
@@ -32,10 +32,10 @@ localdepends: ./rudder-sources ./inventory-web.properties ./maven2/bin/mvn
 	# Original URL: http://apache.multidist.com/maven/binaries/apache-maven-$(MAVEN_RELEASE)-bin.tar.gz
 	$(WGET) -O ./maven.tgz http://www.normation.com/tarball/apache-maven-$(MAVEN_RELEASE)-bin.tar.gz
 
-./maven2/bin/mvn: ./maven.tgz
+./maven/bin/mvn: ./maven.tgz
 	tar -xzf ./maven.tgz -C .
-	rm -rf ./maven2
-	mv ./apache-maven-$(MAVEN_RELEASE) ./maven2
+	rm -rf ./maven
+	mv ./apache-maven-$(MAVEN_RELEASE) ./maven
 
 ./rudder-sources.tar.bz2:
 	$(WGET) -O rudder-sources.tar.bz2 http://www.rudder-project.org/archives/rudder-sources-${RUDDER_VERSION_TO_PACKAGE}.tar.bz2
@@ -48,7 +48,7 @@ localdepends: ./rudder-sources ./inventory-web.properties ./maven2/bin/mvn
 	cp ./rudder-sources/ldap-inventory/inventory-provisioning-web/src/main/resources/configuration.properties.sample ./inventory-web.properties
 
 localclean:
-	rm -rf ./maven2
+	rm -rf ./maven
 	rm -rf ./inventory-web.properties
 	rm -rf ./rudder-sources
 
