@@ -1,0 +1,23 @@
+--- jetty7/bin/jetty.sh.orig	17:02:01.844193767 +0100
++++ jetty7/bin/jetty.sh	2014-11-19 17:04:42.356810694 +0100
+@@ -382,6 +382,20 @@
+   exit 1
+ fi
+ 
++##################################################
++# Verify if the java version we use is compatible
++# with Rudder
++##################################################
++
++JAVA_VERSION=$(${JAVA} -version 2>&1 | grep "java version" | sed 's%java version \"[0-9]\.\([0-9]\)\.[0-9].*\"%\1%')
++
++if [ ${JAVA_VERSION} -lt 7 ]
++then
++  echo "The Java version you use is not 1.7 or superior (1.${JAVA_VERSION}), Rudder requires at least the 1.7 Java Runtime environment (JRE)"
++  echo "Please install a recent JRE and try again"
++  exit 1
++fi
++
+ #####################################################
+ # See if JETTY_PORT is defined
+ #####################################################

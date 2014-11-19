@@ -51,16 +51,17 @@ localdepends: ./jetty7
 	grep 'Set name="requestHeaderSize"' ./jetty7/etc/jetty.xml >/dev/null || sed -i -e '/<New class="org.eclipse.jetty.server.nio.SelectChannelConnector">/s/$$/\n            <Set name="requestHeaderSize">8192<\/Set>/' ./jetty7/etc/jetty.xml
 
 	# Change jetty.sh before distincts files
-	patch -p0 -s < jetty-init-umask.patch
-	patch -p0 -s < jetty-init-stop-fix.patch
-	patch -p0 -s < jetty-init-sizecheck.patch
-	patch -p0 -s < jetty-init-use-rudder-jetty-defaults.patch
+	patch -p0 -s < patches/jetty/jetty-init-umask.patch
+	patch -p0 -s < patches/jetty/jetty-init-stop-fix.patch
+	patch -p0 -s < patches/jetty/jetty-init-sizecheck.patch
+	patch -p0 -s < patches/jetty/jetty-init-use-rudder-jetty-defaults.patch
+	patch -p0 -s < patches/jetty/jetty-init-check-java-version.patch
 
 	cp ./jetty7/bin/jetty.sh ./jetty7/bin/jetty-debian.sh
 	cp ./jetty7/bin/jetty.sh ./jetty7/bin/jetty-sles.sh
 
-	patch -p0 -s < jetty-init-lsb-fix-debian.patch
-	patch -p0 -s < jetty-init-lsb-fix-sles.patch
+	patch -p0 -s < patches/jetty/jetty-init-lsb-fix-debian.patch
+	patch -p0 -s < patches/jetty/jetty-init-lsb-fix-sles.patch
 
 	# Provide jetty's init script to the debian package's standard location
 	cp ./jetty7/bin/jetty-debian.sh ../debian/rudder-jetty.init
