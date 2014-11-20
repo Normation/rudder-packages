@@ -371,7 +371,7 @@ fi
 STEP="Add the nodeConfigId column in the ReportsExecution table and add the nodes_info table"
 
 RES=$(${PSQL} -t -d rudder -c "select count(1) from pg_class where relname = 'nodes_info'")
-if [ $RES -ne 0 ]; then
+if [ ${RES} -eq 0 ]; then
   ${PSQL} -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.11-2.12-add-nodeconfigids-columns.sql > /dev/null 2>&1
 fi
 
