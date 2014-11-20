@@ -24,7 +24,7 @@ WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget -q
 RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
 RUDDER_MAJOR_VERSION := $(shell echo ${RUDDER_VERSION_TO_PACKAGE} | cut -d'.' -f 1-2)
 
-localdepends: ./rudder-sources ./maven2/bin/mvn ./rudder-users.xml ./rudder-doc ./rudder-doc/html/rudder-doc.pdf
+localdepends: ./rudder-sources ./maven/bin/mvn ./rudder-users.xml ./rudder-doc ./rudder-doc/html/rudder-doc.pdf
 
 /usr/bin/wget:
 	sudo aptitude --assume-yes install wget
@@ -33,10 +33,10 @@ localdepends: ./rudder-sources ./maven2/bin/mvn ./rudder-users.xml ./rudder-doc 
 	# Original URL: http://apache.multidist.com/maven/binaries/apache-maven-$(MAVEN_RELEASE)-bin.tar.gz
 	$(WGET) -O ./maven.tgz http://www.normation.com/tarball/apache-maven-$(MAVEN_RELEASE)-bin.tar.gz
 
-./maven2/bin/mvn: ./maven.tgz
+./maven/bin/mvn: ./maven.tgz
 	tar -xzf ./maven.tgz -C .
-	rm -rf ./maven2
-	mv ./apache-maven-$(MAVEN_RELEASE) ./maven2
+	rm -rf ./maven
+	mv ./apache-maven-$(MAVEN_RELEASE) ./maven
 
 ./rudder-sources.tar.bz2:
 	$(WGET) -O rudder-sources.tar.bz2 http://www.rudder-project.org/archives/rudder-sources-${RUDDER_VERSION_TO_PACKAGE}.tar.bz2
@@ -60,7 +60,7 @@ localdepends: ./rudder-sources ./maven2/bin/mvn ./rudder-users.xml ./rudder-doc 
 
 localclean:
 	rm -rf ./rudder-users.xml
-	rm -rf ./maven2/
+	rm -rf ./maven/
 	rm -rf ./rudder-sources
 	rm -rf ./rudder-doc
 

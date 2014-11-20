@@ -101,27 +101,43 @@ Source16: post.write_technique.rudderify.sh
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
 
-BuildRequires: jdk >= 1.6
+# Dependencies
+
 Requires: rudder-techniques ncf ncf-api-virtualenv %{apache} %{apache_tools} git-core rsync openssl %{ldap_clients}
 
-# We need the psql client so that we can run database checks and upgrades (rudder-upgrade, in particular)
+# We need the PostgreSQL client utilities so that we can run database checks and upgrades (rudder-upgrade, in particular)
 Requires: postgresql
 
-# Those jetty packages are virtual packages provided by our Jetty and the system one.
+# OS-specific dependencies
 
-## RHEL
+##
+## Those jetty packages are virtual packages provided by our Jetty and the system one.
+##
+
+## 1 - RHEL
+%if 0%{?rhel} && 0%{?rhel} == 6
+BuildRequires: java7-devel
+%endif
+
+%if 0%{?rhel} && 0%{?rhel} >= 7
+BuildRequires: java-devel
+%endif
+
 %if 0%{?rhel}
 Requires: mod_ssl jetty-eclipse
 %endif
 
-## Fedora
+## 2 - Fedora
 %if 0%{?fedora}
+# Cf. https://fedoraproject.org/wiki/Packaging:Java for details
+BuildRequires: java-devel
 Requires: jetty-server
 %endif
 
-## SLES
+## 3 - SLES
 ## No Jetty provided by SLES... Use our own.
 %if 0%{?sles_version}
+BuildRequires: jdk >= 1.7
 Requires: rudder-jetty
 %endif
 
@@ -131,7 +147,6 @@ Rudder is an open source configuration management and audit solution.
 This package contains the web application that is the main user interface to
 Rudder. The webapp is automatically installed and started using the Jetty
 application server bundled in the rudder-jetty package.
-
 
 #=================================================
 # Source preparation
@@ -147,12 +162,12 @@ cp -rf %{_sourcedir}/rudder-doc %{_builddir}
 %build
 
 export MAVEN_OPTS=-Xmx512m
-cd %{_builddir}/rudder-sources/rudder-parent-pom && %{_sourcedir}/maven2/bin/mvn -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
-cd %{_builddir}/rudder-sources/rudder-commons    && %{_sourcedir}/maven2/bin/mvn -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
-cd %{_builddir}/rudder-sources/scala-ldap        && %{_sourcedir}/maven2/bin/mvn -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
-cd %{_builddir}/rudder-sources/ldap-inventory    && %{_sourcedir}/maven2/bin/mvn -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
-cd %{_builddir}/rudder-sources/cf-clerk          && %{_sourcedir}/maven2/bin/mvn -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
-cd %{_builddir}/rudder-sources/rudder            && %{_sourcedir}/maven2/bin/mvn -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install package
+cd %{_builddir}/rudder-sources/rudder-parent-pom && %{_sourcedir}/maven/bin/mvn -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
+cd %{_builddir}/rudder-sources/rudder-commons    && %{_sourcedir}/maven/bin/mvn -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
+cd %{_builddir}/rudder-sources/scala-ldap        && %{_sourcedir}/maven/bin/mvn -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
+cd %{_builddir}/rudder-sources/ldap-inventory    && %{_sourcedir}/maven/bin/mvn -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
+cd %{_builddir}/rudder-sources/cf-clerk          && %{_sourcedir}/maven/bin/mvn -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
+cd %{_builddir}/rudder-sources/rudder            && %{_sourcedir}/maven/bin/mvn -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install package
 
 #=================================================
 # Installation
