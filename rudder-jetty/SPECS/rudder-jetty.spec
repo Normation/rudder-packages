@@ -38,6 +38,12 @@
 
 %define _binaries_in_noarch_packages_terminate_build   0
 
+%if 0%{?sles_version}
+%define jetty_init_script jetty-sles.sh
+%else
+%define jetty_init_script jetty-rpm.sh
+%endif
+
 #=================================================
 # Header
 #=================================================
@@ -55,8 +61,6 @@ Group: Applications/System
 Source2: rudder-jetty.default
 Source3: rudder-jetty.conf
 Source4: rudder-jetty
-
-Patch1: jetty-init-sles.patch
 
 # Prevent rpmbuild to use 64 bits libraries just because of the presence
 # of one 64 bits binary in the jetty archive.
@@ -109,14 +113,10 @@ This package bundles a version of the Jetty application server to simplify
 installing Rudder. It is required by the rudder-webapp and
 rudder-inventory-endpoint packages.
 
-
 #=================================================
 # Source preparation
 #=================================================
 %prep
-
-cd %{_topdir}/SOURCES
-%patch1
 
 #=================================================
 # Building
@@ -145,7 +145,7 @@ cp -a jetty7 %{buildroot}/opt/rudder
 # Init script
 mkdir -p %{buildroot}/etc/init.d
 mkdir -p %{buildroot}/etc/default
-install -m 755 jetty7/bin/jetty-sles.sh %{buildroot}/etc/init.d/rudder-jetty
+install -m 755 jetty7/bin/%{jetty_init_script} %{buildroot}/etc/init.d/rudder-jetty
 install -m 644 %{SOURCE2} %{buildroot}/etc/default/rudder-jetty
 install -m 644 %{SOURCE3} %{buildroot}/opt/rudder/etc/rudder-jetty.conf
 

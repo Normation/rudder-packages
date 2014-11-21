@@ -58,11 +58,14 @@ localdepends: ./jetty7
 	patch -p0 -s < patches/jetty/jetty-init-check-java-version.patch
 
 	cp ./jetty7/bin/jetty.sh ./jetty7/bin/jetty-debian.sh
-	cp ./jetty7/bin/jetty.sh ./jetty7/bin/jetty-sles.sh
+	cp ./jetty7/bin/jetty.sh ./jetty7/bin/jetty-rpm.sh
 
 	patch -p0 -s < patches/jetty/jetty-init-lsb-fix-debian.patch
-	patch -p0 -s < patches/jetty/jetty-init-lsb-fix-sles.patch
+	patch -p0 -s < patches/jetty/jetty-init-lsb-fix-rpm.patch
 
+	cp ./jetty7/bin/jetty-rpm.sh ./jetty7/bin/jetty-sles.sh
+	patch -p0 -s < patches/jetty/jetty-init-sles.patch
+	
 	# Provide jetty's init script to the debian package's standard location
 	cp ./jetty7/bin/jetty-debian.sh ../debian/rudder-jetty.init
 	cp ./rudder-jetty.default ../debian/rudder-jetty.default
