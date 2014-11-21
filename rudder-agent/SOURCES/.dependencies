@@ -1,6 +1,7 @@
-SLES10:gcc openssl-devel bison flex autoconf automake libtool pcre-devel zlib-devel pam-devel
+SLES10:gcc bison flex autoconf automake libtool pcre-devel zlib-devel pam-devel
 SLES11:gcc openssl-devel bison flex autoconf automake libtool pcre-devel zlib-devel libbz2-devel pam-devel
-RHEL3:gcc openssl-devel bison flex autoconf automake libtool pcre-devel make byacc zlib-devel bzip2-devel kernel-utils pam-devel
+RHEL3:gcc bison flex autoconf automake libtool pcre-devel make byacc zlib-devel bzip2-devel kernel-utils pam-devel
+RHEL4:gcc bison flex autoconf automake libtool pcre-devel make byacc zlib-devel bzip2-devel kernel-utils pam-devel
 RHEL5:gcc openssl-devel bison flex autoconf automake libtool pcre-devel make byacc zlib-devel bzip2-devel pam-devel
 RHEL6:gcc openssl-devel bison flex autoconf automake libtool pcre-devel make byacc pam-devel
 RHEL7:gcc openssl-devel bison flex autoconf automake libtool pcre-devel make byacc pam-devel
