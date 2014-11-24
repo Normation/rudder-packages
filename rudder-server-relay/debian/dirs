@@ -1,0 +1,4 @@
+opt/rudder/etc
+var/rudder/inventories/accepted-nodes-updates
+var/rudder/inventories/incoming
+var/log/rudder/apache2

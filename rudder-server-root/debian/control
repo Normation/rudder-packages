@@ -13,4 +13,4 @@ Description: Configuration management and audit tool - root server base package
  Rudder is an open source configuration management and audit solution.
  .
  This package is essentially a meta-package to install all components required
- to run a Rudder root server on one machine.
+ to run a Rudder root server on a machine.
