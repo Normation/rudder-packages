@@ -19,7 +19,7 @@ diff -Naur debian/rules debian/rules
  	cd SOURCES && ./perl-prepare.sh $(CURDIR)/SOURCES/fusioninventory-agent
 +	# Compile and install OpenSSL
 +	cd SOURCES/openssl-source && ./config -fPIC --prefix=/opt/rudder --openssldir=/opt/rudder/openssl shared
-+	cd SOURCES/openssl-source && make %{?_smp_mflags}
++	cd SOURCES/openssl-source && make
 +	cd SOURCES/openssl-source && make install INSTALL_PREFIX=$(CURDIR)/debian/tmp
  	# Compile the LMDB library and install it in /opt/rudder
  	# LMDB source code does not know how to create destination folders, do it ourselves
