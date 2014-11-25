@@ -18,7 +18,7 @@ diff -Naur debian/rules debian/rules
  	# Add here commands to configure the package.
  	cd SOURCES && ./perl-prepare.sh $(CURDIR)/SOURCES/fusioninventory-agent
 +	# Compile and install OpenSSL
-+	cd SOURCES/openssl-source && ./config -fPIC --prefix=/opt/rudder --openssldir=/opt/rudder/openssl shared
++	cd SOURCES/openssl-source && if [ "$(shell dpkg-architecture -qDEB_HOST_ARCH)" = "amd64" ]; then TARGET=linux-x86_64; else TARGET=linux-elf; fi && ./Configure -fPIC --prefix=/opt/rudder --openssldir=/opt/rudder/openssl shared $$TARGET
 +	cd SOURCES/openssl-source && make
 +	cd SOURCES/openssl-source && make install INSTALL_PREFIX=$(CURDIR)/debian/tmp
  	# Compile the LMDB library and install it in /opt/rudder
