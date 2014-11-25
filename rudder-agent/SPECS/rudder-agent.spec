@@ -161,8 +161,6 @@ Requires: pmtools
 ##
 %if 0%{?rhel} && 0%{?rhel} < 5
 %define use_system_openssl false
-%else
-%define use_system_openssl true
 %endif
 
 ## 2 - Fedora: Use the system one
@@ -171,9 +169,6 @@ Requires: pmtools
 ### comes with OpenSSL 1.0.1e, which is
 ### recent enough.
 ##
-%if 0%{?fedora}
-%define use_system_openssl true
-%endif
 
 ## 3 - SLES: Bundled for pre-sles11 oses
 ##
@@ -182,8 +177,6 @@ Requires: pmtools
 ##
 %if 0%{?sles_version} && 0%{?sles_version} < 11
 %define use_system_openssl false
-%else
-%define use_system_openssl true
 %endif
 
 ## 4 - AIX: Bundled

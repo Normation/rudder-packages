@@ -1,5 +1,5 @@
---- a/rudder-agent.spec	2014-10-28 12:44:10.535569883 +0100
-+++ b/rudder-agent.spec	2014-10-28 13:26:54.654280921 +0100
+--- a/rudder-agent.spec	2014-11-24 18:36:32.395594597 +0100
++++ b/rudder-agent.spec	2014-11-24 18:40:50.136826564 +0100
 @@ -17,7 +17,7 @@
  #####################################################################################
  
@@ -51,7 +51,7 @@
  
  # Specific requirements
  
-@@ -196,6 +190,10 @@
+@@ -189,6 +183,10 @@
  %define use_system_openssl false
  %endif
  
@@ -62,7 +62,7 @@
  ## 5 - Resulting dependencies
  %if "%{use_system_openssl}" == "true"
  BuildRequires: openssl-devel
-@@ -212,23 +210,11 @@
+@@ -205,23 +203,11 @@
  %define cp_a_command           cp -hpPr
  %endif
  
@@ -87,7 +87,7 @@
  
  #=================================================
  # Source preparation
-@@ -245,8 +231,6 @@
+@@ -238,8 +224,6 @@
  
  cd %{_sourcedir}
  
@@ -96,7 +96,7 @@
  # Ensure an appropriate environment for the compiler
  export CFLAGS="$RPM_OPT_FLAGS"
  export CXXFLAGS="$RPM_OPT_FLAGS"
-@@ -363,9 +347,6 @@
+@@ -356,9 +340,6 @@
  # Initial promises
  cp -r %{_sourcedir}/initial-promises %{buildroot}%{rudderdir}/share/
  
@@ -106,7 +106,7 @@
  # Wrapper script
  %{install_command} -m 755 %{SOURCE3} %{buildroot}/opt/rudder/bin/run-inventory
  
-@@ -388,8 +369,6 @@
+@@ -381,8 +362,6 @@
  
  %{install_command} -m 755 %{SOURCE8} %{buildroot}/opt/rudder/bin/vzps.py
  
@@ -115,7 +115,7 @@
  # Install a profile script to make cf-* part of the PATH
  # AIX does not support profile.d and /etc/profile should not be modified, so we don't do this on AIX at all
  %if "%{?_os}" != "aix"
-@@ -406,7 +385,7 @@
+@@ -399,7 +378,7 @@
  # Build a list of files to include in this package for use in the %files section below
  find %{buildroot}%{rudderdir} %{buildroot}%{ruddervardir} -type f -o -type l | sed "s,%{buildroot},," | sed "s,\.py$,\.py*," | grep -v "%{rudderdir}/etc/uuid.hive" | grep -v "%{ruddervardir}/cfengine-community/ppkeys" > %{_builddir}/file.list.%{name}
  
@@ -124,7 +124,7 @@
  #=================================================
  # Pre Installation
  #=================================================
-@@ -427,7 +406,7 @@
+@@ -420,7 +399,7 @@
  %endif
  fi
  
@@ -133,7 +133,7 @@
  #=================================================
  # Post Installation
  #=================================================
-@@ -645,7 +624,7 @@
+@@ -644,7 +623,7 @@
  
  /opt/rudder/bin/check-rudder-agent
  
@@ -142,7 +142,7 @@
  #=================================================
  # Pre Uninstallation
  #=================================================
-@@ -667,7 +646,7 @@
+@@ -666,7 +645,7 @@
  fi
  
  
@@ -151,7 +151,7 @@
  #=================================================
  # Post Uninstallation
  #=================================================
-@@ -714,7 +693,7 @@
+@@ -713,7 +692,7 @@
  # Files
  #=================================================
  # Files from %{rudderdir} and %{ruddervardir} are automatically added via the -f option
@@ -160,7 +160,7 @@
  %defattr(-, root, root, 0755)
  
  # The following file is declared to belong to this package but will not be installed
-@@ -748,15 +727,8 @@
+@@ -747,15 +726,8 @@
  # Changelog
  #=================================================
  %changelog
