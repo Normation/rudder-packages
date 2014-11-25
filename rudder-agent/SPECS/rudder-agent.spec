@@ -34,6 +34,7 @@
 %define rudderdir            /opt/rudder
 %define ruddervardir         /var/rudder
 %define rudderlogdir         /var/log/rudder
+%define bindir               /usr/bin
 
 # use_system_lmdb checks if to build CFEngine we will need to build LMDB or if
 # a package already exists on the system.
@@ -69,6 +70,7 @@ Source8: vzps.py
 Source9: rudder-agent.sh
 Source10: detect_os.sh
 Source11: rudder-perl
+Source12: rudder-agent-utilities
 
 # uuidgen doesn't exist on AIX, so we provide a simple shell compatible version
 %if "%{?_os}" == "aix"
@@ -331,6 +333,8 @@ make install DESTDIR=%{buildroot} STRIP=""
 # Directories
 mkdir -p %{buildroot}%{rudderdir}
 mkdir -p %{buildroot}%{rudderdir}/etc
+mkdir -p %{buildroot}%{rudderdir}/share
+mkdir -p %{buildroot}%{rudderdir}/share/commands
 mkdir -p %{buildroot}%{ruddervardir}/cfengine-community/bin
 mkdir -p %{buildroot}%{ruddervardir}/cfengine-community/inputs
 mkdir -p %{buildroot}%{ruddervardir}/tmp
@@ -382,6 +386,14 @@ mkdir -p %{buildroot}/etc/ld.so.conf.d
 %{install_command} -m 755 %{SOURCE8} %{buildroot}/opt/rudder/bin/vzps.py
 
 %{install_command} -m 755 %{SOURCE11} %{buildroot}/opt/rudder/bin/rudder-perl
+
+# Rudder agent utilities
+%{install_command} -m 755 %{SOURCE11}/bin/rudder %{buildroot}%{rudderdir}/bin/rudder
+%{cp_a_command} %{SOURCE12}/share/commands/* %{buildroot}%{rudderdir}/share/commands/
+
+# Create a symlink to make "rudder" available as part of the
+# default PATH
+ln -sf %{rudderdir}/bin/rudder %{buildroot}%{bindir}/rudder
 
 # Install a profile script to make cf-* part of the PATH
 # AIX does not support profile.d and /etc/profile should not be modified, so we don't do this on AIX at all

@@ -1,5 +1,5 @@
---- a/rudder-agent.spec	2014-11-24 18:36:32.395594597 +0100
-+++ b/rudder-agent.spec	2014-11-24 18:40:50.136826564 +0100
+--- a/rudder-agent.spec	2014-11-26 15:29:36.324504307 +0100
++++ b/rudder-agent.spec	2014-11-26 15:37:08.770563613 +0100
 @@ -17,7 +17,7 @@
  #####################################################################################
  
@@ -18,14 +18,15 @@
  
  %define rudderdir            /opt/rudder
  %define ruddervardir         /var/rudder
-@@ -68,18 +68,12 @@
+@@ -69,7 +69,6 @@
  Source8: vzps.py
  Source9: rudder-agent.sh
  Source10: detect_os.sh
 -Source11: rudder-perl
+ Source12: rudder-agent-utilities
  
  # uuidgen doesn't exist on AIX, so we provide a simple shell compatible version
- %if "%{?_os}" == "aix"
+@@ -77,11 +76,6 @@
  Source100: uuidgen
  %endif
  
@@ -37,7 +38,7 @@
  %if 0%{?rhel} && 0%{?rhel} == 4
  Patch1: fix-missing-headers
  %endif
-@@ -87,10 +81,10 @@
+@@ -89,10 +83,10 @@
  BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
  
  # Generic requirements
@@ -51,7 +52,7 @@
  
  # Specific requirements
  
-@@ -189,6 +183,10 @@
+@@ -191,6 +185,10 @@
  %define use_system_openssl false
  %endif
  
@@ -62,7 +63,7 @@
  ## 5 - Resulting dependencies
  %if "%{use_system_openssl}" == "true"
  BuildRequires: openssl-devel
-@@ -205,23 +203,11 @@
+@@ -207,23 +205,11 @@
  %define cp_a_command           cp -hpPr
  %endif
  
@@ -87,7 +88,7 @@
  
  #=================================================
  # Source preparation
-@@ -238,8 +224,6 @@
+@@ -240,8 +226,6 @@
  
  cd %{_sourcedir}
  
@@ -96,7 +97,7 @@
  # Ensure an appropriate environment for the compiler
  export CFLAGS="$RPM_OPT_FLAGS"
  export CXXFLAGS="$RPM_OPT_FLAGS"
-@@ -356,9 +340,6 @@
+@@ -360,9 +344,6 @@
  # Initial promises
  cp -r %{_sourcedir}/initial-promises %{buildroot}%{rudderdir}/share/
  
@@ -106,16 +107,16 @@
  # Wrapper script
  %{install_command} -m 755 %{SOURCE3} %{buildroot}/opt/rudder/bin/run-inventory
  
-@@ -381,8 +362,6 @@
+@@ -385,8 +366,6 @@
  
  %{install_command} -m 755 %{SOURCE8} %{buildroot}/opt/rudder/bin/vzps.py
  
 -%{install_command} -m 755 %{SOURCE11} %{buildroot}/opt/rudder/bin/rudder-perl
 -
- # Install a profile script to make cf-* part of the PATH
- # AIX does not support profile.d and /etc/profile should not be modified, so we don't do this on AIX at all
- %if "%{?_os}" != "aix"
-@@ -399,7 +378,7 @@
+ # Rudder agent utilities
+ %{install_command} -m 755 %{SOURCE11}/bin/rudder %{buildroot}%{rudderdir}/bin/rudder
+ %{cp_a_command} %{SOURCE12}/share/commands/* %{buildroot}%{rudderdir}/share/commands/
+@@ -411,7 +390,7 @@
  # Build a list of files to include in this package for use in the %files section below
  find %{buildroot}%{rudderdir} %{buildroot}%{ruddervardir} -type f -o -type l | sed "s,%{buildroot},," | sed "s,\.py$,\.py*," | grep -v "%{rudderdir}/etc/uuid.hive" | grep -v "%{ruddervardir}/cfengine-community/ppkeys" > %{_builddir}/file.list.%{name}
  
@@ -124,7 +125,7 @@
  #=================================================
  # Pre Installation
  #=================================================
-@@ -420,7 +399,7 @@
+@@ -432,7 +411,7 @@
  %endif
  fi
  
@@ -133,7 +134,7 @@
  #=================================================
  # Post Installation
  #=================================================
-@@ -644,7 +623,7 @@
+@@ -656,7 +635,7 @@
  
  /opt/rudder/bin/check-rudder-agent
  
@@ -142,7 +143,7 @@
  #=================================================
  # Pre Uninstallation
  #=================================================
-@@ -666,7 +645,7 @@
+@@ -678,7 +657,7 @@
  fi
  
  
@@ -151,7 +152,7 @@
  #=================================================
  # Post Uninstallation
  #=================================================
-@@ -713,7 +692,7 @@
+@@ -725,7 +704,7 @@
  # Files
  #=================================================
  # Files from %{rudderdir} and %{ruddervardir} are automatically added via the -f option
@@ -160,7 +161,7 @@
  %defattr(-, root, root, 0755)
  
  # The following file is declared to belong to this package but will not be installed
-@@ -747,15 +726,8 @@
+@@ -759,15 +738,8 @@
  # Changelog
  #=================================================
  %changelog
