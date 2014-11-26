@@ -1,5 +1,6 @@
 #!/usr/bin/make -f
 # -*- makefile -*-
+
 # Sample debian/rules that uses debhelper.
 # This file was originally written by Joey Hess and Craig Small.
 # As a special exception, when this file is copied by dh-make into a
@@ -8,8 +9,6 @@
 
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
-
-
 
 configure: configure-stamp
 configure-stamp:
@@ -29,7 +28,6 @@ configure-stamp:
 	cd SOURCES/cfengine-source && ./configure --prefix=/opt/rudder --with-workdir=/var/rudder/cfengine-community --enable-static=yes --enable-shared=no --with-lmdb=$(CURDIR)/debian/tmp/opt/rudder
 
 	touch configure-stamp
-
 
 build: build-stamp
 
@@ -86,6 +84,8 @@ binary-arch: install
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/perl-custom/opt rudder /opt
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES run-inventory /opt/rudder/bin
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES initial-promises /opt/rudder/share
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-agent-utilities/bin rudder /opt/rudder/bin
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-agent-utilities/share commands /opt/rudder/share
 	# Install an empty uuid.hive file before generating an uuid
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ uuid.hive /opt/rudder/etc/
 	# Install /etc/ld.so.conf.d/rudder.conf in order to use libraries contain
