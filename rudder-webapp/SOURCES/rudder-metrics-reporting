@@ -1,0 +1,4 @@
+#!/bin/sh
+
+echo "This is a placeholder script, to be replaced by the actual implementation soon. Please see http://www.rudder-project.org/redmine/issues/5809 for details."
+exit 0
