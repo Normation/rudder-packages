@@ -20,7 +20,7 @@
 
 RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
 
-localdepends: ./rudder-sources ../debian/rudder-server-root.init
+localdepends: ./rudder-sources
 
 ./rudder-sources.tar.bz2:
 	$(WGET) -O rudder-sources.tar.bz2 http://www.rudder-project.org/archives/rudder-sources-${RUDDER_VERSION_TO_PACKAGE}.tar.bz2
