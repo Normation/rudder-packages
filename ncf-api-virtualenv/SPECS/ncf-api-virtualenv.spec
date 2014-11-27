@@ -216,5 +216,5 @@ rm -rf %{buildroot}
 # Changelog
 #=================================================
 %changelog
-* Thu Jun 16 2014 - Matthieu CERDA <matthieu.cerda@normation.com> 0.2014160600-1
+* Mon Jun 16 2014 - Matthieu CERDA <matthieu.cerda@normation.com> 0.2014160600-1
 - Initial release

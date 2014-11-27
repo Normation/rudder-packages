@@ -759,7 +759,7 @@ rm -f %{_builddir}/file.list.%{name}
 # Changelog
 #=================================================
 %changelog
-* Fri Apr  27 2011 - Matthieu CERDA <matthieu.cerda@normation.com> 2.2-beta1-2
+* Wed Apr  27 2011 - Matthieu CERDA <matthieu.cerda@normation.com> 2.2-beta1-2
 - The packages now builds correctly on both x86 and x86_64 archs, and on EL4/CentOS 4.
 * Tue Mar  1 2011 - Jonathan CLARKE <jonathan.clarke@normation.com> 2.2-beta1-1
 - Release 2.2.beta1
