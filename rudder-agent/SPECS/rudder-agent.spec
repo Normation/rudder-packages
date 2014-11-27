@@ -388,7 +388,7 @@ mkdir -p %{buildroot}/etc/ld.so.conf.d
 %{install_command} -m 755 %{SOURCE11} %{buildroot}/opt/rudder/bin/rudder-perl
 
 # Rudder agent utilities
-%{install_command} -m 755 %{SOURCE11}/bin/rudder %{buildroot}%{rudderdir}/bin/rudder
+%{install_command} -m 755 %{SOURCE12}/bin/rudder %{buildroot}%{rudderdir}/bin/rudder
 %{cp_a_command} %{SOURCE12}/share/commands/* %{buildroot}%{rudderdir}/share/commands/
 
 # Create a symlink to make "rudder" available as part of the
