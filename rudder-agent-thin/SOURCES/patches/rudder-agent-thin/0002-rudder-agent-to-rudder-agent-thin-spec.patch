@@ -1,5 +1,5 @@
---- a/rudder-agent.spec	2014-11-26 15:29:36.324504307 +0100
-+++ b/rudder-agent.spec	2014-11-26 15:37:08.770563613 +0100
+--- a/rudder-agent.spec	2014-11-28 12:01:00.420117748 +0100
++++ b/rudder-agent.spec	2014-11-28 12:00:53.864084747 +0100
 @@ -17,7 +17,7 @@
  #####################################################################################
  
@@ -97,7 +97,7 @@
  # Ensure an appropriate environment for the compiler
  export CFLAGS="$RPM_OPT_FLAGS"
  export CXXFLAGS="$RPM_OPT_FLAGS"
-@@ -360,9 +344,6 @@
+@@ -361,9 +345,6 @@
  # Initial promises
  cp -r %{_sourcedir}/initial-promises %{buildroot}%{rudderdir}/share/
  
@@ -107,16 +107,16 @@
  # Wrapper script
  %{install_command} -m 755 %{SOURCE3} %{buildroot}/opt/rudder/bin/run-inventory
  
-@@ -385,8 +366,6 @@
+@@ -386,8 +367,6 @@
  
  %{install_command} -m 755 %{SOURCE8} %{buildroot}/opt/rudder/bin/vzps.py
  
 -%{install_command} -m 755 %{SOURCE11} %{buildroot}/opt/rudder/bin/rudder-perl
 -
  # Rudder agent utilities
- %{install_command} -m 755 %{SOURCE11}/bin/rudder %{buildroot}%{rudderdir}/bin/rudder
+ %{install_command} -m 755 %{SOURCE12}/bin/rudder %{buildroot}%{rudderdir}/bin/rudder
  %{cp_a_command} %{SOURCE12}/share/commands/* %{buildroot}%{rudderdir}/share/commands/
-@@ -411,7 +390,7 @@
+@@ -412,7 +391,7 @@
  # Build a list of files to include in this package for use in the %files section below
  find %{buildroot}%{rudderdir} %{buildroot}%{ruddervardir} -type f -o -type l | sed "s,%{buildroot},," | sed "s,\.py$,\.py*," | grep -v "%{rudderdir}/etc/uuid.hive" | grep -v "%{ruddervardir}/cfengine-community/ppkeys" > %{_builddir}/file.list.%{name}
  
@@ -125,7 +125,7 @@
  #=================================================
  # Pre Installation
  #=================================================
-@@ -432,7 +411,7 @@
+@@ -433,7 +412,7 @@
  %endif
  fi
  
@@ -134,7 +134,7 @@
  #=================================================
  # Post Installation
  #=================================================
-@@ -656,7 +635,7 @@
+@@ -657,7 +636,7 @@
  
  /opt/rudder/bin/check-rudder-agent
  
@@ -143,7 +143,7 @@
  #=================================================
  # Pre Uninstallation
  #=================================================
-@@ -678,7 +657,7 @@
+@@ -679,7 +658,7 @@
  fi
  
  
@@ -152,7 +152,7 @@
  #=================================================
  # Post Uninstallation
  #=================================================
-@@ -725,7 +704,7 @@
+@@ -726,7 +705,7 @@
  # Files
  #=================================================
  # Files from %{rudderdir} and %{ruddervardir} are automatically added via the -f option
@@ -161,11 +161,11 @@
  %defattr(-, root, root, 0755)
  
  # The following file is declared to belong to this package but will not be installed
-@@ -759,15 +738,8 @@
+@@ -760,15 +739,8 @@
  # Changelog
  #=================================================
  %changelog
--* Fri Apr  27 2011 - Matthieu CERDA <matthieu.cerda@normation.com> 2.2-beta1-2
+-* Wed Apr  27 2011 - Matthieu CERDA <matthieu.cerda@normation.com> 2.2-beta1-2
 -- The packages now builds correctly on both x86 and x86_64 archs, and on EL4/CentOS 4.
 -* Tue Mar  1 2011 - Jonathan CLARKE <jonathan.clarke@normation.com> 2.2-beta1-1
 -- Release 2.2.beta1
