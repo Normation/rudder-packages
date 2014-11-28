@@ -20,7 +20,7 @@
 
 RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
 
-CFENGINE_RELEASE = 3.6.0
+CFENGINE_RELEASE = 3.6.3rc
 FUSION_RELEASE = 2.3.6
 LMDB_RELEASE = 0.9.11
 OPENSSL_RELEASE = 1.0.1i
@@ -38,18 +38,9 @@ localdepends: ./initial-promises ./rudder-agent-utilities ./detect_os.sh ./files
 	$(WGET) -O $(TMP_DIR)/cfengine.tgz http://www.normation.com/tarball/cfengine/cfengine-$(CFENGINE_RELEASE).tar.gz
 	tar xzf $(TMP_DIR)/cfengine.tgz -C $(TMP_DIR)
 	mv $(TMP_DIR)/cfengine-$(CFENGINE_RELEASE) ./cfengine-source
+
 	# Apply patches
-	$(PATCH) -d ./cfengine-source -p1 < ./patches/cfengine/0001-fix-unsupported-openssl-options.patch
-	$(PATCH) -d ./cfengine-source -p1 < ./patches/cfengine/0002-explicitely-use-pthreads-during-lmdb-presence-detection.patch
-	$(PATCH) -d ./cfengine-source -p1 < ./patches/cfengine/0003-fix-fprintf-usage-on-old-gcc-versions.patch
-	$(PATCH) -d ./cfengine-source -p1 < ./patches/cfengine/0004-fix-zero-sized-files-from-template-when-nolocks.patch
-	$(PATCH) -d ./cfengine-source -p1 < ./patches/cfengine/0005-fix-readstringarrayidx-duplicate-lines.patch
-	$(PATCH) -d ./cfengine-source -p1 < ./patches/cfengine/0006-openvz-support.patch
-	$(PATCH) -d ./cfengine-source -p1 < ./patches/cfengine/0007-no-runlog.patch
-	$(PATCH) -d ./cfengine-source -p1 < ./patches/cfengine/0008-fix-promise-evaluation.patch
-	$(PATCH) -d ./cfengine-source -p1 < ./patches/cfengine/0009-dont-duplicate-text-blocks.patch
-	$(PATCH) -d ./cfengine-source -p1 < ./patches/cfengine/0010-support-large-int.patch
-	$(PATCH) -d ./cfengine-source -p1 < ./patches/cfengine/0011-cfserverd_understands_SIGHUP.patch
+	for PATCHNAME in patches/cfengine/*.patch; do echo "Applying $$PATCHNAME..."; $(PATCH) -d ./cfengine-source -p1 < $$PATCHNAME; done
 
 	# Bootstrap the package using autogen before compilation
 	cd cfengine-source && NO_CONFIGURE=1 ./autogen.sh

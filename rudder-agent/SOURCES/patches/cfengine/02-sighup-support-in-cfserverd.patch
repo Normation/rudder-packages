@@ -1,8 +1,6 @@
-diff --git a/cf-serverd/cf-serverd-functions.c b/cf-serverd/cf-serverd-functions.c
-index 03bef86..7148161 100644
---- a/cf-serverd/cf-serverd-functions.c
-+++ b/cf-serverd/cf-serverd-functions.c
-@@ -321,6 +321,14 @@ static void CheckFileChanges(EvalContext *ctx, Policy **policy, GenericAgentConf
+--- a/cf-serverd/cf-serverd-functions.c	2014-11-26 06:26:51.000000000 +0100
++++ b/cf-serverd/cf-serverd-functions.c	2014-11-28 15:10:21.624969933 +0100
+@@ -356,6 +356,14 @@
      Log(LOG_LEVEL_DEBUG, "Checking file updates for input file '%s'",
          config->input_file);
  
@@ -17,7 +15,7 @@ index 03bef86..7148161 100644
      time_t validated_at = ReadTimestampFromPolicyValidatedFile(config, NULL);
  
      if (config->agent_specific.daemon.last_validated_at < validated_at)
-@@ -547,7 +555,7 @@ void StartServer(EvalContext *ctx, Policy **policy, GenericAgentConfig *config)
+@@ -564,7 +572,7 @@
  
      signal(SIGINT, HandleSignalsForDaemon);
      signal(SIGTERM, HandleSignalsForDaemon);
@@ -26,10 +24,8 @@ index 03bef86..7148161 100644
      signal(SIGPIPE, SIG_IGN);
      signal(SIGUSR1, HandleSignalsForDaemon);
      signal(SIGUSR2, HandleSignalsForDaemon);
-diff --git a/libpromises/signals.c b/libpromises/signals.c
-index 682bf1e..a872a8d 100644
---- a/libpromises/signals.c
-+++ b/libpromises/signals.c
+--- a/libpromises/signals.c	2014-09-18 18:19:54.000000000 +0200
++++ b/libpromises/signals.c	2014-11-28 15:12:30.893560838 +0100
 @@ -26,6 +26,7 @@
  
  static bool PENDING_TERMINATION = false; /* GLOBAL_X */
@@ -38,7 +34,7 @@ index 682bf1e..a872a8d 100644
  /********************************************************************/
  
  bool IsPendingTermination(void)
-@@ -33,6 +34,15 @@ bool IsPendingTermination(void)
+@@ -33,6 +34,15 @@
      return PENDING_TERMINATION;
  }
  
@@ -54,28 +50,26 @@ index 682bf1e..a872a8d 100644
  /********************************************************************/
  
  static int SIGNAL_PIPE[2] = { -1, -1 }; /* GLOBAL_C */
-@@ -144,7 +154,6 @@ void HandleSignalsForDaemon(int signum)
+@@ -160,7 +170,6 @@
      {
      case SIGTERM:
      case SIGINT:
 -    case SIGHUP:
      case SIGSEGV:
      case SIGKILL:
-     case SIGPIPE:
-@@ -156,6 +165,9 @@ void HandleSignalsForDaemon(int signum)
+         PENDING_TERMINATION = true;
+@@ -171,6 +180,9 @@
      case SIGUSR2:
          LogSetGlobalLevel(LOG_LEVEL_NOTICE);
          break;
 +    case SIGHUP:
 +        RELOAD_CONFIG = true;
 +        break;
+     case SIGPIPE:
      default:
          /* No action */
-         break;
-diff --git a/libpromises/signals.h b/libpromises/signals.h
-index bb36707..a1783b5 100644
---- a/libpromises/signals.h
-+++ b/libpromises/signals.h
+--- a/libpromises/signals.h	2014-04-01 16:41:01.000000000 +0200
++++ b/libpromises/signals.h	2014-11-28 15:10:21.624969933 +0100
 @@ -30,6 +30,9 @@
  // check whether the running daemon should terminate after having received a signal.
  bool IsPendingTermination(void);
