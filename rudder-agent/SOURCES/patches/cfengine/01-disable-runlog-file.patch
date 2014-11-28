@@ -1,7 +1,6 @@
-diff -r -auN cfengine-3.6.0/libpromises/locks.c cfengine-3.6.0-patch/libpromises/locks.c
---- cfengine-3.6.0/libpromises/locks.c	2014-04-01 16:41:01.000000000 +0200
-+++ cfengine-3.6.0-patch/libpromises/locks.c	2014-09-23 12:04:57.605280296 +0200
-@@ -320,6 +320,10 @@
+--- cfengine-3.6.3rc/libpromises/locks.c	2014-11-27 16:02:46.000000000 +0100
++++ cfengine-3.6.3rc/libpromises/locks.c	2014-11-28 14:47:22.222683493 +0100
+@@ -347,6 +347,10 @@
  
  static void LogLockCompletion(char *cflog, int pid, char *str, char *op, char *operand)
  {
@@ -12,7 +11,7 @@ diff -r -auN cfengine-3.6.0/libpromises/locks.c cfengine-3.6.0-patch/libpromises
      FILE *fp;
      char buffer[CF_MAXVARSIZE];
      time_t tim;
-@@ -350,6 +354,7 @@
+@@ -377,6 +381,7 @@
      fprintf(fp, "%s:%s:pid=%d:%s:%s\n", buffer, str, pid, op, operand);
  
      fclose(fp);
