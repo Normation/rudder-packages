@@ -340,6 +340,7 @@ mkdir -p %{buildroot}%{ruddervardir}/cfengine-community/inputs
 mkdir -p %{buildroot}%{ruddervardir}/tmp
 mkdir -p %{buildroot}%{ruddervardir}/tools
 mkdir -p %{buildroot}%{rudderlogdir}/install
+mkdir -p %{buildroot}%{bindir}
 
 # Init script
 # AIX does not use init scripts, instead we set up a subsystem in the post scriptlet below
