@@ -36,6 +36,11 @@ umask 007
 ## Rudderify the new Technique
 /usr/share/ncf/tools/ncf_rudder.py rudderify_technique /var/rudder/configuration-repository/techniques/ncf_techniques "${TECHNIQUE}"
 
+if [ "$?" -ne "0" ]; then
+  echo "ERROR: Could not create Technique ${TECHNIQUE}"
+  exit 1
+fi
+
 ## Operate on configuration-repository's git tree, in the Techniques
 cd /var/rudder/configuration-repository/techniques/
 
