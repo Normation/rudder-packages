@@ -729,6 +729,8 @@ rm -f %{_builddir}/file.list.%{name}
 %files -n rudder-agent -f %{_builddir}/file.list.%{name}
 %defattr(-, root, root, 0755)
 
+%{bindir}/rudder
+
 # The following file is declared to belong to this package but will not be installed
 # This is because it is populated during post-inst scriptlet
 # This is not reflected in debian packaging, because dpkg will never replace an
