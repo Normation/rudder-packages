@@ -51,7 +51,7 @@ BuildArch: noarch
 #BuildRequires: gcc
 
 # Add Requires here - order is important
-Requires: ncf >= 0.201409171200
+Requires: ncf >= 0.201411291626
 
 # The following lines allow this package (rudder-techniques) to 
 # replace the older rudder-policy-templates package.
