@@ -251,6 +251,9 @@ export CXXFLAGS="$RPM_OPT_FLAGS"
 cd %{_sourcedir}/openssl-source
 ./config -fPIC --prefix=%{rudderdir} --openssldir=%{rudderdir}/openssl shared
 make %{?_smp_mflags}
+%if "%{?_os}" == "aix"
+slibclean
+%endif
 make install
 %endif
 
