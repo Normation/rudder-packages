@@ -77,7 +77,7 @@ Source12: rudder-agent-utilities
 Source100: uuidgen
 %endif
 
-# Prevent dependency auto-generation, that tries to be helpful by detecting Perl dependencies from
+# Prevent dependency auto-generation, that tries to be helpful by detecting Perl dependencies from
 # FusionInventory. We handle that with the perl standalone installation already.
 AutoReq: 0
 AutoProv: 0
@@ -107,7 +107,7 @@ Requires: crontabs net-tools
 Requires: cron net-tools
 %endif
 
-# dmiecode is provided in the "dmidecode" package on EL4+ and on kernel-utils
+# dmiecode is provided in the "dmidecode" package on EL4+ and on kernel-utils
 # on EL3
 %if 0%{?rhel} && 0%{?rhel} >= 4
 Requires: dmidecode
@@ -117,7 +117,7 @@ Requires: dmidecode
 Requires: kernel-utils
 %endif
 
-# dmidecode is provided by "dmidecode" too on Fedora platforms, but I'm adding
+# dmidecode is provided by "dmidecode" too on Fedora platforms, but I'm adding
 # another if block to prevent cluttering the conditions on the >= el4 one and
 # prevent possible unwanted non-matches.
 %if 0%{?fedora}
@@ -126,17 +126,17 @@ Requires: dmidecode
 
 # LMDB handling (builtin or OS-provided)
 
-## 1 - RHEL: No LMDB yet
+## 1 - RHEL: No LMDB yet
 %if 0%{?rhel}
 %define use_system_lmdb false
 %endif
 
-## 2 - Fedora: No LMDB yet
+## 2 - Fedora: No LMDB yet
 %if 0%{?fedora}
 %define use_system_lmdb false
 %endif
 
-## 3 - SLES: No LMDB yet
+## 3 - SLES: No LMDB yet
 %if 0%{?sles_version}
 Requires: pmtools
 %define use_system_lmdb false
@@ -155,7 +155,7 @@ Requires: pmtools
 #
 # See. http://www.rudder-project.org/redmine/issues/5147
 
-## 1 - RHEL: Bundled for pre-el5 oses
+## 1 - RHEL: Bundled for pre-el5 oses
 ##
 ### Pre el5 have reached the end of production phase,
 ### and are thus in Extended Life phase.
@@ -165,14 +165,14 @@ Requires: pmtools
 %define use_system_openssl false
 %endif
 
-## 2 - Fedora: Use the system one
+## 2 - Fedora: Use the system one
 ##
 ### We work with Fedora 18 onwards, it
 ### comes with OpenSSL 1.0.1e, which is
 ### recent enough.
 ##
 
-## 3 - SLES: Bundled for pre-sles11 oses
+## 3 - SLES: Bundled for pre-sles11 oses
 ##
 ### SLES 11 OSes come with OpenSSL 0.9.8h,
 ### which is recent enough.
@@ -191,13 +191,13 @@ Requires: pmtools
 %define use_system_openssl false
 %endif
 
-## 5 - Resulting dependencies
+## 5 - Resulting dependencies
 %if "%{use_system_openssl}" == "true"
 BuildRequires: openssl-devel
 Requires: openssl
 %endif
 
-# Common commands
+# Common commands
 
 %define install_command        install
 %define cp_a_command           cp -a
@@ -211,7 +211,7 @@ Requires: openssl
 Provides: rudder-cfengine-community
 Obsoletes: rudder-cfengine-community
 
-# Use our own dependency generator
+# Use our own dependency generator
 %global _use_internal_dependency_generator 0
 %global __find_requires_orig %{__find_requires}
 %define __find_requires %{_sourcedir}/filter-reqs.pl %{use_system_lmdb} %{__find_requires_orig}
@@ -263,7 +263,7 @@ rm -rf %{buildroot}
 
 # Compile LMDB library and install it in /opt/rudder/lib
 
-# LMDB's Makefile does not know how to create destination files, do it ourselves
+# LMDB's Makefile does not know how to create destination files, do it ourselves
 for i in bin lib include man/man1; do mkdir -p %{rudderdir}/$i; done
 
 cd %{_sourcedir}/lmdb-source/libraries/liblmdb
@@ -317,7 +317,7 @@ rm -rf %{buildroot}
 # Reinstall LMDB because RPM rm -rf %{buildroot} for a reason I don't understand
 # TODO: Fix this nasty hack!
 
-# LMDB's Makefile does not know how to create destination files, do it ourselves
+# LMDB's Makefile does not know how to create destination files, do it ourselves
 for i in bin lib include man/man1; do mkdir -p %{buildroot}%{rudderdir}/$i; done
 cd %{_sourcedir}/lmdb-source/libraries/liblmdb
 
@@ -373,7 +373,7 @@ cp -r %{_sourcedir}/initial-promises %{buildroot}%{rudderdir}/share/
 # Install an empty uuid.hive file before generating an uuid
 cp %{SOURCE4} %{buildroot}%{rudderdir}/etc/
 
-# ld.so.conf.d is not supported on CentOS 3
+# ld.so.conf.d is not supported on CentOS 3
 %if 0%{?rhel} != 3
 
 %if "%{use_system_lmdb}" != "true" || "%{use_system_openssl}" != "true"
@@ -423,7 +423,7 @@ find %{buildroot}%{rudderdir} %{buildroot}%{ruddervardir} -type f -o -type l | s
 # Do this only during upgrade process
 if [ $1 -eq 2 ];then
 %if "%{?_os}" != "aix"
-  # Keep a backup copy of Rudder agent init and cron files to prevent http://www.rudder-project.org/redmine/issues/3995
+  # Keep a backup copy of Rudder agent init and cron files to prevent http://www.rudder-project.org/redmine/issues/3995
   for i in init.d default cron.d; do
     if [ -f /etc/${i}/rudder-agent ]; then
       mkdir -p /var/backups/rudder
@@ -495,7 +495,7 @@ if [ ! `grep "/opt/rudder/lib" /etc/ld.so.conf` ]; then
   echo "/opt/rudder/lib" >> /etc/ld.so.conf
 fi
 
-# Reload the linker configuration
+# Reload the linker configuration
 ldconfig
 %endif
 
@@ -538,7 +538,12 @@ if [ ${CFRUDDER_FIRST_INSTALL} -ne 1 -a -x /etc/init.d/rudder-agent ]; then serv
 slibclean
 %endif
 
-# Copy CFEngine binaries
+# Set a default server if we don't have one
+if [ ! -e /var/rudder/cfengine-community/policy_server.dat ]
+then
+  echo rudder > /var/rudder/cfengine-community/policy_server.dat
+fi
+
 %{cp_a_command} -f /opt/rudder/bin/cf-* /var/rudder/cfengine-community/bin/
 %{cp_a_command} -f /opt/rudder/bin/rpmvercmp /var/rudder/cfengine-community/bin/
 NB_COPIED_BINARIES=`ls -1 /var/rudder/cfengine-community/bin/ | wc -l`
@@ -559,8 +564,8 @@ then
   cp -r /opt/rudder/share/initial-promises/* /var/rudder/cfengine-community/inputs
 fi
 
-# If the cf-promises validation fails, it means we have a broken set of promises (possibly a pre-2.8 set).
-# Reset the initial promises so the server is able to send the agent a new set of correct ones.
+# If the cf-promises validation fails, it means we have a broken set of promises (possibly a pre-2.8 set).
+# Reset the initial promises so the server is able to send the agent a new set of correct ones.
 RUDDER_UUID=`cat /opt/rudder/etc/uuid.hive 2>/dev/null || true`
 if ! /var/rudder/cfengine-community/bin/cf-promises >/dev/null 2>&1 && [ "z${RUDDER_UUID}" != "zroot" ]
 then
@@ -576,7 +581,7 @@ fi
 # This fix is required for upgrades from 2.6 or earlier. Since we didn't support AIX on those versions,
 # we don't need it. And it breaks on AIX because their "sed" doesn't have a "-i" option. Grrr.
 %if "%{?_os}" != "aix"
-# Migration to CFEngine 3.5: Correct a specific Technique that breaks the most recent CFEngine versions
+# Migration to CFEngine 3.5: Correct a specific Technique that breaks the most recent CFEngine versions
 if [ -f /var/rudder/cfengine-community/inputs/distributePolicy/1.0/passwordCheck.cf ]
 then
   sed -i 's%^\(.*ALTER USER rudder WITH PASSWORD.*p.psql_password.*\)"",$%\1""%' /var/rudder/cfengine-community/inputs/distributePolicy/1.0/passwordCheck.cf
@@ -697,7 +702,7 @@ function pidof {
 
 # Do it only during uninstallation
 if [ $1 -eq 0 ]; then
-  # Make sure that CFEngine is not running anymore
+  # Make sure that CFEngine is not running anymore
   for component in cf-agent cf-serverd cf-execd cf-monitord; do
     if pid=`pidof ${component}`; then
       kill -9 ${pid}
@@ -739,6 +744,7 @@ rm -f %{_builddir}/file.list.%{name}
 # This is not reflected in debian packaging, because dpkg will never replace an
 # existing file declared in conffiles
 %ghost %{rudderdir}/etc/uuid.hive
+%ghost %{ruddervardir}/cfengine-community/policy_server.dat
 
 %if "%{?_os}" != "aix"
 /etc/profile.d/rudder-agent.sh
