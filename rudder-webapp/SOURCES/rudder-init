@@ -51,6 +51,15 @@ cpt2=0
 # Ensure our PATH includes Rudder's binaries
 export PATH=${PATH}:${RUDDER_OPT}/bin
 
+# Try to get the machine FQDN, or default to the unqualified
+# one if it fails.
+if hostname -f > /dev/null 2>&1
+then
+  RUDDER_HOSTNAME=$(hostname -f)
+else
+  RUDDER_HOSTNAME=$(hostname)
+fi
+
 # Check if promises already exist for CFEngine community
 INITREP=/var/rudder/cfengine-community/inputs
 
@@ -153,12 +162,11 @@ ErrorCheck()
 
 LDAPInit()
 {
-  local HOSTNAME=$(hostname -f)
   cp /opt/rudder/share/bootstrap.ldif $BOOTSTRAP_PATH
   cp /opt/rudder/share/init-policy-server.ldif $INITPOLICY_PATH
   cp /opt/rudder/share/demo-data.ldif $INITDEMO_PATH
 
-  sed -i "s/^\([^#].*\)%%POLICY_SERVER_HOSTNAME%%/\1$HOSTNAME/g" $INITPOLICY_PATH
+  sed -i "s/^\([^#].*\)%%POLICY_SERVER_HOSTNAME%%/\1${RUDDER_HOSTNAME}/g" $INITPOLICY_PATH
   sed -i "s#^\([^#].*\)%%POLICY_SERVER_ALLOWED_NETWORKS%%#\1$NET#g" $INITPOLICY_PATH
 
   ${LDAPADD} -f $BOOTSTRAP_PATH &> $TMP_LOG
@@ -372,6 +380,6 @@ echo "Reinitialization complete, Rudder is currently reloading."
 echo
 echo "You can access it via https://<hostname>${RUDDER_CONTEXT}"
 echo
-echo "( Example: https://$(hostname -f)${RUDDER_CONTEXT} )"
+echo "( Example: https://${RUDDER_HOSTNAME}${RUDDER_CONTEXT} )"
 echo
 echo "Thank you for using Rudder."
