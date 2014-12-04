@@ -19,7 +19,7 @@ from __future__ import print_function
 #
 #####################################################################################
 
-RUDDER_URL = "https://feedback.rudder-project.org/stats"
+RUDDER_URL = "https://feedback.rudder-project.org/stats/"
 UUID_FILE = "/opt/rudder/etc/uuid.root"
 PROPERTIES_FILE = "/opt/rudder/etc/rudder-web.properties"
 
