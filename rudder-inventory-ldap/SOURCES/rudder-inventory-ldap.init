@@ -178,7 +178,7 @@ PROG_NAME=`basename $0 | sed 's/^[KS][0-9][0-9]//'` # For nice messages
 OS=`uname -s`   # To adapt message printing
 MYUID=`id -u`     # For UNIX compatibility => modify this command
 MYGID=`id -g`     # For UNIX compatibility => modify this command
-PS_COMMAND="ps -efww"	# This ensures full width for ps output but doesn't work on Solaris - use "ps -ef"
+PS_COMMAND="ps -efww"  # This ensures full width for ps output but doesn't work on Solaris - use "ps -ef"
 
 # Return functions' value
 RETVAL=""
@@ -187,17 +187,17 @@ RETVAL=""
 # Message function
 #====================================================================
 message() {
-	# $1: syslog level
-	# $2: message
+  # $1: syslog level
+  # $2: message
 
-	if [ $OS = "Linux" ]
-	then
-		logger -p "local4.$1" -s -t $PROG_NAME -i "$2"
-	else
-		# Try without option -s
-		logger -p "local4.$1" -t $PROG_NAME -i "$2"
-		echo "$PROG_NAME: $2"
-	fi
+  if [ $OS = "Linux" ]
+  then
+    logger -p "local4.$1" -s -t $PROG_NAME -i "$2"
+  else
+    # Try without option -s
+    logger -p "local4.$1" -t $PROG_NAME -i "$2"
+    echo "$PROG_NAME: $2"
+  fi
 }
 
 #====================================================================
@@ -205,71 +205,71 @@ message() {
 #====================================================================
 
 get_confvalues() {
-	# $1: parameter
-	# $RETVAL: list of values
+  # $1: parameter
+  # $RETVAL: list of values
 
         # Search in conffile or backconfig
-	if [ -n "$SLAPD_CONF_DIR" ]; then
+  if [ -n "$SLAPD_CONF_DIR" ]; then
         case $1 in
-	directory)
-		backconfig_get_values "olcDbDirectory"
-	;;
-	suffix)
-		backconfig_get_values "olcSuffix" "(|(objectclass=olcBdbConfig)(objectclass=olcHdbConfig))"
-	;;
+  directory)
+    backconfig_get_values "olcDbDirectory"
+  ;;
+  suffix)
+    backconfig_get_values "olcSuffix" "(|(objectclass=olcBdbConfig)(objectclass=olcHdbConfig))"
+  ;;
         *)
-		RETVAL=""
-	;;
-	esac
+    RETVAL=""
+  ;;
+  esac
         else
-		conffile_get_values $1
-	fi
+    conffile_get_values $1
+  fi
 }
 
 conffile_get_values() {
-	# $1: parameter in slapd.conf
-	# $RETVAL: list of values
+  # $1: parameter in slapd.conf
+  # $RETVAL: list of values
 
-	list=`grep "^$1[[:space:]]" $SLAPD_CONF | grep -v '^#' | awk '{ print $2;}' | sed -e 's/"//g'`
+  list=`grep "^$1[[:space:]]" $SLAPD_CONF | grep -v '^#' | awk '{ print $2;}' | sed -e 's/"//g'`
 
-	if [ "$list" ]; then
-		RETVAL="$list"
-	else
-		RETVAL=""
-	fi
+  if [ "$list" ]; then
+    RETVAL="$list"
+  else
+    RETVAL=""
+  fi
 }
 
 backconfig_get_values() {
-	# $1: parameter
-	# $2: LDAP filter (optional)
-	# $RETVAL: list of returned values
+  # $1: parameter
+  # $2: LDAP filter (optional)
+  # $RETVAL: list of returned values
 
-	if [ -z "$SLAPD_CONF_DIR" -o ! -d "$SLAPD_CONF_DIR" ]
-	then
-		message "alert" "[ALERT] Could not parse configuration directory"
-		RETVAL=""
-		return
-	fi
+  if [ -z "$SLAPD_CONF_DIR" -o ! -d "$SLAPD_CONF_DIR" ]
+  then
+    message "alert" "[ALERT] Could not parse configuration directory"
+    RETVAL=""
+    return
+  fi
 
-	slapcat_cmd="$SLAPCAT_BIN -F $SLAPD_CONF_DIR -b cn=config"
-	if [ -n "$2" ]
-	then
-		slapcat_cmd="$slapcat_cmd -a $2"
-	fi
-	if [ -z "$SU" ]
-	then
-		list=`$slapcat_cmd | perl -p0e 's/\n //g' | grep "^$1:" \
-		| awk '{print $2}'`
-	else
-		list=`$SU "$slapcat_cmd" | perl -p0e 's/\n //g' | grep "^$1:" \
-		| awk '{print $2}'`
-	fi
+  slapcat_cmd="$SLAPCAT_BIN -F $SLAPD_CONF_DIR -b cn=config"
+  if [ -n "$2" ]
+  then
+    slapcat_cmd="$slapcat_cmd -a $2"
+  fi
+  if [ -z "$SU" ]
+  then
+    list=`$slapcat_cmd | perl -p0e 's/\n //g' | grep "^$1:" \
+    | awk '{print $2}'`
+  else
+    list=`$SU "$slapcat_cmd" | perl -p0e 's/\n //g' | grep "^$1:" \
+    | awk '{print $2}'`
+  fi
 
-	if [ -n "$list" ]; then
-		RETVAL="$list"
-	else
-		RETVAL=""
-	fi
+  if [ -n "$list" ]; then
+    RETVAL="$list"
+  else
+    RETVAL=""
+  fi
 }
 
 
@@ -278,10 +278,10 @@ backconfig_get_values() {
 #====================================================================
 if [ -f /etc/default/$PROG_NAME ]
 then
-	. /etc/default/$PROG_NAME
-	message "info" "[INFO] Using /etc/default/$PROG_NAME for configuration"
+  . /etc/default/$PROG_NAME
+  message "info" "[INFO] Using /etc/default/$PROG_NAME for configuration"
 else
-	message "info" "[INFO] Using built-in configuration - this may cause some problems"
+  message "info" "[INFO] Using built-in configuration - this may cause some problems"
 fi
 
 #====================================================================
@@ -289,7 +289,7 @@ fi
 #====================================================================
 if [ "$SLAPD_USER" -a $MYUID -eq 0 ]
 then
-	SU="su -s /bin/bash - $SLAPD_USER -c "
+  SU="su -s /bin/bash - $SLAPD_USER -c "
 fi
 
 #====================================================================
@@ -299,646 +299,656 @@ fi
 # Make sure the pidfile directory exists with correct permissions
 piddir=`dirname "$SLAPD_PID_FILE"`
 if [ ! -d "$piddir" ]; then
-	mkdir -p "$piddir"
-	[ -z "$SLAPD_USER" ] || chown -R "$SLAPD_USER" "$piddir"
-	[ -z "$SLAPD_GROUP" ] || chgrp -R "$SLAPD_GROUP" "$piddir"
+  mkdir -p "$piddir"
+  [ -z "$SLAPD_USER" ] || chown -R "$SLAPD_USER" "$piddir"
+  [ -z "$SLAPD_GROUP" ] || chgrp -R "$SLAPD_GROUP" "$piddir"
 fi
 
 # Rights to execute binaries
 for i in "$SLAPD_BIN" "$SLAPCAT_BIN" "$SLAPINDEX_BIN" "$SLAPTEST_BIN"
 do
-	if [ ! -x $i ]
-	then
-		message "alert" "[ALERT] can't execute $i"
-		exit 1
-	fi
+  if [ ! -x $i ]
+  then
+    message "alert" "[ALERT] can't execute $i"
+    exit 1
+  fi
 done
 
 # Rights to read files
 for i in "$SLAPD_CONF"
 do
-	if [ ! -r $i ]
-	then
-		message "alert" "[ALERT] can't read $i"
-		exit 1
-	fi
+  if [ ! -r $i ]
+  then
+    message "alert" "[ALERT] can't read $i"
+    exit 1
+  fi
 done
 
 # Activate slurpd? (get from configuration file)
 if [ -n "$SLAPD_CONF" ]; then
-	SLURPD_ACTIVATE=`grep "^replica" $SLAPD_CONF | wc -l`
+  SLURPD_ACTIVATE=`grep "^replica" $SLAPD_CONF | wc -l`
 fi
 
 # Right to execute slurpd, if used
 if [ $SLURPD_ACTIVATE -ne 0 -a ! -x "$SLURPD_BIN" ]
 then
-	message "alert" "[ALERT] can't not execute $SLURPD_BIN"
-	exit 1
+  message "alert" "[ALERT] can't not execute $SLURPD_BIN"
+  exit 1
 fi
 
 # Is there a configuration directory ?
 if [ "$SLAPD_CONF_DIR" -a ! -w "$SLAPD_CONF_DIR" ]
 then
-	message "alert" "[ALERT] can't write to configuration directory $SLAPD_CONF_DIR"
-	exit 1
+  message "alert" "[ALERT] can't write to configuration directory $SLAPD_CONF_DIR"
+  exit 1
 fi
 
 # Are you root (for port < 1024)?
 if [ $PORT -lt 1024 -a $MYUID -ne 0 ]
 then
-	message "alert" "[ALERT] only root can launch OpenLDAP on port $PORT"
-	exit 1
+  message "alert" "[ALERT] only root can launch OpenLDAP on port $PORT"
+  exit 1
 fi
 
 #====================================================================
 # Functions
 #====================================================================
 start_slapd() {
-	# Check if db_recover is required
-	if [ $RECOVER_AT_STARTUP -eq 1 ]
-	then
-		db_recover
-	else
-		message "info" "[INFO] no db_recover done"	
-	fi
+  # Check if db_recover is required
+  if [ $RECOVER_AT_STARTUP -eq 1 ]
+  then
+    db_recover
+  else
+    message "info" "[INFO] no db_recover done"  
+  fi
 
-	# Start message
-	message "info" "[INFO] Launching OpenLDAP..."
+  # Start message
+  message "info" "[INFO] Launching OpenLDAP..."
 
-	# File descriptor limit, only for root
-	if [ $MYUID -eq 0 ]
-	then
-		ulimit -n $FD_LIMIT
-		if [ $? -eq 0 ]
-		then
-			message "info" "[OK] file descriptor limit set to $FD_LIMIT"
-		else
-			message "warning" "[WARNING] Fail to set file descriptor limit to $FD_LIMIT, going to next step"
-		fi
-	else
-		message "info" "[INFO] file descriptor limit not modified (require root privileges)"
-	fi
+  # File descriptor limit, only for root
+  if [ $MYUID -eq 0 ]
+  then
+    ulimit -n $FD_LIMIT
+    if [ $? -eq 0 ]
+    then
+      message "info" "[OK] file descriptor limit set to $FD_LIMIT"
+    else
+      message "warning" "[WARNING] Fail to set file descriptor limit to $FD_LIMIT, going to next step"
+    fi
+  else
+    message "info" "[INFO] file descriptor limit not modified (require root privileges)"
+  fi
 
-	# Parameters
-	if [ "$SLAPD_CONF_DIR" ]
-	then
-		SLAPD_PARAMS="$SLAPD_PARAMS -F $SLAPD_CONF_DIR"
-	elif [ "$SLAPD_CONF" ]
-	then
-		SLAPD_PARAMS="$SLAPD_PARAMS -f $SLAPD_CONF"
-	fi
+  # Parameters
+  if [ "$SLAPD_CONF_DIR" ]
+  then
+    SLAPD_PARAMS="$SLAPD_PARAMS -F $SLAPD_CONF_DIR"
+  elif [ "$SLAPD_CONF" ]
+  then
+    SLAPD_PARAMS="$SLAPD_PARAMS -f $SLAPD_CONF"
+  fi
 
-	if [  "$SLAPD_USER" -a $MYUID -eq 0 ]
-	then
-		SLAPD_PARAMS="$SLAPD_PARAMS -u $SLAPD_USER"
-	fi
+  if [  "$SLAPD_USER" -a $MYUID -eq 0 ]
+  then
+    SLAPD_PARAMS="$SLAPD_PARAMS -u $SLAPD_USER"
+  fi
 
-	if [ "$SLAPD_GROUP" -a $MYGID -eq 0 ]
-	then
-		SLAPD_PARAMS="$SLAPD_PARAMS -g $SLAPD_GROUP"
-	fi
+  if [ "$SLAPD_GROUP" -a $MYGID -eq 0 ]
+  then
+    SLAPD_PARAMS="$SLAPD_PARAMS -g $SLAPD_GROUP"
+  fi
 
-	# It's time to start slapd
-	$SLAPD_BIN -h "$SLAPD_SERVICES" $SLAPD_PARAMS
-	sleep 1
+  # It's time to start slapd
+  $SLAPD_BIN -h "$SLAPD_SERVICES" $SLAPD_PARAMS
+  sleep 1
 
-	# Presence of PID file
-	if [ ! -r $SLAPD_PID_FILE ]
-	then
-		message "alert" "[ALERT] no PID file for rudder-slapd"
-		exit 1
-	fi
+  # Presence of PID file
+  if [ ! -r $SLAPD_PID_FILE ]
+  then
+    message "alert" "[ALERT] no PID file for rudder-slapd"
+    exit 1
+  fi
 
-	# Is slapd launched?
-	PID=`cat $SLAPD_PID_FILE`
-	if [ ! -e /proc/$PID ]
-	then
-		message "alert" "[ALERT] rudder-slapd not running"
-		exit 1
-	else
-		message "info" "[OK] OpenLDAP started on port $PORT and $SSLPORT"
-	fi
+  # Is slapd launched?
+  PID=`cat $SLAPD_PID_FILE`
+  if [ ! -e /proc/$PID ]
+  then
+    message "alert" "[ALERT] rudder-slapd not running"
+    exit 1
+  else
+    message "info" "[OK] OpenLDAP started on port $PORT and $SSLPORT"
+  fi
 }
 
 start_slurpd() {
-	# Start message
-	message "info" "[INFO] Launching OpenLDAP replication..."
+  # Start message
+  message "info" "[INFO] Launching OpenLDAP replication..."
 
-	if [ $SLURPD_ACTIVATE -eq 0 ]
-	then
-		message "info" "[INFO] no replica found in configuration, aborting lauching slurpd"
-		return 1
-	fi
+  if [ $SLURPD_ACTIVATE -eq 0 ]
+  then
+    message "info" "[INFO] no replica found in configuration, aborting lauching slurpd"
+    return 1
+  fi
 
-	# Parameters
-	if [ "$SLAPD_CONF_DIR" ]
-	then
-		SLAPD_PARAMS="$SLAPD_PARAMS -F $SLAPD_CONF_DIR"
-	elif [ "$SLAPD_CONF" ]
-	then
-		SLAPD_PARAMS="$SLAPD_PARAMS -f $SLAPD_CONF"
-	fi
+  # Parameters
+  if [ "$SLAPD_CONF_DIR" ]
+  then
+    SLAPD_PARAMS="$SLAPD_PARAMS -F $SLAPD_CONF_DIR"
+  elif [ "$SLAPD_CONF" ]
+  then
+    SLAPD_PARAMS="$SLAPD_PARAMS -f $SLAPD_CONF"
+  fi
 
-	# It's time to start slurpd
-	if [ -z "$SU" ]
-	then
-		$SLURPD_BIN $SLURPD_PARAMS
-	else
-		$SU "$SLURPD_BIN $SLURPD_PARAMS"
-	fi
-	sleep 1
+  # It's time to start slurpd
+  if [ -z "$SU" ]
+  then
+    $SLURPD_BIN $SLURPD_PARAMS
+  else
+    $SU "$SLURPD_BIN $SLURPD_PARAMS"
+  fi
+  sleep 1
 
-	# Presence of PID file
-	if [ ! -r $SLURPD_PID_FILE ]
-	then
-		message "alert" "[ALERT] no PID file for slurpd"
-		exit 1
-	fi
+  # Presence of PID file
+  if [ ! -r $SLURPD_PID_FILE ]
+  then
+    message "alert" "[ALERT] no PID file for slurpd"
+    exit 1
+  fi
 
-	# Is slurpd launched?
-	PID=`cat $SLURPD_PID_FILE`
-	if [ ! -e /proc/$PID ]
-	then
-		message "alert" "[ALERT] slurpd not running"
-		exit 1
-	else
-		message "info" "[OK] OpenLDAP replication started"
-	fi
+  # Is slurpd launched?
+  PID=`cat $SLURPD_PID_FILE`
+  if [ ! -e /proc/$PID ]
+  then
+    message "alert" "[ALERT] slurpd not running"
+    exit 1
+  else
+    message "info" "[OK] OpenLDAP replication started"
+  fi
 }
 
 stop_slapd() {
-	# Stop message
-	message "info" "[INFO] Halting OpenLDAP..."
+  # Stop message
+  message "info" "[INFO] Halting OpenLDAP..."
 
-	# Presence of PID file
-	if [ ! -r $SLAPD_PID_FILE ]
-	then
-		message "info" "[INFO] can't read PID file, to stop rudder-slapd try: $0 forcestop"
-		return 1
-	else
-		PID=`cat $SLAPD_PID_FILE`
-		kill -INT $PID
+  # Presence of PID file
+  if [ ! -r $SLAPD_PID_FILE ]
+  then
+    message "info" "[INFO] can't read PID file, to stop rudder-slapd try: $0 forcestop"
+    return 1
+  else
+    PID=`cat $SLAPD_PID_FILE`
+    kill -INT $PID
 
-		# Waiting loop
-		i=0
-		while [ -e /proc/$PID ]
-		do
-			if [ $i -eq $TIMEOUT ]
-			then
-				# Timeout
-				message "alert" "[ALERT] rudder-slapd still running (PID $PID), try: $0 forcestop"
-				exit 1
-			fi
-			i=`expr $i + 1`
-			sleep 1
-		done
+    # Waiting loop
+    i=0
+    while [ -e /proc/$PID ]
+    do
+      if [ $i -eq $TIMEOUT ]
+      then
+        # Timeout
+        message "alert" "[ALERT] rudder-slapd still running (PID $PID), try: $0 forcestop"
+        exit 1
+      fi
+      i=`expr $i + 1`
+      sleep 1
+    done
 
-		message "info" "[OK] OpenLDAP stopped after $i seconds"
-	fi
+    message "info" "[OK] OpenLDAP stopped after $i seconds"
+  fi
 
-	# Backup if necessary
-	if [ $BACKUP_AT_SHUTDOWN -eq 1 ]
-	then
-		backup
-	else
-		message "info" "[INFO] no data backup done"
-	fi
+  # Backup if necessary
+  if [ $BACKUP_AT_SHUTDOWN -eq 1 ]
+  then
+    backup
+  else
+    message "info" "[INFO] no data backup done"
+  fi
 }
 
 stop_slurpd() {
-	# Stop message
-	message "info" "[INFO] Halting OpenLDAP replication..."
+  # Stop message
+  message "info" "[INFO] Halting OpenLDAP replication..."
 
-	# Desactivate slurpd?
-	if [ $SLURPD_ACTIVATE -eq 0 ]
-	then
-		message "info" "[INFO] no replica found in configuration, aborting stopping slurpd"
-		return 1
-	fi
+  # Desactivate slurpd?
+  if [ $SLURPD_ACTIVATE -eq 0 ]
+  then
+    message "info" "[INFO] no replica found in configuration, aborting stopping slurpd"
+    return 1
+  fi
 
-	# Presence of PID file
-	if [ ! -r $SLURPD_PID_FILE ]
-	then
-		message "warning" "[WARNING] can't read PID file, to stop slurpd try: $0 forcestop"
-	else
-		PID=`cat $SLURPD_PID_FILE`
-		kill -INT $PID
+  # Presence of PID file
+  if [ ! -r $SLURPD_PID_FILE ]
+  then
+    message "warning" "[WARNING] can't read PID file, to stop slurpd try: $0 forcestop"
+  else
+    PID=`cat $SLURPD_PID_FILE`
+    kill -INT $PID
 
-		# Waiting loop
-		i=0
-		while [ -e /proc/$PID ]
-		do
-			if [ $i -eq $TIMEOUT ]
-			then
-				# Timeout, need to kill
-				message "alert" "[ALERT] slurpd still running (PID $PID), try: $0 forcestop"
-				return 1
-			fi
-			i=`expr $i + 1`
-			sleep 1
-		done
+    # Waiting loop
+    i=0
+    while [ -e /proc/$PID ]
+    do
+      if [ $i -eq $TIMEOUT ]
+      then
+        # Timeout, need to kill
+        message "alert" "[ALERT] slurpd still running (PID $PID), try: $0 forcestop"
+        return 1
+      fi
+      i=`expr $i + 1`
+      sleep 1
+    done
 
-		message "info" "[OK] OpenLDAP replication stopped after $i seconds"
-	fi
+    message "info" "[OK] OpenLDAP replication stopped after $i seconds"
+  fi
 }
 
 forcestop() {
-	# Stop message
-	message "info" "[INFO] Killing OpenLDAP with force..."
+  # Stop message
+  message "info" "[INFO] Killing OpenLDAP with force..."
 
-	# Presence of PID file
-	if [ ! -r $SLAPD_PID_FILE ]
-	then
-		# Escape special characters into $SLAPD_SERVICES
-		slapd_services="`echo "$SLAPD_SERVICES" | sed 's/\*/\\\*/g'`"
+  # Presence of PID file
+  if [ ! -r $SLAPD_PID_FILE ]
+  then
+    # Escape special characters into $SLAPD_SERVICES
+    slapd_services="`echo "$SLAPD_SERVICES" | sed 's/\*/\\\*/g'`"
 
-		# Check if any slapd process are running
-		if [ `$PS_COMMAND | grep $SLAPD_BIN | grep "$slapd_services" | grep -v grep | wc -l` -eq 0 ]
-		then
-			message "info" "[INFO] Found no rudder-slapd process running with $SLAPD_SERVICES"
-		else
-			# Try a killall
-			/usr/bin/killall -KILL $SLAPD_BIN
+    # Check if any slapd process are running
+    if [ `$PS_COMMAND | grep $SLAPD_BIN | grep "$slapd_services" | grep -v grep | wc -l` -eq 0 ]
+    then
+      message "info" "[INFO] Found no rudder-slapd process running with $SLAPD_SERVICES"
+    else
+      # Try a killall
+      if [ -x /bin/pidof ]
+      then
+        /bin/kill -KILL `/bin/pidof ${SLAPD_BIN}`
+      else
+        /usr/bin/killall -KILL ${SLAPD_BIN}
+      fi
 
-			if [ $? -eq 0 ]
-			then
-				message "info" "[OK] all rudder-slapd process killed with force"
-			else
-				message "alert" "[ALERT] Unable to kill rudder-slapd with force"
-				exit 1
-			fi
-		fi
-	else
-		PID=`cat $SLAPD_PID_FILE`
-		kill -KILL $PID
+      if [ $? -eq 0 ]
+      then
+        message "info" "[OK] all rudder-slapd process killed with force"
+      else
+        message "alert" "[ALERT] Unable to kill rudder-slapd with force"
+        exit 1
+      fi
+    fi
+  else
+    PID=`cat $SLAPD_PID_FILE`
+    kill -KILL $PID
 
-		if [ $? -eq 0 ]
-		then
-			message "info" "[OK] rudder-slapd process killed with force (PID $PID)"
-		else
-			message "alert" "[ALERT] Unable to kill rudder-slapd with force (PID $PID)"
-			exit 1
-		fi
-	fi
+    if [ $? -eq 0 ]
+    then
+      message "info" "[OK] rudder-slapd process killed with force (PID $PID)"
+    else
+      message "alert" "[ALERT] Unable to kill rudder-slapd with force (PID $PID)"
+      exit 1
+    fi
+  fi
 
-	# Stop message
-	message "info" "[INFO] Killing OpenLDAP replication with force..."
+  # Stop message
+  message "info" "[INFO] Killing OpenLDAP replication with force..."
 
-	# Presence of PID file
-	if [ ! -r $SLURPD_PID_FILE ]
-	then
-		# Check if any slapd process are running
-		if [ `$PS_COMMAND | grep $SLURPD_BIN | grep -v grep | wc -l` -eq 0 ]
-		then
-			message "info" "[INFO] Found no slurpd process running"
-		else
-			# Try a killall
-			/usr/bin/killall -KILL $SLURPD_BIN
+  # Presence of PID file
+  if [ ! -r $SLURPD_PID_FILE ]
+  then
+    # Check if any slapd process are running
+    if [ `$PS_COMMAND | grep $SLURPD_BIN | grep -v grep | wc -l` -eq 0 ]
+    then
+      message "info" "[INFO] Found no slurpd process running"
+    else
+      # Try a killall
+      if [ -x /bin/pidof ]
+      then
+        /bin/kill -KILL `/bin/pidof ${SLURPD_BIN}`
+      else
+        /usr/bin/killall -KILL ${SLURPD_BIN}
+      fi
 
-			if [ $? -eq 0 ]
-			then
-				message "info" "[OK] slurpd process killed with force"
-			else
-				message "alert" "[ALERT] Unable to kill slurpd with force"
-				exit 1
-			fi
-		fi
-	else
-		PID=`cat $SLURPD_PID_FILE`
-		kill -KILL $PID
+      if [ $? -eq 0 ]
+      then
+        message "info" "[OK] slurpd process killed with force"
+      else
+        message "alert" "[ALERT] Unable to kill slurpd with force"
+        exit 1
+      fi
+    fi
+  else
+    PID=`cat $SLURPD_PID_FILE`
+    kill -KILL $PID
 
-		if [ $? -eq 0 ]
-		then
-			message "info" "[OK] slurpd process killed with force (PID $PID)"
-		else
-			message "alert" "[ALERT] Unable to kill slurpd with force (PID $PID)"
-			exit 1
-		fi
-	fi
+    if [ $? -eq 0 ]
+    then
+      message "info" "[OK] slurpd process killed with force (PID $PID)"
+    else
+      message "alert" "[ALERT] Unable to kill slurpd with force (PID $PID)"
+      exit 1
+    fi
+  fi
 }
 
 slapd_status() {
-	# Return 0 if slapd is running, 1 if slapd is stopped, 2 if we can't say
-	if [ ! -r $SLAPD_PID_FILE ]
-	then
-		# Escape special characters into $SLAPD_SERVICES
-		slapd_services="`echo "$SLAPD_SERVICES" | sed 's/\*/\\\*/g'`"
+  # Return 0 if slapd is running, 1 if slapd is stopped, 2 if we can't say
+  if [ ! -r $SLAPD_PID_FILE ]
+  then
+    # Escape special characters into $SLAPD_SERVICES
+    slapd_services="`echo "$SLAPD_SERVICES" | sed 's/\*/\\\*/g'`"
 
-		# Check if any slapd process are running
-		if [ `$PS_COMMAND | grep $SLAPD_BIN | grep "$slapd_services" | grep -v grep | wc -l` -eq 0 ]
-		then
-			return 1
-		else
-			return 2
-		fi
-	else
-		PID=`cat $SLAPD_PID_FILE`
-	fi
+    # Check if any slapd process are running
+    if [ `$PS_COMMAND | grep $SLAPD_BIN | grep "$slapd_services" | grep -v grep | wc -l` -eq 0 ]
+    then
+      return 1
+    else
+      return 2
+    fi
+  else
+    PID=`cat $SLAPD_PID_FILE`
+  fi
 
-	if [ ! -e /proc/$PID ]
-	then
-		return 1
-	else
-		return 0
-	fi
+  if [ ! -e /proc/$PID ]
+  then
+    return 1
+  else
+    return 0
+  fi
 }
 
 display_status() {
-	# Get status
-	slapd_status
+  # Get status
+  slapd_status
 
-	status=$?
+  status=$?
 
-	if [ $status -eq 0 ]
-	then
-		message "info" "[INFO] Process rudder-slapd is running"
-	fi
+  if [ $status -eq 0 ]
+  then
+    message "info" "[INFO] Process rudder-slapd is running"
+  fi
 
-	if [ $status -eq 1 ]
-	then
-		message "info" "[INFO] Process rudder-slapd is not running"
-	fi
+  if [ $status -eq 1 ]
+  then
+    message "info" "[INFO] Process rudder-slapd is not running"
+  fi
 
-	if [ $status -eq 2 ]
-	then
-		message "info" "[INFO] Unable to determine rudder-slapd status"
-	fi
+  if [ $status -eq 2 ]
+  then
+    message "info" "[INFO] Unable to determine rudder-slapd status"
+  fi
 
-	# Get detected suffix
-	get_confvalues "directory"
-	dbdirs=$RETVAL
-	get_confvalues "suffix"
-	dbsufs=$RETVAL
+  # Get detected suffix
+  get_confvalues "directory"
+  dbdirs=$RETVAL
+  get_confvalues "suffix"
+  dbsufs=$RETVAL
 
-	if [ ! -z "$dbdirs" -o ! -z "$dbsufs" ]
-	then
-		i=1
-		for dbdir in $dbdirs
-		do
-			# Table is not allowed, so we use awk
-			suf=`echo $dbsufs | awk -v j="$i" 'BEGIN{OFS=" "} {print $j}'`
-			if [ ! -z $suf ]
-			then
-				message "info" "[INFO] Detected suffix: $suf"
-			fi
-		done
-	fi
+  if [ ! -z "$dbdirs" -o ! -z "$dbsufs" ]
+  then
+    i=1
+    for dbdir in $dbdirs
+    do
+      # Table is not allowed, so we use awk
+      suf=`echo $dbsufs | awk -v j="$i" 'BEGIN{OFS=" "} {print $j}'`
+      if [ ! -z $suf ]
+      then
+        message "info" "[INFO] Detected suffix: $suf"
+      fi
+    done
+  fi
 }
 
 configtest() {
-	# Start message
-	message "info" "[INFO] Launching OpenLDAP configuration test..."
+  # Start message
+  message "info" "[INFO] Launching OpenLDAP configuration test..."
 
-	SLAPTEST_PARAMS="-u"	
+  SLAPTEST_PARAMS="-u"  
 
-	if [ "$SLAPD_CONF_DIR" ]
-	then
-		SLAPTEST_PARAMS="$SLAPTEST_PARAMS -F $SLAPD_CONF_DIR"
-	elif [ "$SLAPD_CONF" ]
-	then
-		SLAPTEST_PARAMS="$SLAPTEST_PARAMS -f $SLAPD_CONF"
-	fi
+  if [ "$SLAPD_CONF_DIR" ]
+  then
+    SLAPTEST_PARAMS="$SLAPTEST_PARAMS -F $SLAPD_CONF_DIR"
+  elif [ "$SLAPD_CONF" ]
+  then
+    SLAPTEST_PARAMS="$SLAPTEST_PARAMS -f $SLAPD_CONF"
+  fi
 
-	# slaptest
-	if [ -z "$SU" ]
-	then
-		$SLAPTEST_BIN $SLAPTEST_PARAMS > /dev/null 2>&1
-	else
-		$SU "$SLAPTEST_BIN $SLAPTEST_PARAMS > /dev/null 2>&1"
-	fi
+  # slaptest
+  if [ -z "$SU" ]
+  then
+    $SLAPTEST_BIN $SLAPTEST_PARAMS > /dev/null 2>&1
+  else
+    $SU "$SLAPTEST_BIN $SLAPTEST_PARAMS > /dev/null 2>&1"
+  fi
 
-	if [ $? -eq 0 ]
-	then
-		message "info" "[OK] OpenLDAP configuration test successful"
-	else
-		message "alert" "[ALERT] OpenLDAP configuration test failed"
-		exit 1
-	fi
+  if [ $? -eq 0 ]
+  then
+    message "info" "[OK] OpenLDAP configuration test successful"
+  else
+    message "alert" "[ALERT] OpenLDAP configuration test failed"
+    exit 1
+  fi
 }
 
 db_recover() {
-	# Start message
-	message "info" "[INFO] Launching OpenLDAP database recovery..."
+  # Start message
+  message "info" "[INFO] Launching OpenLDAP database recovery..."
 
-	if [ ! -x $DB_RECOVER_BIN ]
-	then
-		message "alert" "[ALERT] Cannot execute $DB_RECOVER_BIN, aborting database recovery"
-		exit 1
-	fi
+  if [ ! -x $DB_RECOVER_BIN ]
+  then
+    message "alert" "[ALERT] Cannot execute $DB_RECOVER_BIN, aborting database recovery"
+    exit 1
+  fi
 
-	# slapd must be stopped
-	slapd_status
+  # slapd must be stopped
+  slapd_status
 
-	if [ $? -ne 1 ]
-	then
-		message "alert" "[ALERT] rudder-slapd is running or was not correctly shut down, aborting database recovery"
-		exit 1
-	fi
+  if [ $? -ne 1 ]
+  then
+    message "alert" "[ALERT] rudder-slapd is running or was not correctly shut down, aborting database recovery"
+    exit 1
+  fi
 
-	# Do backup for all databases,
-	# except if DATA_PATH is 'auto'
+  # Do backup for all databases,
+  # except if DATA_PATH is 'auto'
 
-	dbdirs="$DATA_PATH"
+  dbdirs="$DATA_PATH"
 
-	if [ "$DATA_PATH" = "auto" ]
-	then
-		get_confvalues "directory"
-		dbdirs=$RETVAL
+  if [ "$DATA_PATH" = "auto" ]
+  then
+    get_confvalues "directory"
+    dbdirs=$RETVAL
 
-		if [ -z "$dbdirs" ]
-		then
-			message "alert" "[ALERT] No database directories found"
-			exit 1
-		fi
-	fi
+    if [ -z "$dbdirs" ]
+    then
+      message "alert" "[ALERT] No database directories found"
+      exit 1
+    fi
+  fi
 
-	for dbdir in $dbdirs
-	do
+  for dbdir in $dbdirs
+  do
 
-		# db_recover
-		if [ -z "$SU" ]
-		then
-			$DB_RECOVER_BIN -h "$dbdir"
-		else
-			$SU "$DB_RECOVER_BIN -h \"$dbdir\""
-		fi
+    # db_recover
+    if [ -z "$SU" ]
+    then
+      $DB_RECOVER_BIN -h "$dbdir"
+    else
+      $SU "$DB_RECOVER_BIN -h \"$dbdir\""
+    fi
 
-		if [ $? -eq 0 ]
-		then
-			message "info" "[OK] OpenLDAP $dbdir database recovery successful"
-		else
-			message "alert" "[ALERT] OpenLDAP $dbdir database recovery failed"
-			exit 1
-		fi
+    if [ $? -eq 0 ]
+    then
+      message "info" "[OK] OpenLDAP $dbdir database recovery successful"
+    else
+      message "alert" "[ALERT] OpenLDAP $dbdir database recovery failed"
+      exit 1
+    fi
 
-	done
+  done
 }
 
 reindex() {
-	# Start message
-	message "info" "[INFO] Launching OpenLDAP database reindexing..."
+  # Start message
+  message "info" "[INFO] Launching OpenLDAP database reindexing..."
 
-	if [ "$SLAPD_CONF_DIR" ]
-	then
-		SLAPINDEX_PARAMS="-F $SLAPD_CONF_DIR"
-	elif [ "$SLAPD_CONF" ]
-	then
-		SLAPINDEX_PARAMS="-f $SLAPD_CONF"
-	fi
+  if [ "$SLAPD_CONF_DIR" ]
+  then
+    SLAPINDEX_PARAMS="-F $SLAPD_CONF_DIR"
+  elif [ "$SLAPD_CONF" ]
+  then
+    SLAPINDEX_PARAMS="-f $SLAPD_CONF"
+  fi
 
-	# slapd must be stopped
-	slapd_status
+  # slapd must be stopped
+  slapd_status
 
-	if [ $? -ne 1 ]
-	then
-		message "alert" "[ALERT] rudder-slapd is running or was not correctly shut down, aborting reindexing"
-		exit 1
-	else
-		# slapindex
-		if [ -z "$SU" ]
-		then
-			$SLAPINDEX_BIN $SLAPINDEX_PARAMS
-		else
-			$SU "$SLAPINDEX_BIN $SLAPINDEX_PARAMS"
-		fi
+  if [ $? -ne 1 ]
+  then
+    message "alert" "[ALERT] rudder-slapd is running or was not correctly shut down, aborting reindexing"
+    exit 1
+  else
+    # slapindex
+    if [ -z "$SU" ]
+    then
+      $SLAPINDEX_BIN $SLAPINDEX_PARAMS
+    else
+      $SU "$SLAPINDEX_BIN $SLAPINDEX_PARAMS"
+    fi
 
-		if [ $? -eq 0 ]
-		then
-			message "info" "[OK] OpenLDAP database reindexing successful"
-		else
-			message "alert" "[ALERT] OpenLDAP database reindexing failed"
-			exit 1
-		fi
-	fi
+    if [ $? -eq 0 ]
+    then
+      message "info" "[OK] OpenLDAP database reindexing successful"
+    else
+      message "alert" "[ALERT] OpenLDAP database reindexing failed"
+      exit 1
+    fi
+  fi
 }
 
 removelogs() {
-	# Start message
-	message "info" "[INFO] Launching OpenLDAP database logs archiving..."
+  # Start message
+  message "info" "[INFO] Launching OpenLDAP database logs archiving..."
 
-	if [ ! -x $DB_ARCHIVE_BIN ]
-	then
-		message "alert" "[ALERT] Cannot execute $DB_ARCHIVE_BIN, aborting database archiving"
-		exit 1
-	fi
+  if [ ! -x $DB_ARCHIVE_BIN ]
+  then
+    message "alert" "[ALERT] Cannot execute $DB_ARCHIVE_BIN, aborting database archiving"
+    exit 1
+  fi
 
 
-	# slapd must be stopped
-	slapd_status
+  # slapd must be stopped
+  slapd_status
 
-	if [ $? -ne 1 ]
-	then
-		message "alert" "[ALERT] rudder-slapd is running or was not correctly shut down, aborting archiving"
-		exit 1
-	fi
+  if [ $? -ne 1 ]
+  then
+    message "alert" "[ALERT] rudder-slapd is running or was not correctly shut down, aborting archiving"
+    exit 1
+  fi
 
-	# Do backup for all databases,
-	# except if DATA_PATH is 'auto'
+  # Do backup for all databases,
+  # except if DATA_PATH is 'auto'
 
-	dbdirs="$DATA_PATH"
+  dbdirs="$DATA_PATH"
 
-	if [ "$DATA_PATH" = "auto" ]
-	then
-		get_confvalues "directory"
-		dbdirs=$RETVAL
+  if [ "$DATA_PATH" = "auto" ]
+  then
+    get_confvalues "directory"
+    dbdirs=$RETVAL
 
-		if [ -z "$dbdirs" ]
-		then
-			message "alert" "[ALERT] No database directories found"
-			exit 1
-		fi
-	fi
+    if [ -z "$dbdirs" ]
+    then
+      message "alert" "[ALERT] No database directories found"
+      exit 1
+    fi
+  fi
 
-	for dbdir in $dbdirs
-	do
+  for dbdir in $dbdirs
+  do
 
-		# db_archive
-		if [ -z "$SU" ]
-		then
-			$DB_ARCHIVE_BIN -h "$dbdir" -d
-		else
-			$SU "$DB_ARCHIVE_BIN -h \"$dbdir\" -d"
-		fi
+    # db_archive
+    if [ -z "$SU" ]
+    then
+      $DB_ARCHIVE_BIN -h "$dbdir" -d
+    else
+      $SU "$DB_ARCHIVE_BIN -h \"$dbdir\" -d"
+    fi
 
-		if [ $? -eq 0 ]
-		then
-			message "info" "[OK] OpenLDAP $dbdir database logs archiving successful"
-		else
-			message "alert" "[ALERT] OpenLDAP $dbdir database logs archiving failed"
-			exit 1
-		fi
+    if [ $? -eq 0 ]
+    then
+      message "info" "[OK] OpenLDAP $dbdir database logs archiving successful"
+    else
+      message "alert" "[ALERT] OpenLDAP $dbdir database logs archiving failed"
+      exit 1
+    fi
 
-	done
+  done
 }
 
 backup() {
-	# Start message
-	message "info" "[INFO] Launching OpenLDAP database backup..."
+  # Start message
+  message "info" "[INFO] Launching OpenLDAP database backup..."
 
-	# Backup directory
-	mkdir -p "$BACKUP_PATH"
+  # Backup directory
+  mkdir -p "$BACKUP_PATH"
 
-	if [ "$SLAPD_CONF_DIR" ]
-	then
-		SLAPCAT_PARAMS="-F $SLAPD_CONF_DIR"
-	elif [ "$SLAPD_CONF" ]
-	then
-		SLAPCAT_PARAMS="-f $SLAPD_CONF"
-	fi
+  if [ "$SLAPD_CONF_DIR" ]
+  then
+    SLAPCAT_PARAMS="-F $SLAPD_CONF_DIR"
+  elif [ "$SLAPD_CONF" ]
+  then
+    SLAPCAT_PARAMS="-f $SLAPD_CONF"
+  fi
 
-	# Do backup for all databases,
-	# except if DATA_PATH is 'auto'
+  # Do backup for all databases,
+  # except if DATA_PATH is 'auto'
 
-	dbdirs="$DATA_PATH"
-	dbsufs=""
+  dbdirs="$DATA_PATH"
+  dbsufs=""
 
-	if [ "$DATA_PATH" = "auto" ]
-	then
-		get_confvalues "directory"
-		dbdirs=$RETVAL
-		get_confvalues "suffix"
-		dbsufs=$RETVAL
+  if [ "$DATA_PATH" = "auto" ]
+  then
+    get_confvalues "directory"
+    dbdirs=$RETVAL
+    get_confvalues "suffix"
+    dbsufs=$RETVAL
 
-		if [ -z "$dbdirs" -o -z "$dbsufs" ]
-		then
-			message "alert" "[ALERT] No database directories found"
-			exit 1
-		fi
-	fi
+    if [ -z "$dbdirs" -o -z "$dbsufs" ]
+    then
+      message "alert" "[ALERT] No database directories found"
+      exit 1
+    fi
+  fi
 
-	i=1
-	for dbdir in $dbdirs
-	do
-		# Table is not allowed, so we use awk
-		suf=`echo $dbsufs | awk -v j="$i" 'BEGIN{OFS=" "} {print $j}'`
-		dir=`basename $dbdir`
-		file="$BACKUP_PATH/$dir-$BACKUP_SUFFIX"
-		base="-b $suf"
+  i=1
+  for dbdir in $dbdirs
+  do
+    # Table is not allowed, so we use awk
+    suf=`echo $dbsufs | awk -v j="$i" 'BEGIN{OFS=" "} {print $j}'`
+    dir=`basename $dbdir`
+    file="$BACKUP_PATH/$dir-$BACKUP_SUFFIX"
+    base="-b $suf"
 
-		if [ -z $suf ]
-		then
-			base=""
-		fi
+    if [ -z $suf ]
+    then
+      base=""
+    fi
 
-		# slapcat
-		if [ -z "$SU" ]
-		then
-			$SLAPCAT_BIN $base $SLAPCAT_PARAMS -l "$file"
-		else
-			$SU "$SLAPCAT_BIN $base $SLAPCAT_PARAMS" > "$file"
-		fi
+    # slapcat
+    if [ -z "$SU" ]
+    then
+      $SLAPCAT_BIN $base $SLAPCAT_PARAMS -l "$file"
+    else
+      $SU "$SLAPCAT_BIN $base $SLAPCAT_PARAMS" > "$file"
+    fi
 
-		# alert
-		if [ $? -eq 0 ]
-		then
-			message "info" "[OK] data save in $file"
-		else
-			message "alert" "[ALERT] OpenLDAP database backup failed"
-			exit 1
-		fi
+    # alert
+    if [ $? -eq 0 ]
+    then
+      message "info" "[OK] data save in $file"
+    else
+      message "alert" "[ALERT] OpenLDAP database backup failed"
+      exit 1
+    fi
 
-		i=`expr $i + 1`
-	done
+    i=`expr $i + 1`
+  done
 
 }
 
@@ -946,53 +956,53 @@ backup() {
 # Action switch
 #====================================================================
 case $1 in
-	start)
-	configtest
-	start_slurpd
-	start_slapd
-	;;
-	stop)
-	stop_slapd
-	stop_slurpd
-	;;
-	forcestop)
-	forcestop
-	;;
-	restart)
-	stop_slapd
-	stop_slurpd
-	configtest
-	start_slurpd
-	start_slapd
-	;;
-	force-reload)
-	forcestop
-	configtest
-	start_slurpd
-	start_slapd
-	;;
-	status)
-	display_status
-	;;
-	configtest)
-	configtest
-	;;
-	db_recover)
-	db_recover
-	;;
-	reindex)
-	reindex
-	;;
-	removelogs)
-	removelogs
-	;;
-	backup)
-	backup
-	;;
-	*)
-	echo "Usage: $0 {start|stop|forcestop|restart|force-reload|status|configtest|db_recover|reindex|removelogs|backup}"
-	exit 1
-	;;
+  start)
+    configtest
+    start_slurpd
+    start_slapd
+    ;;
+  stop)
+    stop_slapd
+    stop_slurpd
+    ;;
+  forcestop)
+    forcestop
+    ;;
+  restart)
+    stop_slapd
+    stop_slurpd
+    configtest
+    start_slurpd
+    start_slapd
+    ;;
+  force-reload)
+    forcestop
+    configtest
+    start_slurpd
+    start_slapd
+    ;;
+  status)
+    display_status
+    ;;
+  configtest)
+    configtest
+    ;;
+  db_recover)
+    db_recover
+    ;;
+  reindex)
+    reindex
+    ;;
+  removelogs)
+    removelogs
+    ;;
+  backup)
+    backup
+    ;;
+  *)
+    echo "Usage: $0 {start|stop|forcestop|restart|force-reload|status|configtest|db_recover|reindex|removelogs|backup}"
+    exit 1
+    ;;
 esac
 
 #====================================================================
