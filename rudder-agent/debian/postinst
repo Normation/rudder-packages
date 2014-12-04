@@ -78,6 +78,12 @@ case "$1" in
       sed -i 's%^\(.*ALTER USER rudder WITH PASSWORD.*p.psql_password.*\)"",$%\1""%' /var/rudder/cfengine-community/inputs/distributePolicy/1.0/passwordCheck.cf
     fi
 
+    # Set a default server if we don't have one
+    if [ ! -e /var/rudder/cfengine-community/policy_server.dat ]
+    then
+      echo rudder > /var/rudder/cfengine-community/policy_server.dat
+    fi
+
     # Remove the lock on CFEngine
     if [ ${I_SET_THE_LOCK} -eq 1 ]; then
       rm -f /opt/rudder/etc/disable-agent
@@ -176,8 +182,8 @@ case "$1" in
       cp -r /opt/rudder/share/initial-promises/* /var/rudder/cfengine-community/inputs
     fi
 
-    # If the cf-promises validation fails, it means we have a broken set of promises (possibly a pre-2.8 set).
-    # Reset the initial promises so the server is able to send the agent a new set of correct ones.
+    # If the cf-promises validation fails, it means we have a broken set of promises (possibly a pre-2.8 set).
+    # Reset the initial promises so the server is able to send the agent a new set of correct ones.
     RUDDER_UUID=`cat /opt/rudder/etc/uuid.hive 2>/dev/null || true`
     if ! /var/rudder/cfengine-community/bin/cf-promises >/dev/null 2>&1 && [ "z${RUDDER_UUID}" != "zroot" ]
     then
@@ -189,7 +195,7 @@ case "$1" in
       cp -a /var/backups/rudder/rudder-server-roles.conf /var/rudder/cfengine-community/inputs/rudder-server-roles.conf
     fi
 
-    # Migration to CFEngine 3.5: Correct a specific Technique that breaks the most recent CFEngine versions
+    # Migration to CFEngine 3.5: Correct a specific Technique that breaks the most recent CFEngine versions
     if [ -f /var/rudder/cfengine-community/inputs/distributePolicy/1.0/passwordCheck.cf ]
     then
       sed -i 's%^\(.*ALTER USER rudder WITH PASSWORD.*p.psql_password.*\)"",$%\1""%' /var/rudder/cfengine-community/inputs/distributePolicy/1.0/passwordCheck.cf
@@ -242,8 +248,8 @@ case "$1" in
       fi
     fi
 
-    # Vixie-cron and cronie (at least) expect specific permissions to be applied
-    # on /etc/cron.d entries, and will refuse to load executable files.
+    # Vixie-cron and cronie (at least) expect specific permissions to be applied
+    # on /etc/cron.d entries, and will refuse to load executable files.
     if [ -f ${TMP_CRON} ]; then
       chmod 644 ${TMP_CRON}
     fi
