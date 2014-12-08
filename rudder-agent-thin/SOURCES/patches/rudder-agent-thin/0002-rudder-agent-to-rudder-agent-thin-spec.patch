@@ -1,5 +1,5 @@
---- a/rudder-agent.spec	2014-11-28 12:01:00.420117748 +0100
-+++ b/rudder-agent.spec	2014-11-28 12:00:53.864084747 +0100
+--- a/rudder-agent.spec	2014-12-08 15:05:33.466210433 +0100
++++ b/rudder-agent.spec	2014-12-08 15:10:56.454760369 +0100
 @@ -17,7 +17,7 @@
  #####################################################################################
  
@@ -30,7 +30,7 @@
  Source100: uuidgen
  %endif
  
--# Prevent dependency auto-generation, that tries to be helpful by detecting Perl dependencies from
+-# Prevent dependency auto-generation, that tries to be helpful by detecting Perl dependencies from
 -# FusionInventory. We handle that with the perl standalone installation already.
 -AutoReq: 0
 -AutoProv: 0
@@ -60,7 +60,7 @@
 +# the system OpenSSL version.
 +%define use_system_openssl true
 +
- ## 5 - Resulting dependencies
+ ## 5 - Resulting dependencies
  %if "%{use_system_openssl}" == "true"
  BuildRequires: openssl-devel
 @@ -207,23 +205,11 @@
@@ -71,7 +71,7 @@
 -Provides: rudder-cfengine-community
 -Obsoletes: rudder-cfengine-community
 -
--# Use our own dependency generator
+-# Use our own dependency generator
 -%global _use_internal_dependency_generator 0
 -%global __find_requires_orig %{__find_requires}
 -%define __find_requires %{_sourcedir}/filter-reqs.pl %{use_system_lmdb} %{__find_requires_orig}
@@ -97,7 +97,7 @@
  # Ensure an appropriate environment for the compiler
  export CFLAGS="$RPM_OPT_FLAGS"
  export CXXFLAGS="$RPM_OPT_FLAGS"
-@@ -361,9 +345,6 @@
+@@ -365,9 +349,6 @@
  # Initial promises
  cp -r %{_sourcedir}/initial-promises %{buildroot}%{rudderdir}/share/
  
@@ -107,7 +107,7 @@
  # Wrapper script
  %{install_command} -m 755 %{SOURCE3} %{buildroot}/opt/rudder/bin/run-inventory
  
-@@ -386,8 +367,6 @@
+@@ -390,8 +371,6 @@
  
  %{install_command} -m 755 %{SOURCE8} %{buildroot}/opt/rudder/bin/vzps.py
  
@@ -116,7 +116,7 @@
  # Rudder agent utilities
  %{install_command} -m 755 %{SOURCE12}/bin/rudder %{buildroot}%{rudderdir}/bin/rudder
  %{cp_a_command} %{SOURCE12}/share/commands/* %{buildroot}%{rudderdir}/share/commands/
-@@ -412,7 +391,7 @@
+@@ -416,7 +395,7 @@
  # Build a list of files to include in this package for use in the %files section below
  find %{buildroot}%{rudderdir} %{buildroot}%{ruddervardir} -type f -o -type l | sed "s,%{buildroot},," | sed "s,\.py$,\.py*," | grep -v "%{rudderdir}/etc/uuid.hive" | grep -v "%{ruddervardir}/cfengine-community/ppkeys" > %{_builddir}/file.list.%{name}
  
@@ -125,7 +125,7 @@
  #=================================================
  # Pre Installation
  #=================================================
-@@ -433,7 +412,7 @@
+@@ -437,7 +416,7 @@
  %endif
  fi
  
@@ -134,7 +134,7 @@
  #=================================================
  # Post Installation
  #=================================================
-@@ -657,7 +636,7 @@
+@@ -672,7 +651,7 @@
  
  /opt/rudder/bin/check-rudder-agent
  
@@ -143,7 +143,7 @@
  #=================================================
  # Pre Uninstallation
  #=================================================
-@@ -679,7 +658,7 @@
+@@ -694,7 +673,7 @@
  fi
  
  
@@ -152,7 +152,7 @@
  #=================================================
  # Post Uninstallation
  #=================================================
-@@ -726,7 +705,7 @@
+@@ -741,7 +720,7 @@
  # Files
  #=================================================
  # Files from %{rudderdir} and %{ruddervardir} are automatically added via the -f option
@@ -160,8 +160,8 @@
 +%files -n rudder-agent-thin -f %{_builddir}/file.list.%{name}
  %defattr(-, root, root, 0755)
  
- # The following file is declared to belong to this package but will not be installed
-@@ -760,15 +739,8 @@
+ %{bindir}/rudder
+@@ -779,15 +758,8 @@
  # Changelog
  #=================================================
  %changelog
