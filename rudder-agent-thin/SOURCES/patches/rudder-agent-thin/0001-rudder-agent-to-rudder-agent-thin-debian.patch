@@ -1,6 +1,6 @@
 diff -Naur a/changelog b/changelog
---- a/changelog	2014-03-04 10:06:26.535100944 +0100
-+++ b/changelog	2014-06-18 17:17:23.327002487 +0200
+--- a/changelog	2014-06-25 12:19:12.664938161 +0200
++++ b/changelog	2014-12-08 15:09:17.030590768 +0100
 @@ -1,23 +1,6 @@
 -rudder-agent (2.3.0~alpha~git-0) lenny; urgency=low
 +rudder-agent-thin (2.11.0~git-0) wheezy; urgency=low
@@ -30,8 +30,8 @@ diff -Naur a/changelog b/changelog
 - -- Nicolas Perron <nicolas.perrone@normation.com>  Wed, 23 Feb 2011 18:16:27 +0100
 + -- Matthieu CERDA <matthieu.cerda@normation.com>  Fri, 30 May 2014 16:55:27 +0200
 diff -Naur a/control b/control
---- a/control	2014-06-18 17:21:17.979798215 +0200
-+++ b/control	2014-06-18 17:21:34.867855637 +0200
+--- a/control	2014-12-08 14:47:17.772369560 +0100
++++ b/control	2014-12-08 15:09:17.030590768 +0100
 @@ -1,4 +1,4 @@
 -Source: rudder-agent
 +Source: rudder-agent-thin
@@ -65,8 +65,8 @@ diff -Naur a/control b/control
 - FusionInventory.
 + managed by Rudder. It is based on CFEngine Community.
 diff -Naur a/copyright b/copyright
---- a/copyright	2014-03-04 10:06:26.535100944 +0100
-+++ b/copyright	2014-06-18 17:17:23.327002487 +0200
+--- a/copyright	2014-06-25 12:19:12.664938161 +0200
++++ b/copyright	2014-12-08 15:09:17.030590768 +0100
 @@ -1,24 +1,20 @@
  This package was debianized by:
  
@@ -106,9 +106,9 @@ diff -Naur a/copyright b/copyright
 -    Copyright (C) 2010 Normation SAS
 -
 diff -Naur a/rules b/rules
---- a/rules	2014-06-09 18:27:58.573365796 +0200
-+++ b/rules	2014-06-18 17:17:23.327002487 +0200
-@@ -16,8 +16,6 @@
+--- a/rules	2014-12-08 15:05:20.562188524 +0100
++++ b/rules	2014-12-08 15:09:17.030590768 +0100
+@@ -15,8 +15,6 @@
  	dh_testdir
  	# dh_prep has been moved from 'install' target since we need to build LMDB first
  	dh_prep
@@ -117,7 +117,7 @@ diff -Naur a/rules b/rules
  	# Compile the LMDB library and install it in /opt/rudder
  	# LMDB source code does not know how to create destination folders, do it ourselves
  	for i in bin lib include man/man1; do mkdir -p $(CURDIR)/debian/tmp/opt/rudder/$$i; done
-@@ -80,10 +78,9 @@
+@@ -78,10 +76,9 @@
  #	dh_installlogrotate
  #	dh_installmime
  #	dh_python
@@ -128,7 +128,7 @@ diff -Naur a/rules b/rules
 -	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/perl-custom/opt rudder /opt
  	dh_install --SOURCEDIR=$(CURDIR)/SOURCES run-inventory /opt/rudder/bin
  	dh_install --SOURCEDIR=$(CURDIR)/SOURCES initial-promises /opt/rudder/share
- 	# Install an empty uuid.hive file before generating an uuid
+ 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-agent-utilities/bin rudder /opt/rudder/bin
 @@ -95,9 +92,7 @@
  	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ check-rudder-agent /opt/rudder/bin/
  	# Install script to get local processes on VZ systems
@@ -140,4 +140,3 @@ diff -Naur a/rules b/rules
  #	dh_installinfo
  	dh_installman
  	dh_link
-
