@@ -335,6 +335,7 @@ make install DESTDIR=%{buildroot} STRIP=""
 
 # Directories
 mkdir -p %{buildroot}%{rudderdir}
+mkdir -p %{buildroot}%{rudderdir}/share/man/man8
 mkdir -p %{buildroot}%{rudderdir}/etc
 mkdir -p %{buildroot}%{rudderdir}/share
 mkdir -p %{buildroot}%{rudderdir}/share/commands
@@ -549,6 +550,11 @@ fi
 NB_COPIED_BINARIES=`ls -1 /var/rudder/cfengine-community/bin/ | wc -l`
 if [ ${NB_COPIED_BINARIES} -gt 0 ];then echo "CFEngine binaries copied to workdir"; fi
 
+for i in cf-agent cf-promises cf-key cf-execd cf-serverd cf-monitord cf-runagent
+do
+  %{ruddervardir}/cfengine-community/bin/${i} -M | gzip > %{ruddervardir}/share/man/man8/${i}.8.gz
+done
+
 # Set up initial promises if necessary
 
 # Backup rudder-server-roles.conf
@@ -559,6 +565,7 @@ then
   RESTORE_SERVER_ROLES_BACKUP=1
 fi
 
+# Copy initial promises if there aren't any already
 if [ ! -e /var/rudder/cfengine-community/inputs/promises.cf ]
 then
   cp -r /opt/rudder/share/initial-promises/* /var/rudder/cfengine-community/inputs
@@ -736,6 +743,7 @@ rm -f %{_builddir}/file.list.%{name}
 # Files from %{rudderdir} and %{ruddervardir} are automatically added via the -f option
 %files -n rudder-agent -f %{_builddir}/file.list.%{name}
 %defattr(-, root, root, 0755)
+<<<<<<< HEAD
 
 %{bindir}/rudder
 
@@ -746,6 +754,10 @@ rm -f %{_builddir}/file.list.%{name}
 %ghost %{rudderdir}/etc/uuid.hive
 %ghost %{ruddervardir}/cfengine-community/policy_server.dat
 
+=======
+%config(noreplace) %{rudderdir}/etc/uuid.hive
+%{rudderdir}/share/man
+>>>>>>> branches/rudder/2.10
 %if "%{?_os}" != "aix"
 /etc/profile.d/rudder-agent.sh
 /etc/init.d/rudder-agent
