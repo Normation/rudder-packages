@@ -725,7 +725,6 @@ rm -f %{_builddir}/file.list.%{name}
 # Files from %{rudderdir} and %{ruddervardir} are automatically added via the -f option
 %files -n rudder-agent -f %{_builddir}/file.list.%{name}
 %defattr(-, root, root, 0755)
-<<<<<<< HEAD
 
 # The following file is declared to belong to this package but will not be installed
 # This is because it is populated during post-inst scriptlet
@@ -733,10 +732,7 @@ rm -f %{_builddir}/file.list.%{name}
 # existing file declared in conffiles
 %ghost %{rudderdir}/etc/uuid.hive
 
-=======
-%config(noreplace) %{rudderdir}/etc/uuid.hive
 %{rudderdir}/share/man
->>>>>>> branches/rudder/2.10
 %if "%{?_os}" != "aix"
 /etc/profile.d/rudder-agent.sh
 /etc/init.d/rudder-agent
