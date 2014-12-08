@@ -743,7 +743,6 @@ rm -f %{_builddir}/file.list.%{name}
 # Files from %{rudderdir} and %{ruddervardir} are automatically added via the -f option
 %files -n rudder-agent -f %{_builddir}/file.list.%{name}
 %defattr(-, root, root, 0755)
-<<<<<<< HEAD
 
 %{bindir}/rudder
 
@@ -754,10 +753,7 @@ rm -f %{_builddir}/file.list.%{name}
 %ghost %{rudderdir}/etc/uuid.hive
 %ghost %{ruddervardir}/cfengine-community/policy_server.dat
 
-=======
-%config(noreplace) %{rudderdir}/etc/uuid.hive
 %{rudderdir}/share/man
->>>>>>> branches/rudder/2.10
 %if "%{?_os}" != "aix"
 /etc/profile.d/rudder-agent.sh
 /etc/init.d/rudder-agent
