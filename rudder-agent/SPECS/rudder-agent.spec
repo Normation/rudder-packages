@@ -256,6 +256,7 @@ make install DESTDIR=%{buildroot} STRIP=""
 
 # Directories
 mkdir -p %{buildroot}%{rudderdir}
+mkdir -p %{buildroot}%{rudderdir}/share/man/man8
 mkdir -p %{buildroot}%{rudderdir}/etc
 mkdir -p %{buildroot}%{ruddervardir}/cfengine-community/bin
 mkdir -p %{buildroot}%{ruddervardir}/cfengine-community/inputs
@@ -438,6 +439,11 @@ slibclean
 NB_COPIED_BINARIES=`ls -1 /var/rudder/cfengine-community/bin/ | wc -l`
 if [ ${NB_COPIED_BINARIES} -gt 0 ];then echo "CFEngine binaries copied to workdir"; fi
 
+for i in cf-agent cf-promises cf-key cf-execd cf-serverd cf-monitord cf-runagent
+do
+  %{ruddervardir}/cfengine-community/bin/${i} -M | gzip > %{ruddervardir}/share/man/man8/${i}.8.gz
+done
+
 # Copy initial promises if there aren't any already
 if [ ! -e /var/rudder/cfengine-community/inputs/promises.cf ]
 then
@@ -609,6 +615,7 @@ rm -f %{_builddir}/file.list.%{name}
 %files -n rudder-agent -f %{_builddir}/file.list.%{name}
 %defattr(-, root, root, 0755)
 %config(noreplace) %{rudderdir}/etc/uuid.hive
+%{rudderdir}/share/man
 %if "%{?_os}" != "aix"
 /etc/profile.d/rudder-agent.sh
 /etc/init.d/rudder-agent
