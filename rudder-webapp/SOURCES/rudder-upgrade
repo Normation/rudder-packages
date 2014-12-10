@@ -61,6 +61,7 @@ trap anomaly_handler ERR INT TERM
 # - 2.11.0 : Add the properties to configure Rudder roles
 # - 2.11.0 : Add LDAP entry for Group with all nodes excluding server components
 # - 2.11.4 : Add the property for the command line to force the server to reload its promises
+# - 2.11.5 : Migrate cfengine_port in ncf.conf
 #####################################################################################
 
 # Some variables
@@ -399,11 +400,37 @@ if ! grep -Eq "^loggers=.*logger_rudder.*" ${RUDDER_NCF_SOURCE_DIRECTORY}/tree/n
   sed -i "s%^loggers=\(.*\)%loggers=\1,logger_rudder%" ${RUDDER_NCF_SOURCE_DIRECTORY}/tree/ncf.conf
 fi
 
-# Make sure that ncf uses the right CFEngine port (5309)
-STEP="Make sure that ncf uses the right CFEngine port (5309)"
+# Make sure that ncf uses the right CFEngine port (5308 or 5309)
+STEP="Make sure that ncf uses the right CFEngine port (5308 or 5309)"
 
-if ! grep -Eq "^cfengine_port=5309" ${RUDDER_NCF_SOURCE_DIRECTORY}/tree/ncf.conf; then
-  sed -i "s%^cfengine_port=.*%cfengine_port=5309%" ${RUDDER_NCF_SOURCE_DIRECTORY}/tree/ncf.conf
+ncf_append="{{#classes.community_edition}}
+cfengine_port=5309
+{{/classes.community_edition}}
+{{#classes.enterprise_edition}}
+cfengine_port=5308
+{{/classes.enterprise_edition}}"
+
+# is the port in {{#classes.any}} ?
+while read line
+do
+  if echo "${line}" | grep "^[ \t]*{{#classes.any}}" >/dev/null; then
+    any="true"
+  fi
+  if echo "${line}" | grep "^[ \t]*{{/classes.any}}" >/dev/null; then
+    any=""
+  fi
+  if [ "${any}" = "true" ] && echo "${line}" | grep "^[ \t]*cfengine_port=" >/dev/null; then
+    update_ncf_conf="true"
+  fi
+done < ${RUDDER_NCF_SOURCE_DIRECTORY}/tree/ncf.conf
+
+# yes then migrate
+if [ "${update_ncf_conf}" = "true" ]
+then
+  TMP=`mktemp`
+  grep -v "^[ \t]*cfengine_port=" ${RUDDER_NCF_SOURCE_DIRECTORY}/tree/ncf.conf > ${TMP}
+  echo "${ncf_append}" >> ${TMP}
+  mv ${TMP} ${RUDDER_NCF_SOURCE_DIRECTORY}/tree/ncf.conf
 fi
 
 # All versions: Check that Rudder database is able to handle backslash
