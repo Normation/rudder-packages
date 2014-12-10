@@ -64,6 +64,7 @@ trap anomaly_handler ERR INT TERM
 # - 3.0.0        : Add the nodeConfigId column in the ReportsExecution table and add the nodes_info table
 # - 3.0.0        : Add the rudder.jdbc.maxPoolSize property
 # - 3.0.0        : File Format migration from 5 to 6
+# - 3.0.0        : Migrate cfengine_port in ncf.conf
 #####################################################################################
 
 # Some variables
@@ -410,11 +411,37 @@ if ! grep -Eq "^loggers=.*logger_rudder.*" ${RUDDER_NCF_SOURCE_DIRECTORY}/tree/n
   sed -i "s%^loggers=\(.*\)%loggers=\1,logger_rudder%" ${RUDDER_NCF_SOURCE_DIRECTORY}/tree/ncf.conf
 fi
 
-# Make sure that ncf uses the right CFEngine port (5309)
-STEP="Make sure that ncf uses the right CFEngine port (5309)"
+# Make sure that ncf uses the right CFEngine port (5308 or 5309)
+STEP="Make sure that ncf uses the right CFEngine port (5308 or 5309)"
 
-if ! grep -Eq "^cfengine_port=5309" ${RUDDER_NCF_SOURCE_DIRECTORY}/tree/ncf.conf; then
-  sed -i "s%^cfengine_port=.*%cfengine_port=5309%" ${RUDDER_NCF_SOURCE_DIRECTORY}/tree/ncf.conf
+ncf_append="{{#classes.community_edition}}
+cfengine_port=5309
+{{/classes.community_edition}}
+{{#classes.enterprise_edition}}
+cfengine_port=5308
+{{/classes.enterprise_edition}}"
+
+# is the port in {{#classes.any}} ?
+while read line
+do
+  if echo "${line}" | grep "^[ \t]*{{#classes.any}}" >/dev/null; then
+    any="true"
+  fi
+  if echo "${line}" | grep "^[ \t]*{{/classes.any}}" >/dev/null; then
+    any=""
+  fi
+  if [ "${any}" = "true" ] && echo "${line}" | grep "^[ \t]*cfengine_port=" >/dev/null; then
+    update_ncf_conf="true"
+  fi
+done < ${RUDDER_NCF_SOURCE_DIRECTORY}/tree/ncf.conf
+
+# yes then migrate
+if [ "${update_ncf_conf}" = "true" ]
+then
+  TMP=`mktemp`
+  grep -v "^[ \t]*cfengine_port=" ${RUDDER_NCF_SOURCE_DIRECTORY}/tree/ncf.conf; > ${TMP}
+  echo "${append}" >> ${TMP}
+  mv ${TMP} ${RUDDER_NCF_SOURCE_DIRECTORY}/tree/ncf.conf
 fi
 
 # All versions: Check that Rudder database is able to handle backslash
