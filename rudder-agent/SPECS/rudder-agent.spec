@@ -732,7 +732,6 @@ rm -f %{_builddir}/file.list.%{name}
 # existing file declared in conffiles
 %ghost %{rudderdir}/etc/uuid.hive
 
-%{rudderdir}/share/man
 %if "%{?_os}" != "aix"
 /etc/profile.d/rudder-agent.sh
 /etc/init.d/rudder-agent
