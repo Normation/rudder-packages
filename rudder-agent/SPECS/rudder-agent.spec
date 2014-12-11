@@ -71,6 +71,7 @@ Source9: rudder-agent.sh
 Source10: detect_os.sh
 Source11: rudder-perl
 Source12: rudder-agent-utilities
+Source13: policy_server.dat
 
 # uuidgen doesn't exist on AIX, so we provide a simple shell compatible version
 %if "%{?_os}" == "aix"
@@ -371,8 +372,9 @@ cp -r %{_sourcedir}/initial-promises %{buildroot}%{rudderdir}/share/
 # Wrapper script
 %{install_command} -m 755 %{SOURCE3} %{buildroot}/opt/rudder/bin/run-inventory
 
-# Install an empty uuid.hive file before generating an uuid
+# Install empty files for ghost files, whose content is generated an postinst
 cp %{SOURCE4} %{buildroot}%{rudderdir}/etc/
+cp %{SOURCE13} %{buildroot}%{ruddervardir}/cfengine-community/
 
 # ld.so.conf.d is not supported on CentOS 3
 %if 0%{?rhel} != 3
