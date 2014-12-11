@@ -615,7 +615,7 @@ rm -f %{_builddir}/file.list.%{name}
 %files -n rudder-agent -f %{_builddir}/file.list.%{name}
 %defattr(-, root, root, 0755)
 %config(noreplace) %{rudderdir}/etc/uuid.hive
-%{rudderdir}/share/man
+
 %if "%{?_os}" != "aix"
 /etc/profile.d/rudder-agent.sh
 /etc/init.d/rudder-agent
