@@ -728,6 +728,7 @@ if [ $1 -eq 0 ]; then
 
   # Remove UUID in any case
   rm -f /opt/rudder/etc/uuid.hive
+  rm -f %{ruddervardir}/cfengine-community/policy_server.dat
 fi
 
 #=================================================
@@ -751,7 +752,6 @@ rm -f %{_builddir}/file.list.%{name}
 # This is not reflected in debian packaging, because dpkg will never replace an
 # existing file declared in conffiles
 %ghost %{rudderdir}/etc/uuid.hive
-%ghost %{ruddervardir}/cfengine-community/policy_server.dat
 
 %{rudderdir}/share/man
 %if "%{?_os}" != "aix"
