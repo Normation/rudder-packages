@@ -17,6 +17,17 @@
 #
 #####################################################################################
 
+set -e
+
+STEP="Script start"
+function anomaly_handler() {
+  echo ""
+  echo "ERROR: An error happened in $0 during the step: ${STEP}"
+}
+
+trap anomaly_handler ERR INT TERM
+
+
 #
 # That hook is designed to be run just after a technique wwas created or modified
 # It generates techniques files usable by Rudder, commit them in Tehcniques folder and reload the technique library
@@ -30,13 +41,15 @@ CATEGORY_PATH='ncf_techniques/category.xml'
 
 # Main
 
-## Set necessary umask to prevent permission issues (mode 770)
+## Set necessary umask to prevent permission issues (mode 770)
 umask 007
 
 ## Rudderify the new Technique
+STEP="Creating rudder technique \"${TECHNIQUE}\" from ncf technique"
 /usr/share/ncf/tools/ncf_rudder.py rudderify_technique /var/rudder/configuration-repository/techniques/ncf_techniques "${TECHNIQUE}"
 
 ## Operate on configuration-repository's git tree, in the Techniques
+STEP="Commiting rudder technique \"${TECHNIQUE}\" to configuration-repository's git tree"
 cd /var/rudder/configuration-repository/techniques/
 
 # If a non-zero file exists on the filesystem...
@@ -56,8 +69,6 @@ git add "ncf_techniques/${TECHNIQUE}"
 git commit -q -m "Commit meta Technique ${TECHNIQUE}"
 
 # Reload technique library, bypass the ssl verification since we are on localhost
+STEP="Reloading the Techniques using Rudder API. Please reload them manually using Rudder web interface."
 curl -s -f -k "https://localhost/rudder/api/techniqueLibrary/reload"
 
-if [ "$?" -eq 22 ]; then
-  echo "ERROR: Unable to reload the Techniques using Rudder API. Please reload them manually using Rudder web interface."
-fi
