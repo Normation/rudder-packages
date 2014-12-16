@@ -64,6 +64,7 @@ trap anomaly_handler ERR INT TERM
 # - 3.0.0        : Add the nodeConfigId column in the ReportsExecution table and add the nodes_info table
 # - 3.0.0        : Add the rudder.jdbc.maxPoolSize property
 # - 3.0.0        : File Format migration from 5 to 6
+# - 3.0.0        : Add the insertionId column in the ReportsExecution table and fill its value for last nodes run
 #####################################################################################
 
 # Some variables
@@ -697,6 +698,14 @@ STEP="3.0.0: File Format migration from 5 to 6"
 RES=$(${PSQL} -t -d rudder -c "select count(*) from (select xpath('/entry/*[@fileFormat=5]',data) AS x from eventlog) as Y where array_upper(x, 1) > 0;")
 if [ $RES -ne 0 ]; then
   ${PSQL} -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.11-3.0-set-migration-needed-flag-for-EventLog.sql > /dev/null 2>&1
+fi
+
+# 3.0.0: Add the insertionId column in the ReportsExecution table and fill it for the last nodes run
+STEP="Add the insertionId column in the ReportsExecution table and fill it for the last nodes run"
+
+RES=$(${PSQL} -t -d rudder -c "select count(1) from information_schema.columns where table_name='reportsexecution' and column_name = 'insertionid'")
+if [ ${RES} -eq 0 ]; then
+  ${PSQL} -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.11-3.0-add-insertionids-column.sql > /dev/null 2>&1
 fi
 
 
