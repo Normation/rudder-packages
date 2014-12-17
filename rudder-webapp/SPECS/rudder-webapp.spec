@@ -98,6 +98,7 @@ Source14: rudder-plugin
 Source15: post.write_technique.commit.sh
 Source16: post.write_technique.rudderify.sh
 Source17: rudder-metrics-reporting
+Source18: ca-bundle.crt
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
@@ -186,6 +187,7 @@ mkdir -p %{buildroot}%{rudderdir}/share/rudder-plugins/
 mkdir -p %{buildroot}%{rudderdir}/share/tools
 mkdir -p %{buildroot}%{rudderdir}/share/plugins/
 mkdir -p %{buildroot}%{rudderdir}/share/upgrade-tools/
+mkdir -p %{buildroot}%{rudderdir}/share/certificates/
 mkdir -p %{buildroot}%{ruddervardir}/inventories/incoming
 mkdir -p %{buildroot}%{ruddervardir}/inventories/accepted-nodes-updates
 mkdir -p %{buildroot}%{ruddervardir}/inventories/received
@@ -267,6 +269,7 @@ install -m 755 %{SOURCE16} %{buildroot}%{ruddervardir}/configuration-repository/
 
 # Add rudder-metrics-reporting
 cp %{SOURCE17} %{buildroot}%{rudderdir}/bin/
+cp %{SOURCE18} %{buildroot}%{rudderdir}/share/certificates/
 
 # Install documentation
 cp -rf %{_builddir}/rudder-doc/pdf %{buildroot}/usr/share/doc/rudder

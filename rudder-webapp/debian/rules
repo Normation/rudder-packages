@@ -111,6 +111,7 @@ binary-arch: install
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-upgrade-database /opt/rudder/bin/
 
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-metrics-reporting /opt/rudder/bin/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ ca-bundle.crt /opt/rudder/share/certificates/
 
 	# Install documentation
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-doc pdf /usr/share/doc/rudder
