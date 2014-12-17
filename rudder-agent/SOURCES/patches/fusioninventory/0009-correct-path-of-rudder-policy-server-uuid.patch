@@ -1,0 +1,13 @@
+diff --git a/lib/FusionInventory/Agent/Task/Inventory/Linux/Rudder.pm b/lib/FusionInventory/Agent/Task/Inventory/Linux/Rudder.pm
+index 4878a6d..471118d 100644
+--- a/lib/FusionInventory/Agent/Task/Inventory/Linux/Rudder.pm
++++ b/lib/FusionInventory/Agent/Task/Inventory/Linux/Rudder.pm
+@@ -66,7 +66,7 @@ sub _manageAgent {
+         # get policy server uuid
+         my $serverUuid = getFirstLine (
+             logger => $logger,
+-            file => '/var/rudder/tmp/uuid.txt'
++            file => "/var/rudder/$name/rudder-server-uuid.txt"
+         );
+         chomp $serverUuid;
+ 
