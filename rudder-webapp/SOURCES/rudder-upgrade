@@ -65,6 +65,7 @@ trap anomaly_handler ERR INT TERM
 # - 3.0.0        : Add the rudder.jdbc.maxPoolSize property
 # - 3.0.0        : File Format migration from 5 to 6
 # - 3.0.0        : Add the insertionId column in the ReportsExecution table and fill its value for last nodes run
+# - 3.0.0        : Replace varchar by text in the database
 #####################################################################################
 
 # Some variables
@@ -706,6 +707,14 @@ STEP="Add the insertionId column in the ReportsExecution table and fill it for t
 RES=$(${PSQL} -t -d rudder -c "select count(1) from information_schema.columns where table_name='reportsexecution' and column_name = 'insertionid'")
 if [ ${RES} -eq 0 ]; then
   ${PSQL} -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.11-3.0-add-insertionids-column.sql > /dev/null 2>&1
+fi
+
+# 3.0.0: Replace varchar by text in the database
+STEP="Replace all occurences of varchar by text in the database"
+
+RES=$(${PSQL} -t -d rudder -c "select count(1) from information_schema.columns where table_name = 'eventlog' and column_name = 'eventtype' and data_type = 'character varying'")
+if [ ${RES} -eq 0 ]; then
+  ${PSQL} -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.11-3.0-remove-varchar.sql > /dev/null 2>&1
 fi
 
 
