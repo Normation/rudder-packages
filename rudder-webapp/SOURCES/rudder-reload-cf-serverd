@@ -1,0 +1,3 @@
+#!/bin/sh
+
+killall -SIGHUP cf-serverd || kill -SIGHUP $(pidof cf-serverd 2>/dev/null)
