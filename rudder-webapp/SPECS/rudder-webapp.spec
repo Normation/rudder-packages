@@ -97,6 +97,7 @@ Source13: rudder-passwords.conf
 Source14: rudder-plugin
 Source15: post.write_technique.commit.sh
 Source16: post.write_technique.rudderify.sh
+Source17: rudder-reload-cf-serverd
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
@@ -193,6 +194,7 @@ ln -sf %{rudderdir}/bin/rudder-init %{buildroot}%{rudderdir}/bin/rudder-init.sh
 cp %{SOURCE11} %{buildroot}%{rudderdir}/bin/
 cp %{SOURCE12} %{buildroot}%{rudderdir}/bin/
 cp %{SOURCE14} %{buildroot}%{rudderdir}/bin/
+cp %{SOURCE17} %{buildroot}%{rudderdir}/bin/
 
 cp %{SOURCE1} %{buildroot}%{rudderdir}/etc/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/ldap/bootstrap.ldif %{buildroot}%{rudderdir}/share/
@@ -465,6 +467,7 @@ rm -rf %{buildroot}
 %{rudderdir}/bin/rudder-init
 %{rudderdir}/bin/rudder-init.sh
 %{rudderdir}/bin/rudder-root-rename
+%{rudderdir}/bin/rudder-reload-cf-serverd
 %{rudderdir}/share/webapps/
 %{rudderdir}/share/rudder-plugins/
 %{rudderdir}/share
