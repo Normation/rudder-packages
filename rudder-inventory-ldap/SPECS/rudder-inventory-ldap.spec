@@ -249,25 +249,25 @@ BACKUP_LDIF_PATH=/var/rudder/ldap/backup/
 BACKUP_LDIF_REGEX="^/var/rudder/ldap/backup/openldap-data-pre-upgrade-\([0-9]\{14\}\)\.ldif$"
 
 # Do we have a backup file from a previous upgrade?
-BACKUP_LDIF=`find ${BACKUP_LDIF_PATH} -regextype sed -regex "${BACKUP_LDIF_REGEX}" 2>&1 | sort -nr | head -n1`
-if [ "z${BACKUP_LDIF}" != "z" ]; then
-	TIMESTAMP=`echo ${BACKUP_LDIF} | sed "s%${BACKUP_LDIF_REGEX}%\1%"`
+BACKUP_LDIF=$(find ${BACKUP_LDIF_PATH} -regextype sed -regex "${BACKUP_LDIF_REGEX}" 2>&1 | sort -nr | head -n1)
+if [ -n "${BACKUP_LDIF}" ]; then
+	TIMESTAMP=$(echo ${BACKUP_LDIF} | sed "s%${BACKUP_LDIF_REGEX}%\1%")
 
 	# If this is an upgrade from an older version of rudder-inventory-ldap
    	# we may need to drop and reimport the database if the underlying version
 	# of libdb has changed.
-	if [ -f /var/rudder/ldap/backup/openldap-data-pre-upgrade-${TIMESTAMP}.libdb-version ]; then
+	if [ -f "/var/rudder/ldap/backup/openldap-data-pre-upgrade-${TIMESTAMP}.libdb-version" ]; then
 		# Did the underlying version of libdb change?
-		current_libdb_version=$(echo `ldd /opt/rudder/sbin/slapcat | grep libdb | cut -d"=" -f1`)
-		previous_libdb_version=`cat /var/rudder/ldap/backup/openldap-data-pre-upgrade-${TIMESTAMP}.libdb-version`
-		if [ ${current_libdb_version} != ${previous_libdb_version} ]; then
+		current_libdb_version=$(ldd /opt/rudder/sbin/slapcat | grep libdb | cut -d"=" -f1)
+		previous_libdb_version=$(cat /var/rudder/ldap/backup/openldap-data-pre-upgrade-${TIMESTAMP}.libdb-version)
+		if [ "${current_libdb_version}" != "${previous_libdb_version}" ]; then
 			# OK, we need to remove the old DB and import the backup
 			REINIT_DB="yes"
 		fi
 	fi
 
+	if [ "${REINIT_DB}" = "yes" ]; then
 
-	if [ "z${REINIT_DB}" = "zyes" ]; then
 		# Do we have a database backup to restore from?
 		if [ ! -f ${BACKUP_LDIF} ]; then
 			echo >&2 "ERROR: No database backup for old version. Can't upgrade rudder-inventory-ldap database..."
@@ -302,7 +302,7 @@ fi
 # Do we need to reindex the LDAP database? This can be necessary if the indexes were changed. Let's check.
 SLAPD_DEFINED_INDEXES=$(mktemp)
 SLAPD_ACTUAL_INDEXES=$(mktemp)
-if [ -r /opt/rudder/etc/openldap/slapd.conf -a -e /var/rudder/ldap/openldap-data/id2entry.bdb ]; then
+if [ -r /opt/rudder/etc/openldap/slapd.conf ] && [ -e /var/rudder/ldap/openldap-data/id2entry.bdb ]; then
 	grep ^index /opt/rudder/etc/openldap/slapd.conf | sed 's/\s\+/\t/g' | cut -f2 | sed 's/,/\n/g' | sort > ${SLAPD_DEFINED_INDEXES}
 	ls  /var/rudder/ldap/openldap-data/*.bdb | xargs -n 1 -I{} basename {} .bdb | sort | egrep -v '^(dn2id|id2entry)' > ${SLAPD_ACTUAL_INDEXES}
 	if ! diff ${SLAPD_DEFINED_INDEXES} ${SLAPD_ACTUAL_INDEXES} > /dev/null; then
