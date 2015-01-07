@@ -95,8 +95,8 @@
 -%{_sourcedir}/perl-prepare.sh %{_sourcedir}/fusioninventory-agent
 -
  # Ensure an appropriate environment for the compiler
- export CFLAGS="$RPM_OPT_FLAGS"
- export CXXFLAGS="$RPM_OPT_FLAGS"
+ export CFLAGS="echo ${RPM_OPT_FLAGS}|sed -e "s/-D_FORTIFY_SOURCE=.//""
+ export CXXFLAGS="${CFLAGS}"
 @@ -365,9 +349,6 @@
  # Initial promises
  cp -r %{_sourcedir}/initial-promises %{buildroot}%{rudderdir}/share/
