@@ -83,12 +83,3 @@ diff -Naur debian/rules debian/rules
  	# Install a verification script for cron
  	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ check-rudder-agent /opt/rudder/bin/
  	# Install script to get local processes on VZ systems
-@@ -105,7 +96,7 @@
- 	dh_compress
- 	dh_fixperms
- #	dh_perl
--	dh_makeshlibs
-+#	dh_makeshlibs
- 	dh_installdeb
- 	dh_shlibdeps
- 	dh_gencontrol
