@@ -243,8 +243,8 @@ cd %{_sourcedir}
 %{_sourcedir}/perl-prepare.sh %{_sourcedir}/fusioninventory-agent
 
 # Ensure an appropriate environment for the compiler
-export CFLAGS="$RPM_OPT_FLAGS"
-export CXXFLAGS="$RPM_OPT_FLAGS"
+export CFLAGS=$(echo ${RPM_OPT_FLAGS}|sed -e "s/-D_FORTIFY_SOURCE=.//")
+export CXXFLAGS="${CFLAGS}"
 
 %if "%{use_system_openssl}" != "true"
 # Compile and install OpenSSL
