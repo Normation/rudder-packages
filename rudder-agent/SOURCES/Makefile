@@ -40,7 +40,7 @@ localdepends: ./initial-promises ./rudder-agent-utilities ./detect_os.sh ./files
 	mv $(TMP_DIR)/cfengine-$(CFENGINE_RELEASE) ./cfengine-source
 
 	# Apply patches
-	for PATCHNAME in patches/cfengine/*.patch; do echo "Applying $$PATCHNAME..."; $(PATCH) -d ./cfengine-source -p1 < $$PATCHNAME; done
+	for PATCHNAME in patches/cfengine/*.patch; do echo "Applying $$PATCHNAME..."; $(PATCH) -d ./cfengine-source -p1 < $$PATCHNAME; echo ""; done
 
 	# Bootstrap the package using autogen before compilation
 	cd cfengine-source && NO_CONFIGURE=1 ./autogen.sh
