@@ -134,7 +134,7 @@ case "$1" in
     fi
 
     # launch rudder agent check script, it will generate an UUID on first install or repair it if needed
-    /opt/rudder/bin/check-rudder-agent
+    nohup /opt/rudder/bin/check-rudder-agent >/dev/null 2>/dev/null &
 
     ;;
 
