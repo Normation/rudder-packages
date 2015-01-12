@@ -1,0 +1,18 @@
+CFEngine bug tracker issue: https://dev.cfengine.com/issues/6841
+
+This patch makes CFEngine compatible with the -D_FORTIFY_SOURCE
+argument from gcc.
+
+diff --git a/libutils/deprecated.h b/libutils/deprecated.h
+index a017c88..646e33f 100644
+--- a/libutils/deprecated.h
++++ b/libutils/deprecated.h
+@@ -35,7 +35,7 @@
+  * do that for Linux, where main development happens. */
+ 
+ 
+-#if defined(__linux__) && defined(__GLIBC__)
++#if defined(__linux__) && defined(__GLIBC__) && (!defined(_FORTIFY_SOURCE) || (_FORTIFY_SOURCE < 1))
+ 
+ 
+ int sprintf(char *str, const char *format, ...) \
