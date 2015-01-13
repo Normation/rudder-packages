@@ -652,7 +652,7 @@ if [ -f ${TMP_CRON} ]; then
 fi
 %endif
 
-/opt/rudder/bin/check-rudder-agent
+nohup /opt/rudder/bin/check-rudder-agent >/dev/null 2>/dev/null &
 
 %preun -n rudder-agent
 #=================================================
