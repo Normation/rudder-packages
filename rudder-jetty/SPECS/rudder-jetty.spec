@@ -193,7 +193,7 @@ rm -rf %{buildroot}
 %{rudderlogdir}/webapp
 /var/rudder/run
 /etc/init.d/rudder-jetty
-/etc/default/rudder-jetty
+%config(noreplace) /etc/default/rudder-jetty
 %config(noreplace) /opt/rudder/etc/rudder-jetty.conf
 
 #=================================================
