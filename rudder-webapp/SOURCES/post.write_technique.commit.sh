@@ -22,6 +22,17 @@
 # Its goal is to commit the newly created technique with ncf-api to configuration-repository
 #
 
+set -e
+
+STEP="Script start"
+function anomaly_handler() {
+  echo ""
+  echo "ERROR: An error happened in $0 during the step: ${STEP}"
+}
+
+trap anomaly_handler ERR INT TERM
+
+
 # Variables
 
 DESTINATION_PATH=${1}
@@ -29,12 +40,14 @@ TECHNIQUE=${2}
 
 # Main
 
-## Set necessary umask to prevent permission issues (mode 770)
+## Set necessary umask to prevent permission issues (mode 770)
 umask 007
 
 ## Operate on configuration-repository's git tree
 cd /var/rudder/configuration-repository
 
 ## Commit the new Technique
+STEP="Commiting technique \"${TECHNIQUE}\""
 git add "ncf/50_techniques/${TECHNIQUE}"
 git commit -q -m "Commit ncf Technique \"${TECHNIQUE}\" in Rudder"
+
