@@ -245,7 +245,7 @@ fi
 # Remove unwanted indexes if necessary, and then reindex.
 LDAP_REINDEX_NEEDED=0
 for index in activeTechniqueId cn container directiveId isDynamic isEnabled isModified isSystem machineId nodeGroupId nodeId ruleId software softwareId softwareVersion techniqueCategoryId techniqueId uuid; do
-  if [ -e /var/rudder/ldap/openldap-data/${index}.bdb ]; then
+  if [ -e /var/rudder/ldap/openldap-data/${index}.bdb ]
     rm -f /var/rudder/ldap/openldap-data/${index}.bdb
     LDAP_REINDEX_NEEDED=1
   fi
