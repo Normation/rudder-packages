@@ -299,21 +299,21 @@ if [ -n "${BACKUP_LDIF}" ]; then
 	fi
 fi
 
-# Remove unwanted indexes if necessary, and then reindex.
-LDAP_REINDEX_NEEDED=0
-for index in activeTechniqueId cn container directiveId isDynamic isEnabled isModified isSystem machineId nodeGroupId nodeId ruleId software softwareId softwareVersion techniqueCategoryId techniqueId uuid; do
-  if [ -e /var/rudder/ldap/openldap-data/${index}.bdb ]; then
-    rm -f /var/rudder/ldap/openldap-data/${index}.bdb
-    LDAP_REINDEX_NEEDED=1
-  fi
-done
-
-if [ ${LDAP_REINDEX_NEEDED} -ne 0 ]; then
-  echo -n "INFO: Unwanted OpenLDAP indexes have been detected and removed, reindexing..."
-  /sbin/service rudder-slapd stop >/dev/null 2>&1
-  /opt/rudder/sbin/slapindex >/dev/null 2>&1
-  echo " Done"
+# Do we need to reindex the LDAP database? This can be necessary if the indexes were changed. Let's check.
+SLAPD_DEFINED_INDEXES=$(mktemp)
+SLAPD_ACTUAL_INDEXES=$(mktemp)
+if [ -r /opt/rudder/etc/openldap/slapd.conf ] && [ -e /var/rudder/ldap/openldap-data/id2entry.bdb ]; then
+	grep ^index /opt/rudder/etc/openldap/slapd.conf | sed 's/\s\+/\t/g' | cut -f2 | sed 's/,/\n/g' | sort > ${SLAPD_DEFINED_INDEXES}
+	ls  /var/rudder/ldap/openldap-data/*.bdb | xargs -n 1 -I{} basename {} .bdb | sort | egrep -v '^(dn2id|id2entry)' > ${SLAPD_ACTUAL_INDEXES}
+	if ! diff ${SLAPD_DEFINED_INDEXES} ${SLAPD_ACTUAL_INDEXES} > /dev/null; then
+		echo -n "INFO: OpenLDAP indexes are not up to date, reindexing..."
+		/sbin/service rudder-slapd stop >/dev/null 2>&1
+		/opt/rudder/sbin/slapindex >/dev/null 2>&1
+		echo " Done"
+	fi
 fi
+# Remove temporary files about LDAP indexes
+rm -f ${SLAPD_DEFINED_INDEXES} ${SLAPD_ACTUAL_INDEXES}
 
 # Need to restart to take schema changes into account
 echo -n "INFO: Restarting rudder-slapd..."

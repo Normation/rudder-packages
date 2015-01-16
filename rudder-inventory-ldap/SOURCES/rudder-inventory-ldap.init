@@ -157,8 +157,6 @@ SLURPD_PID_FILE="$SLAPD_PATH/var/run/slurpd.pid"
 SLURPD_PARAMS=""
 SLURPD_BIN="$SLAPD_PATH/libexec/slurpd"
 
-LDAPSEARCH_BIN="/opt/rudder/bin/ldapsearch"
-
 # BerkeleyDB directory and files
 BDB_PATH="/usr/local/berkeleydb"
 DB_ARCHIVE_BIN="$BDB_PATH/bin/db_archive"
@@ -419,13 +417,6 @@ start_slapd() {
     exit 1
   else
     message "info" "[OK] OpenLDAP started on port $PORT and $SSLPORT"
-    message "info" "[INFO] Prefetching data for cache warmup"
-    LDAP_USER=$(grep "^rootdn" ${SLAPD_CONF} | sed "s/\w*\s*['\"]\?\([^\"']*\)['\"]\?$/\1/")
-    LDAP_PASSWORD=$(grep "^rootpw" ${SLAPD_CONF} | sed "s/\w*\s*['\"]\?\([^\"']*\)['\"]\?$/\1/")
-    LDAP_SERVER='localhost'
-    LDAP_PORT='389'
-    LDAP_PARAMETERS="-H ldap://${LDAP_SERVER}:${LDAP_PORT}/ -D ${LDAP_USER} -w ${LDAP_PASSWORD} -x"
-    nohup ${LDAPSEARCH_BIN} ${LDAP_PARAMETERS} -b cn=rudder-configuration -s sub '*' '+' >/dev/null 2>/dev/null &
   fi
 }
 
