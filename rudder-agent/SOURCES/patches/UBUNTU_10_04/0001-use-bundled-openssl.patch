@@ -11,9 +11,9 @@ diff -Naur debian/control debian/control
  Homepage: http://www.rudder-project.org
  
 diff -Naur debian/rules debian/rules
---- debian/rules	2014-10-14 19:25:24.254087132 +0200
-+++ debian/rules	2014-10-15 15:09:40.638623237 +0200
-@@ -18,6 +18,10 @@
+--- debian/rules	2015-01-07 16:59:41.474039492 +0100
++++ debian/rules	2015-01-07 17:00:28.966243729 +0100
+@@ -17,6 +17,10 @@
  	dh_prep
  	# Add here commands to configure the package.
  	cd SOURCES && ./perl-prepare.sh $(CURDIR)/SOURCES/fusioninventory-agent
@@ -24,7 +24,7 @@ diff -Naur debian/rules debian/rules
  	# Compile the LMDB library and install it in /opt/rudder
  	# LMDB source code does not know how to create destination folders, do it ourselves
  	for i in bin lib include man/man1; do mkdir -p $(CURDIR)/debian/tmp/opt/rudder/$$i; done
-@@ -26,7 +30,7 @@
+@@ -25,7 +29,7 @@
  	# If there is no configure, bootstrap with autogen.sh first
  	cd SOURCES/cfengine-source && [ -x ./configure ] || NO_CONFIGURE=1 ./autogen.sh
  	# Prepare CFEngine 3.6.x build with defined path of LMDB
