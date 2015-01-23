@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #####################################################################################
 # Copyright 2014 Normation SAS
 #####################################################################################
@@ -20,7 +20,7 @@
 set -e
 
 STEP="Script start"
-function anomaly_handler() {
+anomaly_handler() {
   echo ""
   echo "ERROR: An error happened in $0 during the step: ${STEP}"
 }
