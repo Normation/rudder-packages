@@ -61,6 +61,7 @@ trap anomaly_handler ERR INT TERM
 # - 2.11.0 : Add the properties to configure Rudder roles
 # - 2.11.0 : Add LDAP entry for Group with all nodes excluding server components
 # - 2.11.4 : Add the property for the command line to force the server to reload its promises
+# - 2.11.6 : Remove LDAP indexes
 #####################################################################################
 
 # Some variables
@@ -540,6 +541,33 @@ do
     fi
   fi
 done
+
+# - 2.11.6 : Remove LDAP indexes
+STEP="Remove LDAP indexes"
+
+LDAP_REINDEX_NEEDED=0
+for index in activeTechniqueId cn container directiveId isDynamic isEnabled isModified isSystem machineId nodeGroupId nodeId ruleId software softwareId softwareVersion techniqueCategoryId techniqueId uuid
+do
+  if [ -e /var/rudder/ldap/openldap-data/${index}.bdb ]
+  then
+    rm -f /var/rudder/ldap/openldap-data/${index}.bdb
+    LDAP_REINDEX_NEEDED=1
+  fi
+done
+
+if [ ${LDAP_REINDEX_NEEDED} -ne 0 ]; then
+  echo -n "INFO: Unwanted OpenLDAP indexes have been detected and removed, reindexing..."
+
+  # First, remove indexes (excepted objectClass) from slapd.conf
+  sed -ie "/^index\|# Software search/d" ${RUDDER_OPT}/etc/openldap/slapd.conf
+  sed -ie "s/database monitor/index objectClass eq\n\ndatabase monitor/" ${RUDDER_OPT}/etc/openldap/slapd.conf
+
+  # And reindex
+  /sbin/service rudder-slapd stop >/dev/null 2>&1
+  /opt/rudder/sbin/slapindex >/dev/null 2>&1
+  /sbin/service rudder-slapd start >/dev/null 2>&1
+  echo " Done"
+fi
 
 # - 2.10.0 : Add properties to enable and configure the LDAP authentication
 STEP="Add properties to enable and configure the LDAP authentication"
