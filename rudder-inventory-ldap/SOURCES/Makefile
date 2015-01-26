@@ -22,7 +22,7 @@ OPENLDAP_RELEASE = 2.4.30
 RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
 WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget
 
-localdepends: ./openldap-source ./DB_CONFIG ./rudder.schema ./inventory.schema ./slapd.conf ../debian/rudder-slapd.init ../debian/rudder-slapd.default
+localdepends: ./openldap-source ./rudder.schema ./inventory.schema ../debian/rudder-slapd.init ../debian/rudder-slapd.default
 	rm -rf ./openldap.tgz
 
 ./openldap-source: /usr/bin/wget
@@ -38,17 +38,11 @@ localdepends: ./openldap-source ./DB_CONFIG ./rudder.schema ./inventory.schema .
 	tar -xjf rudder-sources.tar.bz2
 	mv rudder-sources-*/ rudder-sources/
 
-./slapd.conf: ./rudder-sources
-	cp ./rudder-sources/ldap-inventory/inventory-repository/src/main/resources/ldap/slapd.conf ./slapd.conf
+./rudder.schema: ./rudder-sources
+	cp ./rudder-sources/rudder/rudder-core/src/main/resources/ldap/rudder.schema ./rudder.schema
 
 ./inventory.schema: ./rudder-sources
 	cp ./rudder-sources/ldap-inventory/inventory-repository/src/main/resources/ldap/inventory.schema ./inventory.schema
-
-./DB_CONFIG: ./rudder-sources
-	cp ./rudder-sources/ldap-inventory/inventory-repository/src/main/resources/ldap/DB_CONFIG ./DB_CONFIG
-
-./rudder.schema: ./rudder-sources
-	cp ./rudder-sources/rudder/rudder-core/src/main/resources/ldap/rudder.schema ./rudder.schema
 
 ../debian/rudder-slapd.init:
 	cp ./rudder-inventory-ldap.init ../debian/rudder-slapd.init
