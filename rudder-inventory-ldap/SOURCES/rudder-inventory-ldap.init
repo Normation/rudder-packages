@@ -379,6 +379,24 @@ start_slapd() {
 		message "info" "[INFO] file descriptor limit not modified (require root privileges)"
 	fi
 
+  # configuration
+  if [ "${RUDDER_CACHESIZE}" != "noauto" ]
+  then
+    if [ "${RUDDER_CACHESIZE}" = "auto" ] || [ "${RUDDER_CACHESIZE}" = "" ]
+    then
+      # calculate the value to use about 10% of RAM
+      MEMSIZE=$(sed -n '/^MemTotal/s/[^0-9]//gp' /proc/meminfo)
+      # Round down using integer division (800 bytes is the size of an entry)
+      CACHESIZE=$((${MEMSIZE} * 1024 / 800 / 10 / 10000 * 10000))
+    else
+      # set cache size to the value provided
+      CACHESIZE=${RUDDER_CACHESIZE}
+    fi
+    sed -ie '/^[ \t]*\(cachesize\|idlcachesize\)/d' /opt/rudder/etc/openldap/slapd.conf
+    sed -ie 's/^\([ \t]*suffix[ \t]\+"cn=rudder-configuration".*\)/\1\ncachesize '${CACHESIZE}'/' /opt/rudder/etc/openldap/slapd.conf
+    sed -ie 's/^\([ \t]*suffix[ \t]\+"cn=rudder-configuration".*\)/\1\nidlcachesize '$((${CACHESIZE}*3))'/' /opt/rudder/etc/openldap/slapd.conf
+  fi
+
 	# Parameters
 	if [ "$SLAPD_CONF_DIR" ]
 	then
