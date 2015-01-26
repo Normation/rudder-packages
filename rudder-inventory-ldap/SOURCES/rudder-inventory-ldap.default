@@ -41,6 +41,14 @@ BACKUP_PATH="/var/rudder/ldap/backup"
 BACKUP_FILE="$BACKUP_PATH/data_`date +%Y%m%d%H%M%S`.ldif"
 BACKUP_SUFFIX="`date +%Y%m%d%H%M%S`.ldif"
 
+# Rudder optimizations
+
+## Specify cachesize to set on the Rudder database for OpenLDAP
+## "auto" means choose the best value depending on number of entries and total machine RAM
+## "noauto" means don't touch it
+## a number means use this value
+RUDDER_CACHESIZE="auto"
+
 # Other
 TIMEOUT="30" # Max time to stop process
 FD_LIMIT="1024" # Max file descriptor
