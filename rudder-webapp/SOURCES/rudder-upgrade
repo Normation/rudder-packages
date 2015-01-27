@@ -564,9 +564,9 @@ if [ ${LDAP_REINDEX_NEEDED} -ne 0 ]; then
   sed -ie "s/database monitor/index objectClass eq\n\ndatabase monitor/" ${RUDDER_OPT}/etc/openldap/slapd.conf
 
   # And reindex
-  /sbin/service rudder-slapd stop >/dev/null 2>&1
+  service rudder-slapd stop >/dev/null 2>&1
   /opt/rudder/sbin/slapindex >/dev/null 2>&1
-  /sbin/service rudder-slapd start >/dev/null 2>&1
+  service rudder-slapd start >/dev/null 2>&1
   echo " Done"
 fi
 
