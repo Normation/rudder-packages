@@ -60,8 +60,9 @@ trap anomaly_handler ERR INT TERM
 # - 2.11.0       : Add LDAP entries for Server Roles system Technique/Directive/Rule
 # - 2.11.0       : Add the properties to configure Rudder roles
 # - 2.11.0       : Add LDAP entry for Group with all nodes excluding server components
-# - 2.11.4 : Add the property for the command line to force the server to reload its promises
-# - 2.11.6 : Remove LDAP indexes
+# - 2.11.4       : Add the property for the command line to force the server to reload its promises
+# - 2.11.6       : Remove LDAP indexes
+# - 2.11.6       : Add LDAP cache optimizations
 # - 3.0.0        : Add the nodeConfigId column in the ReportsExecution table and add the nodes_info table
 # - 3.0.0        : Add the rudder.jdbc.maxPoolSize property
 # - 3.0.0        : File Format migration from 5 to 6
@@ -580,6 +581,15 @@ if [ ${LDAP_REINDEX_NEEDED} -ne 0 ]; then
   /opt/rudder/sbin/slapindex >/dev/null 2>&1
   /sbin/service rudder-slapd start >/dev/null 2>&1
   echo " Done"
+fi
+
+# - 2.11.6 : Add LDAP cache optimizations
+STEP="Enable LDAP cache optimizations"
+
+# DB_CONFIG
+if ! grep -q "set_lk_max_lockers" /var/rudder/ldap/openldap-data/DB_CONFIG
+then
+  sed -i "s%^set_lk_max_locks.*%set_lk_max_locks 40000\nset_lk_max_lockers 40000\nset_lk_max_objects 40000%" /var/rudder/ldap/openldap-data/DB_CONFIG
 fi
 
 # - 2.10.0 : Add properties to enable and configure the LDAP authentication
