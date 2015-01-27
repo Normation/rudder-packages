@@ -54,14 +54,12 @@ localdepends: ./openldap-source ./rudder.schema ./inventory.schema ../debian/rud
 	sudo apt-get --assume-yes install wget
 
 localclean:
-	rm -rf ./openldap-source
-	rm -rf ./slapd.conf
 	rm -rf ../debian/rudder-slapd.init
 	rm -rf ../debian/rudder-slapd.default
+	rm -rf ./rudder-sources
+	rm -rf ./openldap-source
 	rm -rf ./rudder.schema
 	rm -rf ./inventory.schema
-	rm -rf ./DB_CONFIG
-	rm -rf ./rudder-sources
 
 veryclean:
 	rm -f ./rudder-sources.tar.bz2
