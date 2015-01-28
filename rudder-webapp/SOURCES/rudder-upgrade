@@ -142,8 +142,6 @@ LDAPSEARCH="ldapsearch ${LDAP_PARAMETERS} -LLL"
 LDAPMODRDN="ldapmodrdn ${LDAP_PARAMETERS}"
 LDAPADD="ldapadd ${LDAP_PARAMETERS}"
 
-LDAP_EXISTS=$(${LDAPSEARCH} -b "cn=rudder-configuration" -s base dn 2>/dev/null | grep -c "dn: cn=rudder-configuration" || true)
-
 PSQL="psql -q -h ${SQL_SERVER} -p ${SQL_PORT} -U ${SQL_USER}"
 
 GIT_BRANCH_IS_SET=$(grep -c -E "^rudder.(ptlib|techniqueLibrary).git.refs.path=" /opt/rudder/etc/rudder-web.properties || true)
@@ -292,15 +290,19 @@ if [ -d ${CONFIGURATION_REPOSITORY}/.git ];then
 fi
 
 # Check the LDAP and PostgreSQL daemons status before upgrading
-if [ ${LDAP_EXISTS} -ne 0 ]; then
-  echo -n "INFO: Checking LDAP service status..."
-  retry_wrapper "${LDAPSEARCH} -s one -b 'cn=rudder-configuration' cn >/dev/null 2>&1" "LDAP"
-  echo " OK"
-fi
+
+# Using retry_wrapper is necessary because during an upgrade, slapd may be restarted, so we need to wait
+# for it to be available again
+echo -n "INFO: Checking LDAP service status..."
+retry_wrapper "${LDAPSEARCH} -b '' -s base + >/dev/null 2>&1" "LDAP"
+echo " OK"
 
 echo -n "INFO: Checking PostgreSQL service status..."
 retry_wrapper "${PSQL} -t -d rudder -c 'select count(ruleid) from rules' >/dev/null 2>&1" "PostgreSQL"
 echo " OK"
+
+# Check if the LDAP has been initialised
+LDAP_EXISTS=$(${LDAPSEARCH} -b "cn=rudder-configuration" -s base dn 2>/dev/null | grep -c "dn: cn=rudder-configuration" || true)
 
 # Upgrade database schema from 2.3 to 2.4 if necessary - seventh part: Check the lowest fileFormat version in the eventLog and update the date if necessary
 STEP="Upgrade database schema from 2.3 to 2.4 if necessary - seventh part: Check the lowest fileFormat version in the eventLog and update the date if necessary"
