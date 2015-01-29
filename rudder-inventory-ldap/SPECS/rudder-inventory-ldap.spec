@@ -243,6 +243,13 @@ if [ -n "${BACKUP_LDIF}" ]; then
 		echo " Done"
 
 		echo "INFO: OpenLDAP database was successfully upgraded to new format"
+
+		if [ -x /opt/rudder/bin/rudder-upgrade ]
+		then
+			echo "INFO: Running the Rudder upgrade script to replay LDAP migrations on the old database content..."
+			/opt/rudder/bin/rudder-upgrade
+		fi
+
 		echo "INFO: You can safely remove the backups in ${LDAP_BACKUP_DIR}"
 		echo "INFO: and ${BACKUP_LDIF}"
 	fi
