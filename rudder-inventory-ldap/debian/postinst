@@ -24,6 +24,11 @@ case "$1" in
 		invoke-rc.d rsyslog restart >/dev/null 2>&1
 		echo " Done"
 
+		# Reload the linker cache (to acknowledge BerkeleyDB's presence if needed)
+		if [ -e /etc/ld.so.conf.d/rudder-inventory-ldap.conf ]; then
+			ldconfig
+		fi
+
 		RUDDER_SHARE=/opt/rudder/share
 		RUDDER_UPGRADE_TOOLS=${RUDDER_SHARE}/upgrade-tools
 		BACKUP_LDIF_PATH=/var/rudder/ldap/backup/
