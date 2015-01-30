@@ -43,7 +43,6 @@ clean:
 install: build
 	dh_testdir
 	dh_testroot
-	dh_prep  
 	dh_installdirs
 
 	# Add here commands to install the package
@@ -90,7 +89,7 @@ binary-arch: install
 #	dh_perl
 #	dh_makeshlibs
 	dh_installdeb
-	dh_shlibdeps
+#	dh_shlibdeps
 	dh_gencontrol
 	dh_md5sums
 	dh_builddeb
