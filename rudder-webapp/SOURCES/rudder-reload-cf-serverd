@@ -1,3 +1,8 @@
 #!/bin/sh
 
-killall -SIGHUP cf-serverd || kill -SIGHUP $(pidof cf-serverd 2>/dev/null)
+# Search for killall first
+if which killall; then
+  killall -1 cf-serverd
+else # No killall, use kill/pidof instead
+  kill -1 $(pidof cf-serverd 2>/dev/null)
+fi
