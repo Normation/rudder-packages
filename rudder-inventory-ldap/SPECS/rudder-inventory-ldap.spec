@@ -83,23 +83,19 @@ Requires: rsyslog cyrus-sasl openssl
 #Specific requirements
 
 %if 0%{?sles_version} && 0%{?sles_version} == 10
-BuildRequires: db42-devel openssl-devel
-Requires: db42
+BuildRequires: openssl-devel
 %endif
 
 %if 0%{?sles_version} && 0%{?sles_version} == 11
-BuildRequires: libdb-4_5-devel libopenssl-devel
-Requires: libdb-4_5
+BuildRequires: libopenssl-devel
 %endif
 
 %if 0%{?rhel} && 0%{?rhel} < 7
-BuildRequires: db4-devel openssl-devel libtool-ltdl-devel
-Requires: db4
+BuildRequires: openssl-devel libtool-ltdl-devel
 %endif
 
 %if 0%{?rhel} && 0%{?rhel} >= 7
-BuildRequires: libdb-devel openssl-devel libtool-ltdl-devel
-Requires: libdb
+BuildRequires: openssl-devel libtool-ltdl-devel
 %endif
 
 %description
@@ -134,7 +130,7 @@ export CXXFLAGS="$RPM_OPT_FLAGS"
 
 # 1 - BerkeleyDB
 cd berkeleydb-source/build_unix/
-../dist/configure --build=%_target --prefix=%{rudderdir}
+../dist/configure --build=%{_target} --prefix=%{rudderdir}
 
 make %{?_smp_mflags}
 make install
@@ -149,7 +145,7 @@ export CPPFLAGS="-I/opt/rudder/include"
 export LDFLAGS="-L/opt/rudder/lib"
 export LIBS="-L/opt/rudder/lib"
 
-./configure --build=%_target --prefix=%{rudderdir} --libdir=%{rudderdir}/lib/ldap --enable-dynamic --enable-debug --enable-modules --enable-hdb=mod --enable-monitor=mod --enable-dynlist=mod --with-cyrus-sasl
+./configure --build=%{_target} --prefix=%{rudderdir} --libdir=%{rudderdir}/lib/ldap --enable-dynamic --enable-debug --enable-modules --enable-hdb=mod --enable-monitor=mod --enable-dynlist=mod --with-cyrus-sasl
 
 make %{?_smp_mflags} depend
 make %{?_smp_mflags}
@@ -162,6 +158,7 @@ rm -rf %{buildroot}
 
 mkdir -p %{buildroot}/etc/ld.so.conf.d
 mkdir -p %{buildroot}/opt/rudder/
+mkdir -p %{buildroot}/etc/ld.so.conf.d
 mkdir -p %{buildroot}/opt/rudder/etc/server-roles.d/
 mkdir -p %{buildroot}%{rudderlogdir}/ldap
 mkdir -p %{buildroot}/var/rudder/ldap/openldap-data
@@ -294,6 +291,13 @@ if [ -n "${BACKUP_LDIF}" ]; then
 		echo " Done"
 
 		echo "INFO: OpenLDAP database was successfully upgraded to new format"
+
+		if [ -x /opt/rudder/bin/rudder-upgrade ]
+		then
+			echo "INFO: Running the Rudder upgrade script to replay LDAP migrations on the old database content..."
+			/opt/rudder/bin/rudder-upgrade
+		fi
+
 		echo "INFO: You can safely remove the backups in ${LDAP_BACKUP_DIR}"
 		echo "INFO: and ${BACKUP_LDIF}"
 	fi

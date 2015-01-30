@@ -67,6 +67,7 @@ localclean:
 	rm -rf ../debian/rudder-slapd.init
 	rm -rf ../debian/rudder-slapd.default
 	rm -rf ./rudder-sources
+	rm -rf ./berkeleydb-source
 	rm -rf ./openldap-source
 	rm -rf ./berkeleydb-source
 	rm -rf ./rudder.schema
