@@ -58,11 +58,6 @@ case "$1" in
     NB_COPIED_BINARIES=`ls -1 /var/rudder/cfengine-community/bin/ | wc -l`
     if [ ${NB_COPIED_BINARIES} -gt 0 ];then echo "CFEngine binaries copied to workdir"; fi
 
-    for i in cf-agent cf-promises cf-key cf-execd cf-serverd cf-monitord cf-runagent
-    do
-      /var/rudder/cfengine-community/bin/${i} -M | gzip > /opt/rudder/share/man/man8/${i}.8.gz
-    done
-
     # Copy initial promises if there aren't any already
     if [ ! -e /var/rudder/cfengine-community/inputs/promises.cf ]
     then
