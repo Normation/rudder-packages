@@ -328,9 +328,6 @@ cd %{_sourcedir}/openssl-source
 make install INSTALL_PREFIX=%{buildroot}
 %endif
 
-cd %{_sourcedir}/cfengine-source
-make install DESTDIR=%{buildroot} STRIP=""
-
 # Directories
 mkdir -p %{buildroot}%{rudderdir}
 mkdir -p %{buildroot}%{rudderdir}/share/man/man8
@@ -340,6 +337,17 @@ mkdir -p %{buildroot}%{ruddervardir}/cfengine-community/inputs
 mkdir -p %{buildroot}%{ruddervardir}/tmp
 mkdir -p %{buildroot}%{ruddervardir}/tools
 mkdir -p %{buildroot}%{rudderlogdir}/install
+
+cd %{_sourcedir}/cfengine-source
+
+# CFEngine installation
+make install DESTDIR=%{buildroot} STRIP=""
+
+# CFEngine man pages
+for binary in cf-agent cf-promises cf-key cf-execd cf-serverd cf-monitord cf-runagent
+do
+  ${binary}/${binary} -M | gzip > %{buildroot}%{rudderdir}/share/man/man8/${binary}.8.gz
+done
 
 # Init script
 # AIX does not use init scripts, instead we set up a subsystem in the post scriptlet below
