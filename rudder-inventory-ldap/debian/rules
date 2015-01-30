@@ -13,8 +13,8 @@ configure: configure-stamp
 configure-stamp:
 	dh_testdir
 	# Add here commands to configure the package.
-	cd SOURCES/berkeleydb-source/build_unix && ../dist/configure --prefix=/opt/rudder
-	cd SOURCES/openldap-source && LD_LIBRARY_PATH="/opt/rudder/lib" CPPFLAGS="-I/opt/rudder/include" LDFLAGS="-L/opt/rudder/lib" LIBS="-L/opt/rudder/lib" ./configure --prefix=/opt/rudder --libdir=/opt/rudder/lib/ldap --enable-dynamic --enable-debug --enable-modules --enable-hdb=mod --enable-monitor=mod --enable-dynlist=mod --with-cyrus-sasl
+	cd SOURCES/berkeleydb-source/build_unix && ../dist/configure --prefix=/opt/rudder && make && make install prefix=/opt/rudder DESTDIR=$(CURDIR)/debian/tmp
+	cd SOURCES/openldap-source && LD_LIBRARY_PATH="/opt/rudder/lib" CFLAGS="-I/opt/rudder/include -I$(CURDIR)/debian/tmp/opt/rudder/include" CPPFLAGS="$${CFLAGS}" LDFLAGS="-L/opt/rudder/lib -L$(CURDIR)/debian/tmp/opt/rudder/lib" LIBS="$${LDFLAGS}" ./configure --prefix=/opt/rudder --libdir=/opt/rudder/lib/ldap --enable-dynamic --enable-debug --enable-modules --enable-hdb=mod --enable-monitor=mod --enable-dynlist=mod --with-cyrus-sasl
 
 	touch configure-stamp
 
@@ -23,7 +23,6 @@ build: build-stamp
 build-stamp: configure-stamp
 	dh_testdir
 
-	cd SOURCES/berkeleydb-source/build_unix && make
 	cd SOURCES/openldap-source && make depend
 	cd SOURCES/openldap-source && make
 
@@ -48,7 +47,6 @@ install: build
 	dh_installdirs
 
 	# Add here commands to install the package
-	cd SOURCES/berkeleydb-source/build_unix && make install DESTDIR=$(CURDIR)/debian/tmp
 	cd SOURCES/openldap-source && make install DESTDIR=$(CURDIR)/debian/tmp
 
 	# Remove the default config file, we will use our own
