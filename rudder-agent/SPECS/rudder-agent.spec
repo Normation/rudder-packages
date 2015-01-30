@@ -346,7 +346,7 @@ make install DESTDIR=%{buildroot} STRIP=""
 # CFEngine man pages
 for binary in cf-agent cf-promises cf-key cf-execd cf-serverd cf-monitord cf-runagent
 do
-  ${binary}/${binary} -M | gzip > %{buildroot}%{rudderdir}/share/man/man8/${binary}.8.gz
+  LD_LIBRARY_PATH="%{buildroot}%{rudderdir}/lib" ${binary}/${binary} -M | gzip > %{buildroot}%{rudderdir}/share/man/man8/${binary}.8.gz
 done
 
 # Init script
