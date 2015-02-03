@@ -143,7 +143,6 @@ cd openldap-source
 export LD_LIBRARY_PATH="/opt/rudder/lib"
 export CPPFLAGS="-I/opt/rudder/include"
 export LDFLAGS="-L/opt/rudder/lib"
-export LIBS="-L/opt/rudder/lib"
 
 ./configure --build=%{_target} --prefix=%{rudderdir} --libdir=%{rudderdir}/lib/ldap --enable-dynamic --enable-debug --enable-modules --enable-hdb=mod --enable-monitor=mod --enable-dynlist=mod --with-cyrus-sasl
 
