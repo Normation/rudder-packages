@@ -547,12 +547,7 @@ if [ ${CFRUDDER_FIRST_INSTALL} -ne 1 -a -x /etc/init.d/rudder-agent ]; then serv
 slibclean
 %endif
 
-# Set a default server if we don't have one
-if [ ! -e /var/rudder/cfengine-community/policy_server.dat ]
-then
-  echo rudder > /var/rudder/cfengine-community/policy_server.dat
-fi
-
+# Copy CFEngine binaries
 %{cp_a_command} -f /opt/rudder/bin/cf-* /var/rudder/cfengine-community/bin/
 %{cp_a_command} -f /opt/rudder/bin/rpmvercmp /var/rudder/cfengine-community/bin/
 NB_COPIED_BINARIES=`ls -1 /var/rudder/cfengine-community/bin/ | wc -l`
