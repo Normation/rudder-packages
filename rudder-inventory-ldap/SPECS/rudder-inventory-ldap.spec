@@ -34,8 +34,6 @@
 %define ruddervardir     /var/rudder
 %define rudderlogdir     /var/log/rudder
 
-%define openldap_release 2.4.23
-
 %if 0%{?sles_version} 
 %define sysloginitscript /etc/init.d/syslog
 %endif
@@ -74,8 +72,8 @@ Source9: rudder-inventory-ldap.conf
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 #Generic requirement
-BuildRequires: gcc cyrus-sasl-devel
-Requires: rsyslog cyrus-sasl openssl
+BuildRequires: gcc
+Requires: rsyslog openssl
 
 #Specific requirement
 %if 0%{?sles_version} == 11
@@ -134,7 +132,7 @@ export LD_LIBRARY_PATH="/opt/rudder/lib"
 export CPPFLAGS="-I/opt/rudder/include"
 export LDFLAGS="-L/opt/rudder/lib"
 
-./configure --build=%{_target} --prefix=%{rudderdir} --libdir=%{rudderdir}/lib/ldap --enable-dynamic --enable-debug --enable-modules --enable-hdb=mod --enable-monitor=mod --enable-dynlist=mod --with-cyrus-sasl
+./configure --build=%{_target} --prefix=%{rudderdir} --libdir=%{rudderdir}/lib/ldap --enable-dynamic --enable-debug --enable-modules --enable-hdb=mod --enable-monitor=mod --enable-dynlist=mod
 
 make %{?_smp_mflags} depend
 make %{?_smp_mflags}
