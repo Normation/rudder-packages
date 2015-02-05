@@ -1,6 +1,5 @@
-diff -Naur debian/control debian/control
---- debian/control	2014-10-14 19:25:24.254087132 +0200
-+++ debian/control	2014-10-15 15:09:23.986562037 +0200
+--- debian/control	2015-02-04 16:54:57.379101905 +0100
++++ debian/control	2015-02-04 16:39:07.095356589 +0100
 @@ -2,7 +2,7 @@
  Section: admin
  Priority: extra
@@ -10,9 +9,8 @@ diff -Naur debian/control debian/control
  Standards-Version: 3.8.0
  Homepage: http://www.rudder-project.org
  
-diff -Naur debian/rules debian/rules
---- debian/rules	2015-01-07 16:59:41.474039492 +0100
-+++ debian/rules	2015-01-07 17:00:28.966243729 +0100
+--- debian/rules	2015-02-04 16:54:57.379101905 +0100
++++ debian/rules	2015-02-04 16:39:13.271381445 +0100
 @@ -17,6 +17,10 @@
  	dh_prep
  	# Add here commands to configure the package.
@@ -33,7 +31,7 @@ diff -Naur debian/rules debian/rules
  
  	touch configure-stamp
  
-@@ -89,7 +93,7 @@
+@@ -94,7 +98,7 @@
  	# Install an empty uuid.hive file before generating an uuid
  	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ uuid.hive /opt/rudder/etc/
  	# Install /etc/ld.so.conf.d/rudder.conf in order to use libraries contain
@@ -42,12 +40,3 @@ diff -Naur debian/rules debian/rules
  	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder.conf /etc/ld.so.conf.d
  	# Install a verification script for cron
  	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ check-rudder-agent /opt/rudder/bin/
-@@ -107,7 +111,7 @@
- #	dh_perl
- 	dh_makeshlibs
- 	dh_installdeb
--	dh_shlibdeps
-+#	dh_shlibdeps
- 	dh_gencontrol
- 	dh_md5sums
- 	dh_builddeb
