@@ -447,18 +447,13 @@ slibclean
 NB_COPIED_BINARIES=`ls -1 /var/rudder/cfengine-community/bin/ | wc -l`
 if [ ${NB_COPIED_BINARIES} -gt 0 ];then echo "CFEngine binaries copied to workdir"; fi
 
-# Copy initial promises if there aren't any already
-if [ ! -e /var/rudder/cfengine-community/inputs/promises.cf ]
+# Copy initial promises if there aren't any already or,
+# if the cf-promises validation fails, it means we have a broken set of promises (possibly a pre-2.8 set).
+# Reset the initial promises so the server is able to send the agent a new set of correct ones.
+RUDDER_UUID=$(cat /opt/rudder/etc/uuid.hive 2>/dev/null || true)
+if [ ! -e /var/rudder/cfengine-community/inputs/promises.cf ] || ! /var/rudder/cfengine-community/bin/cf-promises >/dev/null 2>&1 && [ "z${RUDDER_UUID}" != "zroot" ]
 then
-  cp -r /opt/rudder/share/initial-promises/* /var/rudder/cfengine-community/inputs
-fi
-
-# If the cf-promises validation fails, it means we have a broken set of promises (possibly a pre-2.8 set).
-# Reset the initial promises so the server is able to send the agent a new set of correct ones.
-RUDDER_UUID=`cat /opt/rudder/etc/uuid.hive 2>/dev/null || true`
-if ! /var/rudder/cfengine-community/bin/cf-promises >/dev/null 2>&1 && [ "z${RUDDER_UUID}" != "zroot" ]
-then
-  rm -rf /var/rudder/cfengine-community/inputs/*
+  rm -rf /var/rudder/cfengine-community/inputs/* || true
   %{cp_a_command} /opt/rudder/share/initial-promises/* /var/rudder/cfengine-community/inputs/
 fi
 
