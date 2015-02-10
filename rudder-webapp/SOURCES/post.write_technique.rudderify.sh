@@ -56,7 +56,8 @@ cd /var/rudder/configuration-repository/techniques/
 if [ -s "${CATEGORY_PATH}" ]; then
 
   #... and is not already added in git, add it
-  HANDLED_BY_GIT=$(git ls-tree -r master --name-only | grep -c "${CATEGORY_PATH}")
+  #  grep return an error if do not find the value, so pipe to true to prevent being trapped 
+  HANDLED_BY_GIT=$(git ls-tree -r master --name-only | grep -c "${CATEGORY_PATH}" || true)
 
   if [ "${HANDLED_BY_GIT}" -eq 0 ];then
     git add ncf_techniques/category.xml
