@@ -540,11 +540,6 @@ slibclean
 NB_COPIED_BINARIES=`ls -1 /var/rudder/cfengine-community/bin/ | wc -l`
 if [ ${NB_COPIED_BINARIES} -gt 0 ];then echo "CFEngine binaries copied to workdir"; fi
 
-for i in cf-agent cf-promises cf-key cf-execd cf-serverd cf-monitord cf-runagent
-do
-  %{ruddervardir}/cfengine-community/bin/${i} -M | gzip > %{ruddervardir}/share/man/man8/${i}.8.gz
-done
-
 # Set up initial promises if necessary
 
 # Backup rudder-server-roles.conf
