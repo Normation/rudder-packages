@@ -68,6 +68,7 @@ trap anomaly_handler ERR INT TERM
 # - 3.0.0        : File Format migration from 5 to 6
 # - 3.0.0        : Add the insertionId column in the ReportsExecution table and fill its value for last nodes run
 # - 3.0.0        : Replace varchar by text in the database
+# - 3.0.2        : Check for the PostgreSQL version (>= 8.4)
 #####################################################################################
 
 # Some variables
@@ -758,6 +759,18 @@ STEP="Replace all occurences of varchar by text in the database"
 RES=$(${PSQL} -t -d rudder -c "select count(1) from information_schema.columns where table_name = 'eventlog' and column_name = 'eventtype' and data_type = 'character varying'")
 if [ ${RES} -eq 0 ]; then
   ${PSQL} -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.11-3.0-remove-varchar.sql > /dev/null 2>&1
+fi
+
+# - 3.0.2        : Check for the PostgreSQL version (>= 8.4)
+STEP="Check for the current PosgresSQL version"
+
+RES=$(psql -V|head -1|cut -d " " -f 3|cut -d . -f 1-2)
+if ${RUDDER_OPT}/bin/rpmvercmp ${RES} lt 8.4; then
+  echo "ERROR: Your PostgreSQL version, ${RES}, is too old and will fail to work properly with Rudder 3.0+."
+  echo "ERROR: Please upgrade to at least 8.4."
+elif ${RUDDER_OPT}/bin/rpmvercmp ${RES} lt 9.1; then
+  echo "WARNING: Your PostgreSQL version, ${RES}, is getting old and will not offer optimal performance with Rudder 3.0+."
+  echo "WARNING: Please upgrade to at least 9.1."
 fi
 
 # For every upgrade, we force the root server to run a new inventory on the next CFEngine run
