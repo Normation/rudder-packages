@@ -65,7 +65,7 @@ install: build
 	# Add the CFEngine man pages in debian/tmp
 	mkdir -p $(CURDIR)/debian/tmp/opt/rudder/share/man/man8
 	cd SOURCES/cfengine-source && for binary in cf-agent cf-promises cf-key cf-execd cf-serverd cf-monitord cf-runagent; do \
-		LD_LIBRARY_PATH="$(CURDIR)/debian/tmp/opt/rudder/lib" $${binary}/$${binary} -M | gzip > $(CURDIR)/debian/tmp/opt/rudder/share/man/man8/$${binary}.8.gz ; \
+		LD_LIBRARY_PATH="$(CURDIR)/debian/tmp/opt/rudder/lib:$${LD_LIBRARY_PATH}" $${binary}/$${binary} -M | gzip > $(CURDIR)/debian/tmp/opt/rudder/share/man/man8/$${binary}.8.gz ; \
 	done
 
 # Build architecture-independent files here.
@@ -112,7 +112,9 @@ binary-arch: install
 #	dh_perl
 	dh_makeshlibs
 	dh_installdeb
-	dh_shlibdeps -- --ignore-missing-info
+	# LD_LIBRARY_PATH necessary to avoid libcrypto detection problems on old OSes like Ubuntu 10.04
+	# Please see http://www.rudder-project.org/redmine/issues/6337 for details
+	LD_LIBRARY_PATH="$(CURDIR)/debian/tmp/opt/rudder/lib:$${LD_LIBRARY_PATH}" dh_shlibdeps -- --ignore-missing-info
 	dh_gencontrol
 	dh_md5sums
 	dh_builddeb
