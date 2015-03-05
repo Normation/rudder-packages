@@ -387,10 +387,14 @@ then
 fi
 
 # Reload configuration of ldd if new configuration has been added
+%if "%{?_os}" != "aix"
+
 %if "%{is_tokyocabinet_here}" != "true" && 0%{?rhel} != 3
 if [ -f /etc/ld.so.conf.d/rudder.conf ]; then
   ldconfig
 fi
+%endif
+
 %endif
 
 # Reload configuration of ldd if new configuration has been added,
@@ -593,6 +597,10 @@ if [ $1 -eq 0 ]; then
   # Make sure that Rudder agent specific files have been removed
   rm -f /etc/init.d/rudder-agent
   rm -f /etc/default/rudder-agent
+%else
+  # Remove the AIX inittab entry and subsystem definition
+  rmssys -s rudder-agent
+  rmitab rudder-agent
 %endif
 
   # Remove UUID in any case
