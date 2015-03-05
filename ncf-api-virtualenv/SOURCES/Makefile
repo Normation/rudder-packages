@@ -19,11 +19,12 @@
 .DEFAULT_GOAL := localdepends
 
 RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
+VIRTUALENV_RELEASE = 12.0.7
 
 TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX)
 WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget -q
 
-localdepends: ./rudder-sources
+localdepends: ./rudder-sources ./virtualenv/virtualenv.py
 	# N/A
 
 ./rudder-sources.tar.bz2:
@@ -33,12 +34,21 @@ localdepends: ./rudder-sources
 	tar -xjf rudder-sources.tar.bz2
 	mv rudder-sources-*/ rudder-sources/
 
+./virtualenv.tgz: /usr/bin/wget
+	# Original URL: https://pypi.python.org/packages/source/v/virtualenv/virtualenv-12.0.7.tar.gz
+	$(WGET) -O virtualenv.tgz http://www.normation.com/tarball/virtualenv/virtualenv-$(VIRTUALENV_RELEASE).tar.gz
+
+./virtualenv/virtualenv.py: ./virtualenv.tgz
+	tar -xzf ./virtualenv.tgz
+	mv ./virtualenv-*/ virtualenv/
+
 localclean:
 	rm -rf rudder-sources
-	rm -f virtualenv.pyc
+	rm -rf virtualenv/
 	rm -rf ncf-api-virtualenv
 
 veryclean:
+	rm -f virtualenv.tgz
 	rm -f rudder-sources.tar.bz2
 
 clean: localclean veryclean

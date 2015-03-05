@@ -113,7 +113,7 @@ of the ncf API easier.
 cd %{_sourcedir}
 
 # Build Virtualenv
-python virtualenv.py %{real_name}
+python virtualenv/virtualenv.py %{real_name}
 
 ## SLES
 %if 0%{?sles_version}
