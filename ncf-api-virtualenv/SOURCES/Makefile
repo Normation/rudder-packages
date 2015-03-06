@@ -24,7 +24,7 @@ VIRTUALENV_RELEASE = 12.0.7
 TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX)
 WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget -q
 
-localdepends: ./rudder-sources ./virtualenv/virtualenv.py
+localdepends: ./rudder-sources ./virtualenv/virtualenv.py ./virtualenv-1.10.1/virtualenv.py
 	# N/A
 
 ./rudder-sources.tar.bz2:
@@ -40,15 +40,24 @@ localdepends: ./rudder-sources ./virtualenv/virtualenv.py
 
 ./virtualenv/virtualenv.py: ./virtualenv.tgz
 	tar -xzf ./virtualenv.tgz
-	mv ./virtualenv-*/ virtualenv/
+	mv ./virtualenv-$(VIRTUALENV_RELEASE)/ virtualenv/
+
+./virtualenv-1.10.1.tgz: /usr/bin/wget
+	# Original URL: https://pypi.python.org/packages/source/v/virtualenv/virtualenv-1.10.1.tar.gz
+	$(WGET) -O virtualenv-1.10.1.tgz http://www.normation.com/tarball/virtualenv/virtualenv-1.10.1.tar.gz
+
+./virtualenv-1.10.1/virtualenv.py: ./virtualenv-1.10.1.tgz
+	tar -xzf ./virtualenv-1.10.1.tgz
 
 localclean:
 	rm -rf rudder-sources
 	rm -rf virtualenv/
+	rm -rf virtualenv-1.10.1/
 	rm -rf ncf-api-virtualenv
 
 veryclean:
 	rm -f virtualenv.tgz
+	rm -f virtualenv-1.10.1.tgz
 	rm -f rudder-sources.tar.bz2
 
 clean: localclean veryclean
