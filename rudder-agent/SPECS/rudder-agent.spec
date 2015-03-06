@@ -470,10 +470,10 @@ then
   CFRUDDER_FIRST_INSTALL=1
 fi
 
-# Reload configuration of ldd if new configuration has been added
-%if 0%{?rhel} != 3
+%if "%{?_os}" != "aix" || 0%{?rhel} != 3
 
 %if "%{use_system_lmdb}" != "true" || "%{use_system_openssl}" != "true"
+# Reload configuration of ldd if new configuration has been added
 if [ -f /etc/ld.so.conf.d/rudder.conf ]; then
   ldconfig
 fi
@@ -704,6 +704,10 @@ if [ $1 -eq 0 ]; then
   # Make sure that Rudder agent specific files have been removed
   rm -f /etc/init.d/rudder-agent
   rm -f /etc/default/rudder-agent
+%else
+  # Remove the AIX inittab entry and subsystem definition
+  rmssys -s rudder-agent
+  rmitab rudder-agent
 %endif
 
   # Remove UUID in any case
