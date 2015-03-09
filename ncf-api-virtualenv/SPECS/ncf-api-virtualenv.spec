@@ -113,14 +113,16 @@ of the ncf API easier.
 cd %{_sourcedir}
 
 # Build Virtualenv
-python virtualenv/virtualenv.py %{real_name}
-
-## SLES
 %if 0%{?sles_version}
+# SLES specific exception, see http://www.rudder-project.org/redmine/issues/6365
+python virtualenv-1.10.1/virtualenv.py %{real_name}
+
 # Using a recent pip on SLES is not possible due to
 # bad interaction between pip and an old OpenSSL.
 # See http://stackoverflow.com/questions/17416938/pip-can-not-install-anything
 %{real_name}/bin/easy_install pip==1.2.1
+%else
+python virtualenv/virtualenv.py %{real_name}
 %endif
 
 # Get all requirements via pip
