@@ -389,7 +389,7 @@ fi
 # Reload configuration of ldd if new configuration has been added
 %if "%{?_os}" != "aix"
 
-%if "%{is_tokyocabinet_here}" != "true" && 0%{?rhel} != 3
+%if "%{is_tokyocabinet_here}" != "true" && "%{?rhel}" != "3"
 if [ -f /etc/ld.so.conf.d/rudder.conf ]; then
   ldconfig
 fi
@@ -399,7 +399,7 @@ fi
 
 # Reload configuration of ldd if new configuration has been added,
 # CentOS 3 style.
-%if "%{is_tokyocabinet_here}" != "true" && 0%{?rhel} == 3
+%if "%{is_tokyocabinet_here}" != "true" && "%{?rhel}" == "3"
 if [ ! `grep "/opt/rudder/lib" /etc/ld.so.conf` ]; then
   echo "/opt/rudder/lib" >> /etc/ld.so.conf
 fi
