@@ -20,6 +20,9 @@ set -e
 case "$1" in
     configure)
 
+      # Get the current apache version
+      APACHE_VERSION=$(apache2 -v|grep Apache|sed "s%^.*Apache/\([0-9].[0-9]\).*%\1%")
+
       # Create the package user
       if ! getent passwd ncf-api-venv >/dev/null; then
         echo -n "INFO: Creating the ncf-api-venv user..."
@@ -29,6 +32,12 @@ case "$1" in
 
       # Enable mod_wsgi in apache
       a2enmod wsgi >/dev/null 2>&1
+
+      # Enable the conf-available entry if running Apache 2.4
+      if [ ${APACHE_VERSION} = 2.4 ]
+      then
+          [ ! -e /etc/apache2/conf-available/ncf-api-virtualenv.conf ] || a2enconf ncf-api-virtualenv
+      fi
 
       echo -n "INFO: Restarting Apache HTTPd..."
       service apache2 restart >/dev/null 2>&1

@@ -28,9 +28,10 @@ case "$1" in
   invoke-rc.d rsyslog restart >/dev/null 2>&1
   echo "Done"
 
+  # Get the current apache version
   APACHE_VERSION=$(apache2 -v|grep Apache|sed "s%^.*Apache/\([0-9].[0-9]\).*%\1%")
 
-  SITES_TO_DISABLE="default rudder-default rudder-default-ssl"
+  SITES_TO_DISABLE="default 000-default default-ssl rudder-default rudder-default-ssl"
   SITES_TO_ENABLE="rudder-vhost rudder-vhost-ssl"
 
   MODULES_TO_ENABLE="dav_fs rewrite proxy_http headers ssl"
@@ -66,6 +67,7 @@ case "$1" in
   chown root:www-data /var/rudder/inventories/accepted-nodes-updates
   chmod 2770 /var/rudder/inventories/accepted-nodes-updates
   chmod 755 -R /opt/rudder/share/tools
+
   htpasswd -bc /opt/rudder/etc/htpasswd-webdav-initial rudder rudder >/dev/null 2>&1
   htpasswd -bc /opt/rudder/etc/htpasswd-webdav rudder rudder >/dev/null 2>&1
 

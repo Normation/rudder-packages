@@ -483,7 +483,7 @@ then
   CFRUDDER_FIRST_INSTALL=1
 fi
 
-%if "%{?_os}" != "aix" || 0%{?rhel} != 3
+%if "%{?_os}" != "aix" || "%{?rhel}" != "3"
 
 %if "%{use_system_lmdb}" != "true" || "%{use_system_openssl}" != "true"
 # Reload configuration of ldd if new configuration has been added
@@ -496,10 +496,9 @@ fi
 
 # Reload configuration of ldd if new configuration has been added,
 # CentOS 3 style.
-%if 0%{?rhel} == 3
+%if "%{?rhel}" == "3"
 
 %if "%{use_system_lmdb}" != "true" || "%{use_system_openssl}" != "true"
-
 if [ ! `grep "/opt/rudder/lib" /etc/ld.so.conf` ]; then
   echo "/opt/rudder/lib" >> /etc/ld.so.conf
 fi
