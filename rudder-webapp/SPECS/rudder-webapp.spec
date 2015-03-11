@@ -329,6 +329,7 @@ chown root:%{apache_group} %{ruddervardir}/inventories/accepted-nodes-updates
 chmod 2770 %{ruddervardir}/inventories/accepted-nodes-updates
 chmod 755 -R %{rudderdir}/share/tools
 chmod 655 -R %{rudderdir}/share/load-page
+
 %{htpasswd_cmd} -bc %{rudderdir}/etc/htpasswd-webdav-initial rudder rudder  >/dev/null 2>&1
 %{htpasswd_cmd} -bc %{rudderdir}/etc/htpasswd-webdav rudder rudder  >/dev/null 2>&1
 
