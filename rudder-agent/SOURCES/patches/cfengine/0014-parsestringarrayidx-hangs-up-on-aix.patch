@@ -1,0 +1,188 @@
+From 94ade8ecf793cafdfc1318b3c56827254d24d1f8 Mon Sep 17 00:00:00 2001
+From: Kristian Amlie <kristian.amlie@cfengine.com>
+Date: Thu, 10 Jul 2014 13:52:11 +0200
+Subject: [PATCH 1/2] Commit original strndup.m4 from gnulib, modifications in
+ next commit.
+
+    Bug #6396 on Rudder redmine
+    Bug #5211 on cfengine bugtracker
+
+---
+ m4/strndup.m4 | 55 +++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 55 insertions(+)
+ create mode 100644 m4/strndup.m4
+
+diff --git a/m4/strndup.m4 b/m4/strndup.m4
+new file mode 100644
+index 0000000..a1f8274
+--- /dev/null
++++ b/m4/strndup.m4
+@@ -0,0 +1,55 @@
++# strndup.m4 serial 21
++dnl Copyright (C) 2002-2003, 2005-2013 Free Software Foundation, Inc.
++dnl This file is free software; the Free Software Foundation
++dnl gives unlimited permission to copy and/or distribute it,
++dnl with or without modifications, as long as this notice is preserved.
++
++AC_DEFUN([gl_FUNC_STRNDUP],
++[
++  dnl Persuade glibc <string.h> to declare strndup().
++  AC_REQUIRE([AC_USE_SYSTEM_EXTENSIONS])
++
++  AC_REQUIRE([AC_CANONICAL_HOST]) dnl for cross-compiles
++  AC_REQUIRE([gl_HEADER_STRING_H_DEFAULTS])
++  AC_CHECK_DECLS_ONCE([strndup])
++  AC_CHECK_FUNCS_ONCE([strndup])
++  if test $ac_cv_have_decl_strndup = no; then
++    HAVE_DECL_STRNDUP=0
++  fi
++
++  if test $ac_cv_func_strndup = yes; then
++    HAVE_STRNDUP=1
++    # AIX 4.3.3, AIX 5.1 have a function that fails to add the terminating '\0'.
++    AC_CACHE_CHECK([for working strndup], [gl_cv_func_strndup_works],
++      [AC_RUN_IFELSE([
++         AC_LANG_PROGRAM([[#include <string.h>
++                           #include <stdlib.h>]], [[
++#if !HAVE_DECL_STRNDUP
++  extern
++  #ifdef __cplusplus
++  "C"
++  #endif
++  char *strndup (const char *, size_t);
++#endif
++  char *s;
++  s = strndup ("some longer string", 15);
++  free (s);
++  s = strndup ("shorter string", 13);
++  return s[13] != '\0';]])],
++         [gl_cv_func_strndup_works=yes],
++         [gl_cv_func_strndup_works=no],
++         [
++changequote(,)dnl
++          case $host_os in
++            aix | aix[3-6]*) gl_cv_func_strndup_works="guessing no";;
++            *)               gl_cv_func_strndup_works="guessing yes";;
++          esac
++changequote([,])dnl
++         ])])
++    case $gl_cv_func_strndup_works in
++      *no) REPLACE_STRNDUP=1 ;;
++    esac
++  else
++    HAVE_STRNDUP=0
++  fi
++])
+
+From ce7ddaaa0ff8ef59ae445a9ef3035cdb93057104 Mon Sep 17 00:00:00 2001
+From: Kristian Amlie <kristian.amlie@cfengine.com>
+Date: Thu, 10 Jul 2014 14:27:20 +0200
+Subject: [PATCH 2/2] Redmine #5211: Detect broken strndup on AIX and provide
+ workaround.
+
+This fixes some *very* elusive crashes, that happen pretty much
+anywhere in CFEngine, the reason is that strndup(src, n) on AIX has a
+bug which allocates memory for strlen(src), but it will *write* n
+bytes, so whenever n > strlen(src) you get memory corruption.
+---
+ configure.ac                                 |  4 +---
+ m4/strndup.m4                                | 34 ++++++++++++----------------
+ tests/acceptance/01_vars/02_functions/420.cf |  4 ----
+ 3 files changed, 16 insertions(+), 26 deletions(-)
+
+diff --git a/configure.ac b/configure.ac
+index b4154af..e44718e 100755
+--- a/configure.ac
++++ b/configure.ac
+@@ -555,9 +555,7 @@ AC_REPLACE_FUNCS(unsetenv)
+ AC_CHECK_DECLS(strnlen)
+ AC_REPLACE_FUNCS(strnlen)
+ 
+-AC_CHECK_DECLS(strndup)
+-AC_REPLACE_FUNCS(strndup, [], [], [#define _GNU_SOURCE 1
+-AC_INCLUDES_DEFAULT])
++cf3_FUNC_STRNDUP
+ 
+ AC_CHECK_DECLS(setlinebuf)
+ AC_REPLACE_FUNCS(setlinebuf)
+diff --git a/m4/strndup.m4 b/m4/strndup.m4
+index a1f8274..99fc83f 100644
+--- a/m4/strndup.m4
++++ b/m4/strndup.m4
+@@ -4,23 +4,20 @@ dnl This file is free software; the Free Software Foundation
+ dnl gives unlimited permission to copy and/or distribute it,
+ dnl with or without modifications, as long as this notice is preserved.
+ 
+-AC_DEFUN([gl_FUNC_STRNDUP],
++AC_DEFUN([cf3_FUNC_STRNDUP],
+ [
+-  dnl Persuade glibc <string.h> to declare strndup().
+-  AC_REQUIRE([AC_USE_SYSTEM_EXTENSIONS])
+-
+   AC_REQUIRE([AC_CANONICAL_HOST]) dnl for cross-compiles
+-  AC_REQUIRE([gl_HEADER_STRING_H_DEFAULTS])
+-  AC_CHECK_DECLS_ONCE([strndup])
+-  AC_CHECK_FUNCS_ONCE([strndup])
++  AC_CHECK_DECLS([strndup])
++  AC_REPLACE_FUNCS([strndup])
+   if test $ac_cv_have_decl_strndup = no; then
+     HAVE_DECL_STRNDUP=0
+   fi
+ 
+   if test $ac_cv_func_strndup = yes; then
+     HAVE_STRNDUP=1
+-    # AIX 4.3.3, AIX 5.1 have a function that fails to add the terminating '\0'.
+-    AC_CACHE_CHECK([for working strndup], [gl_cv_func_strndup_works],
++    # AIX 5.3 has a function that tries to copy the entire range specified
++    # by n, instead of just the length of src.
++    AC_CACHE_CHECK([for working strndup], [cf3_cv_func_strndup_works],
+       [AC_RUN_IFELSE([
+          AC_LANG_PROGRAM([[#include <string.h>
+                            #include <stdlib.h>]], [[
+@@ -32,22 +29,21 @@ AC_DEFUN([gl_FUNC_STRNDUP],
+   char *strndup (const char *, size_t);
+ #endif
+   char *s;
+-  s = strndup ("some longer string", 15);
+-  free (s);
+-  s = strndup ("shorter string", 13);
+-  return s[13] != '\0';]])],
+-         [gl_cv_func_strndup_works=yes],
+-         [gl_cv_func_strndup_works=no],
++  // Will crash if strndup tries to traverse all 2GB.
++  s = strndup ("string", 2000000000);
++  return 0;]])],
++         [cf3_cv_func_strndup_works=yes],
++         [cf3_cv_func_strndup_works=no],
+          [
+ changequote(,)dnl
+           case $host_os in
+-            aix | aix[3-6]*) gl_cv_func_strndup_works="guessing no";;
+-            *)               gl_cv_func_strndup_works="guessing yes";;
++            aix | aix[3-6]*) cf3_cv_func_strndup_works="guessing no";;
++            *)               cf3_cv_func_strndup_works="guessing yes";;
+           esac
+ changequote([,])dnl
+          ])])
+-    case $gl_cv_func_strndup_works in
+-      *no) REPLACE_STRNDUP=1 ;;
++    case $cf3_cv_func_strndup_works in
++      *no) AC_LIBOBJ([strndup]) ;;
+     esac
+   else
+     HAVE_STRNDUP=0
+diff --git a/tests/acceptance/01_vars/02_functions/420.cf b/tests/acceptance/01_vars/02_functions/420.cf
+index fa7ef33..69ac3a9 100644
+--- a/tests/acceptance/01_vars/02_functions/420.cf
++++ b/tests/acceptance/01_vars/02_functions/420.cf
+@@ -46,10 +46,6 @@ body delete init_delete
+ 
+ bundle agent test
+ {
+-  meta:
+-      "test_suppress_fail" string => "aix",
+-        meta => { "redmine5207" };
+-
+   vars:
+       "teststr" string => readfile("$(G.testfile)",1000);
+       "cnt" int => parsestringarray("ary", "$(teststr)","NoComment",":",10,1000);
