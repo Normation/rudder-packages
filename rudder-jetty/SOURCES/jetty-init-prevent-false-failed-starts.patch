@@ -1,0 +1,65 @@
+--- jetty7/bin/jetty.sh	2014-11-21 18:07:18.054680154 +0100
++++ jetty7/bin/jetty.sh	2014-11-21 18:09:53.251459474 +0100
+@@ -117,10 +117,10 @@
+   do
+     sleep 4
+     [ -z "$(grep STARTED $1 2>/dev/null)" ] || return 0
++
+     [ -z "$(grep STOPPED $1 2>/dev/null)" ] || return 1
+     [ -z "$(grep FAILED $1 2>/dev/null)" ] || return 1
+-    local PID=$(cat "$2" 2>/dev/null) || return 1
+-    kill -0 "$PID" 2>/dev/null || return 1
++
+     echo -n ". "
+   done
+ 
+@@ -358,8 +358,8 @@
+ then
+   JETTY_STATE=$JETTY_HOME/jetty.state
+ fi
++
+ JAVA_OPTIONS+=("-Djetty.state=$JETTY_STATE")
+-rm -f $JETTY_STATE
+ 
+ ##################################################
+ # Set default JVM parameters, to be
+@@ -487,7 +487,18 @@
+       exit
+     fi
+ 
+-    if [ $UID -eq 0 ] && type start-stop-daemon > /dev/null 2>&1 
++    if [ $(ps aux|grep -E "java .* /opt/rudder/jetty7/start.jar"|grep -v grep|wc -l) -ne 0 ]
++    then
++      if [ -e ${JETTY_STATE} ] && grep -q "STARTING" ${JETTY_STATE} || grep -q "STARTED" ${JETTY_STATE}
++      then
++        echo "already running."
++        exit 0
++      fi
++    fi
++
++    rm -f ${JETTY_STATE}
++
++    if [ $UID -eq 0 ] && type start-stop-daemon > /dev/null 2>&1
+     then
+       unset CH_USER
+       if [ -n "$JETTY_USER" ]
+@@ -561,7 +572,9 @@
+         sleep 1
+       done
+ 
++      rm -f ${JETTY_STATE}
+       rm -f "$JETTY_PID"
++
+       echo OK
+     else
+       PID=$(cat "$JETTY_PID" 2>/dev/null)
+@@ -580,7 +593,9 @@
+         sleep 1
+       done
+ 
++      rm -f ${JETTY_STATE}
+       rm -f "$JETTY_PID"
++
+       echo OK
+     fi
+ 
