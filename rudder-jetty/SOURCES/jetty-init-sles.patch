@@ -1,15 +1,15 @@
---- jetty7/bin/jetty-sles.sh	2014-03-13 14:05:22.080605960 +0100
-+++ jetty7/bin/jetty-sles.sh	2014-03-13 14:06:07.388526581 +0100
-@@ -464,7 +464,7 @@
-       exit
-     fi
+--- jetty7/bin/jetty-sles.sh	2014-11-21 18:18:10.761944184 +0100
++++ jetty7/bin/jetty-sles.sh	2014-11-21 18:17:40.897795646 +0100
+@@ -512,7 +512,7 @@
  
--    if [ $UID -eq 0 ] && type start-stop-daemon > /dev/null 2>&1 
+     rm -f ${JETTY_STATE}
+ 
+-    if [ $UID -eq 0 ] && type start-stop-daemon > /dev/null 2>&1
 +    if [ "$START_STOP_DAEMON" = "1" ] && [ $UID -eq 0 ] && type start-stop-daemon > /dev/null 2>&1
      then
        unset CH_USER
        if [ -n "$JETTY_USER" ]
-@@ -521,7 +521,7 @@
+@@ -570,7 +570,7 @@
  
    stop)
      echo -n "Stopping Jetty: "
@@ -18,3 +18,4 @@
        start-stop-daemon -K -p"$JETTY_PID" -d"$JETTY_HOME" -a "$JAVA" -s HUP
        
        TIMEOUT=30
+
