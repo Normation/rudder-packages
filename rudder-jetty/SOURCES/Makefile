@@ -56,6 +56,7 @@ localdepends: ./jetty7
 	patch -p0 -s < patches/jetty/jetty-init-sizecheck.patch
 	patch -p0 -s < patches/jetty/jetty-init-use-rudder-jetty-defaults.patch
 	patch -p0 -s < patches/jetty/jetty-init-check-java-version.patch
+	patch -p0 -s < patches/jetty/jetty-init-prevent-false-failed-starts.patch
 
 	cp ./jetty7/bin/jetty.sh ./jetty7/bin/jetty-debian.sh
 	cp ./jetty7/bin/jetty.sh ./jetty7/bin/jetty-rpm.sh
