@@ -3,7 +3,7 @@
 
 <Configure class="org.eclipse.jetty.webapp.WebAppContext">
 
-	<Set name="contextPath">/endpoint</Set>
-	<Set name="war">/opt/rudder/share/webapps/endpoint.war</Set>
+  <Set name="contextPath">/endpoint</Set>
+  <Set name="war">/opt/rudder/share/webapps/endpoint.war</Set>
 
 </Configure>

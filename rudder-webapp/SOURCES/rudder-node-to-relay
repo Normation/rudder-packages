@@ -38,19 +38,19 @@ ECHO=/bin/echo
 RUDDER_OPT=/opt/rudder
 
 usage() {
-	${ECHO} "Usage: $0 <UUID of the node to make a relay server>"
+  ${ECHO} "Usage: $0 <UUID of the node to make a relay server>"
 }
 
 RELAY_UUID=$1
 
 # Check arguments
 if [ "${RELAY_UUID}" = "" ]; then
-	${ECHO} "ERROR: Need the UUID of the Relay server as an argument, aborting."
-	usage
-	exit 1
+  ${ECHO} "ERROR: Need the UUID of the Relay server as an argument, aborting."
+  usage
+  exit 1
 elif [ "${RELAY_UUID}" = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeee" ]; then
-	${ECHO} "ERROR: Please use a real UUID, not the one supplied in the documentation, aborting."
-	exit 1
+  ${ECHO} "ERROR: Please use a real UUID, not the one supplied in the documentation, aborting."
+  exit 1
 fi
 
 ${ECHO} -e "Rudder relay installation script starting, using UUID ${RELAY_UUID}.\n"
@@ -109,18 +109,18 @@ EXISTING_TYPE=$(${LDAPSEARCH} -s base -b "nodeId=${RELAY_UUID},ou=Nodes,cn=rudde
 RELAY_HOSTNAME=$(${LDAPSEARCH} -s base -b "nodeId=${RELAY_UUID},ou=Nodes,ou=Accepted Inventories,ou=Inventories,cn=rudder-configuration" nodeHostname 2>/dev/null | grep "^nodeHostname:" | sed 's%nodeHostname: %%' || true)
 
 if [ "${RELAY_HOSTNAME}" = "" ]; then
-	${ECHO} "ERROR: Cannot find the machine (inventory not found), aborting."
-	exit 1
+  ${ECHO} "ERROR: Cannot find the machine (inventory not found), aborting."
+  exit 1
 fi
 
 if [ "${EXISTING_TYPE}" = "isSystem: FALSE" ]; then
-	${ECHO} -e "INFO: The machine is identified as a regular node, whose name is ${RELAY_HOSTNAME}\n"
+  ${ECHO} -e "INFO: The machine is identified as a regular node, whose name is ${RELAY_HOSTNAME}\n"
 elif [ "${EXISTING_TYPE}" = "isSystem: TRUE" ]; then
-	${ECHO} "INFO: The machine ${RELAY_HOSTNAME} is already either a Rudder relay or root server."
-	exit 1
+  ${ECHO} "INFO: The machine ${RELAY_HOSTNAME} is already either a Rudder relay or root server."
+  exit 1
 else
-	${ECHO} "ERROR: The machine cannot be identified as a functionnal Rudder node (internal inconsistency: isSystem=${EXISTING_TYPE}), aborting."
-	exit 1
+  ${ECHO} "ERROR: The machine cannot be identified as a functionnal Rudder node (internal inconsistency: isSystem=${EXISTING_TYPE}), aborting."
+  exit 1
 fi
 
 TMPFILE=`mktemp`

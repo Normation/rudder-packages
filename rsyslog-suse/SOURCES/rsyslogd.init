@@ -107,14 +107,14 @@
 # Note: Special treatment of stop for LSB conformance
 RSYSLOG_BIN=/sbin/rsyslogd
 test -x $RSYSLOG_BIN || { echo "$RSYSLOG_BIN not installed"; 
-	if [ "$1" = "stop" ]; then exit 0;
-	else exit 5; fi; }
+      if [ "$1" = "stop" ]; then exit 0;
+      else exit 5; fi; }
 
 # Check for existence of needed config file and read it
 RSYSLOG_CONFIG=/etc/sysconfig/syslog
 test -r $RSYSLOG_CONFIG || { echo "$RSYSLOG_CONFIG not existing";
-	if [ "$1" = "stop" ]; then exit 0;
-	else exit 6; fi; }
+      if [ "$1" = "stop" ]; then exit 0;
+      else exit 6; fi; }
 
 # Read config	
 . $RSYSLOG_CONFIG
@@ -162,108 +162,108 @@ rc_reset
 
 case "$1" in
     start)
-	echo -n "Starting rsyslogd "
-	## Start daemon with startproc(8). If this fails
-	## the return value is set appropriately by startproc.
-	/sbin/startproc $RSYSLOG_BIN $SYSLOGD_PARAMS
+      echo -n "Starting rsyslogd "
+      ## Start daemon with startproc(8). If this fails
+      ## the return value is set appropriately by startproc.
+      /sbin/startproc $RSYSLOG_BIN $SYSLOGD_PARAMS
 
-	# Remember status and be verbose
-	rc_status -v
-	;;
+      # Remember status and be verbose
+      rc_status -v
+      ;;
     stop)
-	echo -n "Shutting down rsyslogd "
-	## Stop daemon with killproc(8) and if this fails
-	## killproc sets the return value according to LSB.
+      echo -n "Shutting down rsyslogd "
+      ## Stop daemon with killproc(8) and if this fails
+      ## killproc sets the return value according to LSB.
 
-	/sbin/killproc -TERM $RSYSLOG_BIN
+      /sbin/killproc -TERM $RSYSLOG_BIN
 
-	# Remember status and be verbose
-	rc_status -v
-	;;
+      # Remember status and be verbose
+      rc_status -v
+      ;;
     try-restart|condrestart)
-	## Do a restart only if the service was active before.
-	## Note: try-restart is now part of LSB (as of 1.9).
-	## RH has a similar command named condrestart.
-	if test "$1" = "condrestart"; then
-		echo "${attn} Use try-restart ${done}(LSB)${attn} rather than condrestart ${warn}(RH)${norm}"
-	fi
-	$0 status
-	if test $? = 0; then
-		$0 restart
-	else
-		rc_reset	# Not running is not a failure.
-	fi
-	# Remember status and be quiet
-	rc_status
-	;;
+      ## Do a restart only if the service was active before.
+      ## Note: try-restart is now part of LSB (as of 1.9).
+      ## RH has a similar command named condrestart.
+      if test "$1" = "condrestart"; then
+        echo "${attn} Use try-restart ${done}(LSB)${attn} rather than condrestart ${warn}(RH)${norm}"
+      fi
+      $0 status
+      if test $? = 0; then
+        $0 restart
+      else
+        rc_reset	# Not running is not a failure.
+      fi
+      # Remember status and be quiet
+      rc_status
+      ;;
     restart)
-	## Stop the service and regardless of whether it was
-	## running or not, start it again.
-	$0 stop
-	$0 start
+      ## Stop the service and regardless of whether it was
+      ## running or not, start it again.
+      $0 stop
+      $0 start
 
-	# Remember status and be quiet
-	rc_status
-	;;
+      # Remember status and be quiet
+      rc_status
+      ;;
     force-reload)
-	## Signal the daemon to reload its config. Most daemons
-	## do this on signal 1 (SIGHUP).
-	## If it does not support it, restart the service if it
-	## is running.
+      ## Signal the daemon to reload its config. Most daemons
+      ## do this on signal 1 (SIGHUP).
+      ## If it does not support it, restart the service if it
+      ## is running.
 
-	echo -n "Reload service rsyslogd "
-	## if it supports it:
-	/sbin/killproc -HUP $RSYSLOG_BIN
-	#touch /var/run/rsyslogd.pid
-	rc_status -v
+      echo -n "Reload service rsyslogd "
+      ## if it supports it:
+      /sbin/killproc -HUP $RSYSLOG_BIN
+      #touch /var/run/rsyslogd.pid
+      rc_status -v
 
-	## Otherwise:
-	#$0 try-restart
-	#rc_status
-	;;
+      ## Otherwise:
+      #$0 try-restart
+      #rc_status
+      ;;
     reload)
-	## Like force-reload, but if daemon does not support
-	## signaling, do nothing (!)
+      ## Like force-reload, but if daemon does not support
+      ## signaling, do nothing (!)
 
-	# If it supports signaling:
-	echo -n "Reload service rsyslogd "
-	/sbin/killproc -HUP $RSYSLOG_BIN
-	#touch /var/run/rsyslogd.pid
-	rc_status -v
-	
-	## Otherwise if it does not support reload:
-	#rc_failed 3
-	#rc_status -v
-	;;
+      # If it supports signaling:
+      echo -n "Reload service rsyslogd "
+      /sbin/killproc -HUP $RSYSLOG_BIN
+      #touch /var/run/rsyslogd.pid
+      rc_status -v
+      
+      ## Otherwise if it does not support reload:
+      #rc_failed 3
+      #rc_status -v
+      ;;
     status)
-	echo -n "Checking for service rsyslogd "
-	## Check status with checkproc(8), if process is running
-	## checkproc will return with exit status 0.
+      echo -n "Checking for service rsyslogd "
+      ## Check status with checkproc(8), if process is running
+      ## checkproc will return with exit status 0.
 
-	# Return value is slightly different for the status command:
-	# 0 - service up and running
-	# 1 - service dead, but /var/run/  pid  file exists
-	# 2 - service dead, but /var/lock/ lock file exists
-	# 3 - service not running (unused)
-	# 4 - service status unknown :-(
-	# 5--199 reserved (5--99 LSB, 100--149 distro, 150--199 appl.)
-	
-	# NOTE: checkproc returns LSB compliant status values.
-	/sbin/checkproc $RSYSLOG_BIN
-	# NOTE: rc_status knows that we called this init script with
-	# "status" option and adapts its messages accordingly.
-	rc_status -v
-	;;
+      # Return value is slightly different for the status command:
+      # 0 - service up and running
+      # 1 - service dead, but /var/run/  pid  file exists
+      # 2 - service dead, but /var/lock/ lock file exists
+      # 3 - service not running (unused)
+      # 4 - service status unknown :-(
+      # 5--199 reserved (5--99 LSB, 100--149 distro, 150--199 appl.)
+      
+      # NOTE: checkproc returns LSB compliant status values.
+      /sbin/checkproc $RSYSLOG_BIN
+      # NOTE: rc_status knows that we called this init script with
+      # "status" option and adapts its messages accordingly.
+      rc_status -v
+      ;;
     probe)
-	## Optional: Probe for the necessity of a reload, print out the
-	## argument to this init script which is required for a reload.
-	## Note: probe is not (yet) part of LSB (as of 1.9)
+      ## Optional: Probe for the necessity of a reload, print out the
+      ## argument to this init script which is required for a reload.
+      ## Note: probe is not (yet) part of LSB (as of 1.9)
 
-	test /etc/rsyslogd.conf -nt /var/run/rsyslogd.pid && echo reload
-	;;
+      test /etc/rsyslogd.conf -nt /var/run/rsyslogd.pid && echo reload
+      ;;
     *)
-	echo "Usage: $0 {start|stop|status|try-restart|restart|force-reload|reload|probe}"
-	exit 1
-	;;
+      echo "Usage: $0 {start|stop|status|try-restart|restart|force-reload|reload|probe}"
+      exit 1
+      ;;
 esac
 rc_exit

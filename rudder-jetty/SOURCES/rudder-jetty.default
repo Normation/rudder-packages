@@ -9,7 +9,7 @@
 # Source variables from /opt/rudder/etc/rudder-jetty.conf
 if [ -f /opt/rudder/etc/rudder-jetty.conf ]
 then
-	. /opt/rudder/etc/rudder-jetty.conf
+  . /opt/rudder/etc/rudder-jetty.conf
 fi
 
 # Check wich JVM is installed
