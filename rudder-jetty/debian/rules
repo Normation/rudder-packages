@@ -56,7 +56,7 @@ binary-arch: build install
 #	dh_installpam
 #	dh_installmime
 #	dh_python
-	dh_installinit --no-start
+	dh_installinit --update-rcd-params=disable --no-start
 #	dh_installcron
 #	dh_installinfo
 #	dh_installman
