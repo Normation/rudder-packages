@@ -39,6 +39,8 @@ case "$1" in
 			dpkg-maintscript-helper mv_conffile /etc/logrotate.d/rudder-server-root /etc/logrotate.d/rudder -- "$@"
 		fi
 
+		# Remove legacy rudder-server-root init script
+		update-rc.d -f rudder-server-root remove >/dev/null 2>&1
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)

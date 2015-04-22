@@ -30,7 +30,7 @@ WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget -q
 PATCH := /usr/bin/patch
 FIND := /usr/bin/find
 
-localdepends: ./initial-promises ./rudder-agent-utilities ./detect_os.sh ./files ./fusioninventory-agent ./cfengine-source ./openssl-source ./lmdb-source ../debian/rudder-agent.init ../debian/rudder-agent.default ./rudder-agent.cron ../debian/rudder-agent.cron.d
+localdepends: ./initial-promises ./rudder-agent-utilities ./detect_os.sh ./files ./fusioninventory-agent ./cfengine-source ./openssl-source ./lmdb-source ../debian/rudder-agent.init ../debian/rudder.init ../debian/rudder-agent.default ./rudder-agent.cron ../debian/rudder-agent.cron.d
 	rm -rf $(TMP_DIR)
 
 ./cfengine-source: /usr/bin/wget
@@ -144,6 +144,9 @@ localdepends: ./initial-promises ./rudder-agent-utilities ./detect_os.sh ./files
 ../debian/rudder-agent.default:
 	cp ./rudder-agent.default ../debian/
 
+../debian/rudder.init:
+	cp ./rudder.init ../debian/
+
 ./rudder-agent.cron: ./rudder-sources
 	cp ./rudder-sources/rudder-techniques/techniques/system/common/1.0/rudder_agent_community_cron.st ./rudder-agent.cron
 	# Set unexpanded variables of the cron file
@@ -166,6 +169,7 @@ localclean:
 	rm -rf ./detect_os.sh
 	rm -f ../debian/rudder-agent.init
 	rm -f ../debian/rudder-agent.default
+	rm -f ../debian/rudder.init
 	rm -rf ./fusioninventory-agent
 	rm -rf ./tmp
 	rm -rf ./perl-custom
