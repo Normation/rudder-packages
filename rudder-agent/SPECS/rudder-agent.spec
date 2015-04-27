@@ -71,6 +71,7 @@ Source9: rudder-agent.sh
 Source10: detect_os.sh
 Source11: rudder-perl
 Source12: rudder-agent-utilities
+Source13: rudder.init
 
 # uuidgen doesn't exist on AIX, so we provide a simple shell compatible version
 %if "%{?_os}" == "aix"
@@ -361,6 +362,7 @@ mkdir -p %{buildroot}/etc/init.d
 mkdir -p %{buildroot}/etc/default
 %{install_command} -m 755 %{SOURCE1} %{buildroot}/etc/init.d/rudder-agent
 %{install_command} -m 644 %{SOURCE2} %{buildroot}/etc/default/rudder-agent
+%{install_command} -m 755 %{SOURCE13} %{buildroot}/etc/init.d/rudder
 %endif
 
 # Cron
@@ -474,10 +476,12 @@ then
   /usr/sbin/mkitab "rudder-agent:23456789:once:/usr/bin/startsrc -s rudder-agent"
   # No need to tell init to re-read /etc/inittab, it does it automatically every 60 seconds
 %else
-  chkconfig --add rudder-agent
+  chkconfig --del rudder-agent
+  chkconfig --add rudder
 %endif
   %if 0%{?rhel} && 0%{?rhel} >= 6
-  chkconfig rudder-agent on
+  chkconfig rudder-agent off
+  chkconfig rudder on
   %endif
 
   CFRUDDER_FIRST_INSTALL=1
@@ -714,6 +718,7 @@ if [ $1 -eq 0 ]; then
   rm -f /etc/cron.d/rudder-agent
 
   # Make sure that Rudder agent specific files have been removed
+  rm -f /etc/init.d/rudder
   rm -f /etc/init.d/rudder-agent
   rm -f /etc/default/rudder-agent
 %else
@@ -753,6 +758,7 @@ rm -f %{_builddir}/file.list.%{name}
 /etc/profile.d/rudder-agent.sh
 /etc/init.d/rudder-agent
 /etc/default/rudder-agent
+/etc/init.d/rudder
 /etc/cron.d/rudder-agent
 %endif
 
