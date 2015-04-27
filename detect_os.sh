@@ -36,7 +36,7 @@ if [ "z$(uname -s)" = "zAIX" ]; then
 elif [ -f /etc/SuSE-release ]; then
   export OS="SLES"
   export OSVERSION=$(cat /etc/SuSE-release | grep VERSION | cut -f2 -d '=' | sed 's/ //')
-  export OSSP=$(/etc/SuSE-release | grep PATCHLEVEL | cut -f2 -d '=' | sed 's/ //')
+  export OSSP=$(cat /etc/SuSE-release | grep PATCHLEVEL | cut -f2 -d '=' | sed 's/ //')
 elif [ -f /etc/fedora-release ]; then
   export OS="FEDORA"
   export OSVERSION=$(cat /etc/fedora-release | sed 's/^.* release \([^\.][^\.]\).*$/\1/')
