@@ -400,6 +400,19 @@ if [ ! -f /opt/rudder/etc/ssl/rudder-webapp.crt ] || [ ! -f /opt/rudder/etc/ssl/
 	echo " Done"
 fi
 
+# SELinux support
+# Check "sestatus" presence, and if here, probe if SELinux
+# is enabled. If so, then tweak our installation to be
+# SELinux compliant
+if type sestatus >/dev/null 2>&1
+  if [ $(sestatus | grep -cE "SELinux status:.*enabled") -ne 0 ]
+  then
+    # Adjust the inventory directories SELinux context
+    chcon -Rv --type=httpd_sys_content_t /var/rudder/inventories/incoming
+    chcon -Rv --type=httpd_sys_content_t /var/rudder/inventories/accepted-nodes-updates
+  fi
+fi
+
 echo -n "INFO: Starting Apache HTTPd..."
 service %{apache} start >/dev/null 2>&1
 echo " Done"
