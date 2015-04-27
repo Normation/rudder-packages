@@ -100,6 +100,7 @@ Source16: post.write_technique.rudderify.sh
 Source17: rudder-metrics-reporting
 Source18: ca-bundle.crt
 Source19: rudder-reload-cf-serverd
+Source20: rudder-jetty.pp
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
@@ -189,6 +190,7 @@ mkdir -p %{buildroot}%{rudderdir}/share/tools
 mkdir -p %{buildroot}%{rudderdir}/share/plugins/
 mkdir -p %{buildroot}%{rudderdir}/share/upgrade-tools/
 mkdir -p %{buildroot}%{rudderdir}/share/certificates/
+mkdir -p %{buildroot}%{rudderdir}/share/selinux/
 mkdir -p %{buildroot}%{ruddervardir}/inventories/incoming
 mkdir -p %{buildroot}%{ruddervardir}/inventories/accepted-nodes-updates
 mkdir -p %{buildroot}%{ruddervardir}/inventories/received
@@ -279,6 +281,9 @@ cp %{SOURCE18} %{buildroot}%{rudderdir}/share/certificates/
 # Install documentation
 cp -rf %{_builddir}/rudder-doc/pdf %{buildroot}/usr/share/doc/rudder
 cp -rf %{_builddir}/rudder-doc/html %{buildroot}/usr/share/doc/rudder
+
+# Install SELinux policy
+install -m 644  %{SOURCE20} %{buildroot}%{rudderdir}/share/selinux/
 
 %pre -n rudder-webapp
 #=================================================
@@ -407,9 +412,17 @@ fi
 if type sestatus >/dev/null 2>&1
   if [ $(LANG=C sestatus | grep -cE "SELinux status:.*enabled") -ne 0 ]
   then
+
     # Adjust the inventory directories SELinux context
     chcon -R --type=httpd_sys_content_t /var/rudder/inventories/incoming
     chcon -R --type=httpd_sys_content_t /var/rudder/inventories/accepted-nodes-updates
+
+    # If necessary, add the rudder-webapp SELinux policy
+    if [ $(semodule -l | grep -c rudder-webapp) -eq 0 ]
+    then
+      semodule -i /opt/rudder/share/selinux/rudder-jetty.pp
+    fi
+
   fi
 fi
 
