@@ -1,5 +1,6 @@
 SLES10:python
 SLES11:python
+SLES12:python
 RHEL3:python
 RHEL5:python
 RHEL6:python
