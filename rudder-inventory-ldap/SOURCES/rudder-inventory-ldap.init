@@ -720,6 +720,9 @@ display_status() {
       fi
     done
   fi
+
+  # Final exit code (eqal to $status)
+  exit $status
 }
 
 configtest() {
