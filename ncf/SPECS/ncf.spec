@@ -49,8 +49,6 @@ Source1: rudder-sources
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
 
-#BuildRequires: gcc
-
 # Add Requires here - order is important
 
 %description
