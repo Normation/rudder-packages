@@ -50,7 +50,6 @@ binary-arch: install
 #	dh_installdocs
 #	dh_installexamples
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-server-root /opt/rudder/etc/server-roles.d/
-	dh_installinit --noscripts --no-start --no-restart-on-upgrade --name=rudder-server-root
 #	dh_installmenu
 #	dh_installdebconf
 #	dh_installlogrotate

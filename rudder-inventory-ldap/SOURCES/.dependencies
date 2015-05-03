@@ -1,5 +1,6 @@
-SLES11:gcc libopenssl-devel
 SLES10:gcc openssl-devel
+SLES11:gcc libopenssl-devel
+SLES12:gcc libopenssl-devel
 RHEL5:gcc openssl-devel libtool-ltdl-devel
 RHEL6:gcc openssl-devel libtool-ltdl-devel
 RHEL7:gcc openssl-devel libtool-ltdl-devel
