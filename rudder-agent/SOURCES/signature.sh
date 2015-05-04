@@ -5,8 +5,6 @@ export PATH=/opt/rudder/bin:$PATH
 
 if ! type openssl 2>/dev/null >/dev/null
 then
-  true
-else
   echo "ERROR: openssl binary is missing !"
   exit 1
 fi
@@ -24,7 +22,7 @@ then
 fi
 
 # the key to use for signature
-PRIVKEY=./localhost.priv
+PRIVKEY=/var/rudder/cfengine-community/ppkeys/localhost.priv
 
 # cfengine  passphrase
 PASSPHRASE="Cfengine passphrase"
