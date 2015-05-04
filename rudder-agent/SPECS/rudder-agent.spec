@@ -104,7 +104,7 @@ Requires: crontabs net-tools
 %endif
 
 ## For SLES
-%if 0%{?sles_version}
+%if 0%{?suse_version}
 Requires: cron net-tools
 %endif
 
@@ -138,7 +138,7 @@ Requires: dmidecode
 %endif
 
 ## 3 - SLES: No LMDB yet
-%if 0%{?sles_version}
+%if 0%{?suse_version}
 Requires: pmtools
 %define use_system_lmdb false
 %endif
@@ -177,6 +177,7 @@ Requires: pmtools
 ##
 ### SLES 11 OSes come with OpenSSL 0.9.8h,
 ### which is recent enough.
+### SLES12 has no sles_version defined, but openssl is ok too
 ##
 %if 0%{?sles_version} && 0%{?sles_version} < 11
 %define use_system_openssl false
