@@ -100,7 +100,7 @@ Source16: post.write_technique.rudderify.sh
 Source17: rudder-metrics-reporting
 Source18: ca-bundle.crt
 Source19: rudder-reload-cf-serverd
-Source20: rudder-jetty.pp
+Source20: rudder-webapp.pp
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
@@ -420,7 +420,7 @@ if type sestatus >/dev/null 2>&1
     # If necessary, add the rudder-webapp SELinux policy
     if [ $(semodule -l | grep -c rudder-webapp) -eq 0 ]
     then
-      semodule -i /opt/rudder/share/selinux/rudder-jetty.pp
+      semodule -i /opt/rudder/share/selinux/rudder-webapp.pp
     fi
 
   fi
