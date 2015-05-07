@@ -1,5 +1,5 @@
 #####################################################################################
-# Copyright 2011 Normation SAS
+# Copyright 2011- Normation SAS
 #####################################################################################
 #
 # This program is free software: you can redistribute it and/or modify
@@ -19,19 +19,19 @@
 #=================================================
 # Specification file for rudder-reports
 #
-# Configure Postgresql for Rudder
+# Configure PostgreSQL for Rudder
 #
-# Copyright (C) 2011 Normation
+# Copyright (C) 2011- Normation
 #=================================================
 
 #=================================================
 # Variables
 #=================================================
-%define real_name        rudder-reports
-%define rudderdir        /opt/rudder
-%define ruddervardir     /var/rudder
-%define rudderlogdir     /var/log/rudder
-%define suse_rsyslogpsl  rsyslog-module-pgsql
+%define real_name          rudder-reports
+%define rudderdir          /opt/rudder
+%define ruddervardir       /var/rudder
+%define rudderlogdir       /var/log/rudder
+%define suse_rsyslog_pgsql rsyslog-module-pgsql
 
 #=================================================
 # Header
@@ -54,16 +54,15 @@ Source4: rudder-db
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
 
-#BuildRequires: gcc
 Requires: postgresql-server >= 8
 Requires: rsyslog >= 4
 
 %if 0%{?sles_version} == 10
-Requires: %{suse_rsyslogpsl} >= 4
+Requires: %{suse_rsyslog_pgsql} >= 4
 %endif
 
 %if 0%{?sles_version} == 11
-Requires: %{suse_rsyslogpsl} >= 4
+Requires: %{suse_rsyslog_pgsql} >= 4
 %endif
 
 %if 0%{?el6}
@@ -108,44 +107,65 @@ install -m 644 %{SOURCE4} %{buildroot}/opt/rudder/etc/server-roles.d/
 #=================================================
 # Pre Installation
 #=================================================
-#Check if postgresql is started
-/sbin/service postgresql status > /dev/null
+
+if type systemctl >/dev/null 2>&1; then
+  POSTGRESQL_SERVICE_NAME=$(systemctl -a | awk -F'.' '{print $1}' | grep "postgresql" | tail -n 1)
+elif type chkconfig >/dev/null 2>&1; then
+  POSTGRESQL_SERVICE_NAME=$(chkconfig 2>/dev/null | awk '{ print $1 }' | grep "postgresql" | tail -n 1)
+else
+  POSTGRESQL_SERVICE_NAME=$(ls -1 /etc/init.d | grep "postgresql" | tail -n 1)
+fi
+
+# Check if PostgreSQL is started
+service ${POSTGRESQL_SERVICE_NAME} status > /dev/null
+
 if [ $? -ne 0 ]
 then
 %if 0%{?el6}
-  /sbin/service postgresql initdb
+  service ${POSTGRESQL_SERVICE_NAME} initdb
 %endif
-  /sbin/service postgresql start
-fi
-#HACK: Give rights for login without unix account
-RUDDER_PG_DEFINED=`grep "rudder" /var/lib/pgsql/data/pg_hba.conf | wc -l`
-if [ ${RUDDER_PG_DEFINED} -le 0 ]; then
-	sed -i 1i"host    all             rudder             ::1/128              md5" /var/lib/pgsql/data/pg_hba.conf
-	sed -i 1i"host    all             rudder          127.0.0.1/32            md5" /var/lib/pgsql/data/pg_hba.conf
+  service ${POSTGRESQL_SERVICE_NAME} start
 fi
 
-#Apply changes in postgresql
-/sbin/service postgresql reload
+# HACK: Give rights for login without unix account
+RUDDER_PG_DEFINED=`grep "rudder" /var/lib/pgsql/data/pg_hba.conf | wc -l`
+if [ ${RUDDER_PG_DEFINED} -le 0 ]; then
+  sed -i 1i"host    all             rudder             ::1/128              md5" /var/lib/pgsql/data/pg_hba.conf
+  sed -i 1i"host    all             rudder          127.0.0.1/32            md5" /var/lib/pgsql/data/pg_hba.conf
+
+  # Apply changes in PostgreSQL
+  service ${POSTGRESQL_SERVICE_NAME} reload
+fi
 
 %post -n rudder-reports
 #=================================================
 # Post Installation
 #=================================================
-#Check if postgresql is started
-/sbin/service postgresql status >/dev/null 2>&1
-if [ $? -ne 0 ]
-then
-  /sbin/service postgresql start >/dev/null 2>&1
+
+if type systemctl >/dev/null 2>&1; then
+  POSTGRESQL_SERVICE_NAME=$(systemctl -a | awk -F'.' '{print $1}' | grep "postgresql" | tail -n 1)
+elif type chkconfig >/dev/null 2>&1; then
+  POSTGRESQL_SERVICE_NAME=$(chkconfig 2>/dev/null | awk '{ print $1 }' | grep "postgresql" | tail -n 1)
+else
+  POSTGRESQL_SERVICE_NAME=$(ls -1 /etc/init.d | grep "postgresql" | tail -n 1)
 fi
 
-echo -n "INFO: Setting postgresql as a boot service..."
-/sbin/chkconfig --add postgresql >/dev/null 2>&1
+#Check if PostgreSQL is started
+service ${POSTGRESQL_SERVICE_NAME} status >/dev/null 2>&1
+
+if [ $? -ne 0 ]
+then
+  service ${POSTGRESQL_SERVICE_NAME} start >/dev/null 2>&1
+fi
+
+echo -n "INFO: Setting PostgreSQL as a boot service..."
+chkconfig --add ${POSTGRESQL_SERVICE_NAME} >/dev/null 2>&1
 %if 0%{?rhel} >= 6
-/sbin/chkconfig postgresql on >/dev/null 2>&1
+chkconfig ${POSTGRESQL_SERVICE_NAME} on >/dev/null 2>&1
 %endif
 echo " Done"
 
-echo -n "INFO: Waiting for postgresql to be up..."
+echo -n "INFO: Waiting for PostgreSQL to be up..."
 CPT=0
 TIMEOUT=60
 while ! su - postgres -c "psql -q --output /dev/null -c \"SELECT COUNT(*) FROM pg_catalog.pg_authid\"" >/dev/null 2>&1
@@ -161,29 +181,29 @@ do
 done
 echo " Done"
 
+DBNAME="rudder"
+USERNAME="rudder"
+CHK_PG_DB=$(su - postgres -c "psql -t -c \"select count(1) from pg_catalog.pg_database where datname = '${DBNAME}'\"")
+CHK_PG_USER=$(su - postgres -c "psql -t -c \"select count(1) from pg_user where usename = '${USERNAME}'\"")
 
-dbname="rudder"
-usrname="rudder"
-CHK_PG_DB=$(su - postgres -c "psql -t -c \"select count(1) from pg_catalog.pg_database where datname = '${dbname}'\"")
-CHK_PG_USER=$(su - postgres -c "psql -t -c \"select count(1) from pg_user where usename = '${usrname}'\"")
 # Rudder user
 if [ ${CHK_PG_USER} -eq 0 ]
 then
   echo -n "INFO: Creating Rudder PostgreSQL user..."
-  su - postgres -c "psql -q -c \"CREATE USER ${usrname} WITH PASSWORD 'Normation'\"" >/dev/null 2>&1
+  su - postgres -c "psql -q -c \"CREATE USER ${USERNAME} WITH PASSWORD 'Normation'\"" >/dev/null 2>&1
   echo " Done"
 fi
+
 # Rudder database
 if [ ${CHK_PG_DB} -eq 0 ]
 then
   echo -n "INFO: Creating Rudder PostgreSQL database..."
-  su - postgres -c "psql -q -c \"CREATE DATABASE ${dbname} WITH OWNER = ${usrname}\"" >/dev/null 2>&1
-  echo "localhost:5432:${dbname}:${usrname}:Normation" > /root/.pgpass
+  su - postgres -c "psql -q -c \"CREATE DATABASE ${DBNAME} WITH OWNER = ${USERNAME}\"" >/dev/null 2>&1
+  echo "localhost:5432:${DBNAME}:${USERNAME}:Normation" > /root/.pgpass
   chmod 600 /root/.pgpass
   psql -q -U rudder -h localhost -d rudder -f %{rudderdir}/etc/postgresql/reportsSchema.sql  >/dev/null 2>&1
   echo " Done"
 fi
-
 
 #=================================================
 # Cleaning
