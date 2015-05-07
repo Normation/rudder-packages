@@ -101,6 +101,7 @@ Source17: rudder-metrics-reporting
 Source18: ca-bundle.crt
 Source19: rudder-reload-cf-serverd
 Source20: rudder-webapp.pp
+Source21: rudder-keys
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
@@ -284,6 +285,9 @@ cp -rf %{_builddir}/rudder-doc/html %{buildroot}/usr/share/doc/rudder
 
 # Install SELinux policy
 install -m 644  %{SOURCE20} %{buildroot}%{rudderdir}/share/selinux/
+
+# Install rudder keys
+install -m 755 %{SOURCE21} %{buildroot}%{rudderdir}/bin/
 
 %pre -n rudder-webapp
 #=================================================
