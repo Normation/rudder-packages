@@ -100,7 +100,8 @@ Source16: post.write_technique.rudderify.sh
 Source17: rudder-metrics-reporting
 Source18: ca-bundle.crt
 Source19: rudder-reload-cf-serverd
-Source20: rudder-jetty.pp
+Source20: rudder-webapp.pp
+Source21: rudder-keys
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
@@ -285,6 +286,9 @@ cp -rf %{_builddir}/rudder-doc/html %{buildroot}/usr/share/doc/rudder
 # Install SELinux policy
 install -m 644  %{SOURCE20} %{buildroot}%{rudderdir}/share/selinux/
 
+# Install rudder keys
+install -m 755 %{SOURCE21} %{buildroot}%{rudderdir}/bin/
+
 %pre -n rudder-webapp
 #=================================================
 # Pre Installation
@@ -420,7 +424,7 @@ if type sestatus >/dev/null 2>&1
     # If necessary, add the rudder-webapp SELinux policy
     if [ $(semodule -l | grep -c rudder-webapp) -eq 0 ]
     then
-      semodule -i /opt/rudder/share/selinux/rudder-jetty.pp
+      semodule -i /opt/rudder/share/selinux/rudder-webapp.pp
     fi
 
   fi
