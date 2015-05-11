@@ -432,8 +432,7 @@ if [ ${CHECK_BACKSLASH} -ne 1 ]; then
   echo -n "INFO: Rudder database is not backslash compliant, fixing..."
   ${PSQL} -t -d rudder -c "alter database rudder set standard_conforming_strings=true;" >/dev/null 2>&1
   echo " Done"
-  echo -n "INFO: PostgreSQL and Rudder will be restarted..."
-  service postgresql restart >/dev/null 2>&1
+  echo -n "INFO: Rudder application will now restart..."
   ${JETTY_INIT} restart >/dev/null 2>&1 || echo "WARNING: Jetty failed to start, maybe there is not enough RAM or swap on the machine. Skipping..."
   echo " Done"
 fi
