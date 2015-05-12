@@ -138,8 +138,13 @@ Requires: dmidecode
 %endif
 
 ## 3 - SLES: No LMDB yet
-%if 0%{?suse_version}
+%if 0%{?suse_version} && 0%{?suse_version} < 1315
 Requires: pmtools
+%define use_system_lmdb false
+%endif
+
+%if 0%{?suse_version} && 0%{?suse_version} >= 1315
+Requires: dmidecode
 %define use_system_lmdb false
 %endif
 
