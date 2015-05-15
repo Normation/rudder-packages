@@ -414,6 +414,7 @@ fi
 # is enabled. If so, then tweak our installation to be
 # SELinux compliant
 if type sestatus >/dev/null 2>&1
+then
   if [ $(LANG=C sestatus | grep -cE "SELinux status:.*enabled") -ne 0 ]
   then
 
@@ -426,7 +427,6 @@ if type sestatus >/dev/null 2>&1
     then
       semodule -i /opt/rudder/share/selinux/rudder-webapp.pp
     fi
-
   fi
 fi
 
