@@ -72,6 +72,7 @@ Source10: detect_os.sh
 Source11: rudder-perl
 Source12: rudder-agent-utilities
 Source13: rudder.init
+Source14: signature.sh
 
 # uuidgen doesn't exist on AIX, so we provide a simple shell compatible version
 %if "%{?_os}" == "aix"
@@ -386,6 +387,9 @@ cp -r %{_sourcedir}/initial-promises %{buildroot}%{rudderdir}/share/
 
 # Wrapper script
 %{install_command} -m 755 %{SOURCE3} %{buildroot}/opt/rudder/bin/run-inventory
+
+# Signature script
+%{install_command} -m 755 %{SOURCE14} %{buildroot}/opt/rudder/bin/signature.sh
 
 # Install an empty uuid.hive file before generating an uuid
 cp %{SOURCE4} %{buildroot}%{rudderdir}/etc/
