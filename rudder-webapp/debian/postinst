@@ -92,23 +92,23 @@ case "$1" in
   # SELinux support
   # Check "sestatus" presence, and if here, probe if SELinux
   # is enabled. If so, then tweak our installation to be
-  # SELinux compliant
-  if type sestatus >/dev/null 2>&1
-  then
-    if [ $(LANG=C sestatus | grep -cE "SELinux status:.*enabled") -ne 0 ]
-    then
+  # SELinux compliant, commented until we know how to compile selinux policy on debian
+  #if type sestatus >/dev/null 2>&1
+  #then
+  #  if [ $(LANG=C sestatus | grep -cE "SELinux status:.*enabled") -ne 0 ]
+  #  then
 
       # Adjust the inventory directories SELinux context
-      chcon -R --type=httpd_sys_content_t /var/rudder/inventories/incoming
-      chcon -R --type=httpd_sys_content_t /var/rudder/inventories/accepted-nodes-updates
+  #   chcon -R --type=httpd_sys_content_t /var/rudder/inventories/incoming
+  #    chcon -R --type=httpd_sys_content_t /var/rudder/inventories/accepted-nodes-updates
 
       # If necessary, add the rudder-webapp SELinux policy
-      if [ $(semodule -l | grep -c rudder-webapp) -eq 0 ]
-      then
-        semodule -i /opt/rudder/share/selinux/rudder-jetty.pp
-      fi
-    fi
-  fi
+  #    if [ $(semodule -l | grep -c rudder-webapp) -eq 0 ]
+  #    then
+  #      semodule -i /opt/rudder/share/selinux/rudder-jetty.pp
+  #    fi
+  #  fi
+  #fi
 
   echo -n "INFO: Restarting Apache HTTPd..."
   /etc/init.d/apache2 restart >/dev/null 2>&1
