@@ -100,7 +100,7 @@ Source16: post.write_technique.rudderify.sh
 Source17: rudder-metrics-reporting
 Source18: ca-bundle.crt
 Source19: rudder-reload-cf-serverd
-Source20: rudder-webapp.pp
+Source20: rudder-webapp.te
 Source21: rudder-keys
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -108,6 +108,7 @@ BuildArch: noarch
 
 # Dependencies
 
+BuildRequires: selinux-policy-devel
 Requires: rudder-techniques ncf ncf-api-virtualenv %{apache} %{apache_tools} git-core rsync openssl %{ldap_clients}
 
 # We need the PostgreSQL client utilities so that we can run database checks and upgrades (rudder-upgrade, in particular)
@@ -166,6 +167,10 @@ cp -rf %{_sourcedir}/rudder-doc %{_builddir}
 #=================================================
 %build
 
+# Build SELinux policy package
+make -f /usr/share/selinux/devel/Makefile
+
+# Build rudder-web war
 export MAVEN_OPTS=-Xmx512m
 cd %{_builddir}/rudder-sources/rudder-parent-pom && %{_sourcedir}/maven/bin/mvn -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
 cd %{_builddir}/rudder-sources/rudder-commons    && %{_sourcedir}/maven/bin/mvn -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
@@ -284,6 +289,7 @@ cp -rf %{_builddir}/rudder-doc/pdf %{buildroot}/usr/share/doc/rudder
 cp -rf %{_builddir}/rudder-doc/html %{buildroot}/usr/share/doc/rudder
 
 # Install SELinux policy
+install -m 644  rudder-webapp.pp %{buildroot}%{rudderdir}/share/selinux/
 install -m 644  %{SOURCE20} %{buildroot}%{rudderdir}/share/selinux/
 
 # Install rudder keys
