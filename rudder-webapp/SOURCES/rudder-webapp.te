@@ -1,3 +1,7 @@
+# Source file for rudder-webapp.pp
+# Generate rudder-webapp.pp by running:
+#  make -f /usr/share/selinux/devel/Makefile
+
 module rudder-webapp 1.0;
 
 require {
