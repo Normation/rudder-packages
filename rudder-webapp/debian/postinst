@@ -94,6 +94,7 @@ case "$1" in
   # is enabled. If so, then tweak our installation to be
   # SELinux compliant
   if type sestatus >/dev/null 2>&1
+  then
     if [ $(LANG=C sestatus | grep -cE "SELinux status:.*enabled") -ne 0 ]
     then
 
@@ -106,7 +107,6 @@ case "$1" in
       then
         semodule -i /opt/rudder/share/selinux/rudder-jetty.pp
       fi
-
     fi
   fi
 
