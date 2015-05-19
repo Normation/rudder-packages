@@ -49,5 +49,5 @@ cd /var/rudder/configuration-repository
 ## Commit the new Technique
 STEP="Commiting technique \"${TECHNIQUE}\""
 git add "ncf/50_techniques/${TECHNIQUE}"
-git commit -q -m "Commit ncf Technique \"${TECHNIQUE}\" in Rudder"
+git commit --allow-empty -q -m "Commit ncf Technique \"${TECHNIQUE}\" in Rudder"
 
