@@ -67,7 +67,7 @@ fi
 
 ## Commit the new Technique
 git add "ncf_techniques/${TECHNIQUE}"
-git commit -q -m "Commit meta Technique ${TECHNIQUE}"
+git commit --allow-empty -q -m "Commit meta Technique ${TECHNIQUE}"
 
 # Reload technique library, bypass the ssl verification since we are on localhost
 STEP="Reloading the Techniques using Rudder API. Please reload them manually using Rudder web interface."
