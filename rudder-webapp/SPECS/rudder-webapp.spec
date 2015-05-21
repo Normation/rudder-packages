@@ -107,8 +107,6 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
 
 # Dependencies
-
-BuildRequires: selinux-policy-devel
 Requires: rudder-techniques ncf ncf-api-virtualenv %{apache} %{apache_tools} git-core rsync openssl %{ldap_clients}
 
 # We need the PostgreSQL client utilities so that we can run database checks and upgrades (rudder-upgrade, in particular)
@@ -122,11 +120,11 @@ Requires: postgresql
 
 ## 1 - RHEL
 %if 0%{?rhel} && 0%{?rhel} == 6
-BuildRequires: java7-devel
+BuildRequires: java7-devel selinux-policy
 %endif
 
 %if 0%{?rhel} && 0%{?rhel} >= 7
-BuildRequires: java-devel
+BuildRequires: java-devel selinux-policy-devel
 %endif
 
 %if 0%{?rhel}
@@ -136,7 +134,7 @@ Requires: mod_ssl jetty-eclipse
 ## 2 - Fedora
 %if 0%{?fedora}
 # Cf. https://fedoraproject.org/wiki/Packaging:Java for details
-BuildRequires: java-devel
+BuildRequires: java-devel selinux-policy-devel
 Requires: jetty-server
 %endif
 
@@ -289,8 +287,7 @@ cp -rf %{_builddir}/rudder-doc/pdf %{buildroot}/usr/share/doc/rudder
 cp -rf %{_builddir}/rudder-doc/html %{buildroot}/usr/share/doc/rudder
 
 # Install SELinux policy
-install -m 644  rudder-webapp.pp %{buildroot}%{rudderdir}/share/selinux/
-install -m 644  %{SOURCE20} %{buildroot}%{rudderdir}/share/selinux/
+install -m 644  %{_sourcedir}/rudder-webapp.pp %{buildroot}%{rudderdir}/share/selinux/
 
 # Install rudder keys
 install -m 755 %{SOURCE21} %{buildroot}%{rudderdir}/bin/
@@ -415,6 +412,7 @@ if [ ! -f /opt/rudder/etc/ssl/rudder-webapp.crt ] || [ ! -f /opt/rudder/etc/ssl/
 	echo " Done"
 fi
 
+%if 0%{?rhel} || 0%{?fedora}
 # SELinux support
 # Check "sestatus" presence, and if here, probe if SELinux
 # is enabled. If so, then tweak our installation to be
@@ -435,6 +433,7 @@ then
     fi
   fi
 fi
+%endif
 
 echo -n "INFO: Starting Apache HTTPd..."
 service %{apache} start >/dev/null 2>&1
