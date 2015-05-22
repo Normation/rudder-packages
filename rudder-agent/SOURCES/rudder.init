@@ -47,6 +47,11 @@ get_service_name()
     SERVICE_NAME=$(ls -1 /etc/init.d | grep "${1}" | tail -n 1)
   fi
 
+  # If we can not get the service name, fallback to the user-supplied name
+  if [ -z "${SERVICE_NAME}" ]; then
+    SERVICE_NAME="${1}"
+  fi
+
   echo ${SERVICE_NAME}
 }
 
@@ -69,8 +74,6 @@ if [ "${3}" -eq 1 ]; then
     printf "${GREEN}OK${NORMAL}\n"
   fi
 
-else
-  echo "* ${1}: Role is not present on this machine, skipped."
 fi
 }
 
