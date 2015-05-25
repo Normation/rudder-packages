@@ -70,10 +70,10 @@ binary-arch: install
 	dh_installexamples
 	dh_install
 	# Init script and configuration files
-	cp -f $(CURDIR)/SOURCES/rudder-inventory-ldap.default $(CURDIR)/BUILD/rudder-inventory-ldap
-	dh_install --SOURCEDIR=$(CURDIR)/BUILD/ rudder-inventory-ldap /etc/default/
-	cp -f $(CURDIR)/SOURCES/rudder-inventory-ldap.init $(CURDIR)/BUILD/rudder-inventory-ldap
-	dh_install --SOURCEDIR=$(CURDIR)/BUILD/ rudder-inventory-ldap /etc/init.d/
+	cp -f $(CURDIR)/SOURCES/rudder-inventory-ldap.default $(CURDIR)/BUILD/rudder-slapd
+	dh_install --SOURCEDIR=$(CURDIR)/BUILD/ rudder-slapd /etc/default/
+	cp -f $(CURDIR)/SOURCES/rudder-inventory-ldap.init $(CURDIR)/BUILD/rudder-slapd
+	dh_install --SOURCEDIR=$(CURDIR)/BUILD/ rudder-slapd /etc/init.d/
 	dh_install SOURCES/rsyslog/rudder-slapd.conf /etc/rsyslog.d/
 	# Install /etc/ld.so.conf.d/rudder.conf in order to use libraries contain
 	# in /opt/rudder/lib like BerkeleyDB
