@@ -83,6 +83,11 @@ binary-arch: install
 #	dh_installlogrotate
 #	dh_installmime
 #	dh_python
+        # Init script and configuration files
+	cp -f $(CURDIR)/SOURCES/rudder-agent.default $(CURDIR)/BUILD/rudder-agent
+	dh_install --SOURCEDIR=$(CURDIR)/BUILD/ rudder-agent /etc/default/
+	cp -f $(CURDIR)/SOURCES/rudder-agent.init $(CURDIR)/BUILD/rudder-agent
+	dh_install --SOURCEDIR=$(CURDIR)/BUILD/ rudder-agent /etc/init.d/
 	dh_installinit --name=rudder --no-start -R # restart after upgrade (instead of stop, upgrade, start)
 	# Install the profile.d file (PATH adjustment)
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-agent.sh /etc/profile.d
