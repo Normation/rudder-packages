@@ -120,9 +120,6 @@ binary-arch: install
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-doc pdf /usr/share/doc/rudder
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-doc html /usr/share/doc/rudder
 
-	# Install SELinux policies
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-webapp.pp /opt/rudder/share/selinux/
-
 	# Install rudder-keys
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-keys /opt/rudder/bin/
 
