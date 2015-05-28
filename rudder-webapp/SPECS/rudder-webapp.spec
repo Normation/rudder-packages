@@ -289,7 +289,7 @@ cp -rf %{_builddir}/rudder-doc/pdf %{buildroot}/usr/share/doc/rudder
 cp -rf %{_builddir}/rudder-doc/html %{buildroot}/usr/share/doc/rudder
 
 # Install SELinux policy
-install -m 644  %{_sourcedir}/rudder-webapp.pp %{buildroot}%{rudderdir}/share/selinux/
+install -m 644  %{_builddir}/rudder-webapp.pp %{buildroot}%{rudderdir}/share/selinux/
 
 # Install rudder keys
 install -m 755 %{SOURCE21} %{buildroot}%{rudderdir}/bin/
