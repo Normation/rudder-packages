@@ -157,6 +157,8 @@ application server bundled in the rudder-jetty package.
 #=================================================
 %prep
 
+# Copy the required source files to the build directory
+cp -f %{_sourcedir}/rudder-webapp.te %{_builddir}
 cp -rf %{_sourcedir}/rudder-sources %{_builddir}
 cp -rf %{_sourcedir}/rudder-doc %{_builddir}
 
@@ -166,7 +168,7 @@ cp -rf %{_sourcedir}/rudder-doc %{_builddir}
 %build
 
 # Build SELinux policy package
-make -f /usr/share/selinux/devel/Makefile
+cd %{_builddir} && make -f /usr/share/selinux/devel/Makefile
 
 # Build rudder-web war
 export MAVEN_OPTS=-Xmx512m
@@ -287,7 +289,7 @@ cp -rf %{_builddir}/rudder-doc/pdf %{buildroot}/usr/share/doc/rudder
 cp -rf %{_builddir}/rudder-doc/html %{buildroot}/usr/share/doc/rudder
 
 # Install SELinux policy
-install -m 644  %{_sourcedir}/rudder-webapp.pp %{buildroot}%{rudderdir}/share/selinux/
+install -m 644  %{_builddir}/rudder-webapp.pp %{buildroot}%{rudderdir}/share/selinux/
 
 # Install rudder keys
 install -m 755 %{SOURCE21} %{buildroot}%{rudderdir}/bin/
