@@ -167,8 +167,10 @@ cp -rf %{_sourcedir}/rudder-doc %{_builddir}
 #=================================================
 %build
 
+%if 0%{?rhel} || 0%{?fedora}
 # Build SELinux policy package
 cd %{_builddir} && make -f /usr/share/selinux/devel/Makefile
+%endif
 
 # Build rudder-web war
 export MAVEN_OPTS=-Xmx512m
@@ -288,8 +290,10 @@ cp %{SOURCE18} %{buildroot}%{rudderdir}/share/certificates/
 cp -rf %{_builddir}/rudder-doc/pdf %{buildroot}/usr/share/doc/rudder
 cp -rf %{_builddir}/rudder-doc/html %{buildroot}/usr/share/doc/rudder
 
+%if 0%{?rhel} || 0%{?fedora}
 # Install SELinux policy
 install -m 644  %{_builddir}/rudder-webapp.pp %{buildroot}%{rudderdir}/share/selinux/
+%endif
 
 # Install rudder keys
 install -m 755 %{SOURCE21} %{buildroot}%{rudderdir}/bin/
