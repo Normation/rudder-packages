@@ -12,7 +12,7 @@ export PATH
 ## a new one from scratch if it does not
 if type manpath >/dev/null 2>&1
 then
-    MANPATH=$(manpath -q):/opt/rudder/share/man
+    MANPATH=$(manpath 2> /dev/null):/opt/rudder/share/man
 elif [ ! -z "${MANPATH}" ]
 then
     MANPATH=${MANPATH}:/opt/rudder/share/man
