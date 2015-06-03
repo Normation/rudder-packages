@@ -20,6 +20,13 @@ set -e
 
 case "$1" in
     configure)
+
+        # On a rudder-root-server, we disable all rudder-* init scripts
+        # to prevent interference with rudder-server-root init.
+        for init in rudder-slapd rudder-jetty rudder-agent; do
+            update-rc.d -f ${init} remove >/dev/null
+        done
+
 		# This package is only installed by the root server
 		# then we can set UUID to 'root' serenly
 		echo 'root' > /opt/rudder/etc/uuid.hive
