@@ -109,7 +109,7 @@ install -m 644 %{SOURCE4} %{buildroot}/opt/rudder/etc/server-roles.d/
 #=================================================
 
 if type systemctl >/dev/null 2>&1; then
-  POSTGRESQL_SERVICE_NAME=$(systemctl -a | awk -F'.' '{print $1}' | grep "postgresql" | tail -n 1)
+  POSTGRESQL_SERVICE_NAME=$(systemctl list-unit-files --type service | awk -F'.' '{print $1}' | grep -E "^postgresql[0-9]*$" | tail -n 1)
 elif type chkconfig >/dev/null 2>&1; then
   POSTGRESQL_SERVICE_NAME=$(chkconfig 2>/dev/null | awk '{ print $1 }' | grep "postgresql" | tail -n 1)
 else
@@ -143,7 +143,7 @@ fi
 #=================================================
 
 if type systemctl >/dev/null 2>&1; then
-  POSTGRESQL_SERVICE_NAME=$(systemctl -a | awk -F'.' '{print $1}' | grep "postgresql" | tail -n 1)
+  POSTGRESQL_SERVICE_NAME=$(systemctl list-unit-files --type service | awk -F'.' '{print $1}' | grep -E "^postgresql[0-9]*$" | tail -n 1)
 elif type chkconfig >/dev/null 2>&1; then
   POSTGRESQL_SERVICE_NAME=$(chkconfig 2>/dev/null | awk '{ print $1 }' | grep "postgresql" | tail -n 1)
 else
