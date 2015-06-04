@@ -121,7 +121,7 @@ service ${POSTGRESQL_SERVICE_NAME} status > /dev/null
 
 if [ $? -ne 0 ]
 then
-%if 0%{?el6}
+%if 0%{?rhel} || 0%{?fedora}
   service ${POSTGRESQL_SERVICE_NAME} initdb
 %endif
   service ${POSTGRESQL_SERVICE_NAME} start
