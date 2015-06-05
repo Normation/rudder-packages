@@ -377,15 +377,12 @@ cp -r %{_sourcedir}/initial-promises %{buildroot}%{rudderdir}/share/
 # Install an empty uuid.hive file before generating an uuid
 cp %{SOURCE4} %{buildroot}%{rudderdir}/etc/
 
-# ld.so.conf.d is not supported on CentOS 3
-%if 0%{?rhel} != 3
-
-%if "%{use_system_lmdb}" != "true" || "%{use_system_openssl}" != "true"
+%if 0%{?rhel} != 3 && "%{?_os}" != "aix"
 # Install /etc/ld.so.conf.d/rudder.conf in order to use libraries
 # contained in /opt/rudder/lib like LMDB or OpenSSL
+# (ld.so.conf.d is not supported on RHEL/CentOS 3)
 mkdir -p %{buildroot}/etc/ld.so.conf.d
 %{install_command} -m 644 %{SOURCE6} %{buildroot}/etc/ld.so.conf.d/rudder.conf
-%endif
 
 %endif
 
@@ -470,33 +467,20 @@ then
   CFRUDDER_FIRST_INSTALL=1
 fi
 
-%if "%{?_os}" != "aix" || "%{?rhel}" != "3"
-
-%if "%{use_system_lmdb}" != "true" || "%{use_system_openssl}" != "true"
-# Reload configuration of ldd if new configuration has been added
+%if 0%{?rhel} != 3 && "%{?_os}" != "aix"
+# Reload ld.so configuration if rudder.conf is present
 if [ -f /etc/ld.so.conf.d/rudder.conf ]; then
   ldconfig
 fi
 %endif
 
-%endif
-
-# Reload configuration of ldd if new configuration has been added,
-# CentOS 3 style.
 %if "%{?rhel}" == "3"
-
-%if "%{use_system_lmdb}" != "true" || "%{use_system_openssl}" != "true"
-if [ ! `grep "/opt/rudder/lib" /etc/ld.so.conf` ]; then
+# Update and reload ld.so configuration if needed, RHEL/CentOS 3 style.
+if ! grep -q "/opt/rudder/lib" /etc/ld.so.conf; then
   echo "/opt/rudder/lib" >> /etc/ld.so.conf
+  ldconfig
 fi
-
-# Reload the linker configuration
-ldconfig
 %endif
-
-%endif
-
-# Always do this
 
 # Generate a UUID if we don't have one yet
 if [ ! -e /opt/rudder/etc/uuid.hive ]
@@ -745,14 +729,11 @@ rm -f %{_builddir}/file.list.%{name}
 %dir %{ruddervardir}/cfengine-community/inputs
 %dir %{ruddervardir}/tmp
 %dir %{ruddervardir}/tools
-%if 0%{?rhel} != 3
+%dir %{rudderlogdir}/install
 
-%if "%{use_system_lmdb}" != "true" || "%{use_system_openssl}" != "true"
+%if 0%{?rhel} != 3 && "%{?_os}" != "aix"
 %config(noreplace) /etc/ld.so.conf.d/rudder.conf
 %endif
-
-%endif
-%{rudderlogdir}/install
 
 #=================================================
 # Changelog
