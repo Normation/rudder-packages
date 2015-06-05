@@ -284,12 +284,6 @@ if [ $1 -eq 1 ]
 then
 		echo -e '# This sources the configuration file needed by Rudder\n. /etc/sysconfig/rudder-apache' >> /etc/sysconfig/apache2
 		echo 'DAVLockDB /tmp/davlock.db' > /etc/%{apache}/conf.d/dav_mod.conf
-
-		mkdir -p /var/rudder/configuration-repository
-		mkdir -p /var/rudder/configuration-repository/shared-files
-		touch /var/rudder/configuration-repository/shared-files/.placeholder
-		cp -a %{rudderdir}/share/techniques /var/rudder/configuration-repository/
-		ncf init /var/rudder/configuration-repository/ncf
 fi
 
 # Create the configuration-repository group if it does not exist
@@ -382,13 +376,12 @@ echo "INFO: Launching script to check if a migration is needed"
 echo "INFO: End of migration script"
 
 # Create and populate technique store
-if [ ! -d /var/rudder/configuration-repository ]; then mkdir -p /var/rudder/configuration-repository; fi
-if [ ! -d /var/rudder/configuration-repository/shared-files ]; then mkdir -p /var/rudder/configuration-repository/shared-files; fi
+if [ ! -d /var/rudder/configuration-repository/shared-files ]; then
+  mkdir -p /var/rudder/configuration-repository/shared-files
+  touch /var/rudder/configuration-repository/shared-files/.placeholder
+fi
 if [ ! -d /var/rudder/configuration-repository/techniques ]; then
 	cp -a %{rudderdir}/share/techniques /var/rudder/configuration-repository/
-fi
-if [ ! -d /var/rudder/configuration-repository/ncf ]; then
-	ncf init /var/rudder/configuration-repository/ncf
 fi
 
 # Go into configuration-repository to manage git
