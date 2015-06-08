@@ -101,13 +101,9 @@ case "$1" in
   echo "INFO: End of migration script"
 
 	# Create and populate technique store
-	if [ ! -d /var/rudder/configuration-repository ]; then mkdir -p /var/rudder/configuration-repository; fi
 	if [ ! -d /var/rudder/configuration-repository/shared-files ]; then mkdir -p /var/rudder/configuration-repository/shared-files; fi
 	if [ ! -d /var/rudder/configuration-repository/techniques ]; then
 		cp -a /opt/rudder/share/techniques /var/rudder/configuration-repository/
-	fi
-	if [ ! -d /var/rudder/configuration-repository/ncf ]; then
-		ncf init /var/rudder/configuration-repository/ncf
 	fi
 
   # Go into configuration-repository to manage git
