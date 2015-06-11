@@ -109,6 +109,7 @@ binary-arch: install
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-upgrade-LDAP-schema-2.6-2.7-add-default-global-parameter.ldif /opt/rudder/share/upgrade-tools/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ ldapMigration-2.10-2.11-add-server-roles.ldif /opt/rudder/share/upgrade-tools/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ ldapMigration-2.10-2.11-add-node-without-role-group.ldif /opt/rudder/share/upgrade-tools/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ ldapMigration-3.0-3.1-set-syslog-protocol.ldif /opt/rudder/share/upgrade-tools/
 
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-upgrade /opt/rudder/bin/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-upgrade-database /opt/rudder/bin/

@@ -272,6 +272,7 @@ cp %{_sourcedir}/rudder-upgrade-LDAP-schema-2.6-2.7-add-global-parameter-ou.ldif
 cp %{_sourcedir}/rudder-upgrade-LDAP-schema-2.6-2.7-add-default-global-parameter.ldif %{buildroot}%{rudderdir}/share/upgrade-tools/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ldapMigration-2.10-2.11-add-server-roles.ldif %{buildroot}%{rudderdir}/share/upgrade-tools/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ldapMigration-2.10-2.11-add-node-without-role-group.ldif %{buildroot}%{rudderdir}/share/upgrade-tools/
+cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ldapMigration-3.0-3.1-set-syslog-protocol.ldif %{buildroot}%{rudderdir}/share/upgrade-tools/
 
 cp %{SOURCE5} %{buildroot}%{rudderdir}/bin/
 cp %{SOURCE6} %{buildroot}%{rudderdir}/bin/
