@@ -69,6 +69,7 @@ trap anomaly_handler ERR INT TERM
 # - 3.0.0        : Add the insertionId column in the ReportsExecution table and fill its value for last nodes run
 # - 3.0.0        : Replace varchar by text in the database
 # - 3.0.2        : Check for the PostgreSQL version (>= 8.4)
+# - 3.1.0        : Add LDAP entry for 'rudder_syslog_protocol' property, and set 'tcp' as value, different from default value (udp) on a fresh 3.1
 #####################################################################################
 
 # Some paths
@@ -676,6 +677,15 @@ upgrade_database() {
   # - 3.0.2: Check for the PostgreSQL version (>= 8.4)
   STEP="Check for the current PosgresSQL version"
 
+  # If installing on SLES11 and PostgreSQL 8.3 was used
+  if [ -e /var/lib/pgsql/data/PG_VERSION ]; then
+    CLUSTER_VERSION=$(cat /var/lib/pgsql/data/PG_VERSION)
+    if ${RUDDER_OPT}/bin/rpmvercmp ${CLUSTER_VERSION} lt 8.4; then
+      echo "ERROR: Your running PostgreSQL cluster, in version ${CLUSTER_VERSION}, is too old for Rudder 3.0+"
+      echo "ERROR: Please manually migrate your data to the newer PostgreSQL version installed with Rudder."
+    fi
+  fi
+
   RES=$(psql -V|head -1|cut -d " " -f 3|cut -d . -f 1-2)
   if ${RUDDER_OPT}/bin/rpmvercmp ${RES} lt 8.4; then
     echo "ERROR: Your PostgreSQL version, ${RES}, is too old and will fail to work properly with Rudder 3.0+."
@@ -764,6 +774,16 @@ EOF
     if [ ${LDAP_TEST_SERVER_ROLES_GROUP} -eq 0 ]; then
       echo -n "INFO: Adding system Group of all nodes that are not a Rudder server component..."
       ${LDAPADD} -f ${RUDDER_UPGRADE_TOOLS}/ldapMigration-2.10-2.11-add-node-without-role-group.ldif >/dev/null 2>&1
+      echo " Done."
+    fi
+
+    # - 3.1.0: Add LDAP entry for 'rudder_syslog_protocol' property, and set 'tcp' as value, different from default value (udp) on a fresh 3.1
+    STEP="Add LDAP entry for 'rudder_syslog_protocol' property"
+
+    LDAP_TEST_SYSLOG_PROPERTY=$(${LDAPSEARCH} -b "propertyName=rudder_syslog_protocol,ou=Application Properties,cn=rudder-configuration" -s base dn 2> /dev/null | grep -c "dn: propertyName=rudder_syslog_protocol" || true)
+    if [ ${LDAP_TEST_SYSLOG_PROPERTY} -eq 0 ]; then
+      echo -n "INFO: Adding 'rudder_syslog_protocol' property..."
+      ${LDAPADD} -f ${RUDDER_UPGRADE_TOOLS}/ldapMigration-3.0-3.1-set-syslog-protocol.ldif >/dev/null 2>&1
       echo " Done."
     fi
 

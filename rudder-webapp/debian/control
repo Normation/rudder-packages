@@ -8,7 +8,7 @@ Homepage: http://www.rudder-project.org
 
 Package: rudder-webapp
 Architecture: all
-Depends: ${shlibs:Depends}, ${misc:Depends}, rudder-jetty | jetty | jetty8, rudder-techniques (>= ${binary:Version}), apache2, apache2-utils, ncf, git-core, rsync, lsb-release, openssl, ldap-utils, postgresql-client, ncf-api-virtualenv
+Depends: ${shlibs:Depends}, ${misc:Depends}, rudder-jetty | jetty | jetty8, rudder-techniques (>= ${binary:Version}), apache2, apache2-utils, ncf, git-core, rsync, lsb-release, openssl, ldap-utils, postgresql-client (>=8.4), ncf-api-virtualenv
 # Begin takeover config: in version 2.11, rudder-webapp took over several files from rudder-server-root
 # See http://www.rudder-project.org/redmine/issues/4654
 Replaces: rudder-server-root (<< 2.11)
