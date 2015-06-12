@@ -110,7 +110,7 @@ BuildArch: noarch
 Requires: rudder-techniques ncf ncf-api-virtualenv %{apache} %{apache_tools} git-core rsync openssl %{ldap_clients}
 
 # We need the PostgreSQL client utilities so that we can run database checks and upgrades (rudder-upgrade, in particular)
-Requires: postgresql
+Requires: postgresql >= 8.4
 
 # OS-specific dependencies
 
