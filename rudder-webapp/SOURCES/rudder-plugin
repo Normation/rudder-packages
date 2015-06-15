@@ -1,0 +1,129 @@
+#!/bin/sh
+
+# Plugin handling for Rudder
+#
+# Arguments:
+## register <plugin>:   Register the plugin with Rudder
+## unregister <plugin>: Unregister the plugin from Rudder
+#
+
+set -e
+
+#####################################################
+# Functions
+#####################################################
+
+usage() {
+  echo "ERROR: Usage incorrect."
+  echo "ERROR: Expected usage: ${0} [register|unregister] <plugin>"
+}
+
+if [ $# -ne 2 ]; then
+  usage
+  exit 1
+fi
+
+#####################################################
+# Variables
+#####################################################
+
+ECHO='/bin/echo'
+
+OPERATION="${1}"
+PLUGIN_NAME="${2}"
+
+LEGACY_PLUGINS_DIR='/opt/rudder/jetty7/rudder-plugins'
+PLUGINS_DIR='/opt/rudder/share/rudder-plugins'
+
+CONTEXT_XML='/opt/rudder/share/webapps/rudder.xml'
+
+#####################################################
+# Main
+#####################################################
+
+echo "Rudder plugin handling utility."
+echo ""
+
+# Add an extraClassPath set anchor if it does not yet exist
+if ! grep -q "<Set name=\"extraClasspath\">" ${CONTEXT_XML}; then
+  sed -i "s%</Configure>%  <Set name=\"extraClasspath\"></Set>\n\n</Configure>%" ${CONTEXT_XML}
+fi
+
+# Create the PLUGINS_DIR variable
+
+LEGACY_PLUGIN_REMOVED=0
+
+if [ -e "${PLUGINS_DIR}/${PLUGIN_NAME}.jar" ]; then
+  PLUGIN_PATH="${PLUGINS_DIR}/${PLUGIN_NAME}.jar"
+  echo "INFO: Plugin found in ${PLUGINS_DIR}."
+fi
+
+if [ -e "${LEGACY_PLUGINS_DIR}/${PLUGIN_NAME}.jar" ]; then
+  if [ "z${PLUGIN_PATH}" != "z" ]; then
+    echo "INFO: Legacy plugin found in ${LEGACY_PLUGINS_DIR}."
+    ${ECHO} -n "INFO: Removing legacy plugin to avoid potential compatibility issues..."
+    rm -f "${LEGACY_PLUGINS_DIR}/${PLUGIN_NAME}.jar"
+    LEGACY_PLUGIN_REMOVED=1
+    echo " OK"
+  else
+    PLUGIN_PATH="${LEGACY_PLUGINS_DIR}/${PLUGIN_NAME}.jar"
+    echo "INFO: Legacy plugin found in ${LEGACY_PLUGINS_DIR}."
+  fi
+fi
+
+echo ""
+
+# Abort if no PLUGIN_PATH could be created (= plugin not found)
+if [ "z${PLUGIN_PATH}" = "z" ]; then
+  echo "ERROR: Unable to find the plugin ${PLUGIN_NAME}, please make sure that the name given as an argument is correct, and the plugin is installed."
+  exit 1
+fi
+
+# Get the current extraClasspath
+CURRENT_EXT_CLASSPATH=$(grep extraClasspath ${CONTEXT_XML} | sed "s%^\s*<Set name=\"extraClasspath\">\(.*\)</Set>%\1%")
+
+# Remove the legacy plugin from the extraClasspath
+if [ "${LEGACY_PLUGIN_REMOVED}" -eq 1 ]; then
+  CURRENT_EXT_CLASSPATH=$(echo "${CURRENT_EXT_CLASSPATH}" | sed "s%${LEGACY_PLUGINS_DIR}/${PLUGIN_NAME}.jar%%")
+fi
+
+# Check if the plugin has been registered already
+if echo "${CURRENT_EXT_CLASSPATH}" | grep -q "${PLUGIN_PATH}"; then
+  PLUGIN_REGISTERED=1
+else
+  PLUGIN_REGISTERED=0
+fi
+
+# Register or unregister the plugin
+if [ "z${OPERATION}" = "zregister" ]; then
+
+  if [ ${PLUGIN_REGISTERED} -eq 1 ]; then
+    echo "INFO: Plugin already registered."
+    exit 0
+  else
+    ${ECHO} -n "INFO: Registering plugin ${PLUGIN_NAME}..."
+    FINAL_EXT_CLASSPATH="${CURRENT_EXT_CLASSPATH},${PLUGIN_PATH}"
+  fi
+
+elif [ "z${OPERATION}" = "zunregister" ]; then
+
+  if [ ${PLUGIN_REGISTERED} -eq 0 ]; then
+    echo "INFO: Plugin already unregistered."
+    exit 0
+  else
+    ${ECHO} -n "INFO: Unregistering plugin ${PLUGIN_NAME}..."
+    FINAL_EXT_CLASSPATH=$(echo "${CURRENT_EXT_CLASSPATH}" | sed "s%${PLUGIN_PATH}%%")
+  fi
+
+else
+  usage
+  exit 1
+fi
+
+# Cleanup stray / unwanted chars from the final extraClasspath
+FINAL_EXT_CLASSPATH=$(echo "${FINAL_EXT_CLASSPATH}" | sed "s%,,%,%" | sed "s%^,%%")
+
+# Put the final extraClassPath in the file
+sed -i "s%<Set name=\"extraClasspath\">.*</Set>%<Set name=\"extraClasspath\">${FINAL_EXT_CLASSPATH}</Set>%" ${CONTEXT_XML}
+
+echo " OK"

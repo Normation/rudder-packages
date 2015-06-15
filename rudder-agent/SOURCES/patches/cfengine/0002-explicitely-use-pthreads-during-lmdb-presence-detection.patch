@@ -1,0 +1,19 @@
+commit df1fa55c74f778791ac210c1c701561ad010a6d9
+Author: Matthieu CERDA <matthieu.cerda@normation.com>
+Date:   Thu Jun 19 12:41:41 2014 +0200
+
+    Redmine #6138: Fix configure.ac to use -lpthread during LMDB detection (for systems not using builtin pthread library)
+
+diff --git a/configure.ac b/configure.ac
+index cb09f62..912f5e9 100755
+--- a/configure.ac
++++ b/configure.ac
+@@ -317,7 +317,7 @@ AS_IF([test $WITH_TOKYO -eq 0 && test $WITH_QDBM -eq 0 && (! test -n "$with_lmdb
+ 
+ if test $WITH_LMDB = 1; then
+   CF3_WITH_LIBRARY(lmdb, [
+-    AC_CHECK_LIB(lmdb, mdb_dbi_open, [], [AC_MSG_ERROR(Cannot find Lightning MDB)])
++    AC_CHECK_LIB(lmdb, mdb_dbi_open, [], [AC_MSG_ERROR(Cannot find Lightning MDB)], [-lpthread])
+     AC_CHECK_HEADERS(lmdb.h, [], [AC_MSG_ERROR(Cannot find Lightning MDB)])
+     AC_DEFINE(LMDB, 1, [Define if Lightning MDB is available])
+   ])

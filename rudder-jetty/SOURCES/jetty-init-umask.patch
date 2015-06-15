@@ -4,7 +4,7 @@
  ##################################################
  case "$ACTION" in
    start)
-+    UMASK="0027"
++    UMASK="0007"
 +    echo "Setting umask to ${UMASK}"
      echo -n "Starting Jetty: "
  

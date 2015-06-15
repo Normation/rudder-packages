@@ -48,6 +48,8 @@ binary-arch: build install
 #	dh_installdocs
 	dh_install --sourcedir=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/ reportsSchema.sql /opt/rudder/etc/postgresql/
 	dh_install --sourcedir=$(CURDIR)/SOURCES/ rudder.conf /etc/rsyslog.d/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-reports /opt/rudder/etc/server-roles.d/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-db /opt/rudder/etc/server-roles.d/
 	dh_link
 	dh_strip
 	dh_compress

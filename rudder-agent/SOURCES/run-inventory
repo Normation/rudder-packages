@@ -1,9 +1,54 @@
 #!/bin/sh
 #
-# This script runs an inventory using the FusionInventory agent.
+# This script runs FusionInventory, using either a Rudder provided instance
+# or a system provided one if the first one is not usable.
+#
 # It also sources from /etc/profile beforehand, too fetch environment
 # variables to be inserted into the inventory.
+#
+# Exit codes:
+## 1 - Unable to find FusionInventory
+## 2 - The system FusionInventory instance is too old
+## 3 to inf - FusionInventory return codes
 
 . /etc/profile
 
-/opt/rudder/bin/perl -I /opt/rudder/lib/perl5 /opt/rudder/bin/fusioninventory-agent --config=none "$@"
+# Variable definitions
+
+## Oldest FusionInventory known to work with Rudder
+OLDEST_SUPPORTED_FUSINV_VERSION="2.2"
+OLDEST_SUPPORTED_FUSINV_VERSION_UNDOTTED=$(echo ${OLDEST_SUPPORTED_FUSINV_VERSION} | sed "s%\.%%g")
+
+# Main
+
+if [ -x /opt/rudder/bin/perl ]; then
+
+  # Rudder's perl installation is present, use it.
+  echo "[info] FusionInventory instance: builtin"
+
+  /opt/rudder/bin/perl -I /opt/rudder/lib/perl5 /opt/rudder/bin/fusioninventory-agent --config=none "$@"
+
+elif command -v fusioninventory-agent >/dev/null 2>&1; then
+
+  # A system FusionInventory installation is present (version can have 3 or 4 number, and maybe other char at the end)
+  SYSTEM_FUSINV_VERSION=$(fusioninventory-agent --version | sed 's%.*(\([0-9]\+\)\.\([0-9]\+\).*).*%\1.\2%')
+  if [ "$(echo ${SYSTEM_FUSINV_VERSION} | sed 's%\.%%g')" -ge ${OLDEST_SUPPORTED_FUSINV_VERSION_UNDOTTED} ];then
+
+    # The system FusionInventory installation has an acceptable version, use it.
+    echo "[info] FusionInventory instance: system"
+    fusioninventory-agent --config=none "$@"
+
+  else
+
+    echo "[ERROR] The system FusionInventory version is too old to be used. (Found = ${SYSTEM_FUSINV_VERSION}, Expected >= ${OLDEST_SUPPORTED_FUSINV_VERSION})"
+    exit 2
+
+  fi
+
+else
+
+  # No usable FusionInventory installation has been detected, bail out.
+  echo "[ERROR] No usable FusionInventory instance (either from Rudder or the system) detected."
+  exit 1
+
+fi

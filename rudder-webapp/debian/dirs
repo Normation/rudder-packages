@@ -1,5 +1,6 @@
 opt/rudder/bin
-opt/rudder/jetty7/rudder-plugins
+opt/rudder/share/webapps
+opt/rudder/share/rudder-plugins
 opt/rudder/etc
 opt/rudder/etc/ssl
 opt/rudder/etc/plugins
@@ -17,6 +18,7 @@ var/rudder/inventories/incoming
 var/rudder/inventories/received
 var/rudder/inventories/failed
 var/rudder/inventories/historical
+var/rudder/configuration-repository/ncf/ncf-hooks.d
 var/log/rudder/apache2
 var/log/rudder/ldap
 var/log/rudder/reports

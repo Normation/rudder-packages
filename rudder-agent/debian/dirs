@@ -1,3 +1,4 @@
+etc/ld.so.conf.d
 etc/profile.d
 opt/rudder
 opt/rudder/share/man/man8
@@ -6,3 +7,4 @@ var/rudder/cfengine-community/inputs
 var/rudder/cfengine-community/bin
 opt/rudder/etc
 var/rudder/tmp
+var/log/rudder/install

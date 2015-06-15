@@ -1,0 +1,602 @@
+Rudder issue: http://www.rudder-project.org/redmine/issues/5379
+
+Please see https://dev.cfengine.com/issues/6088 for details.
+
+From 7a1f14b76c08f6bdcbaf074d1f4d6629f1794f9d Mon Sep 17 00:00:00 2001
+From: Kristian Amlie <kristian.amlie@cfengine.com>
+Date: Thu, 19 Jun 2014 12:15:25 +0200
+Subject: [PATCH 1/3] Fix incorrect pointer cast in lock purging code.
+
+NextDB() takes a (void **) pointer, not a (void *), so we would write
+the pointer value into the struct instead, giving incorrect results
+when comparing the time later.
+---
+ libpromises/locks.c | 19 ++++++++++---------
+ 1 file changed, 10 insertions(+), 9 deletions(-)
+
+diff --git a/libpromises/locks.c b/libpromises/locks.c
+index 246b407..f085c02 100644
+--- a/libpromises/locks.c
++++ b/libpromises/locks.c
+@@ -934,7 +934,8 @@ void PurgeLocks(void)
+     CF_DBC *dbcp;
+     char *key;
+     int ksize, vsize;
+-    LockData entry;
++    LockData lock_horizon;
++    LockData *entry = NULL;
+     time_t now = time(NULL);
+ 
+     CF_DB *dbp = OpenLock();
+@@ -944,11 +945,11 @@ void PurgeLocks(void)
+         return;
+     }
+ 
+-    memset(&entry, 0, sizeof(entry));
++    memset(&lock_horizon, 0, sizeof(lock_horizon));
+ 
+-    if (ReadDB(dbp, "lock_horizon", &entry, sizeof(entry)))
++    if (ReadDB(dbp, "lock_horizon", &lock_horizon, sizeof(lock_horizon)))
+     {
+-        if (now - entry.time < SECONDS_PER_WEEK * 4)
++        if (now - lock_horizon.time < SECONDS_PER_WEEK * 4)
+         {
+             Log(LOG_LEVEL_VERBOSE, "No lock purging scheduled");
+             CloseLock(dbp);
+@@ -964,7 +965,7 @@ void PurgeLocks(void)
+         return;
+     }
+ 
+-    while (NextDB(dbcp, &key, &ksize, (void *) &entry, &vsize))
++    while (NextDB(dbcp, &key, &ksize, (void **)&entry, &vsize))
+     {
+ #ifdef LMDB
+         if (key[0] == 'X')
+@@ -979,17 +980,17 @@ void PurgeLocks(void)
+         }
+ #endif
+ 
+-        if (now - entry.time > (time_t) CF_LOCKHORIZON)
++        if (now - entry->time > (time_t) CF_LOCKHORIZON)
+         {
+-            Log(LOG_LEVEL_VERBOSE, " --> Purging lock (%jd) %s", (intmax_t)(now - entry.time), key);
++            Log(LOG_LEVEL_VERBOSE, " --> Purging lock (%jd) %s", (intmax_t)(now - entry->time), key);
+             DBCursorDeleteEntry(dbcp);
+         }
+     }
+ 
+-    entry.time = now;
++    lock_horizon.time = now;
+     DeleteDBCursor(dbcp);
+ 
+-    WriteDB(dbp, "lock_horizon", &entry, sizeof(entry));
++    WriteDB(dbp, "lock_horizon", &lock_horizon, sizeof(lock_horizon));
+     CloseLock(dbp);
+ }
+ 
+-- 
+2.0.3
+
+
+From 314be2c078e29ad67abcd7a31558796cce1bda8b Mon Sep 17 00:00:00 2001
+From: Kristian Amlie <kristian.amlie@cfengine.com>
+Date: Thu, 19 Jun 2014 13:27:24 +0200
+Subject: [PATCH 2/3] Introduce timed tests in acceptance test framework.
+
+They enable waiting for a period of time, for example to let locks
+expire, while running other, non-timed tests in the meantime. See the
+README for more details.
+---
+ tests/acceptance/README     |  35 ++++++++++-
+ tests/acceptance/dcs.cf.sub |   8 +++
+ tests/acceptance/testall    | 150 +++++++++++++++++++++++++++++++++++---------
+ 3 files changed, 164 insertions(+), 29 deletions(-)
+
+diff --git a/tests/acceptance/README b/tests/acceptance/README
+index 0a990b4..698ebbf 100644
+--- a/tests/acceptance/README
++++ b/tests/acceptance/README
+@@ -79,7 +79,8 @@ or directories to 'testall':
+ Creating/editing test cases
+ ------------------------------------------------------------------------------
+ 
+-Each test should be 100% standalone, and must contain at least 3 main bundles:
++Each test should be 100% standalone, and must contain at least 1 of the main
++bundles:
+ 	init		setup, create initial and hoped-for final states
+ 	test		the actual test code
+ 	check		the comparison of expected and actual results
+@@ -123,6 +124,38 @@ If you want to use tools like grep, diff, touch, etc, please use the
+ $(G.grep) format so that the correct path to the tool is chosen by
+ this template. If a tool is missing you can add it to the list below.
+ 
++------------------------------------------------------------------------------
++Waiting in tests
++------------------------------------------------------------------------------
++
++If your test needs to wait for a significant amount of time, for example in
++order for locks to expire, you should use the wait functionality in the test
++suite. It requires three parts:
++
++  1. Your test needs to be put in a "timed" directory.
++  2. Whenever you want to wait, use the
++     "dcs_wait($(this.promise_filename), <seconds>)" method to wait the
++     specified number of seconds.
++  3. Each test invocation will have a predefined class set,
++     "test_pass_<number>", where <number> is the current pass number starting
++     from one. This means you can wait several times.
++
++The test suite will keep track of time, and run other tests while your test is
++waiting. Some things to look out for though:
++
++  - During the wait time, your test is no longer running, so you cannot for
++    example do polling.
++  - You cannot leave daemons running while waiting, because it may interfere
++    with other tests. If you need that you will have to wait the traditional
++    way, by introducing sleeps in the policy itself.
++  - The timing is not guaranteed to be accurate to the second. The test will be
++    resumed as soon as the current test has finished running, but if it takes
++    a long time, this will add to the wait time.
++
++------------------------------------------------------------------------------
++Handling different platforms
++------------------------------------------------------------------------------
++
+ For tests that need to be skipped on certain platforms, you can add
+ special meta variables to one of the test bundles. These are the
+ possible variable names:
+diff --git a/tests/acceptance/dcs.cf.sub b/tests/acceptance/dcs.cf.sub
+index 2676644..bf3c6e0 100644
+--- a/tests/acceptance/dcs.cf.sub
++++ b/tests/acceptance/dcs.cf.sub
+@@ -574,6 +574,14 @@ bundle agent dcs_fail(test)
+       "$(this.bundle): Explicitly failing...";
+ }
+ 
++bundle agent dcs_wait(test, seconds)
++{
++  reports:
++      "$(test) Wait/$(seconds)";
++    EXTRA::
++      "$(this.bundle): Explicitly waiting $(seconds) seconds...";
++}
++
+ bundle agent dcs_passif_fileexists(file, test)
+ {
+   classes:
+diff --git a/tests/acceptance/testall b/tests/acceptance/testall
+index 50ee883..e6c4805 100755
+--- a/tests/acceptance/testall
++++ b/tests/acceptance/testall
+@@ -64,6 +64,7 @@ XML=test.xml
+ XMLTMP=xml.tmp
+ BASE_WORKDIR="$(pwd)/workdir"
+ QUIET=
++TIMED_TESTS=${TIMED_TESTS:-1}
+ CRASHING_TESTS=${CRASHING_TESTS:-1}
+ STAGING_TESTS=${STAGING_TESTS:-0}
+ NETWORK_TESTS=${NETWORK_TESTS:-1}
+@@ -74,6 +75,18 @@ BASECLASSES="AUTO"
+ EXTRACLASSES="DEBUG"
+ VALGRIND_OPTS="--leak-check=full --show-reachable=yes --suppressions=valgrind-suppressions"
+ 
++# Use TEST_INDEX for indexing a poor man's array. Basically the subscript is
++# just appended to the variable name.
++TEST_INDEX=0
++TEST_TIMED_INDEX=0
++#TESTS_TIMED_<index>=0
++#TESTS_TIMEOUT_<index>=0
++#TESTS_PASSES_<index>=0
++TESTS_COUNT=0
++TESTS_NORMAL_COUNT=0
++TESTS_TIMED_COUNT=0
++TESTS_TIMED_REMAINING=0
++
+ case "$OSTYPE" in
+   msys)
+     if whoami -priv | grep SeTakeOwnershipPrivilege > /dev/null; then
+@@ -215,6 +228,8 @@ usage() {
+   echo
+   echo " --no-crashing disable tests that are expected to crash (for use with valgrind)."
+   echo
++  echo " --no-timed disable timed tests that may introduce wait times."
++  echo
+   echo " --printlog   print the full test.log output immediately.  Override with $PRINTLOG"
+   echo
+   echo " --gdb         Run test under GDB"
+@@ -224,12 +239,20 @@ usage() {
+   echo "            (by default it gets cleaned only if test passed)."
+ }
+ 
++# Takes the following arguments:
++# 1. Agent - The agent to execute.
++# 2. Test - The test to execute.
++# 3. Pass number - [Optional] The current pass number. Used by timed tests.
++# 4. Timeout variable - [Optional] The name of the variable to put the next
++#        timeout into. Used by timed tests.
+ runtest() {
+   # Clear local variables
+   unset AGENT TEST EXPECTED_CRASH SKIP SKIPREASON RESULT RESULT_MSG TEST_START_TIME FLATNAME WORKDIR OUTFILE
+ 
+   AGENT="$1"
+   TEST="$2"
++  PASS_NUM="$3"
++  NEXT_TIMEOUT_VAR="$4"
+   if [ -z "$QUIET" ]; then
+     printf "$TEST "
+   fi
+@@ -265,29 +288,32 @@ runtest() {
+     echo ----------------------------------------------------------------------
+   ) >> "$LOG"
+ 
++  TEST_START_TIME=$(unix_seconds)
++
+   if [ -n "$SKIP" ]; then
+-    echo "              time=\"NULL\">" >> "$XMLTMP"
++    TEST_END_TIME=$TEST_START_TIME
+     RESULT=Skip
+     RESULT_MSG="${COLOR_WARNING}Skipped ($SKIPREASON)${COLOR_NORMAL}"
+   else
+-    TEST_START_TIME=$(unix_seconds)
+-
+     FLATNAME="$(echo "$TEST" | sed 's,[./],_,g')"
+ 
+     # Prepare workdir
+     WORKDIR="$BASE_WORKDIR/$FLATNAME"
+     OUTFILE=$WORKDIR/test.log
+-    $GAINROOT rm -rf "$WORKDIR"
+-    mkdir -p "$WORKDIR/bin" "$WORKDIR/tmp"
+-    chmod ugo+rwxt "$WORKDIR/tmp"
+-    if [ -n "$BINDIR" ]; then
+-      # Copy everything, because Windows depends on DLLs.
+-      $LN_CMD "$BINDIR"/* "$WORKDIR/bin"
+-    else
+-      $LN_CMD "$AGENT" "$WORKDIR/bin"
+-      $LN_CMD "$CF_PROMISES" "$WORKDIR/bin"
+-      $LN_CMD "$CF_SERVERD" "$WORKDIR/bin"
+-      $LN_CMD "$CF_KEY" "$WORKDIR/bin"
++    if [ -z "$PASS_NUM" ] || [ "$PASS_NUM" -eq 1 ]; then
++      # Don't reset workdir if this is a subsequent pass.
++      $GAINROOT rm -rf "$WORKDIR"
++      mkdir -p "$WORKDIR/bin" "$WORKDIR/tmp"
++      chmod ugo+rwxt "$WORKDIR/tmp"
++      if [ -n "$BINDIR" ]; then
++        # Copy everything, because Windows depends on DLLs.
++        $LN_CMD "$BINDIR"/* "$WORKDIR/bin"
++      else
++        $LN_CMD "$AGENT" "$WORKDIR/bin"
++        $LN_CMD "$CF_PROMISES" "$WORKDIR/bin"
++        $LN_CMD "$CF_SERVERD" "$WORKDIR/bin"
++        $LN_CMD "$CF_KEY" "$WORKDIR/bin"
++      fi
+     fi
+     if uname | grep MINGW > /dev/null; then
+         PLATFORM_WORKDIR="$(echo $WORKDIR | sed -e 's%^/\([a-cA-Z]\)/%\1:/%' | sed -e 's%/%\\%g')"
+@@ -327,9 +353,9 @@ export CFENGINE_TEST_OVERRIDE_WORKDIR TEMP CFENGINE_TEST_OVERRIDE_EXTENSION_LIBR
+       if grep libtool < "$AGENT" > /dev/null; then
+         printf "\"$LIBTOOL\" --mode=execute " >> "$WORKDIR/runtest"
+       fi
+-      printf "valgrind ${VALGRIND_OPTS} \"$AGENT\" $VERBOSE -Kf \"$TEST\" -D ${BASECLASSES},${EXTRACLASSES} 2>&1\n" >> "$WORKDIR/runtest"
++      printf "valgrind ${VALGRIND_OPTS} \"$AGENT\" $VERBOSE -Kf \"$TEST\" -D ${PASS_NUM:+test_pass_$PASS_NUM,}${BASECLASSES},${EXTRACLASSES} 2>&1\n" >> "$WORKDIR/runtest"
+     else
+-      printf "\"$AGENT\" $VERBOSE -Kf \"$TEST\" -D ${BASECLASSES},${EXTRACLASSES} $INNER_REDIRECT\n" >> "$WORKDIR/runtest"
++      printf "\"$AGENT\" $VERBOSE -Kf \"$TEST\" -D ${PASS_NUM:+test_pass_$PASS_NUM,}${BASECLASSES},${EXTRACLASSES} $INNER_REDIRECT\n" >> "$WORKDIR/runtest"
+     fi
+ 
+     chmod +x "$WORKDIR/runtest"
+@@ -345,7 +371,10 @@ export CFENGINE_TEST_OVERRIDE_WORKDIR TEMP CFENGINE_TEST_OVERRIDE_EXTENSION_LIBR
+     echo "Return code is $RETVAL." >> "$LOG"
+ 
+     TEST_END_TIME=$(unix_seconds)
+-    echo "              time=\"$(($TEST_END_TIME - $TEST_START_TIME)) seconds\">" >> "$XMLTMP"
++
++    if [ -n "$NEXT_TIMEOUT_VAR" ]; then
++      eval $NEXT_TIMEOUT_VAR=
++    fi
+ 
+     RESULT_MSG=
+     if [ -z "$EXPECTED_CRASH" ] && [ $RETVAL -ne 0 ]; then
+@@ -373,6 +402,16 @@ export CFENGINE_TEST_OVERRIDE_WORKDIR TEMP CFENGINE_TEST_OVERRIDE_EXTENSION_LIBR
+       elif egrep -e "R: .*$ESCAPED_TEST FAIL/no_redmine_number" $OUTFILE > /dev/null; then
+         RESULT=FAIL
+         RESULT_MSG="${COLOR_FAILURE}FAIL (Tried to suppress failure, but no Redmine issue number is provided)${COLOR_NORMAL}"
++      elif egrep -e "R: .*$ESCAPED_TEST Wait/[0-9]+" $OUTFILE > /dev/null; then
++        if [ -z "$NEXT_TIMEOUT_VAR" ]; then
++          RESULT=FAIL
++          RESULT_MSG="${COLOR_FAILURE}FAIL (Test tried to wait but is not in \"timed\" directory)${COLOR_NORMAL}"
++        else
++          WAIT_TIME=$(egrep -e "R: .*$ESCAPED_TEST Wait/[0-9]+" $OUTFILE | sed -r -e 's,.*Wait/([0-9]+).*,\1,')
++          eval $NEXT_TIMEOUT_VAR=$(($TEST_END_TIME+$WAIT_TIME))
++          RESULT=Wait
++          RESULT_MSG="Awaiting ($WAIT_TIME seconds)..."
++        fi
+       elif egrep -e "R: .*$ESCAPED_TEST Pass" $OUTFILE > /dev/null; then
+         RESULT=Pass
+         RESULT_MSG="${COLOR_SUCCESS}Pass${COLOR_NORMAL}"
+@@ -405,6 +444,11 @@ export CFENGINE_TEST_OVERRIDE_WORKDIR TEMP CFENGINE_TEST_OVERRIDE_EXTENSION_LIBR
+     fi
+   fi
+ 
++  if [ "$RESULT" != Wait ]; then
++    echo "    <testcase name=\"$(basename $TEST)\"" >> "$XMLTMP"
++    echo "              classname=\"$TEST\"" >> "$XMLTMP"
++    echo "              time=\"$(($TEST_END_TIME - $TEST_START_TIME)) seconds\">" >> "$XMLTMP"
++  fi
+ 
+   case "$RESULT" in
+     Pass)
+@@ -437,7 +481,11 @@ export CFENGINE_TEST_OVERRIDE_WORKDIR TEMP CFENGINE_TEST_OVERRIDE_EXTENSION_LIBR
+       ;;
+   esac
+ 
+-  if [ "$RESULT" != "FAIL" -a "$NO_CLEAN" = "0" ]; then
++  if [ "$RESULT" != Wait ]; then
++    echo "    </testcase>" >> "$XMLTMP"
++  fi
++
++  if [ "$RESULT" != "FAIL" -a "$RESULT" != "Wait" -a "$NO_CLEAN" = "0" ]; then
+     $GAINROOT rm -rf "$WORKDIR"
+   fi
+ 
+@@ -488,6 +536,8 @@ while true; do
+       LIBXML2_TESTS=0;;
+     --no-crashing)
+       CRASHING_TESTS=0;;
++    --no-timed)
++      TIMED_TESTS=0;;
+     --agent=*)
+       AGENT=${1#--agent=};;
+     --baseclasses=*)
+@@ -583,18 +633,32 @@ if [ $# -gt 0 ]; then
+     fi
+ 
+     if [ -f $test ]; then
+-      TESTS="$TESTS${TESTS:+ }$test"
++      ADDTESTS="$ADDTESTS${ADDTESTS:+ }$test"
+     elif [ -d $test ]; then
+-      ADDTESTS=$(find "$test" -name '*.cf' | sort)
+-      TESTS="$TESTS${TESTS:+ }$ADDTESTS"
++      ADDTESTS="$ADDTESTS${ADDTESTS:+ }$(find "$test" -name '*.cf' | sort)"
+     else
+       echo "Unable to open test file/directory: $test"
+     fi
+   done
+ else
+-  TESTS=$(find . -name '*.cf' | sort)
++  ADDTESTS="$ADDTESTS${ADDTESTS:+ }$(find . -name '*.cf' | sort)"
+ fi
+ 
++for addtest in $ADDTESTS; do
++  if echo "$addtest" | grep -F "/timed/" > /dev/null; then
++    if [ "$TIMED_TESTS" = 1 ]; then
++      eval TESTS_TIMED_$TEST_TIMED_INDEX="$addtest"
++      eval TESTS_TIMEOUT_$TEST_TIMED_INDEX=0
++      eval TESTS_PASSES_$TEST_TIMED_INDEX=0
++      TEST_TIMED_INDEX=$(($TEST_TIMED_INDEX+1))
++    fi
++  else
++    eval TESTS_$TEST_INDEX="$addtest"
++    TEST_INDEX=$(($TEST_INDEX+1))
++  fi
++
++done
++
+ #
+ # fd 7 is a /dev/null for quiet execution and stdout for default one
+ #
+@@ -608,7 +672,10 @@ fi
+ # Now run the tests
+ #
+ 
+-TESTS_COUNT=$(echo $TESTS | wc -w)
++TESTS_NORMAL_COUNT=$TEST_INDEX
++TESTS_TIMED_COUNT=$TEST_TIMED_INDEX
++TESTS_COUNT=$(($TESTS_NORMAL_COUNT + $TESTS_TIMED_COUNT))
++TESTS_TIMED_REMAINING=$TEST_TIMED_INDEX
+ START_TIME=$(unix_seconds)
+ 
+ ( echo ======================================================================
+@@ -654,11 +721,38 @@ START_TIME=$(unix_seconds)
+ 
+   echo -n "" > "$XMLTMP"
+ 
+-for test in $TESTS; do
+-  echo "    <testcase name=\"$(basename $test)\"" >> "$XMLTMP"
+-  echo "              classname=\"$test\"" >> "$XMLTMP"
+-  runtest "$AGENT" "$test"
+-  echo "    </testcase>" >> "$XMLTMP"
++check_and_run_timed_tests() {
++  TEST_TIMED_INDEX=0
++  time=$(unix_seconds)
++  # Run timed tests if any deadlines have expired.
++  while [ $TEST_TIMED_INDEX -lt $TESTS_TIMED_COUNT ]; do
++    eval test=\$TESTS_TIMED_$TEST_TIMED_INDEX
++    eval timeout=\$TESTS_TIMEOUT_$TEST_TIMED_INDEX
++    if [ -n "$timeout" ] && [ "$time" -ge "$timeout" ]; then
++      eval TESTS_PASSES_$TEST_TIMED_INDEX="\$((\$TESTS_PASSES_$TEST_TIMED_INDEX+1))"
++      eval pass=\$TESTS_PASSES_$TEST_TIMED_INDEX
++      runtest "$AGENT" "$test" "$pass" "TESTS_TIMEOUT_$TEST_TIMED_INDEX"
++      eval timeout=\$TESTS_TIMEOUT_$TEST_TIMED_INDEX
++      if [ -z "$timeout" ]; then
++        TESTS_TIMED_REMAINING=$(($TESTS_TIMED_REMAINING - 1))
++      fi
++    fi
++    TEST_TIMED_INDEX=$((TEST_TIMED_INDEX+1))
++  done
++}
++
++TEST_INDEX=0
++while [ $TEST_INDEX -lt $TESTS_NORMAL_COUNT -o $TESTS_TIMED_REMAINING -gt 0 ]; do
++  check_and_run_timed_tests
++
++  # Run normal test.
++  if [ $TEST_INDEX -lt $TESTS_NORMAL_COUNT ]; then
++    eval test=\$TESTS_$TEST_INDEX
++    runtest "$AGENT" "$test"
++    TEST_INDEX=$(($TEST_INDEX+1))
++  elif [ $TESTS_TIMED_REMAINING -gt 0 ]; then
++    sleep 1
++  fi
+ done
+ 
+ END_TIME=$(unix_seconds)
+-- 
+2.0.3
+
+
+From 1f737d8114241fd43360a52db82f0912590e0a21 Mon Sep 17 00:00:00 2001
+From: Kristian Amlie <kristian.amlie@cfengine.com>
+Date: Tue, 17 Jun 2014 13:10:56 +0200
+Subject: [PATCH 3/3] Redmine #6088: Fix cfengine template producing a zero
+ sized file.
+
+The bug depends on timing: If you run a file promise with a template,
+everything works fine. Now, if you run the same promise again after
+more than one minute, but less than three, the resulting file is
+empty.
+
+The reason is that the internal bundle produced by the cfengine
+template engine has an ifelapsed value of 3 minutes. What would happen
+then is that the file promise, which has an ifelapsed value of 1,
+would execute, but none of the contained edit_line promises would,
+leaving the file empty.
+
+Fixed by reducing the ifelapsed value for internal edit_line promises
+to one.
+
+Also moved the definition to a more local header file. It is not
+needed globally.
+---
+ cf-agent/files_edit.h                              |  6 +++
+ libpromises/cf3.defs.h                             |  6 ---
+ .../templating/timed/expired_edit_line_locks.cf    | 43 ++++++++++++++++++++++
+ .../timed/expired_edit_line_locks.cf.sub           | 32 ++++++++++++++++
+ 4 files changed, 81 insertions(+), 6 deletions(-)
+ create mode 100644 tests/acceptance/10_files/templating/timed/expired_edit_line_locks.cf
+ create mode 100644 tests/acceptance/10_files/templating/timed/expired_edit_line_locks.cf.sub
+
+diff --git a/cf-agent/files_edit.h b/cf-agent/files_edit.h
+index 9545593..dfe21fc 100644
+--- a/cf-agent/files_edit.h
++++ b/cf-agent/files_edit.h
+@@ -28,6 +28,12 @@
+ #include <cf3.defs.h>
+ #include <file_lib.h>
+ 
++#define CF_EDIT_IFELAPSED 1     /* NOTE: If doing copy template then edit working copy,
++                                   the edit ifelapsed must not be higher than
++                                   the copy ifelapsed. This will make the working
++                                   copy equal to the copied template file - not the
++                                   copied + edited file. */
++
+ typedef struct
+ {
+     char *filename;
+diff --git a/libpromises/cf3.defs.h b/libpromises/cf3.defs.h
+index de6b2b3..7efb155 100644
+--- a/libpromises/cf3.defs.h
++++ b/libpromises/cf3.defs.h
+@@ -91,12 +91,6 @@
+ #define MAX_DIGEST_BYTES (512 / 8)  /* SHA-512 */
+ #define MAX_DIGEST_HEX (MAX_DIGEST_BYTES * 2)
+ 
+-#define CF_EDIT_IFELAPSED 3     /* NOTE: If doing copy template then edit working copy,
+-                                   the edit ifelapsed must not be higher than
+-                                   the copy ifelapsed. This will make the working
+-                                   copy equal to the copied template file - not the
+-                                   copied + edited file. */
+-
+ 
+ /*******************************************************************/
+ 
+diff --git a/tests/acceptance/10_files/templating/timed/expired_edit_line_locks.cf b/tests/acceptance/10_files/templating/timed/expired_edit_line_locks.cf
+new file mode 100644
+index 0000000..3b24a81
+--- /dev/null
++++ b/tests/acceptance/10_files/templating/timed/expired_edit_line_locks.cf
+@@ -0,0 +1,43 @@
++# Check whether file promises have a shorter expiry time than edit_line promises
++# resulting from templates. This will create an empty file because the file is
++# opened for editing, but all the edit_line promises have expired.
++
++body common control
++{
++    inputs => { "../../../dcs.cf.sub", "../../../plucked.cf.sub" };
++    bundlesequence => { default($(this.promise_filename)) };
++}
++
++bundle agent test
++{
++  commands:
++      # Note, no -K, we are testing locks.
++      "$(sys.cf_agent) -v -D AUTO,DEBUG -f $(this.promise_filename).sub"
++        contain => in_shell;
++}
++
++bundle agent check
++{
++  methods:
++    test_pass_1::
++      "any" usebundle => dcs_wait($(this.promise_filename), 70);
++
++  vars:
++    test_pass_2::
++      "content_edit_line" string => readfile("$(G.testfile).edit_line", 10000);
++      "content_cftemplate" string => readfile("$(G.testfile).cftemplate", 10000);
++      "content_mustache" string => readfile("$(G.testfile).mustache", 10000);
++
++  classes:
++    test_pass_2::
++      "ok_edit_line" expression => strcmp($(content_edit_line), "text"),
++        scope => "namespace";
++      "ok_cftemplate" expression => strcmp($(content_cftemplate), "text"),
++        scope => "namespace";
++      "ok_mustache" expression => strcmp($(content_mustache), "text"),
++        scope => "namespace";
++
++  methods:
++    test_pass_2::
++      "any" usebundle => dcs_passif("ok_edit_line.ok_cftemplate.ok_mustache", $(this.promise_filename));
++}
+diff --git a/tests/acceptance/10_files/templating/timed/expired_edit_line_locks.cf.sub b/tests/acceptance/10_files/templating/timed/expired_edit_line_locks.cf.sub
+new file mode 100644
+index 0000000..030f8dc
+--- /dev/null
++++ b/tests/acceptance/10_files/templating/timed/expired_edit_line_locks.cf.sub
+@@ -0,0 +1,32 @@
++body common control
++{
++    inputs => { "../../../dcs.cf.sub", "../../../plucked.cf.sub" };
++    bundlesequence => { default($(this.promise_filename)) };
++}
++
++bundle agent init
++{
++  methods:
++      "any" usebundle => file_make("$(G.testfile).template", "text");
++}
++
++bundle agent test
++{
++  files:
++      "$(G.testfile).edit_line"
++        create => "true",
++        edit_line => insert_lines("text"),
++        edit_defaults => empty;
++
++      "$(G.testfile).cftemplate"
++        create => "true",
++        edit_template => "$(G.testfile).template",
++        template_method => "cfengine";
++
++      "$(G.testfile).mustache"
++        create => "true",
++        edit_template => "$(G.testfile).template",
++        template_method => "mustache";
++}
++
++
+-- 
+2.0.3
+
+

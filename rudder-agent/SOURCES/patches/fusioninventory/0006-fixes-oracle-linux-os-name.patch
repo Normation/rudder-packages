@@ -1,0 +1,39 @@
+From 2a88caaec97f25eb4e064436e054f7fbc0ecb0e5 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Vincent=20Membr=C3=A9?= <vincent.membre@normation.com>
+Date: Wed, 3 Sep 2014 14:48:21 +0200
+Subject: [PATCH] Fixes oracle linux OS name
+
+---
+ lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/LSB.pm    | 2 +-
+ lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/NonLSB.pm | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/LSB.pm b/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/LSB.pm
+index d89bb78..37ed589 100644
+--- a/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/LSB.pm
++++ b/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/LSB.pm
+@@ -6,7 +6,7 @@ use warnings;
+ use FusionInventory::Agent::Tools;
+ 
+ sub isEnabled {
+-    return canRun('lsb_release');
++    return !canRead('/etc/oracle-release') && canRun('lsb_release');
+ }
+ 
+ sub doInventory {
+diff --git a/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/NonLSB.pm b/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/NonLSB.pm
+index 357f9ea..928cd98 100644
+--- a/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/NonLSB.pm
++++ b/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/NonLSB.pm
+@@ -66,7 +66,7 @@ our $runMeIfTheseChecksFailed =
+     ["FusionInventory::Agent::Task::Inventory::Linux::Distro::LSB"];
+ 
+ sub isEnabled {
+-    return !canRun('lsb_release');
++    return canRead('/etc/oracle-release') || !canRun('lsb_release');
+ }
+ 
+ sub doInventory {
+-- 
+1.8.3.1
+

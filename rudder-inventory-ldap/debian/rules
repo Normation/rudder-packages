@@ -19,7 +19,7 @@ configure-stamp:
 		CPPFLAGS="-I$(CURDIR)/debian/tmp/opt/rudder/include" \
 		CFLAGS="-I$(CURDIR)/debian/tmp/opt/rudder/include" \
 		LDFLAGS="-L$(CURDIR)/debian/tmp/opt/rudder/lib" \
-		./configure --prefix=/opt/rudder --libdir=/opt/rudder/lib/ldap --enable-dynamic --enable-debug --enable-modules --enable-hdb=mod --enable-monitor=mod --enable-dynlist=mod --with-cyrus-sasl
+		./configure --prefix=/opt/rudder --libdir=/opt/rudder/lib/ldap --enable-dynamic --enable-debug --enable-modules --enable-hdb=mod --enable-monitor=mod --enable-dynlist=mod
 
 	touch configure-stamp
 
@@ -77,7 +77,8 @@ binary-arch: install
 	dh_install SOURCES/inventory.schema /opt/rudder/etc/openldap/schema/
 	dh_install SOURCES/rudder.schema /opt/rudder/etc/openldap/schema/
 	dh_install SOURCES/DB_CONFIG /var/rudder/ldap/openldap-data/
-	
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-inventory-ldap /opt/rudder/etc/server-roles.d/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-ldap /opt/rudder/etc/server-roles.d/
 #	dh_installmenu
 #	dh_installdebconf
 #	dh_installlogrotate

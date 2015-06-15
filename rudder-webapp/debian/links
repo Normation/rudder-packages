@@ -1,0 +1,3 @@
+/opt/rudder/bin/rudder-init  /opt/rudder/bin/rudder-init.sh
+/etc/apache2/sites-available/rudder-vhost  /etc/apache2/sites-available/rudder-vhost.conf
+/etc/apache2/sites-available/rudder-vhost-ssl  /etc/apache2/sites-available/rudder-vhost-ssl.conf

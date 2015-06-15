@@ -131,12 +131,6 @@ if [ "$NO_PERL_REBUILD" = "0" ]; then
 fi
 
 cd $BUILDDIR
-gunzip < $FILEDIR/Crypt-SSLeay-0.57.tar.gz | tar xf -
-cd Crypt-SSLeay-0.57
-PERL_MM_USE_DEFAULT=1 $TMP/perl$PERL_PREFIX/bin/perl Makefile.PL --default INSTALL_BASE=$TMP/perl$PERL_PREFIX
-$MAKE install
-
-cd $BUILDDIR
 echo $PWD
 archive=`ls $FILEDIR/App-cpanminus-*.tar.gz`
 echo $archive

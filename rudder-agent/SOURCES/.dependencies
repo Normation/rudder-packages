@@ -1,7 +1,8 @@
-SLES11:gcc openssl-devel bison flex pcre-devel libdb-4_5-devel zlib-devel libbz2-devel
-SLES10:gcc openssl-devel bison flex pcre-devel db42-devel zlib-devel
-RHEL3:gcc openssl-devel bison flex pcre-devel make byacc zlib-devel bzip2-devel kernel-utils
-RHEL5:gcc openssl-devel bison flex pcre-devel make db4-devel byacc zlib-devel bzip2-devel
-RHEL6:gcc openssl-devel bison flex pcre-devel make db4-devel byacc tokyocabinet-devel
-FEDORA18:gcc openssl-devel bison flex pcre-devel make db4-devel byacc tokyocabinet-devel
-FEDORA20:gcc openssl-devel bison flex pcre-devel make db4-devel byacc tokyocabinet-devel
+SLES10:gcc bison flex autoconf automake libtool pcre-devel zlib-devel pam-devel
+SLES11:gcc openssl-devel bison flex autoconf automake libtool pcre-devel zlib-devel libbz2-devel pam-devel
+RHEL3:gcc bison flex autoconf automake libtool pcre-devel make byacc zlib-devel bzip2-devel kernel-utils pam-devel
+RHEL4:gcc bison flex autoconf automake libtool pcre-devel make byacc zlib-devel bzip2-devel kernel-utils pam-devel
+RHEL5:gcc openssl-devel bison flex autoconf automake libtool pcre-devel make byacc zlib-devel bzip2-devel pam-devel
+RHEL6:gcc openssl-devel bison flex autoconf automake libtool pcre-devel make byacc pam-devel
+FEDORA18:gcc openssl-devel bison flex autoconf automake libtool pcre-devel make byacc pam-devel
+FEDORA20:gcc openssl-devel bison flex autoconf automake libtool pcre-devel make byacc pam-devel

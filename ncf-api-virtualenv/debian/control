@@ -1,0 +1,19 @@
+Source: ncf-api-virtualenv
+Section: admin
+Priority: extra
+Maintainer: Rudder packaging team <rudder-packaging@rudder-project.org>
+Build-Depends: debhelper (>= 7), python
+Standards-Version: 3.8.0
+Homepage: http://www.ncf.io
+
+Package: ncf-api-virtualenv
+Architecture: all
+Depends: ${shlibs:Depends}, ${misc:Depends}, python, apache2, libapache2-mod-wsgi, ncf, passwd
+Suggests: cfengine3 (>=3.5.0), cfengine-community (>=3.5.0), rudder-agent (>=2.11.0)
+Description: ncf - CFEngine framework
+ ncf is a CFEngine framework aimed at helping newcomers on CFEngine
+ to be more quickly operationnal and old timers to spend less time
+ focusing on low level details and have more time for fun things.
+ .
+ This package provides a Python virtual environment to make the use
+ of the ncf API easier.

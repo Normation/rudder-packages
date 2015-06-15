@@ -19,41 +19,39 @@
 .DEFAULT_GOAL := localdepends
 
 RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
-CFENGINE_RELEASE = 3.5.3
-FUSION_RELEASE = 2.2.2
-TOKYOCABINET_RELEASE = 1.4.48
+
+CFENGINE_RELEASE = 3.6.0
+FUSION_RELEASE = 2.3.6
+LMDB_RELEASE = 0.9.11
+
 TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX)
 WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget -q
 PATCH := /usr/bin/patch
 FIND := /usr/bin/find
 
-localdepends: ./initial-promises ./detect_os.sh ./files ./fusioninventory-agent ./fusioninventory-agent-2.3.6 ./tokyocabinet-source ./cfengine-source ../debian/rudder-agent.init ../debian/rudder-agent.default ./rudder-agent.cron ../debian/rudder-agent.cron.d
+localdepends: ./initial-promises ./detect_os.sh ./files ./fusioninventory-agent ./lmdb-source ./cfengine-source ../debian/rudder-agent.init ../debian/rudder-agent.default ./rudder-agent.cron ../debian/rudder-agent.cron.d
 	rm -rf $(TMP_DIR)
 
 ./cfengine-source: /usr/bin/wget
-	# Original URL: http://cfengine.com/source-code/download?file=cfengine-$(CFENGINE_RELEASE).tar.gz
-	$(WGET) -O $(TMP_DIR)/cfengine.tgz http://www.normation.com/tarball/cfengine-$(CFENGINE_RELEASE).tar.gz
+	# Original URL: https://s3.amazonaws.com/cfengine.package-repos/tarballs/cfengine-$(CFENGINE_RELEASE).tar.gz
+	$(WGET) -O $(TMP_DIR)/cfengine.tgz http://www.normation.com/tarball/cfengine/cfengine-$(CFENGINE_RELEASE).tar.gz
 	tar xzf $(TMP_DIR)/cfengine.tgz -C $(TMP_DIR)
 	mv $(TMP_DIR)/cfengine-$(CFENGINE_RELEASE) ./cfengine-source
-	$(PATCH) -d ./cfengine-source -p1 < ./add-support-of-openVZ.patch
-	$(PATCH) -d ./cfengine-source -p1 < ./cfengine-report-on-package-removal.patch
-	$(PATCH) -d ./cfengine-source -p1 < ./dont-remove-blank-line-in-templates.patch
-	$(PATCH) -d ./cfengine-source -p1 < ./000-partially-revert-a-change-intended-to-alter-the-log-.patch
-	$(PATCH) -d ./cfengine-source -p1 < ./0001-Tiny-optimization-in-safe_open.patch
-	$(PATCH) -d ./cfengine-source -p1 < ./0002-Fix-failure-to-open-paths-ending-in-a-slash.patch
-	$(PATCH) -d ./cfengine-source -p1 < ./0003-Fix-incorrect-return-value-for-empty-string-in-safe_.patch
-	$(PATCH) -d ./cfengine-source -p1 < ./0004-Make-safe_open-treat-trailing-slashes-like-open.patch
-	$(PATCH) -d ./cfengine-source -p1 < ./0005-dont-duplicate-text-blocks.patch
-	$(PATCH) -d ./cfengine-source -p1 < ./0006-support-large-int.patch
+	# Apply patches
+	$(PATCH) -d ./cfengine-source -p1 < ./patches/cfengine/0001-fix-unsupported-openssl-options.patch
+	$(PATCH) -d ./cfengine-source -p1 < ./patches/cfengine/0002-explicitely-use-pthreads-during-lmdb-presence-detection.patch
+	$(PATCH) -d ./cfengine-source -p1 < ./patches/cfengine/0003-fix-fprintf-usage-on-old-gcc-versions.patch
+	# Bootstrap the package using autogen before compilation
+	cd cfengine-source && NO_CONFIGURE=1 ./autogen.sh
 
-./tokyocabinet-source: /usr/bin/wget
-	# Original URL: http://fallabs.com/tokyocabinet/tokyocabinet-${TOKYOCABINET_RELEASE}.tar.gz
-	$(WGET) -O $(TMP_DIR)/tokyocabinet.tgz http://www.normation.com/tarball/tokyocabinet-${TOKYOCABINET_RELEASE}.tar.gz
-	tar xzf $(TMP_DIR)/tokyocabinet.tgz -C $(TMP_DIR)
-	mv $(TMP_DIR)/tokyocabinet-$(TOKYOCABINET_RELEASE) ./tokyocabinet-source
+./lmdb-source: /usr/bin/wget
+	# Original URL: http://ftp.fr.debian.org/debian/pool/main/l/lmdb/lmdb_$(LMDB_RELEASE).orig.tar.xz
+	$(WGET) -O $(TMP_DIR)/lmdb.tgz http://www.normation.com/tarball/lmdb-$(LMDB_RELEASE).tar.gz
+	tar xzf $(TMP_DIR)/lmdb.tgz -C $(TMP_DIR)
+	mv $(TMP_DIR)/lmdb-$(LMDB_RELEASE) ./lmdb-source
 
 ./rudder-sources.tar.bz2:
-	$(WGET) -O rudder-sources.tar.bz2 http://www.rudder-project.org/archives/rudder-sources-${RUDDER_VERSION_TO_PACKAGE}.tar.bz2
+	$(WGET) -O rudder-sources.tar.bz2 http://www.rudder-project.org/archives/rudder-sources-$(RUDDER_VERSION_TO_PACKAGE).tar.bz2
 
 ./rudder-sources: ./rudder-sources.tar.bz2
 	tar -xjf rudder-sources.tar.bz2
@@ -68,31 +66,17 @@ localdepends: ./initial-promises ./detect_os.sh ./files ./fusioninventory-agent 
 	cp ./rudder-sources/rudder-packages/detect_os.sh ./detect_os.sh
 
 ./fusioninventory-agent: /usr/bin/wget
-	#Original URL: http://search.cpan.org/CPAN/authors/id/F/FU/FUSINV/FusionInventory-Agent-$(FUSION_RELEASE).tar.gz
+	#Original URL: http://search.cpan.org/CPAN/authors/id/G/GR/GROUSSE/FusionInventory-Agent-$(FUSION_RELEASE).tar.gz
 	$(WGET) -O $(TMP_DIR)/fusion.tgz http://www.normation.com/tarball/FusionInventory-Agent-$(FUSION_RELEASE).tar.gz
 	tar zxf $(TMP_DIR)/fusion.tgz -C $(TMP_DIR)
 	mv $(TMP_DIR)/FusionInventory-Agent-$(FUSION_RELEASE) ./fusioninventory-agent
-	$(PATCH) -d ./fusioninventory-agent -p1 < ./SuSE_service_pack.patch
-	$(PATCH) -d ./fusioninventory-agent -p1 < ./Correct_detection_of_RedHat.patch
-	$(PATCH) -d ./fusioninventory-agent -p1 < ./Oracle_linux_distro_name.patch
-	$(PATCH) -d ./fusioninventory-agent -p1 < ./4096_char_line_truncating.patch
-	$(PATCH) -d ./fusioninventory-agent -p0 < ./fusinv-install-d-mkdir-p.patch
-	# Fix a lsusb invocation that crashes some SLES machines
+	$(PATCH) -d ./fusioninventory-agent -p1 < ./patches/fusioninventory/0001-4096-char-line-truncation.patch
+	$(PATCH) -d ./fusioninventory-agent -p1 < ./patches/fusioninventory/0002-install-d-mkdir-p.patch
+	$(PATCH) -d ./fusioninventory-agent -p1 < ./patches/fusioninventory/0003-unix-ps-etime-usage.patch
+	$(PATCH) -d ./fusioninventory-agent -p1 < ./patches/fusioninventory/0004-aix-microcode-version-retrieval.patch
+	$(PATCH) -d ./fusioninventory-agent -p1 < ./patches/fusioninventory/0005-aix-duplicated-network-interfaces.patch
+	# Fix a lsusb invocation that crashes some SLES machines
 	$(FIND) ./fusioninventory-agent -iname "USB.pm" -exec rm "{}" \;
-
-./fusioninventory-agent-2.3.6: /usr/bin/wget
-	#Original URL: http://search.cpan.org/CPAN/authors/id/G/GR/GROUSSE/FusionInventory-Agent-$(FUSION_RELEASE).tar.gz
-	$(WGET) -O $(TMP_DIR)/fusion-2.3.6.tgz http://www.normation.com/tarball/FusionInventory-Agent-2.3.6.tar.gz
-	tar zxf $(TMP_DIR)/fusion-2.3.6.tgz -C $(TMP_DIR)
-	mv $(TMP_DIR)/FusionInventory-Agent-2.3.6 ./fusioninventory-agent-2.3.6
-	$(PATCH) -d ./fusioninventory-agent-2.3.6 -p1 < ./patches/fusioninventory/2.3.6/0001-4096-char-line-truncation.patch
-	$(PATCH) -d ./fusioninventory-agent-2.3.6 -p1 < ./patches/fusioninventory/2.3.6/0002-install-d-mkdir-p.patch
-	$(PATCH) -d ./fusioninventory-agent-2.3.6 -p1 < ./patches/fusioninventory/2.3.6/0003-unix-ps-etime-usage.patch
-	$(PATCH) -d ./fusioninventory-agent-2.3.6 -p1 < ./patches/fusioninventory/2.3.6/0004-aix-microcode-version-retrieval.patch
-	$(PATCH) -d ./fusioninventory-agent-2.3.6 -p1 < ./patches/fusioninventory/2.3.6/0005-aix-duplicated-network-interfaces.patch
-	$(PATCH) -d ./fusioninventory-agent-2.3.6 -p1 < ./patches/fusioninventory/2.3.6/0006-correct-storage-size-detection.patch
-	# Fix a lsusb invocation that crashes some SLES machines
-	$(FIND) ./fusioninventory-agent-2.3.6 -iname "USB.pm" -exec rm "{}" \;
 
 ./files: /usr/bin/wget
 	mkdir ./files
@@ -165,13 +149,11 @@ localdepends: ./initial-promises ./detect_os.sh ./files ./fusioninventory-agent 
 
 localclean:
 	rm -rf ./cfengine-source
-	rm -rf ./tokyocabinet-source
+	rm -rf ./lmdb-source
 	rm -rf ./initial-promises
 	rm -rf ./detect_os.sh
 	rm -f ../debian/rudder-agent.init
 	rm -f ../debian/rudder-agent.default
-	rm -rf ./FusionInventory-Agent-$(FUSION_RELEASE)
-	rm -f ./FusionInventory-Agent-$(FUSION_RELEASE).tar.gz
 	rm -rf ./fusioninventory-agent
 	rm -rf ./tmp
 	rm -rf ./perl-custom

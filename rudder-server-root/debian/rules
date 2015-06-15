@@ -49,14 +49,11 @@ binary-arch: install
 	dh_installchangelogs
 #	dh_installdocs
 #	dh_installexamples
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-node-to-relay /opt/rudder/bin/
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-init.sh /opt/rudder/bin/
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-root-rename /opt/rudder/bin/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-server-root /opt/rudder/etc/server-roles.d/
 	dh_installinit --noscripts --no-start --no-restart-on-upgrade --name=rudder-server-root
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-passwords.conf /opt/rudder/etc/
 #	dh_installmenu
 #	dh_installdebconf
-	dh_installlogrotate --name=rudder
+#	dh_installlogrotate
 #	dh_installmime
 #	dh_python
 #	dh_installcron

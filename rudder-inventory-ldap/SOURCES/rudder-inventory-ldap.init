@@ -157,6 +157,8 @@ SLURPD_PID_FILE="$SLAPD_PATH/var/run/slurpd.pid"
 SLURPD_PARAMS=""
 SLURPD_BIN="$SLAPD_PATH/libexec/slurpd"
 
+LDAPSEARCH_BIN="/opt/rudder/bin/ldapsearch"
+
 # BerkeleyDB directory and files
 BDB_PATH="/usr/local/berkeleydb"
 DB_ARCHIVE_BIN="$BDB_PATH/bin/db_archive"
@@ -379,6 +381,24 @@ start_slapd() {
 		message "info" "[INFO] file descriptor limit not modified (require root privileges)"
 	fi
 
+  # configuration
+  if [ "${RUDDER_CACHESIZE}" != "noauto" ]
+  then
+    if [ "${RUDDER_CACHESIZE}" = "auto" ] || [ "${RUDDER_CACHESIZE}" = "" ]
+    then
+      # calculate the value to use about 10% of RAM
+      MEMSIZE=$(sed -n '/^MemTotal/s/[^0-9]//gp' /proc/meminfo)
+      # Round down using integer division (800 bytes is the size of an entry)
+      CACHESIZE=$((${MEMSIZE} * 1024 / 800 / 10 / 10000 * 10000))
+    else
+      # set cache size to the value provided
+      CACHESIZE=${RUDDER_CACHESIZE}
+    fi
+    sed -ie '/^[ \t]*\(cachesize\|idlcachesize\)/d' /opt/rudder/etc/openldap/slapd.conf
+    sed -ie 's/^\([ \t]*suffix[ \t]\+"cn=rudder-configuration".*\)/\1\ncachesize '${CACHESIZE}'/' /opt/rudder/etc/openldap/slapd.conf
+    sed -ie 's/^\([ \t]*suffix[ \t]\+"cn=rudder-configuration".*\)/\1\nidlcachesize '$((${CACHESIZE}*3))'/' /opt/rudder/etc/openldap/slapd.conf
+  fi
+
 	# Parameters
 	if [ "$SLAPD_CONF_DIR" ]
 	then
@@ -417,6 +437,13 @@ start_slapd() {
 		exit 1
 	else
 		message "info" "[OK] OpenLDAP started on port $PORT and $SSLPORT"
+  message "info" "[INFO] Prefetching data for cache warmup"
+  LDAP_USER=$(grep "^rootdn" ${SLAPD_CONF} | sed "s/\w*\s*['\"]\?\([^\"']*\)['\"]\?$/\1/")
+  LDAP_PASSWORD=$(grep "^rootpw" ${SLAPD_CONF} | sed "s/\w*\s*['\"]\?\([^\"']*\)['\"]\?$/\1/")
+  LDAP_SERVER='localhost'
+  LDAP_PORT='389'
+  LDAP_PARAMETERS="-H ldap://${LDAP_SERVER}:${LDAP_PORT}/ -D ${LDAP_USER} -w ${LDAP_PASSWORD} -x"
+  nohup ${LDAPSEARCH_BIN} ${LDAP_PARAMETERS} -b cn=rudder-configuration -s sub '*' '+' >/dev/null 2>/dev/null &
 	fi
 }
 

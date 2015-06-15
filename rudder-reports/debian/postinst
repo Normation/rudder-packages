@@ -19,62 +19,69 @@ set -e
 
 
 case "$1" in
-    configure)
-		invoke-rc.d rsyslog restart
-  #Check if postgresql is started
-  /etc/init.d/postgresql status > /dev/null
-  if [ $? -ne 0 ]
-  then
-    /etc/init.d/postgresql start >/dev/null 2>&1
-  fi
-
-  echo -n "INFO: Waiting for postgresql to be up..."
-  CPT=0
-  TIMEOUT=60
-  while ! su - postgres -c "psql -q --output /dev/null -c \"SELECT COUNT(*) FROM pg_catalog.pg_authid\"" >/dev/null 2>&1
-  do
-    echo -n "."
-    sleep 1
-    CPT=$((${CPT}+1))
-    if [ ${CPT} -eq ${TIMEOUT} ]
-    then
-      echo -e "\nERROR: Connection to PostgreSQL has not been established before timeout. Exiting"
-      exit 1
+  configure)
+    if type systemctl >/dev/null 2>&1; then
+      POSTGRESQL_SERVICE_NAME=$(systemctl list-unit-files --type service | awk -F'.' '{print $1}' | grep -E "^postgresql[0-9]*$" | tail -n 1)
+    elif type chkconfig >/dev/null 2>&1; then
+      POSTGRESQL_SERVICE_NAME=$(chkconfig 2>/dev/null | awk '{ print $1 }' | grep "postgresql" | tail -n 1)
+    else
+      POSTGRESQL_SERVICE_NAME=$(ls -1 /etc/init.d | grep "postgresql" | tail -n 1)
     fi
-  done
-  echo " Done"
 
+    #Check if PostgreSQL is started
+    service ${POSTGRESQL_SERVICE_NAME} status > /dev/null
 
-  dbname="rudder"
-  usrname="rudder"
-  CHK_PG_DB=$(su - postgres -c "psql -t -c \"select count(1) from pg_catalog.pg_database where datname = '${dbname}'\"")
-  CHK_PG_USER=$(su - postgres -c "psql -t -c \"select count(1) from pg_user where usename = '${usrname}'\"")
-  # Rudder user
-  if [ ${CHK_PG_USER} -eq 0 ]
-  then
-    echo -n "INFO: Creating Rudder PostgreSQL user..."
-    su - postgres -c "psql -q -c \"CREATE USER ${usrname} WITH PASSWORD 'Normation'\"" >/dev/null 2>&1
-    echo "Done"
-  fi
-  # Rudder database
-  if [ ${CHK_PG_DB} -eq 0 ]
-  then
-    echo -n "INFO: Creating Rudder PostgreSQL database..."
-    su - postgres -c "psql -q -c \"CREATE DATABASE ${dbname} WITH OWNER = ${usrname}\"" >/dev/null 2>&1
-    echo "localhost:5432:${dbname}:${usrname}:Normation" > /root/.pgpass
-    chmod 600 /root/.pgpass
-    psql -q -U rudder -h localhost -d rudder -f /opt/rudder/etc/postgresql/reportsSchema.sql  >/dev/null 2>&1
-    echo " Done"
-  fi
-   ;;
+    if [ $? -ne 0 ]
+    then
+      service ${POSTGRESQL_SERVICE_NAME} start >/dev/null 2>&1
+    fi
 
-    abort-upgrade|abort-remove|abort-deconfigure)
-    ;;
-
-    *)
-        echo "postinst called with unknown argument \`$1'" >&2
+    echo -n "INFO: Waiting for PostgreSQL to be up..."
+    CPT=0
+    TIMEOUT=60
+    while ! su - postgres -c "psql -q --output /dev/null -c \"SELECT COUNT(*) FROM pg_catalog.pg_authid\"" >/dev/null 2>&1
+    do
+      echo -n "."
+      sleep 1
+      CPT=$((${CPT}+1))
+      if [ ${CPT} -eq ${TIMEOUT} ]
+      then
+        echo -e "\nERROR: Connection to PostgreSQL has not been established before timeout. Exiting"
         exit 1
-    ;;
+      fi
+    done
+    echo " Done"
+
+    DBNAME="rudder"
+    USERNAME="rudder"
+    CHK_PG_DB=$(su - postgres -c "psql -t -c \"select count(1) from pg_catalog.pg_database where datname = '${DBNAME}'\"")
+    CHK_PG_USER=$(su - postgres -c "psql -t -c \"select count(1) from pg_user where usename = '${USERNAME}'\"")
+
+    # Rudder user
+    if [ ${CHK_PG_USER} -eq 0 ]
+    then
+      echo -n "INFO: Creating Rudder PostgreSQL user..."
+      su - postgres -c "psql -q -c \"CREATE USER ${USERNAME} WITH PASSWORD 'Normation'\"" >/dev/null 2>&1
+      echo "Done"
+    fi
+
+    # Rudder database
+    if [ ${CHK_PG_DB} -eq 0 ]
+    then
+      echo -n "INFO: Creating Rudder PostgreSQL database..."
+      su - postgres -c "psql -q -c \"CREATE DATABASE ${DBNAME} WITH OWNER = ${USERNAME}\"" >/dev/null 2>&1
+      echo "localhost:5432:${DBNAME}:${USERNAME}:Normation" > /root/.pgpass
+      chmod 600 /root/.pgpass
+      psql -q -U rudder -h localhost -d rudder -f /opt/rudder/etc/postgresql/reportsSchema.sql  >/dev/null 2>&1
+      echo " Done"
+  fi
+  ;;
+  abort-upgrade|abort-remove|abort-deconfigure)
+  ;;
+  *)
+    echo "postinst called with unknown argument \`$1'" >&2
+    exit 1
+  ;;
 esac
 
 # dh_installdeb will replace this with shell code automatically

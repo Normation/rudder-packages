@@ -19,13 +19,31 @@ set -e
 
 case "$1" in
     configure)
+
+  # Currently, we assume that the server where the webapp is installed
+  # is the root server. Force the UUID.
+  echo 'root' > /opt/rudder/etc/uuid.hive
+
   echo -n "INFO: Restarting syslog..."
   invoke-rc.d rsyslog restart >/dev/null 2>&1
   echo "Done"
 
-  SITES_TO_DISABLE="default rudder-default rudder-default-ssl"
+  # Get the current apache version
+  APACHE_VERSION=$(apache2 -v|grep Apache|sed "s%^.*Apache/\([0-9].[0-9]\).*%\1%")
+
+  SITES_TO_DISABLE="default 000-default default-ssl rudder-default rudder-default-ssl"
   SITES_TO_ENABLE="rudder-vhost rudder-vhost-ssl"
+
   MODULES_TO_ENABLE="dav_fs rewrite proxy_http headers ssl"
+
+  # Migration: Clean up old vhosts if we are running Apache 2.4
+  if [ ${APACHE_VERSION} = 2.4 ]
+  then
+    for i in ${SITES_TO_ENABLE}
+    do
+      [ ! -e /etc/apache2/sites-enabled/${i} ] || rm -f /etc/apache2/sites-enabled/${i}
+    done
+  fi
 
   for dissite in ${SITES_TO_DISABLE}
   do
@@ -49,6 +67,7 @@ case "$1" in
   chown root:www-data /var/rudder/inventories/accepted-nodes-updates
   chmod 2770 /var/rudder/inventories/accepted-nodes-updates
   chmod 755 -R /opt/rudder/share/tools
+
   htpasswd -bc /opt/rudder/etc/htpasswd-webdav-initial rudder rudder >/dev/null 2>&1
   htpasswd -bc /opt/rudder/etc/htpasswd-webdav rudder rudder >/dev/null 2>&1
 
@@ -82,14 +101,48 @@ case "$1" in
   echo "INFO: End of migration script"
 
 	# Create and populate technique store
-	if [ ! -d /var/rudder/configuration-repository ]; then mkdir -p /var/rudder/configuration-repository; fi
 	if [ ! -d /var/rudder/configuration-repository/shared-files ]; then mkdir -p /var/rudder/configuration-repository/shared-files; fi
 	if [ ! -d /var/rudder/configuration-repository/techniques ]; then
 		cp -a /opt/rudder/share/techniques /var/rudder/configuration-repository/
 	fi
-	if [ ! -d /var/rudder/configuration-repository/ncf ]; then
-		ncf init /var/rudder/configuration-repository/ncf
-	fi
+
+  # Go into configuration-repository to manage git
+  cd /var/rudder/configuration-repository
+  # Initialize git repository if it is missing, so permissions can be set on it afterwards
+  if [ ! -d /var/rudder/configuration-repository/.git ]; then
+    git init --shared=group
+    git add .
+    git commit -m "initial commit"
+  else
+    # Set shared repository value to group if not set
+    if ! git config core.sharedRepository >/dev/null 2>&1; then
+      git config core.sharedRepository group
+    fi
+  fi
+
+  # Create the configuration-repository group if it does not exist
+  if ! getent group rudder > /dev/null; then
+    echo -n "INFO: Creating group rudder..."
+    groupadd --system rudder
+    echo " Done"
+  fi
+
+  # Add the ncf-api-venv user to this group
+  if ! getent group rudder | grep -q ncf-api-venv > /dev/null; then
+    echo -n "INFO: Adding ncf-api-venv to the rudder group..."
+    usermod -aG rudder ncf-api-venv
+    echo " Done"
+  fi
+
+  # Adjust permissions on /var/rudder/configuration-repository
+  chgrp -R rudder /var/rudder/configuration-repository
+  ## Add execution permission for ncf-api only on directories and files with user execution permission
+  chmod -R u+rwX,g+rwsX /var/rudder/configuration-repository/.git
+  chmod -R u+rwX,g+rwsX /var/rudder/configuration-repository/ncf
+  chmod -R u+rwX,g+rwsX /var/rudder/configuration-repository/techniques
+  ## Add execution permission for ncf-apo on pre/post-hooks
+  chmod -R 2750 /var/rudder/configuration-repository/ncf/ncf-hooks.d/
+
 
 	# Only for Ubuntu:
 	## Change rsyslog port number since Ubuntu 12.04 doesn't allow to use standard
@@ -103,6 +156,11 @@ case "$1" in
 		echo "INFO: rsyslog port number changed to 5514"
 	fi
 
+
+  # Create a symlink to the Jetty context if necessary
+  if [ -d "/opt/rudder/jetty7/contexts" ]; then
+    ln -sf /opt/rudder/share/webapps/rudder.xml /opt/rudder/jetty7/contexts/rudder.xml
+  fi
 
   # Restart the webapp
   echo -n "INFO: Restarting Rudder webapp and inventory-endpoint..."

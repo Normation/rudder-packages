@@ -19,7 +19,7 @@
 #=================================================
 # Specification file for ncf
 #
-# Install the NCF framework
+# Install the ncf framework
 #
 # Copyright (C) 2013 Normation
 #=================================================
@@ -34,13 +34,13 @@
 #=================================================
 # Header
 #=================================================
-Summary: NCF - CFEngine framework
+Summary: ncf - CFEngine framework
 Name: %{real_name}
 Version: %{real_version}
 Release: 1%{?dist}
 Epoch: 0
 License: GPLv3
-URL: http://www.ncf-project.org
+URL: http://www.ncf.io
 
 Group: Applications/System
 
@@ -54,7 +54,7 @@ BuildArch: noarch
 # Add Requires here - order is important
 
 %description
-NCF is a CFEngine framework aimed at helping newcomers on CFEngine
+ncf is a CFEngine framework aimed at helping newcomers on CFEngine
 to be more quickly operationnal and old timers to spend less time
 focusing on low level details and have more time for fun things.
 

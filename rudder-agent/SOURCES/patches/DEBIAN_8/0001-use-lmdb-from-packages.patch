@@ -1,0 +1,85 @@
+diff -Naur debian/control debian/control
+--- debian/control	2014-10-14 12:33:00.341007179 +0200
++++ debian/control	2014-10-14 19:06:49.889776856 +0200
+@@ -2,13 +2,13 @@
+ Section: admin
+ Priority: extra
+ Maintainer: Rudder packaging team <rudder-packaging@rudder-project.org>
+-Build-Depends: debhelper (>= 7), libssl-dev, bison, gcc, flex, autoconf, automake, libtool, libpcre3-dev, libpam0g-dev
++Build-Depends: debhelper (>= 7), libssl-dev, bison, gcc, flex, autoconf, automake, libtool, libpcre3-dev, libpam0g-dev, liblmdb-dev
+ Standards-Version: 3.8.0
+ Homepage: http://www.rudder-project.org
+ 
+ Package: rudder-agent
+ Architecture: any
+-Depends: ${shlibs:Depends}, ${misc:Depends}, uuid-runtime, dmidecode, cron, net-tools
++Depends: ${shlibs:Depends}, ${misc:Depends}, uuid-runtime, dmidecode, cron, net-tools, liblmdb0
+ # The dependencies below are defined in order to use rudder-agent
+ # for the server. This will add capabilities to send inventories
+ # from the server itself.
+diff -Naur debian/dirs debian/dirs
+--- debian/dirs	2014-10-14 18:59:28.389854693 +0200
++++ debian/dirs	2014-10-14 19:06:49.889776856 +0200
+@@ -1,4 +1,3 @@
+-etc/ld.so.conf.d
+ etc/profile.d
+ opt/rudder
+ var/rudder/cfengine-community
+diff -Naur debian/postinst debian/postinst
+--- debian/postinst	2014-10-14 12:33:00.345007193 +0200
++++ debian/postinst	2014-10-14 19:06:49.889776856 +0200
+@@ -27,12 +27,6 @@
+ 		CFRUDDER_FIRST_INSTALL=0
+ 		if [ ! -x /var/rudder/cfengine-community/bin/cf-execd ]; then CFRUDDER_FIRST_INSTALL=1; fi
+ 
+-		# Reload the linker cache (to acknowledge LMDB's presence if needed)
+-		if [ -e /etc/ld.so.conf.d/rudder.conf ]; then
+-			echo "Found /etc/ld.so.conf.d/rudder.conf, running ldconfig" >> /var/log/rudder/install/rudder-agent.log
+-			ldconfig -v >> /var/log/rudder/install/rudder-agent.log 2>&1
+-		fi
+-
+ 		echo "Making sure that the permissions on the CFEngine key directory are correct..."
+     if [ -d /var/rudder/cfengine-community/ppkeys ]; then
+ 		chmod 700 /var/rudder/cfengine-community/ppkeys
+diff -Naur debian/rules debian/rules
+--- debian/rules	2014-10-14 19:12:29.981866102 +0200
++++ debian/rules	2014-10-14 19:12:39.581860944 +0200
+@@ -14,19 +14,12 @@
+ configure: configure-stamp
+ configure-stamp:
+ 	dh_testdir
+-	# dh_prep has been moved from 'install' target since we need to build LMDB first
+-	dh_prep
+ 	# Add here commands to configure the package.
+ 	cd SOURCES && ./perl-prepare.sh $(CURDIR)/SOURCES/fusioninventory-agent
+-	# Compile the LMDB library and install it in /opt/rudder
+-	# LMDB source code does not know how to create destination folders, do it ourselves
+-	for i in bin lib include man/man1; do mkdir -p $(CURDIR)/debian/tmp/opt/rudder/$$i; done
+-	cd SOURCES/lmdb-source/libraries/liblmdb && make
+-	cd SOURCES/lmdb-source/libraries/liblmdb && make install prefix=/opt/rudder DESTDIR=$(CURDIR)/debian/tmp
+ 	# If there is no configure, bootstrap with autogen.sh first
+ 	cd SOURCES/cfengine-source && [ -x ./configure ] || NO_CONFIGURE=1 ./autogen.sh
+ 	# Prepare CFEngine 3.6.x build with defined path of LMDB
+-	cd SOURCES/cfengine-source && ./configure --prefix=/opt/rudder --with-workdir=/var/rudder/cfengine-community --enable-static=yes --enable-shared=no --with-lmdb=$(CURDIR)/debian/tmp/opt/rudder
++	cd SOURCES/cfengine-source && ./configure --prefix=/opt/rudder --with-workdir=/var/rudder/cfengine-community --enable-static=yes --enable-shared=no
+ 
+ 	touch configure-stamp
+ 
+@@ -57,6 +50,7 @@
+ install: build
+ 	dh_testdir
+ 	dh_testroot
++	dh_prep
+ 	dh_installdirs
+ 
+ 	# Add here commands to install the package into debian/tmp
+@@ -88,9 +82,6 @@
+ 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES initial-promises /opt/rudder/share
+ 	# Install an empty uuid.hive file before generating an uuid
+ 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ uuid.hive /opt/rudder/etc/
+-	# Install /etc/ld.so.conf.d/rudder.conf in order to use libraries contain
+-	# in /opt/rudder/lib like LMDB
+-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder.conf /etc/ld.so.conf.d
+ 	# Install a verification script for cron
+ 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ check-rudder-agent /opt/rudder/bin/
+ 	# Install script to get local processes on VZ systems

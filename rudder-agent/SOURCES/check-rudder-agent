@@ -34,7 +34,7 @@ OS_FAMILY=$(uname -s)
 
 ## Which database system is used in CFEngine ?
 ## TokyoCabinet (tcdb), Lightning MDB (lmdb)
-CFENGINE_DB_EXT=tcdb
+CFENGINE_DB_EXT=lmdb
 
 ## If we are on AIX, use alternative commands and options
 if [ "z${OS_FAMILY}" = "zAIX" ]; then

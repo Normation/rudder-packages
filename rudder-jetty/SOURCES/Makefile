@@ -32,6 +32,8 @@ localdepends: ./jetty7
 	tar xzf $(TMP_DIR)/jetty.tgz -C $(TMP_DIR)
 	mv $(TMP_DIR)/jetty-hightide-$(JETTY_RELEASE).v$(DATE_RELEASE) ./jetty7
 	rm -rf $(TMP_DIR)
+	# Remove javadoc which is a waste of 34M on production
+	rm -rf ./jetty7/javadoc
 
 	# Change default log directory for jetty
 	sed -i 's/default=\".\/logs\"/default=\"\/var\/log\/rudder\/webapp\"/g' ./jetty7/etc/jetty-logging.xml
@@ -43,7 +45,6 @@ localdepends: ./jetty7
 	grep 'Set name="requestHeaderSize"' ./jetty7/etc/jetty.xml >/dev/null || sed -i -e '/<New class="org.eclipse.jetty.server.nio.SelectChannelConnector">/s/$$/\n            <Set name="requestHeaderSize">8192<\/Set>/' ./jetty7/etc/jetty.xml
 
 	# Change jetty.sh before distincts files
-	patch -p0 -s < jetty-init-rudder.patch
 	patch -p0 -s < jetty-init-umask.patch
 	patch -p0 -s < jetty-init-stop-fix.patch
 	patch -p0 -s < jetty-init-sizecheck.patch

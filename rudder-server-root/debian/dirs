@@ -1,5 +1,2 @@
+opt/rudder/etc
 opt/rudder/bin
-opt/rudder/share/initial-promises/
-var/rudder/cfengine-community/inputs/
-var/cfengine/
-var/cfengine/inputs/

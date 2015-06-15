@@ -32,12 +32,6 @@
 %define ruddervardir     /var/rudder
 %define rudderlogdir     /var/log/rudder
 
-%if 0%{?rhel}
-%define logrotatefile    rudder.logrotate.rhel
-%else
-%define logrotatefile    rudder.logrotate.suse
-%endif
-
 #=================================================
 # Header
 #=================================================
@@ -52,25 +46,19 @@ URL: http://www.rudder-project.org
 Group: Applications/System
 
 Source1: rudder-sources
-Source2: rudder-init.sh
-Source3: rudder-node-to-relay
-Source4: %{logrotatefile}
 Source5: rudder-server-root.init
-Source6: rudder-passwords.conf
-Source7: rudder-root-rename
+Source8: rudder-server-root
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
 
-Requires: rudder-agent, rudder-webapp, curl
+Requires: rudder-jetty, rudder-webapp, rudder-inventory-endpoint, rudder-inventory-ldap, rudder-reports, rudder-agent, curl
 
 %description
 Rudder is an open source configuration management and audit solution.
 
 This package is essentially a meta-package to install all components required to
-run a Rudder root server on one machine. It also installs some required files
-(rudder-init.sh, rudder-root-rename, rudder-node-to-relay and uuid to root).
-
+run a Rudder root server on one machine.
 
 #=================================================
 # Source preparation
@@ -88,21 +76,14 @@ run a Rudder root server on one machine. It also installs some required files
 %install
 rm -rf %{buildroot}
 # Directories
-mkdir -p %{buildroot}/var/cfengine/
-mkdir -p %{buildroot}/var/cfengine/inputs
-mkdir -p %{buildroot}%{rudderdir}/bin/
 mkdir -p %{buildroot}%{rudderdir}/etc/
-mkdir -p %{buildroot}%{ruddervardir}/cfengine-community/
-mkdir -p %{buildroot}/etc/logrotate.d/
+mkdir -p %{buildroot}%{rudderdir}/etc/server-roles.d/
 mkdir -p %{buildroot}/etc/init.d
 
 # Others
-cp %{SOURCE2} %{buildroot}%{rudderdir}/bin/
-cp %{SOURCE3} %{buildroot}%{rudderdir}/bin/
-cp %{SOURCE4} %{buildroot}/etc/logrotate.d/rudder
 cp %{SOURCE5} %{buildroot}/etc/init.d/rudder-server-root
-cp %{SOURCE6} %{buildroot}%{rudderdir}/etc/
-cp %{SOURCE7} %{buildroot}%{rudderdir}/bin/
+
+install -m 644 %{SOURCE8} %{buildroot}/opt/rudder/etc/server-roles.d/
 
 %pre -n rudder-server-root
 #=================================================
@@ -122,8 +103,21 @@ LDAPCHK=`/opt/rudder/sbin/slapcat  | grep "^dn: " | wc -l`
 if [ $LDAPCHK -eq 0 ]; then
   echo "************************************************************"
   echo "Rudder is now installed but not configured."
-  echo "Please run /opt/rudder/bin/rudder-init.sh"
+  echo "Please run /opt/rudder/bin/rudder-init"
   echo "************************************************************"
+fi
+
+%postun -n rudder-server-root
+#=================================================
+# Post Uninstallation
+#=================================================
+
+# Do it only during uninstallation
+if [ $1 -eq 0 ]; then
+
+  # Clean up all logrotate leftovers
+  rm -rf %{_sysconfdir}/logrotate.d/rudder*
+
 fi
 
 #=================================================
@@ -137,14 +131,8 @@ rm -rf %{buildroot}
 #=================================================
 %files -n rudder-server-root
 %defattr(-, root, root, 0755)
-%config(noreplace,missingok) %{_sysconfdir}/logrotate.d/rudder
-%{rudderdir}/bin/rudder-node-to-relay
-%{rudderdir}/bin/rudder-init.sh
-%{rudderdir}/bin/rudder-root-rename
-/var/cfengine/inputs
+%{rudderdir}/etc/
 %attr(0755, root, root) /etc/init.d/rudder-server-root
-%config(noreplace) %{rudderdir}/etc/rudder-passwords.conf
-%attr(0600, root, root) %{rudderdir}/etc/rudder-passwords.conf
 
 #=================================================
 # Changelog

@@ -1,0 +1,385 @@
+#!/bin/bash
+#####################################################################################
+# Copyright 2011 Normation SAS
+#####################################################################################
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, Version 3.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#####################################################################################
+
+# Rudder initialization utility
+
+# Check if script is executed by root
+if [ ! "z$(whoami)" = "zroot" ];then echo "You must be root"; exit 1; fi
+
+REGEXPCHK='^[0-9]\{1,3\}.[0-9]\{1,3\}.[0-9]\{1,3\}.[0-9]\{1,3\}\/[0-9]\{1,2\}$'
+
+# VARS
+TMP_DIR=$(mktemp -dq)
+TMP_LOG=$(mktemp -t rudder.XXXXXXXXXX -q)
+mv ${TMP_LOG} ${TMP_LOG}.log
+TMP_LOG=${TMP_LOG}.log
+
+BOOTSTRAP_PATH=$TMP_DIR/bootstrap.ldif
+INITPOLICY_PATH=$TMP_DIR/init-policy-server.ldif
+INITDEMO_PATH=$TMP_DIR/demo-data.ldif
+
+RUDDER_OPT="/opt/rudder"
+RUDDER_VAR="/var/rudder"
+
+RUDDER_ROLES_FILE="${RUDDER_VAR}/cfengine-community/inputs/rudder-server-roles.conf"
+
+RUDDER_CONTEXT=$(grep contextPath ${RUDDER_OPT}/share/webapps/rudder.xml | sed "s@^\s*<Set name=\"contextPath\">\(.*\)</Set>@\1@")
+
+REGEXP='s/^\([0-9]\{1,3\}\)\(.[0-9]\{1,3\}\)\(.[0-9]\{1,3\}\)\(.[0-9]\{1,3\}.[0-9]\{1,2\}\)$/\1\\\2\\\3\\\4/g'
+
+again="yes"
+
+cpt=0
+cpt2=0
+
+# Ensure our PATH includes Rudder's binaries
+export PATH=${PATH}:${RUDDER_OPT}/bin
+
+# Try to get the machine FQDN, or default to the unqualified
+# one if it fails.
+if hostname -f > /dev/null 2>&1
+then
+  RUDDER_HOSTNAME=$(hostname -f)
+else
+  RUDDER_HOSTNAME=$(hostname)
+fi
+
+# Check if promises already exist for CFEngine community
+INITREP=/var/rudder/cfengine-community/inputs
+
+# File containing the policy server IP
+POLICY_SERVER_FILE="${RUDDER_VAR}/cfengine-community/policy_server.dat"
+
+JETTY_INIT="service rudder-jetty"
+
+# Get how many access credentials we got for LDAP and SQL in /opt/rudder/etc/rudder-web.properties
+# (should have 2 for each, user and password)
+LDAP_CREDENTIALS=$(grep -c -E "^ldap.auth(dn|pw)[ \t]*=" /opt/rudder/etc/rudder-web.properties || true)
+SQL_CREDENTIALS=$(grep -c -E "^rudder.jdbc.(username|password)[ \t]*=" /opt/rudder/etc/rudder-web.properties || true)
+
+TOTAL_CREDENTIALS=$((LDAP_CREDENTIALS+SQL_CREDENTIALS))
+
+if [ -f /opt/rudder/etc/rudder-web.properties -a ${TOTAL_CREDENTIALS} -eq 4 ]; then
+  # Get the database access credentials from the rudder-web.properties file
+  LDAP_USER="$(grep -E '^ldap.authdn[ \t]*=' ${RUDDER_OPT}/etc/rudder-web.properties | cut -d "=" -f 2-)"
+  LDAP_PASSWORD="$(grep -E '^ldap.authpw[ \t]*=' ${RUDDER_OPT}/etc/rudder-web.properties | cut -d "=" -f 2-)"
+  LDAP_SERVER="$(grep -E '^ldap.host[ \t]*=' ${RUDDER_OPT}/etc/rudder-web.properties | cut -d '=' -f 2-)"
+  LDAP_PORT="$(grep -E '^ldap.port[ \t]*=' ${RUDDER_OPT}/etc/rudder-web.properties | cut -d '=' -f 2-)"
+
+  SQL_USER="$(grep -E '^rudder.jdbc.username[ \t]*=' ${RUDDER_OPT}/etc/rudder-web.properties | cut -d "=" -f 2-)"
+  SQL_PASSWORD="$(grep -E '^rudder.jdbc.password[ \t]*=' ${RUDDER_OPT}/etc/rudder-web.properties | cut -d "=" -f 2-)"
+  SQL_SERVER="$(grep -E '^rudder.jdbc.url[ \t]*=' ${RUDDER_OPT}/etc/rudder-web.properties | cut -d '=' -f 2- | sed 's%^.*://\(.*\):\(.*\)/.*$%\1%')"
+  SQL_PORT="$(grep -E '^rudder.jdbc.url[ \t]*=' ${RUDDER_OPT}/etc/rudder-web.properties | cut -d '=' -f 2- | sed 's%^.*://\(.*\):\(.*\)/.*$%\2%')"
+
+  export PGPASSWORD="${SQL_PASSWORD}"
+else
+  # No database access credentials in rudder-web.properties... Try anyway using "guessed" values.
+  echo "WARNING: Database access credentials are missing in /opt/rudder/etc/rudder-web.properties, trying to guess adequate values."
+  LDAP_USER=$(grep "^rootdn" /opt/rudder/etc/openldap/slapd.conf | sed "s/\w*\s*['\"]\?\([^\"']*\)['\"]\?$/\1/")
+  LDAP_PASSWORD=$(grep "^rootpw" /opt/rudder/etc/openldap/slapd.conf | sed "s/\w*\s*['\"]\?\([^\"']*\)['\"]\?$/\1/")
+  LDAP_SERVER='localhost'
+  LDAP_PORT='389'
+
+  SQL_USER="rudder"
+  SQL_PASSWORD="undefined"
+  SQL_SERVER="localhost"
+  SQL_PORT="5432"
+
+  # We rely on .pgpass instead
+  unset PGPASSWORD
+fi
+
+# Override any server values with those from ${RUDDER_ROLES_FILE} , unless this is a monolithic
+# Rudder server installation (to keep using localhost)
+RUDDER_ROLE_SERVER_ROOT="${RUDDER_OPT}/etc/server-roles.d/rudder-server-root"
+if [ ! -f ${RUDDER_ROLE_SERVER_ROOT} -a -f ${RUDDER_ROLES_FILE} ]; then
+  for role in rudder-db rudder-ldap rudder-inventory-endpoint; do
+    ROLE_HOSTNAME=$(grep "^${role}:" ${RUDDER_ROLES_FILE} | cut -d: -f2 | cut -d, -f1 | tr -d " ")
+    if [ ! -z ${ROLE_HOSTNAME} ]; then
+      case "${role}" in
+        rudder-ldap)
+          LDAP_SERVER=${ROLE_HOSTNAME}
+          sed -i "s%^ldap.host *=.*$%ldap.host=${LDAP_SERVER}%" ${RUDDER_OPT}/etc/rudder-web.properties
+          ;;
+        rudder-db)
+          SQL_SERVER=${ROLE_HOSTNAME}
+          sed -i "s%^rudder.jdbc.url *=.*$%rudder.jdbc.url=jdbc:postgresql://${SQL_SERVER}:5432/rudder%" ${RUDDER_OPT}/etc/rudder-web.properties
+          ;;
+        rudder-inventory-endpoint)
+          sed -i "s%^rudder.endpoint.cmdb *=.*$%rudder.endpoint.cmdb=http://${ROLE_HOSTNAME}:8080/endpoint/upload/%" ${RUDDER_OPT}/etc/rudder-web.properties
+          ;;
+      esac
+    fi
+  done
+fi
+
+# Commands
+LDAP_PARAMETERS="-H ldap://${LDAP_SERVER}:${LDAP_PORT}/ -D ${LDAP_USER} -w ${LDAP_PASSWORD} -x"
+
+LDAPSEARCH="ldapsearch ${LDAP_PARAMETERS} -LLL"
+LDAPMODRDN="ldapmodrdn ${LDAP_PARAMETERS}"
+LDAPADD="ldapadd ${LDAP_PARAMETERS}"
+LDAPDELETE="ldapdelete ${LDAP_PARAMETERS}"
+
+LDAP_EXISTS=$(${LDAPSEARCH} -b "cn=rudder-configuration" -s base dn 2>/dev/null | grep -c "dn: cn=rudder-configuration" || true)
+
+PSQL="psql -q -h ${SQL_SERVER} -p ${SQL_PORT} -U ${SQL_USER}"
+
+Pause()
+{
+  key=""
+  echo -n Hit any key to continue....
+  stty -icanon
+  key=$(dd count=1 2>/dev/null)
+  stty icanon
+}
+
+ErrorCheck()
+{
+  if [ $? -ne 0 ]
+  then
+    echo "ERROR: Execution failed! Aborting."
+    echo "An error occured. Please check $TMP_LOG for details."
+    exit
+  fi
+}
+
+LDAPInit()
+{
+  cp /opt/rudder/share/bootstrap.ldif $BOOTSTRAP_PATH
+  cp /opt/rudder/share/init-policy-server.ldif $INITPOLICY_PATH
+  cp /opt/rudder/share/demo-data.ldif $INITDEMO_PATH
+
+  sed -i "s/^\([^#].*\)%%POLICY_SERVER_HOSTNAME%%/\1${RUDDER_HOSTNAME}/g" $INITPOLICY_PATH
+  sed -i "s#^\([^#].*\)%%POLICY_SERVER_ALLOWED_NETWORKS%%#\1$NET#g" $INITPOLICY_PATH
+
+  ${LDAPADD} -f $BOOTSTRAP_PATH &> $TMP_LOG
+  ErrorCheck
+
+  ${LDAPADD} -f $INITPOLICY_PATH &> $TMP_LOG
+  ErrorCheck
+}
+
+# Generate the promises at the temporaty location
+# Takes two arguments:
+#  - The hostname
+#  - The computed allowed network
+function generate_promises_at_temporary_location() {
+  local COMPUTED_ALLOWED_NETWORKS=$1
+
+  cp -r /opt/rudder/share/initial-promises/ ${TMP_DIR}/community
+
+  find $TMP_DIR/community -name "cf-served.cf" -type f -exec sed -i "s@'%%POLICY_SERVER_ALLOWED_NETWORKS%%'@$COMPUTED_ALLOWED_NETWORKS@g" {} \;
+}
+
+# Reset the policy server hostname
+function reset_policy_server() {
+  echo "127.0.0.1" > /var/cfengine/policy_server.dat
+  echo "127.0.0.1" > /var/rudder/cfengine-community/policy_server.dat
+}
+
+# Check if some arguments have been given
+if [ $# -gt 0 ]
+then
+  if [ $# -lt 2 ]
+  then
+    echo "ERROR: Usage is: ${0} LDAPReset AllowedNetwork1 [AllowedNetwork2]..."
+    exit 1
+  else
+    if [ $# -ge 5 ]
+    then
+      # Using deprecated call to rudder-init
+      echo "WARNING: Using deprecated arguments"
+      echo "INFO: Usage is now: ${0} LDAPReset AllowedNetwork1 [AllowedNetwork2]..."
+      LDAPRESET=${3}         # Reset LDAP ?
+      ALLOWEDNETWORK[0]=${5} # Allowed networks
+    else
+      LDAPRESET=${1}         # Reset LDAP ?
+      ALLOWEDNETWORK[0]=${2} # Allowed networks
+    fi
+  fi
+else
+  echo
+  echo "Welcome to the Rudder initialization utility"
+  echo
+  echo "This utility configures a Rudder root server, and may be"
+  echo "called again if reconfiguration is required."
+
+  # Menu
+
+  ## 1st Step: Define SERVER_ALLOWED_NETWORK
+  while [ z$again = "zyes" ]
+  do
+    again=''
+    while ! echo "${ALLOWEDNETWORK[$cpt]}" | grep "$REGEXPCHK"
+    do
+      echo
+      echo -n "Enter network allowed to access server (i.e 192.168.0.0/24): "
+      read ALLOWEDNETWORK[$cpt]
+    done
+    echo "Network(s) added:"
+    for i in ${ALLOWEDNETWORK[*]}
+    do
+      echo $i
+    done
+    while ! echo "$again" | grep "^\(yes\|no\)$";do echo -n "Add more networks? (yes/no) ";read again;done
+    ((cpt++))
+  done
+
+  ## 2nd Step: LDAP Check
+  if [ ${LDAP_EXISTS} -gt 0 ]
+  then
+    while ! echo "$LDAPRESET" | grep "^\(yes\|no\)$"
+    do
+      echo
+      echo -ne "An LDAP database has been detected.\nDo you want to reinitialize it? (yes/no) "
+      read LDAPRESET
+    done
+  fi
+fi
+
+# Before continuing asking questions, we need to generate the initial promises
+# as they should be, to check whether the actual promises on this host need resetting
+
+## 1: Format allowed networks
+## NET will modify init-policy-server.ldif and NET 2 cf-served.cf
+for i in ${ALLOWEDNETWORK[*]}
+do
+  if [ $cpt2 -eq 0 ]
+  then
+    NET=$(echo $i | sed $REGEXP)
+    NET2="'$NET'"
+  else
+    NET="$NET\ndirectiveVariable: ALLOWEDNETWORK[$cpt2]:$(echo $i | sed $REGEXP)"
+    NET2="$NET2, '$(echo $i | sed $REGEXP)'"
+  fi
+  ((cpt2++))
+done
+
+# 2: generate the initial promises
+generate_promises_at_temporary_location "${NET2}"
+
+# 3: compare the generated promises with what is on the FS
+mkdir -p ${INITREP} /var/cfengine/inputs
+diff -Naur ${INITREP} ${TMP_DIR}/community > /dev/null
+DIFFERENT_PROMISES=$?
+
+# Review
+echo
+echo "SUMMARY OF OPTIONS:"
+echo
+echo Allowed networks: "${ALLOWEDNETWORK[*]}"
+if [ ${LDAP_EXISTS} -gt 0 ]
+then
+  echo Reinitialize LDAP database? "$LDAPRESET"
+fi
+echo
+Pause
+
+# Configure initial promises
+echo -n "Configuring and installing initial CFEngine promises..."
+
+# Preserve rudder-server-roles.conf
+mv ${RUDDER_ROLES_FILE} ${TMP_DIR}/
+
+rm -rf /var/rudder/cfengine-community/inputs/*
+rm -rf /var/cfengine/inputs/*
+
+cp -r $TMP_DIR/community/* /var/rudder/cfengine-community/inputs/
+cp -r $TMP_DIR/community/* /var/cfengine/inputs/
+
+# Restore rudder-server-roles.conf
+mv ${TMP_DIR}/$(basename ${RUDDER_ROLES_FILE}) ${RUDDER_ROLES_FILE}
+
+reset_policy_server
+
+echo " Done."
+
+# Enforce that policy_server.dat exists
+if [ ! -e ${POLICY_SERVER_FILE} ]
+then
+  echo -n "Initializing IP address of the server..."
+  reset_policy_server
+  echo " Done."
+fi
+
+# LDAP (re)initialization
+if [ ${LDAP_EXISTS} -gt 0 ]
+then
+  if [ z$LDAPRESET = "zyes" ]
+  then
+    echo -n "Initializing LDAP database..."
+    ${LDAPDELETE} -r "cn=rudder-configuration"
+    LDAPInit
+  fi
+else
+  echo -n "Initializing LDAP database..."
+  LDAPInit
+fi
+echo " done."
+echo
+
+# Update the password file used by Rudder with random passwords - if we are on the root server with all components ONLY
+if [ -f ${RUDDER_OPT}/etc/server-roles.d/rudder-server-root ]; then
+  echo -n "Updating Rudder password file with random passwords... "
+  sed -i "s%RUDDER_WEBDAV_PASSWORD.*%RUDDER_WEBDAV_PASSWORD:$(dd if=/dev/urandom count=128 bs=1 2>&1 | md5sum | cut -b-12)%" ${RUDDER_OPT}/etc/rudder-passwords.conf
+  sed -i "s%RUDDER_PSQL_PASSWORD.*%RUDDER_PSQL_PASSWORD:$(dd if=/dev/urandom count=128 bs=1 2>&1 | md5sum | cut -b-12)%" ${RUDDER_OPT}/etc/rudder-passwords.conf
+  sed -i "s%RUDDER_OPENLDAP_BIND_PASSWORD.*%RUDDER_OPENLDAP_BIND_PASSWORD:$(dd if=/dev/urandom count=128 bs=1 2>&1 | md5sum | cut -b-12)%" ${RUDDER_OPT}/etc/rudder-passwords.conf
+  echo " done."
+else
+  echo "This appears to be a distributed Rudder server setup."
+  echo "You should manually change the passwords for the WebDAV, PostgreSQL and OpenLDAP"
+  echo "services now, and reflect these changes across all servers".
+  echo "This cannot be done automatically currently."
+  echo "See http://www.rudder-project.org/rudder-doc-latest/rudder-doc.html#password-management"
+  echo
+fi
+
+# Delete temp files
+echo -n "Cleaning up temporary directories..."
+rm -rf $TMP_DIR
+echo " done."
+
+# Restart services
+echo -n "Restarting services..."
+
+# Start the whole infrastructure
+
+## Manually launch cf-agent to set up policy server
+# Running failsafe will create required directories (such as /var/rudder/ncf/local) and populate tools
+cf-agent -f failsafe.cf &> "$TMP_LOG"
+# Run all server-specific bundles (except propagatePromises, because they're aren't any yet)
+cf-agent -b propagatePromises,install_rsyslogd,root_component_check &> "$TMP_LOG"
+
+## Then, restart jetty
+${JETTY_INIT} restart >> "${TMP_LOG}" 2>&1 || echo "WARNING: Jetty failed to start, maybe there is not enough RAM or swap on the machine. Skipping..."
+
+## And finally, rudder-agent
+service rudder-agent restart >> "${TMP_LOG}" 2>&1
+
+echo " done."
+
+echo
+echo "Reinitialization complete, Rudder is currently reloading."
+echo
+echo "You can access it via https://<hostname>${RUDDER_CONTEXT}"
+echo
+echo "( Example: https://${RUDDER_HOSTNAME}${RUDDER_CONTEXT} )"
+echo
+echo "Thank you for using Rudder."

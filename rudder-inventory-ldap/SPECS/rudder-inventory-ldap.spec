@@ -34,8 +34,6 @@
 %define ruddervardir     /var/rudder
 %define rudderlogdir     /var/log/rudder
 
-%define openldap_release 2.4.23
-
 %if 0%{?sles_version} 
 %define sysloginitscript /etc/init.d/syslog
 %endif
@@ -65,6 +63,8 @@ Source3: slapd.conf
 Source4: inventory.schema
 Source5: rudder.schema
 Source6: DB_CONFIG
+Source7: rudder-inventory-ldap
+Source8: rudder-ldap
 # This file will contain path of /opt/rudder/lib for ld which will
 # find there all necessary libraries for BerkeleyDB.
 Source9: rudder-inventory-ldap.conf
@@ -72,8 +72,8 @@ Source9: rudder-inventory-ldap.conf
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 #Generic requirement
-BuildRequires: gcc cyrus-sasl-devel
-Requires: rsyslog cyrus-sasl openssl
+BuildRequires: gcc
+Requires: rsyslog openssl
 
 #Specific requirement
 %if 0%{?sles_version} == 11
@@ -132,7 +132,7 @@ export LD_LIBRARY_PATH="/opt/rudder/lib"
 export CPPFLAGS="-I/opt/rudder/include"
 export LDFLAGS="-L/opt/rudder/lib"
 
-./configure --build=%{_target} --prefix=%{rudderdir} --libdir=%{rudderdir}/lib/ldap --enable-dynamic --enable-debug --enable-modules --enable-hdb=mod --enable-monitor=mod --enable-dynlist=mod --with-cyrus-sasl
+./configure --build=%{_target} --prefix=%{rudderdir} --libdir=%{rudderdir}/lib/ldap --enable-dynamic --enable-debug --enable-modules --enable-hdb=mod --enable-monitor=mod --enable-dynlist=mod
 
 make %{?_smp_mflags} depend
 make %{?_smp_mflags}
@@ -143,8 +143,9 @@ make %{?_smp_mflags}
 %install
 rm -rf %{buildroot}
 
-mkdir -p %{buildroot}/opt/rudder
+mkdir -p %{buildroot}/opt/rudder/
 mkdir -p %{buildroot}/etc/ld.so.conf.d
+mkdir -p %{buildroot}/opt/rudder/etc/server-roles.d/
 mkdir -p %{buildroot}%{rudderlogdir}/ldap
 mkdir -p %{buildroot}/var/rudder/ldap/openldap-data
 mkdir -p %{buildroot}/var/rudder/run
@@ -167,6 +168,9 @@ install -m 644 %{SOURCE3} %{buildroot}/opt/rudder/etc/openldap/slapd.conf
 install -m 644 %{SOURCE4} %{buildroot}/opt/rudder/etc/openldap/schema/
 install -m 644 %{SOURCE5} %{buildroot}/opt/rudder/etc/openldap/schema/
 install -m 644 %{SOURCE6} %{buildroot}/var/rudder/ldap/openldap-data/
+
+install -m 644 %{SOURCE7} %{buildroot}/opt/rudder/etc/server-roles.d/
+install -m 644 %{SOURCE8} %{buildroot}/opt/rudder/etc/server-roles.d/
 
 # Install /etc/ld.so.conf.d/rudder.conf in order to use libraries
 # contained in /opt/rudder/lib like BerkeleyDB
@@ -272,26 +276,17 @@ if [ -n "${BACKUP_LDIF}" ]; then
 		echo " Done"
 
 		echo "INFO: OpenLDAP database was successfully upgraded to new format"
+
+		if [ -x /opt/rudder/bin/rudder-upgrade ]
+		then
+			echo "INFO: Running the Rudder upgrade script to replay LDAP migrations on the old database content..."
+			/opt/rudder/bin/rudder-upgrade
+		fi
+
 		echo "INFO: You can safely remove the backups in ${LDAP_BACKUP_DIR}"
 		echo "INFO: and ${BACKUP_LDIF}"
 	fi
 fi
-
-# Do we need to reindex the LDAP database? This can be necessary if the indexes were changed. Let's check.
-SLAPD_DEFINED_INDEXES=$(mktemp)
-SLAPD_ACTUAL_INDEXES=$(mktemp)
-if [ -r /opt/rudder/etc/openldap/slapd.conf ] && [ -e /var/rudder/ldap/openldap-data/id2entry.bdb ]; then
-	grep ^index /opt/rudder/etc/openldap/slapd.conf | sed 's/\s\+/\t/g' | cut -f2 | sed 's/,/\n/g' | sort > ${SLAPD_DEFINED_INDEXES}
-	ls  /var/rudder/ldap/openldap-data/*.bdb | xargs -n 1 -I{} basename {} .bdb | sort | egrep -v '^(dn2id|id2entry)' > ${SLAPD_ACTUAL_INDEXES}
-	if ! diff ${SLAPD_DEFINED_INDEXES} ${SLAPD_ACTUAL_INDEXES} > /dev/null; then
-		echo -n "INFO: OpenLDAP indexes are not up to date, reindexing..."
-		/sbin/service rudder-slapd stop >/dev/null 2>&1
-		/opt/rudder/sbin/slapindex >/dev/null 2>&1
-		echo " Done"
-	fi
-fi
-# Remove temporary files about LDAP indexes
-rm -f ${SLAPD_DEFINED_INDEXES} ${SLAPD_ACTUAL_INDEXES}
 
 # Need to restart to take schema changes into account
 echo -n "INFO: Restarting rudder-slapd..."

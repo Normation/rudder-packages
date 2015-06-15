@@ -81,28 +81,18 @@ case "$1" in
 				echo " Done"
 
 				echo "INFO: OpenLDAP database was successfully upgraded to new format"
+
+				if [ -x /opt/rudder/bin/rudder-upgrade ]
+				then
+					echo "INFO: Running the Rudder upgrade script to replay LDAP migrations on the old database content..."
+					/opt/rudder/bin/rudder-upgrade
+				fi
+
 				echo "INFO: You can safely remove the backups in ${LDAP_BACKUP_DIR}"
 				echo "INFO: and ${BACKUP_LDIF}"
 
 			fi
 		fi
-
-		# Do we need to reindex the LDAP database? This can be necessary if the indexes were changed. Let's check.
-		SLAPD_DEFINED_INDEXES=$(mktemp)
-		SLAPD_ACTUAL_INDEXES=$(mktemp)
-		if [ -r /opt/rudder/etc/openldap/slapd.conf ] && [ -e /var/rudder/ldap/openldap-data/id2entry.bdb ]; then
-			grep ^index /opt/rudder/etc/openldap/slapd.conf | sed 's/\s\+/\t/g' | cut -f2 | sed 's/,/\n/g' | sort > ${SLAPD_DEFINED_INDEXES}
-			ls  /var/rudder/ldap/openldap-data/*.bdb | xargs -n 1 -I{} basename {} .bdb | sort | egrep -v '^(dn2id|id2entry)' > ${SLAPD_ACTUAL_INDEXES}
-			if ! diff ${SLAPD_DEFINED_INDEXES} ${SLAPD_ACTUAL_INDEXES} > /dev/null; then
-				echo -n "INFO: OpenLDAP indexes are not up to date, reindexing..."
-				invoke-rc.d rudder-slapd stop >/dev/null 2>&1
-				/opt/rudder/sbin/slapindex >/dev/null 2>&1
-				invoke-rc.d rudder-slapd start >/dev/null 2>&1
-				echo " Done."
-			fi
-		fi
-		# Remove temporary files about LDAP indexes
-		rm -f ${SLAPD_DEFINED_INDEXES} ${SLAPD_ACTUAL_INDEXES}
 
 		# Restart rudder-slapd to take schema changes into account
 		echo -n "INFO: Restarting rudder-slapd..."
