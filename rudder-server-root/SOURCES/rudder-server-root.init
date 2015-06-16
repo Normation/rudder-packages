@@ -32,15 +32,25 @@
 
 # Variables
 
-## Init scripts
-APACHE2_INIT=/etc/init.d/apache2
-if [ ! -x ${APACHE2_INIT} ] && [ -x /etc/init.d/httpd ]; then
-	APACHE2_INIT=/etc/init.d/httpd
+## Service names
+
+### Apache HTTPd
+APACHE2_SERVICE=apache2
+[ -e /etc/redhat-release ] && APACHE2_SERVICE=httpd
+
+### PostgreSQL
+if type systemctl >/dev/null 2>&1; then
+  POSTGRESQL_SERVICE=$(systemctl list-unit-files --type service | awk -F'.' '{print $1}' | grep -E "^postgresql[0-9]*$" | tail -n 1)
+elif type chkconfig >/dev/null 2>&1; then
+  POSTGRESQL_SERVICE=$(chkconfig 2>/dev/null | awk '{ print $1 }' | grep "postgresql" | tail -n 1)
+else
+  POSTGRESQL_SERVICE=$(ls -1 /etc/init.d | grep "postgresql" | tail -n 1)
 fi
-SLAPD_INIT=/etc/init.d/rudder-slapd
-JETTY_INIT=/etc/init.d/rudder-jetty
-RUDDER_AGENT_INIT=/etc/init.d/rudder-agent
-POSTGRESQL_INIT=/etc/init.d/postgresql
+
+### Rudder services
+SLAPD_SERVICE=rudder-slapd
+JETTY_SERVICE=rudder-jetty
+RUDDER_AGENT_SERVICE=rudder-agent
 
 ## PID files
 POSTGRESQL_PID_FILE=`find /var/lib -iname postmaster.pid`
@@ -48,51 +58,51 @@ POSTGRESQL_PID_FILE=`find /var/lib -iname postmaster.pid`
 # Functions
 start_services()
 {
-${SLAPD_INIT} start
-${POSTGRESQL_INIT}* start
-${RUDDER_AGENT_INIT} start
-${APACHE2_INIT} start
-${JETTY_INIT} start
+    service ${SLAPD_SERVICE} start
+    service ${POSTGRESQL_SERVICE} start
+    service ${JETTY_SERVICE} start
+    service ${APACHE2_SERVICE} start
+    service ${RUDDER_AGENT_SERVICE} start
 }
 
 stop_services()
 {
-${APACHE2_INIT} stop
-${JETTY_INIT} stop
-${RUDDER_AGENT_INIT} stop
-${POSTGRESQL_INIT}* stop
-${SLAPD_INIT} stop
+    service ${RUDDER_AGENT_SERVICE} stop
+    service ${APACHE2_SERVICE} stop
+    service ${JETTY_SERVICE} stop
+    service ${POSTGRESQL_SERVICE} stop
+    service ${SLAPD_SERVICE} stop
 }
 
 status_services()
 {
-${APACHE2_INIT} status
-${JETTY_INIT} check | tail -1
-${RUDDER_AGENT_INIT} status
-# Add PostgreSQL PID to the output
-echo -n "postgres[`head -1 ${POSTGRESQL_PID_FILE}`]: "
-${POSTGRESQL_INIT}* status
-${SLAPD_INIT} status
+    service ${SLAPD_SERVICE} status
+    # Add PostgreSQL PID to the output
+    echo -n "postgres[`head -1 ${POSTGRESQL_PID_FILE}`]: "
+    service ${POSTGRESQL_SERVICE} status
+    service ${JETTY_SERVICE} check | tail -1
+    service ${APACHE2_SERVICE} status
+    service ${RUDDER_AGENT_SERVICE} status
 }
 
 case "$1" in
-stop)
-stop_services
-;;
-start)
-start_services
-;;
-status)
-status_services
-;;
-restart)
-stop_services
-start_services
-;;
-*)
-  echo "Usage: $0 {start|stop|restart|status}"
-  exit 1
-;;
+    start)
+        start_services
+    ;;
+    stop)
+        stop_services
+    ;;
+    restart)
+        stop_services
+        start_services
+    ;;
+    status)
+        status_services
+    ;;
+    *)
+        echo "Usage: $0 {start|stop|restart|status}"
+        exit 1
+    ;;
 esac
 
 exit 0
