@@ -1,0 +1,259 @@
+#!/bin/sh
+
+# Nice hack to write in python and have a valid script working everywhere
+# Maybe we dont need this, since the shell already returns an error in this case
+# vim: syntax=python
+if ! type python >/dev/null 2>&1
+then
+  # yes we do
+  [ "$1" = "put" ] && exit 0
+  exit 9
+fi
+
+python - "$@" <<'EOF'
+#!/usr/bin/python
+
+"""
+Rudder cache management system
+
+Usage:
+    deps get [--force-config] <destination> [--from=<file>] [<key>=<value> ...]
+    deps put [--force-config] <source> [--move] [--from=<file>] [<key>=<value> ...]
+    deps show [--force-config] [--from=<file>] [<key>=<value> ...]
+    deps purge [--force-config] [--keep=<count>] [--from=<file>] [<key>=<value> ...]
+
+Options:
+    --force-config    Force the configuration to define explicitly a cache path
+                      to have caching. This allows to hide a command within a
+                      build process and create a potentially big cache directory
+                      only if the user knows and want it.
+
+    --from=<file>     Allow to pass key=values from a json file in addition to
+                      command line parameters
+
+Synopsys:
+    This command manages a cache on the filesystem. This cache contains entries
+    identified by a group of key,value pairs. When creating the entry, all
+    key,value pairs must be provided (the cache system adds a key called 'path').
+
+    When searching for an entry, you can provide any number of key,value pairs.
+    The search returns an exact match on all key,value pairs provided, if a the
+    key asked for isn't known in the index, ther is no match.
+
+    The database is ordered. When purging or showing, the oldest entries are
+    purged or returned first. When getting an entry, the earliest entry matching
+    is used.
+
+    <source> and <destination> use the same format as rsync. Which means that
+    ending them with a '/' means you want to synchronize its content whereas
+    removing it means you want to synchronise the directory itself.
+    Moreover you can use the syntax ssh:// or rsync:// to synchronise to remote
+    hosts.
+
+    The cache is stored in a configured directory. Put it on the same filesystem
+    as your builds to benefit from the --move option to reduce IOs. The cache 
+    directory is organized with uuids to void collision and. Moreover, if a <name> 
+    key is provided, it is used as a first level name for readability, if not, 
+    the named used is 'unknown'.
+
+    The configuration file is ~/.build-caching and is structured as follow :
+    # path to cache directory
+    path=/tmp/cache
+
+Commands:
+    get
+      Get an entry from the cache and put it to <destination>.
+
+    put
+      Put an entry into the cache from <source>. Use --move to use mv instead
+      of rsync. This can avoid costly IOs if you are on the same filesystem
+      and wanted to delete the directory afterwards.
+
+    show
+      Show all cache entries.
+
+    purge
+      Purge entries from the cache. You can limit the purge to keep at least
+      <count> files.
+"""
+
+from pprint import pprint
+import re
+import json
+import uuid
+import os
+import shutil
+import sys
+# manage non stdlib import
+try:
+  import docopt # apt-get install python-docopt
+except:
+  if len(sys.argv) > 1 and sys.argv[1] == "put":
+    exit(0)
+  print("Missing dependency docopt, aborting cache management!")
+  exit(9)
+
+DB = []
+CACHE_PATH = '~/.cache/rudder'
+DB_FILE = 'index.json'
+CONFIG_FILE = "~/.build-caching"
+
+# Indexing methods
+# We may do better with a dedicated library (but not sure)
+def db_load():
+  """ Load the index file into a global variable """
+  global DB
+  if os.path.isfile(DB_FILE):
+    with open(DB_FILE) as fd:
+      DB = json.load(fd)
+
+def db_save():
+  """ Save the index into a file """
+  with open(DB_FILE, 'w') as fd:
+    json.dump(DB, fd)
+
+def db_match(stored_data, query):
+  """ Match a set or key,value pairs with a stored entry """
+  for key, value in query.items():
+    if key not in stored_data:
+      return False
+    if stored_data[key] != value:
+      return False
+  return True
+# End of indexing methods
+
+def get_directory_entry(dependency):
+  """ Prepare a directory entry in the cache """
+  my_uuid = uuid.uuid1()
+  name ='unknown'
+  if 'name' in dependency:
+    name = dependency['name']
+  path = CACHE_PATH + "/" + name + "/" + str(my_uuid) + '/'
+  os.makedirs(path)
+  dependency['path'] = path
+  return path
+
+def parse_metadata(arguments):
+  """ Parse parameters to extract a single medatada object """
+  metadata = {}
+  if arguments['--from'] is not None:
+    filename = arguments['--from']
+    if not os.path.isfile(filename):
+      print(filename + " doesn't exist")
+      exit(1)
+    with open(filename) as fd:
+      metadata = json.load(fd)
+  for kv in arguments['<key>=<value>']:
+    match = re.match(r'(^.*?)=(.*)', kv)
+    if match:
+      metadata[match.group(1)] = match.group(2)
+    else:
+      print("Can't parse key=value " + kv)
+      exit(2)
+  return metadata
+
+def sync(source, destination, move=False):
+  """ Synchronize a source with a destination, can use move instead of rsync while keeping rsync '/' semantic """
+  if destination[-1] == '/':
+    try:
+      os.makedirs(destination)
+    except OSError:
+      pass
+  try:
+    if move and source[-1] == '/':
+      for src in os.listdir(source):
+        os.rename(src, destination+os.path.basename(src))
+    elif move and source[-1] != '/':
+      os.rename(source, destination+'/'+os.path.basename(source))
+    else:
+      ret = os.system("rsync -a '" + source + "' '" + destination + "'")
+      if ret != 0:
+        return False
+  except OSError:
+    return False
+  return True
+
+def put(metadata, source, move):
+  """ Put a source in the cache """
+  path = get_directory_entry(metadata)
+  if not sync(source, path, move):
+    print("Synchronization error, aborting!")
+    shutil.rmtree(path)
+    exit(3)
+  metadata['path'] = path
+  DB.append(metadata)
+  db_save()
+
+def get(metadata, destination):
+  """ Retrieve data from cache and put it into destination """
+  entry=None
+  for i in range(len(DB)-1,-1,-1):
+    if db_match(DB[i], metadata):
+      entry=DB[i]
+      break
+  else:
+    print("No such entry in the cache")
+    exit(1)
+  if not sync(entry['path'], destination):
+    print("Synchronization error, aborting!")
+    exit(3)
+
+def show(metadata):
+  """ Show cache content """
+  print(json.dumps([ x for x in DB if db_match(x, metadata) ], indent=2))
+
+def purge(metadata, keep):
+  """ Purge cache """
+  global DB
+  DB.reverse()
+  keep_db = []
+  i = 0
+  for data in DB:
+    if db_match(data, metadata):
+      if i < keep:
+        i += 1
+        keep_db.append(data)
+      else:
+        shutil.rmtree(data['path'])
+    else:
+      keep_db.append(data)
+  keep_db.reverse()
+  DB = keep_db
+  db_save()
+
+
+# Main loop
+if __name__ == "__main__":
+  arguments = docopt.docopt(__doc__)
+  config_file = os.path.expanduser(CONFIG_FILE)
+  if arguments['--force-config'] and not os.path.isfile(config_file):
+    if len(sys.argv) > 1 and sys.argv[1] == "put":
+      exit(0)
+    else:
+      print("Cache management without config file is disabled!")
+      exit(9)
+  if os.path.isfile(config_file):
+    with open(config_file) as fd:
+      for line in fd:
+        match = re.match(r'^path\s*=\s*(.*?)\s*$', line)
+        if match:
+          CACHE_PATH = os.path.expanduser(match.group(1))
+          DB_FILE = CACHE_PATH+'/index.json'
+
+  # let's go
+  db_load()
+  metadata = parse_metadata(arguments)
+
+  if arguments['get']:
+    get(metadata, arguments['<destination>'])
+  elif arguments['put']:
+    put(metadata, arguments['<source>'], arguments['--move'])
+  elif arguments['show']:
+    show(metadata)
+  elif arguments['purge']:
+    keep = 0
+    if arguments['--keep'] is not None:
+      keep = arguments['--keep']
+    purge(metadata, keep)
+
+EOF
