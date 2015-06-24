@@ -70,6 +70,7 @@ Source8: rudder-ldap
 # This file will contain path of /opt/rudder/lib for ld which will
 # find there all necessary libraries for BerkeleyDB.
 Source9: rudder-inventory-ldap.conf
+Source10: rudder-slapd.conf
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
@@ -174,6 +175,7 @@ mkdir -p %{buildroot}/etc/init.d
 mkdir -p %{buildroot}/etc/default
 install -m 755 %{SOURCE1} %{buildroot}/etc/init.d/rudder-slapd
 install -m 644 %{SOURCE2} %{buildroot}/etc/default/rudder-slapd
+install -m 644 %{SOURCE10} %{buildroot}/opt/rudder/etc/rudder-slapd.conf
 
 install -m 644 %{SOURCE3} %{buildroot}/opt/rudder/etc/openldap/slapd.conf
 install -m 644 %{SOURCE4} %{buildroot}/opt/rudder/etc/openldap/schema/
@@ -330,6 +332,7 @@ rm -rf %{buildroot}
 /opt/rudder/libexec
 /etc/init.d/rudder-slapd
 %config(noreplace) /etc/default/rudder-slapd
+/opt/rudder/etc/rudder-slapd.conf
 %config(noreplace) /opt/rudder/etc/openldap/slapd.conf
 %config(noreplace) /etc/ld.so.conf.d/rudder-inventory-ldap.conf
 
