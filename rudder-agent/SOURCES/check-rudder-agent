@@ -244,10 +244,14 @@ fi
 
 # if file is absent or empty there have been a problem with update
 base="/var/rudder/cfengine-community/inputs"
-if [ ! -f "${base}/common/1.0/update.cf" ] || [ $(stat -c "%s" "${base}/common/1.0/update.cf") = 0 ] || [ ! -f "${base}/failsafe.cf" ] || [ $(stat -c "%s" "${base}/failsafe.cf") = 0 ] || [ ! -f "${base}/promises.cf" ] || [ $(stat -c "%s" "${base}/promises.cf") = 0 ]
+empty() {
+  [ ! -f "$1" ] || [ $(du "$1" | awk '{print $1}') = "0" ]
+}
+if empty "${base}/common/1.0/update.cf" || empty "${base}/failsafe.cf" || empty "${base}/promises.cf"
 then
-  echo "ERROR: There was an error during promises update. Reseting to initial promises and updating."
+  echo_n "ERROR: There was an error during promises update. Reseting to initial promises and updating..."
   rm -rf /var/rudder/cfengine-community/inputs/*
   cp -r /opt/rudder/share/initial-promises/* /var/rudder/cfengine-community/inputs
   /var/rudder/cfengine-community/bin/cf-agent -K -f failsafe.cf && /var/rudder/cfengine-community/bin/cf-agent
+  echo " Done"
 fi
