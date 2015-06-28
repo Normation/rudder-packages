@@ -393,7 +393,7 @@ if [ ${NB_COPIED_BINARIES} -gt 0 ];then echo "CFEngine binaries copied to workdi
 if [ -e /var/rudder/cfengine-community/inputs/rudder-server-roles.conf ]
 then
   mkdir -p /var/backups/rudder
-  cp -a /var/rudder/cfengine-community/inputs/rudder-server-roles.conf /var/backups/rudder/
+  %{cp_a_command} /var/rudder/cfengine-community/inputs/rudder-server-roles.conf /var/backups/rudder/
   RESTORE_SERVER_ROLES_BACKUP=1
 fi
 
@@ -409,7 +409,7 @@ fi
 
 # Restore rudder-server-roles.conf if necessary
 if [ "z${RESTORE_SERVER_ROLES_BACKUP}" = "z1" ]; then
-  cp -a /var/backups/rudder/rudder-server-roles.conf /var/rudder/cfengine-community/inputs/rudder-server-roles.conf
+  %{cp_a_command} /var/backups/rudder/rudder-server-roles.conf /var/rudder/cfengine-community/inputs/rudder-server-roles.conf
 fi
 
 # This fix is required for upgrades from 2.6 or earlier. Since we didn't support AIX on those versions,

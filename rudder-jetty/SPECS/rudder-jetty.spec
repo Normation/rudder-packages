@@ -156,6 +156,12 @@ install -m 644 %{SOURCE4} %{buildroot}/opt/rudder/etc/server-roles.d/
 # Pre Installation
 #=================================================
 
+# Prepare the migration of /etc/default/rudder-jetty
+if [ $(grep -c '# WARNING #' /opt/rudder/etc/rudder-jetty.conf) -eq 0 ]
+then
+    cp /opt/rudder/etc/rudder-jetty.conf /opt/rudder/etc/rudder-jetty.conf.migrate
+fi
+
 if [ -x /opt/jetty7 ]
 then
         TMP_BACKUP=`mktemp -d -t jetty.backup.XXXXXXXXXX -q`
@@ -166,6 +172,43 @@ fi
 #=================================================
 # Post Installation
 #=================================================
+
+# Migrate old /opt/rudder/etc/rudder-jetty.conf entries
+if [ -e /opt/rudder/etc/rudder-jetty.conf.migrate ]
+then
+    JAVA_XMX_MIGRATE=$(grep '^JAVA_XMX=' /opt/rudder/etc/rudder-jetty.conf.migrate|cut -d = -f 2)
+    JAVA_MAXPERMSIZE_MIGRATE=$(grep '^JAVA_MAXPERMSIZE=' /opt/rudder/etc/rudder-jetty.conf.migrate|cut -d = -f 2)
+
+    cat > /etc/default/rudder-jetty << EOF
+#
+# Jetty server configuration
+#
+
+# Memory settings
+#
+# The defaults should be enough for up to ~100 nodes
+#
+JAVA_XMX=${JAVA_XMX_MIGRATE}
+JAVA_MAXPERMSIZE=${JAVA_MAXPERMSIZE_MIGRATE}
+
+# Java VM arguments
+#
+#JAVA_OPTIONS=""
+
+# Java VM location
+#
+#JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64
+#JAVA=java
+
+# Source variables from /opt/rudder/etc/rudder-jetty.conf
+# Warning: removing this is likely to prevent Jetty from
+# starting correctly
+[ -f /opt/rudder/etc/rudder-jetty.conf ] && . /opt/rudder/etc/rudder-jetty.conf
+EOF
+
+    rm -f /opt/rudder/etc/rudder-jetty.conf.migrate
+
+fi
 
 # Do this at first install
 if [ $1 -eq 1 ]
@@ -193,8 +236,8 @@ rm -rf %{buildroot}
 %{rudderlogdir}/webapp
 /var/rudder/run
 /etc/init.d/rudder-jetty
-/etc/default/rudder-jetty
-%config(noreplace) /opt/rudder/etc/rudder-jetty.conf
+%config(noreplace) /etc/default/rudder-jetty
+/opt/rudder/etc/rudder-jetty.conf
 
 #=================================================
 # Changelog
