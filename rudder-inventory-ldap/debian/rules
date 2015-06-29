@@ -72,6 +72,7 @@ binary-arch: install
 	# Init script and configuration files
 	cp -f $(CURDIR)/SOURCES/rudder-inventory-ldap.default $(CURDIR)/BUILD/rudder-slapd
 	dh_install --SOURCEDIR=$(CURDIR)/BUILD/ rudder-slapd /etc/default/
+	dh_install SOURCES/rudder-slapd.conf /opt/rudder/etc/
 	cp -f $(CURDIR)/SOURCES/rudder-inventory-ldap.init $(CURDIR)/BUILD/rudder-slapd
 	dh_install --SOURCEDIR=$(CURDIR)/BUILD/ rudder-slapd /etc/init.d/
 	dh_install SOURCES/rsyslog/rudder-slapd.conf /etc/rsyslog.d/
