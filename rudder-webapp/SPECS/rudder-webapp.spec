@@ -257,21 +257,12 @@ sed -i "s%^DocumentRoot /var/www$%DocumentRoot /srv/www%" %{buildroot}%{rudderdi
 ## SQL
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-change-ids-in-tables.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-migrate-reports-per-node.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
-cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.4-2.4-set-migration-needed-flag-for-EventLog.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
-cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.6-2.6-index-reports.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
-cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.6-2.7-set-migration-needed-flag-for-EventLog.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
-cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.7-2.8-add-nodes-executions-storage.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
-cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.8-2.9-set-migration-needed-flag-for-EventLog.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.11-2.12-add-nodeconfigids-columns.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.11-3.0-add-insertionids-column.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.11-3.0-remove-varchar.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.11-3.0-set-migration-needed-flag-for-EventLog.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
 
 ## LDAP
-cp %{_sourcedir}/rudder-upgrade-LDAP-schema-2.6-2.7-add-global-parameter-ou.ldif %{buildroot}%{rudderdir}/share/upgrade-tools/
-cp %{_sourcedir}/rudder-upgrade-LDAP-schema-2.6-2.7-add-default-global-parameter.ldif %{buildroot}%{rudderdir}/share/upgrade-tools/
-cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ldapMigration-2.10-2.11-add-server-roles.ldif %{buildroot}%{rudderdir}/share/upgrade-tools/
-cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ldapMigration-2.10-2.11-add-node-without-role-group.ldif %{buildroot}%{rudderdir}/share/upgrade-tools/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ldapMigration-3.0-3.1-set-syslog-protocol.ldif %{buildroot}%{rudderdir}/share/upgrade-tools/
 
 cp %{SOURCE5} %{buildroot}%{rudderdir}/bin/
