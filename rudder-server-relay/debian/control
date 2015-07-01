@@ -8,7 +8,7 @@ Homepage: http://www.rudder-project.org
 
 Package: rudder-server-relay
 Architecture: all
-Depends: ${shlibs:Depends}, ${misc:Depends}, rudder-agent, apache2, apache2-utils, rsyslog
+Depends: ${shlibs:Depends}, ${misc:Depends}, rudder-agent, apache2, apache2-utils, rsyslog, openssl
 Description: Configuration management and audit tool - Server relay package
  Rudder is an open source configuration management and audit solution.
  .
