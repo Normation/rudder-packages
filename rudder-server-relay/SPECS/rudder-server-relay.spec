@@ -33,7 +33,7 @@
 %define ruddervardir            /var/rudder
 %define rudderlogdir            /var/log/rudder
 
-%if 0%{?sles_version}
+%if 0%{?suse_version}
 %define apache                  apache2
 %define apache_tools            apache2-utils
 %define apache_group            www
@@ -147,7 +147,7 @@ if [ $1 -eq 1 ];  then
 fi
 
 # Add required includes in the SLES apache2 configuration
-%if 0%{?sles_version}
+%if 0%{?suse_version}
 if ! grep -qE "^. /etc/sysconfig/rudder-relay-apache$" /etc/sysconfig/apache2; then
   echo -e '#¬This sources the modules/defines needed by Rudder\n. /etc/sysconfig/rudder-relay-apache' >> /etc/sysconfig/apache2
 fi
