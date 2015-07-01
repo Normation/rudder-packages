@@ -42,21 +42,6 @@ trap anomaly_handler ERR INT TERM
 # - All versions : Check if access credentials in rudder-web.properties/inventory-web.properties match the ones from rudder-passwords.conf
 # - All versions : upgrade system Techniques automatically and reload the Technique library
 # - All versions : Check that Rudder database is able to handle backslash
-# - 2.9.0        : Upgrade ncf
-# - 2.9.0        : Make sure that ncf uses the right logger bundles (_logger_default and logger_rudder)
-# - 2.9.0        : Make sure that ncf uses the right CFEngine port (5309)
-# - 2.7.0        : Add FileFormat 3 to 4 migration script
-# - 2.7.0        : Migration LDAP to add the global parameter OU
-# - 2.7.0        : Migration LDAP to add the defaut parameter for file edition
-# - 2.7.0~rc1    : LDAP migration to add a UUID to REST API accounts
-# - 2.6.6        : Migration DB schema to modify indexes on RudderSysEvents to improve nodes list display
-# - 2.8.0        : Update logback.xml in order to have information about change requests
-# - 2.8.0        : Migration SQL to add the necessary tables for reports executions
-# - 2.8.0        : Add the property to configure maximum days of reports treated at each run
-# - 2.8.0        : Add the property to configure execution of agent reports frequency
-# - 2.8.0        : Deprecate properties that are now handled directly in the webapp (validation workflow and change Message)
-# - 2.9.0        : File Format migration from 4 to 5
-# - 2.10.0       : Add properties to enable and configure the LDAP authentication
 # - 2.11.0       : Add LDAP entries for Server Roles system Technique/Directive/Rule
 # - 2.11.0       : Add the properties to configure Rudder roles
 # - 2.11.0       : Add LDAP entry for Group with all nodes excluding server components
@@ -353,149 +338,11 @@ upgrade_ncf() {
 
 # Upgrade the file logback.xml
 upgrade_logback_xml() {
-  # - 2.8.0 : Update logback.xml in order to have information about change requests
-  STEP="Update logback.xml in order to have information about change requests"
-
-  if ! perl -p0e 's/\n//g' < /opt/rudder/etc/logback.xml | perl -p0e 's/<!--.(?:(?!-->).)*-->//g' | perl -p0e 's/> *</></g' | grep -E '<logger name="changeRequest" level="[^"]+" additivity="false">' >/dev/null 2>&1
-  then
-    sed -i 's%^ *</configuration>%   <logger name="changeRequest" level="info" additivity="false">\n     <appender-ref ref="OPSLOG" />\n     <appender-ref ref="STDOUT" />\n   </logger>\n</configuration>%' /opt/rudder/etc/logback.xml
-  fi
+  :
 }
 
 # Upgrade the file rudder-web.properties
 upgrade_rudder_web_properties() {
-  # - 2.8.0 : Add the property to configure maximum days of reports treated at each run
-  STEP="Add the property to configure maximum days of reports treated at each run"
-
-  check_and_add_config_property rudder.batch.storeAgentRunTimes.maxDays "
-# Maximum Days of reports handled (default : 5)
-#
-# To avoid handling too much reports at one time, the \"Store Agent Run Times\" process
-# will only take reports after X days from the last one processed.
-# This is mainly used on the first Run, when the process has to catch on old reports,
-# and build execution history.
-# This value is expressed in days.
-
-rudder.batch.storeAgentRunTimes.maxDays=5"
-
-  # - 2.8.0 : Add the property to configure execution of agent reports frequency
-  STEP="Add the property to configure execution of agent reports frequency"
-
-  check_and_add_config_property rudder.batch.storeAgentRunTimes.updateInterval "
-# Delay before to launch of the reports executions actor (default : 5)
-#
-# This value determine the frequency of the reports executions actor.
-# This needs to be run very often so you should keep it as low as possible.
-# Having a low delay will means that agent executions are almost synchronized with now.
-# This value is expressed in seconds
-
-rudder.batch.storeAgentRunTimes.updateInterval=5"
-
-  # - 2.8.0 : Deprecate properties that are now handled directly in the webapp (validation workflow and change Message)
-  STEP="Deprecate properties that are now handled directly in the webapp (validation workflow and change Message)"
-
-  for i in rudder.ui.changeMessage.enabled rudder.ui.changeMessage.mandatory rudder.ui.changeMessage.explanation rudder.workflow.enabled rudder.workflow.self.validation rudder.workflow.self.deployment
-  do
-    # First, check if the property is in the file (if not we don't need to migrate it)
-    if grep -e "^${i}[ \t]*=" /opt/rudder/etc/rudder-web.properties > /dev/null ; then
-      # Get the two lines before the property if the property exists. Then find out if the comment is here.
-      RES=$(grep -B 2 -e "^${i}[ \t]*=" /opt/rudder/etc/rudder-web.properties | grep -c "^# DEPRECATED in Rudder 2.8.0" || true)
-      if [ $RES -eq 0 ]; then
-        sed -i "/^${i}[ \t]*=/i # DEPRECATED in Rudder 2.8.0\n# The property is now configurable directly in the webapp. See 'Adminstration -> Settings' page." /opt/rudder/etc/rudder-web.properties
-        echo "INFO: Property ${i} is now configurable directly in the web interface and has been migrated. It's use is deprecated in /opt/rudder/etc/rudder-web.properties."
-      fi
-    fi
-  done
-
-  # - 2.10.0 : Add properties to enable and configure the LDAP authentication
-  STEP="Add properties to enable and configure the LDAP authentication"
-
-  check_and_add_config_property rudder.auth.ldap.enable "
-#########################
-# LDAP Authentication    #############################################################
-#########################
-
-#
-# Be default, both authentication and authorization are handle in the rudder-users.xml
-# file. But you may want to rely on your existing entreprise Active Directory or LDAP
-# to take care of the authentication part. The following parameters allow to configure
-# such an LDAP authentication scheme.
-# The chosen LDAP procedure is a typical bind/search/rebind, in which an application
-# connection (bind) is used to search (search) for an user entry given some base and
-# filter parameters, and then, a bind (rebind) is tried on that entry with the
-# credential provided by the user.
-# That allows to seperate the user DN (especially RDN) from the search criteria.
-#
-# Be careful, the authorization is still done in the rudder-user.xml, what means
-# that each user should have access to Rudder MUST have a line in that file.
-# Without that line, the user can have a successful LDAP authentication, but
-# won't be able to do or see anything in Rudder (safe logout).
-#
-
-#
-# Use the LDAP authentication
-# When set to true, passwords in rudder-users.xml are ignored and the
-# authentication is delegated to the LDAP server configured below.
-# By convention, when LDAP authentication is enable, 'password' field in
-# rudder-users.xml are set to ''
-#
-# Boolean, default to false
-#
-rudder.auth.ldap.enable=false
-
-#
-# Connection URL to the LDAP server, in the form:
-# ldap://hostname:port/base_dn
-#
-rudder.auth.ldap.connection.url=ldap://ldap.mycorp.com:389/dc=mycorp,dc=com
-
-#
-# Bind DN used by Rudder to do the search
-# LDAP dn, no default value.
-#
-rudder.auth.ldap.connection.bind.dn=cn=admin,dc=mycorp,dc=com
-
-#
-# Bind password used by Rudder to do the search.
-# String, no default value.
-#
-rudder.auth.ldap.connection.bind.password=secret
-
-#
-# Search base and filter to use to find the user.
-# The search base can be left empty.
-# In the filter, {0} denotes the value provided as
-# login by the user.
-#
-rudder.auth.ldap.searchbase=ou=People
-rudder.auth.ldap.filter=(&(uid={0})(objectclass=person))
-
-#
-# An AD example would be:
-#
-#rudder.auth.ldap.searchbase=
-#rudder.auth.ldap.filter=(&(sAMAccountName={0})(objectclass=user))
-"
-
-  check_and_add_config_property rudder.debug.nodeconfiguration.path "#
-# Debug Node Configuration parameters
-#
-# Node Configurations are all the parameters (global parameters,
-# applied rules/directives with their parameters, node information, etc)
-# contextualized for the node. They are the resources used to actually
-# generate promises for THAT node.
-#
-# By default, these information are only used internally by Rudder and
-# are not available to the user. But they may be needed in some cases,
-# for debugging.
-#
-# This option allows to define the directory where the node configurations
-# (in JSON format) will go.
-#
-# To enable the writing of node configurations, enable the logger
-# named i\"rudder.debug.nodeconfiguration\" in logback.xml
-#
-rudder.debug.nodeconfiguration.path=/var/log/rudder/nodeConfigurations"
 
   # - 2.11.0 : Add properties to define the role of servers
   STEP="Add properties to define the role of servers"
@@ -556,68 +403,6 @@ rudder.jdbc.maxPoolSize=25"
 
 # Upgrade the PostgreSQL database
 upgrade_database() {
-  # Upgrade database schema from 2.3 to 2.4 if necessary - seventh part: Check the lowest fileFormat version in the eventLog and update the date if necessary
-  STEP="Upgrade database schema from 2.3 to 2.4 if necessary - seventh part: Check the lowest fileFormat version in the eventLog and update the date if necessary"
-
-  OLDEST_EVENTLOG_VERSION=0
-  for EVENTLOG_VERSION in 2 1
-  do
-    CHK_EVENTLOG=$(${PSQL} -t -d rudder -c "select count(*) from (select xpath('/entry/*[@fileFormat=${EVENTLOG_VERSION}]',data) AS x from eventlog) as Y where array_upper(x, 1) > 0;")
-    if [ ${CHK_EVENTLOG} -ne 0 ]; then
-      OLDEST_EVENTLOG_VERSION=${EVENTLOG_VERSION}
-    fi
-  done
-  if [ ${OLDEST_EVENTLOG_VERSION} -eq 1 ]; then
-    # File Format migration : version 1 (2.3) to 2 (2.4) : Check if an event log has File format 1
-    # The migration is not supported anymore, explain that you should upgrade first to 2.6 before
-    echo "WARNING: Some event log are still based on an old file format (file format 1), please upgrade first to Rudder 2.6 or later to make this migration"
-  elif [ ${OLDEST_EVENTLOG_VERSION} -eq 2 ]; then
-    # File Format migration : version 2 (2.4) to 3 (2.4) : Check if an event log has File format 2 and set migration flag if needed
-    # Launch this script if eventlogs v2 are found
-    ${PSQL} -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.4-2.4-set-migration-needed-flag-for-EventLog.sql > /dev/null
-  fi
-
-  # Upgrade database schema from 2.3 to 2.4 if necessary - eighth part: Check if archive of the eventlog exists and create it if necessary
-  STEP="Upgrade database schema from 2.3 to 2.4 if necessary - eighth part: Check if archive of the eventlog exists and create it if necessary"
-
-  RES=$(${PSQL} -t -d rudder -c "select count(1) from pg_class where relname = 'archivedruddersysevents'")
-  if [ $RES -eq 0 ]; then
-    ${PSQL} -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.3-2.4-archive.sql > /dev/null
-  fi
-
-  # 2.7.0: File Format migration from 3 to 4
-  STEP="2.7.0: File Format migration from 3 to 4"
-
-  RES=$(${PSQL} -t -d rudder -c "select count(*) from (select xpath('/entry/*[@fileFormat=3]',data) AS x from eventlog) as Y where array_upper(x, 1) > 0;")
-  if [ $RES -ne 0 ]; then
-    ${PSQL} -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.6-2.7-set-migration-needed-flag-for-EventLog.sql > /dev/null 2>&1
-  fi
-
-  # 2.9.0: File Format migration from 4 to 5
-  STEP="2.9.0: File Format migration from 4 to 5"
-
-  RES=$(${PSQL} -t -d rudder -c "select count(*) from (select xpath('/entry/*[@fileFormat=4]',data) AS x from eventlog) as Y where array_upper(x, 1) > 0;")
-  if [ $RES -ne 0 ]; then
-    ${PSQL} -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.8-2.9-set-migration-needed-flag-for-EventLog.sql > /dev/null 2>&1
-  fi
-
-  # Upgrade database schema from 2.7 to 2.8 if necessary - Check if the execution table is present, and create it if needed.
-  STEP="Upgrade database schema from 2.7 to 2.8 if necessary - Check if the execution table is present, and create it if needed."
-
-  RES=$(${PSQL} -t -d rudder -c "select count(oid) from pg_class where lower(relname) = 'reportsexecution'")
-  if [ $RES -eq 0 ]; then
-    echo -n "INFO: Creating new table containing all nodes executions, this migration script can take a long time..."
-    ${PSQL} -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.7-2.8-add-nodes-executions-storage.sql >/dev/null 2>&1
-    echo " Done."
-  fi
-
-  # Detect if we'd need to upgrade the database keys to use bigint rather than integer
-  STEP="Detect if we'd need to upgrade the database keys to use bigint rather than integer"
-
-  RES=$(${PSQL} -t -d rudder -c "select count(*) from information_schema.columns where table_name='ruddersysevents' and column_name='id' and data_type='integer';")
-  if [ ${RES} -eq 1 ]; then
-    echo "WARN: Your database uses an old format, with keys stored in Integer rather than Bigint. On large installation this may cause some issue, please run the script /opt/rudder/bin/rudder-upgrade-database"
-  fi
 
   # All versions: Check that Rudder database is able to handle backslash
   STEP="All versions: Check that Rudder database is able to handle backslash"
@@ -629,16 +414,6 @@ upgrade_database() {
     echo " Done"
     echo -n "INFO: Rudder application will now restart..."
     ${JETTY_INIT} restart >/dev/null 2>&1 || echo "WARNING: Jetty failed to start, maybe there is not enough RAM or swap on the machine. Skipping..."
-    echo " Done"
-  fi
-
-  # - 2.6.6 : Migration DB schema to modify indexes on RudderSysEvents to improve nodes list display
-  STEP="Migration DB schema to modify indexes on RudderSysEvents to improve nodes list display"
-
-  RES=$(${PSQL} -t -d rudder -c "select count(oid) from pg_class where lower(relname) = 'composite_node_execution_idx'")
-  if [ $RES -eq 0 ]; then
-    echo -n "INFO: Updating the PostgreSQL indexes, this may take several minutes..."
-    ${PSQL} -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.6-2.6-index-reports.sql > /dev/null
     echo " Done"
   fi
 
@@ -721,41 +496,6 @@ EOF
   fi
 
   if [ ${LDAP_EXISTS} -ne 0 ]; then
-
-    # - 2.7.0 : Migration LDAP to add the global parameter ou
-    STEP="Migration LDAP to add the global parameter ou"
-
-    LDAP_TEST_GLOBAL_PARAMETER=$(${LDAPSEARCH} -b "ou=Parameters,ou=Rudder,cn=rudder-configuration" -s base dn 2>/dev/null | grep -c "dn: ou=Parameters" || true)
-    if [ ${LDAP_TEST_GLOBAL_PARAMETER} -eq 0 ]; then
-      echo -n "INFO: The Rudder OpenLDAP schema is not up to date, adding Global Parameter ou..."
-      ${LDAPADD} -f ${RUDDER_UPGRADE_TOOLS}/rudder-upgrade-LDAP-schema-2.6-2.7-add-global-parameter-ou.ldif >/dev/null 2>&1
-      echo " Done."
-    fi
-
-    # - 2.7.0 : Migration LDAP to add the default parameter for file edition
-    STEP="Migration LDAP to add the default parameter for file edition"
-
-    LDAP_TEST_DEFAULT_PARAMETER=$(${LDAPSEARCH} -b "parameterName=rudder_file_edit_header,ou=Parameters,ou=Rudder,cn=rudder-configuration" parameterName 2>/dev/null | grep -c "parameterName" || true)
-    if [ ${LDAP_TEST_DEFAULT_PARAMETER} -eq 0 ]; then
-      echo -n "INFO: Adding default Global Parameter containing the header put in file managed by Rudder..."
-      ${LDAPADD} -f ${RUDDER_UPGRADE_TOOLS}/rudder-upgrade-LDAP-schema-2.6-2.7-add-default-global-parameter.ldif >/dev/null 2>&1
-      echo " Done."
-    fi
-
-    # - 2.7.0~rc1 : LDAP migration to add a UUID to REST API accounts
-    STEP="LDAP migration to add a UUID to REST API accounts"
-
-    LDAP_TEST_OLD_API_ACCOUNTS=$(${LDAPSEARCH} -b "ou=API Accounts,ou=Rudder,cn=rudder-configuration" dn 2>/dev/null | grep -c "^dn: cn=" || true)
-    if [ ${LDAP_TEST_OLD_API_ACCOUNTS} -ne 0 ]; then
-      echo -n "INFO: Renaming API accounts to have a unique ID..."
-      ${LDAPSEARCH} -b "ou=API Accounts,ou=Rudder,cn=rudder-configuration" dn 2>/dev/null | grep "^dn: cn=" | \
-        while read line; do
-          NEW_UUID=$(uuidgen)
-          DN=$(echo ${line} | sed 's/^dn: \(.*\)$/\1/')
-          echo -e "${DN}\napiAccountId=${NEW_UUID}" | ${LDAPMODRDN} > /dev/null 2>&1
-        done
-        echo " Done."
-    fi
 
     # - 2.11.0: Add LDAP entries for Server Roles system Technique, Directive and Rule
     STEP="Add LDAP entries for Server Roles system Technique, Directive and Rule"
