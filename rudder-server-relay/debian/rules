@@ -51,8 +51,9 @@ binary-arch: install
 #	dh_installexamples
 	cp $(CURDIR)/SOURCES/rudder-relay-vhost.conf $(CURDIR)/BUILD/rudder-relay-vhost
 	cp $(CURDIR)/SOURCES/rudder-relay-vhost-ssl.conf $(CURDIR)/BUILD/rudder-relay-vhost-ssl
-	cp $(CURDIR)/SOURCES/rudder-relay-apache-common.conf /opt/rudder/etc/
 	dh_install --SOURCEDIR=$(CURDIR)/BUILD/ rudder-relay-vhost /etc/apache2/sites-available/
+	dh_install --SOURCEDIR=$(CURDIR)/BUILD/ rudder-relay-vhost-ssl /etc/apache2/sites-available/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-relay-apache-common.conf /opt/rudder/etc/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-networks.conf /opt/rudder/etc/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-networks-24.conf /opt/rudder/etc/
 #	dh_installmenu
