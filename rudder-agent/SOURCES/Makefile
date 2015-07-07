@@ -45,6 +45,7 @@ localdepends: ./initial-promises ./detect_os.sh ./files ./fusioninventory-agent 
 	$(PATCH) -d ./cfengine-source -p1 < ./0004-Make-safe_open-treat-trailing-slashes-like-open.patch
 	$(PATCH) -d ./cfengine-source -p1 < ./0005-dont-duplicate-text-blocks.patch
 	$(PATCH) -d ./cfengine-source -p1 < ./0006-support-large-int.patch
+	$(PATCH) -d ./cfengine-source -p1 < ./0007-close-connection-after-timeout.patch
 
 ./tokyocabinet-source: /usr/bin/wget
 	# Original URL: http://fallabs.com/tokyocabinet/tokyocabinet-${TOKYOCABINET_RELEASE}.tar.gz

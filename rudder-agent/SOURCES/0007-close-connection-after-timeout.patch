@@ -1,0 +1,11 @@
+diff -ur a/libcfnet/net.c b/libcfnet/net.c
+--- a/libcfnet/net.c	2013-12-09 13:13:14.000000000 +0100
++++ b/libcfnet/net.c	2015-07-07 10:22:14.624779845 +0200
+@@ -148,6 +148,7 @@
+ 
+         if ((got == -1) && (LastRecvTimedOut()))
+         {
++            close(sd);
+             Log(LOG_LEVEL_ERR, "Timeout - remote end did not respond with the expected amount of data (received=%d, expecting=%d). (recv: %s)",
+                 already, toget, GetErrorStr());
+             return -1;
