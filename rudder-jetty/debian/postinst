@@ -24,8 +24,8 @@ case "$1" in
         # Migrate old /opt/rudder/etc/rudder-jetty.conf entries
         if [ -e /opt/rudder/etc/rudder-jetty.conf.migrate ]
         then
-            JAVA_XMX_MIGRATE=$(grep '^JAVA_XMX=' /opt/rudder/etc/rudder-jetty.conf.migrate|cut -d = -f 2)
-            JAVA_MAXPERMSIZE_MIGRATE=$(grep '^JAVA_MAXPERMSIZE=' /opt/rudder/etc/rudder-jetty.conf.migrate|cut -d = -f 2)
+            JAVA_XMX_MIGRATE=$(grep '^JAVA_XMX=' /opt/rudder/etc/rudder-jetty.conf.migrate|cut -d = -f 2-)
+            JAVA_MAXPERMSIZE_MIGRATE=$(grep '^JAVA_MAXPERMSIZE=' /opt/rudder/etc/rudder-jetty.conf.migrate|cut -d = -f 2-)
 
             cat > /etc/default/rudder-jetty << EOF
 #

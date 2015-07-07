@@ -19,7 +19,7 @@ case "$1" in
 
         # Prepare the migration of /etc/default/rudder-jetty
         if [ -f /opt/rudder/etc/rudder-jetty.conf ]; then
-          if [ $(grep -c '# WARNING #' /opt/rudder/etc/rudder-jetty.conf) -eq 0 ]; then
+          if [ $(head -n 1 /opt/rudder/etc/rudder-jetty.conf | grep -c 'WARNING') -eq 0 ]; then
             cp /opt/rudder/etc/rudder-jetty.conf /opt/rudder/etc/rudder-jetty.conf.migrate
           fi
         fi
