@@ -178,7 +178,6 @@ cd %{_builddir}/rudder-sources/rudder-parent-pom && %{_sourcedir}/maven/bin/mvn 
 cd %{_builddir}/rudder-sources/rudder-commons    && %{_sourcedir}/maven/bin/mvn -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
 cd %{_builddir}/rudder-sources/scala-ldap        && %{_sourcedir}/maven/bin/mvn -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
 cd %{_builddir}/rudder-sources/ldap-inventory    && %{_sourcedir}/maven/bin/mvn -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
-cd %{_builddir}/rudder-sources/cf-clerk          && %{_sourcedir}/maven/bin/mvn -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
 cd %{_builddir}/rudder-sources/rudder            && %{_sourcedir}/maven/bin/mvn -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install package
 
 #=================================================
