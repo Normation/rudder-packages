@@ -26,7 +26,6 @@ build-stamp: configure-stamp
 	cd $(CURDIR)/SOURCES/rudder-sources/rudder-commons && $(CURDIR)/SOURCES/maven/bin/mvn -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true install
 	cd $(CURDIR)/SOURCES/rudder-sources/scala-ldap && $(CURDIR)/SOURCES/maven/bin/mvn -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true install
 	cd $(CURDIR)/SOURCES/rudder-sources/ldap-inventory && $(CURDIR)/SOURCES/maven/bin/mvn -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true install
-	cd $(CURDIR)/SOURCES/rudder-sources/cf-clerk && $(CURDIR)/SOURCES/maven/bin/mvn -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true install
 	cd $(CURDIR)/SOURCES/rudder-sources/rudder && $(CURDIR)/SOURCES/maven/bin/mvn -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true install package
 
 	touch $@
