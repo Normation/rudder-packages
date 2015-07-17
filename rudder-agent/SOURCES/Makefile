@@ -222,7 +222,7 @@ rudder-sources.tar.bz2:
 
 rudder-sources: rudder-sources.tar.bz2
 	bunzip2 < rudder-sources.tar.bz2 | $(TAR) xf -
-	mv rudder-sources-$(RUDDER_VERSION_TO_PACKAGE)/ rudder-sources/
+	mv rudder-sources-$(RUDDER_VERSION_TO_PACKAGE)*/ rudder-sources/ # the '*' is needed for nightly release
 	touch rudder-sources # to make it younger than the bzip source file
 
 initial-promises: ./rudder-sources
