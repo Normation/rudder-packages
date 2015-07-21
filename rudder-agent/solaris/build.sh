@@ -16,7 +16,8 @@ else
   arch=i386
 fi
 
-export LC_ALL=C
+LC_ALL=C
+export LC_ALL
 ROOTPATH=`pwd`
 SOURCES="`dirname ${ROOTPATH}`/SOURCES"
 BUILDROOT="${ROOTPATH}/tmp"
