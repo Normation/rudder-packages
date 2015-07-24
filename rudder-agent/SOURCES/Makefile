@@ -162,10 +162,10 @@ clean: localclean
 localclean:
 	rm -rf $(DESTDIR)
 	rm -rf build-ssl build-lmdb build-cfengine build-perl
-	[ -d cfengine-source ] && cd cfengine-source && $(MAKE_COMMAND) clean 2>/dev/null || true
-	[ -d lmdb-source ] && cd lmdb-source && $(MAKE_COMMAND) clean 2>/dev/null || true
-	[ -d openssl-source ] && cd openssl-source && $(MAKE_COMMAND) clean 2>/dev/null || true
-	[ -d perl-$(PERL_VERSION) ] && cd perl-$(PERL_VERSION) && $(MAKE_COMMAND) distclean 2>/dev/null || true
+	[ -d cfengine-source ] && cd cfengine-source && $(MAKE) clean 2>/dev/null || true
+	[ -d lmdb-source ] && cd lmdb-source && $(MAKE) clean 2>/dev/null || true
+	[ -d openssl-source ] && cd openssl-source && $(MAKE) clean 2>/dev/null || true
+	[ -d perl-$(PERL_VERSION) ] && cd perl-$(PERL_VERSION) && $(MAKE) distclean 2>/dev/null || true
 
 # standard name is mrproper
 mrproper: veryclean
@@ -286,17 +286,17 @@ rudder-agent.cron: rudder-sources
 # TODO generalize install in build-* to allow caching
 build-ssl: openssl-source
 	cd openssl-source && $(SSL_CONFIGURE) -fPIC --prefix=$(RUDDER_DIR) --openssldir=$(RUDDER_DIR)/openssl shared
-	cd openssl-source && $(MAKE_COMMAND)
+	cd openssl-source && $(MAKE)
 	slibclean >/dev/null 2>&1 || true
-	cd openssl-source && $(MAKE_COMMAND) install INSTALL_PREFIX=$(CURDIR)/build-ssl
+	cd openssl-source && $(MAKE) install INSTALL_PREFIX=$(CURDIR)/build-ssl
 
 build-lmdb: lmdb-source
-	cd lmdb-source/libraries/liblmdb && $(MAKE_COMMAND)
+	cd lmdb-source/libraries/liblmdb && $(MAKE)
 	# need a temporary install for cfengine
 	mkdir -p build-lmdb/opt/rudder
 	# LMDB's Makefile does not know how to create destination files, do it ourselves
 	cd build-lmdb/opt/rudder && mkdir -p bin lib include man/man1
-	cd lmdb-source/libraries/liblmdb && $(MAKE_COMMAND) install prefix=$(RUDDER_DIR) DESTDIR=$(CURDIR)/build-lmdb
+	cd lmdb-source/libraries/liblmdb && $(MAKE) install prefix=$(RUDDER_DIR) DESTDIR=$(CURDIR)/build-lmdb
 
 build-cfengine: $(BUILD_DEPS) cfengine-source
 	# If there is no configure, bootstrap with autogen.sh first
@@ -304,13 +304,13 @@ build-cfengine: $(BUILD_DEPS) cfengine-source
 	# remove temporary rpath added by configure to build options
 	cd cfengine-source && sed 's/[A-Z]*_LDFLAGS="$[A-Z]*_LDFLAGS -R$with_[a-z]*\/lib"/true/' configure > configure.new && mv configure.new configure && chmod +x configure
 	cd cfengine-source && LDFLAGS="-Wl,-R/opt/rudder/lib" ./configure --prefix=$(RUDDER_DIR) --with-workdir=/var/rudder/cfengine-community --enable-static=yes --enable-shared=no $(LMDB_ARG) $(OPENSSL_ARG)
-	cd cfengine-source && $(MAKE_COMMAND)
+	cd cfengine-source && $(MAKE)
 	touch $@
 
 build-perl: perl-$(PERL_VERSION)
-	cd perl-$(PERL_VERSION) && $(MAKE_COMMAND) distclean 2>/dev/null || true # Or this can fail on an already used source
+	cd perl-$(PERL_VERSION) && $(MAKE) distclean 2>/dev/null || true # Or this can fail on an already used source
 	cd perl-$(PERL_VERSION) && ./Configure -Dnoextensions=ODBM_File -Duserelocatableinc -Dusethreads -des -Dcc="gcc" -Dinstallprefix=$(RUDDER_DIR) -Dsiteprefix=$(RUDDER_DIR) -Dprefix=$(RUDDER_DIR)
-	cd perl-$(PERL_VERSION) && $(MAKE_COMMAND)
+	cd perl-$(PERL_VERSION) && $(MAKE)
 	touch $@
 
 #####################################
@@ -327,14 +327,14 @@ install-lmdb: build-lmdb
 	$(CP_A) $(CURDIR)/build-lmdb/* $(DESTDIR)
 
 install-cfengine: build-cfengine $(INSTALL_DEPS)
-	cd cfengine-source && $(MAKE_COMMAND) install DESTDIR=$(DESTDIR) STRIP=""
+	cd cfengine-source && $(MAKE) install DESTDIR=$(DESTDIR) STRIP=""
 	mkdir -p $(INSTALL_DIR)/share/man/man8
 	cd cfengine-source && for binary in cf-agent cf-promises cf-key cf-execd cf-serverd cf-monitord cf-runagent; do \
 		LD_LIBRARY_PATH="$(INSTALL_DIR)/lib" $${binary}/$${binary} -M | gzip > $(INSTALL_DIR)/share/man/man8/$${binary}.8.gz; \
 	done
 
 install-perl: build-perl
-	cd perl-$(PERL_VERSION) && $(MAKE_COMMAND) install DESTDIR=$(DESTDIR)
+	cd perl-$(PERL_VERSION) && $(MAKE) install DESTDIR=$(DESTDIR)
 	touch build-perl # because perl-$(PERL_VERSION) is touched by make install
 
 CPANM:=$(CURDIR)/perl-$(PERL_VERSION)/App-cpanminus/bin/cpanm $(GET_OPT)
@@ -441,7 +441,7 @@ ifeq ($(INSTALL),ginstall)
 	mv fusioninventory-agent/Makefile.PL.new fusioninventory-agent/Makefile.PL
 endif
 	cd fusioninventory-agent && PERL_MM_USE_DEFAULT=1 $(INSTALL_DIR)/bin/perl Makefile.PL --default PREFIX=$(RUDDER_DIR)
-	cd fusioninventory-agent && $(MAKE_COMMAND) install DESTDIR=$(DESTDIR)
+	cd fusioninventory-agent && $(MAKE) install DESTDIR=$(DESTDIR)
 	# bug in fusion installer that doesn't set the right owner to some files
 	chown root $(DESTDIR)/opt/rudder/share/fusioninventory
 	chown root $(DESTDIR)/opt/rudder/share/fusioninventory/html
