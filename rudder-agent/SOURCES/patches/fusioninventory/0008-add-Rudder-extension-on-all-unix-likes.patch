@@ -43,7 +43,7 @@ index 0000000..35b63b6
 +        logger => $logger, command => 'ls /var/rudder'
 +    );
 +    # get machine hostname
-+    my $command = $OSNAME eq 'linux' ? 'hostname --fqd' : 'hostname';
++    my $command = $OSNAME eq 'linux' ? 'hostname --fqdn' : 'hostname';
 +    my $hostname = getFirstLine(
 +        logger => $logger, command => $command
 +    );
