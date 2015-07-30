@@ -159,7 +159,8 @@ application server bundled in the rudder-jetty package.
 %prep
 
 # Copy the required source files to the build directory
-cp -f %{_sourcedir}/rudder-webapp.te %{_builddir}
+cp -f %{_sourcedir}/%{SOURCE20} %{_builddir}
+cp -f %{_sourcedir}/%{SOURCE21} %{_builddir}
 cp -rf %{_sourcedir}/rudder-sources %{_builddir}
 cp -rf %{_sourcedir}/rudder-doc %{_builddir}
 
@@ -419,6 +420,7 @@ then
   # their context to the contexts defined in SELinux configuration,
   # including the file contexts defined in the rudder-webapp module
   restorecon -R /var/rudder/inventories
+  restorecon -R /var/log/rudder/apache2
 fi
 %endif
 
