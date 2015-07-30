@@ -1,0 +1,11 @@
+module ncf-api-virtualenv 1.0;
+
+require {
+	type httpd_t;
+	type var_t;
+	class file { execute read ioctl execute_no_trans write getattr unlink open append };
+}
+
+#============= httpd_t =============
+allow httpd_t var_t:file { execute read getattr execute_no_trans write ioctl unlink open append };
+
