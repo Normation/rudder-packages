@@ -151,6 +151,7 @@ rm -rf %{buildroot}
 
 mkdir -p %{buildroot}%{installdir}/
 mkdir -p %{buildroot}%{apache_vhost_dir}/
+mkdir -p %{buildroot}/var/lib/%{user_name}/
 
 # Files
 
@@ -167,7 +168,7 @@ install -m 644 %{SOURCE2} %{buildroot}%{apache_vhost_dir}/
 # Create the package user
 if ! getent passwd %{user_name} >/dev/null; then
   echo -n "INFO: Creating the %{user_name} user..."
-  useradd -r -m -d /var/lib/%{user_name} -c "ncf API,,," %{user_name} >/dev/null 2>&1
+  useradd -r -d /var/lib/%{user_name} -c "ncf API,,," %{user_name} >/dev/null 2>&1
   echo " Done"
 fi
 
@@ -211,6 +212,7 @@ rm -rf %{buildroot}
 #=================================================
 %files -n ncf-api-virtualenv
 %defattr(-, root, root, 0755)
+%attr(755, %{user_name}, %{user_name}) /var/lib/%{user_name}
 %{installdir}/
 %config(noreplace) %{apache_vhost_dir}/ncf-api-virtualenv.conf
 
