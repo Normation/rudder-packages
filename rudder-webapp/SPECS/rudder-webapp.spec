@@ -101,7 +101,8 @@ Source17: rudder-metrics-reporting
 Source18: ca-bundle.crt
 Source19: rudder-reload-cf-serverd
 Source20: rudder-webapp.te
-Source21: rudder-keys
+Source21: rudder-webapp.fc
+Source22: rudder-keys
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
@@ -169,6 +170,7 @@ cp -rf %{_sourcedir}/rudder-doc %{_builddir}
 
 %if 0%{?rhel} || 0%{?fedora}
 # Build SELinux policy package
+# Compiles rudder-webapp.te and rudder-webapp.fc into rudder-webapp.pp
 cd %{_builddir} && make -f /usr/share/selinux/devel/Makefile
 %endif
 
@@ -287,7 +289,7 @@ install -m 644  %{_builddir}/rudder-webapp.pp %{buildroot}%{rudderdir}/share/sel
 %endif
 
 # Install rudder keys
-install -m 755 %{SOURCE21} %{buildroot}%{rudderdir}/bin/
+install -m 755 %{SOURCE22} %{buildroot}%{rudderdir}/bin/
 
 %pre -n rudder-webapp
 #=================================================
@@ -405,24 +407,17 @@ fi
 
 %if 0%{?rhel} || 0%{?fedora}
 # SELinux support
-# Check "sestatus" presence, and if here, probe if SELinux
-# is enabled. If so, then tweak our installation to be
+# Check "sestatus" presence, and if here tweak our installation to be
 # SELinux compliant
 if type sestatus >/dev/null 2>&1
 then
-  if [ $(LANG=C sestatus | grep -cE "SELinux status:.*enabled") -ne 0 ]
-  then
-
-    # Adjust the inventory directories SELinux context
-    chcon -R --type=httpd_sys_content_t /var/rudder/inventories/incoming
-    chcon -R --type=httpd_sys_content_t /var/rudder/inventories/accepted-nodes-updates
-
-    # If necessary, add the rudder-webapp SELinux policy
-    if [ $(semodule -l | grep -c rudder-webapp) -eq 0 ]
-    then
-      semodule -i /opt/rudder/share/selinux/rudder-webapp.pp
-    fi
-  fi
+  # Add/Update the rudder-webapp SELinux policy
+  semodule -i /opt/rudder/share/selinux/rudder-webapp.pp
+	
+  # Ensure inventory directories context is set by resetting
+  # their context to the contexts defined in SELinux configuration,
+  # including the file contexts defined in the rudder-webapp module
+  restorecon -R /var/rudder/inventories
 fi
 %endif
 
@@ -515,6 +510,20 @@ if [ $1 -eq 0 ]; then
     echo " Done"
   fi
 fi
+
+%if 0%{?rhel} || 0%{?fedora}
+  # Do it only during uninstallation
+  if [ $1 -eq 0 ]; then
+    if type sestatus >/dev/null 2>&1
+    then
+      if [ $(semodule -l | grep -c rudder-webapp) -eq 0 ]
+      then
+        # Remove the rudder-webapp SELinux policy
+        semodule -r rudder-webapp
+      fi
+    fi
+  fi
+%endif
 
 #=================================================
 # Cleaning

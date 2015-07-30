@@ -1,0 +1,27 @@
+--- a/lib/FusionInventory/Agent/Task/Inventory/Virtualization/Xen.pm	2015-06-12 16:35:45.000000000 -0400
++++ b/lib/FusionInventory/Agent/Task/Inventory/Virtualization/Xen.pm	2015-06-12 16:33:48.000000000 -0400
+@@ -61,12 +61,18 @@
+     my @machines;
+     while (my $line = <$handle>) {
+         chomp $line;
+-        my ($name, $vmid, $memory, $vcpu, $status) = split(' ', $line);
+-        next if $name eq 'Domain-0';
+-        next if $vmid == 0;
+-
+-        $status =~ s/-//g;
+-        $status = $status ? $status_list{$status} : 'off';
++        my ($name, $vmid, $memory, $vcpu, $status);
++        my @fields = split(' ', $line);
++        if (@fields == 4) {
++                ($name, $memory, $vcpu) = @fields;
++                $status = 'off';
++        } else {
++                ($name, $vmid, $memory, $vcpu, $status) = @fields;
++                $status =~ s/-//g;
++                $status = $status_list{$status} // 'off';
++               next if $vmid == 0;
++        }
++        next if $name eq 'Domain-0';
+
+         my $machine = {
+             MEMORY    => $memory,

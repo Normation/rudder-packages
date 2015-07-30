@@ -2,7 +2,7 @@
 # Generate rudder-webapp.pp by running:
 #  make -f /usr/share/selinux/devel/Makefile
 
-module rudder-webapp 1.0;
+module rudder-webapp 1.1;
 
 require {
         type httpd_t;
