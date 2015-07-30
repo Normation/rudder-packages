@@ -1,4 +1,5 @@
 #!/bin/sh
+set -x
 #
 # This script runs FusionInventory, using either a Rudder provided instance
 # or a system provided one if the first one is not usable.
@@ -17,7 +18,7 @@
 
 ## Oldest FusionInventory known to work with Rudder
 OLDEST_SUPPORTED_FUSINV_VERSION="2.2"
-OLDEST_SUPPORTED_FUSINV_VERSION_UNDOTTED=$(echo ${OLDEST_SUPPORTED_FUSINV_VERSION} | sed "s%\.%%g")
+OLDEST_SUPPORTED_FUSINV_VERSION_UNDOTTED=`echo ${OLDEST_SUPPORTED_FUSINV_VERSION} | sed "s%\.%%g"`
 
 # Main
 
@@ -31,8 +32,8 @@ if [ -x /opt/rudder/bin/perl ]; then
 elif command -v fusioninventory-agent >/dev/null 2>&1; then
 
   # A system FusionInventory installation is present (version can have 3 or 4 number, and maybe other char at the end)
-  SYSTEM_FUSINV_VERSION=$(fusioninventory-agent --version | sed 's%.*(\([0-9]\+\)\.\([0-9]\+\).*).*%\1.\2%')
-  if [ "$(echo ${SYSTEM_FUSINV_VERSION} | sed 's%\.%%g')" -ge ${OLDEST_SUPPORTED_FUSINV_VERSION_UNDOTTED} ];then
+  SYSTEM_FUSINV_VERSION=`fusioninventory-agent --version | sed 's%.*(\([0-9]\+\)\.\([0-9]\+\).*).*%\1.\2%'`
+  if [ "`echo ${SYSTEM_FUSINV_VERSION} | sed 's%\.%%g'`" -ge ${OLDEST_SUPPORTED_FUSINV_VERSION_UNDOTTED} ];then
 
     # The system FusionInventory installation has an acceptable version, use it.
     echo "[info] FusionInventory instance: system"
