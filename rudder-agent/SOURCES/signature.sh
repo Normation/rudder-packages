@@ -1,10 +1,13 @@
 #!/bin/sh
 
 # To allow Rudder to provide its own version of openssl
-export PATH=/opt/rudder/bin:$PATH
+PATH=/opt/rudder/bin:$PATH
+export PATH
 
-if ! type openssl 2>/dev/null >/dev/null
+if type openssl 2>/dev/null >/dev/null
 then
+  :
+else
   echo "ERROR: openssl binary is missing !"
   exit 1
 fi
@@ -15,7 +18,7 @@ HASH=sha512
 
 # the file to sign
 FILE="$1"
-if [ ! -e "${FILE}" ]
+if [ ! -f "${FILE}" ]
 then
   echo "ERROR: Cannot sign: The file ${FILE} doesn't exist"
   exit 2
@@ -28,7 +31,7 @@ PRIVKEY=/var/rudder/cfengine-community/ppkeys/localhost.priv
 PASSPHRASE="Cfengine passphrase"
 
 # Create signature
-SIGNATURE=$(openssl dgst -passin "pass:${PASSPHRASE}" -${HASH} -hex -sign "${PRIVKEY}" < "${FILE}" | sed -e 's/.*= //')
+SIGNATURE=`openssl dgst -passin "pass:${PASSPHRASE}" -${HASH} -hex -sign "${PRIVKEY}" < "${FILE}" | sed -e 's/.*= //'`
 
 # Create a signature FILE
 cat > "${FILE}.sign" <<EOF
