@@ -1,0 +1,9 @@
+#!/bin/sh
+
+if pkginfo -q CSWcurl
+then
+  :
+else
+  echo "RudderAgent needs CSWcurl, please install it before installing RudderAgent"
+  exit 1
+fi

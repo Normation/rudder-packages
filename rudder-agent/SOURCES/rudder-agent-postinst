@@ -1,0 +1,161 @@
+#!/bin/sh
+set -e
+
+CFRUDDER_FIRST_INSTALL="$1"
+AGENT_STOP_CMD="$2"
+AGENT_START_CMD="$3"
+
+if [ -z "$3" ]
+then
+  echo "Usage: $0 <CFRUDDER_FIRST_INSTALL> \"<AGENT_STOP_CMD>\" \"<AGENT_START_CMD>\""
+  echo " This should only be called from a package postinstall command"
+  exit 1
+fi
+
+echo "`date` - Starting rudder-agent post installation script" >> /var/log/rudder/install/rudder-agent.log
+
+# Ensure our PATH includes Rudder's bin dir (for uuidgen on AIX in particular)
+PATH=/opt/rudder/bin/:$PATH
+export PATH
+
+# Reload the linker cache (to acknowledge LMDB's presence if needed)
+if [ -f /etc/ld.so.conf.d/rudder.conf ]; then
+  echo "Found /etc/ld.so.conf.d/rudder.conf, running ldconfig" >> /var/log/rudder/install/rudder-agent.log
+  ldconfig -v >> /var/log/rudder/install/rudder-agent.log 2>&1
+fi
+
+echo "Making sure that the permissions on the CFEngine key directory are correct..."
+if [ -d /var/rudder/cfengine-community/ppkeys ]; then
+  chmod 700 /var/rudder/cfengine-community/ppkeys
+  if [ `ls /var/rudder/cfengine-community/ppkeys | wc -l` -gt 0 ]; then
+    chmod 600 /var/rudder/cfengine-community/ppkeys/*
+  fi
+fi
+
+# Copy new binaries to workdir, make sure daemons are stopped first
+
+# Set a "lock" to avoid CFEngine being restarted during the upgrade process
+I_SET_THE_LOCK=0
+if [ ! -f /opt/rudder/etc/disable-agent ]; then
+  I_SET_THE_LOCK=1
+  touch /opt/rudder/etc/disable-agent
+fi
+
+${AGENT_STOP_CMD} || true
+
+# On AIX, trigger slibclean to remove any unused library/binary object from memory
+# Will prevent "Text file busy" errors during the following copy
+if type slibclean >/dev/null 2>&1; then 
+  slibclean
+fi
+
+# Copy CFEngine binaries (Changed location from sbin/ to bin/ in version 3.4)
+cp -r -f /opt/rudder/bin/cf-* /var/rudder/cfengine-community/bin/
+cp -r -f /opt/rudder/bin/rpmvercmp /var/rudder/cfengine-community/bin/
+NB_COPIED_BINARIES=`ls -1 /var/rudder/cfengine-community/bin/ | wc -l`
+if [ ${NB_COPIED_BINARIES} -gt 0 ]; then
+  echo "CFEngine binaries copied to workdir" >> /var/log/rudder/install/rudder-agent.log
+fi
+
+# Backup rudder-server-roles.conf
+if [ -f /var/rudder/cfengine-community/inputs/rudder-server-roles.conf ]
+then
+  mkdir -p /var/backups/rudder
+  cp -r /var/rudder/cfengine-community/inputs/rudder-server-roles.conf /var/backups/rudder/
+  RESTORE_SERVER_ROLES_BACKUP=1
+fi
+
+# Copy initial promises if there aren't any already or,
+# if the cf-promises validation fails, it means we have a broken set of promises (possibly a pre-2.8 set).
+# Reset the initial promises so the server is able to send the agent a new set of correct ones.
+RUDDER_UUID=`cat /opt/rudder/etc/uuid.hive 2>/dev/null || true`
+if [ ! -f /var/rudder/cfengine-community/inputs/promises.cf ] || ! /var/rudder/cfengine-community/bin/cf-promises >/dev/null 2>&1 && [ "${RUDDER_UUID}" != "root" ]
+then
+  rm -rf /var/rudder/cfengine-community/inputs/* || true
+  cp -r /opt/rudder/share/initial-promises/* /var/rudder/cfengine-community/inputs/
+fi
+
+# Restore rudder-server-roles.conf if necessary
+if [ "${RESTORE_SERVER_ROLES_BACKUP}" = "1" ]; then
+  cp -r /var/backups/rudder/rudder-server-roles.conf /var/rudder/cfengine-community/inputs/rudder-server-roles.conf
+fi
+
+# Generate a UUID if we don't have one yet
+if [ ! -f /opt/rudder/etc/uuid.hive ]
+then
+  uuidgen > /opt/rudder/etc/uuid.hive
+else
+  # UUID is valid only if it has been generetaed by uuidgen or if it is set to 'root' for policy server
+  REGEX=`x="[a-f0-9][a-f0-9][a-f0-9][a-f0-9]" && echo "$x$x-$x-$x-$x-$x$x$x"`
+  CHECK_UUID=`cat /opt/rudder/etc/uuid.hive | egrep "^$REGEX|^root" | wc -l`
+  # If the UUID is not valid, regenerate it
+  if [ ${CHECK_UUID} -ne 1 ]
+  then
+    uuidgen > /opt/rudder/etc/uuid.hive
+  fi
+fi
+
+# Create a key if we don't have one yet
+if [ ! -f /var/rudder/cfengine-community/ppkeys/localhost.priv ]
+then
+  echo -n "INFO: Creating keys for CFEngine agent..."
+  /var/rudder/cfengine-community/bin/cf-key >> /var/log/rudder/install/rudder-agent.log 2>&1
+  echo " Done."
+fi
+
+# Remove the lock on CFEngine
+if [ ${I_SET_THE_LOCK} -eq 1 ]; then
+  rm -f /opt/rudder/etc/disable-agent
+fi
+
+# Remove cfengine lock log file : http://www.rudder-project.org/redmine/issues/5488
+rm -f /var/rudder/cfengine-community/cf3.*.runlog*
+
+# Restart daemons if we stopped them, otherwise not
+if [ ${CFRUDDER_FIRST_INSTALL} -ne 1 ]
+then
+  # Check if agent is disabled
+  if [ ! -f /opt/rudder/etc/disable-agent ]
+  then
+    if [ -r /var/rudder/cfengine-community/inputs/failsafe.cf -o -r /var/rudder/cfengine-community/inputs/promises.cf ]
+    then
+      ${AGENT_START_CMD} || true
+    fi
+  else
+    echo "********************************************************************************"
+    echo "rudder-agent has been updated, but was not started as it is disabled."
+    echo "To enable rudder agent, you have to remove disable file, and start rudder-agent:"
+    echo "# rm -f /opt/rudder/etc/disable-agent"
+    echo "# ${AGENT_START_CMD} "
+    echo "********************************************************************************"
+  fi
+else
+  echo "********************************************************************************"
+  echo "rudder-agent has been installed (not started). This host can be a Rudder node."
+  echo "To get started, configure your Rudder server's hostname and launch the agent:"
+  echo "# echo 'rudder.server' > /var/rudder/cfengine-community/policy_server.dat"
+  echo "# ${AGENT_START_CMD}"
+  echo "This node will then appear in the Rudder web interface under 'Accept new nodes'."
+  echo "********************************************************************************"
+fi
+
+# Add temporary cron for checking UUID. This cron is created in postinst
+# in order to remove it later without complains of the package manager.
+CHECK_RUDDER_AGENT_CRON=`grep "/opt/rudder/bin/check-rudder-agent" /etc/cron.d/rudder-agent | wc -l`
+TMP_CRON=/etc/cron.d/rudder-agent-uuid
+# Add it only if the default cron file does not call check-rudder-agent script
+if [ ${CHECK_RUDDER_AGENT_CRON} -eq 0 ]; then
+  if [ ! -f ${TMP_CRON} ]; then
+    echo "0,5,10,15,20,25,30,35,40,45,50,55 * * * * root /opt/rudder/bin/check-rudder-agent" > ${TMP_CRON}
+  fi
+fi
+
+# Vixie-cron and cronie (at least) expect specific permissions to be applied
+# on /etc/cron.d entries, and will refuse to load executable files.
+if [ -f ${TMP_CRON} ]; then
+  chmod 644 ${TMP_CRON}
+fi
+
+# launch rudder agent check script, it will generate an UUID on first install or repair it if needed
+nohup /opt/rudder/bin/check-rudder-agent >/dev/null 2>/dev/null &
+

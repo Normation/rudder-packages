@@ -49,8 +49,6 @@ package: build-rudder
 	pkgmk -o -r $(PKGROOT) -d $(BUILDROOT) -f $(BUILDROOT)/Prototype
 
 	# create the final package file as a tgz
-	# avoid tar warning (bug in the build system ?)
-	touch $(BUILDROOT)/RudderAgent/root/opt/rudder/lib/perl5/Test/Deep.pm
 	cd $(BUILDROOT) && tar -cf - RudderAgent | gzip -9 -c > $(PACKAGE)
 	mv $(BUILDROOT)/$(PACKAGE) $(ROOTPATH)/
 
@@ -64,3 +62,4 @@ build-rudder:
 
 	# Build rudder agent and install to a temporary destination
 	cd $(SOURCES) && $(MAKE) install DESTDIR=$(PKGROOT) RUDDER_VERSION_TO_PACKAGE=$(RUDDER_VERSION_TO_PACKAGE)
+	rm -rf $(PKGROOT)/etc/ld.so.conf.d/

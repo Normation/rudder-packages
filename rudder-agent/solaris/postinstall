@@ -1,0 +1,5 @@
+#!/bin/sh
+
+CFRUDDER_FIRST_INSTALL=0
+if [ ! -x /var/rudder/cfengine-community/bin/cf-execd ]; then CFRUDDER_FIRST_INSTALL=1; fi
+/opt/rudder/share/package-scripts/rudder-agent-postinst "${CFRUDDER_FIRST_INSTALL}" "/etc/init.d/rudder-agent stop" "/etc/init.d/rudder-agent start"
