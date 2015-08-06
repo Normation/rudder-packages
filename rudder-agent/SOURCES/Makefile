@@ -111,7 +111,6 @@ ifneq (true,$(NO_INIT))
 	mkdir -p $(DESTDIR)/etc/init.d
 	mkdir -p $(DESTDIR)/etc/default
 	$(INSTALL) -m 755 rudder-agent.init $(DESTDIR)/etc/init.d/rudder-agent
-	$(INSTALL) -m 644 rudder-agent.default $(DESTDIR)/etc/default/rudder-agent
 	$(INSTALL) -m 755 rudder.init $(DESTDIR)/etc/init.d/rudder
 endif
 
@@ -135,6 +134,8 @@ endif
 	mkdir -p $(DESTDIR)/etc/ld.so.conf.d
 	$(INSTALL) -m 644 rudder.conf $(DESTDIR)/etc/ld.so.conf.d/
 
+	mkdir -p $(DESTDIR)/opt/rudder/share/package-scripts
+	$(INSTALL) -m 755 rudder-agent-postinst $(DESTDIR)/opt/rudder/share/package-scripts/
 	$(INSTALL) -m 755 check-rudder-agent $(DESTDIR)/opt/rudder/bin/
 	$(INSTALL) -m 755 vzps.py $(DESTDIR)/opt/rudder/bin/
 	$(INSTALL) -m 755 rudder-perl $(DESTDIR)/opt/rudder/bin/

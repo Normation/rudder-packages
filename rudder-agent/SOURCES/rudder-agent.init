@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 #====================================================================
 # Start/stop script for CFEngine Community
@@ -46,16 +46,16 @@
 # Author: Jonathan Clarke <jonathan.clarke@normation.com>
 #====================================================================
 
-# Source environment variables from /etc/profile
+# Source environment variables from /etc/profile
 . /etc/profile
 
 # Array indexes
 CFEXECD=0
 CFSERVERD=1
 CFMONITORD=2
-CFENGINE_COMMUNITY_NAME[$CFEXECD]="cf-execd"
-CFENGINE_COMMUNITY_NAME[$CFSERVERD]="cf-serverd"
-CFENGINE_COMMUNITY_NAME[$CFMONITORD]="cf-monitord"
+CFENGINE_COMMUNITY_NAME_0="cf-execd"
+CFENGINE_COMMUNITY_NAME_1="cf-serverd"
+CFENGINE_COMMUNITY_NAME_2="cf-monitord"
 
 #====================================================================
 # Default parameters (if /etc/default/{script_name} is not present)
@@ -63,26 +63,26 @@ CFENGINE_COMMUNITY_NAME[$CFMONITORD]="cf-monitord"
 # Script specific
 PROG_NAME=`basename $0 | sed 's/^[KS][0-9][0-9]//'` # For nice messages
 OS=`uname -s`   # To adapt message printing
-MYUID=`id -u`     # For UNIX compatibility => modify this command
-MYGID=`id -g`     # For UNIX compatibility => modify this command
-PS_COMMAND="ps -efww"  # This ensures full width for ps output but doesn't work on Solaris - use "ps -ef"
+MYUID=`id | cut -d\( -f2 | cut -d\) -f1`     # For UNIX compatibility => modify this command
+MYGID=`id | cut -d\( -f3 | cut -d\) -f1`     # For UNIX compatibility => modify this command
+PS_COMMAND="ps -ef"  # add ww to ensures full width for ps output but doesn't work on Solaris
 SYSLOG_FACILITY="local6"
 
 # CFEngine Community directory and files
-CFENGINE_COMMUNITY_PATH="/usr/local/cfengine"
-CFENGINE_COMMUNITY_VAR_PATH="/var/cfengine"
-CFENGINE_COMMUNITY_RUN[$CFEXECD]="1"
-CFENGINE_COMMUNITY_RUN[$CFSERVERD]="1"
-CFENGINE_COMMUNITY_RUN[$CFMONITORD]="1"
-CFENGINE_COMMUNITY_BIN[$CFEXECD]="$CFENGINE_COMMUNITY_VAR_PATH/bin/cf-execd"
-CFENGINE_COMMUNITY_BIN[$CFSERVERD]="$CFENGINE_COMMUNITY_VAR_PATH/bin/cf-serverd"
-CFENGINE_COMMUNITY_BIN[$CFMONITORD]="$CFENGINE_COMMUNITY_VAR_PATH/bin/cf-monitord"
-CFENGINE_COMMUNITY_PARAMS[$CFEXECD]=""
-CFENGINE_COMMUNITY_PARAMS[$CFSERVERD]=""
-CFENGINE_COMMUNITY_PARAMS[$CFMONITORD]=""
-CFENGINE_COMMUNITY_PID_FILE[$CFEXECD]="$CFENGINE_COMMUNITY_VAR_PATH/cf-execd.pid"
-CFENGINE_COMMUNITY_PID_FILE[$CFSERVERD]="$CFENGINE_COMMUNITY_VAR_PATH/cf-serverd.pid"
-CFENGINE_COMMUNITY_PID_FILE[$CFMONITORD]="$CFENGINE_COMMUNITY_VAR_PATH/cf-monitord.pid"
+CFENGINE_COMMUNITY_PATH="/opt/rudder"
+CFENGINE_COMMUNITY_VAR_PATH="/var/rudder/cfengine-community"
+CFENGINE_COMMUNITY_RUN_0="1"
+CFENGINE_COMMUNITY_RUN_1="1"
+CFENGINE_COMMUNITY_RUN_2="0"
+CFENGINE_COMMUNITY_BIN_0="$CFENGINE_COMMUNITY_VAR_PATH/bin/cf-execd"
+CFENGINE_COMMUNITY_BIN_1="$CFENGINE_COMMUNITY_VAR_PATH/bin/cf-serverd"
+CFENGINE_COMMUNITY_BIN_2="$CFENGINE_COMMUNITY_VAR_PATH/bin/cf-monitord"
+CFENGINE_COMMUNITY_PARAMS_0=""
+CFENGINE_COMMUNITY_PARAMS_1=""
+CFENGINE_COMMUNITY_PARAMS_2=""
+CFENGINE_COMMUNITY_PID_FILE_0="$CFENGINE_COMMUNITY_VAR_PATH/cf-execd.pid"
+CFENGINE_COMMUNITY_PID_FILE_1="$CFENGINE_COMMUNITY_VAR_PATH/cf-serverd.pid"
+CFENGINE_COMMUNITY_PID_FILE_2="$CFENGINE_COMMUNITY_VAR_PATH/cf-monitord.pid"
 
 RUDDER_DISABLE_AGENT_FLAG_FILE=/opt/rudder/etc/disable-agent
 
@@ -110,29 +110,18 @@ message() {
 }
 
 #====================================================================
-# Load specific parameters
-#====================================================================
-if [ -f /etc/default/$PROG_NAME ]
-then
-  . /etc/default/$PROG_NAME
-  message "info" "[INFO] Using /etc/default/$PROG_NAME for configuration"
-else
-  message "info" "[INFO] Using built-in configuration - this may cause some problems"
-fi
-
-#====================================================================
 # Initial checks
 #====================================================================
 
 # Which daemons are we running?
 DAEMONS=""
 for daemon in $CFSERVERD $CFMONITORD $CFEXECD; do
-  if [ "z${CFENGINE_COMMUNITY_RUN[$daemon]}" == "z1" ]; then DAEMONS="${DAEMONS} $daemon"; fi
+  if eval [ "\${CFENGINE_COMMUNITY_RUN_$daemon}" = "1" ]; then DAEMONS="${DAEMONS} $daemon"; fi
 done
 
 # Make sure the pidfile directory exists with correct permissions
 for daemon in ${DAEMONS}; do
-  piddir=`dirname "${CFENGINE_COMMUNITY_PID_FILE[$daemon]}"`
+  piddir=`eval dirname "\\\${CFENGINE_COMMUNITY_PID_FILE_$daemon}"`
   if [ ! -d "$piddir" ]; then
     mkdir -p "$piddir"
   fi
@@ -141,9 +130,9 @@ done
 # Rights to execute binaries
 for daemon in ${DAEMONS}
 do
-  if [ ! -x ${CFENGINE_COMMUNITY_BIN[$daemon]} ]
+  if eval [ ! -x "\${CFENGINE_COMMUNITY_BIN_$daemon}" ]
   then
-    message "alert" "[ALERT] can't execute ${CFENGINE_COMMUNITY_NAME[$daemon]}"
+    eval message "alert" "\"[ALERT] can't execute \${CFENGINE_COMMUNITY_NAME_$daemon}\""
     exit 1
   fi
 done
@@ -178,9 +167,9 @@ start_daemons() {
   # It's time to start the daemons
   for daemon in ${DAEMONS}; do
     # Start message
-    message "info" "[INFO] Launching CFEngine Community ${CFENGINE_COMMUNITY_NAME[$daemon]}..."
+    eval message "info" "\"[INFO] Launching CFEngine Community \${CFENGINE_COMMUNITY_NAME_$daemon}...\""
 
-    ${CFENGINE_COMMUNITY_BIN[$daemon]} ${CFENGINE_COMMUNITY_PARAMS[$daemon]}
+    eval "\${CFENGINE_COMMUNITY_BIN_$daemon}" "\${CFENGINE_COMMUNITY_PARAMS_$daemon}"
     sleep 1
 
     # Presence of PID file
@@ -188,17 +177,17 @@ start_daemons() {
     # Waiting loop
     i=1
     start_failed=0
-    while [ ! -r ${CFENGINE_COMMUNITY_PID_FILE[$daemon]} ]
+    while eval [ ! -r "\${CFENGINE_COMMUNITY_PID_FILE_$daemon}" ]
     do
       if [ $i -eq $TIMEOUT -o $i -eq `expr $TIMEOUT / 2` ]
       then
-        message "alert" "[ALERT] no PID file for ${CFENGINE_COMMUNITY_NAME[$daemon]} after $i seconds. Trying again..."
-        ${CFENGINE_COMMUNITY_BIN[$daemon]} ${CFENGINE_COMMUNITY_PARAMS[$daemon]}
+        eval message "alert" "\"[ALERT] no PID file for \${CFENGINE_COMMUNITY_NAME_$daemon} after $i seconds. Trying again...\""
+        eval "\${CFENGINE_COMMUNITY_BIN_\$daemon}" "\${CFENGINE_COMMUNITY_PARAMS_$daemon}"
       fi
 
       if [ $i -eq `expr $TIMEOUT + 10` ]
       then
-        message "alert" "[ALERT] no PID file for ${CFENGINE_COMMUNITY_NAME[$daemon]} after $i seconds"
+        eval message "alert" "\"[ALERT] no PID file for \${CFENGINE_COMMUNITY_NAME_$daemon} after $i seconds\""
         RET=1
         start_failed=1
         break
@@ -210,14 +199,14 @@ start_daemons() {
     if [ ${start_failed} -eq 1 ]; then continue; fi
 
     # Is daemon launched?
-    PID=`cat ${CFENGINE_COMMUNITY_PID_FILE[$daemon]}`
-    if [ ! -e /proc/$PID ]
+    PID=`eval cat "\\\${CFENGINE_COMMUNITY_PID_FILE_$daemon}"`
+    if [ ! -d /proc/$PID ]
     then
-      message "alert" "[ALERT] daemon ${CFENGINE_COMMUNITY_NAME[$daemon]} not running"
+      eval message "alert" "\"[ALERT] daemon \${CFENGINE_COMMUNITY_NAME_$daemon} not running\""
       RET=1
       continue
     else
-      message "info" "[OK] CFEngine Community ${CFENGINE_COMMUNITY_NAME[$daemon]} started after $i seconds"
+      eval message "info" "\"[OK] CFEngine Community \${CFENGINE_COMMUNITY_NAME_$daemon} started after $i seconds\""
     fi
 
   done
@@ -231,33 +220,33 @@ stop_daemons() {
 
   for daemon in ${DAEMONS}; do
     # Stop message
-    message "info" "[INFO] Halting CFEngine Community ${CFENGINE_COMMUNITY_NAME[$daemon]}..."
+    eval message "info" "\"[INFO] Halting CFEngine Community \${CFENGINE_COMMUNITY_NAME_$daemon}...\""
 
     # Presence of PID file
     # If the pid file is not readable or is empty, kill all process by name
-    if [ ! -r ${CFENGINE_COMMUNITY_PID_FILE[$daemon]} -o ! -s ${CFENGINE_COMMUNITY_PID_FILE[$daemon]} ]
+    if eval [ ! -r "\${CFENGINE_COMMUNITY_PID_FILE_$daemon}" ] || eval [ ! -s "\${CFENGINE_COMMUNITY_PID_FILE_$daemon}" ]
     then
-      message "info" "[INFO] can't read PID file, not stopping ${CFENGINE_COMMUNITY_NAME[$daemon]}"
+      eval message "info" "\"[INFO] can't read PID file, not stopping \${CFENGINE_COMMUNITY_NAME_$daemon}\""
       RET=1
     else
-      PID=`cat ${CFENGINE_COMMUNITY_PID_FILE[$daemon]}`
+      PID=`eval cat "\\\${CFENGINE_COMMUNITY_PID_FILE_$daemon}"`
       kill -INT $PID
 
       # Waiting loop
       i=1
-      while [ -e /proc/$PID ]
+      while [ -d /proc/$PID ]
       do
         if [ $i -eq $TIMEOUT ]
         then
           # Timeout
-          message "alert" "[ALERT] ${CFENGINE_COMMUNITY_NAME[$daemon]} still running (PID $PID), try: $0 forcestop"
+          eval message "alert" "\"[ALERT] \${CFENGINE_COMMUNITY_NAME_$daemon} still running (PID $PID), try: $0 forcestop\""
           exit 1
         fi
         i=`expr $i + 1`
         sleep 1
       done
 
-      message "info" "[OK] CFEngine Community ${CFENGINE_COMMUNITY_NAME[$daemon]} stopped after $i seconds"
+      eval message "info" "\"[OK] CFEngine Community \${CFENGINE_COMMUNITY_NAME_$daemon} stopped after $i seconds\""
     fi
   done
 
@@ -270,49 +259,49 @@ forcestop_daemons() {
 
   for daemon in ${DAEMONS}; do
     # Check if any process is running
-    if [ `$PS_COMMAND | grep ${CFENGINE_COMMUNITY_BIN[$daemon]} | grep -v grep | wc -l` -eq 0 ]
+    if [ `$PS_COMMAND | eval grep "\\\${CFENGINE_COMMUNITY_BIN_$daemon}" | grep -v grep | wc -l` -eq 0 ]
     then
-      message "info" "[INFO] Found no CFEngine Community ${CFENGINE_COMMUNITY_NAME[$daemon]} processes running"
+      eval message "info" "\"[INFO] Found no CFEngine Community \${CFENGINE_COMMUNITY_NAME_$daemon} processes running\""
 
       # Cleanup PID file
-      rm -f ${CFENGINE_COMMUNITY_PID_FILE[$daemon]}
+      eval rm -f "\${CFENGINE_COMMUNITY_PID_FILE_$daemon}"
 
       continue
     fi
 
     # Stop message
-    message "info" "[INFO] Killing CFEngine Community ${CFENGINE_COMMUNITY_NAME[$daemon]} with force..."
+    eval message "info" "\"[INFO] Killing CFEngine Community \${CFENGINE_COMMUNITY_NAME_$daemon} with force...\""
 
     # Presence of PID file
     # If the pid file is not readable or is empty, kill all process by name
-    if [ ! -r ${CFENGINE_COMMUNITY_PID_FILE[$daemon]} -o ! -s ${CFENGINE_COMMUNITY_PID_FILE[$daemon]} ]
+    if eval [ ! -r "\${CFENGINE_COMMUNITY_PID_FILE_$daemon}" ] || eval [ ! -s "\${CFENGINE_COMMUNITY_PID_FILE_$daemon}" ]
     then
       # Try a killall
       if [ -x /bin/pidof ]
       then
-        /bin/kill -KILL `/bin/pidof ${CFENGINE_COMMUNITY_BIN[$daemon]}`
+        /bin/kill -KILL `eval /bin/pidof "\\\${CFENGINE_COMMUNITY_BIN_$daemon}"`
       else
-        /usr/bin/killall -KILL ${CFENGINE_COMMUNITY_BIN[$daemon]}
+        eval /usr/bin/killall -KILL "\${CFENGINE_COMMUNITY_BIN_$daemon}"
       fi
 
       if [ $? -eq 0 ]
       then
-        message "info" "[OK] all CFEngine Community ${CFENGINE_COMMUNITY_NAME[$daemon]} processes killed with force"
+        eval message "info" "\"[OK] all CFEngine Community \${CFENGINE_COMMUNITY_NAME_$daemon} processes killed with force\""
       else
-        message "alert" "[ALERT] Unable to kill CFEngine Community ${CFENGINE_COMMUNITY_NAME[$daemon]} with force"
+        eval message "alert" "\"[ALERT] Unable to kill CFEngine Community \${CFENGINE_COMMUNITY_NAME_$daemon} with force\""
       fi
     else
-      PID=`cat ${CFENGINE_COMMUNITY_PID_FILE[$daemon]}`
+      PID=`eval cat "\\\${CFENGINE_COMMUNITY_PID_FILE_$daemon}"`
       kill -KILL $PID
 
       if [ $? -eq 0 ]
       then
-        message "info" "[OK] CFEngine Community ${CFENGINE_COMMUNITY_NAME[$daemon]} killed with force (PID $PID)"
+        eval message "info" "\"[OK] CFEngine Community \${CFENGINE_COMMUNITY_NAME_$daemon} killed with force (PID $PID)\""
 
         # Cleanup PID file
-        rm -f ${CFENGINE_COMMUNITY_PID_FILE[$daemon]}
+        eval rm -f "\${CFENGINE_COMMUNITY_PID_FILE_$daemon}"
       else
-        message "alert" "[ALERT] Unable to kill CFEngine Community ${CFENGINE_COMMUNITY_NAME[$daemon]} with force (PID $PID)"
+        eval message "alert" "\"[ALERT] Unable to kill CFEngine Community \${CFENGINE_COMMUNITY_NAME_$daemon} with force (PID $PID)\""
         RET=1
         continue
       fi
@@ -331,21 +320,21 @@ daemons_status() {
   fi
 
   for daemon in ${DAEMONS}; do
-    if [ ! -r ${CFENGINE_COMMUNITY_PID_FILE[$daemon]} ]
+    if eval [ ! -r "\${CFENGINE_COMMUNITY_PID_FILE_$daemon}" ]
     then
 
       # Check if any process are running
-      if [ `$PS_COMMAND | grep ${CFENGINE_COMMUNITY_BIN[$daemon]} | grep -v grep | wc -l` -eq 0 ]
+      if [ `$PS_COMMAND | eval grep "\\\${CFENGINE_COMMUNITY_BIN_$daemon}" | grep -v grep | wc -l` -eq 0 ]
       then
         return 1
       else
         return 2
       fi
     else
-      PID=`cat ${CFENGINE_COMMUNITY_PID_FILE[$daemon]}`
+      PID=`eval cat "\\\${CFENGINE_COMMUNITY_PID_FILE_$daemon}"`
     fi
 
-    if [ ! -e /proc/$PID ]
+    if [ ! -d /proc/$PID ]
     then
       return 1
     fi
