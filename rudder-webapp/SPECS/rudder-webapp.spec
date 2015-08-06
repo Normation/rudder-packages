@@ -159,8 +159,8 @@ application server bundled in the rudder-jetty package.
 %prep
 
 # Copy the required source files to the build directory
-cp -f %{_sourcedir}/%{SOURCE20} %{_builddir}
-cp -f %{_sourcedir}/%{SOURCE21} %{_builddir}
+cp -f %{SOURCE20} %{_builddir}
+cp -f %{SOURCE21} %{_builddir}
 cp -rf %{_sourcedir}/rudder-sources %{_builddir}
 cp -rf %{_sourcedir}/rudder-doc %{_builddir}
 

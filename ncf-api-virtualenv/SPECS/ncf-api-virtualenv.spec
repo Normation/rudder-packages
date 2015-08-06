@@ -120,7 +120,7 @@ of the ncf API easier.
 %prep
 
 # Copy the required source files to the build directory
-cp -f %{_sourcedir}/%{SOURCE3} %{buildroot}
+cp -f %{SOURCE3} %{buildroot}
 
 #=================================================
 # Building
