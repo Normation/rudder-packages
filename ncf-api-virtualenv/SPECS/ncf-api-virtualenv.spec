@@ -173,6 +173,7 @@ rm -rf %{buildroot}
 # Directories
 
 mkdir -p %{buildroot}%{installdir}/
+mkdir -p %{buildroot}%{installdir}/share/selinux/
 mkdir -p %{buildroot}%{apache_vhost_dir}/
 mkdir -p %{buildroot}/var/lib/%{user_name}/
 
