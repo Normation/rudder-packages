@@ -185,7 +185,8 @@ install -m 644 %{SOURCE2} %{buildroot}%{apache_vhost_dir}/
 
 %if 0%{?rhel} || 0%{?fedora}
 # Install SELinux policy
-install -m 644  %{_builddir}/ncf-api-virtualenv.pp %{buildroot}%{rudderdir}/share/selinux/
+mkdir -p %{buildroot}%{installdir}/selinux/
+install -m 644  %{_builddir}/ncf-api-virtualenv.pp %{buildroot}%{installdir}/selinux/
 %endif
 
 %post -n ncf-api-virtualenv
