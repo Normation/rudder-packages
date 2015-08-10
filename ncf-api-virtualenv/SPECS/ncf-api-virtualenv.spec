@@ -120,7 +120,7 @@ of the ncf API easier.
 %prep
 
 # Copy the required source files to the build directory
-cp -f %{SOURCE3} %{buildroot}
+cp -f %{SOURCE3} %{_builddir}
 
 #=================================================
 # Building
@@ -160,7 +160,7 @@ fi
 
 %if 0%{?rhel} || 0%{?fedora}
 # Build SELinux policy package
-cd %{buildroot} && make -f /usr/share/selinux/devel/Makefile
+cd %{_builddir} && make -f /usr/share/selinux/devel/Makefile
 %endif
 
 #=================================================
