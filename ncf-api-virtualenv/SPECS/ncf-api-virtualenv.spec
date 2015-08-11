@@ -120,7 +120,7 @@ of the ncf API easier.
 %prep
 
 # Copy the required source files to the build directory
-cp -f %{SOURCE3} %{buildroot}
+cp -f %{SOURCE3} %{_builddir}
 
 #=================================================
 # Building
@@ -160,7 +160,7 @@ fi
 
 %if 0%{?rhel} || 0%{?fedora}
 # Build SELinux policy package
-cd %{buildroot} && make -f /usr/share/selinux/devel/Makefile
+cd %{_builddir} && make -f /usr/share/selinux/devel/Makefile
 %endif
 
 #=================================================
@@ -173,6 +173,7 @@ rm -rf %{buildroot}
 # Directories
 
 mkdir -p %{buildroot}%{installdir}/
+mkdir -p %{buildroot}%{installdir}/share/selinux/
 mkdir -p %{buildroot}%{apache_vhost_dir}/
 mkdir -p %{buildroot}/var/lib/%{user_name}/
 
@@ -185,7 +186,7 @@ install -m 644 %{SOURCE2} %{buildroot}%{apache_vhost_dir}/
 
 %if 0%{?rhel} || 0%{?fedora}
 # Install SELinux policy
-install -m 644  %{_builddir}/ncf-api-virtualenv.pp %{buildroot}%{rudderdir}/share/selinux/
+install -m 644  %{_builddir}/ncf-api-virtualenv.pp %{buildroot}%{installdir}/share/selinux/
 %endif
 
 %post -n ncf-api-virtualenv
@@ -207,7 +208,7 @@ fi
 if type sestatus >/dev/null 2>&1
 then
   # Add/Update the ncf-api-virtualenv SELinux policy
-  semodule -i /opt/rudder/share/selinux/ncf-api-virtualenv.pp 2>/dev/null
+  semodule -i %{installdir}/share/selinux/ncf-api-virtualenv.pp 2>/dev/null
 fi
 %endif
 
