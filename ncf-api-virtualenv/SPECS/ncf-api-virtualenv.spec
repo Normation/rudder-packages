@@ -198,6 +198,7 @@ install -m 644  %{_builddir}/ncf-api-virtualenv.pp %{buildroot}%{installdir}/sha
 if ! getent passwd %{user_name} >/dev/null; then
   echo -n "INFO: Creating the %{user_name} user..."
   useradd -r -d /var/lib/%{user_name} -c "ncf API,,," %{user_name} >/dev/null 2>&1
+  chown %{user_name}:%{user_name} /var/lib/%{user_name}/
   echo " Done"
 fi
 
@@ -266,7 +267,6 @@ rm -rf %{buildroot}
 #=================================================
 %files -n ncf-api-virtualenv
 %defattr(-, root, root, 0755)
-%attr(755, %{user_name}, %{user_name}) /var/lib/%{user_name}
 %{installdir}/
 %config(noreplace) %{apache_vhost_dir}/ncf-api-virtualenv.conf
 
