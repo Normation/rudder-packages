@@ -139,7 +139,7 @@ echo " Done"
 
 %if 0%{?sles_version}
 # On SuSE, enable the required modules
-MODULES_TO_ENABLE="dav dav_fs"
+MODULES_TO_ENABLE="dav dav_fs version"
 
 for enmod in ${MODULES_TO_ENABLE}
 do
