@@ -47,10 +47,9 @@ localdepends: ./rudder-sources ./maven/bin/mvn ./rudder-users.xml ./rudder-doc .
 
 ./rudder-doc: /usr/bin/wget
 	# Get user manual from rudder-project.org and rename directory containing it to rudder-doc
-	$(WGET) -P ./rudder-doc/html -r -np -nH --cut-dirs=1 http://www.rudder-project.org/rudder-doc-${RUDDER_MAJOR_VERSION}/rudder-doc.html
-	mkdir -p ./rudder-doc/pdf
-	# Move the generated PDF from html directory to pdf
-	mv ./rudder-doc/html/rudder-doc.pdf ./rudder-doc/pdf/
+	$(WGET) -P ./rudder-doc/html -r -np -nH --cut-dirs=1 http://www.rudder-project.org/doc-${RUDDER_MAJOR_VERSION}/
+	# Download the pdf version of the manual
+	$(WGET) -P ./rudder-doc/pdf http://www.rudder-project.org/rudder-doc-${RUDDER_MAJOR_VERSION}/rudder-doc.pdf
 
 ./rudder-doc/html/rudder-doc.pdf: ./rudder-doc
 	ln -fs ../pdf/rudder-doc.pdf ./rudder-doc/html/rudder-doc.pdf
