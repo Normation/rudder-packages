@@ -48,6 +48,7 @@ set -e
 # - 2.8.0 : Deprecate properties that are now handled directly in the webapp (validation workflow and change Message)
 # - 2.9.0 : File Format migration from 4 to 5
 # - 2.10.0 : Add properties to enable and configure the LDAP authentication
+# - 2.10.17 : Migration DB schema to correct the historization of rules
 #####################################################################################
 
 # Some variables
@@ -513,6 +514,14 @@ check_and_add_config_property rudder.debug.nodeconfiguration.path "#
 # named i\"rudder.debug.nodeconfiguration\" in logback.xml
 #
 rudder.debug.nodeconfiguration.path=/var/log/rudder/nodeConfigurations"
+
+
+# - 2.10.17 : Migration DB schema to correct the historization of rules
+RES=$(su - postgres -c "psql -t -d rudder -c \"select count(*) from information_schema.columns where table_name='rulesgroupjoin' and column_name = 'targetserialisation';\"")
+if [ $RES -eq 0 ]; then
+        psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.10-2.10-historization-of-groups-in-rules.sql > /dev/null
+fi
+
 
 # For every upgrade, we force the root server to run a new inventory on the next CFEngine run
 touch /opt/rudder/etc/force_inventory
