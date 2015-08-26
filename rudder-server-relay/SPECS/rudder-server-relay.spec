@@ -140,6 +140,16 @@ echo -n "INFO: Stopping Apache HTTPd..."
 service %{apache} stop >/dev/null 2>&1
 echo " Done"
 
+%if 0%{?sles_version}
+# On SuSE, enable the required modules
+MODULES_TO_ENABLE="dav dav_fs version"
+
+for enmod in ${MODULES_TO_ENABLE}
+do
+  a2enmod ${enmod} >/dev/null 2>&1
+done
+%endif
+
 # Do this ONLY at first install
 if [ $1 -eq 1 ];  then
   echo -e '# This sources the configuration file needed by Rudder\n. /etc/sysconfig/rudder-relay-apache' >> /etc/sysconfig/apache2
