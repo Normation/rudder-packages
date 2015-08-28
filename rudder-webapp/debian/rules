@@ -94,6 +94,7 @@ binary-arch: install
 	## SQL
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ dbMigration-change-ids-in-tables.sql /opt/rudder/share/upgrade-tools/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ dbMigration-migrate-reports-per-node.sql /opt/rudder/share/upgrade-tools/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ dbMigration-2.10-2.10-historization-of-groups-in-rules.sql /opt/rudder/share/upgrade-tools/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ dbMigration-2.11-2.12-add-nodeconfigids-columns.sql /opt/rudder/share/upgrade-tools/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ dbMigration-2.11-3.0-add-insertionids-column.sql /opt/rudder/share/upgrade-tools/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ dbMigration-2.11-3.0-remove-varchar.sql /opt/rudder/share/upgrade-tools/

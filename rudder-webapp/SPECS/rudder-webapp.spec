@@ -260,6 +260,7 @@ sed -i "s%^DocumentRoot /var/www$%DocumentRoot /srv/www%" %{buildroot}%{rudderdi
 ## SQL
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-change-ids-in-tables.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-migrate-reports-per-node.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
+cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.10-2.10-historization-of-groups-in-rules.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.11-2.12-add-nodeconfigids-columns.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.11-3.0-add-insertionids-column.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.11-3.0-remove-varchar.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
