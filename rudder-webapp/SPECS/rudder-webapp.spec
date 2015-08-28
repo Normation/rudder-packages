@@ -252,6 +252,7 @@ cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.6-2.7-set-migration-needed-flag-for-EventLog.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.7-2.8-add-nodes-executions-storage.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.8-2.9-set-migration-needed-flag-for-EventLog.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
+cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.10-2.10-historization-of-groups-in-rules.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.11-2.12-add-nodeconfigids-columns.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.11-3.0-add-insertionids-column.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.11-3.0-remove-varchar.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
