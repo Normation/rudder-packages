@@ -1,7 +1,7 @@
 diff -ur a/cf-agent/verify_packages.c b/cf-agent/verify_packages.c
 --- a/cf-agent/verify_packages.c	2014-12-05 22:58:49.000000000 +0100
 +++ b/cf-agent/verify_packages.c	2015-07-16 14:53:01.704005993 +0200
-@@ -1692,7 +1692,8 @@
+@@ -1780,7 +1780,8 @@
              }
              else
              {

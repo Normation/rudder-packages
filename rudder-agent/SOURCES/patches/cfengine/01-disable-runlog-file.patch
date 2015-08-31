@@ -1,6 +1,6 @@
 --- cfengine-3.6.3rc/libpromises/locks.c	2014-11-27 16:02:46.000000000 +0100
 +++ cfengine-3.6.3rc/libpromises/locks.c	2014-11-28 14:47:22.222683493 +0100
-@@ -347,6 +347,10 @@
+@@ -350,6 +350,10 @@
  
  static void LogLockCompletion(char *cflog, int pid, char *str, char *op, char *operand)
  {
@@ -11,7 +11,7 @@
      FILE *fp;
      char buffer[CF_MAXVARSIZE];
      time_t tim;
-@@ -377,6 +381,7 @@
+@@ -380,6 +384,7 @@
      fprintf(fp, "%s:%s:pid=%d:%s:%s\n", buffer, str, pid, op, operand);
  
      fclose(fp);

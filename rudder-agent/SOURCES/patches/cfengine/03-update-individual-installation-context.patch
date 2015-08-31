@@ -1,6 +1,6 @@
 --- a/cf-agent/verify_packages.c	2015-05-15 11:09:22.603799486 +0200
 +++ b/cf-agent/verify_packages.c	2015-05-15 11:09:46.206126337 +0200
-@@ -2596,7 +2596,7 @@
+@@ -2684,7 +2684,7 @@
                      }
  
                      PromiseResult result = PROMISE_RESULT_NOOP;
