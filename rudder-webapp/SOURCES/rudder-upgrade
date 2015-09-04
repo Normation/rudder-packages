@@ -49,6 +49,7 @@ set -e
 # - 2.9.0 : File Format migration from 4 to 5
 # - 2.10.0 : Add properties to enable and configure the LDAP authentication
 # - 2.10.17 : Migration DB schema to correct the historization of rules
+# - 2.10.17 : Migration DB schema to add historization of global agent schedule
 #####################################################################################
 
 # Some variables
@@ -522,6 +523,11 @@ if [ $RES -eq 0 ]; then
         psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.10-2.10-historization-of-groups-in-rules.sql > /dev/null
 fi
 
+# - 2.10.17 : Migration DB schema to historize global agent schedule
+RES=$(su - postgres -c "psql -t -d rudder -c \"select count(*) from information_schema.tables where table_name='globalschedule';\"")
+if [ $RES -eq 0 ]; then
+        psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.10-2.10-historization-of-agent-schedule.sql > /dev/null
+fi
 
 # For every upgrade, we force the root server to run a new inventory on the next CFEngine run
 touch /opt/rudder/etc/force_inventory
