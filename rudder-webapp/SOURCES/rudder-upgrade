@@ -39,7 +39,6 @@ trap anomaly_handler ERR INT TERM
 # /opt/rudder/etc/rudder-web.properties configuration file is harmless.
 #
 # Upgrade checks currently implemented:
-<<<<<<< HEAD
 # - All versions : Check if access credentials in rudder-web.properties/inventory-web.properties match the ones from rudder-passwords.conf
 # - All versions : upgrade system Techniques automatically and reload the Technique library
 # - All versions : Check that Rudder database is able to handle backslash
