@@ -20,7 +20,8 @@
 
 # Versions to use
 RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
-CFENGINE_RELEASE = 3.6.5
+CFENGINE_RELEASE = 3.7.0
+CFENGINE_TARBALL_SUFFIX = 2
 FUSION_RELEASE = 2.3.6
 LMDB_RELEASE = 0.9.11
 OPENSSL_RELEASE = 1.0.1i
@@ -184,7 +185,7 @@ veryclean:
 cfengine-source:
 ifeq ($(shell ../../build-caching get --force-config ./cfengine-source/ name=cfengine-src version=$(CFENGINE_RELEASE) >/dev/null 2>&1 || echo KO), KO)
 	# Original URL: https://s3.amazonaws.com/cfengine.package-repos/tarballs/cfengine-$(CFENGINE_RELEASE).tar.gz
-	$(GET) $(TMP_DIR)/cfengine.tgz http://www.normation.com/tarball/cfengine/cfengine-$(CFENGINE_RELEASE).tar.gz
+	$(GET) $(TMP_DIR)/cfengine.tgz http://www.normation.com/tarball/cfengine/cfengine-$(CFENGINE_RELEASE)-$(CFENGINE_TARBALL_SUFFIX).tar.gz
 	gunzip < $(TMP_DIR)/cfengine.tgz | $(TAR) xf -
 	mv ./cfengine-$(CFENGINE_RELEASE) ./cfengine-source
 	../../build-caching put --force-config ./cfengine-source/ name=cfengine-src version=$(CFENGINE_RELEASE)
@@ -192,9 +193,6 @@ endif
 
 	# Apply patches
 	for PATCHNAME in patches/cfengine/*.patch; do echo "Applying $$PATCHNAME..."; $(PATCH) -d ./cfengine-source -p1 < $$PATCHNAME; echo ""; done
-
-	# Bootstrap the package using autogen before compilation
-	cd cfengine-source && NO_CONFIGURE=1 ./autogen.sh
 
 openssl-source:
 ifeq ($(shell ../../build-caching get --force-config ./openssl-source/ name=openssl-src version=$(OPENSSL_RELEASE) >/dev/null 2>&1 || echo KO), KO)
