@@ -43,6 +43,7 @@ trap anomaly_handler ERR INT TERM
 # - All versions : upgrade system Techniques automatically and reload the Technique library
 # - All versions : Check that Rudder database is able to handle backslash
 # - 2.10.17      : Migration DB schema to correct the historization of rules
+# - 2.10.17      : Migration DB schema to add historization of global agent schedule
 # - 2.11.0       : Add LDAP entries for Server Roles system Technique/Directive/Rule
 # - 2.11.0       : Add the properties to configure Rudder roles
 # - 2.11.0       : Add LDAP entry for Group with all nodes excluding server components
@@ -422,6 +423,11 @@ upgrade_database() {
   RES=$(su - postgres -c "psql -t -d rudder -c \"select count(*) from information_schema.columns where table_name='rulesgroupjoin' and column_name = 'targetserialisation';\"")
   if [ $RES -eq 0 ]; then
     psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.10-2.10-historization-of-groups-in-rules.sql > /dev/null
+  fi
+
+  RES=$(su - postgres -c "psql -t -d rudder -c \"select count(*) from information_schema.tables where table_name='globalschedule';\"")
+  if [ $RES -eq 0 ]; then
+    psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.10-2.10-historization-of-agent-schedule.sql > /dev/null
   fi
 
   # 3.0.0: Add the nodeConfigId column in the ReportsExecution table and add the nodes_info table
