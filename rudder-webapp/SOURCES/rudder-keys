@@ -73,7 +73,7 @@ then
   ldapmodify ${LDAP_PARAMETERS} <<EOF
 dn: nodeId=${UUID},${ACCEPTED_NODES_BASE}
 changetype: modify
-delete: keyStatus 
+delete: keyStatus
 
 EOF
 
