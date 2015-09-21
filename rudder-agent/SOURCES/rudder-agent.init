@@ -46,7 +46,7 @@
 # Author: Jonathan Clarke <jonathan.clarke@normation.com>
 #====================================================================
 
-# Source environment variables from /etc/profile
+# Source environment variables from /etc/profile
 . /etc/profile
 
 # Array indexes
@@ -65,8 +65,21 @@ PROG_NAME=`basename $0 | sed 's/^[KS][0-9][0-9]//'` # For nice messages
 OS=`uname -s`   # To adapt message printing
 MYUID=`id -u`     # For UNIX compatibility => modify this command
 MYGID=`id -g`     # For UNIX compatibility => modify this command
-PS_COMMAND="ps -efww"	# This ensures full width for ps output but doesn't work on Solaris - use "ps -ef"
 SYSLOG_FACILITY="local6"
+# Detect the correct ps tool to use
+ns=$(ps -h -o utsns --pid $$ 2>/dev/null)
+if [ -e "/proc/bc/0" ]; then # we have openvz
+  if [ -e /bin/vzps ]; then # we have vzps
+    PS_COMAND="/bin/vzps -E 0"
+  else # use rudder provided vzps
+    PS_COMMAND="/opt/rudder/bin/vzps.py -E 0"
+  fi
+elif [ -n "${ns}" ]; then # we have namespaces
+  PS_COMMAND="ps -h -e -O utsns | grep -E '^[[:space:]]*[[:digit:]]*[[:space:]]+${ns}'"
+else # standard unix
+  PS_COMMAND="ps -ef"
+fi
+
 
 # CFEngine Community directory and files
 CFENGINE_COMMUNITY_PATH="/usr/local/cfengine"
