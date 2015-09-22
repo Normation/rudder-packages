@@ -65,8 +65,21 @@ PROG_NAME=`basename $0 | sed 's/^[KS][0-9][0-9]//'` # For nice messages
 OS=`uname -s`   # To adapt message printing
 MYUID=`id | cut -d\( -f2 | cut -d\) -f1`     # For UNIX compatibility => modify this command
 MYGID=`id | cut -d\( -f3 | cut -d\) -f1`     # For UNIX compatibility => modify this command
-PS_COMMAND="ps -ef"  # add ww to ensures full width for ps output but doesn't work on Solaris
 SYSLOG_FACILITY="local6"
+# Detect the correct ps tool to use
+ns=$(ps -h -o utsns --pid $$ 2>/dev/null)
+if [ -d "/proc/bc" ] && [ -e "/proc/bc/0" ]; then # we have openvz
+  if [ -e /bin/vzps ]; then # we have vzps
+    PS_COMAND="/bin/vzps -E 0"
+  else # use rudder provided vzps
+    PS_COMMAND="/opt/rudder/bin/vzps.py -E 0"
+  fi
+elif [ -n "${ns}" ]; then # we have namespaces
+  PS_COMMAND="ps -h -e -O utsns | grep -E '^[[:space:]]*[[:digit:]]*[[:space:]]+${ns}'"
+else # standard unix
+  PS_COMMAND="ps -ef"
+fi
+
 
 # CFEngine Community directory and files
 CFENGINE_COMMUNITY_PATH="/opt/rudder"
@@ -259,7 +272,7 @@ forcestop_daemons() {
 
   for daemon in ${DAEMONS}; do
     # Check if any process is running
-    if [ `$PS_COMMAND | eval grep "\\\${CFENGINE_COMMUNITY_BIN_$daemon}" | grep -v grep | wc -l` -eq 0 ]
+    if [ `$PS_COMMAND | eval grep "\\\${CFENGINE_COMMUNITY_BIN_$daemon}" | sed -e '/grep/d' | wc -l` -eq 0 ]
     then
       eval message "info" "\"[INFO] Found no CFEngine Community \${CFENGINE_COMMUNITY_NAME_$daemon} processes running\""
 
@@ -324,7 +337,7 @@ daemons_status() {
     then
 
       # Check if any process are running
-      if [ `$PS_COMMAND | eval grep "\\\${CFENGINE_COMMUNITY_BIN_$daemon}" | grep -v grep | wc -l` -eq 0 ]
+      if [ `$PS_COMMAND | eval grep "\\\${CFENGINE_COMMUNITY_BIN_$daemon}" | sed -e '/grep/d' | wc -l` -eq 0 ]
       then
         return 1
       else

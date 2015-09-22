@@ -40,10 +40,8 @@ CFENGINE_DB_EXT=lmdb
 ## If we are on AIX, use alternative commands and options
 if [ "${OS_FAMILY}" = "AIX" ] || [ "${OS_FAMILY}" = "SunOS" ]; then
   CP_A="cp -hpPr"
-  PS_OPTIONS="-ef"
 else
   CP_A="cp -a"
-  PS_OPTIONS="-efww"
 fi
 
 echo_n() {
@@ -67,26 +65,24 @@ clean_cf_lock_files() {
 check_and_fix_cfengine_processes() {
 
   # Detect the correct ps tool to use
-  # Supported tools are ps, vzps, and the rudder supplied vzps.py
-  PS=ps
-  VZPS=/bin/vzps
-  RUDDERPS=/opt/rudder/bin/vzps.py
-
-  # Detect if we are a VZ host
-  if [ -d "/proc/bc" ] && [ -e "/proc/bc/0" ]; then
-    # Detect if vzps is present
-    if [ -e ${VZPS} ]; then
-      PS="${VZPS} -E 0"
-    else
-      PS="${RUDDERPS} -E 0"
+  ns=$(ps -h -o utsns --pid $$ 2>/dev/null)
+  if [ -d "/proc/bc" ] && [ -e "/proc/bc/0" ]; then # we have openvz
+    if [ -e /bin/vzps ]; then # we have vzps
+      PS_COMAND="/bin/vzps -E 0"
+    else # use rudder provided vzps
+      PS_COMMAND="/opt/rudder/bin/vzps.py -E 0"
     fi
+  elif [ -n "${ns}" ]; then # we have namespaces
+    PS_COMMAND="ps -h -e -O utsns | grep -E '^[[:space:]]*[[:digit:]]*[[:space:]]+${ns}'"
+  else # standard unix
+    PS_COMMAND="ps -ef"
   fi
 
   # If there are more than on cf-execd process, we must kill them
   # A standard kill won't kill them, so the -9 is necessary to make sure they are stopped
   # They will be restarted by the next check, if the disable file is not set
   # List the cf-execd processes running (without the path, they can be run manually)
-  CF_EXECD_RUNNING=`${PS} ${PS_OPTIONS} | grep "cf-execd" | sed -e '/grep/d' | cat`
+  CF_EXECD_RUNNING=`${PS_COMMAND} | grep -E "cf-execd" | sed -e '/grep/d' | cat`
   NB_CF_EXECD_RUNNING=`echo "${CF_EXECD_RUNNING}" | sed -e '/^$/d' | wc -l`
   if [ ${NB_CF_EXECD_RUNNING} -gt 1 ]; then
     echo_n "WARNING: Too many instance of CFEngine cf-execd processes running. Killing them..."
