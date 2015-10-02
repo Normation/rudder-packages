@@ -41,9 +41,10 @@ package: build-rudder
 	pkgdata=`cat $(CURDIR)/pkginfo` date=`date '+%m%d%Y'` arch=$(ARCH) version=$(RUDDER_VERSION_TO_PACKAGE) && eval "echo \"$$pkgdata\"" > $(BUILDROOT)/pkginfo 
 
 	# Retreive postinst et al scripts
+	cp $(CURDIR)/checkinstall $(BUILDROOT)/
+	cp $(CURDIR)/preremove $(BUILDROOT)/
 	cp $(CURDIR)/postinstall $(BUILDROOT)/
 	cp $(CURDIR)/postremove $(BUILDROOT)/
-	cp $(CURDIR)/preremove $(BUILDROOT)/
 
 	# Create the package content description file
 	pkgmk -o -r $(PKGROOT) -d $(BUILDROOT) -f $(BUILDROOT)/Prototype
