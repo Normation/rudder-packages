@@ -76,7 +76,7 @@ check_and_fix_cfengine_processes() {
       PS_COMMAND="/opt/rudder/bin/vzps.py -E 0"
     fi
   elif [ -n "${ns}" ]; then # we have namespaces
-    PS_COMMAND="ps -h -e -O utsns | grep -E '^[[:space:]]*[[:digit:]]*[[:space:]]+${ns}'"
+    PS_COMMAND="eval ps -h -e -O utsns | grep -E '^[[:space:]]*[[:digit:]]*[[:space:]]+${ns}'"
   else # standard unix
     PS_COMMAND="ps -ef"
   fi
@@ -95,7 +95,7 @@ check_and_fix_cfengine_processes() {
 
 
   # List the CFEngine processes running
-  CF_PROCESS_RUNNING=`${PS} ${PS_OPTIONS} | grep -E "${CFE_BIN_DIR}/(cf-execd|cf-agent)" | grep -v grep | cat`
+  CF_PROCESS_RUNNING=`${PS_COMMAND} | grep -E "${CFE_BIN_DIR}/(cf-execd|cf-agent)" | grep -v grep | cat`
   # Count the number of processes running, filtering empty lines
   NB_CF_PROCESS_RUNNING=`echo "${CF_PROCESS_RUNNING}" | grep -v ^$ | wc -l`
 
