@@ -236,16 +236,10 @@ ifeq ($(shell ../../build-caching get --force-config ./fusioninventory-agent/ na
 	mv ./FusionInventory-Agent-$(FUSION_RELEASE) ./fusioninventory-agent
 	../../build-caching put --force-config ./fusioninventory-agent/ name=fusioninventory-agent version=$(FUSION_RELEASE)
 endif
-	$(PATCH) -d ./fusioninventory-agent -p1 < ./patches/fusioninventory/0001-4096-char-line-truncation.patch
-	$(PATCH) -d ./fusioninventory-agent -p1 < ./patches/fusioninventory/0002-install-d-mkdir-p.patch
-	$(PATCH) -d ./fusioninventory-agent -p1 < ./patches/fusioninventory/0003-unix-ps-etime-usage.patch
-	$(PATCH) -d ./fusioninventory-agent -p1 < ./patches/fusioninventory/0004-aix-microcode-version-retrieval.patch
-	$(PATCH) -d ./fusioninventory-agent -p1 < ./patches/fusioninventory/0005-aix-duplicated-network-interfaces.patch
-	$(PATCH) -d ./fusioninventory-agent -p1 < ./patches/fusioninventory/0006-fixes-oracle-linux-os-name.patch
-	$(PATCH) -d ./fusioninventory-agent -p1 < ./patches/fusioninventory/0007-correct-storage-size-detection.patch
-	$(PATCH) -d ./fusioninventory-agent -p1 < ./patches/fusioninventory/0008-detect-docker-containers.patch
-	$(PATCH) -d ./fusioninventory-agent -p1 < ./patches/fusioninventory/0009-correct-path-of-rudder-policy-server-uuid.patch
-	$(PATCH) -d ./fusioninventory-agent -p1 < ./patches/fusioninventory/0010-parse-vcpu-correctly-on-xen-environments.patch
+
+	# Apply patches
+	for PATCHNAME in patches/fusioninventory/*.patch; do echo "Applying $$PATCHNAME... on FusionInventory"; $(PATCH) -d ./fusioninventory-agent -p1 < $$PATCHNAME; done
+
 	# Fix a lsusb invocation that crashes some SLES machines
 	$(FIND) ./fusioninventory-agent -name "USB.pm" -exec rm "{}" \;
 
