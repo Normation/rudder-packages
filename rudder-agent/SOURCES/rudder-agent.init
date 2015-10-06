@@ -75,7 +75,7 @@ if [ -e "/proc/bc/0" ]; then # we have openvz
     PS_COMMAND="/opt/rudder/bin/vzps.py -E 0"
   fi
 elif [ -n "${ns}" ]; then # we have namespaces
-  PS_COMMAND="eval ps -h -e -O utsns | grep -E '^[[:space:]]*[[:digit:]]*[[:space:]]+${ns}'"
+  PS_COMMAND="eval ps --no-header -e -O utsns | grep -E '^[[:space:]]*[[:digit:]]*[[:space:]]+${ns}'"
 else # standard unix
   PS_COMMAND="ps -ef"
 fi
