@@ -12,7 +12,7 @@
 
 
 configure: configure-stamp
-configure-stamp:
+configure-stamp: get-flags
 	dh_testdir
 	# dh_prep has been moved from 'install' target since we need to build LMDB first
 	dh_prep
@@ -26,10 +26,21 @@ configure-stamp:
 	# If there is no configure, bootstrap with autogen.sh first
 	cd SOURCES/cfengine-source && [ -x ./configure ] || NO_CONFIGURE=1 ./autogen.sh
 	# Prepare CFEngine 3.6.x build with defined path of LMDB
-	cd SOURCES/cfengine-source && ./configure --prefix=/opt/rudder --with-workdir=/var/rudder/cfengine-community --enable-static=yes --enable-shared=no --with-lmdb=$(CURDIR)/debian/tmp/opt/rudder
+	cd SOURCES/cfengine-source && ./configure --prefix=/opt/rudder --with-workdir=/var/rudder/cfengine-community --enable-static=yes --enable-shared=no --with-lmdb=$(CURDIR)/debian/tmp/opt/rudder CFLAGS="$(SECURE_CFLAGS)" LDFLAGS="$(SECURE_LDFLAGS)"
 
 	touch configure-stamp
 
+# Test if compiler supporte hardening flags
+get-flags:
+	$(eval HAVE_PROTECTION:=$(shell \
+	FILE=`mktemp` ;\
+	echo "void main() {}" > "$${FILE}.c" ;\
+	gcc -fPIE -pie -Wl,-zrelro -o "$${FILE}" "$${FILE}.c" 2>/dev/null && echo "OK";\
+	rm -f "$${FILE}.o" "$${FILE}" ))
+	echo CFF=$(SECURE_CFLAGS)
+	
+	$(eval SECURE_CFLAGS:=$(if $(HAVE_PROTECTION),-fPIE -pie))
+	$(eval SECURE_LDFLAGS:=$(if $(HAVE_PROTECTION),-z relro))
 
 build: build-stamp
 
