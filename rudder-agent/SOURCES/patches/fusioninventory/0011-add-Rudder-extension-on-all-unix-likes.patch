@@ -16,7 +16,7 @@ new file mode 100644
 index 0000000..35b63b6
 --- /dev/null
 +++ b/lib/FusionInventory/Agent/Task/Inventory/Generic/Rudder.pm
-@@ -0,0 +1,107 @@
+@@ -0,0 +1,110 @@
 +package FusionInventory::Agent::Task::Inventory::Generic::Rudder;
 +
 +use strict;
@@ -127,5 +127,4 @@ index 0000000..35b63b6
 +}
 +
 +1;
-2.1.4
 
