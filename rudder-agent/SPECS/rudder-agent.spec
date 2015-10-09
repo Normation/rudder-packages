@@ -296,13 +296,16 @@ if [ ! -x ./configure ]; then
 fi
 
 # Test if compiler support hardening flags
+TRY_LDFLAGS="-pie -Wl,-z,relro -Wl,-z,now"
+TRY_CFLAGS="-fPIE -fstack-protector"
+
 FLAG_TEST_FILE=`mktemp`
 echo "void main() {}" > "${FLAG_TEST_FILE}.c"
-gcc -fPIE -pie -Wl,-zrelro -o "${FLAG_TEST_FILE}" "${FLAG_TEST_FILE}.c" 2>/dev/null
+gcc ${TRY_CFLAGS} ${TRY_LDFLAGS} -o "${FLAG_TEST_FILE}" "${FLAG_TEST_FILE}.c" 2>/dev/null
 if [ $? -eq 0 ]
 then
-  SECURE_CFLAGS="-fPIE -pie"
-  SECURE_LDFLAGS="-z relro"
+  SECURE_CFLAGS="${TRY_CFLAGS}"
+  SECURE_LDFLAGS="${TRY_LDFLAGS}"
 fi
 rm -f "${FLAG_TEST_FILE}" "${FLAG_TEST_FILE}.c"
 
