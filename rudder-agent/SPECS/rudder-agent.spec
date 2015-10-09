@@ -296,17 +296,17 @@ if [ ! -x ./configure ]; then
 fi
 
 # Test if compiler support hardening flags
-FILE=`mktemp`
-echo "void main() {}" > "$${FILE}.c"
-gcc -fPIE -pie -Wl,-zrelro -o "$${FILE}" "$${FILE}.c" 2>/dev/null
+FLAG_TEST_FILE=`mktemp`
+echo "void main() {}" > "${FLAG_TEST_FILE}.c"
+gcc -fPIE -pie -Wl,-zrelro -o "${FLAG_TEST_FILE}" "${FLAG_TEST_FILE}.c" 2>/dev/null
 if [ $? -eq 0 ]
 then
   SECURE_CFLAGS="-fPIE -pie"
   SECURE_LDFLAGS="-z relro"
 fi
-rm -f "$${FILE}.o" "$${FILE}" ))
+rm -f "${FLAG_TEST_FILE}" "${FLAG_TEST_FILE}.c"
 
-./configure --build=%_target --prefix=%{rudderdir} --with-workdir=%{ruddervardir}/cfengine-community --enable-static=yes --enable-shared=no %{openssl_arg} %{lmdb_arg} CFLAGS="${SECURE_CFLAGS}" LDFLAGS="${SECURE_LDFLAGS}"
+./configure --build=%_target --prefix=%{rudderdir} --with-workdir=%{ruddervardir}/cfengine-community --enable-static=yes --enable-shared=no %{openssl_arg} %{lmdb_arg} CFLAGS="${CFLAGS} ${SECURE_CFLAGS}" LDFLAGS="${SECURE_LDFLAGS}"
 
 make %{?_smp_mflags}
 
