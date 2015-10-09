@@ -10,6 +10,9 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
+TRY_LDFLAGS=-pie -Wl,-z,relro -Wl,-z,now
+TRY_CFLAGS=-fPIE -fstack-protector
+
 configure: configure-stamp
 configure-stamp: get-flags
 	dh_testdir
@@ -31,17 +34,16 @@ configure-stamp: get-flags
 
 # Test if compiler supporte hardening flags
 get-flags:
-
 	$(eval BUILD_CFLAGS:=$(shell [ -x /usr/bin/dpkg-buildflags ] && /usr/bin/dpkg-buildflags --get CFLAGS ))
 	$(eval BUILD_LDFLAGS:=$(shell [ -x /usr/bin/dpkg-buildflags ] && /usr/bin/dpkg-buildflags --get LDFLAGS ))
 	$(eval HAVE_PROTECTION:=$(shell \
 	FLAG_TEST_FILE=`mktemp` ;\
 	echo "void main() {}" > "$${FLAG_TEST_FILE}.c" ;\
-	gcc -fPIE -pie -Wl,-zrelro -o "$${FLAG_TEST_FILE}" "$${FLAG_TEST_FILE}.c" 2>/dev/null && echo "OK";\
+	gcc $(TRY_CFLAGS) $(TRY_LDFLAGS) -o "$${FLAG_TEST_FILE}" "$${FLAG_TEST_FILE}.c" 2>/dev/null && echo "OK";\
 	rm -f "$${FLAG_TEST_FILE}" "$${FLAG_TEST_FILE}".c ))
 	
-	$(eval SECURE_CFLAGS:=$(if $(HAVE_PROTECTION),-fPIE -pie))
-	$(eval SECURE_LDFLAGS:=$(if $(HAVE_PROTECTION),-z relro))
+	$(eval SECURE_CFLAGS:=$(if $(HAVE_PROTECTION),$(TRY_CFLAGS)))
+	$(eval SECURE_LDFLAGS:=$(if $(HAVE_PROTECTION),$(TRY_LDFLAGS)))
 
 build: build-stamp
 
