@@ -26,8 +26,8 @@
  	# If there is no configure, bootstrap with autogen.sh first
  	cd SOURCES/cfengine-source && [ -x ./configure ] || NO_CONFIGURE=1 ./autogen.sh
  	# Prepare CFEngine 3.6.x build with defined path of LMDB
--	cd SOURCES/cfengine-source && ./configure --prefix=/opt/rudder --with-workdir=/var/rudder/cfengine-community --enable-static=yes --enable-shared=no --with-lmdb=$(CURDIR)/debian/tmp/opt/rudder
-+	cd SOURCES/cfengine-source && ./configure --prefix=/opt/rudder --with-workdir=/var/rudder/cfengine-community --enable-static=yes --enable-shared=no --with-openssl=$(CURDIR)/debian/tmp/opt/rudder --with-lmdb=$(CURDIR)/debian/tmp/opt/rudder
+-	cd SOURCES/cfengine-source && ./configure --prefix=/opt/rudder --with-workdir=/var/rudder/cfengine-community --enable-static=yes --enable-shared=no --with-lmdb=$(CURDIR)/debian/tmp/opt/rudder CFLAGS="$(BUILD_CFLAGS) $(SECURE_CFLAGS)" LDFLAGS="$(BUILD_LDFLAGS) $(SECURE_LDFLAGS)"
++	cd SOURCES/cfengine-source && ./configure --prefix=/opt/rudder --with-workdir=/var/rudder/cfengine-community --enable-static=yes --enable-shared=no --with-openssl=$(CURDIR)/debian/tmp/opt/rudder --with-lmdb=$(CURDIR)/debian/tmp/opt/rudder CFLAGS="$(BUILD_CFLAGS) $(SECURE_CFLAGS)" LDFLAGS="$(BUILD_LDFLAGS) $(SECURE_LDFLAGS)"
  
  	touch configure-stamp
  
