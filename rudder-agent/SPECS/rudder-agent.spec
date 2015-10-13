@@ -311,8 +311,7 @@ TRY_CFLAGS="-fPIE -fstack-protector"
 
 FLAG_TEST_FILE=`mktemp /tmp/hardening.XXXXXX`
 echo "void main() {}" > "${FLAG_TEST_FILE}.c"
-gcc ${TRY_CFLAGS} ${TRY_LDFLAGS} -o "${FLAG_TEST_FILE}" "${FLAG_TEST_FILE}.c" 2>/dev/null
-if [ $? -eq 0 ]
+if gcc ${TRY_CFLAGS} ${TRY_LDFLAGS} -o "${FLAG_TEST_FILE}" "${FLAG_TEST_FILE}.c" >/dev/null 2>&1
 then
   SECURE_CFLAGS="${TRY_CFLAGS}"
   SECURE_LDFLAGS="${TRY_LDFLAGS}"
