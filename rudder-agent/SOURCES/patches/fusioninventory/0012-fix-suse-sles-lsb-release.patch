@@ -1,0 +1,11 @@
+--- a/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/LSB.pm	2015-10-13 16:08:20.000000000 +0200
++++ a/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/LSB.pm	2015-10-13 16:08:34.000000000 +0200
+@@ -6,7 +6,7 @@
+ use FusionInventory::Agent::Tools;
+ 
+ sub isEnabled {
+-    return !canRead('/etc/oracle-release') && canRun('lsb_release');
++    return !canRead('/etc/SuSE-release') && !canRead('/etc/oracle-release') && canRun('lsb_release');
+ }
+ 
+ sub doInventory {
