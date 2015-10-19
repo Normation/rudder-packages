@@ -184,8 +184,10 @@ localclean:
 	rm -rf ./files
 	rm -rf ./rudder-sources
 	rm -f ./rudder-agent.cron ../debian/rudder-agent.cron.d
+	rm -rf ./$(TMP_DIR)
 
 veryclean:
 	rm -f ./rudder-sources.tar.bz2
+	rm -rf ./$(TMP_DIR)
 
 .PHONY: localclean localdepends veryclean
