@@ -57,6 +57,7 @@ trap anomaly_handler ERR INT TERM
 # - 3.0.0        : Replace varchar by text in the database
 # - 3.0.2        : Check for the PostgreSQL version (>= 8.4)
 # - 3.1.0        : Add LDAP entry for 'rudder_syslog_protocol' property, and set 'tcp' as value, different from default value (udp) on a fresh 3.1
+# - 3.2.0        : Add the properties to configuration authentication provider and master admin account
 #####################################################################################
 
 # Some paths
@@ -397,6 +398,59 @@ rudder.cfengine.reload.server.command=/opt/rudder/bin/rudder-reload-cf-serverd"
   check_and_add_config_property rudder.jdbc.maxPoolSize "
 # Size of the PostgreSQL connection pool
 rudder.jdbc.maxPoolSize=25"
+
+
+  # - 3.2.0 : Add properties to configure authentication plugins and master admin
+  # note: we can't use rudder.auth.admin.login (or .password) because it's commented
+  # out by default, so it would defeat the regex. 
+  # We also need to comment out rudder.auth.ldap.enable and use its value to decide 
+  # if we should use "ldap" of "file" for rudder.auth.type 
+
+  STEP="Add properties to configure authentication plugins and master admin"
+  if grep -iEq "^rudder.auth.ldap.enable\s*=\s*false" /opt/rudder/etc/rudder-web.properties; then
+    AUTH_PROVIDER="file"
+  else
+    AUTH_PROVIDER="ldap"
+  fi
+  # comment the line for rudder.auth.ldap.enable if not already commented
+  sed -i 's%^\(rudder\.auth\.ldap\.enable.*\)%#\1%' /opt/rudder/etc/rudder-web.properties
+  check_and_add_config_property rudder.auth.type "
+
+###########################
+# Rudder Authentication    #############################################################
+###########################
+
+#
+# Rudder has a root admin account, with full rights on the
+# application, and whose authentication is independant from 
+# the authentication provider chosen (file, LDAP, etc). 
+# By default, the accound is disabled (either by letting the
+# the login or the password empty, or by commenting it). 
+#
+
+#rudder.auth.admin.login=rootadmin
+#rudder.auth.admin.password=secret
+
+#
+# By default, both authentication and authorization are handle in the rudder-users.xml
+# file. But you may want to rely on your existing entreprise Active Directory or LDAP
+# to take care of the authentication part. 
+# To choose the scheme to use, either use 'file' or 'ldap' for the rudder.auth.type
+# parameter. 
+# You can also use a comma separated list of authentication provider to use, 
+# like 'ldap, file' in which case each one will be tested in turned for authentication. 
+# 
+# When set to 'ldap', passwords in rudder-users.xml are ignored and the 
+# authentication is delegated to the LDAP server configured below. 
+# By convention, when LDAP authentication is enable, 'password' field in
+# rudder-users.xml are set to 'LDAP' 
+#
+# Comma separated list of authentication providers. Default provider are
+# 'file', 'ldap'. 
+#
+rudder.auth.provider=${AUTH_PROVIDER}
+  
+"
 }
 
 ################################################################################
