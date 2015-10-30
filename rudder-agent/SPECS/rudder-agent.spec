@@ -332,7 +332,7 @@ service_start_cmd="/usr/bin/startsrc -s rudder-agent"
 %else
 service_stop_cmd="service rudder-agent stop || service rudder-agent forcestop"
 service_start_cmd="service rudder-agent start"
-%fi
+%endif
 
 /opt/rudder/share/package-scripts/rudder-agent-postinst "${CFRUDDER_FIRST_INSTALL}" "${service_stop_cmd}" "${service_start_cmd}"
 
