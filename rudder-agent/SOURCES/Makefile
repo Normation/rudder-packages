@@ -300,7 +300,6 @@ build-cfengine: $(BUILD_DEPS) cfengine-source get-flags
 	cd cfengine-source && [ -x ./configure ] || NO_CONFIGURE=1 ./autogen.sh
 	# remove temporary rpath added by configure to build options
 	cd cfengine-source && sed 's/[A-Z]*_LDFLAGS="$[A-Z]*_LDFLAGS -R$with_[a-z]*\/lib"/true/' configure > configure.new && mv configure.new configure && chmod +x configure
-	cd cfengine-source && ./configure --prefix=$(RUDDER_DIR) --with-workdir=/var/rudder/cfengine-community --enable-static=yes --enable-shared=no --without-postgresql $(LMDB_ARG) $(OPENSSL_ARG) CFLAGS="$(BUILD_CFLAGS) $(SECURE_CFLAGS)" LDFLAGS="-Wl,-R/opt/rudder/lib $(BUILD_LDFLAGS) $(SECURE_LDFLAGS)"
 	cd cfengine-source && $(MAKE)
 	touch $@
 
