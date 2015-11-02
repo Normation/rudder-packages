@@ -24,6 +24,7 @@ TMP_DIR := $(shell mktemp -dq)
 WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget -q
 
 localdepends: ./jetty7
+	rm -rf $(TMP_DIR)
 
 ./jetty7: /usr/bin/wget
 	# Download and uncompress the Jetty distribution
@@ -79,8 +80,10 @@ localclean:
 	rm -rf ./jetty7
 	rm -f ../debian/rudder-jetty.init
 	rm -f ../debian/rudder-jetty.default
+	rm -rf $(TMP_DIR)
 
 veryclean:
 	rm -f ./rudder-sources.tar.bz2
+	rm -rf $(TMP_DIR)
 
 .PHONY: localclean localdepends veryclean
