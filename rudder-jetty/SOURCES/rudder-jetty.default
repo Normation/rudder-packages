@@ -6,6 +6,9 @@
 #                                                            #
 ######################### WARNING ############################
 
+# Helper function to compare version numbers
+ver() { printf "%03d%03d" `echo "$1" | tr '.' ' '`; }
+
 # Source variables from /opt/rudder/etc/rudder-jetty.conf
 if [ -f /opt/rudder/etc/rudder-jetty.conf ]
 then
@@ -13,12 +16,15 @@ then
 fi
 
 # Check wich JVM is installed
-# We support Sun Java 6 or OpenJDK 7, privilege later versions (sort -r)
-if [ -d /usr/lib/jvm ]; then JAVA_HOME=$(find /usr/lib/jvm -maxdepth 1 -type d -name java-7-openjdk-i386 -or -name java-7-openjdk-amd64 -or -name java-6-sun | sort -r | head -n1); fi
+# We support Sun Java 6 or OpenJDK 7 or 8, privilege later versions (sort -r)
+if [ -d /usr/lib/jvm ]; then JAVA_HOME=$(find /usr/lib/jvm -maxdepth 1 -type d -name 'java-[78]-openjdk-*' -or -name java-6-sun | sort -r | head -n1); fi
 if [ -d /usr/java ]; then JAVA_HOME=/usr/java/latest; fi
 
 # Java VM location
 if [ -f ${JAVA_HOME}/bin/java ]; then JAVA=${JAVA_HOME}/bin/java; else JAVA=/usr/bin/java; fi
+
+# Check JVM major version
+JAVA_MAJOR_VERSION=`${JAVA} -version 2>&1 | grep "^java version" | sed 's/java version "\([0-9]\+\.[0-9]\)\+\..*"/\1/'`
 
 # Memory settings
 JAVA_XMX=${JAVA_XMX:=1024}
@@ -28,7 +34,6 @@ JAVA_MAXPERMSIZE=${JAVA_MAXPERMSIZE:=256}
 JAVA_OPTIONS="$JAVA_OPTIONS
 -server
 -Xms${JAVA_XMX}m -Xmx${JAVA_XMX}m
--XX:PermSize=128m -XX:MaxPermSize=${JAVA_MAXPERMSIZE}m
 -XX:+CMSClassUnloadingEnabled
 -XX:+UseConcMarkSweepGC
 -Dfile.encoding=UTF-8
@@ -37,6 +42,11 @@ JAVA_OPTIONS="$JAVA_OPTIONS
 -Dinventoryweb.configFile=/opt/rudder/etc/inventory-web.properties
 -Dlogback.configurationFile=/opt/rudder/etc/logback.xml
 -Drun.mode=production"
+
+# These options were deprecated as of Java 1.8, so only use them if we're on an older version
+if [ `ver ${JAVA_MAJOR_VERSION}` -lt `ver 1.8` ]; then
+  JAVA_OPTIONS="$JAVA_OPTIONS -XX:PermSize=128m -XX:MaxPermSize=${JAVA_MAXPERMSIZE}m"
+fi
 
 # Jetty
 JETTY_HOME="/opt/rudder/jetty7/"
