@@ -452,10 +452,6 @@ ifeq ($(INSTALL),ginstall)
 endif
 	cd fusioninventory-agent && PERL_MM_USE_DEFAULT=1 $(INSTALL_DIR)/bin/perl Makefile.PL --default PREFIX=$(RUDDER_DIR)
 	cd fusioninventory-agent && $(MAKE_COMMAND) install DESTDIR=$(DESTDIR)
-	# bug in fusion installer that doesn't set the right owner to some files
-	chown root $(DESTDIR)/opt/rudder/share/fusioninventory
-	chown root $(DESTDIR)/opt/rudder/share/fusioninventory/html
-	chown root $(DESTDIR)/opt/rudder/etc/fusioninventory
 	cp -r fusioninventory-agent/lib/FusionInventory $(INSTALL_DIR)/lib/perl5/
 
 .PHONY: localclean localdepends veryclean depend build install clean mrproper install-ssl install-lmdb install-cfengine install-perl install-fusion
