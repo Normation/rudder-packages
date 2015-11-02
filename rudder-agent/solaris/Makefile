@@ -33,7 +33,7 @@ build: package
 package: build-rudder
 	# Create prototype file that contains included files lis# Create prototype file that contains included files list
 	cd $(BUILDROOT) && find rudder-agent | grep -v '^rudder-agent$$' | pkgproto | sed 's/ rudder-agent/ /' > Prototype.tmp
-	sed '/none \/\(etc|etc\/cron.d|etc\/default|etc\/init.d|opt|usr|usr\/bin|var|var\/log\) /d' $(BUILDROOT)/Prototype.tmp > $(BUILDROOT)/Prototype.tmp2
+	sed 'i/none \/\(etc|etc\/cron.d|etc\/default|etc\/init.d|opt|usr|usr\/bin|var|var\/log\) /d' $(BUILDROOT)/Prototype.tmp > $(BUILDROOT)/Prototype.tmp2
 	cat $(CURDIR)/Prototype.base $(BUILDROOT)/Prototype.tmp2 > $(BUILDROOT)/Prototype
 	rm $(BUILDROOT)/Prototype.tmp
 
