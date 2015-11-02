@@ -396,9 +396,9 @@ install-fusion: $(FUSION_DEPS) fusioninventory-agent
 #	# Original URL: http://www.cpan.org/modules/by-module/HTML/HTML-Parser-3.71.tar.gz
 #	$(MODULE_INSTALL) http://www.normation.com/tarball/cpan/HTML-Parser-3.71.tar.gz
 #	$(MODULE_TEST) -MHTML::Parser
-	# Original URL: http://www.cpan.org/modules/by-module/LWP/libwww-perl-6.13.tar.gz
-	$(MODULE_INSTALL) http://www.normation.com/tarball/cpan/libwww-perl-6.13.tar.gz
-	$(MODULE_TEST) -MLWP
+#	# Original URL: http://www.cpan.org/modules/by-module/LWP/libwww-perl-6.13.tar.gz
+#	$(MODULE_INSTALL) http://www.normation.com/tarball/cpan/libwww-perl-6.13.tar.gz
+#	$(MODULE_TEST) -MLWP
 #	# Original URL: http://www.cpan.org/modules/by-module/Compress/Compress-Raw-Bzip2-2.068.tar.gz
 #	$(MODULE_INSTALL) http://www.normation.com/tarball/cpan/Compress-Raw-Bzip2-2.068.tar.gz
 #	$(MODULE_TEST) -MCompress::Raw::Bzip2
