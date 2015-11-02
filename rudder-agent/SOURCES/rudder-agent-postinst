@@ -87,7 +87,7 @@ then
 else
   # UUID is valid only if it has been generetaed by uuidgen or if it is set to 'root' for policy server
   REGEX=`x="[a-f0-9][a-f0-9][a-f0-9][a-f0-9]" && echo "$x$x-$x-$x-$x-$x$x$x"`
-  CHECK_UUID=`cat /opt/rudder/etc/uuid.hive | egrep "^$REGEX|^root" | wc -l`
+  CHECK_UUID=`cat /opt/rudder/etc/uuid.hive | egrep -i "^$REGEX|^root" | wc -l`
   # If the UUID is not valid, regenerate it
   if [ ${CHECK_UUID} -ne 1 ]
   then

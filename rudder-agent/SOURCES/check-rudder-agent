@@ -82,7 +82,7 @@ check_and_fix_cfengine_processes() {
   # A standard kill won't kill them, so the -9 is necessary to make sure they are stopped
   # They will be restarted by the next check, if the disable file is not set
   # List the cf-execd processes running (without the path, they can be run manually)
-  CF_EXECD_RUNNING=`${PS_COMMAND} | grep -E "cf-execd" | sed -e '/grep/d' | cat`
+  CF_EXECD_RUNNING=`${PS_COMMAND} | grep "cf-execd" | sed -e '/grep/d' | cat`
   NB_CF_EXECD_RUNNING=`echo "${CF_EXECD_RUNNING}" | sed -e '/^$/d' | wc -l`
   if [ ${NB_CF_EXECD_RUNNING} -gt 1 ]; then
     echo_n "WARNING: Too many instance of CFEngine cf-execd processes running. Killing them..."
@@ -92,7 +92,7 @@ check_and_fix_cfengine_processes() {
 
 
   # List the CFEngine processes running
-  CF_PROCESS_RUNNING=`${PS_COMMAND} | grep "${CFE_BIN_DIR}/(cf-execd|cf-agent)" | sed -e '/grep/d' | cat`
+  CF_PROCESS_RUNNING=`${PS_COMMAND} | egrep "${CFE_BIN_DIR}/(cf-execd|cf-agent)" | sed -e '/grep/d' | cat`
   # Count the number of processes running, filtering empty lines
   NB_CF_PROCESS_RUNNING=`echo "${CF_PROCESS_RUNNING}" | sed -e '/^$/d' | wc -l`
 
@@ -222,7 +222,8 @@ fi
 
 
 # Ensure script is executed by root
-#if [ ! `whoami` = 'root' ];then echo "You must be root"; exit; fi
+MYUID=`id | cut -d\( -f2 | cut -d\) -f1`
+if [ "${MYUID}" != 'root' ];then echo "You must be root"; exit; fi
 
 # Launch each check with a certain order
 check_and_fix_rudder_uuid

@@ -1,5 +1,4 @@
 #!/bin/sh
-set -x
 #
 # This script runs FusionInventory, using either a Rudder provided instance
 # or a system provided one if the first one is not usable.
