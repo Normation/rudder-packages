@@ -28,17 +28,20 @@ BUILDROOT = $(ROOTPATH)/tmp
 PKGROOT = $(BUILDROOT)/rudder-agent
 PACKAGE = RudderAgent.$(RUDDER_VERSION_TO_PACKAGE).$(ARCH).pkg.tar.gz
 
-build: package
+build:
+	rm -rf $(BUILDROOT)
+	mkdir $(BUILDROOT)
 
-package: build-rudder
+	# Build rudder agent and install to a temporary destination
+	cd $(SOURCES) && $(MAKE_COMMAND) install DESTDIR=$(PKGROOT) RUDDER_VERSION_TO_PACKAGE=$(RUDDER_VERSION_TO_PACKAGE)
+
 	# Create prototype file that contains included files lis# Create prototype file that contains included files list
 	cd $(BUILDROOT) && find rudder-agent | grep -v '^rudder-agent$$' | pkgproto | sed 's/ rudder-agent/ /' > Prototype.tmp
-	sed 'i/none \/\(etc|etc\/cron.d|etc\/default|etc\/init.d|opt|usr|usr\/bin|var|var\/log\) /d' $(BUILDROOT)/Prototype.tmp > $(BUILDROOT)/Prototype.tmp2
-	cat $(CURDIR)/Prototype.base $(BUILDROOT)/Prototype.tmp2 > $(BUILDROOT)/Prototype
+	cat $(CURDIR)/Prototype.base $(BUILDROOT)/Prototype.tmp > $(BUILDROOT)/Prototype
 	rm $(BUILDROOT)/Prototype.tmp
 
 	# Create package information file
-	pkgdata=`cat $(CURDIR)/pkginfo` date=`date '+%m%d%Y'` arch=$(ARCH) version=$(RUDDER_VERSION_TO_PACKAGE) && eval "echo \"$$pkgdata\"" > $(BUILDROOT)/pkginfo 
+	pkgdata=`cat $(CURDIR)/pkginfo` date=`date '+%m%d%Y'` arch=$(ARCH) version=$(RUDDER_VERSION_TO_PACKAGE) eval 'echo "$$pkgdata"' > $(BUILDROOT)/pkginfo 
 
 	# Retreive postinst et al scripts
 	cp $(CURDIR)/postinstall $(BUILDROOT)/
@@ -48,19 +51,9 @@ package: build-rudder
 	# Create the package content description file
 	pkgmk -o -r $(PKGROOT) -d $(BUILDROOT) -f $(BUILDROOT)/Prototype
 
-	# create the final package file as a tgz
+	# create the final package file
 	# avoid tar warning (bug in the build system ?)
 	touch $(BUILDROOT)/RudderAgent/root/opt/rudder/lib/perl5/Test/Deep.pm
 	cd $(BUILDROOT) && tar -cf - RudderAgent | gzip -9 -c > $(PACKAGE)
 	mv $(BUILDROOT)/$(PACKAGE) $(ROOTPATH)/
 
-	# create the final package file as a pkg
-	pkgtrans -s $(BUILDROOT) $(ROOTPATH)/RudderAgent.pkg RudderAgent
-
-
-build-rudder:
-	rm -rf $(BUILDROOT)
-	mkdir $(BUILDROOT)
-
-	# Build rudder agent and install to a temporary destination
-	cd $(SOURCES) && $(MAKE) install DESTDIR=$(PKGROOT) RUDDER_VERSION_TO_PACKAGE=$(RUDDER_VERSION_TO_PACKAGE)
