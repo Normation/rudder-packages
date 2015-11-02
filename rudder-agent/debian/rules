@@ -10,8 +10,11 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
+TRY_LDFLAGS=-pie -Wl,-z,relro -Wl,-z,now
+TRY_CFLAGS=-fPIE -fstack-protector
+
 configure: configure-stamp
-configure-stamp:
+configure-stamp: get-flags
 	dh_testdir
 	# dh_prep has been moved from 'install' target since we need to build LMDB first
 	dh_prep
@@ -22,12 +25,24 @@ configure-stamp:
 	for i in bin lib include man/man1; do mkdir -p $(CURDIR)/debian/tmp/opt/rudder/$$i; done
 	cd SOURCES/lmdb-source/libraries/liblmdb && make
 	cd SOURCES/lmdb-source/libraries/liblmdb && make install prefix=/opt/rudder DESTDIR=$(CURDIR)/debian/tmp
-	# If there is no configure, bootstrap with autogen.sh first
-	cd SOURCES/cfengine-source && [ -x ./configure ] || NO_CONFIGURE=1 ./autogen.sh
 	# Prepare CFEngine 3.6.x build with defined path of LMDB
-	cd SOURCES/cfengine-source && ./configure --prefix=/opt/rudder --with-workdir=/var/rudder/cfengine-community --enable-static=yes --enable-shared=no --with-lmdb=$(CURDIR)/debian/tmp/opt/rudder
+	cd SOURCES/cfengine-source && ./configure --prefix=/opt/rudder --with-workdir=/var/rudder/cfengine-community --enable-static=yes --enable-shared=no --with-lmdb=$(CURDIR)/debian/tmp/opt/rudder CFLAGS="$(BUILD_CFLAGS) $(SECURE_CFLAGS)" LDFLAGS="$(BUILD_LDFLAGS) $(SECURE_LDFLAGS)"
 
 	touch configure-stamp
+
+
+# Test if compiler supporte hardening flags
+get-flags:
+	$(eval BUILD_CFLAGS:=$(shell [ -x /usr/bin/dpkg-buildflags ] && /usr/bin/dpkg-buildflags --get CFLAGS ))
+	$(eval BUILD_LDFLAGS:=$(shell [ -x /usr/bin/dpkg-buildflags ] && /usr/bin/dpkg-buildflags --get LDFLAGS ))
+	$(eval HAVE_PROTECTION:=$(shell \
+	FLAG_TEST_FILE=`mktemp /tmp/hardening.XXXXXX` ;\
+	echo "void main() {}" > "$${FLAG_TEST_FILE}.c" ;\
+	gcc $(TRY_CFLAGS) $(TRY_LDFLAGS) -o "$${FLAG_TEST_FILE}" "$${FLAG_TEST_FILE}.c" 2>/dev/null && echo "OK";\
+	rm -f "$${FLAG_TEST_FILE}" "$${FLAG_TEST_FILE}".c ))
+	
+	$(eval SECURE_CFLAGS:=$(if $(HAVE_PROTECTION),$(TRY_CFLAGS)))
+	$(eval SECURE_LDFLAGS:=$(if $(HAVE_PROTECTION),$(TRY_LDFLAGS)))
 
 build: build-stamp
 
@@ -83,7 +98,7 @@ binary-arch: install
 #	dh_installlogrotate
 #	dh_installmime
 #	dh_python
-        # Init script and configuration files
+# Init script and configuration files
 	cp -f $(CURDIR)/SOURCES/rudder-agent.default $(CURDIR)/BUILD/rudder-agent
 	dh_install --SOURCEDIR=$(CURDIR)/BUILD/ rudder-agent /etc/default/
 	cp -f $(CURDIR)/SOURCES/rudder-agent.init $(CURDIR)/BUILD/rudder-agent

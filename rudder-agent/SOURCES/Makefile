@@ -44,9 +44,6 @@ endif
 	# Apply patches
 	for PATCHNAME in patches/cfengine/*.patch; do echo "Applying $$PATCHNAME..."; $(PATCH) -d ./cfengine-source -p1 < $$PATCHNAME; echo ""; done
 
-	# Bootstrap the package using autogen before compilation
-	cd cfengine-source && NO_CONFIGURE=1 ./autogen.sh
-
 ./openssl-source: /usr/bin/wget
 ifeq ($(shell ../../build-caching get --force-config ./openssl-source/ name=openssl-src version=$(OPENSSL_RELEASE) >/dev/null 2>&1 || echo KO), KO)
 	# Original URL: https://www.openssl.org/source/openssl-$(OPENSSL_RELEASE).tar.gz
@@ -187,8 +184,10 @@ localclean:
 	rm -rf ./files
 	rm -rf ./rudder-sources
 	rm -f ./rudder-agent.cron ../debian/rudder-agent.cron.d
+	rm -rf ./$(TMP_DIR)
 
 veryclean:
 	rm -f ./rudder-sources.tar.bz2
+	rm -rf ./$(TMP_DIR)
 
 .PHONY: localclean localdepends veryclean
