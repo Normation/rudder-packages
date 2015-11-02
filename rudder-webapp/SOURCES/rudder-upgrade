@@ -414,7 +414,7 @@ rudder.jdbc.maxPoolSize=25"
   fi
   # comment the line for rudder.auth.ldap.enable if not already commented
   sed -i 's%^\(rudder\.auth\.ldap\.enable.*\)%#\1%' /opt/rudder/etc/rudder-web.properties
-  check_and_add_config_property rudder.auth.type "
+  check_and_add_config_property rudder.auth.provider "
 
 ###########################
 # Rudder Authentication    #############################################################
