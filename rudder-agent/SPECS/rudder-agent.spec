@@ -300,12 +300,20 @@ cd %{_sourcedir}/cfengine-source
 %define lmdb_arg ""
 %endif
 
-# If there is no configure, bootstrap with autogen.sh first
-if [ ! -x ./configure ]; then
-  NO_CONFIGURE=1 ./autogen.sh
-fi
+# Test if compiler support hardening flags
+TRY_LDFLAGS="-pie -Wl,-z,relro -Wl,-z,now"
+TRY_CFLAGS="-fPIE -fstack-protector"
 
-./configure --build=%_target --prefix=%{rudderdir} --with-workdir=%{ruddervardir}/cfengine-community --enable-static=yes --enable-shared=no %{openssl_arg} %{lmdb_arg}
+FLAG_TEST_FILE=`mktemp /tmp/hardening.XXXXXX`
+echo "void main() {}" > "${FLAG_TEST_FILE}.c"
+if gcc ${TRY_CFLAGS} ${TRY_LDFLAGS} -o "${FLAG_TEST_FILE}" "${FLAG_TEST_FILE}.c" >/dev/null 2>&1
+then
+  SECURE_CFLAGS="${TRY_CFLAGS}"
+  SECURE_LDFLAGS="${TRY_LDFLAGS}"
+fi
+rm -f "${FLAG_TEST_FILE}" "${FLAG_TEST_FILE}.c"
+
+./configure --build=%_target --prefix=%{rudderdir} --with-workdir=%{ruddervardir}/cfengine-community --enable-static=yes --enable-shared=no %{openssl_arg} %{lmdb_arg} CFLAGS="${CFLAGS} ${SECURE_CFLAGS}" LDFLAGS="${SECURE_LDFLAGS}"
 
 make %{?_smp_mflags}
 
