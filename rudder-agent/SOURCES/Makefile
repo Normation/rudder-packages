@@ -32,6 +32,9 @@ DESTDIR = $(CURDIR)/target
 INSTALL_DIR = $(DESTDIR)$(RUDDER_DIR)
 TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX)
 
+TRY_LDFLAGS=-pie -Wl,-z,relro -Wl,-z,now
+TRY_CFLAGS=-fPIE -fstack-protector
+
 # Autodetect wget or curl or curl usage and proxy configuration
 PROXY_ENV = $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY))
 WGET = wget -q -O
@@ -167,6 +170,7 @@ localclean:
 	[ -d lmdb-source ] && cd lmdb-source && $(MAKE) clean 2>/dev/null || true
 	[ -d openssl-source ] && cd openssl-source && $(MAKE) clean 2>/dev/null || true
 	[ -d perl-$(PERL_VERSION) ] && cd perl-$(PERL_VERSION) && $(MAKE) distclean 2>/dev/null || true
+	rm -rf ./$(TMP_DIR)
 
 # standard name is mrproper
 mrproper: veryclean
@@ -176,6 +180,7 @@ veryclean:
 	rm -rf rudder-sources
 	rm -rf initial-promises rudder-agent-utilities fusioninventory-agent
 	rm -rf cfengine-source lmdb-source openssl-source perl-$(PERL_VERSION)
+	rm -rf ./$(TMP_DIR)
 
 ##########################################
 # Dependencies separated into components #
@@ -291,14 +296,27 @@ build-lmdb: lmdb-source
 	cd build-lmdb/opt/rudder && mkdir -p bin lib include man/man1
 	cd lmdb-source/libraries/liblmdb && $(MAKE) install prefix=$(RUDDER_DIR) DESTDIR=$(CURDIR)/build-lmdb
 
-build-cfengine: $(BUILD_DEPS) cfengine-source
+build-cfengine: $(BUILD_DEPS) cfengine-source get-flags
 	# If there is no configure, bootstrap with autogen.sh first
 	cd cfengine-source && [ -x ./configure ] || NO_CONFIGURE=1 ./autogen.sh
 	# remove temporary rpath added by configure to build options
 	cd cfengine-source && sed 's/[A-Z]*_LDFLAGS="$[A-Z]*_LDFLAGS -R$with_[a-z]*\/lib"/true/' configure > configure.new && mv configure.new configure && chmod +x configure
-	cd cfengine-source && LDFLAGS="-Wl,-R/opt/rudder/lib" ./configure --prefix=$(RUDDER_DIR) --with-workdir=/var/rudder/cfengine-community --enable-static=yes --enable-shared=no --without-postgresql $(LMDB_ARG) $(OPENSSL_ARG)
+	cd cfengine-source && ./configure --prefix=$(RUDDER_DIR) --with-workdir=/var/rudder/cfengine-community --enable-static=yes --enable-shared=no --without-postgresql $(LMDB_ARG) $(OPENSSL_ARG) CFLAGS="$(BUILD_CFLAGS) $(SECURE_CFLAGS)" LDFLAGS="-Wl,-R/opt/rudder/lib $(BUILD_LDFLAGS) $(SECURE_LDFLAGS)"
 	cd cfengine-source && $(MAKE)
 	touch $@
+
+# Test if compiler supporte hardening flags
+get-flags:
+	$(eval BUILD_CFLAGS:=$(shell [ -x /usr/bin/dpkg-buildflags ] && /usr/bin/dpkg-buildflags --get CFLAGS ))
+	$(eval BUILD_LDFLAGS:=$(shell [ -x /usr/bin/dpkg-buildflags ] && /usr/bin/dpkg-buildflags --get LDFLAGS ))
+	$(eval HAVE_PROTECTION:=$(shell \
+	FLAG_TEST_FILE=`mktemp /tmp/hardening.XXXXXX` ;\
+	echo "void main() {}" > "$${FLAG_TEST_FILE}.c" ;\
+	gcc $(TRY_CFLAGS) $(TRY_LDFLAGS) -o "$${FLAG_TEST_FILE}" "$${FLAG_TEST_FILE}.c" 2>/dev/null && echo "OK";\
+	rm -f "$${FLAG_TEST_FILE}" "$${FLAG_TEST_FILE}".c ))
+	
+	$(eval SECURE_CFLAGS:=$(if $(HAVE_PROTECTION),$(TRY_CFLAGS)))
+	$(eval SECURE_LDFLAGS:=$(if $(HAVE_PROTECTION),$(TRY_LDFLAGS)))
 
 build-perl: perl-$(PERL_VERSION)
 	cd perl-$(PERL_VERSION) && $(MAKE) distclean 2>/dev/null || true # Or this can fail on an already used source
@@ -440,6 +458,5 @@ endif
 	chown root $(DESTDIR)/opt/rudder/share/fusioninventory/html
 	chown root $(DESTDIR)/opt/rudder/etc/fusioninventory
 	cp -r fusioninventory-agent/lib/FusionInventory $(INSTALL_DIR)/lib/perl5/
-
 
 .PHONY: localclean localdepends veryclean depend build install clean mrproper install-ssl install-lmdb install-cfengine install-perl install-fusion

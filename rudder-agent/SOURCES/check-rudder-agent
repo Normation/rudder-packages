@@ -65,7 +65,7 @@ clean_cf_lock_files() {
 check_and_fix_cfengine_processes() {
 
   # Detect the correct ps tool to use
-  ns=$(ps -h -o utsns --pid $$ 2>/dev/null)
+  ns=$(ps --no-header -o utsns --pid $$ 2>/dev/null || true)
   if [ -d "/proc/bc" ] && [ -e "/proc/bc/0" ]; then # we have openvz
     if [ -e /bin/vzps ]; then # we have vzps
       PS_COMMAND="/bin/vzps -E 0"
