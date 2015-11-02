@@ -163,7 +163,13 @@ endif
 # clean 
 clean: localclean
 localclean:
-	rm -rf $(DESTDIR)
+	rm -rf DESTDIR
+	rm -rf initial-promises
+	rm -rf rudder-agent-utilities
+	rm -rf fusioninventory-agent
+	rm -rf rudder-sources
+	rm -rf inputs
+	rm -f rudder-agent.cron
 	rm -rf build-ssl build-lmdb build-cfengine build-perl
 	[ -d cfengine-source ] && cd cfengine-source && $(MAKE) clean 2>/dev/null || true
 	[ -d lmdb-source ] && cd lmdb-source && $(MAKE) clean 2>/dev/null || true
@@ -171,13 +177,11 @@ localclean:
 	[ -d perl-$(PERL_VERSION) ] && cd perl-$(PERL_VERSION) && $(MAKE) distclean 2>/dev/null || true
 	rm -rf ./$(TMP_DIR)
 
+
 # standard name is mrproper
 mrproper: veryclean
 veryclean:
-	rm -f rudder-agent.cron
 	rm -f ./rudder-sources.tar.bz2
-	rm -rf rudder-sources
-	rm -rf initial-promises rudder-agent-utilities fusioninventory-agent
 	rm -rf cfengine-source lmdb-source openssl-source perl-$(PERL_VERSION)
 	rm -rf ./$(TMP_DIR)
 
