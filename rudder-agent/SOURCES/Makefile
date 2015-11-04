@@ -22,8 +22,8 @@
 RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
 CFENGINE_RELEASE = 3.7.1
 FUSION_RELEASE = 2.3.6
-LMDB_RELEASE = 0.9.11
-OPENSSL_RELEASE = 1.0.1i
+LMDB_RELEASE = 0.9.16
+OPENSSL_RELEASE = 1.0.1p
 PERL_VERSION = 5.22.0
 
 # Defauth PATHs
@@ -210,9 +210,15 @@ endif
 lmdb-source:
 ifeq ($(shell ../../build-caching get --force-config ./lmdb-source/ name=lmdb-src version=$(LMDB_RELEASE) >/dev/null 2>&1 || echo KO), KO)
 	# Original URL: http://ftp.fr.debian.org/debian/pool/main/l/lmdb/lmdb_$(LMDB_RELEASE).orig.tar.xz
+<<<<<<< HEAD
 	$(GET) $(TMP_DIR)/lmdb.tgz http://www.normation.com/tarball/lmdb-$(LMDB_RELEASE).tar.gz
 	gunzip < $(TMP_DIR)/lmdb.tgz | $(TAR) xf -
 	mv ./lmdb-$(LMDB_RELEASE) ./lmdb-source
+=======
+	$(WGET) -O $(TMP_DIR)/lmdb.tgz http://www.normation.com/tarball/lmdb/lmdb-$(LMDB_RELEASE).tar.gz
+	tar xzf $(TMP_DIR)/lmdb.tgz -C $(TMP_DIR)
+	mv $(TMP_DIR)/lmdb-$(LMDB_RELEASE) ./lmdb-source
+>>>>>>> branches/rudder/3.2
 	../../build-caching put --force-config ./lmdb-source/ name=lmdb-src version=$(LMDB_RELEASE)
 endif
 
