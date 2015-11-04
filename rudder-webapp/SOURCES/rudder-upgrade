@@ -58,6 +58,7 @@ trap anomaly_handler ERR INT TERM
 # - 3.0.2        : Check for the PostgreSQL version (>= 8.4)
 # - 3.1.0        : Add LDAP entry for 'rudder_syslog_protocol' property, and set 'tcp' as value, different from default value (udp) on a fresh 3.1
 # - 3.2.0        : Add the properties to configuration authentication provider and master admin account
+# - 3.2.0        : Add the properties to configure Rudder roles
 #####################################################################################
 
 # Some paths
@@ -414,7 +415,7 @@ rudder.jdbc.maxPoolSize=25"
   fi
   # comment the line for rudder.auth.ldap.enable if not already commented
   sed -i 's%^\(rudder\.auth\.ldap\.enable.*\)%#\1%' /opt/rudder/etc/rudder-web.properties
-  check_and_add_config_property rudder.auth.type "
+  check_and_add_config_property rudder.auth.provider "
 
 ###########################
 # Rudder Authentication    #############################################################
@@ -451,6 +452,31 @@ rudder.jdbc.maxPoolSize=25"
 rudder.auth.provider=${AUTH_PROVIDER}
   
 "
+
+  # - 3.2.0 : Add properties to define the role of servers
+  STEP="Add properties to define the new roles of servers"
+
+  check_and_add_config_property rudder.server-roles.relay-promises-only "
+#
+# Rudder roles definition
+#
+# Allow to define which hosts have the roles relay-promises-only, cfengine-mission-portal when
+# using a split architecture of Rudder
+# The file containing the roles will be generated in:
+# /var/rudder/configuration-repository/inputs/rudder-server-roles.conf
+#
+# The allowed values, for each parameter are
+# - autodetect (default): the roles are automatically detected based on inventories (based on the presence of files in /opt/rudder/etc/server-roles.d/)
+# - anything else (hostname, ip, or list of hostname or ip, seperated by commas): the
+#   content that will be used inside the role file
+# The hosts with the relay promises role
+rudder.server-roles.relay-promises-only=autodetect
+
+# The hosts with the cfengine mission portal role
+rudder.server-roles.cfengine-mission-portal=autodetect
+
+"
+
 }
 
 ################################################################################
