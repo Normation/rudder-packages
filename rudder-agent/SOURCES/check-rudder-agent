@@ -76,7 +76,8 @@ check_and_fix_cfengine_processes() {
       PS_COMMAND="/opt/rudder/bin/vzps.py -E 0"
     fi
   elif [ -n "${ns}" ]; then # we have namespaces
-    PS_COMMAND="eval ps --no-header -e -O utsns | grep -E '^[[:space:]]*[[:digit:]]*[[:space:]]+${ns}'"
+    # the sed is here to prepend a fake user field that is removed by the -o option (it is never used)
+    PS_COMMAND="eval ps --no-header -e -O utsns | grep -E '^[[:space:]]*[[:digit:]]*[[:space:]]+${ns}' | sed 's/^/user /'"
   else # standard unix
     PS_COMMAND="ps -ef"
   fi
