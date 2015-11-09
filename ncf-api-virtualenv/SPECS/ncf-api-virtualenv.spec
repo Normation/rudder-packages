@@ -212,6 +212,7 @@ rm -rf %{buildroot}
 %files -n ncf-api-virtualenv
 %defattr(-, root, root, 0755)
 %{installdir}/
+/var/lib/%{user_name}/
 %config(noreplace) %{apache_vhost_dir}/ncf-api-virtualenv.conf
 
 #=================================================
