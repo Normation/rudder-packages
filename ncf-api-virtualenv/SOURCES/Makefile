@@ -21,7 +21,6 @@
 RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
 VIRTUALENV_RELEASE = 12.0.7
 
-TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX)
 WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget -q
 
 localdepends: ./rudder-sources ./virtualenv/virtualenv.py ./virtualenv-1.10.1/virtualenv.py
