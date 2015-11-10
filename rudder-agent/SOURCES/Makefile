@@ -39,12 +39,17 @@ TRY_CFLAGS=-fPIE -fstack-protector
 PROXY_ENV = $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY))
 WGET = wget -q -O
 CURL = curl -s -o
+FETCH = fetch -q -o
 ifneq (,$(wildcard /usr/bin/curl))
 GET = $(PROXY_ENV) $(CURL)
 GET_OPT = --curl
 else
+ifneq (,$(wildcard /usr/bin/fetch))
+GET = $(PROXY_ENV) $(FETCH)
+else
 GET = $(PROXY_ENV) $(WGET)
 GET_OPT = --wget
+endif
 endif
 
 # Autodtect presence of gnu tools
@@ -70,7 +75,7 @@ BUILD_DEPS := $(BUILD_DEPS) build-lmdb
 INSTALL_DEPS := $(INSTALL_DEPS) install-lmdb
 LMDB_ARG := --with-lmdb=$(CURDIR)/build-lmdb/opt/rudder
 endif
-# default: puild perl
+# default: build perl
 ifneq (true,$(USE_SYSTEM_PERL))
 BUILD_DEPS := $(BUILD_DEPS) build-perl
 FUSION_DEPS := install-perl
@@ -165,7 +170,7 @@ endif
 clean: localclean
 localclean:
 	rm -rf $(DESTDIR)
-	rm -rf build-ssl build-lmdb build-cfengine build-perl
+	rm -rf build-ssl build-lmdb build-cfengine build-perl fusion-modules
 	[ -d cfengine-source ] && cd cfengine-source && $(MAKE) clean 2>/dev/null || true
 	[ -d lmdb-source ] && cd lmdb-source && $(MAKE) clean 2>/dev/null || true
 	[ -d openssl-source ] && cd openssl-source && $(MAKE) clean 2>/dev/null || true
@@ -210,15 +215,9 @@ endif
 lmdb-source:
 ifeq ($(shell ../../build-caching get --force-config ./lmdb-source/ name=lmdb-src version=$(LMDB_RELEASE) >/dev/null 2>&1 || echo KO), KO)
 	# Original URL: http://ftp.fr.debian.org/debian/pool/main/l/lmdb/lmdb_$(LMDB_RELEASE).orig.tar.xz
-<<<<<<< HEAD
-	$(GET) $(TMP_DIR)/lmdb.tgz http://www.normation.com/tarball/lmdb-$(LMDB_RELEASE).tar.gz
-	gunzip < $(TMP_DIR)/lmdb.tgz | $(TAR) xf -
-	mv ./lmdb-$(LMDB_RELEASE) ./lmdb-source
-=======
 	$(WGET) -O $(TMP_DIR)/lmdb.tgz http://www.normation.com/tarball/lmdb/lmdb-$(LMDB_RELEASE).tar.gz
 	tar xzf $(TMP_DIR)/lmdb.tgz -C $(TMP_DIR)
 	mv $(TMP_DIR)/lmdb-$(LMDB_RELEASE) ./lmdb-source
->>>>>>> branches/rudder/3.2
 	../../build-caching put --force-config ./lmdb-source/ name=lmdb-src version=$(LMDB_RELEASE)
 endif
 
@@ -268,20 +267,19 @@ ifeq ($(shell ../../build-caching get --force-config ./perl-$(PERL_VERSION)/ nam
 	../../build-caching put --force-config ./perl-$(PERL_VERSION)/ name=perl-source versions=$(perl_source)
 endif
 
-cpan-source:
+cpan-source: perl-$(PERL_VERSION)/App-cpanminus
+perl-$(PERL_VERSION)/App-cpanminus:
 	mkdir -p ./perl-$(PERL_VERSION)
 	# Original URL: http://www.cpan.org/modules/by-module/App/App-cpanminus-1.7036.tar.gz
 	$(GET) $(TMP_DIR)/App-cpanminus.tar.gz http://www.normation.com/tarball/cpan/App-cpanminus-1.7036.tar.gz
-	cd perl-$(PERL_VERSION) && gunzip < App-cpanminus.tar.gz | $(TAR) xf -
+	cd perl-$(PERL_VERSION) && gunzip < $(TMP_DIR)/App-cpanminus.tar.gz | $(TAR) xf -
 	mv ./perl-$(PERL_VERSION)/App-cpanminus-1.7036 ./perl-$(PERL_VERSION)/App-cpanminus
 
 rudder-agent.cron: rudder-sources
 	cp ./rudder-sources/rudder-techniques/techniques/system/common/1.0/rudder_agent_community_cron.st ./rudder-agent.cron
 	# Set unexpanded variables of the cron file
-	$(SED) 's@\$${sys.workdir}@/var/rudder/cfengine-community@g' -i rudder-agent.cron
-	$(SED) 's@\$${g.rudder_base}@/opt/rudder@g' -i rudder-agent.cron
-	$(SED) 's@\\&\\&@\&\&@g' -i rudder-agent.cron
-	$(SED) 's@\\&1@\&1@g' -i rudder-agent.cron
+	$(SED) 's@\$${sys.workdir}@/var/rudder/cfengine-community@g' rudder-agent.cron | $(SED) 's@\$${g.rudder_base}@/opt/rudder@g' | $(SED) 's@\\&\\&@\&\&@g' | $(SED) 's@\\&1@\&1@g' > rudder-agent.cron.new
+	mv rudder-agent.cron.new rudder-agent.cron
 
 ####################################
 # Builds separated into components #
@@ -302,11 +300,12 @@ build-lmdb: lmdb-source
 	cd build-lmdb/opt/rudder && mkdir -p bin lib include man/man1
 	cd lmdb-source/libraries/liblmdb && $(MAKE) install prefix=$(RUDDER_DIR) DESTDIR=$(CURDIR)/build-lmdb
 
-build-cfengine: $(BUILD_DEPS) cfengine-source get-flags
+build-cfengine: get-flags $(BUILD_DEPS) cfengine-source build-cfengine-stamp
+build-cfengine-stamp:
 	# If there is no configure, bootstrap with autogen.sh first
 	cd cfengine-source && [ -x ./configure ] || NO_CONFIGURE=1 ./autogen.sh
 	# remove temporary rpath added by configure to build options
-	cd cfengine-source && sed 's/[A-Z]*_LDFLAGS="$[A-Z]*_LDFLAGS -R$with_[a-z]*\/lib"/true/' configure > configure.new && mv configure.new configure && chmod +x configure
+	cd cfengine-source && $(SED) 's/[A-Z]*_LDFLAGS="$[A-Z]*_LDFLAGS -R$with_[a-z]*\/lib"/true/' configure > configure.new && mv configure.new configure && chmod +x configure
 	cd cfengine-source && ./configure --prefix=$(RUDDER_DIR) --with-workdir=/var/rudder/cfengine-community --enable-static=yes --enable-shared=no --without-postgresql $(LMDB_ARG) $(OPENSSL_ARG) CFLAGS="$(BUILD_CFLAGS) $(SECURE_CFLAGS)" LDFLAGS="-Wl,-R/opt/rudder/lib $(BUILD_LDFLAGS) $(SECURE_LDFLAGS)"
 	cd cfengine-source && $(MAKE)
 	touch $@
@@ -358,9 +357,8 @@ CPANM:=$(CURDIR)/perl-$(PERL_VERSION)/App-cpanminus/bin/cpanm $(GET_OPT)
 MODULE_INSTALL:=MAKEFLAGS= $(PERL) $(CPANM) -l $(INSTALL_DIR) --skip-installed
 MODULE_TEST:=$(PERL) -I $(INSTALL_DIR)/lib/perl5 -e1
 
-install-fusion: $(FUSION_DEPS) fusioninventory-agent
+fusion-modules: $(FUSION_DEPS)
 	mkdir -p $(INSTALL_DIR)/lib/perl5
-
 # Fusion dependencies :
 # * Text::Template -> server only
 # * LWP
@@ -448,16 +446,18 @@ install-fusion: $(FUSION_DEPS) fusioninventory-agent
 	# Original URL: http://www.cpan.org/modules/by-module/File/File-Which-1.18.tar.gz
 	$(MODULE_INSTALL) http://www.normation.com/tarball/cpan/File-Which-1.18.tar.gz
 	$(MODULE_TEST) -MFile::Which
+	touch $@
 
+install-fusion: fusioninventory-agent fusion-modules
 # Fusion installation
 	mkdir -p $(INSTALL_DIR)/share/fusion-utils
 	cp -r fusioninventory-agent/share/* $(INSTALL_DIR)/share/fusion-utils/
 ifeq ($(INSTALL),ginstall)
 	# fusion doesn't know how to make install without gnu tools in the path
-	sed 's/\([^g]\)install -m/\1ginstall -m/' fusioninventory-agent/Makefile.PL > fusioninventory-agent/Makefile.PL.new
+	$(SED) 's/\([^g]\)install -m/\1ginstall -m/' fusioninventory-agent/Makefile.PL > fusioninventory-agent/Makefile.PL.new
 	mv fusioninventory-agent/Makefile.PL.new fusioninventory-agent/Makefile.PL
 endif
-	cd fusioninventory-agent && PERL_MM_USE_DEFAULT=1 $(INSTALL_DIR)/bin/perl Makefile.PL --default PREFIX=$(RUDDER_DIR)
+	cd fusioninventory-agent && PERL_MM_USE_DEFAULT=1 $(PERL) Makefile.PL --default PREFIX=$(RUDDER_DIR)
 	cd fusioninventory-agent && $(MAKE) install DESTDIR=$(DESTDIR)
 	# bug in fusion installer that doesn't set the right owner to some files
 	chown root $(DESTDIR)/opt/rudder/share/fusioninventory
@@ -465,4 +465,4 @@ endif
 	chown root $(DESTDIR)/opt/rudder/etc/fusioninventory
 	cp -r fusioninventory-agent/lib/FusionInventory $(INSTALL_DIR)/lib/perl5/
 
-.PHONY: localclean localdepends veryclean depend build install clean mrproper install-ssl install-lmdb install-cfengine install-perl install-fusion
+.PHONY: localclean localdepends veryclean depend build install clean mrproper install-ssl install-lmdb install-cfengine install-perl install-fusion get-flags
