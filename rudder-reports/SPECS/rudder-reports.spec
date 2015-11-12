@@ -111,11 +111,16 @@ then
 %endif
   /sbin/service postgresql start
 fi
+
+PG_HBA_FILE=$(su - postgres -c "psql -t -P format=unaligned -c 'show hba_file';")
+
 #HACK: Give rights for login without unix account
-RUDDER_PG_DEFINED=`grep "rudder" /var/lib/pgsql/data/pg_hba.conf | wc -l`
-if [ ${RUDDER_PG_DEFINED} -le 0 ]; then
-	sed -i 1i"host    all             rudder             ::1/128              md5" /var/lib/pgsql/data/pg_hba.conf
-	sed -i 1i"host    all             rudder          127.0.0.1/32            md5" /var/lib/pgsql/data/pg_hba.conf
+if [ -f ${PG_HBA_FILE} ]; then
+  RUDDER_PG_DEFINED=`grep "rudder" ${PG_HBA_FILE} | wc -l`
+  if [ ${RUDDER_PG_DEFINED} -le 0 ]; then
+    sed -i 1i"host    all             rudder             ::1/128              md5" ${PG_HBA_FILE}
+    sed -i 1i"host    all             rudder          127.0.0.1/32            md5" ${PG_HBA_FILE}
+  fi
 fi
 
 #Apply changes in postgresql
