@@ -215,9 +215,9 @@ endif
 lmdb-source:
 ifeq ($(shell ../../build-caching get --force-config ./lmdb-source/ name=lmdb-src version=$(LMDB_RELEASE) >/dev/null 2>&1 || echo KO), KO)
 	# Original URL: http://ftp.fr.debian.org/debian/pool/main/l/lmdb/lmdb_$(LMDB_RELEASE).orig.tar.xz
-	$(WGET) -O $(TMP_DIR)/lmdb.tgz http://www.normation.com/tarball/lmdb/lmdb-$(LMDB_RELEASE).tar.gz
-	tar xzf $(TMP_DIR)/lmdb.tgz -C $(TMP_DIR)
-	mv $(TMP_DIR)/lmdb-$(LMDB_RELEASE) ./lmdb-source
+	$(GET) $(TMP_DIR)/lmdb.tgz http://www.normation.com/tarball/lmdb/lmdb-$(LMDB_RELEASE).tar.gz
+	gunzip < $(TMP_DIR)/lmdb.tgz | $(TAR) xf -
+	mv ./lmdb-$(LMDB_RELEASE) ./lmdb-source
 	../../build-caching put --force-config ./lmdb-source/ name=lmdb-src version=$(LMDB_RELEASE)
 endif
 
