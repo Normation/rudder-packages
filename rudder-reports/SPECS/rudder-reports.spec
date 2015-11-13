@@ -135,12 +135,12 @@ if [ -f ${PG_HBA_FILE} ]; then
   if [ ${RUDDER_PG_DEFINED} -le 0 ]; then
     sed -i 1i"host    all             rudder             ::1/128              md5" ${PG_HBA_FILE}
     sed -i 1i"host    all             rudder          127.0.0.1/32            md5" ${PG_HBA_FILE}
+
+    # Apply changes in PostgreSQL
+    service ${POSTGRESQL_SERVICE_NAME} reload
   fi
 fi
 
-  # Apply changes in PostgreSQL
-  service ${POSTGRESQL_SERVICE_NAME} reload
-fi
 
 %post -n rudder-reports
 #=================================================
