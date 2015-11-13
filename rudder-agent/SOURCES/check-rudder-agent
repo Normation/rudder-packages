@@ -26,29 +26,26 @@
 set -e
 
 # Ensure our PATH includes Rudder's bin dir (for uuidgen on AIX in particular)
-export PATH=/opt/rudder/bin/:$PATH
+PATH=/opt/rudder/bin/:$PATH
+export PATH
 
 # Variables
 BACKUP_DIR=/var/backups/rudder/
-OS_FAMILY=$(uname -s)
+OS_FAMILY=`uname -s`
 
 ## Which database system is used in CFEngine ?
 ## TokyoCabinet (tcdb), Lightning MDB (lmdb)
 CFENGINE_DB_EXT=lmdb
 
 ## If we are on AIX, use alternative commands and options
-if [ "z${OS_FAMILY}" = "zAIX" ]; then
+if [ "${OS_FAMILY}" = "AIX" ] || [ "${OS_FAMILY}" = "SunOS" ]; then
   CP_A="cp -hpPr"
 else
   CP_A="cp -a"
 fi
 
 echo_n() {
-  if [ "z${OS_FAMILY}" = "zAIX" ]; then
-    /usr/bin/echo "$*\c"
-  else
-    echo -n $*
-  fi
+  printf "$@"
 }
 
 # Default variables for CFEngine binaries and disable files
@@ -86,7 +83,7 @@ check_and_fix_cfengine_processes() {
   # A standard kill won't kill them, so the -9 is necessary to make sure they are stopped
   # They will be restarted by the next check, if the disable file is not set
   # List the cf-execd processes running (without the path, they can be run manually)
-  CF_EXECD_RUNNING=`${PS_COMMAND} | grep -E "cf-execd" | sed -e '/grep/d' | cat`
+  CF_EXECD_RUNNING=`${PS_COMMAND} | grep "cf-execd" | sed -e '/grep/d' | cat`
   NB_CF_EXECD_RUNNING=`echo "${CF_EXECD_RUNNING}" | sed -e '/^$/d' | wc -l`
   if [ ${NB_CF_EXECD_RUNNING} -gt 1 ]; then
     echo_n "WARNING: Too many instance of CFEngine cf-execd processes running. Killing them..."
@@ -95,14 +92,14 @@ check_and_fix_cfengine_processes() {
   fi
 
 
-  # List the CFEngine processes running 
-  CF_PROCESS_RUNNING=`${PS_COMMAND} | grep -E "${CFE_BIN_DIR}/(cf-execd|cf-agent)" | sed -e '/grep/d' | cat`
+  # List the CFEngine processes running
+  CF_PROCESS_RUNNING=`${PS_COMMAND} | egrep "${CFE_BIN_DIR}/(cf-execd|cf-agent)" | sed -e '/grep/d' | cat`
   # Count the number of processes running, filtering empty lines
-  NB_CF_PROCESS_RUNNING=`echo "${CF_PROCESS_RUNNING}" | grep -v ^$ | wc -l`
+  NB_CF_PROCESS_RUNNING=`echo "${CF_PROCESS_RUNNING}" | sed -e '/^$/d' | wc -l`
 
   # If no disable file AND no process of CFEngine from Rudder, then relaunch cf-agent with a failsafe first
   # But this is applied only on servers or nodes already initialized (policy server set)
-  if [ ! -e ${CFE_DISABLE_FILE} -a ${NB_CF_PROCESS_RUNNING} -eq 0 -a -f ${CFE_DIR}/policy_server.dat ]; then
+  if [ ! -f ${CFE_DISABLE_FILE} ] && [ ${NB_CF_PROCESS_RUNNING} -eq 0 ] && [ -f ${CFE_DIR}/policy_server.dat ]; then
     echo_n "WARNING: No disable file detected and no CFEngine process neither. Relaunching CFEngine processes..."
     ${CFE_BIN_DIR}/cf-agent -f failsafe.cf >/dev/null 2>&1
     ${CFE_BIN_DIR}/cf-agent >/dev/null 2>&1
@@ -122,7 +119,7 @@ check_and_fix_cfengine_processes() {
   # Check for the age of the last update file
   # if it is older than CHECK_INTERVAL minutes, and the disable file is not defined, we
   # need to kill the lock database
-  if [ ! -e ${LAST_UPDATE_FILE} -o -e ${CFE_DISABLE_FILE} ]; then
+  if [ ! -f ${LAST_UPDATE_FILE} ] || [ -f ${CFE_DISABLE_FILE} ]; then
     # Either the file ${LAST_UPDATE_FILE} is not yet present, and this node is
     # probably not accepted yet, either the file ${CFE_DISABLE_FILE} is present, so
     # the agent won't update the ${LAST_UPDATE_FILE}.
@@ -151,7 +148,7 @@ check_and_fix_cfengine_processes() {
 # Check the size of the cf_lock file
 check_and_fix_cf_lock() {
   MAX_CF_LOCK_SIZE=10485760
-  if [ -e "${CFE_DIR}/state/cf_lock.${CFENGINE_DB_EXT}" ]; then
+  if [ -f "${CFE_DIR}/state/cf_lock.${CFENGINE_DB_EXT}" ]; then
 
     if [ "z${OS_FAMILY}" = "zAIX" ]; then
       CF_LOCK_SIZE=`istat "${CFE_DIR}/state/cf_lock.${CFENGINE_DB_EXT}" | grep Length | sed "s%^.*Length \([0-9]*\) bytes.*$%\1%"`
@@ -173,9 +170,9 @@ check_and_fix_rudder_uuid() {
 LATEST_BACKUPED_UUID=""
 
 # Generate a UUID if we don't have one yet
-if [ ! -e ${UUID_FILE} ]; then
+if [ ! -f ${UUID_FILE} ]; then
   if [ -d ${BACKUP_DIR} ]; then
-    LATEST_BACKUPED_UUID=$(ls -v1 ${BACKUP_DIR}uuid-*.hive | tail -n1)
+    LATEST_BACKUPED_UUID=`ls -v1 ${BACKUP_DIR}uuid-*.hive | tail -n1`
   fi
   if [ "z${LATEST_BACKUPED_UUID}" != "z" ]; then
     echo_n "WARNING: The UUID of the node does not exist. The lastest backup (${LATEST_BACKUPED_UUID}) will be recovered..."
@@ -188,13 +185,14 @@ if [ ! -e ${UUID_FILE} ]; then
   fi
 else
   # UUID is valid only if it has been generetaed by uuidgen or if it is set to 'root' for policy server
-  CHECK_UUID=`cat /opt/rudder/etc/uuid.hive | grep -E "^[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}|root" | wc -l`
+  REGEX=`x="[a-f0-9][a-f0-9][a-f0-9][a-f0-9]" && echo "$x$x-$x-$x-$x-$x$x$x"`
+  CHECK_UUID=`cat /opt/rudder/etc/uuid.hive | egrep "^$REGEX|^root" | wc -l`
   # If the UUID is not valid, regenerate it
   if [ ${CHECK_UUID} -ne 1 ]; then
     echo_n "INFO: Creating a new UUID for Rudder as the existing one is invalid..."
     # Keep a backup of UUID even if it is not valid
     mkdir -p /var/backups/rudder
-    cp -f /opt/rudder/etc/uuid.hive /var/backups/rudder/uuid-$(date +%Y%m%d).hive
+    cp -f /opt/rudder/etc/uuid.hive /var/backups/rudder/uuid-`date +%Y%m%d`.hive
     # Generate a new one
     uuidgen > ${UUID_FILE}
     echo " Done."
@@ -209,9 +207,9 @@ FILE_TO_RESTORE=$1
 FILE_TYPE=$2
 LATEST_BACKUPED_FILES=""
 
-if [ ! -e ${FILE_TO_RESTORE} ]; then
+if [ ! -f ${FILE_TO_RESTORE} ]; then
   if [ -d ${BACKUP_DIR} ]; then
-    LATEST_BACKUPED_FILES=$(ls -v1 ${BACKUP_DIR}rudder-agent.${FILE_TYPE}-* | tail -n1)
+    LATEST_BACKUPED_FILES=`ls -v1 ${BACKUP_DIR}rudder-agent.${FILE_TYPE}-* | tail -n1`
   fi
   if [ "z${LATEST_BACKUPED_FILES}" != "z" ]; then
     echo_n "WARNING: The file ${FILE_TO_RESTORE} does not exist. The lastest backup (${LATEST_BACKUPED_FILES}) will be recovered..."
@@ -225,7 +223,8 @@ fi
 
 
 # Ensure script is executed by root
-if [ ! $(whoami) = 'root' ];then echo "You must be root"; exit; fi
+MYUID=`id | cut -d\( -f2 | cut -d\) -f1`
+if [ "${MYUID}" != 'root' ];then echo "You must be root"; exit; fi
 
 # Launch each check with a certain order
 check_and_fix_rudder_uuid
