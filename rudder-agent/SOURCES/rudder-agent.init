@@ -83,7 +83,6 @@ fi
 
 
 # CFEngine Community directory and files
-CFENGINE_COMMUNITY_PATH="/opt/rudder"
 CFENGINE_COMMUNITY_VAR_PATH="/var/rudder/cfengine-community"
 CFENGINE_COMMUNITY_RUN_0="1"
 CFENGINE_COMMUNITY_RUN_1="1"
@@ -196,7 +195,7 @@ start_daemons() {
       if [ $i -eq $TIMEOUT -o $i -eq `expr $TIMEOUT / 2` ]
       then
         eval message "alert" "\"[ALERT] no PID file for \${CFENGINE_COMMUNITY_NAME_$daemon} after $i seconds. Trying again...\""
-        eval "\${CFENGINE_COMMUNITY_BIN_\$daemon}" "\${CFENGINE_COMMUNITY_PARAMS_$daemon}"
+        eval "\${CFENGINE_COMMUNITY_BIN_$daemon}" "\${CFENGINE_COMMUNITY_PARAMS_$daemon}"
       fi
 
       if [ $i -eq `expr $TIMEOUT + 10` ]
