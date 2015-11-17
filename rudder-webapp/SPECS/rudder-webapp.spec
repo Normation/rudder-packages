@@ -458,8 +458,7 @@ if [ ! -d /var/rudder/configuration-repository/.git ]; then
   git config user.email "root@localhost"
 
   git add .
-  git commit -m "initial commit"
-
+  git commit -q -m "initial commit"
 else
 
   # This should have been set during repository initialization, but might need to be

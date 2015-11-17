@@ -80,11 +80,16 @@ AutoProv: 0
 BuildRequires: python
 Requires: python ncf
 
-# We need mod_wsgi to use ncf builder
 
 ## RHEL & Fedora
 %if 0%{?rhel} || 0%{?fedora}
+
+# We need mod_wsgi to use ncf builder
 Requires: httpd mod_wsgi shadow-utils
+
+# We need policycoreutils-python to provide the semanage command for selinux compatibility
+Requires: policycoreutils-python
+
 %endif
 
 ## SLES
