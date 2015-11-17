@@ -393,7 +393,7 @@ cd /var/rudder/configuration-repository
 if [ ! -d /var/rudder/configuration-repository/.git ]; then
   git init --shared=group
   git add .
-  git commit -m "initial commit"
+  git commit -q -m "initial commit"
 else
   # Set shared repository value to group if not set
   if ! git config core.sharedRepository >/dev/null 2>&1; then
