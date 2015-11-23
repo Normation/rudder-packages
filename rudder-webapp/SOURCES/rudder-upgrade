@@ -325,8 +325,19 @@ upgrade_ncf() {
   # Make sure that ncf uses the right logger bundles (_logger_default and logger_rudder)
   STEP="Make sure that ncf uses the right logger bundles (_logger_default and logger_rudder)"
 
-  if ! grep -Eq "^loggers=.*logger_rudder.*" ${VAR_RUDDER}/ncf/common/ncf.conf; then
-    sed -i "s%^loggers=\(.*\)%loggers=\1,logger_rudder%" ${VAR_RUDDER}/ncf/common/ncf.conf
+  # Rename _logger_default to _log_default
+  if grep -Eq "^loggers=.*_logger_default.*" ${VAR_RUDDER}/ncf/common/ncf.conf; then
+    sed -i "s%^loggers=\(.*\)_logger_default\(.*\)$%loggers=\1_log_default\2%" ${VAR_RUDDER}/ncf/common/ncf.conf
+  fi
+
+  # Rename logger_rudder to log_rudder
+  if grep -Eq "^loggers=.*logger_rudder.*" ${VAR_RUDDER}/ncf/common/ncf.conf; then
+    sed -i "s%^loggers=\(.*\)logger_rudder\(.*\)$%loggers=\1log_rudder\2%" ${VAR_RUDDER}/ncf/common/ncf.conf
+  fi
+
+  # Add log_rudder if it's not present
+  if ! grep -Eq "^loggers=.*log_rudder.*" ${VAR_RUDDER}/ncf/common/ncf.conf; then
+    sed -i "s%^loggers=\(.*\)%loggers=\1,log_rudder%" ${VAR_RUDDER}/ncf/common/ncf.conf
   fi
 
   # Make sure that ncf uses the right CFEngine port (5309)
