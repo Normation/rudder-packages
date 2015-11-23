@@ -343,8 +343,8 @@ upgrade_ncf() {
   # Make sure that ncf uses the right CFEngine port (5309)
   STEP="Make sure that ncf uses the right CFEngine port (5309)"
 
-  if ! grep -Eq "^cfengine_port=5309" ${VAR_RUDDER}/ncf/common/ncf.conf; then
-    sed -i "s%^cfengine_port=.*%cfengine_port=5309%" ${VAR_RUDDER}/ncf/common/ncf.conf
+  if ! grep -Eq "^cfengine_port=5309" ${RUDDER_VAR}/ncf/common/ncf.conf; then
+    sed -i "s%^cfengine_port=.*%cfengine_port=5309%" ${RUDDER_VAR}/ncf/common/ncf.conf
   fi
 }
 
