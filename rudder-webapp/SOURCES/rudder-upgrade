@@ -53,8 +53,8 @@ set -e
 #####################################################################################
 
 # Some variables
-VAR_RUDDER="/var/rudder"
-CONFIGURATION_REPOSITORY="${VAR_RUDDER}/configuration-repository"
+RUDDER_VAR="/var/rudder"
+CONFIGURATION_REPOSITORY="${RUDDER_VAR}/configuration-repository"
 TECH_DIR="${CONFIGURATION_REPOSITORY}/techniques"
 RUDDER_SHARE=/opt/rudder/share
 RUDDER_NCF_SOURCE_DIRECTORY=/usr/share/ncf
@@ -315,19 +315,19 @@ update_rudder_repository_from_system_directory /opt/rudder/share/techniques/syst
 
 mkdir -p /var/rudder/ncf/common
 if [ -d /usr/share/ncf/tree ]; then
-  if ! diff -aur ${RUDDER_NCF_SOURCE_DIRECTORY}/tree/ ${VAR_RUDDER}/ncf/common/ >/dev/null 2>&1; then
-    rsync --delete -rptgoq ${RUDDER_NCF_SOURCE_DIRECTORY}/tree/ ${VAR_RUDDER}/ncf/common/
+  if ! diff -aur ${RUDDER_NCF_SOURCE_DIRECTORY}/tree/ ${RUDDER_VAR}/ncf/common/ >/dev/null 2>&1; then
+    rsync --delete -rptgoq ${RUDDER_NCF_SOURCE_DIRECTORY}/tree/ ${RUDDER_VAR}/ncf/common/
   fi
 fi
 
 # Make sure that ncf uses the right logger bundles (_logger_default and logger_rudder)
-if ! grep -Eq "^loggers=.*logger_rudder.*" ${VAR_RUDDER}/ncf/common/ncf.conf; then
-  sed -i "s%^loggers=\(.*\)%loggers=\1,logger_rudder%" ${VAR_RUDDER}/ncf/common/ncf.conf
+if ! grep -Eq "^loggers=.*logger_rudder.*" ${RUDDER_VAR}/ncf/common/ncf.conf; then
+  sed -i "s%^loggers=\(.*\)%loggers=\1,logger_rudder%" ${RUDDER_VAR}/ncf/common/ncf.conf
 fi
 
 # Make sure that ncf uses the right CFEngine port (5309)
-if ! grep -Eq "^cfengine_port=5309" ${VAR_RUDDER}/ncf/common/ncf.conf; then
-  sed -i "s%^cfengine_port=.*%cfengine_port=5309%" ${VAR_RUDDER}/ncf/common/ncf.conf
+if ! grep -Eq "^cfengine_port=5309" ${RUDDER_VAR}/ncf/common/ncf.conf; then
+  sed -i "s%^cfengine_port=.*%cfengine_port=5309%" ${RUDDER_VAR}/ncf/common/ncf.conf
 fi
 
 # All versions: Check that Rudder database is able to handle backslash
