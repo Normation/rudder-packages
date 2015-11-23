@@ -59,6 +59,7 @@ trap anomaly_handler ERR INT TERM
 # - 3.1.0        : Add LDAP entry for 'rudder_syslog_protocol' property, and set 'tcp' as value, different from default value (udp) on a fresh 3.1
 # - 3.2.0        : Add the properties to configuration authentication provider and master admin account
 # - 3.2.0        : Add the properties to configure Rudder roles
+# - 3.2.0        : Call rudderify to make sure local techniques are copied in each agent promises
 #####################################################################################
 
 # Some paths
@@ -334,6 +335,13 @@ upgrade_ncf() {
   if ! grep -Eq "^cfengine_port=5309" ${VAR_RUDDER}/ncf/common/ncf.conf; then
     sed -i "s%^cfengine_port=.*%cfengine_port=5309%" ${VAR_RUDDER}/ncf/common/ncf.conf
   fi
+}
+
+# Call rudderify on all local ncf techniques to make sure the promises will be properly generated
+rudderify_techniques() {
+  STEP="Call rudderify on all local ncf techniques (#7443)"
+  /usr/share/ncf/tools/ncf_rudder.py rudderify_techniques /var/rudder/configuration-repository/techniques/ncf_techniques
+  trigger_technique_library_reload
 }
 
 ################################################################################
@@ -667,6 +675,7 @@ update_credentials
 set_git_branch
 upgrade_system_techniques
 upgrade_ncf
+rudderify_techniques
 upgrade_logback_xml
 upgrade_rudder_web_properties
 
