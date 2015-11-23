@@ -624,7 +624,7 @@ if ${UNCOMPLETE_MIGRATION}
 then
   echo "ERROR: The migration has failed in some steps. Check previous error messages."
   echo "Please restart the failed service(s), and start the migration script again."
-  echo "(on a single Rudder server, try service rudder-server-root restart)"
+  echo "(on a single Rudder server, try service rudder restart)"
   echo "Once it is working, run:"
   echo "# /opt/rudder/bin/rudder-upgrade"
 else
