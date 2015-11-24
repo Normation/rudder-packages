@@ -351,8 +351,9 @@ upgrade_ncf() {
 # Call rudderify on all local ncf techniques to make sure the promises will be properly generated
 rudderify_techniques() {
   STEP="Call rudderify on all local ncf techniques (#7443)"
-  if [ -d /var/rudder/configuration-repository/techniques ]; then
-    /usr/share/ncf/tools/ncf_rudder.py rudderify_techniques /var/rudder/configuration-repository/techniques/ncf_techniques
+  if [ -d ${CONFIGURATION_REPOSITORY}/techniques ]; then
+    /usr/share/ncf/tools/ncf_rudder.py rudderify_techniques ${CONFIGURATION_REPOSITORY}/techniques/ncf_techniques
+    cd ${CONFIGURATION_REPOSITORY}/ && git add -A techniques/ncf_techniques && git commit --allow-empty -q -m "Re-Rudderify ncf Techniques - automatically done by rudder-upgrade script"
     trigger_technique_library_reload
   fi
 }
