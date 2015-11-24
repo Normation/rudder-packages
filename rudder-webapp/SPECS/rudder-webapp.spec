@@ -445,6 +445,13 @@ if [ ! -d /var/rudder/configuration-repository/techniques ]; then
 	cp -a %{rudderdir}/share/techniques /var/rudder/configuration-repository/
 fi
 
+# Apply selinux context on configuration repository so technique editor (via apache/httpd) can write in this directory
+if type sestatus >/dev/null 2>&1
+then
+  semanage fcontext -a -t httpd_sys_rw_content_t '/var/rudder/configuration-repository/techniques(/.*)?'
+  restorecon -RF /var/rudder/configuration-repository/techniques
+fi
+
 # Go into configuration-repository to manage git
 cd /var/rudder/configuration-repository
 
