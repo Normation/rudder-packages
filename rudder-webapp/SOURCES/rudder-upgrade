@@ -351,8 +351,10 @@ upgrade_ncf() {
 # Call rudderify on all local ncf techniques to make sure the promises will be properly generated
 rudderify_techniques() {
   STEP="Call rudderify on all local ncf techniques (#7443)"
-  /usr/share/ncf/tools/ncf_rudder.py rudderify_techniques /var/rudder/configuration-repository/techniques/ncf_techniques
-  trigger_technique_library_reload
+  if [ -d /var/rudder/configuration-repository/techniques ]; then
+    /usr/share/ncf/tools/ncf_rudder.py rudderify_techniques /var/rudder/configuration-repository/techniques/ncf_techniques
+    trigger_technique_library_reload
+  fi
 }
 
 ################################################################################
