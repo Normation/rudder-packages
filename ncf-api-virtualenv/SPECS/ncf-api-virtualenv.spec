@@ -216,7 +216,10 @@ then
   # Add/Update the ncf-api-virtualenv SELinux policy
   semodule -i %{installdir}/share/selinux/ncf-api-virtualenv.pp 2>/dev/null
   semanage fcontext -a -t httpd_sys_rw_content_t /var/lib/ncf-api-venv\(/.*\)?
-  restorecon  -RF /var/lib/ncf-api-venv/
+  restorecon -RF /var/lib/ncf-api-venv/
+  # Also do it on configuration-repsoitory so there will be no problem when techniques are added
+  semanage fcontext -a -t httpd_sys_rw_content_t /var/rudder/configuration-repository/techniques\(/.*\)?
+  restorecon -RF /var/rudder/configuration-repository/techniques
 fi
 %endif
 
@@ -257,8 +260,10 @@ fi
       if [ $(semodule -l | grep -c ncf-api-virtualenv) -eq 0 ]
       then
         # Remove the ncf-api-virtualenv SELinux policy
-        semanage fcontext -d  /var/lib/ncf-api-venv\(/.*\)?
-        restorecon  -RF /var/lib/ncf-api-venv/
+        semanage fcontext -d /var/lib/ncf-api-venv\(/.*\)?
+        semanage fcontext -d /var/rudder/configuration-repository/techniques\(/.*\)?
+        restorecon -RF /var/lib/ncf-api-venv/
+        restorecon -RF /var/rudder/configuration-repository/techniques
         semodule -r ncf-api-virtualenv 2>/dev/null
       fi
     fi
@@ -277,7 +282,7 @@ rm -rf %{buildroot}
 %files -n ncf-api-virtualenv
 %defattr(-, root, root, 0755)
 %{installdir}/
-/var/lib/%{user_name}/
+%attr(- , %{user_name},%{user_name}) /var/lib/%{user_name}/
 %config(noreplace) %{apache_vhost_dir}/ncf-api-virtualenv.conf
 
 #=================================================
