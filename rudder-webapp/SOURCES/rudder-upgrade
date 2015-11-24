@@ -351,8 +351,11 @@ upgrade_ncf() {
 # Call rudderify on all local ncf techniques to make sure the promises will be properly generated
 rudderify_techniques() {
   STEP="Call rudderify on all local ncf techniques (#7443)"
-  /usr/share/ncf/tools/ncf_rudder.py rudderify_techniques /var/rudder/configuration-repository/techniques/ncf_techniques
-  trigger_technique_library_reload
+  if [ -d ${CONFIGURATION_REPOSITORY}/techniques ]; then
+    /usr/share/ncf/tools/ncf_rudder.py rudderify_techniques ${CONFIGURATION_REPOSITORY}/techniques/ncf_techniques
+    cd ${CONFIGURATION_REPOSITORY}/ && git add -A techniques/ncf_techniques && git commit --allow-empty -q -m "Re-Rudderify ncf Techniques - automatically done by rudder-upgrade script"
+    trigger_technique_library_reload
+  fi
 }
 
 ################################################################################
@@ -724,7 +727,7 @@ if ${UNCOMPLETE_MIGRATION}
 then
   echo "ERROR: The migration has failed in some steps. Check previous error messages."
   echo "Please restart the failed service(s), and start the migration script again."
-  echo "(on a single Rudder server, try service rudder-server-root restart)"
+  echo "(on a single Rudder server, try service rudder restart)"
   echo "Once it is working, run:"
   echo "# /opt/rudder/bin/rudder-upgrade"
 else
