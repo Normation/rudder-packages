@@ -529,6 +529,8 @@ fi
       if [ $(semodule -l | grep -c rudder-webapp) -eq 0 ]
       then
         # Remove the rudder-webapp SELinux policy
+        semanage fcontext -d '/var/rudder/configuration-repository/techniques(/.*)?'
+        restorecon -RF /var/rudder/configuration-repository/techniques
         semodule -r rudder-webapp
       fi
     fi
