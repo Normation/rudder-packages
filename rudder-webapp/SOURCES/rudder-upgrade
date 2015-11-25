@@ -226,6 +226,10 @@ update_rudder_repository_from_system_directory() {
   fi
 }
 
+# Helper function to compare version numbers with 2 components
+ver() { printf "%03d%03d" `echo "$1" | tr '.' ' '`; }
+
+
 ################################################################################
 # Update credentials
 ################################################################################
@@ -569,18 +573,18 @@ upgrade_database() {
 
   # If installing on SLES11 and PostgreSQL 8.3 was used
   if [ -e /var/lib/pgsql/data/PG_VERSION ]; then
-    CLUSTER_VERSION=$(cat /var/lib/pgsql/data/PG_VERSION)
-    if ${RUDDER_OPT}/bin/rpmvercmp ${CLUSTER_VERSION} lt 8.4; then
+    CLUSTER_VERSION=$(cat /var/lib/pgsql/data/PG_VERSION | cut -d . -f 1-2)
+    if [ `ver ${CLUSTER_VERSION}` -lt `ver 8.4` ]; then
       echo "ERROR: Your running PostgreSQL cluster, in version ${CLUSTER_VERSION}, is too old for Rudder 3.0+"
       echo "ERROR: Please manually migrate your data to the newer PostgreSQL version installed with Rudder."
     fi
   fi
 
   RES=$(psql -V|head -1|cut -d " " -f 3|cut -d . -f 1-2)
-  if ${RUDDER_OPT}/bin/rpmvercmp ${RES} lt 8.4; then
+  if [ `ver ${RES}` -lt `ver 8.4` ]; then
     echo "ERROR: Your PostgreSQL version, ${RES}, is too old and will fail to work properly with Rudder 3.0+."
     echo "ERROR: Please upgrade to at least 8.4."
-  elif ${RUDDER_OPT}/bin/rpmvercmp ${RES} lt 9.1; then
+  elif [ `ver ${RES}` -lt `ver 9.1` ]; then
     echo "WARNING: Your PostgreSQL version, ${RES}, is getting old and will not offer optimal performance with Rudder 3.0+."
     echo "WARNING: Please upgrade to at least 9.1."
   fi
