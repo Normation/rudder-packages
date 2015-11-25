@@ -168,6 +168,19 @@ fi
 cd %{_builddir} && make -f /usr/share/selinux/devel/Makefile
 %endif
 
+%pre -n ncf-api-virtualenv
+#=================================================
+# Pre Installation
+#=================================================
+
+# Create the package user
+if ! getent passwd %{user_name} >/dev/null; then
+  echo -n "INFO: Creating the %{user_name} user..."
+  useradd -r -d /var/lib/%{user_name} -c "ncf API,,," %{user_name} >/dev/null 2>&1
+  echo " Done"
+fi
+
+
 #=================================================
 # Installation
 #=================================================
@@ -199,24 +212,18 @@ install -m 644  %{_builddir}/ncf-api-virtualenv.pp %{buildroot}%{installdir}/sha
 # Post Installation
 #=================================================
 
-# Create the package user
-if ! getent passwd %{user_name} >/dev/null; then
-  echo -n "INFO: Creating the %{user_name} user..."
-  useradd -r -d /var/lib/%{user_name} -c "ncf API,,," %{user_name} >/dev/null 2>&1
-  chown %{user_name}:%{user_name} /var/lib/%{user_name}/
-  echo " Done"
-fi
-
 %if 0%{?rhel} || 0%{?fedora}
 # SELinux support
 # Check "sestatus" presence, and if here tweak our installation to be
 # SELinux compliant
 if type sestatus >/dev/null 2>&1
 then
+  echo -n "INFO: Applying ncf-api-virtualenv selinux policy..."
   # Add/Update the ncf-api-virtualenv SELinux policy
   semodule -i %{installdir}/share/selinux/ncf-api-virtualenv.pp 2>/dev/null
-  semanage fcontext -a -t httpd_sys_rw_content_t /var/lib/ncf-api-venv\(/.*\)?
+  semanage fcontext -a -t httpd_sys_rw_content_t '/var/lib/ncf-api-venv(/.*)?'
   restorecon -RF /var/lib/ncf-api-venv/
+  echo " Done"
 fi
 %endif
 
@@ -256,12 +263,12 @@ fi
     then
       if [ $(semodule -l | grep -c ncf-api-virtualenv) -eq 0 ]
       then
+        echo -n "INFO: Removing ncf-api-virtualenv selinux policy..."
         # Remove the ncf-api-virtualenv SELinux policy
-        semanage fcontext -d /var/lib/ncf-api-venv\(/.*\)?
-        semanage fcontext -d /var/rudder/configuration-repository/techniques\(/.*\)?
+        semanage fcontext -d '/var/lib/ncf-api-venv(/.*)?'
         restorecon -RF /var/lib/ncf-api-venv/
-        restorecon -RF /var/rudder/configuration-repository/techniques
         semodule -r ncf-api-virtualenv 2>/dev/null
+        echo " Done"
       fi
     fi
   fi
@@ -279,6 +286,7 @@ rm -rf %{buildroot}
 %files -n ncf-api-virtualenv
 %defattr(-, root, root, 0755)
 %{installdir}/
+%attr(- , %{user_name},%{user_name}) /var/lib/%{user_name}/
 %config(noreplace) %{apache_vhost_dir}/ncf-api-virtualenv.conf
 
 #=================================================
