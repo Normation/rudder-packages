@@ -103,6 +103,7 @@ Source19: rudder-reload-cf-serverd
 Source20: rudder-webapp.te
 Source21: rudder-webapp.fc
 Source22: rudder-keys
+Source23: .gitignore
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
@@ -293,6 +294,9 @@ install -m 644  %{_builddir}/rudder-webapp.pp %{buildroot}%{rudderdir}/share/sel
 
 # Install rudder keys
 install -m 755 %{SOURCE22} %{buildroot}%{rudderdir}/bin/
+
+# Install gitignore file for our git repo
+install -m 644 %{SOURCE23} %{buildroot}%{ruddervardir}/configuration-repository/
 
 %pre -n rudder-webapp
 #=================================================
@@ -566,6 +570,7 @@ rm -rf %{buildroot}
 %{ruddervardir}/inventories/incoming
 %{ruddervardir}/inventories/received
 %{ruddervardir}/inventories/failed
+%{ruddervardir}/configuration-repository/.gitignore
 %{ruddervardir}/configuration-repository/ncf/ncf-hooks.d
 %{rudderlogdir}/apache2/
 /etc/%{apache_vhost_dir}/
