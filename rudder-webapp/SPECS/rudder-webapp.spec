@@ -413,11 +413,9 @@ fi
 # SELinux support
 # Check "sestatus" presence, and if here tweak our installation to be
 # SELinux compliant
-if type sestatus >/dev/null 2>&1
-then
+if type sestatus >/dev/null 2>&1 && sestatus | grep -q "enabled"; then
   # Add/Update the rudder-webapp SELinux policy
   semodule -i /opt/rudder/share/selinux/rudder-webapp.pp
-	
   # Ensure inventory directories context is set by resetting
   # their context to the contexts defined in SELinux configuration,
   # including the file contexts defined in the rudder-webapp module
@@ -447,8 +445,7 @@ if [ ! -d /var/rudder/configuration-repository/techniques ]; then
 fi
 
 # Apply selinux context on configuration repository so technique editor (via apache/httpd) can write in this directory
-if type sestatus >/dev/null 2>&1
-then
+if type sestatus >/dev/null 2>&1 && sestatus | grep -q "enabled"; then
   semanage fcontext -a -t httpd_sys_rw_content_t '/var/rudder/configuration-repository/techniques(/.*)?'
   restorecon -RF /var/rudder/configuration-repository/techniques
 fi
@@ -525,10 +522,8 @@ fi
 %if 0%{?rhel} || 0%{?fedora}
   # Do it only during uninstallation
   if [ $1 -eq 0 ]; then
-    if type sestatus >/dev/null 2>&1
-    then
-      if [ $(semodule -l | grep -c rudder-webapp) -eq 0 ]
-      then
+    if type sestatus >/dev/null 2>&1 && sestatus | grep -q "enabled"; then
+      if semodule -l | grep -q rudder-webapp; then
         # Remove the rudder-webapp SELinux policy
         semanage fcontext -d '/var/rudder/configuration-repository/techniques(/.*)?'
         restorecon -RF /var/rudder/configuration-repository/techniques
