@@ -216,11 +216,10 @@ install -m 644  %{_builddir}/ncf-api-virtualenv.pp %{buildroot}%{installdir}/sha
 # SELinux support
 # Check "sestatus" presence, and if here tweak our installation to be
 # SELinux compliant
-if type sestatus >/dev/null 2>&1
-then
+if type sestatus >/dev/null 2>&1 && sestatus | grep -q "enabled"; then
   echo -n "INFO: Applying ncf-api-virtualenv selinux policy..."
   # Add/Update the ncf-api-virtualenv SELinux policy
-  semodule -i %{installdir}/share/selinux/ncf-api-virtualenv.pp 2>/dev/null
+  semodule -i %{installdir}/share/selinux/ncf-api-virtualenv.pp
   semanage fcontext -a -t httpd_sys_rw_content_t '/var/lib/ncf-api-venv(/.*)?'
   restorecon -RF /var/lib/ncf-api-venv/
   echo " Done"
@@ -259,10 +258,8 @@ fi
 %if 0%{?rhel} || 0%{?fedora}
   # Do it only during uninstallation
   if [ $1 -eq 0 ]; then
-    if type sestatus >/dev/null 2>&1
-    then
-      if [ $(semodule -l | grep -c ncf-api-virtualenv) -eq 0 ]
-      then
+    if type sestatus >/dev/null 2>&1 && sestatus | grep -q "enabled"; then
+      if semodule -l | grep -q ncf-api-virtualenv;  then
         echo -n "INFO: Removing ncf-api-virtualenv selinux policy..."
         # Remove the ncf-api-virtualenv SELinux policy
         semanage fcontext -d '/var/lib/ncf-api-venv(/.*)?'
