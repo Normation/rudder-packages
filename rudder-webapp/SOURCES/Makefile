@@ -24,7 +24,7 @@ WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget -q
 RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
 RUDDER_MAJOR_VERSION := $(shell echo ${RUDDER_VERSION_TO_PACKAGE} | cut -d'.' -f 1-2)
 
-localdepends: ./rudder-sources ./maven/bin/mvn ./rudder-users.xml ./rudder-doc ./rudder-doc/html/rudder-doc.pdf
+localdepends: ./rudder-sources ./maven/bin/mvn ./rudder-users.xml ./rudder-doc ./rudder-doc/html/rudder-doc.pdf ./.gitignore
 
 /usr/bin/wget:
 	sudo aptitude --assume-yes install wget
@@ -57,11 +57,15 @@ localdepends: ./rudder-sources ./maven/bin/mvn ./rudder-users.xml ./rudder-doc .
 ./rudder-users.xml: ./rudder-sources
 	cp ./rudder-sources/rudder/rudder-web/src/main/resources/demo-rudder-users.xml ./rudder-users.xml
 
+./.gitignore: ./configuration-repository-gitignore
+	cp ./configuration-repository-gitignore ./.gitignore
+
 localclean:
 	rm -rf ./rudder-users.xml
 	rm -rf ./maven/
 	rm -rf ./rudder-sources
 	rm -rf ./rudder-doc
+	rm -rf ./.gitignore
 
 veryclean:
 	rm -f ./rudder-sources.tar.bz2
