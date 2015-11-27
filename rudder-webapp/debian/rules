@@ -117,7 +117,7 @@ binary-arch: install
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-keys /opt/rudder/bin/
 
 	# Install gitignore file for our git repo
-	dh_install -m 644 --SOURCEDIR=$(CURDIR)/SOURCES/.gitignore /var/rudder/configuration-repository/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/.gitignore /var/rudder/configuration-repository/
 
 #	dh_installmenu
 #	dh_installdebconf
