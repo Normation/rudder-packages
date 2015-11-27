@@ -1,0 +1,16 @@
+--- jetty7/bin/jetty.sh	2015-11-27 11:58:56.712592963 +0100
++++ jetty7/bin/jetty.sh	2015-11-27 12:33:15.360577776 +0100
+@@ -503,11 +503,11 @@
+         chown "$JETTY_USER" "$JETTY_PID"
+         # FIXME: Broken solution: wordsplitting, pathname expansion, arbitrary command execution, etc.
+         su - "$JETTY_USER" -c "
+-          exec ${RUN_CMD[*]} --daemon &
++          exec ${RUN_CMD[*]} --daemon >${JETTY_LOGS}/java.log 2>&1 &
+           disown \$!
+           echo \$! > '$JETTY_PID'"
+       else
+-        "${RUN_CMD[@]}" &
++        "${RUN_CMD[@]}" >${JETTY_LOGS}/java.log 2>&1 &
+         disown $!
+         echo $! > "$JETTY_PID"
+       fi
