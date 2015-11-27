@@ -227,7 +227,7 @@ update_rudder_repository_from_system_directory() {
 }
 
 # Helper function to compare version numbers with 2 components
-ver() { printf "%03d%03d" `echo "$1" | tr '.' ' '`; }
+ver() { printf "1%03d%03d" `echo "$1" | tr '.' ' '`; }
 
 
 ################################################################################
