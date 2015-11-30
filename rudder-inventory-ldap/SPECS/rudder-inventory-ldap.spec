@@ -304,8 +304,18 @@ fi
 
 # Need to restart to take schema changes into account
 echo -n "INFO: Restarting rudder-slapd..."
-service rudder-slapd restart >/dev/null 2>&1
+service rudder-slapd force-reload >/dev/null 2>&1
 echo " Done"
+
+%preun -n rudder-inventory-ldap
+#=================================================
+# Pre Un-installation
+#=================================================
+
+if [[ $1 -eq 0 ]]
+then
+  service rudder-slapd forcestop
+fi
 
 #=================================================
 # Cleaning

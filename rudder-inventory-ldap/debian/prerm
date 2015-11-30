@@ -1,5 +1,5 @@
 #!/bin/sh
-# prerm script for normation-openldap-framework
+# prerm script for rudder-inventory-ldap
 #
 # see: dh_installdeb(1)
 
@@ -18,7 +18,14 @@ set -e
 
 
 case "$1" in
-    remove|upgrade|deconfigure)
+    remove)
+      # Ensure OpenLDAP is stopped
+      printf "INFO: Stopping rudder-slapd..."
+      invoke-rc.d rudder-slapd forcestop >/dev/null 2>&1
+      echo " Done"
+    ;;
+
+    upgrade|deconfigure)
     ;;
 
     failed-upgrade)
