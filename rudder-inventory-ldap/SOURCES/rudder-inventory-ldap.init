@@ -588,8 +588,13 @@ forcestop() {
 		then
 			message "info" "[INFO] Found no rudder-slapd process running with $SLAPD_SERVICES"
 		else
-			# Try a killall
-			/usr/bin/killall -KILL $SLAPD_BIN
+      if type pidof > /dev/null 2> /dev/null
+      then
+        kill -KILL `pidof ${SLAPD_BIN}`
+      else
+        # Try a killall
+        /usr/bin/killall -KILL ${SLAPD_BIN}
+      fi
 
 			if [ $? -eq 0 ]
 			then
@@ -623,8 +628,13 @@ forcestop() {
 		then
 			message "info" "[INFO] Found no slurpd process running"
 		else
-			# Try a killall
-			/usr/bin/killall -KILL $SLURPD_BIN
+      if type pidof > /dev/null 2> /dev/null
+      then
+        kill -KILL `pidof ${SLURPD_BIN}`
+      else
+        # Try a killall
+        /usr/bin/killall -KILL ${SLURPD_BIN}
+      fi
 
 			if [ $? -eq 0 ]
 			then
