@@ -698,25 +698,49 @@ upgrade_logback_xml
 upgrade_rudder_web_properties
 
 # Check the daemon status before upgrading
+RUDDER_DB_INITIALIZED=true
 echo -n "INFO: Checking PostgreSQL service status..."
-if retry_wrapper "${PSQL} -t -d rudder -c 'select count(ruleid) from rules' >/dev/null 2>&1" "PostgreSQL";
-then
-  echo " OK"
-  upgrade_database
-else
-  UNCOMPLETE_MIGRATION=true
+
+# If the server should be on this machine, make sure rudder-reports is available - if not the DB will simply not be initialised yet
+if [ "${SQL_SERVER}" = "localhost" ] && [ ! -f ${RUDDER_OPT}/etc/server-roles.d/rudder-reports ]; then
+  # Server is localhost but rudder-reports is not installed - this is probably a half-installed server, warn and give up
+  RUDDER_DB_INITIALIZED=false
+  echo " Not installed"
+  echo "INFO: No local database found. During initial install, this is expected."
+fi
+
+if ${RUDDER_DB_INITIALIZED}; then
+  if retry_wrapper "${PSQL} -t -d rudder -c 'select count(ruleid) from rules' >/dev/null 2>&1" "PostgreSQL";
+  then
+    echo " OK"
+    upgrade_database
+  else
+    UNCOMPLETE_MIGRATION=true
+  fi
 fi
 
 # Check the daemon status before upgrading
-# Using retry_wrapper is necessary because during an upgrade, slapd may be restarted, so we need to wait
-# for it to be available again
+RUDDER_LDAP_INITIALIZED=true
 echo -n "INFO: Checking LDAP service status..."
-if retry_wrapper "${LDAPSEARCH} -b '' -s base + >/dev/null 2>&1" "LDAP";
-then
-  echo " OK"
-  upgrade_inventory
-else
-  UNCOMPLETE_MIGRATION=true
+
+# If the server should be on this machine, make sure rudder-inventory-ldap is available - if not LDAP will simply not be initialised yet
+if [ "${LDAP_SERVER}" = "localhost" ] && [ ! -f ${RUDDER_OPT}/etc/server-roles.d/rudder-inventory-ldap ]; then
+  # Server is localhost but rudder-inventory-ldap is not installed - this is probably a half-installed server, warn and give up
+  RUDDER_LDAP_INITIALIZED=false
+  echo " Not installed"
+  echo "INFO: No local LDAP server found. During initial install, this is expected."
+fi
+
+if ${RUDDER_LDAP_INITIALIZED}; then
+  # Using retry_wrapper is necessary because during an upgrade, slapd may be restarted, so we need to wait
+  # for it to be available again
+  if retry_wrapper "${LDAPSEARCH} -b '' -s base + >/dev/null 2>&1" "LDAP";
+  then
+    echo " OK"
+    upgrade_inventory
+  else
+    UNCOMPLETE_MIGRATION=true
+  fi
 fi
 
 ################################################################################
