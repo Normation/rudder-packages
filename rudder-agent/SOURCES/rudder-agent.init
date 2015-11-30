@@ -301,8 +301,12 @@ forcestop_daemons() {
 		# If the pid file is not readable or is empty, kill all process by name
 		if [ ! -r ${CFENGINE_COMMUNITY_PID_FILE[$daemon]} -o ! -s ${CFENGINE_COMMUNITY_PID_FILE[$daemon]} ]
 		then
-			# Try a killall
-			/usr/bin/killall -KILL ${CFENGINE_COMMUNITY_BIN[$daemon]}
+      if type pidof > /dev/null 2> /dev/null; then
+        kill -KILL `pidof ${CFENGINE_COMMUNITY_BIN[$daemon]}`
+      else
+        # Try a killall
+        /usr/bin/killall -KILL ${CFENGINE_COMMUNITY_BIN[$daemon]}
+      fi
 
 			if [ $? -eq 0 ]
 			then
