@@ -96,7 +96,7 @@ case "$1" in
 
 		# Restart rudder-slapd to take schema changes into account
 		echo -n "INFO: Restarting rudder-slapd..."
-		invoke-rc.d rudder-slapd restart >/dev/null 2>&1
+		invoke-rc.d rudder-slapd force-reload >/dev/null 2>&1
 		echo " Done"
 
     ;;
