@@ -63,8 +63,8 @@ CFENGINE_COMMUNITY_NAME_2="cf-monitord"
 # Script specific
 PROG_NAME=`basename $0 | sed 's/^[KS][0-9][0-9]//'` # For nice messages
 OS=`uname -s`   # To adapt message printing
-MYUID=`id | cut -d\( -f2 | cut -d\) -f1`     # For UNIX compatibility => modify this command
-MYGID=`id | cut -d\( -f3 | cut -d\) -f1`     # For UNIX compatibility => modify this command
+MYUID=`id | cut -d\( -f2 | cut -d\) -f1`
+MYGID=`id | cut -d\( -f3 | cut -d\) -f1`
 SYSLOG_FACILITY="local6"
 # Detect the correct ps tool to use
 ns=$(ps --no-header -o utsns --pid $$ 2>/dev/null || true)
@@ -159,7 +159,7 @@ fi
 message "info" "[INFO] Using $CFENGINE_COMMUNITY_VAR_PATH for CFEngine workdir"
 
 # Are you root?
-if [ $MYUID -ne 0 ]
+if [ "${MYUID}" != "root" ]
 then
   message "alert" "[ALERT] only root can launch CFEngine Community"
   exit 1
