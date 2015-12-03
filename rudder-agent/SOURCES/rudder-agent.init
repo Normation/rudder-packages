@@ -290,7 +290,6 @@ forcestop_daemons() {
     if eval [ ! -r "\${CFENGINE_COMMUNITY_PID_FILE_$daemon}" ] || eval [ ! -s "\${CFENGINE_COMMUNITY_PID_FILE_$daemon}" ]
     then
       if type pidof > /dev/null 2> /dev/null; then
-      then
         kill -KILL `eval pidof "\\\${CFENGINE_COMMUNITY_BIN_$daemon}"`
       else
         # Try a killall
