@@ -3,7 +3,7 @@
 #========================================================
 
 # IP and port to listen
-IP="127.0.0.1"
+IP="localhost"
 SSLIP="*"
 PORT="389"
 SSLPORT="636"
