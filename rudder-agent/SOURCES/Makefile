@@ -19,7 +19,7 @@
 .DEFAULT_GOAL := localdepends
 
 RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
-CFENGINE_RELEASE = 3.7.1
+CFENGINE_RELEASE = 3.7.2
 FUSION_RELEASE = 2.3.6
 LMDB_RELEASE = 0.9.16
 OPENSSL_RELEASE = 1.0.1p
