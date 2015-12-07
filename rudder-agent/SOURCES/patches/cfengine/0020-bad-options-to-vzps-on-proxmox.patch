@@ -1,0 +1,22 @@
+From a0ce516a6cd43a68f3f630eabc9d1df5eb829471 Mon Sep 17 00:00:00 2001
+From: Jonathan Clarke <jonathan.clarke@normation.com>
+Date: Mon, 7 Dec 2015 17:38:13 +0100
+Subject: [PATCH] Fixes #6961 - bad option nlwp to vzps on Proxmox - 3.6.0
+
+See http://www.rudder-project.org/redmine/issues/7423 and https://dev.cfengine.com/issues/6961
+
+---
+ libpromises/classes.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- cfengine-source/libpromises/classes.c.orig  2015-12-07 17:42:43.745504166 +0100
++++ cfengine-source/libpromises/classes.c 2015-12-07 17:43:02.437489394 +0100
+@@ -76,7 +76,7 @@
+ const char *const VPSOPTS[] =
+ {
+     [PLATFORM_CONTEXT_UNKNOWN] = "",
+-    [PLATFORM_CONTEXT_OPENVZ] = "-E 0 -eo user,pid,ppid,pgid,pcpu,pmem,vsz,ni,rss,nlwp,stime,time,args",   /* virt_host_vz_vzps */
++    [PLATFORM_CONTEXT_OPENVZ] = "-E 0 -eo user,pid,ppid,pgid,pcpu,pmem,vsz,ni,rss,thcount,stime,time,args",   /* virt_host_vz_vzps */
+     [PLATFORM_CONTEXT_HP] = "-ef",                      /* hpux */
+     [PLATFORM_CONTEXT_AIX] =  "-N -eo user,pid,ppid,pgid,pcpu,pmem,vsz,ni,stat,st=STIME,time,args", /* aix */
+     [PLATFORM_CONTEXT_LINUX] = "-eo user,pid,ppid,pgid,pcpu,pmem,vsz,ni,rss,nlwp,stime,time,args",   /* linux */
