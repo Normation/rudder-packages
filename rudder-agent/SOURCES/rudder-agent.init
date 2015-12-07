@@ -191,6 +191,17 @@ start_daemons() {
 
 	# It's time to start the daemons
 	for daemon in ${DAEMONS}; do
+    # Test if daemon is already running
+    if [ -s ${CFENGINE_COMMUNITY_PID_FILE[$daemon]} ]
+    then
+      PID=`cat ${CFENGINE_COMMUNITY_PID_FILE[$daemon]}`
+      if [ -e /proc/$PID ]
+      then
+        message "info" "[INFO] CFEngine Community ${CFENGINE_COMMUNITY_NAME[$daemon]} Is already running"
+        continue
+      fi
+    fi
+
 		# Start message
 		message "info" "[INFO] Launching CFEngine Community ${CFENGINE_COMMUNITY_NAME[$daemon]}..."
 
