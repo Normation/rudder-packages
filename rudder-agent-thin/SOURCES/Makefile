@@ -58,6 +58,9 @@ build-sources-stamp: fetch-sources-stamp rudder-agent.make
 	$(PATCH) -d ../debian --forward -p1 < patches/rudder-agent-thin/0001-rudder-agent-to-rudder-agent-thin-debian.patch
 	$(PATCH) -d ../SPECS --forward -p1 < patches/rudder-agent-thin/0002-rudder-agent-to-rudder-agent-thin-spec.patch
 
+	# Make sure there were no rejects
+	test `$(FIND) . -name \*.rej | wc -l` = 0
+
 	touch build-sources-stamp
 
 localclean: rudder-agent.make
