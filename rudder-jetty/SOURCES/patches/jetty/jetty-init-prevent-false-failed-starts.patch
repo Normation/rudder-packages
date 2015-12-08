@@ -28,7 +28,7 @@
      fi
  
 -    if [ $UID -eq 0 ] && type start-stop-daemon > /dev/null 2>&1 
-+    if [ $(ps aux|grep -cE "[j]ava .* /opt/rudder/jetty7/start.jar") -ne 0 ]
++    if [ $(${PS_COMMAND} | grep -cE "[j]ava .* /opt/rudder/jetty7/start.jar") -ne 0 ]
 +    then
 +        echo "already running."
 +        exit 0

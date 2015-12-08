@@ -1,0 +1,57 @@
+--- jetty7/bin/jetty.sh.orig	2015-12-07 19:25:57.456283949 +0100
++++ jetty7/bin/jetty.sh	2015-12-07 19:41:05.075633380 +0100
+@@ -164,6 +164,21 @@
+ ACTION=$1
+ shift
+ 
++# Detect the correct ps tool to use
++ns=$(ps --no-header -o utsns --pid $$ 2>/dev/null || true)
++if [ -e "/proc/bc/0" ]; then # we have openvz
++  if [ -e /bin/vzps ]; then # we have vzps
++    PS_COMMAND="/bin/vzps -E 0"
++  else # use rudder provided vzps
++    PS_COMMAND="/opt/rudder/bin/vzps.py -E 0"
++  fi  
++elif [ -n "${ns}" ]; then # we have namespaces
++  # the sed is here to prepend a fake user field that is removed by the -o option (it is never used)
++  PS_COMMAND="eval ps --no-header -e -O utsns | grep -E '^[[:space:]]*[[:digit:]]*[[:space:]]+${ns}' | sed 's/^/user /'"
++else # standard unix
++  PS_COMMAND="ps -ef"
++fi
++
+ ##################################################
+ # Read any configuration files
+ ##################################################
+@@ -553,7 +568,7 @@
+           start-stop-daemon -K -p"$JETTY_PID" -d"$JETTY_HOME" -a "$JAVA" -s KILL
+         fi
+         if (( TIMEOUT < -10 )); then
+-          echo "Failed to stop Jetty. Giving up." 
++          echo "Failed to stop Jetty. Trying with force..." 
+           break
+         fi
+ 
+@@ -574,7 +589,7 @@
+           kill -KILL "$PID" 2>/dev/null
+         fi
+         if (( TIMEOUT < -10 )); then
+-          echo "Failed to stop Jetty. Giving up." 
++          echo "Failed to stop Jetty. Trying with force..." 
+           break
+         fi
+ 
+@@ -587,6 +602,14 @@
+       echo OK
+     fi
+ 
++    # Ensure jetty is not still running
++    PIDS=`${PS_COMMAND} | egrep "[j]ava .* /opt/rudder/jetty7/start.jar" | awk '{print $2}'`
++    for PID in ${PIDS}
++    do
++      # Still running. We need to kill it with the force.
++      kill -KILL ${PID}
++    done
++
+     ;;
+ 
+   restart)
