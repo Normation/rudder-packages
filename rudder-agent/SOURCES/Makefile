@@ -202,6 +202,8 @@ endif
 
 	# Apply patches
 	for PATCHNAME in patches/cfengine/*.patch; do echo "Applying $$PATCHNAME..."; $(PATCH) -d ./cfengine-source -p1 < $$PATCHNAME; echo ""; done
+	# Make sure there were no rejects
+	test `$(FIND) ./cfengine-source -name \*.rej | wc -l` = 0
 
 openssl-source:
 ifeq ($(shell ../../build-caching get --force-config ./openssl-source/ name=openssl-src version=$(OPENSSL_RELEASE) >/dev/null 2>&1 || echo KO), KO)
@@ -248,6 +250,8 @@ endif
 
 	# Apply patches
 	for PATCHNAME in patches/fusioninventory/*.patch; do echo "Applying $$PATCHNAME... on FusionInventory"; $(PATCH) -d ./fusioninventory-agent -p1 < $$PATCHNAME; done
+	# Make sure there were no rejects
+	test `$(FIND) ./fusioninventory-agent -name \*.rej | wc -l` = 0
 
 	# Fix a lsusb invocation that crashes some SLES machines
 	$(FIND) ./fusioninventory-agent -name "USB.pm" -exec rm "{}" \;
