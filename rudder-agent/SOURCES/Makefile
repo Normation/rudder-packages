@@ -44,6 +44,8 @@ endif
 
 	# Apply patches
 	for PATCHNAME in patches/cfengine/*.patch; do echo "Applying $$PATCHNAME..."; $(PATCH) -d ./cfengine-source -p1 < $$PATCHNAME; done
+	# Make sure there were no rejects
+	test `$(FIND) ./cfengine-source -name \*.rej | wc -l` = 0
 
 	# Bootstrap the package using autogen before compilation
 	cd cfengine-source && NO_CONFIGURE=1 ./autogen.sh
@@ -92,6 +94,8 @@ endif
 
 	# Apply patches
 	for PATCHNAME in patches/fusioninventory/*.patch; do echo "Applying $$PATCHNAME... on FusionInventory"; $(PATCH) -d ./fusioninventory-agent -p1 < $$PATCHNAME; done
+	# Make sure there were no rejects
+	test `$(FIND) ./fusioninventory-agent -name \*.rej | wc -l` = 0
 
 	# Fix a lsusb invocation that crashes some SLES machines
 	$(FIND) ./fusioninventory-agent -iname "USB.pm" -exec rm "{}" \;

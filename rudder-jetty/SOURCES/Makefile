@@ -64,6 +64,9 @@ localdepends: ./jetty7
 	cp ./jetty7/bin/jetty-debian.sh ../debian/rudder-jetty.init
 	cp ./rudder-jetty.default ../debian/rudder-jetty.default
 
+	# Make sure there were no rejects
+	test `$(FIND) . -name \*.rej | wc -l` = 0
+
 /usr/bin/wget:
 	sudo aptitude --assume-yes install wget
 
