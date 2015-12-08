@@ -59,6 +59,7 @@ localdepends: ./jetty7
 	patch -p0 -s < patches/jetty/jetty-init-check-java-version.patch
 	patch -p0 -s < patches/jetty/jetty-init-prevent-false-failed-starts.patch
 	patch -p0 -s < patches/jetty/jetty-init-redirect-stderrout.patch
+	patch -p0 -s < patches/jetty/jetty-init-stop-forcestop.patch
 
 	cp ./jetty7/bin/jetty.sh ./jetty7/bin/jetty-debian.sh
 	cp ./jetty7/bin/jetty.sh ./jetty7/bin/jetty-rpm.sh
@@ -73,6 +74,9 @@ localdepends: ./jetty7
 	cp ./jetty7/bin/jetty-debian.sh ../debian/rudder-jetty.init
 	cp ./rudder-jetty.default ../debian/rudder-jetty.default
 	chmod +x ../debian/rudder-jetty.init
+
+	# Make sure there were no rejects
+	test `$(FIND) . -name \*.rej | wc -l` = 0
 
 /usr/bin/wget:
 	sudo aptitude --assume-yes install wget
