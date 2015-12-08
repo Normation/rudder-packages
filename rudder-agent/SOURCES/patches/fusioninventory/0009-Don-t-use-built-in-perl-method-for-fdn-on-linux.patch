@@ -1,17 +1,6 @@
-From 8f637f64dd8451cd6630b2deb711c436916a5934 Mon Sep 17 00:00:00 2001
-From: Nicolas CHARLES <nicolas.charles@normation.com>
-Date: Mon, 27 Jul 2015 10:52:08 +0200
-Subject: [PATCH] Don't use built in perl method for fdn on linux
-
----
- lib/FusionInventory/Agent/Task/Inventory/Generic.pm | 15 ++++++++++++++-
- 1 file changed, 14 insertions(+), 1 deletion(-)
-
-diff --git a/lib/FusionInventory/Agent/Task/Inventory/Generic.pm b/lib/FusionInventory/Agent/Task/Inventory/Generic.pm
-index 9be571f..490a248 100644
 --- a/lib/FusionInventory/Agent/Task/Inventory/Generic.pm
 +++ b/lib/FusionInventory/Agent/Task/Inventory/Generic.pm
-@@ -5,6 +5,7 @@ use warnings;
+@@ -5,6 +5,7 @@
  
  use English qw(-no_match_vars);
  use Net::Domain qw(hostfqdn hostdomain);
@@ -19,20 +8,17 @@ index 9be571f..490a248 100644
  
  sub isEnabled {
      return 1;
-@@ -15,9 +16,21 @@ sub doInventory {
+@@ -15,9 +16,18 @@
  
      my $inventory = $params{inventory};
  
-+    my $FQDN = "";
-+    # On Linux, hostfqdn is probably not correct, we should use hostname --fqdn
-+    # see http://www.rudder-project.org/redmine/issues/7031
-+    if ($OSNAME eq "linux") {
-+      my $command = 'hostname --fqdn';
++    my $FQDN = hostfqdn();
++    # Sometimes hostfqdn is empty so we replace it with hostname
++    if ($FQDN eq "") {
++      my $command = $OSNAME eq 'linux' ? 'hostname --fqdn' : 'hostname';
 +      $FQDN = getFirstLine(
 +        command => $command
 +      );
-+    } else {
-+      $FQDN = hostfqdn();
 +    }
 +
      $inventory->setOperatingSystem({
@@ -42,6 +28,3 @@ index 9be571f..490a248 100644
              DNS_DOMAIN => hostdomain()
      });
  }
--- 
-2.1.4
-
