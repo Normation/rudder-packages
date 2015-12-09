@@ -73,8 +73,8 @@ index 7930a66..99c1536 100644
 @@ -1,24 +1,20 @@
  This package was debianized by:
  
--    Jonathan Clarke <Jonathan Clarke <jonathan.clarke@normation.com>> on Thu, 16 Dec 2010 12:13:26 +0100
-+    Matthieu CERDA <matthieu.cerda@normation.com>> on Fri, 30 Apr 2014 16:55:26 +0200
+-    Jonathan Clarke <jonathan.clarke@normation.com> on Thu, 16 Dec 2010 12:13:26 +0100
++    Matthieu CERDA <matthieu.cerda@normation.com> on Fri, 30 Apr 2014 16:55:26 +0200
  
 -It was downloaded from:
 +It uses code from:
