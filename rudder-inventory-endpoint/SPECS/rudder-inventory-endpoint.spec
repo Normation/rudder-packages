@@ -56,7 +56,7 @@ Name: %{real_name}
 Version: %{real_version}
 Release: 1%{?dist}
 Epoch: 0
-License: AGPLv3
+License: GPLv3
 URL: http://www.rudder-project.org
 
 Group: Applications/System
