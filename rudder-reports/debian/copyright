@@ -1,24 +1,15 @@
-This package was debianized by root <root@rudderVM.normation.com> on
-Mon, 17 Jan 2011 08:19:10 -0500.
+This package was debianized by:
 
-It was downloaded from <url://example.com>
+    Jonathan Clarke <jonathan.clarke@normation.com> on Mon, 17 Jan 2011 08:19:10 -0500
 
 Upstream Author(s):
 
-    <put author's name and email here>
-    <likewise for another author>
+    Normation - http://www.normation.com
 
 Copyright:
 
-    <Copyright (C) YYYY Name OfAuthor>
-    <likewise for another author>
+    Copyright (C) 2011-2015 Normation SAS
 
 License:
 
-    <Put the license of the package here indented by 4 spaces>
-
-The Debian packaging is (C) 2011, root <root@rudderVM.normation.com> and
-is licensed under the GPL, see `/usr/share/common-licenses/GPL'.
-
-# Please also look if there are files or directories which have a
-# different copyright/license attached and list them here.
+    GPLv3
