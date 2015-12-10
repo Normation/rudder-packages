@@ -72,7 +72,7 @@ BuildArch: noarch
 # Requirements
 
 ## General
-Requires: rsyslog
+Requires: rudder-agent rsyslog
 
 ## RHEL
 %if 0%{?rhel}
