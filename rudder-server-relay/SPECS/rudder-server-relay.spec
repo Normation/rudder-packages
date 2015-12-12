@@ -75,7 +75,7 @@ BuildArch: noarch
 # Requirements
 
 ## General
-Requires: rsyslog openssl %{apache} %{apache_tools}
+Requires: rudder-agent rsyslog openssl %{apache} %{apache_tools}
 
 ## RHEL
 %if 0%{?rhel}
