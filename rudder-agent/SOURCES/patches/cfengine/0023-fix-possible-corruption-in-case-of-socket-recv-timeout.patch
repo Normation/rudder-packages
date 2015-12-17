@@ -1,0 +1,128 @@
+diff -upr cfengine-3.6.3/libcfnet/classic.c cfengine-3.6.3-new/libcfnet/classic.c
+--- cfengine-3.6.3/libcfnet/classic.c	2014-12-05 22:58:50.000000000 +0100
++++ cfengine-3.6.3-new/libcfnet/classic.c	2015-12-17 15:12:07.148402026 +0100
+@@ -53,7 +53,11 @@ static bool LastRecvTimedOut(void)
+  * @param buffer Buffer into which to read data
+  * @param toget Number of bytes to read; a '\0' shall be written after
+  *        the data; buffer must have space for that.
+- * @return -1 on error; or actual length read.
++ *
++ * @return number of bytes actually received, might be less than #toget
++ *         <toget  when connection has been gracefully closed while we
++ *             were expecting more data.
++ *         -1  in case of timeout or error - socket is unusable
+  */
+ int RecvSocketStream(int sd, char buffer[CF_BUFSIZE], int toget)
+ {
+@@ -77,9 +81,17 @@ int RecvSocketStream(int sd, char buffer
+             }
+             else if (LastRecvTimedOut())
+             {
+-                Log(LOG_LEVEL_ERR,
+-                    "Timeout - remote end did not respond with the expected amount of data (received=%d, expecting=%d). (recv: %s)",
++                Log(LOG_LEVEL_ERR, "Receive timeout"
++                    " (received=%dB, expecting=%dB) (recv: %s)",
+                     already, toget, GetErrorStr());
++                Log(LOG_LEVEL_VERBOSE,
++                    "Consider increasing body agent control"
++                    " \"default_timeout\" setting");
++              
++                /* Shutdown() TCP connection despite of EAGAIN error, in
++                 * order to avoid receiving this delayed response later on
++                 * (Redmine #6027). */
++                shutdown(sd, SHUT_RDWR);
+             }
+             else
+             {
+diff -upr cfengine-3.6.3/libcfnet/tls_generic.c cfengine-3.6.3-new/libcfnet/tls_generic.c
+--- cfengine-3.6.3/libcfnet/tls_generic.c	2014-12-05 22:58:50.000000000 +0100
++++ cfengine-3.6.3-new/libcfnet/tls_generic.c	2015-12-17 15:12:05.873385299 +0100
+@@ -527,7 +527,7 @@ static const char *TLSPrimarySSLError(in
+  * @warning Use only for SSL_connect(), SSL_accept(), SSL_do_handshake(),
+  *          SSL_read(), SSL_peek(), SSL_write(), see SSL_get_error man page.
+  */
+-void TLSLogError(SSL *ssl, LogLevel level, const char *prepend, int retcode)
++int TLSLogError(SSL *ssl, LogLevel level, const char *prepend, int retcode)
+ {
+     assert(prepend != NULL);
+ 
+@@ -581,6 +581,8 @@ void TLSLogError(SSL *ssl, LogLevel leve
+             (errstr2 == NULL) ? "" : errstr2,          /* most likely empty */
+             syserr);
+     }
++    
++    return errcode;
+ }
+ 
+ static void assert_SSLIsBlocking(const SSL *ssl)
+@@ -652,9 +654,12 @@ int TLSSend(SSL *ssl, const char *buffer
+  * @param ssl SSL information.
+  * @param buffer Buffer, of size at least CF_BUFSIZE, to store received data.
+  * @param length Length of the data to receive, must be < CF_BUFSIZE.
++ *
+  * @return The length of the received data, which could be smaller or equal
+- *         than the requested or -1 in case of error or 0 if connection was
+- *         closed.
++ *         than the requested amount.
++ *         -1 in case of timeout or error - SSL session is unusable
++ *         0  if connection was closed
++ *
+  * @note Use only for *blocking* sockets. Set
+  *       SSL_CTX_set_mode(SSL_MODE_AUTO_RETRY) to make sure that either
+  *       operation completed or an error occured.
+@@ -668,7 +673,29 @@ int TLSRecv(SSL *ssl, char *buffer, int
+     int received = SSL_read(ssl, buffer, length);
+     if (received < 0)
+     {
+-        TLSLogError(ssl, LOG_LEVEL_ERR, "SSL_read", received);
++        int errcode = TLSLogError(ssl, LOG_LEVEL_ERR, "SSL_read", received);
++
++        /* SSL_read() might get an internal recv() timeout, since we've set
++         * SO_RCVTIMEO. In that case, the internal socket returns EAGAIN or
++         * EWOULDBLOCK and SSL_read() returns SSL_ERROR_WANT_READ. */
++        if (errcode == SSL_ERROR_WANT_READ)               /* recv() timeout */
++        {
++            /* Make sure that the peer will send us no more data. */
++            SSL_shutdown(ssl);
++            shutdown(SSL_get_fd(ssl), SHUT_RDWR);
++      
++            /* Empty possible SSL_read() buffers. */
++      
++            int ret = 1;
++            int bytes_still_buffered = SSL_pending(ssl);
++            while (bytes_still_buffered > 0 && ret > 0)
++            {
++                char tmpbuf[bytes_still_buffered];
++                ret = SSL_read(ssl, tmpbuf, bytes_still_buffered);
++                bytes_still_buffered -= ret;
++            }
++        }
++
+         return -1;
+     }
+     else if (received == 0)
+diff -upr cfengine-3.6.3/libcfnet/tls_generic.h cfengine-3.6.3-new/libcfnet/tls_generic.h
+--- cfengine-3.6.3/libcfnet/tls_generic.h	2014-08-29 16:44:14.000000000 +0200
++++ cfengine-3.6.3-new/libcfnet/tls_generic.h	2015-12-17 15:12:27.800672969 +0100
+@@ -41,7 +41,7 @@ bool TLSGenericInitialize(void);
+ int TLSVerifyCallback(X509_STORE_CTX *ctx, void *arg);
+ int TLSVerifyPeer(ConnectionInfo *conn_info, const char *remoteip, const char *username);
+ X509 *TLSGenerateCertFromPrivKey(RSA *privkey);
+-void TLSLogError(SSL *ssl, LogLevel level, const char *prepend, int code);
++int TLSLogError(SSL *ssl, LogLevel level, const char *prepend, int code);
+ int TLSSend(SSL *ssl, const char *buffer, int length);
+ int TLSRecv(SSL *ssl, char *buffer, int length);
+ int TLSRecvLines(SSL *ssl, char *buf, size_t buf_size);
+diff -upr cfengine-3.6.3/libutils/platform.h cfengine-3.6.3-new/libutils/platform.h
+--- cfengine-3.6.3/libutils/platform.h	2014-12-05 22:58:50.000000000 +0100
++++ cfengine-3.6.3-new/libutils/platform.h	2015-12-17 15:13:10.124228225 +0100
+@@ -63,6 +63,9 @@
+ # include <iphlpapi.h>
+ # include <ws2tcpip.h>
+ # include <objbase.h>           // for disphelper
++# ifndef SHUT_RDWR              // for shutdown()
++#  define SHUT_RDWR SD_BOTH
++# endif
+ #endif
+ 
+ /* Standard C. */
