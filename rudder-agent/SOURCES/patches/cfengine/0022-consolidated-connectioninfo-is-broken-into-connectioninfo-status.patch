@@ -1,36 +1,13 @@
-From e618407e17d890be42a7864bb7b230cd4f8b2c87 Mon Sep 17 00:00:00 2001
-From: Dimitrios Apostolou <dimitrios.apostolou@cfengine.com>
-Date: Fri, 23 Oct 2015 15:10:50 +0200
-Subject: [PATCH] Consolidated ConnectionInfo.is_broken into
- ConnectionInfo.status
-
-Further more I changed some promise failure messages from "connection
-timeout" to "connection error" since it can happen in a bunch of ways
-that will bring the protocol out of sync. If it's a timeout, it's logged
-earlier anyway, from within RecvSocketStream() or TLSRecv().
-
-(cherry picked from commit dc9143410bea20f8b87fde22a54a9842880152d2)
-
-Conflicts:
-	libcfnet/connection_info.h
-	cf-agent/verify_files_utils.c
----
- cf-agent/verify_files_utils.c | 20 ++++++++++++--------
- libcfnet/connection_info.h    | 11 ++++++-----
- libcfnet/net.c                | 16 ++++++++--------
- 3 files changed, 26 insertions(+), 21 deletions(-)
-
-diff --git a/cf-agent/verify_files_utils.c b/cf-agent/verify_files_utils.c
-index 83457ef..c0c14d9 100644
---- a/cf-agent/verify_files_utils.c
-+++ b/cf-agent/verify_files_utils.c
-@@ -756,10 +756,11 @@ static PromiseResult SourceSearchAndCopy(EvalContext *ctx, const char *from, cha
-     {
+diff -upr cfengine-3.7.1/cf-agent/verify_files_utils.c cfengine-3.7.1-b/cf-agent/verify_files_utils.c
+--- cfengine-3.7.1/cf-agent/verify_files_utils.c	2015-12-17 13:13:26.148402171 +0100
++++ cfengine-3.7.1-b/cf-agent/verify_files_utils.c	2015-12-17 13:13:11.869203762 +0100
+@@ -823,10 +823,11 @@ static PromiseResult SourceSearchAndCopy
+         /* This sends 1st STAT command. */
          if (!ConsiderAbstractFile(dirp->d_name, from, attr.copy, conn))
          {
 -            if (conn != NULL && conn->conn_info->is_broken)
 +            if (conn != NULL &&
-+                conn->conn_info->status != CF_CONNECTION_ESTABLISHED)
++                conn->conn_info->status != CONNECTIONINFO_STATUS_ESTABLISHED)
              {
                  cfPS(ctx, LOG_LEVEL_INFO, PROMISE_RESULT_INTERRUPTED, pp,
 -                     attr, "connection timeout");
@@ -38,13 +15,13 @@ index 83457ef..c0c14d9 100644
                  return PROMISE_RESULT_INTERRUPTED;
              }
              else
-@@ -790,10 +791,11 @@ static PromiseResult SourceSearchAndCopy(EvalContext *ctx, const char *from, cha
+@@ -863,10 +864,11 @@ static PromiseResult SourceSearchAndCopy
              if (cf_stat(newfrom, &sb, attr.copy, conn) == -1)
              {
                  Log(LOG_LEVEL_VERBOSE, "Can't stat '%s'. (cf_stat: %s)", newfrom, GetErrorStr());
 -                if (conn != NULL && conn->conn_info->is_broken)
 +                if (conn != NULL &&
-+                    conn->conn_info->status != CF_CONNECTION_ESTABLISHED)
++                    conn->conn_info->status != CONNECTIONINFO_STATUS_ESTABLISHED)
                  {
                      cfPS(ctx, LOG_LEVEL_INFO, PROMISE_RESULT_INTERRUPTED, pp,
 -                         attr, "connection timeout");
@@ -52,13 +29,13 @@ index 83457ef..c0c14d9 100644
                      return PROMISE_RESULT_INTERRUPTED;
                  }
                  else
-@@ -807,11 +809,12 @@ static PromiseResult SourceSearchAndCopy(EvalContext *ctx, const char *from, cha
+@@ -880,11 +882,12 @@ static PromiseResult SourceSearchAndCopy
              if (cf_lstat(newfrom, &sb, attr.copy, conn) == -1)
              {
                  Log(LOG_LEVEL_VERBOSE, "Can't stat '%s'. (cf_stat: %s)", newfrom, GetErrorStr());
 -                if (conn != NULL && conn->conn_info->is_broken)
 +                if (conn != NULL &&
-+                    conn->conn_info->status != CF_CONNECTION_ESTABLISHED)
++                    conn->conn_info->status != CONNECTIONINFO_STATUS_ESTABLISHED)
                  {
                      cfPS(ctx, LOG_LEVEL_INFO,
                           PROMISE_RESULT_INTERRUPTED, pp, attr,
@@ -67,13 +44,13 @@ index 83457ef..c0c14d9 100644
                      return PROMISE_RESULT_INTERRUPTED;
                  }
                  else
-@@ -975,10 +978,11 @@ static PromiseResult VerifyCopy(EvalContext *ctx, const char *source, char *dest
-         {
-             if (!ConsiderAbstractFile(dirp->d_name, sourcedir, attr.copy, conn))
+@@ -1060,10 +1063,11 @@ static PromiseResult VerifyCopy(EvalCont
+             if (!ConsiderAbstractFile(dirp->d_name, sourcedir,
+                                       attr.copy, conn))
              {
 -                if (conn != NULL && conn->conn_info->is_broken)
 +                if (conn != NULL &&
-+                    conn->conn_info->status != CF_CONNECTION_ESTABLISHED)
++                    conn->conn_info->status != CONNECTIONINFO_STATUS_ESTABLISHED)
                  {
                      cfPS(ctx, LOG_LEVEL_INFO, PROMISE_RESULT_INTERRUPTED,
 -                         pp, attr, "connection timeout");
@@ -81,10 +58,9 @@ index 83457ef..c0c14d9 100644
                      return PROMISE_RESULT_INTERRUPTED;
                  }
                  else
-diff --git a/libcfnet/connection_info.h b/libcfnet/connection_info.h
-index 853b765..10678fe 100644
---- a/libcfnet/connection_info.h
-+++ b/libcfnet/connection_info.h
+diff -upr cfengine-3.7.1/libcfnet/connection_info.h cfengine-3.7.1-b/libcfnet/connection_info.h
+--- cfengine-3.7.1/libcfnet/connection_info.h	2015-12-17 13:13:26.148402171 +0100
++++ cfengine-3.7.1-b/libcfnet/connection_info.h	2015-12-17 13:13:11.869203762 +0100
 @@ -37,13 +37,15 @@
   */
  
@@ -97,15 +73,15 @@ index 853b765..10678fe 100644
 + */
  typedef enum
  {
-     CF_CONNECTION_NOT_ESTABLISHED,
--    CF_CONNECTION_ESTABLISHED
-+    CF_CONNECTION_ESTABLISHED,
+     CONNECTIONINFO_STATUS_NOT_ESTABLISHED,
+-    CONNECTIONINFO_STATUS_ESTABLISHED
++    CONNECTIONINFO_STATUS_ESTABLISHED,
 +    /* used to propagate connection errors up in function calls */
 +    CONNECTIONINFO_STATUS_BROKEN
+     /* TODO ESTABLISHED==IDLE, BUSY, OFFLINE */
  } ConnectionStatus;
  
- struct ConnectionInfo {
-@@ -55,7 +57,6 @@ struct ConnectionInfo {
+@@ -56,7 +58,6 @@ struct ConnectionInfo {
      socklen_t ss_len;
      struct sockaddr_storage ss;
      bool is_call_collect;       /* Maybe replace with a bitfield later ... */
@@ -113,11 +89,11 @@ index 853b765..10678fe 100644
  };
  
  typedef struct ConnectionInfo ConnectionInfo;
-diff --git a/libcfnet/net.c b/libcfnet/net.c
-index fd8fc65..7d76156 100644
---- a/libcfnet/net.c
-+++ b/libcfnet/net.c
-@@ -123,7 +123,7 @@ int ReceiveTransaction(ConnectionInfo *conn_info, char *buffer, int *more)
+Only in cfengine-3.7.1-b/libcfnet: connection_info.h.orig
+diff -upr cfengine-3.7.1/libcfnet/net.c cfengine-3.7.1-b/libcfnet/net.c
+--- cfengine-3.7.1/libcfnet/net.c	2015-12-17 13:13:26.149402185 +0100
++++ cfengine-3.7.1-b/libcfnet/net.c	2015-12-17 13:13:11.869203762 +0100
+@@ -151,7 +151,7 @@ int ReceiveTransaction(ConnectionInfo *c
           * with files.
           * In order to make sure that file transfer is reliable we have to
           * close connection to avoid broken packages being received. */
@@ -126,7 +102,7 @@ index fd8fc65..7d76156 100644
          return ret;
      }
      else if (ret != CF_INBAND_OFFSET)
-@@ -133,7 +133,7 @@ int ReceiveTransaction(ConnectionInfo *conn_info, char *buffer, int *more)
+@@ -159,7 +159,7 @@ int ReceiveTransaction(ConnectionInfo *c
          Log(LOG_LEVEL_ERR,
              "ReceiveTransaction: bogus short header (%d bytes: '%s')",
              ret, proto);
@@ -135,7 +111,7 @@ index fd8fc65..7d76156 100644
          return -1;
      }
  
-@@ -144,28 +144,28 @@ int ReceiveTransaction(ConnectionInfo *conn_info, char *buffer, int *more)
+@@ -173,21 +173,21 @@ int ReceiveTransaction(ConnectionInfo *c
      {
          Log(LOG_LEVEL_ERR,
              "ReceiveTransaction: bogus header: %s", proto);
@@ -159,8 +135,9 @@ index fd8fc65..7d76156 100644
 +        conn_info->status = CONNECTIONINFO_STATUS_BROKEN;
          return -1;
      }
-     if (len <= 0)
-     {
+     else if (len <= 0)
+@@ -196,7 +196,7 @@ int ReceiveTransaction(ConnectionInfo *c
+          * ReceiveTransaction() == 0 currently means connection closed. */
          Log(LOG_LEVEL_ERR,
              "ReceiveTransaction: packet too short (len=%d)", len);
 -        conn_info->is_broken = true;
@@ -168,7 +145,7 @@ index fd8fc65..7d76156 100644
          return -1;
      }
  
-@@ -202,7 +202,7 @@ int ReceiveTransaction(ConnectionInfo *conn_info, char *buffer, int *more)
+@@ -233,7 +233,7 @@ int ReceiveTransaction(ConnectionInfo *c
  
      if (ret <= 0)
      {
@@ -177,7 +154,7 @@ index fd8fc65..7d76156 100644
          return ret;
      }
      else if (ret != len)
-@@ -218,7 +218,7 @@ int ReceiveTransaction(ConnectionInfo *conn_info, char *buffer, int *more)
+@@ -243,7 +243,7 @@ int ReceiveTransaction(ConnectionInfo *c
          Log(LOG_LEVEL_ERR,
              "Partial transaction read %d != %d bytes!",
              ret, len);
@@ -186,3 +163,4 @@ index fd8fc65..7d76156 100644
          return -1;
      }
  
+Only in cfengine-3.7.1-b/libcfnet: net.c.orig
