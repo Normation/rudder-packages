@@ -1,43 +1,8 @@
-From 178c167dc08dc2827c66d1c7f64642e2e6f089ca Mon Sep 17 00:00:00 2001
-From: Marcin Pasinski <marcin.pasinski@cfengine.com>
-Date: Wed, 21 Oct 2015 12:40:38 +0200
-Subject: [PATCH] Redmine #6027: Directories randomly changed to files.
-
-This is quite nasty and border case scenario. For recursive file
-copying if connection was timeouted recourse copying was continued.
-In some cases timeouted package was sent by the server (usually under
-heavy load) and was wrongly interpreted as response for next request.
-
-Usually (if not always) directories were created first and then files,
-so most often directory was replaced with a file and content of the file
-was corrupted protocol leftovers (t 74OK: 0 432 0 0 20010 1302 140197032)
-which is CFEngine copy file protocol transaction header and data.
-
-The fix is to drpo connection immediately after experiencing timeouts in
-all cases where files and/or directories are copied recursively in loop.
-
-Changelog: Redmine #6027 Directories should no more be changed randomly
-into files.
-
-(cherry picked from commit 94ea8cdf5b6fd41ff4c4350e5555d0da765c052d)
-
-Conflicts:
-	cf-agent/verify_files_utils.c
-	libcfnet/client_code.c
-	libcfnet/net.c
----
- cf-agent/verify_files_utils.c | 45 ++++++++++++++++++++++++++++---
- libcfnet/connection_info.h    |  1 +
- libcfnet/net.c                | 62 ++++++++++++++++++++++++++++++++++++++-----
- libcfnet/net.h                |  2 +-
- 4 files changed, 99 insertions(+), 11 deletions(-)
-
-diff --git a/cf-agent/verify_files_utils.c b/cf-agent/verify_files_utils.c
-index d3bddce..83457ef 100644
---- a/cf-agent/verify_files_utils.c
-+++ b/cf-agent/verify_files_utils.c
-@@ -756,7 +756,16 @@ static PromiseResult SourceSearchAndCopy(EvalContext *ctx, const char *from, cha
-     {
+diff -upr cfengine-3.7.1/cf-agent/verify_files_utils.c cfengine-3.7.1-b/cf-agent/verify_files_utils.c
+--- cfengine-3.7.1/cf-agent/verify_files_utils.c	2015-09-06 12:39:13.000000000 +0200
++++ cfengine-3.7.1-b/cf-agent/verify_files_utils.c	2015-12-17 13:05:14.706570253 +0100
+@@ -823,7 +823,16 @@ static PromiseResult SourceSearchAndCopy
+         /* This sends 1st STAT command. */
          if (!ConsiderAbstractFile(dirp->d_name, from, attr.copy, conn))
          {
 -            continue;
@@ -54,11 +19,11 @@ index d3bddce..83457ef 100644
          }
  
          if (attr.copy.purge)    /* Purge this file */
-@@ -781,7 +790,16 @@ static PromiseResult SourceSearchAndCopy(EvalContext *ctx, const char *from, cha
+@@ -854,7 +863,16 @@ static PromiseResult SourceSearchAndCopy
              if (cf_stat(newfrom, &sb, attr.copy, conn) == -1)
              {
                  Log(LOG_LEVEL_VERBOSE, "Can't stat '%s'. (cf_stat: %s)", newfrom, GetErrorStr());
--                continue;
+-                continue;                                       /* TODO FAIL? */
 +                if (conn != NULL && conn->conn_info->is_broken)
 +                {
 +                    cfPS(ctx, LOG_LEVEL_INFO, PROMISE_RESULT_INTERRUPTED, pp,
@@ -72,11 +37,11 @@ index d3bddce..83457ef 100644
              }
          }
          else
-@@ -789,7 +807,17 @@ static PromiseResult SourceSearchAndCopy(EvalContext *ctx, const char *from, cha
+@@ -862,7 +880,17 @@ static PromiseResult SourceSearchAndCopy
              if (cf_lstat(newfrom, &sb, attr.copy, conn) == -1)
              {
                  Log(LOG_LEVEL_VERBOSE, "Can't stat '%s'. (cf_stat: %s)", newfrom, GetErrorStr());
--                continue;
+-                continue;                                       /* TODO FAIL? */
 +                if (conn != NULL && conn->conn_info->is_broken)
 +                {
 +                    cfPS(ctx, LOG_LEVEL_INFO,
@@ -91,9 +56,9 @@ index d3bddce..83457ef 100644
              }
          }
  
-@@ -947,7 +975,16 @@ static PromiseResult VerifyCopy(EvalContext *ctx, const char *source, char *dest
-         {
-             if (!ConsiderAbstractFile(dirp->d_name, sourcedir, attr.copy, conn))
+@@ -1032,7 +1060,16 @@ static PromiseResult VerifyCopy(EvalCont
+             if (!ConsiderAbstractFile(dirp->d_name, sourcedir,
+                                       attr.copy, conn))
              {
 -                continue;
 +                if (conn != NULL && conn->conn_info->is_broken)
@@ -109,11 +74,22 @@ index d3bddce..83457ef 100644
              }
  
              strcpy(sourcefile, sourcedir);
-diff --git a/libcfnet/connection_info.h b/libcfnet/connection_info.h
-index 1216a7f..853b765 100644
---- a/libcfnet/connection_info.h
-+++ b/libcfnet/connection_info.h
-@@ -55,6 +55,7 @@ struct ConnectionInfo {
+diff -upr cfengine-3.7.1/libcfnet/client_code.c cfengine-3.7.1-b/libcfnet/client_code.c
+--- cfengine-3.7.1/libcfnet/client_code.c	2015-09-06 12:39:13.000000000 +0200
++++ cfengine-3.7.1-b/libcfnet/client_code.c	2015-12-17 13:05:14.707570267 +0100
+@@ -754,7 +754,7 @@ int CopyRegularFileNet(const char *sourc
+     {
+         int toget = MIN(size - n_read_total, buf_size);
+ 
+-        assert(toget != 0);
++        assert(toget > 0);
+ 
+         /* Stage C1 - receive */
+         int n_read;
+diff -upr cfengine-3.7.1/libcfnet/connection_info.h cfengine-3.7.1-b/libcfnet/connection_info.h
+--- cfengine-3.7.1/libcfnet/connection_info.h	2015-09-06 12:39:13.000000000 +0200
++++ cfengine-3.7.1-b/libcfnet/connection_info.h	2015-12-17 13:05:14.707570267 +0100
+@@ -56,6 +56,7 @@ struct ConnectionInfo {
      socklen_t ss_len;
      struct sockaddr_storage ss;
      bool is_call_collect;       /* Maybe replace with a bitfield later ... */
@@ -121,11 +97,10 @@ index 1216a7f..853b765 100644
  };
  
  typedef struct ConnectionInfo ConnectionInfo;
-diff --git a/libcfnet/net.c b/libcfnet/net.c
-index d028aa0..fd8fc65 100644
---- a/libcfnet/net.c
-+++ b/libcfnet/net.c
-@@ -94,7 +94,7 @@ int SendTransaction(const ConnectionInfo *conn_info,
+diff -upr cfengine-3.7.1/libcfnet/net.c cfengine-3.7.1-b/libcfnet/net.c
+--- cfengine-3.7.1/libcfnet/net.c	2015-09-06 12:39:13.000000000 +0200
++++ cfengine-3.7.1-b/libcfnet/net.c	2015-12-17 13:05:14.707570267 +0100
+@@ -123,7 +123,7 @@ int SendTransaction(const ConnectionInfo
   *  @return 0 in case of socket closed, -1 in case of other error, or
   *          >0 the number of bytes read.
   */
@@ -133,12 +108,11 @@ index d028aa0..fd8fc65 100644
 +int ReceiveTransaction(ConnectionInfo *conn_info, char *buffer, int *more)
  {
      char proto[CF_INBAND_OFFSET + 1] = { 0 };
-     char status = 'x';
-@@ -116,7 +116,26 @@ int ReceiveTransaction(const ConnectionInfo *conn_info, char *buffer, int *more)
-         ret = -1;
-     }
+     int ret;
+@@ -145,6 +145,13 @@ int ReceiveTransaction(const ConnectionI
+ 
      if (ret == -1 || ret == 0)
-+    {
+     {
 +        /* We are experiencing problems with receiving data from server.
 +         * This might lead to packages being not delivered in correct
 +         * order and unexpected issues like directories being replaced
@@ -147,89 +121,70 @@ index d028aa0..fd8fc65 100644
 +         * close connection to avoid broken packages being received. */
 +        conn_info->is_broken = true;
          return ret;
-+    }
-+    else if (ret != CF_INBAND_OFFSET)
-+    {
-+        /* If we received less bytes than expected. Might happen
-+         * with TLSRecv(). */
-+        Log(LOG_LEVEL_ERR,
-+            "ReceiveTransaction: bogus short header (%d bytes: '%s')",
-+            ret, proto);
+     }
+     else if (ret != CF_INBAND_OFFSET)
+@@ -152,6 +159,7 @@ int ReceiveTransaction(const ConnectionI
+         Log(LOG_LEVEL_ERR,
+             "ReceiveTransaction: bogus short header (%d bytes: '%s')",
+             ret, proto);
 +        conn_info->is_broken = true;
-+        return -1;
-+    }
+         return -1;
+     }
  
-     LogRaw(LOG_LEVEL_DEBUG, "ReceiveTransaction header: ", proto, ret);
- 
-@@ -124,20 +143,29 @@ int ReceiveTransaction(const ConnectionInfo *conn_info, char *buffer, int *more)
-     if (ret != 2)
+@@ -165,18 +173,21 @@ int ReceiveTransaction(const ConnectionI
      {
          Log(LOG_LEVEL_ERR,
--            "ReceiveTransaction: Bad packet -- bogus header: %s", proto);
-+            "ReceiveTransaction: bogus header: %s", proto);
+             "ReceiveTransaction: bogus header: %s", proto);
 +        conn_info->is_broken = true;
-+        return -1;
-+    }
-+    if (status != CF_MORE && status != CF_DONE)
-+    {
-+        Log(LOG_LEVEL_ERR,
-+            "ReceiveTransaction: bogus header (more='%c')", status);
+         return -1;
+     }
+     if (status != CF_MORE && status != CF_DONE)
+     {
+         Log(LOG_LEVEL_ERR,
+             "ReceiveTransaction: bogus header (more='%c')", status);
 +        conn_info->is_broken = true;
          return -1;
      }
      if (len > CF_BUFSIZE - CF_INBAND_OFFSET)
      {
          Log(LOG_LEVEL_ERR,
--            "ReceiveTransaction: Bad packet -- too long (len=%d)", len);
-+            "ReceiveTransaction: packet too long (len=%d)", len);
+             "ReceiveTransaction: packet too long (len=%d)", len);
 +        conn_info->is_broken = true;
          return -1;
      }
--    if (status != CF_MORE && status != CF_DONE)
-+    if (len <= 0)
-     {
+     else if (len <= 0)
+@@ -185,6 +196,7 @@ int ReceiveTransaction(const ConnectionI
+          * ReceiveTransaction() == 0 currently means connection closed. */
          Log(LOG_LEVEL_ERR,
--            "ReceiveTransaction: Bad packet -- bogus header (more='%c')",
--            status);
-+            "ReceiveTransaction: packet too short (len=%d)", len);
+             "ReceiveTransaction: packet too short (len=%d)", len);
 +        conn_info->is_broken = true;
          return -1;
      }
  
-@@ -172,6 +200,28 @@ int ReceiveTransaction(const ConnectionInfo *conn_info, char *buffer, int *more)
+@@ -219,8 +231,9 @@ int ReceiveTransaction(const ConnectionI
          ret = -1;
      }
  
+-    if (ret == -1 || ret == 0)
 +    if (ret <= 0)
-+    {
+     {
 +        conn_info->is_broken = true;
-+        return ret;
-+    }
-+    else if (ret != len)
-+    {
-+        /*
-+         * Should never happen except with TLS, given that we are using
-+         * SSL_MODE_AUTO_RETRY and that transaction payload < CF_BUFSIZE < TLS
-+         * record size, it can currently only happen if the other side does
-+         * TLSSend(wrong_number) for the transaction.
-+         *
-+         * TODO IMPORTANT terminate TLS session in that case.
-+         */
-+        Log(LOG_LEVEL_ERR,
-+            "Partial transaction read %d != %d bytes!",
-+            ret, len);
+         return ret;
+     }
+     else if (ret != len)
+@@ -230,6 +243,7 @@ int ReceiveTransaction(const ConnectionI
+         Log(LOG_LEVEL_ERR,
+             "Partial transaction read %d != %d bytes!",
+             ret, len);
 +        conn_info->is_broken = true;
-+        return -1;
-+    }
-+
-     LogRaw(LOG_LEVEL_DEBUG, "ReceiveTransaction data: ", buffer, ret);
+         return -1;
+     }
  
-     return ret;
-diff --git a/libcfnet/net.h b/libcfnet/net.h
-index 5e2aca1..cae602b 100644
---- a/libcfnet/net.h
-+++ b/libcfnet/net.h
-@@ -32,7 +32,7 @@
+Only in cfengine-3.7.1-b/libcfnet: net.c.orig
+diff -upr cfengine-3.7.1/libcfnet/net.h cfengine-3.7.1-b/libcfnet/net.h
+--- cfengine-3.7.1/libcfnet/net.h	2015-09-06 12:39:13.000000000 +0200
++++ cfengine-3.7.1-b/libcfnet/net.h	2015-12-17 13:05:14.707570267 +0100
+@@ -35,7 +35,7 @@ extern uint32_t bwlimit_kbytes;
  
  
  int SendTransaction(const ConnectionInfo *conn_info, const char *buffer, int len, char status);
