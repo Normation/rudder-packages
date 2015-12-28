@@ -20,8 +20,6 @@ set -e
 
 case "$1" in
     configure)
-    chmod 755 -R /opt/rudder/share/tools
-
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
