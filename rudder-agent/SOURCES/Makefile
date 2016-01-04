@@ -20,6 +20,8 @@
 
 # Versions to use
 RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
+RUDDER_MAJOR_VERSION := $(shell echo ${RUDDER_VERSION_TO_PACKAGE} | cut -d'.' -f 1-2)
+
 CFENGINE_RELEASE = 3.7.1
 FUSION_RELEASE = 2.3.6
 LMDB_RELEASE = 0.9.16
@@ -94,7 +96,7 @@ endif
 
 # download dependencies
 depend: localdepends
-localdepends: initial-promises rudder-agent-utilities perl-$(PERL_VERSION) fusioninventory-agent cfengine-source openssl-source lmdb-source rudder-agent.cron
+localdepends: initial-promises rudder-agent-utilities perl-$(PERL_VERSION) fusioninventory-agent cfengine-source openssl-source lmdb-source rudder-agent.cron ./rudder.8.gz
 	rm -rf $(TMP_DIR)
 
 # build binaries
@@ -230,6 +232,11 @@ rudder-sources: rudder-sources.tar.bz2
 	bunzip2 < rudder-sources.tar.bz2 | $(TAR) xf -
 	mv rudder-sources-$(RUDDER_VERSION_TO_PACKAGE)*/ rudder-sources/ # the '*' is needed for nightly release
 	touch rudder-sources # to make it younger than the bzip source file
+
+./rudder.8.gz:
+	# Get man page from rudder-project.org
+	$(WGET) http://www.rudder-project.org/rudder-doc-${RUDDER_MAJOR_VERSION}/rudder.8
+	gzip -f rudder.8
 
 initial-promises: ./rudder-sources
 	rm -rf ./initial-promises/
