@@ -110,8 +110,11 @@ binary-arch: install
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES run-inventory /opt/rudder/bin
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES signature.sh /opt/rudder/bin
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES initial-promises /opt/rudder/share
+	# Install the rudder command
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-agent-utilities/bin rudder /opt/rudder/bin
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-agent-utilities/share commands /opt/rudder/share
+	# Install the rudder man page
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder.8.gz /opt/rudder/share/man/man8/
 	# Install an empty uuid.hive file before generating an uuid
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ uuid.hive /opt/rudder/etc/
 	# Install /etc/ld.so.conf.d/rudder.conf in order to use libraries contain
