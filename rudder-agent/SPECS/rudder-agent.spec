@@ -73,6 +73,7 @@ Source11: rudder-perl
 Source12: rudder-agent-utilities
 Source13: rudder.init
 Source14: signature.sh
+Source15: rudder.8.gz
 
 # uuidgen doesn't exist on AIX, so we provide a simple shell compatible version
 %if "%{?_os}" == "aix"
@@ -425,6 +426,9 @@ mkdir -p %{buildroot}/etc/ld.so.conf.d
 # Rudder agent utilities
 %{install_command} -m 755 %{SOURCE12}/bin/rudder %{buildroot}%{rudderdir}/bin/rudder
 %{cp_a_command} %{SOURCE12}/share/commands/* %{buildroot}%{rudderdir}/share/commands/
+
+# Rudder agent command manual
+%{install_command} -m 644 %{SOURCE15} %{buildroot}%{rudderdir}/share/man/man8/rudder.8.gz
 
 # Create a symlink to make "rudder" available as part of the
 # default PATH
