@@ -79,10 +79,6 @@ endif
 	rm -rf ./initial-promises/
 	cp -a ./rudder-sources/rudder-techniques/initial-promises/node-server/ ./initial-promises
 
-# Needed for perl-prepare.sh
-./detect_os.sh: ./rudder-sources
-	cp ./rudder-sources/rudder-packages/detect_os.sh ./detect_os.sh
-
 ./fusioninventory-agent: /usr/bin/wget
 ifeq ($(shell ../../build-caching get --force-config ./fusioninventory-agent/ name=fusioninventory-agent version=$(FUSION_RELEASE) >/dev/null 2>&1 || echo KO), KO)
 	#Original URL: http://search.cpan.org/CPAN/authors/id/G/GR/GROUSSE/FusionInventory-Agent-$(FUSION_RELEASE).tar.gz
