@@ -310,28 +310,44 @@ install -m 755 %{SOURCE22} %{buildroot}%{rudderdir}/bin/
 echo 'root' > /opt/rudder/etc/uuid.hive
 
 echo -n "INFO: Setting Apache HTTPd as a boot service..."
+%if 0%{?rhel} && 0%{?rhel} < 7
 chkconfig --add %{apache} 2&> /dev/null
-%if 0%{?rhel} && 0%{?rhel} >= 6
+%endif
+%if 0%{?rhel} && 0%{?rhel} = 6
 chkconfig %{apache} on
+%endif
+%if 0%{?rhel} && 0%{?rhel} >= 7
+systemctl enable %{apache}.service
 %endif
 echo " Done"
 
 echo -n "INFO: Restarting syslog..."
+%if 0%{?rhel} < 7
 service %{syslogservicename} restart > /dev/null
+%{sysloginitscript} restart > /dev/null
+%endif
+%if 0%{?rhel} >= 7
+/bin/systemctl restart  rsyslog.service
+%endif
 echo " Done"
 
 echo -n "INFO: Stopping Apache HTTPd..."
+%if 0%{?rhel} < 7
 service %{apache} stop >/dev/null 2>&1
+%endif
+%if 0%{?rhel} >= 7
+/bin/systemctl stop %{apache}.service
+%endif
 echo " Done"
 
 # Do this ONLY at first install
 if [ $1 -eq 1 ]
 then
-		echo -e '# This sources the configuration file needed by Rudder\n. /etc/sysconfig/rudder-apache' >> /etc/sysconfig/apache2
-		echo 'DAVLockDB /tmp/davlock.db' > /etc/%{apache}/conf.d/dav_mod.conf
+  echo -e '# This sources the configuration file needed by Rudder\n. /etc/sysconfig/rudder-apache' >> /etc/sysconfig/apache2
+  echo 'DAVLockDB /tmp/davlock.db' > /etc/%{apache}/conf.d/dav_mod.conf
 fi
 
-# Create the configuration-repository group if it does not exist
+# Create the configuration-repository group if it does not exist
 if ! getent group %{config_repository_group} > /dev/null; then
   echo -n "INFO: Creating group %{config_repository_group}..."
   groupadd --system %{config_repository_group}
@@ -425,7 +441,12 @@ fi
 %endif
 
 echo -n "INFO: Starting Apache HTTPd..."
+%if 0%{?rhel} < 7
 service %{apache} start >/dev/null 2>&1
+%endif
+%if 0%{?rhel} >= 7
+/bin/systemctl start %{apache}.service
+%endif
 echo " Done"
 
 # Run any upgrades

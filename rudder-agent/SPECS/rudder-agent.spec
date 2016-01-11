@@ -500,7 +500,7 @@ then
   /usr/sbin/mkitab "rudder-agent:23456789:once:/usr/bin/startsrc -s rudder-agent"
   # No need to tell init to re-read /etc/inittab, it does it automatically every 60 seconds
 %else
-  RUDDER_AGENT_INIT_ENABLED=$(LANG=C chkconfig --list | grep -Ec "rudder-agent.*on")
+  RUDDER_AGENT_INIT_ENABLED=$(LANG=C chkconfig --list 2>/dev/null | grep -Ec "rudder-agent.*on")
 
   if [ "${RUDDER_AGENT_INIT_ENABLED}" -ne 0 ]
   then
