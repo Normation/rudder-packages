@@ -108,6 +108,7 @@ install: build $(INSTALL_DEPS) install-fusion install-cfengine initial-promises 
 	mkdir -p $(INSTALL_DIR)/etc
 	mkdir -p $(INSTALL_DIR)/bin
 	mkdir -p $(INSTALL_DIR)/share/commands
+	mkdir -p $(INSTALL_DIR)/share/lib
 	mkdir -p $(DESTDIR)/var/rudder/cfengine-community/bin
 	mkdir -p $(DESTDIR)/var/rudder/cfengine-community/inputs
 	mkdir -p $(DESTDIR)/var/rudder/tmp
@@ -153,6 +154,7 @@ endif
 	# Rudder agent utilities
 	$(INSTALL) -m 755 rudder-agent-utilities/bin/rudder $(INSTALL_DIR)/bin/
 	$(INSTALL) -m 755 rudder-agent-utilities/share/commands/* $(INSTALL_DIR)/share/commands/
+	$(INSTALL) -m 755 rudder-agent-utilities/share/lib/* $(INSTALL_DIR)/share/lib/
 
 	# Create a symlink to make "rudder" available as part of the default PATH
 	ln -sf $(RUDDER_DIR)/bin/rudder $(DESTDIR)/usr/bin/rudder
