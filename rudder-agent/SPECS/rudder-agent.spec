@@ -685,7 +685,7 @@ fi
 if [ ${CFRUDDER_FIRST_INSTALL} -ne 1 ]
 then
   echo "INFO: Trigger an inventory..."
-  /opt/rudder/bin/rudder agent inventory >> %{rudderlogdir}/install/rudder-agent.log 2>&1
+  /opt/rudder/bin/rudder agent inventory >> %{rudderlogdir}/install/rudder-agent.log 2>&1 || true
 fi
 
 # launch rudder agent check script, it will generate an UUID on first install or repair it if needed
