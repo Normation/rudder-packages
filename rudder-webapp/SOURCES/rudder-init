@@ -167,10 +167,10 @@ LDAPInit()
   sed -i "s/^\([^#].*\)%%POLICY_SERVER_HOSTNAME%%/\1${RUDDER_HOSTNAME}/g" $INITPOLICY_PATH
   sed -i "s#^\([^#].*\)%%POLICY_SERVER_ALLOWED_NETWORKS%%#\1$NET#g" $INITPOLICY_PATH
 
-  ${LDAPADD} -f $BOOTSTRAP_PATH &> $TMP_LOG
+  ${LDAPADD} -f $BOOTSTRAP_PATH &>> $TMP_LOG
   ErrorCheck
 
-  ${LDAPADD} -f $INITPOLICY_PATH &> $TMP_LOG
+  ${LDAPADD} -f $INITPOLICY_PATH &>> $TMP_LOG
   ErrorCheck
 }
 
@@ -361,9 +361,9 @@ echo -n "Restarting services..."
 
 ## Manually launch cf-agent to set up policy server
 # Running failsafe will create required directories (such as /var/rudder/ncf/local) and populate tools
-cf-agent -f failsafe.cf &> "$TMP_LOG"
+cf-agent -f failsafe.cf &>> "$TMP_LOG"
 # Run all server-specific bundles (except propagatePromises, because they're aren't any yet)
-cf-agent -b propagatePromises,install_rsyslogd,root_component_check &> "$TMP_LOG"
+cf-agent -b propagatePromises,install_rsyslogd,root_component_check &>> "$TMP_LOG"
 
 ## Then, restart jetty
 ${JETTY_INIT} restart >> "${TMP_LOG}" 2>&1 || echo "WARNING: Jetty failed to start, maybe there is not enough RAM or swap on the machine. Skipping..."
