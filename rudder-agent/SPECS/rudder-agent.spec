@@ -358,6 +358,7 @@ mkdir -p %{buildroot}%{rudderdir}/share/man/man8
 mkdir -p %{buildroot}%{rudderdir}/etc
 mkdir -p %{buildroot}%{rudderdir}/share
 mkdir -p %{buildroot}%{rudderdir}/share/commands
+mkdir -p %{buildroot}%{rudderdir}/share/lib
 mkdir -p %{buildroot}%{ruddervardir}/cfengine-community/bin
 mkdir -p %{buildroot}%{ruddervardir}/cfengine-community/inputs
 mkdir -p %{buildroot}%{ruddervardir}/tmp
@@ -426,6 +427,7 @@ mkdir -p %{buildroot}/etc/ld.so.conf.d
 # Rudder agent utilities
 %{install_command} -m 755 %{SOURCE12}/bin/rudder %{buildroot}%{rudderdir}/bin/rudder
 %{cp_a_command} %{SOURCE12}/share/commands/* %{buildroot}%{rudderdir}/share/commands/
+%{cp_a_command} %{SOURCE12}/share/lib/* %{buildroot}%{rudderdir}/share/lib/
 
 # Rudder agent command manual
 %{install_command} -m 644 %{SOURCE15} %{buildroot}%{rudderdir}/share/man/man8/rudder.8.gz

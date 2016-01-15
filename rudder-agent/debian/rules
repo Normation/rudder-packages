@@ -114,6 +114,7 @@ binary-arch: install
 	# Install the rudder command
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-agent-utilities/bin rudder /opt/rudder/bin
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-agent-utilities/share commands /opt/rudder/share
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-agent-utilities/share lib /opt/rudder/share
 	# Install the rudder man page
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder.8.gz /opt/rudder/share/man/man8/
 	# Install an empty uuid.hive file before generating an uuid
