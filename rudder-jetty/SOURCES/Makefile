@@ -22,6 +22,7 @@ JETTY_RELEASE = 7.6.14
 DATE_RELEASE = 20131031
 TMP_DIR := $(shell mktemp -dq)
 WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget -q
+FIND := /usr/bin/find
 
 localdepends: ./jetty7
 	rm -rf $(TMP_DIR)
