@@ -326,30 +326,37 @@ upgrade_ncf() {
     fi
   fi
 
-  # Make sure that ncf uses the right logger bundles (_logger_default and logger_rudder)
-  STEP="Make sure that ncf uses the right logger bundles (_logger_default and logger_rudder)"
+  if [ -f ${CONFIGURATION_REPOSITORY}/ncf/ncf.conf ]; then
+    # Make sure that ncf uses the right logger bundles (_logger_default and logger_rudder)
+    STEP="Make sure that ncf uses the right logger bundles (_logger_default and logger_rudder)"
 
-  # Rename _logger_default to _log_default
-  if grep -Eq "^loggers=.*_logger_default.*" ${RUDDER_VAR}/ncf/common/ncf.conf; then
-    sed -i "s%^loggers=\(.*\)_logger_default\(.*\)$%loggers=\1_log_default\2%" ${RUDDER_VAR}/ncf/common/ncf.conf
+    # Rename _logger_default to _log_default
+    if grep -Eq "^loggers=.*_logger_default.*" ${CONFIGURATION_REPOSITORY}/ncf/ncf.conf; then
+      sed -i "s%^loggers=\(.*\)_logger_default\(.*\)$%loggers=\1_log_default\2%" ${CONFIGURATION_REPOSITORY}/ncf/ncf.conf
+    fi
+
+    # Rename logger_rudder to log_rudder
+    if grep -Eq "^loggers=.*logger_rudder.*" ${CONFIGURATION_REPOSITORY}/ncf/ncf.conf; then
+      sed -i "s%^loggers=\(.*\)logger_rudder\(.*\)$%loggers=\1log_rudder\2%" ${CONFIGURATION_REPOSITORY}/ncf/ncf.conf
+    fi
+
+    # Add log_rudder if it's not present
+    if ! grep -Eq "^loggers=.*log_rudder.*" ${CONFIGURATION_REPOSITORY}/ncf/ncf.conf; then
+      sed -i "s%^loggers=\(.*\)%loggers=\1,log_rudder%" ${CONFIGURATION_REPOSITORY}/ncf/ncf.conf
+    fi
+
+    # Make sure that ncf uses the right CFEngine port (5309)
+    STEP="Make sure that ncf uses the right CFEngine port (5309)"
+
+    if ! cat ${CONFIGURATION_REPOSITORY}/ncf/ncf.conf | perl -p0e "s/\n/%%%%%/g" | egrep -q "classes.community_edition[^%]*%%%%%cfengine_port=5309"; then
+      cat ${CONFIGURATION_REPOSITORY}/ncf/ncf.conf | perl -p0e "s/\n/%%%%%/g" | sed "s/\(classes.community_edition[^%]*%%%%%cfengine_port=\)[0-9]\+/\15309/" | perl -p0e "s/%%%%%/\n/g" > ${CONFIGURATION_REPOSITORY}/ncf/ncf.conf.new
+      mv ${CONFIGURATION_REPOSITORY}/ncf/ncf.conf.new ${CONFIGURATION_REPOSITORY}/ncf/ncf.conf
+    fi
+
+    # Anticipate the copy from ${CONFIGURATION_REPOSITORY}/ncf to ${RUDDER_VAR}/ncf/local
+    cp -f ${CONFIGURATION_REPOSITORY}/ncf/ncf.conf ${RUDDER_VAR}/ncf/local/
   fi
 
-  # Rename logger_rudder to log_rudder
-  if grep -Eq "^loggers=.*logger_rudder.*" ${RUDDER_VAR}/ncf/common/ncf.conf; then
-    sed -i "s%^loggers=\(.*\)logger_rudder\(.*\)$%loggers=\1log_rudder\2%" ${RUDDER_VAR}/ncf/common/ncf.conf
-  fi
-
-  # Add log_rudder if it's not present
-  if ! grep -Eq "^loggers=.*log_rudder.*" ${RUDDER_VAR}/ncf/common/ncf.conf; then
-    sed -i "s%^loggers=\(.*\)%loggers=\1,log_rudder%" ${RUDDER_VAR}/ncf/common/ncf.conf
-  fi
-
-  # Make sure that ncf uses the right CFEngine port (5309)
-  STEP="Make sure that ncf uses the right CFEngine port (5309)"
-
-  if ! grep -Eq "^cfengine_port=5309" ${RUDDER_VAR}/ncf/common/ncf.conf; then
-    sed -i "s%^cfengine_port=.*%cfengine_port=5309%" ${RUDDER_VAR}/ncf/common/ncf.conf
-  fi
 }
 
 # Call rudderify on all local ncf techniques to make sure the promises will be properly generated
