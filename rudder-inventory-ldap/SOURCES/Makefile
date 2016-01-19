@@ -44,7 +44,7 @@ localdepends: ./berkeleydb-source ./openldap-source ./rudder.schema ./inventory.
 	mv ./openldap-$(OPENLDAP_RELEASE) ./openldap-source
 	
 	# Apply patches
-	for PATCHNAME in patches/openldap/*.patch; do echo "Applying $$PATCHNAME..."; $(PATCH) -d ./openldap-source -p1 < $$PATCHNAME; done
+	#for PATCHNAME in patches/openldap/*.patch; do echo "Applying $$PATCHNAME..."; $(PATCH) -d ./openldap-source -p1 < $$PATCHNAME; done
 	# Make sure there were no rejects
 	test `$(FIND) ./openldap-source -name \*.rej | wc -l` = 0
 
