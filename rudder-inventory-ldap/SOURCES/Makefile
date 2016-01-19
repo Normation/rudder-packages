@@ -24,6 +24,8 @@ BERKELEYDB_RELEASE = 5.1.29
 RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
 
 WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget -q
+PATCH := /usr/bin/patch
+FIND := /usr/bin/find
 
 localdepends: ./berkeleydb-source ./openldap-source ./rudder.schema ./inventory.schema ../debian/rudder-slapd.init ../debian/rudder-slapd.default
 	rm -rf ./openldap.tgz
@@ -40,6 +42,11 @@ localdepends: ./berkeleydb-source ./openldap-source ./rudder.schema ./inventory.
 	$(WGET) -O ./openldap.tgz http://www.normation.com/tarball/openldap/openldap-$(OPENLDAP_RELEASE).tgz
 	tar xzf ./openldap.tgz -C .
 	mv ./openldap-$(OPENLDAP_RELEASE) ./openldap-source
+	
+	# Apply patches
+	for PATCHNAME in patches/openldap/*.patch; do echo "Applying $$PATCHNAME..."; $(PATCH) -d ./openldap-source -p1 < $$PATCHNAME; done
+	# Make sure there were no rejects
+	test `$(FIND) ./openldap-source -name \*.rej | wc -l` = 0
 
 ./rudder-sources.tar.bz2:
 	$(WGET) -O rudder-sources.tar.bz2 http://www.rudder-project.org/archives/rudder-sources-${RUDDER_VERSION_TO_PACKAGE}.tar.bz2
