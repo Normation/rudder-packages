@@ -22,6 +22,7 @@ RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
 
 MAKE  := /usr/bin/make
 PATCH := /usr/bin/patch
+FIND  := /usr/bin/find
 
 localdepends: ./rudder-agent.make build-sources
 
