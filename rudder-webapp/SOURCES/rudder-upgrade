@@ -323,19 +323,26 @@ upgrade_ncf() {
     fi
   fi
 
-  # Make sure that ncf uses the right logger bundles (_logger_default and logger_rudder)
-  STEP="Make sure that ncf uses the right logger bundles (_logger_default and logger_rudder)"
+  if [ -f ${CONFIGURATION_REPOSITORY}/ncf/ncf.conf ]; then
+    # Make sure that ncf uses the right logger bundles (_logger_default and logger_rudder)
+    STEP="Make sure that ncf uses the right logger bundles (_logger_default and logger_rudder)"
 
-  if ! grep -Eq "^loggers=.*logger_rudder.*" ${RUDDER_VAR}/ncf/common/ncf.conf; then
-    sed -i "s%^loggers=\(.*\)%loggers=\1,logger_rudder%" ${RUDDER_VAR}/ncf/common/ncf.conf
+    if ! grep -Eq "^loggers=.*logger_rudder.*" ${CONFIGURATION_REPOSITORY}/ncf/ncf.conf; then
+      sed -i "s%^loggers=\(.*\)%loggers=\1,logger_rudder%" ${CONFIGURATION_REPOSITORY}/ncf/ncf.conf
+    fi
+
+    # Make sure that ncf uses the right CFEngine port (5309)
+    STEP="Make sure that ncf uses the right CFEngine port (5309)"
+
+    if ! cat ${CONFIGURATION_REPOSITORY}/ncf/ncf.conf | perl -p0e "s/\n/%%%%%/g" | egrep -q "classes.community_edition[^%]*%%%%%cfengine_port=5309"; then
+      cat ${CONFIGURATION_REPOSITORY}/ncf/ncf.conf | perl -p0e "s/\n/%%%%%/g" | sed "s/\(classes.community_edition[^%]*%%%%%cfengine_port=\)[0-9]\+/\15309/" | perl -p0e "s/%%%%%/\n/g" > ${CONFIGURATION_REPOSITORY}/ncf/ncf.conf.new
+      mv ${CONFIGURATION_REPOSITORY}/ncf/ncf.conf.new ${CONFIGURATION_REPOSITORY}/ncf/ncf.conf
+    fi
+
+    # Anticipate the copy from ${CONFIGURATION_REPOSITORY}/ncf to ${RUDDER_VAR}/ncf/local
+    cp -f ${CONFIGURATION_REPOSITORY}/ncf/ncf.conf ${RUDDER_VAR}/ncf/local/
   fi
 
-  # Make sure that ncf uses the right CFEngine port (5309)
-  STEP="Make sure that ncf uses the right CFEngine port (5309)"
-
-  if ! grep -Eq "^cfengine_port=5309" ${RUDDER_VAR}/ncf/common/ncf.conf; then
-    sed -i "s%^cfengine_port=.*%cfengine_port=5309%" ${RUDDER_VAR}/ncf/common/ncf.conf
-  fi
 }
 
 ################################################################################
