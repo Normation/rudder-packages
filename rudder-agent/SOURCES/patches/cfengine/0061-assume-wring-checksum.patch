@@ -1,0 +1,40 @@
+From b35de1e56803165b2a29fa65a71bbcbf9cff6cda Mon Sep 17 00:00:00 2001
+From: Alexis Mousset <alexis.mousset@normation.com>
+Date: Mon, 25 Jan 2016 16:04:24 +0100
+Subject: [PATCH] In case of networking error, assume checksum is wrong
+
+When a checksum is done to check is it is necessary to update the file,
+the copy will stop anyway because of the networking error.
+When it is used to check a file after copy (before moving .cfnew)
+the agent should not consider the content it has received as correct
+(espacially in a networking/server error context).
+
+Changelog: Title
+---
+ libcfnet/client_code.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/libcfnet/client_code.c b/libcfnet/client_code.c
+index a3b7620..c10b8c2 100644
+--- a/libcfnet/client_code.c
++++ b/libcfnet/client_code.c
+@@ -463,15 +463,16 @@ int CompareHashNet(const char *file1, const char *file2, bool encrypt, AgentConn
+     if (SendTransaction(conn->conn_info, sendbuffer, tosend, CF_DONE) == -1)
+     {
+         Log(LOG_LEVEL_ERR, "Failed send. (SendTransaction: %s)", GetErrorStr());
+-        return false;
++        Log(LOG_LEVEL_VERBOSE, "Networking error, assuming different checksum");
++        return true;
+     }
+ 
+     if (ReceiveTransaction(conn->conn_info, recvbuffer, NULL) == -1)
+     {
+         /* TODO mark connection in the cache as closed. */
+         Log(LOG_LEVEL_ERR, "Failed receive. (ReceiveTransaction: %s)", GetErrorStr());
+-        Log(LOG_LEVEL_VERBOSE,  "No answer from host, assuming checksum ok to avoid remote copy for now...");
+-        return false;
++        Log(LOG_LEVEL_VERBOSE, "No answer from host, assuming different checksum");
++        return true;
+     }
+ 
+     if (strcmp(CFD_TRUE, recvbuffer) == 0)

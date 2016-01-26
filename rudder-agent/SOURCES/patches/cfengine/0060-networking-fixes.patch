@@ -1,0 +1,162 @@
+From 44ce6fc99e8990f743cf840b041f0210f14736b0 Mon Sep 17 00:00:00 2001
+From: Alexis Mousset <alexis.mousset@normation.com>
+Date: Mon, 25 Jan 2016 15:39:37 +0100
+Subject: [PATCH 1/4] Free dirh in case of networking error
+
+Changelog: Title
+---
+ cf-agent/verify_files_utils.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/cf-agent/verify_files_utils.c b/cf-agent/verify_files_utils.c
+index 2928e79..d703452 100644
+--- a/cf-agent/verify_files_utils.c
++++ b/cf-agent/verify_files_utils.c
+@@ -828,6 +828,7 @@ static PromiseResult SourceSearchAndCopy(EvalContext *ctx, const char *from, cha
+             {
+                 cfPS(ctx, LOG_LEVEL_INFO, PROMISE_RESULT_INTERRUPTED, pp,
+                      attr, "connection error");
++                AbstractDirClose(dirh);
+                 return PROMISE_RESULT_INTERRUPTED;
+             }
+             else
+@@ -869,6 +870,7 @@ static PromiseResult SourceSearchAndCopy(EvalContext *ctx, const char *from, cha
+                 {
+                     cfPS(ctx, LOG_LEVEL_INFO, PROMISE_RESULT_INTERRUPTED, pp,
+                          attr, "connection error");
++                    AbstractDirClose(dirh);
+                     return PROMISE_RESULT_INTERRUPTED;
+                 }
+                 else
+@@ -888,6 +890,7 @@ static PromiseResult SourceSearchAndCopy(EvalContext *ctx, const char *from, cha
+                     cfPS(ctx, LOG_LEVEL_INFO,
+                          PROMISE_RESULT_INTERRUPTED, pp, attr,
+                          "connection error");
++                    AbstractDirClose(dirh);
+                     return PROMISE_RESULT_INTERRUPTED;
+                 }
+                 else
+
+From 5bec6e1868f7ab0257ec96382ef9bce47ff4bf2d Mon Sep 17 00:00:00 2001
+From: Alexis Mousset <alexis.mousset@normation.com>
+Date: Mon, 25 Jan 2016 15:41:21 +0100
+Subject: [PATCH 2/4] Fail on networking errors during file copy
+
+This avoids continuing the copy when the
+file in error was the last evaluated in a directory.
+
+Changelog: Title
+---
+ cf-agent/verify_files_utils.c | 11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
+
+diff --git a/cf-agent/verify_files_utils.c b/cf-agent/verify_files_utils.c
+index d703452..9c02c03 100644
+--- a/cf-agent/verify_files_utils.c
++++ b/cf-agent/verify_files_utils.c
+@@ -837,7 +837,7 @@ static PromiseResult SourceSearchAndCopy(EvalContext *ctx, const char *from, cha
+             }
+         }
+ 
+-        if (attr.copy.purge)    /* Purge this file */
++        if (attr.copy.purge)    /* Do not purge this file */
+         {
+             AppendItem(&namecache, dirp->d_name, NULL);
+         }
+@@ -974,6 +974,15 @@ static PromiseResult SourceSearchAndCopy(EvalContext *ctx, const char *from, cha
+         {
+             result = PromiseResultUpdate(result, VerifyCopy(ctx, newfrom, newto, attr, pp, inode_cache, conn));
+         }
++        
++        if (conn != NULL &&
++            conn->conn_info->status != CONNECTIONINFO_STATUS_ESTABLISHED)
++        {
++            cfPS(ctx, LOG_LEVEL_INFO, PROMISE_RESULT_INTERRUPTED, pp,
++                 attr, "connection error");
++            AbstractDirClose(dirh);
++            return PROMISE_RESULT_INTERRUPTED;
++        }
+     }
+ 
+     if (attr.copy.purge)
+
+From f08d07ba12a7c4c503e712f0c87beb33eb6a29e3 Mon Sep 17 00:00:00 2001
+From: Alexis Mousset <alexis.mousset@normation.com>
+Date: Mon, 25 Jan 2016 15:47:53 +0100
+Subject: [PATCH 3/4] Mark connection broken in SendTransaction
+
+Changelog: Title
+---
+ libcfnet/net.c | 11 +++++++++--
+ libcfnet/net.h |  2 +-
+ 2 files changed, 10 insertions(+), 3 deletions(-)
+
+diff --git a/libcfnet/net.c b/libcfnet/net.c
+index ae874d1..ff6123f 100644
+--- a/libcfnet/net.c
++++ b/libcfnet/net.c
+@@ -47,7 +47,7 @@ extern char BINDINTERFACE[];                  /* cf3globals.c, cf3.extern.h */
+  *       and connection closed.
+  * @NOTE (len <= CF_BUFSIZE - CF_INBAND_OFFSET)
+  */
+-int SendTransaction(const ConnectionInfo *conn_info,
++int SendTransaction(ConnectionInfo *conn_info,
+                     const char *buffer, int len, char status)
+ {
+     assert(status == CF_MORE || status == CF_DONE);
+@@ -103,7 +103,14 @@ int SendTransaction(const ConnectionInfo *conn_info,
+ 
+     if (ret == -1)
+     {
+-        return -1;                                              /* error */
++        /* We are experiencing problems with sending data to server.
++         * This might lead to packages being not delivered in correct
++         * order and unexpected issues like directories being replaced
++         * with files.
++         * In order to make sure that file transfer is reliable we have to
++         * close connection to avoid broken packages being received. */
++        conn_info->status = CONNECTIONINFO_STATUS_BROKEN;
++        return -1;
+     }
+     else
+     {
+diff --git a/libcfnet/net.h b/libcfnet/net.h
+index 7352071..2f1ef62 100644
+--- a/libcfnet/net.h
++++ b/libcfnet/net.h
+@@ -34,7 +34,7 @@
+ extern uint32_t bwlimit_kbytes;
+ 
+ 
+-int SendTransaction(const ConnectionInfo *conn_info, const char *buffer, int len, char status);
++int SendTransaction(ConnectionInfo *conn_info, const char *buffer, int len, char status);
+ int ReceiveTransaction(ConnectionInfo *conn_info, char *buffer, int *more);
+ 
+ int SetReceiveTimeout(int fd, unsigned long ms);
+
+From 465954334cf07454e0ff8a1d698f133658769611 Mon Sep 17 00:00:00 2001
+From: Alexis Mousset <alexis.mousset@normation.com>
+Date: Mon, 25 Jan 2016 15:48:36 +0100
+Subject: [PATCH 4/4] Redmine#7926: Empty network response is not always
+ considered as an error
+
+ReceiveTransaction should always return -1 in case of error.
+
+Changelog: Title
+---
+ libcfnet/net.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/libcfnet/net.c b/libcfnet/net.c
+index ff6123f..ab26b36 100644
+--- a/libcfnet/net.c
++++ b/libcfnet/net.c
+@@ -165,7 +165,7 @@ int ReceiveTransaction(ConnectionInfo *conn_info, char *buffer, int *more)
+          * In order to make sure that file transfer is reliable we have to
+          * close connection to avoid broken packages being received. */
+         conn_info->status = CONNECTIONINFO_STATUS_BROKEN;
+-        return ret;
++        return -1;
+     }
+     else if (ret != CF_INBAND_OFFSET)
+     {

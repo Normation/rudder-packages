@@ -1,0 +1,166 @@
+From b37ce1b03955522848f0a82d0b2b2e207727b6f8 Mon Sep 17 00:00:00 2001
+From: Alexis Mousset <alexis.mousset@normation.com>
+Date: Thu, 7 Jan 2016 17:12:24 +0100
+Subject: [PATCH] Fix two cases where action_policy warn still produces errors
+
+Redmine #7274
+
+Changelog: Commit
+---
+ cf-agent/files_operators.c     |  2 +-
+ cf-agent/package_module.c      | 16 ++++++++--------
+ cf-agent/verify_exec.c         |  2 +-
+ cf-agent/verify_files.c        |  2 +-
+ cf-agent/verify_files_utils.c  |  2 +-
+ cf-agent/verify_new_packages.c | 14 ++++++++++++++
+ libpromises/verify_reports.c   |  2 +-
+ 7 files changed, 27 insertions(+), 13 deletions(-)
+
+diff --git a/cf-agent/files_operators.c b/cf-agent/files_operators.c
+index 441d21c..3b63919 100644
+--- a/cf-agent/files_operators.c
++++ b/cf-agent/files_operators.c
+@@ -408,7 +408,7 @@ static int ItemListsEqual(EvalContext *ctx, const Item *list1, const Item *list2
+             {
+                 // If we want to see warnings, we need to scan the whole file
+ 
+-                cfPS(ctx, LOG_LEVEL_ERR, PROMISE_RESULT_WARN, pp, a, "edit_line warning promised: - %s", ip1->name);
++                cfPS(ctx, LOG_LEVEL_WARNING, PROMISE_RESULT_WARN, pp, a, "edit_line warning promised: - %s", ip1->name);
+                 *result = PromiseResultUpdate(*result, PROMISE_RESULT_WARN);
+                 retval = false;
+             }
+diff --git a/cf-agent/package_module.c b/cf-agent/package_module.c
+index 20e67f8..00b6375 100644
+--- a/cf-agent/package_module.c
++++ b/cf-agent/package_module.c
+@@ -1125,9 +1125,9 @@ PromiseResult FileInstallPackage(const char *package_file_path,
+      
+     if (action == cfa_warn || DONTDO)
+     {
+-         Log(LOG_LEVEL_WARNING, "Should install file type package: %s",
++         Log(LOG_LEVEL_VERBOSE, "Should install file type package: %s",
+              package_file_path);
+-        res = PROMISE_RESULT_FAIL;
++        res = PROMISE_RESULT_WARN;
+     }
+     else
+     {
+@@ -1244,9 +1244,9 @@ PromiseResult RepoInstall(EvalContext *ctx,
+         }
+         if (action == cfa_warn || DONTDO)
+         {
+-            Log(LOG_LEVEL_WARNING, "Should install repo type package: %s",
++            Log(LOG_LEVEL_VERBOSE, "Should install repo type package: %s",
+                 package_info->name);
+-            return PROMISE_RESULT_FAIL;
++            return PROMISE_RESULT_WARN;
+         }
+         
+         *verified = false; /* Verification will be done in RepoInstallPackage(). */
+@@ -1329,9 +1329,9 @@ PromiseResult RepoInstall(EvalContext *ctx,
+             {
+                 if (action == cfa_warn || DONTDO)
+                 {
+-                    Log(LOG_LEVEL_WARNING, "Should install repo type package: %s",
++                    Log(LOG_LEVEL_VERBOSE, "Should install repo type package: %s",
+                         package_info->name);
+-                    res = PromiseResultUpdate(res, PROMISE_RESULT_FAIL);
++                    res = PromiseResultUpdate(res, PROMISE_RESULT_WARN);
+                     continue;
+                 }
+                 
+@@ -1594,8 +1594,8 @@ PromiseResult HandleAbsentPromiseAction(EvalContext *ctx,
+         
+         if (action == cfa_warn || DONTDO)
+         {
+-            Log(LOG_LEVEL_WARNING, "Need to remove package: %s", package_name);
+-            res = PROMISE_RESULT_FAIL;
++            Log(LOG_LEVEL_VERBOSE, "Need to remove package: %s", package_name);
++            res = PROMISE_RESULT_WARN;
+         }
+         else
+         {
+diff --git a/cf-agent/verify_exec.c b/cf-agent/verify_exec.c
+index 4a3a33e..0b906af 100644
+--- a/cf-agent/verify_exec.c
++++ b/cf-agent/verify_exec.c
+@@ -253,7 +253,7 @@ static ActionResult RepairExec(EvalContext *ctx, Attributes a,
+ 
+     if (a.transaction.action != cfa_fix)
+     {
+-        cfPS(ctx, LOG_LEVEL_ERR, PROMISE_RESULT_WARN, pp, a, "Command '%s' needs to be executed, but only warning was promised", cmdline);
++        cfPS(ctx, LOG_LEVEL_WARNING, PROMISE_RESULT_WARN, pp, a, "Command '%s' needs to be executed, but only warning was promised", cmdline);
+         *result = PromiseResultUpdate(*result, PROMISE_RESULT_WARN);
+         return ACTION_RESULT_OK;
+     }
+diff --git a/cf-agent/verify_files.c b/cf-agent/verify_files.c
+index d382b27..e37e731 100644
+--- a/cf-agent/verify_files.c
++++ b/cf-agent/verify_files.c
+@@ -611,7 +611,7 @@ static PromiseResult RenderTemplateMustache(EvalContext *ctx, const Promise *pp,
+             if (a.transaction.action == cfa_warn || DONTDO)
+             {
+                 Log(LOG_LEVEL_WARNING, "Need to render '%s' from mustache template '%s' but policy is dry-run", pp->promiser, a.edit_template);
+-                result = PromiseResultUpdate(result, PROMISE_RESULT_FAIL);
++                result = PromiseResultUpdate(result, PROMISE_RESULT_WARN);
+             }
+             else
+             {
+diff --git a/cf-agent/verify_files_utils.c b/cf-agent/verify_files_utils.c
+index 2e221e2..2928e79 100644
+--- a/cf-agent/verify_files_utils.c
++++ b/cf-agent/verify_files_utils.c
+@@ -2039,7 +2039,7 @@ static PromiseResult TouchFile(EvalContext *ctx, char *path, Attributes attr, co
+     }
+     else
+     {
+-        cfPS(ctx, LOG_LEVEL_ERR, PROMISE_RESULT_WARN, pp, attr,
++        cfPS(ctx, LOG_LEVEL_WARNING, PROMISE_RESULT_WARN, pp, attr,
+              "Need to touch (update time stamps) for '%s', but only a warning was promised!", path);
+         result = PromiseResultUpdate(result, PROMISE_RESULT_WARN);
+     }
+diff --git a/cf-agent/verify_new_packages.c b/cf-agent/verify_new_packages.c
+index 98a1d9d..631de4a 100644
+--- a/cf-agent/verify_new_packages.c
++++ b/cf-agent/verify_new_packages.c
+@@ -154,6 +154,13 @@ PromiseResult HandleNewPackagePromiseType(EvalContext *ctx, const Promise *pp,
+                         StringFormat("Package '%s' was not installed",
+                                      pp->promiser);
+                     break;
++                case PROMISE_RESULT_WARN:
++                    *log_lvl = LOG_LEVEL_WARNING;
++                    *promise_log_msg =
++                        StringFormat("Package '%s' needs to be removed,"
++                                     "but only warning was promised",
++                                     pp->promiser);
++                    break;
+                 default:
+                     ProgrammingError(
+                             "Absent promise action evaluation returned "
+@@ -188,6 +195,13 @@ PromiseResult HandleNewPackagePromiseType(EvalContext *ctx, const Promise *pp,
+                         StringFormat("Package '%s' already installed",
+                                      pp->promiser);
+                     break;
++                case PROMISE_RESULT_WARN:
++                    *log_lvl = LOG_LEVEL_WARNING;
++                    *promise_log_msg =
++                        StringFormat("Package '%s' needs to be installed,"
++                                     "but only warning was promised",
++                                     pp->promiser);
++                    break;
+                 default:
+                     ProgrammingError(
+                             "Present promise action evaluation returned "
+diff --git a/libpromises/verify_reports.c b/libpromises/verify_reports.c
+index 5baa81d..35cde20 100644
+--- a/libpromises/verify_reports.c
++++ b/libpromises/verify_reports.c
+@@ -92,7 +92,7 @@ PromiseResult VerifyReportPromise(EvalContext *ctx, const Promise *pp)
+ 
+     if (a.transaction.action == cfa_warn)
+     {
+-        cfPS(ctx, LOG_LEVEL_VERBOSE, PROMISE_RESULT_WARN, pp, a, "Need to repair reports promise: %s", pp->promiser);
++        cfPS(ctx, LOG_LEVEL_WARNING, PROMISE_RESULT_WARN, pp, a, "Need to repair reports promise: %s", pp->promiser);
+         YieldCurrentLock(thislock);
+         return PROMISE_RESULT_WARN;
+     }
