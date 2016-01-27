@@ -655,14 +655,14 @@ upgrade_database() {
   fi
 
   # - 2.10.17 : Migration DB schema to correct the historization of rules
-  RES=$(su - postgres -c "psql -t -d rudder -c \"select count(*) from information_schema.columns where table_name='rulesgroupjoin' and column_name = 'targetserialisation';\"")
+  RES=$(${PSQL} -t -d rudder -c "select count(*) from information_schema.columns where table_name='rulesgroupjoin' and column_name = 'targetserialisation';")
   if [ $RES -eq 0 ]; then
-    psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.10-2.10-historization-of-groups-in-rules.sql > /dev/null
+    ${PSQL} -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.10-2.10-historization-of-groups-in-rules.sql > /dev/null
   fi
 
-  RES=$(su - postgres -c "psql -t -d rudder -c \"select count(*) from information_schema.tables where table_name='globalschedule';\"")
+  RES=$(${PSQL} -t -d rudder -c "select count(*) from information_schema.tables where table_name='globalschedule';")
   if [ $RES -eq 0 ]; then
-    psql -q -U rudder -h localhost -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.10-2.10-historization-of-agent-schedule.sql > /dev/null
+    ${PSQL} -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.10-2.10-historization-of-agent-schedule.sql > /dev/null
   fi
 
   # 3.0.0: Add the nodeConfigId column in the ReportsExecution table and add the nodes_info table
