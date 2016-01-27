@@ -34,7 +34,7 @@ case "$1" in
   SITES_TO_DISABLE="default 000-default default-ssl rudder-default rudder-default-ssl"
   SITES_TO_ENABLE="rudder-vhost rudder-vhost-ssl"
 
-  MODULES_TO_ENABLE="dav_fs rewrite proxy_http headers ssl"
+  MODULES_TO_ENABLE="dav_fs rewrite proxy_http headers ssl version"
 
   # Migration: Clean up old vhosts if we are running Apache 2.4
   if [ ${APACHE_VERSION} = 2.4 ]
