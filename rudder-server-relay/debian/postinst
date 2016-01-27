@@ -21,7 +21,7 @@ set -e
 case "$1" in
     configure)
 
-      SITES_TO_DISABLE="default default-ssl"
+      SITES_TO_DISABLE="default 000-default default-ssl"
       SITES_TO_ENABLE="rudder-relay-vhost"
 
       MODULES_TO_ENABLE="dav dav_fs"
