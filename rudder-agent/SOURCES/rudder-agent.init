@@ -295,7 +295,7 @@ forcestop_daemons() {
 
   for daemon in ${DAEMONS}; do
     # Check if any process is running
-    if [ `$PS_COMMAND | grep ${CFENGINE_COMMUNITY_BIN[$daemon]} | grep -v grep | wc -l` -eq 0 ]
+    if [ `$PS_COMMAND | grep ${CFENGINE_COMMUNITY_BIN[$daemon]} | sed -e '/grep/d' | wc -l` -eq 0 ]
     then
       message "info" "[INFO] Found no CFEngine Community ${CFENGINE_COMMUNITY_NAME[$daemon]} processes running"
 
@@ -312,34 +312,25 @@ forcestop_daemons() {
     # If the pid file is not readable or is empty, kill all process by name
     if [ ! -r ${CFENGINE_COMMUNITY_PID_FILE[$daemon]} -o ! -s ${CFENGINE_COMMUNITY_PID_FILE[$daemon]} ]
     then
-      if type pidof > /dev/null 2> /dev/null; then
-        kill -KILL `pidof ${CFENGINE_COMMUNITY_BIN[$daemon]}`
-      else
-        # Try a killall
-        /usr/bin/killall -KILL ${CFENGINE_COMMUNITY_BIN[$daemon]}
-      fi
-
-      if [ $? -eq 0 ]
-      then
-        message "info" "[OK] all CFEngine Community ${CFENGINE_COMMUNITY_NAME[$daemon]} processes killed with force"
-      else
-        message "alert" "[ALERT] Unable to kill CFEngine Community ${CFENGINE_COMMUNITY_NAME[$daemon]} with force"
-      fi
+      PID=""
+      for current_pid in `$PS_COMMAND | grep ${CFENGINE_COMMUNITY_BIN[$daemon]} | sed -e '/grep/d' | awk '{print $2}'`; do
+        PID="${PID} ${current_pid}"
+      done
     else
       PID=`cat ${CFENGINE_COMMUNITY_PID_FILE[$daemon]}`
-      kill -KILL $PID
+    fi
+    kill -KILL $PID
 
-      if [ $? -eq 0 ]
-      then
-        message "info" "[OK] CFEngine Community ${CFENGINE_COMMUNITY_NAME[$daemon]} killed with force (PID $PID)"
+    if [ $? -eq 0 ]
+    then
+      message "info" "[OK] CFEngine Community ${CFENGINE_COMMUNITY_NAME[$daemon]} killed with force (PID $PID)"
 
-        # Cleanup PID file
-        rm -f ${CFENGINE_COMMUNITY_PID_FILE[$daemon]}
-      else
-        message "alert" "[ALERT] Unable to kill CFEngine Community ${CFENGINE_COMMUNITY_NAME[$daemon]} with force (PID $PID)"
-        RET=1
-        continue
-      fi
+      # Cleanup PID file
+      rm -f ${CFENGINE_COMMUNITY_PID_FILE[$daemon]} || true
+    else
+      message "alert" "[ALERT] Unable to kill CFEngine Community ${CFENGINE_COMMUNITY_NAME[$daemon]} with force (PID $PID)"
+      RET=1
+      continue
     fi
   done
 
