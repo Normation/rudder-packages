@@ -649,8 +649,8 @@ fi
 # Try to send an inventory after upgrade to see the new agent version on the server
 if [ ${CFRUDDER_FIRST_INSTALL} -ne 1 ]
 then
-  echo "INFO: Trigger an inventory..."
-  /var/rudder/cfengine-community/bin/cf-agent -KD force_inventory >> %{rudderlogdir}/install/rudder-agent.log 2>&1 || true
+  echo "INFO: Scheduling an inventory during next run..."
+  touch /opt/rudder/etc/force_inventory
 fi
 
 # launch rudder agent check script, it will generate an UUID on first install or repair it if needed
