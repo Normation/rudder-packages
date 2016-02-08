@@ -300,34 +300,25 @@ forcestop_daemons() {
     # If the pid file is not readable or is empty, kill all process by name
     if eval [ ! -r "\${CFENGINE_COMMUNITY_PID_FILE_$daemon}" ] || eval [ ! -s "\${CFENGINE_COMMUNITY_PID_FILE_$daemon}" ]
     then
-      if type pidof > /dev/null 2> /dev/null; then
-        kill -KILL `eval pidof "\\\${CFENGINE_COMMUNITY_BIN_$daemon}"`
-      else
-        # Try a killall
-        eval /usr/bin/killall -KILL "\${CFENGINE_COMMUNITY_BIN_$daemon}"
-      fi
-
-      if [ $? -eq 0 ]
-      then
-        eval message "info" "\"[OK] all CFEngine Community \${CFENGINE_COMMUNITY_NAME_$daemon} processes killed with force\""
-      else
-        eval message "alert" "\"[ALERT] Unable to kill CFEngine Community \${CFENGINE_COMMUNITY_NAME_$daemon} with force\""
-      fi
+      PID=""
+      for current_pid in `$PS_COMMAND | eval grep "\\\${CFENGINE_COMMUNITY_BIN_$daemon}" | sed -e '/grep/d' | awk '{print $2}'`; do
+        PID="${PID} ${current_pid}"
+      done
     else
       PID=`eval cat "\\\${CFENGINE_COMMUNITY_PID_FILE_$daemon}"`
-      kill -KILL $PID
+    fi
+    kill -KILL $PID
 
-      if [ $? -eq 0 ]
-      then
-        eval message "info" "\"[OK] CFEngine Community \${CFENGINE_COMMUNITY_NAME_$daemon} killed with force (PID $PID)\""
+    if [ $? -eq 0 ]
+    then
+      eval message "info" "\"[OK] CFEngine Community \${CFENGINE_COMMUNITY_NAME_$daemon} killed with force (PID $PID)\""
 
-        # Cleanup PID file
-        eval rm -f "\${CFENGINE_COMMUNITY_PID_FILE_$daemon}"
-      else
-        eval message "alert" "\"[ALERT] Unable to kill CFEngine Community \${CFENGINE_COMMUNITY_NAME_$daemon} with force (PID $PID)\""
-        RET=1
-        continue
-      fi
+      # Cleanup PID file
+      eval rm -f "\${CFENGINE_COMMUNITY_PID_FILE_$daemon}" || true
+    else
+      eval message "alert" "\"[ALERT] Unable to kill CFEngine Community \${CFENGINE_COMMUNITY_NAME_$daemon} with force (PID $PID)\""
+      RET=1
+      continue
     fi
   done
 
