@@ -58,6 +58,7 @@ trap anomaly_handler ERR INT TERM
 # - 3.0.0        : Replace varchar by text in the database
 # - 3.0.2        : Check for the PostgreSQL version (>= 8.4)
 # - 3.0.14       : Add index on nodeconfigids for expectedreportsnodes
+# - 3.0.16       : Add masterfiles in the server
 # - 3.1.0        : Add LDAP entry for 'rudder_syslog_protocol' property, and set 'tcp' as value, different from default value (udp) on a fresh 3.1
 ####################################################################################
 
@@ -355,6 +356,17 @@ upgrade_ncf() {
 
 }
 
+# Upgrade masterfiles
+upgrade_masterfiles() {
+  # - 3.0.16  Now we should have a masterfiles initialized from initial promises
+  STEP="Upgrade masterfiles from initial promises"
+  if [ -d "${RUDDER_SHARE}/initial-promises/" ]
+  then
+    mkdir -p "${RUDDER_VAR}/cfengine-community/masterfiles/"
+    rsync --delete -rptgoq "${RUDDER_SHARE}/initial-promises/" "${RUDDER_VAR}/cfengine-community/masterfiles/"
+  fi
+}
+
 ################################################################################
 # Check and update config
 ################################################################################
@@ -634,6 +646,7 @@ update_credentials
 set_git_branch
 upgrade_system_techniques
 upgrade_ncf
+upgrade_masterfiles
 upgrade_logback_xml
 upgrade_rudder_web_properties
 
