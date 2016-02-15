@@ -30,6 +30,7 @@ localdepends: ./rudder-sources
 ./rudder-sources: ./rudder-sources.tar.bz2
 	tar -xjf rudder-sources.tar.bz2
 	mv rudder-sources-*/ rudder-sources/
+	cd rudder-sources/ && $(MAKE)
 
 localclean:
 	rm -rf ./rudder-sources
