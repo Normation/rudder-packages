@@ -200,19 +200,24 @@ check_and_fix_rudder_uuid() {
 
 check_and_fix_specific_rudder_agent_file() {
   FILE_TO_RESTORE=$1
-  FILE_TYPE=$2
+  FILE_BACKUP_NAME=$2
+  RESOLUTION=$3
+  MANDATORY=$4
+
   LATEST_BACKUPED_FILES=""
   
   if [ ! -f ${FILE_TO_RESTORE} ]; then
     if [ -d ${BACKUP_DIR} ]; then
-      LATEST_BACKUPED_FILES=`ls -v1 ${BACKUP_DIR}rudder-agent.${FILE_TYPE}-* | tail -n1`
+      LATEST_BACKUPED_FILES=`ls -v1 ${BACKUP_DIR}${FILE_BACKUP_NAME}-* | tail -n1`
     fi
     if [ "${LATEST_BACKUPED_FILES}" != "" ]; then
       echo_n "WARNING: The file ${FILE_TO_RESTORE} does not exist. The lastest backup (${LATEST_BACKUPED_FILES}) will be recovered..."
       ${CP_A} ${LATEST_BACKUPED_FILES} ${FILE_TO_RESTORE} >/dev/null 2>&1
       echo " Done"
     else
-      echo "ERROR: The file ${FILE_TO_RESTORE} does not exist and no backup exist. Please reinstall the rudder-agent package"
+      if [ "${MANDATORY}" = "mandatory" ]; then
+        echo "ERROR: The file ${FILE_TO_RESTORE} does not exist and no backup exists. ${RESOLUTION}"
+      fi
     fi
   fi
 }
@@ -247,6 +252,8 @@ if [ "${MYUID}" != 'root' ];then echo "You must be root"; exit; fi
 
 # Launch each check with a certain order
 check_and_fix_rudder_uuid
+<<<<<<< HEAD
+check_and_fix_specific_rudder_agent_file /var/rudder/cfengine-community/policy_server.dat policy_server.dat "Please configure your Rudder server in this file." "optional"
 
 # Once for rudder's cfengine
 if [ -e "${RUDDER_CFE_DIR}/bin/cf-agent" ]
@@ -273,8 +280,8 @@ fi
 
 # The following files are not present on AIX systems
 if [ "${NEED_INIT_FILES}" = "true" ] && [ "${OS_FAMILY}" != "AIX" ] || [ "${OS_FAMILY}" = "SunOS" ]; then
-  check_and_fix_specific_rudder_agent_file /etc/init.d/rudder-agent init
-  check_and_fix_specific_rudder_agent_file /etc/default/rudder-agent default
-  check_and_fix_specific_rudder_agent_file /etc/cron.d/rudder-agent cron
+  check_and_fix_specific_rudder_agent_file /etc/init.d/rudder-agent rudder-agent.init "Please reinstall the rudder-agent package." "mandatory"
+  check_and_fix_specific_rudder_agent_file /etc/default/rudder-agent rudder-agent.default "Please reinstall the rudder-agent package." "mandatory"
+  check_and_fix_specific_rudder_agent_file /etc/cron.d/rudder-agent rudder-agent.cron "Please reinstall the rudder-agent package." "mandatory"
 fi
 

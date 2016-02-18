@@ -705,6 +705,20 @@ if [ -f /opt/rudder/etc/uuid.hive ]; then
   echo "INFO: A back up copy of the /opt/rudder/etc/uuid.hive has been created in /var/backups/rudder"
 fi
 
+# Keep a backup copy of policy_server.dat
+if [ -f /var/rudder/cfengine-community/policy_server.dat ]; then
+  mkdir -p /var/backups/rudder
+  cp -f /var/rudder/cfengine-community/policy_server.dat /var/backups/rudder/policy_server.dat-$(date +%Y%m%d)
+  echo "INFO: A back up copy of the /var/rudder/cfengine-community/policy_server.dat has been created in /var/backups/rudder"
+fi
+
+# Keep a backup copy of CFEngine policy_server.dat
+if [ -f /var/cfengine/policy_server.dat ]; then
+  mkdir -p /var/backups/rudder
+  cp -f /var/cfengine/policy_server.dat /var/backups/rudder/cfengine_policy_server.dat-$(date +%Y%m%d)
+  echo "INFO: A back up copy of the /var/cfengine/policy_server.dat has been created in /var/backups/rudder"
+fi
+
 # Keep a backup copy of CFEngine ppkeys
 if [ -d /var/rudder/cfengine-community/ppkeys/ ]; then
   mkdir -p /var/backups/rudder
