@@ -76,6 +76,9 @@ UNCOMPLETE_MIGRATION=false
 # Ensure our PATH includes Rudder's binaries
 export PATH=${PATH}:${RUDDER_OPT}/bin
 
+# Set to defined value if not defined by environment
+: ${RUDDER_NO_TECHNIQUE_AUTOCOMMIT:=0}
+
 # Get how many access credentials we got for LDAP and SQL in /opt/rudder/etc/rudder-web.properties
 # (should have 2 for each, user and password)
 LDAP_CREDENTIALS=$(grep -c -E "^ldap.auth(dn|pw)[ \t]*=" /opt/rudder/etc/rudder-web.properties || true)
@@ -219,9 +222,14 @@ update_rudder_repository_from_system_directory() {
   if [ -d ${SRCTECHDIR} -a -d ${TRGTECHDIR} ]; then
     if ! diff -Naur ${SRCTECHDIR} ${TRGTECHDIR} >/dev/null 2>&1; then
       rsync --delete -rptgoq ${SRCTECHDIR} ${TRGTECHDIR}
-      cd ${CONFIGURATION_REPOSITORY}/ && git add -A ${2} && git commit -m "Upgrade system Techniques from ${SRCTECHDIR} - automatically done by rudder-upgrade script" >/dev/null 2>&1
-      # Schedule a Technique library reload because of the update
-      trigger_technique_library_reload
+      if [ x"${RUDDER_NO_TECHNIQUE_AUTOCOMMIT}" != x"1" ]; then
+        cd ${CONFIGURATION_REPOSITORY}/ && git add -A ${2} && git commit -m "Upgrade system Techniques from ${SRCTECHDIR} - automatically done by rudder-upgrade script" >/dev/null 2>&1
+        # Schedule a Technique library reload because of the update
+        trigger_technique_library_reload
+      else
+        echo "WARN: Autocommit of system techniques is disabled."
+        echo "Please review and commit changes, then reload technique library on your own!"
+      fi
     fi
   fi
 }
