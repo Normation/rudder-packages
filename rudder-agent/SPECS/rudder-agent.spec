@@ -89,7 +89,7 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 # Generic requirements
 BuildRequires: gcc bison flex pcre-devel autoconf automake libtool
 Requires: pcre
-Provides: rudder-agent
+Provides: Rudder::Agent
 Conflicts: rudder-agent-thin
 
 # Specific requirements
