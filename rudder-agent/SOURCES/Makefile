@@ -45,13 +45,11 @@ FETCH = fetch -q -o
 ifneq (,$(wildcard /usr/bin/curl))
 GET = $(PROXY_ENV) $(CURL)
 GET_OPT = --curl
-else
-ifneq (,$(wildcard /usr/bin/fetch))
+else ifneq (,$(wildcard /usr/bin/fetch))
 GET = $(PROXY_ENV) $(FETCH)
 else
 GET = $(PROXY_ENV) $(WGET)
 GET_OPT = --wget
-endif
 endif
 
 # Autodtect presence of gnu tools
@@ -65,8 +63,8 @@ FIND := find
 # Use parameters to guess what should be packaged
 BUILD_DEPS :=
 INSTALL_DEPS :=
-# default: build openssl
-ifneq (true,$(USE_SYSTEM_OPENSSL))
+# default: do not build openssl
+ifeq (false,$(USE_SYSTEM_OPENSSL))
 BUILD_DEPS := $(BUILD_DEPS) build-ssl
 INSTALL_DEPS := $(INSTALL_DEPS) install-ssl
 OPENSSL_ARG := --with-openssl=$(CURDIR)/build-ssl/opt/rudder
@@ -90,6 +88,9 @@ endif
 # Hack needed because openssl is not guessing correctly the architecture on solaris 32bits
 ifeq (i386-pc-solaris2.10,$(shell ./config.guess))
 SSL_CONFIGURE:=./Configure solaris-x86-gcc
+# Hack needed because openssl is not guessing correctly the architecture on debian 32 bits chroot
+else ifeq (i386,$(shell [ -x /usr/bin/dpkg ] && dpkg --print-architecture))
+SSL_CONFIGURE:=./Configure linux-generic32
 else
 SSL_CONFIGURE:=./config
 endif
