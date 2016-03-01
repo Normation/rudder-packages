@@ -50,6 +50,7 @@ trap anomaly_handler ERR INT TERM
 # - 2.11.4       : Add the property for the command line to force the server to reload its promises
 # - 2.11.6       : Remove LDAP indexes
 # - 2.11.6       : Add LDAP cache optimizations
+# - 2.11.19      : Add index on fileformat for eventlog
 # - 3.0.0        : Add the nodeConfigId column in the ReportsExecution table and add the nodes_info table
 # - 3.0.0        : Add the rudder.jdbc.maxPoolSize property
 # - 3.0.0        : File Format migration from 5 to 6
@@ -524,9 +525,22 @@ rudder.server-roles.cfengine-mission-portal=autodetect
 # Check and update database
 ################################################################################
 
+# Upgrade the eventlog
+# This has been separated from the upgrade_database to be run after, as it would allow to create the indexes for eventlog if necessary
+# and have only one location for all the eventlog upgrade part
+upgrade_eventlog() {
+  # - 3.0.0 : File Format migration from 5 to 6
+  STEP="3.0.0: File Format migration from 5 to 6"
+
+  RES=$(${PSQL} -t -d rudder -c "select count(*) from (select ((xpath('/entry//@fileFormat',data))[1]::text) as id from eventlog) as T where id='5';")
+  if [ $RES -ne 0 ]; then
+    ${PSQL} -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.11-3.0-set-migration-needed-flag-for-EventLog.sql > /dev/null 2>&1
+  fi
+
+}
+
 # Upgrade the PostgreSQL database
 upgrade_database() {
-
   # All versions: Check that Rudder database is able to handle backslash
   STEP="All versions: Check that Rudder database is able to handle backslash"
 
@@ -559,14 +573,6 @@ upgrade_database() {
     ${PSQL} -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.11-2.12-add-nodeconfigids-columns.sql > /dev/null 2>&1
   fi
 
-  # - 3.0.0 : File Format migration from 5 to 6
-  STEP="3.0.0: File Format migration from 5 to 6"
-
-  RES=$(${PSQL} -t -d rudder -c "select count(*) from (select xpath('/entry/*[@fileFormat=5]',data) AS x from eventlog) as Y where array_upper(x, 1) > 0;")
-  if [ $RES -ne 0 ]; then
-    ${PSQL} -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.11-3.0-set-migration-needed-flag-for-EventLog.sql > /dev/null 2>&1
-  fi
-
   # 3.0.0: Add the insertionId column in the ReportsExecution table and fill it for the last nodes run
   STEP="Add the insertionId column in the ReportsExecution table and fill it for the last nodes run"
 
@@ -582,6 +588,19 @@ upgrade_database() {
   if [ ${RES} -eq 0 ]; then
     ${PSQL} -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.11-3.0-remove-varchar.sql > /dev/null 2>&1
   fi
+
+  # - 2.11.19 : Migration DB schema to modify indexes on eventlog to improve upgrade speed
+  STEP="Migration DB schema to modify indexes on eventlog to improve upgrade speed"
+
+  RES=$(${PSQL} -t -d rudder -c "select count(oid) from pg_class where lower(relname) = 'eventlog_fileformat_idx'")
+  if [ $RES -eq 0 ]; then
+    echo -n "INFO: Updating the PostgreSQL indexes, this may take several minutes..."
+    ${PSQL} -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.11-2.11-index-eventlog.sql > /dev/null
+    echo " Done"
+  fi
+
+  # Now check the fileFormat in the eventlog
+  upgrade_eventlog
 
   # - 3.0.2: Check for the PostgreSQL version (>= 8.4)
   STEP="Check for the current PosgresSQL version"
