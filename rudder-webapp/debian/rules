@@ -105,6 +105,7 @@ binary-arch: install
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ dbMigration-2.11-3.0-add-insertionids-column.sql /opt/rudder/share/upgrade-tools/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ dbMigration-2.11-3.0-remove-varchar.sql /opt/rudder/share/upgrade-tools/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ dbMigration-2.11-3.0-set-migration-needed-flag-for-EventLog.sql /opt/rudder/share/upgrade-tools/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ dbMigration-2.11-2.11-index-eventlog.sql /opt/rudder/share/upgrade-tools/
 
 	## LDAP
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-upgrade-LDAP-schema-2.6-2.7-add-global-parameter-ou.ldif /opt/rudder/share/upgrade-tools/
