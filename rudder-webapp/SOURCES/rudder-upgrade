@@ -427,43 +427,6 @@ rudder.jdbc.maxPoolSize=25"
 # This has been separated from the upgrade_database to be run after, as it would allow to create the indexes for eventlog if necessary
 # and have only one location for all the eventlog upgrade part
 upgrade_eventlog() {
-  # Upgrade database schema from 2.3 to 2.4 if necessary - seventh part: Check the lowest fileFormat version in the eventLog and update the date if necessary
-  STEP="Upgrade database schema from 2.3 to 2.4 if necessary - seventh part: Check the lowest fileFormat version in the eventLog and update the date if necessary"
-
-  OLDEST_EVENTLOG_VERSION=0
-  for EVENTLOG_VERSION in 2 1
-  do
-    CHK_EVENTLOG=$(${PSQL} -t -d rudder -c "select count(*) from (select ((xpath('/entry//@fileFormat',data))[1]::text) as id from eventlog) as T where id='${EVENTLOG_VERSION}';")
-    if [ ${CHK_EVENTLOG} -ne 0 ]; then
-      OLDEST_EVENTLOG_VERSION=${EVENTLOG_VERSION}
-    fi
-  done
-  if [ ${OLDEST_EVENTLOG_VERSION} -eq 1 ]; then
-    # File Format migration : version 1 (2.3) to 2 (2.4) : Check if an event log has File format 1
-    # The migration is not supported anymore, explain that you should upgrade first to 2.6 before
-    echo "WARNING: Some event log are still based on an old file format (file format 1), please upgrade first to Rudder 2.6 or later to make this migration"
-  elif [ ${OLDEST_EVENTLOG_VERSION} -eq 2 ]; then
-    # File Format migration : version 2 (2.4) to 3 (2.4) : Check if an event log has File format 2 and set migration flag if needed
-    # Launch this script if eventlogs v2 are found
-    ${PSQL} -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.4-2.4-set-migration-needed-flag-for-EventLog.sql > /dev/null
-  fi
-
-  # 2.7.0: File Format migration from 3 to 4
-  STEP="2.7.0: File Format migration from 3 to 4"
-
-  RES=$(${PSQL} -t -d rudder -c "select count(*) from (select ((xpath('/entry//@fileFormat',data))[1]::text) as id from eventlog) as T where id='3';")
-  if [ $RES -ne 0 ]; then
-    ${PSQL} -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.6-2.7-set-migration-needed-flag-for-EventLog.sql > /dev/null 2>&1
-  fi
-
-  # 2.9.0: File Format migration from 4 to 5
-  STEP="2.9.0: File Format migration from 4 to 5"
-
-  RES=$(${PSQL} -t -d rudder -c "select count(*) from (select ((xpath('/entry//@fileFormat',data))[1]::text) as id from eventlog) as T where id='4';")
-  if [ $RES -ne 0 ]; then
-    ${PSQL} -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.8-2.9-set-migration-needed-flag-for-EventLog.sql > /dev/null 2>&1
-  fi
-
   # - 3.0.0 : File Format migration from 5 to 6
   STEP="3.0.0: File Format migration from 5 to 6"
 
