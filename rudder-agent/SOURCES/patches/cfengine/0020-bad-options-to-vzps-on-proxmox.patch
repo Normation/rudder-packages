@@ -9,14 +9,16 @@ See http://www.rudder-project.org/redmine/issues/7423 and https://dev.cfengine.c
  libpromises/classes.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- cfengine-source/libpromises/classes.c.orig  2015-12-07 17:42:43.745504166 +0100
-+++ cfengine-source/libpromises/classes.c 2015-12-07 17:43:02.437489394 +0100
-@@ -76,7 +76,7 @@
+diff --git a/libpromises/systype.c b/libpromises/systype.c
+index 7057710..88f59a7 100644
+--- a/libpromises/systype.c
++++ b/libpromises/systype.c
+@@ -90,7 +90,7 @@ const char *const VPSCOMM[] =
  const char *const VPSOPTS[] =
  {
      [PLATFORM_CONTEXT_UNKNOWN] = "",
--    [PLATFORM_CONTEXT_OPENVZ] = "-E 0 -eo user,pid,ppid,pgid,pcpu,pmem,vsz,ni,rss,nlwp,stime,time,args",   /* virt_host_vz_vzps */
-+    [PLATFORM_CONTEXT_OPENVZ] = "-E 0 -eo user,pid,ppid,pgid,pcpu,pmem,vsz,ni,rss,thcount,stime,time,args",   /* virt_host_vz_vzps */
-     [PLATFORM_CONTEXT_HP] = "-ef",                      /* hpux */
-     [PLATFORM_CONTEXT_AIX] =  "-N -eo user,pid,ppid,pgid,pcpu,pmem,vsz,ni,stat,st=STIME,time,args", /* aix */
-     [PLATFORM_CONTEXT_LINUX] = "-eo user,pid,ppid,pgid,pcpu,pmem,vsz,ni,rss,nlwp,stime,time,args",   /* linux */
+-    [PLATFORM_CONTEXT_OPENVZ] = "-E 0 -o user,pid,ppid,pgid,pcpu,pmem,vsz,ni,rss,nlwp,stime,time,args",   /* virt_host_vz_vzps (with vzps, the -E 0 replace the -e) */
++    [PLATFORM_CONTEXT_OPENVZ] = "-E 0 -o user,pid,ppid,pgid,pcpu,pmem,vsz,ni,rss,thcount,stime,time,args",   /* virt_host_vz_vzps (with vzps, the -E 0 replace the -e) */
+     [PLATFORM_CONTEXT_HP] = "-ef",                    /* hpux */
+     [PLATFORM_CONTEXT_AIX] =  "-N -eo user,pid,ppid,pgid,pcpu,pmem,vsz,ni,stat,st=STIME,time,args",       /* aix */
+     [PLATFORM_CONTEXT_LINUX] = "-eo user,pid,ppid,pgid,pcpu,pmem,vsz,ni,rss:9,nlwp,stime,etime,time,args",/* linux */

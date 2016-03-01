@@ -2,4 +2,9 @@
 
 # uuidgen doesn't exist on AIX, so provide a compatible shell function
 
-echo `/etc/ncs/uuid_gen -C | perl -p0e "s/[^0-9a-fx]*//g" | sed "s/0x//g" | sed "s/^\([0-9a-f]\{8\}\)\([0-9a-f]\{4\}\)\([0-9a-f]\{4\}\)\([0-9a-f]\{4\}\)\([0-9a-f]\{12\}\)$/\1-\2-\3-\4-\5/"`
+if [ -f /etc/ncs/uuid_gen ]
+then
+  echo `/etc/ncs/uuid_gen -C | perl -p0e "s/[^0-9a-fx]*//g" | sed "s/0x//g" | sed "s/^\([0-9a-f]\{8\}\)\([0-9a-f]\{4\}\)\([0-9a-f]\{4\}\)\([0-9a-f]\{4\}\)\([0-9a-f]\{12\}\)$/\1-\2-\3-\4-\5/"`
+else
+  makeuuid
+fi

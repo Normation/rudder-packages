@@ -34,8 +34,14 @@ localdepends: ./jetty7
 	tar xzf $(TMP_DIR)/jetty.tgz -C $(TMP_DIR)
 	mv $(TMP_DIR)/jetty-hightide-$(JETTY_RELEASE).v$(DATE_RELEASE) ./jetty7
 	rm -rf $(TMP_DIR)
-	# Remove javadoc which is a waste of 34M on production
+
+	# Remove useless / demo elements from Jetty
 	rm -rf ./jetty7/javadoc
+
+	rm -rf ./jetty7/webapps/*
+	rm -rf ./jetty7/contexts/*
+
+	touch ./jetty7/webapps/.donotdelete
 
 	# Change default log directory for jetty
 	sed -i 's/default=\".\/logs\"/default=\"\/var\/log\/rudder\/webapp\"/g' ./jetty7/etc/jetty-logging.xml
@@ -47,23 +53,28 @@ localdepends: ./jetty7
 	grep 'Set name="requestHeaderSize"' ./jetty7/etc/jetty.xml >/dev/null || sed -i -e '/<New class="org.eclipse.jetty.server.nio.SelectChannelConnector">/s/$$/\n            <Set name="requestHeaderSize">8192<\/Set>/' ./jetty7/etc/jetty.xml
 
 	# Change jetty.sh before distincts files
-	patch -p0 -s < jetty-init-umask.patch
-	patch -p0 -s < jetty-init-stop-fix.patch
-	patch -p0 -s < jetty-init-sizecheck.patch
-	patch -p0 -s < jetty-init-use-rudder-jetty-defaults.patch
+	patch -p0 -s < patches/jetty/jetty-init-umask.patch
+	patch -p0 -s < patches/jetty/jetty-init-stop-fix.patch
+	patch -p0 -s < patches/jetty/jetty-init-sizecheck.patch
+	patch -p0 -s < patches/jetty/jetty-init-use-rudder-jetty-defaults.patch
+	patch -p0 -s < patches/jetty/jetty-init-check-java-version.patch
 	patch -p0 -s < patches/jetty/jetty-init-prevent-false-failed-starts.patch
-	patch -p0 -s < jetty-init-redirect-stderrout.patch
+	patch -p0 -s < patches/jetty/jetty-init-redirect-stderrout.patch
 	patch -p0 -s < patches/jetty/jetty-init-stop-forcestop.patch
 
 	cp ./jetty7/bin/jetty.sh ./jetty7/bin/jetty-debian.sh
-	cp ./jetty7/bin/jetty.sh ./jetty7/bin/jetty-sles.sh
+	cp ./jetty7/bin/jetty.sh ./jetty7/bin/jetty-rpm.sh
 
-	patch -p0 -s < jetty-init-lsb-fix-debian.patch
-	patch -p0 -s < jetty-init-lsb-fix-sles.patch
+	patch -p0 -s < patches/jetty/jetty-init-lsb-fix-debian.patch
+	patch -p0 -s < patches/jetty/jetty-init-lsb-fix-rpm.patch
 
+	cp ./jetty7/bin/jetty-rpm.sh ./jetty7/bin/jetty-sles.sh
+	patch -p0 -s < patches/jetty/jetty-init-sles.patch
+	
 	# Provide jetty's init script to the debian package's standard location
 	cp ./jetty7/bin/jetty-debian.sh ../debian/rudder-jetty.init
 	cp ./rudder-jetty.default ../debian/rudder-jetty.default
+	chmod +x ../debian/rudder-jetty.init
 
 	# Make sure there were no rejects
 	test `$(FIND) . -name \*.rej | wc -l` = 0

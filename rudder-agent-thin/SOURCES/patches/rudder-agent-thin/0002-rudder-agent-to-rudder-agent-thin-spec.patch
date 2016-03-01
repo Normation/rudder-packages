@@ -1,5 +1,5 @@
---- a/rudder-agent.spec	2014-11-24 18:36:32.395594597 +0100
-+++ b/rudder-agent.spec	2014-11-24 18:40:50.136826564 +0100
+--- a/rudder-agent.spec	2014-12-08 15:05:33.466210433 +0100
++++ b/rudder-agent.spec	2014-12-08 15:10:56.454760369 +0100
 @@ -17,7 +17,7 @@
  #####################################################################################
  
@@ -18,26 +18,28 @@
  
  %define rudderdir            /opt/rudder
  %define ruddervardir         /var/rudder
-@@ -68,18 +68,12 @@
+@@ -69,8 +69,7 @@
  Source8: vzps.py
  Source9: rudder-agent.sh
  Source10: detect_os.sh
 -Source11: rudder-perl
- 
+ Source12: rudder-agent-utilities
+ Source13: rudder.init
+
  # uuidgen doesn't exist on AIX, so we provide a simple shell compatible version
- %if "%{?_os}" == "aix"
+@@ -78,11 +77,6 @@
  Source100: uuidgen
  %endif
  
--# Prevent dependency auto-generation, that tries to be helpful by detecting Perl dependencies from
+-# Prevent dependency auto-generation, that tries to be helpful by detecting Perl dependencies from
 -# FusionInventory. We handle that with the perl standalone installation already.
 -AutoReq: 0
 -AutoProv: 0
 -
- %if 0%{?rhel} == 4
+ %if 0%{?rhel} && 0%{?rhel} == 4
  Patch1: fix-missing-headers
  %endif
-@@ -87,10 +81,10 @@
+@@ -90,10 +84,10 @@
  BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
  
  # Generic requirements
@@ -51,7 +53,7 @@
  
  # Specific requirements
  
-@@ -189,6 +183,10 @@
+@@ -192,6 +186,10 @@
  %define use_system_openssl false
  %endif
  
@@ -59,10 +61,10 @@
 +# the system OpenSSL version.
 +%define use_system_openssl true
 +
- ## 5 - Resulting dependencies
+ ## 5 - Resulting dependencies
  %if "%{use_system_openssl}" == "true"
  BuildRequires: openssl-devel
-@@ -205,23 +203,11 @@
+@@ -208,23 +206,11 @@
  %define cp_a_command           cp -hpPr
  %endif
  
@@ -70,7 +72,7 @@
 -Provides: rudder-cfengine-community
 -Obsoletes: rudder-cfengine-community
 -
--# Use our own dependency generator
+-# Use our own dependency generator
 -%global _use_internal_dependency_generator 0
 -%global __find_requires_orig %{__find_requires}
 -%define __find_requires %{_sourcedir}/filter-reqs.pl %{use_system_lmdb} %{__find_requires_orig}
@@ -87,16 +89,16 @@
  
  #=================================================
  # Source preparation
-@@ -238,8 +224,6 @@
+@@ -241,8 +227,6 @@
  
  cd %{_sourcedir}
  
 -%{_sourcedir}/perl-prepare.sh %{_sourcedir}/fusioninventory-agent
 -
  # Ensure an appropriate environment for the compiler
- export CFLAGS="$RPM_OPT_FLAGS"
- export CXXFLAGS="$RPM_OPT_FLAGS"
-@@ -356,9 +340,6 @@
+ export CFLAGS="${RPM_OPT_FLAGS}"
+ export CXXFLAGS="${RPM_OPT_FLAGS}"
+@@ -375,9 +359,6 @@
  # Initial promises
  cp -r %{_sourcedir}/initial-promises %{buildroot}%{rudderdir}/share/
  
@@ -106,16 +108,16 @@
  # Wrapper script
  %{install_command} -m 755 %{SOURCE3} %{buildroot}/opt/rudder/bin/run-inventory
  
-@@ -381,8 +362,6 @@
+@@ -400,8 +381,6 @@
  
  %{install_command} -m 755 %{SOURCE8} %{buildroot}/opt/rudder/bin/vzps.py
  
 -%{install_command} -m 755 %{SOURCE11} %{buildroot}/opt/rudder/bin/rudder-perl
 -
- # Install a profile script to make cf-* part of the PATH
- # AIX does not support profile.d and /etc/profile should not be modified, so we don't do this on AIX at all
- %if "%{?_os}" != "aix"
-@@ -399,7 +378,7 @@
+ # Rudder agent utilities
+ %{install_command} -m 755 %{SOURCE12}/bin/rudder %{buildroot}%{rudderdir}/bin/rudder
+ %{cp_a_command} %{SOURCE12}/share/commands/* %{buildroot}%{rudderdir}/share/commands/
+@@ -426,7 +405,7 @@
  # Build a list of files to include in this package for use in the %files section below
  find %{buildroot}%{rudderdir} %{buildroot}%{ruddervardir} -type f -o -type l | sed "s,%{buildroot},," | sed "s,\.py$,\.py*," | grep -v "%{rudderdir}/etc/uuid.hive" | grep -v "%{ruddervardir}/cfengine-community/ppkeys" > %{_builddir}/file.list.%{name}
  
@@ -124,7 +126,7 @@
  #=================================================
  # Pre Installation
  #=================================================
-@@ -420,7 +399,7 @@
+@@ -447,7 +426,7 @@
  %endif
  fi
  
@@ -133,25 +135,19 @@
  #=================================================
  # Post Installation
  #=================================================
-@@ -644,7 +623,7 @@
- 
- /opt/rudder/bin/check-rudder-agent
- 
+@@ -678,4 +656,4 @@
 -%preun -n rudder-agent
 +%preun -n rudder-agent-thin
  #=================================================
  # Pre Uninstallation
  #=================================================
-@@ -666,7 +645,7 @@
- fi
- 
- 
+@@ -700,4 +679,4 @@
 -%postun -n rudder-agent
 +%postun -n rudder-agent-thin
  #=================================================
  # Post Uninstallation
  #=================================================
-@@ -713,7 +692,7 @@
+@@ -750,7 +729,7 @@
  # Files
  #=================================================
  # Files from %{rudderdir} and %{ruddervardir} are automatically added via the -f option
@@ -159,12 +155,12 @@
 +%files -n rudder-agent-thin -f %{_builddir}/file.list.%{name}
  %defattr(-, root, root, 0755)
  
- # The following file is declared to belong to this package but will not be installed
-@@ -747,15 +726,8 @@
+ %{bindir}/rudder
+@@ -787,15 +766,8 @@
  # Changelog
  #=================================================
  %changelog
--* Fri Apr  27 2011 - Matthieu CERDA <matthieu.cerda@normation.com> 2.2-beta1-2
+-* Wed Apr  27 2011 - Matthieu CERDA <matthieu.cerda@normation.com> 2.2-beta1-2
 -- The packages now builds correctly on both x86 and x86_64 archs, and on EL4/CentOS 4.
 -* Tue Mar  1 2011 - Jonathan CLARKE <jonathan.clarke@normation.com> 2.2-beta1-1
 -- Release 2.2.beta1

@@ -1,0 +1,165 @@
+From 9e9c857775d3a8552a57206d78e5d79bed2a0349 Mon Sep 17 00:00:00 2001
+From: Dimitrios Apostolou <dimitrios.apostolou@cfengine.com>
+Date: Thu, 22 Oct 2015 21:46:23 +0200
+Subject: [PATCH] Redmine#6027: Fix possible corruption in case of socket
+ recv() timeout
+
+Make sure a timed-out connection gets closed at the lowest level, so
+that further calls of recv() do not return the delayed server reply.
+
+(cherry picked from commit a08248f86a63d2863b29b8692136c5c43decc492)
+---
+ libcfnet/classic.c     | 23 +++++++++++++++--------
+ libcfnet/tls_generic.c | 36 +++++++++++++++++++++++++++++++-----
+ libcfnet/tls_generic.h |  2 +-
+ libutils/platform.h    |  3 +++
+ 4 files changed, 50 insertions(+), 14 deletions(-)
+
+diff --git a/libcfnet/classic.c b/libcfnet/classic.c
+index 712e3dd..2f3d02c 100644
+--- a/libcfnet/classic.c
++++ b/libcfnet/classic.c
+@@ -53,10 +53,11 @@ static bool LastRecvTimedOut(void)
+  * @param buffer Buffer into which to read data
+  * @param toget Number of bytes to read; a '\0' shall be written after
+  *        the data; buffer must have space for that.
+-
+- * @return -1 on error; or number of bytes received. It should return less
+- *         than #toget bytes only if the peer closed the connection or timeout
+- *         or other unrecoverable error occurred.
++ *
++ * @return number of bytes actually received, might be less than #toget
++ *         <toget  when connection has been gracefully closed while we
++ *             were expecting more data.
++ *         -1  in case of timeout or error - socket is unusable
+  */
+ int RecvSocketStream(int sd, char buffer[CF_BUFSIZE], int toget)
+ {
+@@ -79,17 +80,23 @@ int RecvSocketStream(int sd, char buffer[CF_BUFSIZE], int toget)
+             {
+                 if (LastRecvTimedOut())
+                 {
+-                    Log(LOG_LEVEL_ERR,
+-                        "Timeout - remote end did not respond with the expected amount of data "
+-                        "(received=%d, expecting=%d). (recv: %s)",
++                    Log(LOG_LEVEL_ERR, "Receive timeout"
++                        " (received=%dB, expecting=%dB) (recv: %s)",
+                         already, toget, GetErrorStr());
++                    Log(LOG_LEVEL_VERBOSE,
++                        "Consider increasing body agent control"
++                        " \"default_timeout\" setting");
++
++                    /* Shutdown() TCP connection despite of EAGAIN error, in
++                     * order to avoid receiving this delayed response later on
++                     * (Redmine #6027). */
++                    shutdown(sd, SHUT_RDWR);
+                 }
+                 else
+                 {
+                     Log(LOG_LEVEL_ERR, "Couldn't receive (recv: %s)",
+                         GetErrorStr());
+                 }
+-
+                 return -1;
+             }
+         }
+diff --git a/libcfnet/tls_generic.c b/libcfnet/tls_generic.c
+index 26cfd92..c850c7d 100644
+--- a/libcfnet/tls_generic.c
++++ b/libcfnet/tls_generic.c
+@@ -530,7 +530,7 @@ static const char *TLSPrimarySSLError(int code)
+  * @warning Use only for SSL_connect(), SSL_accept(), SSL_do_handshake(),
+  *          SSL_read(), SSL_peek(), SSL_write(), see SSL_get_error man page.
+  */
+-void TLSLogError(SSL *ssl, LogLevel level, const char *prepend, int retcode)
++int TLSLogError(SSL *ssl, LogLevel level, const char *prepend, int retcode)
+ {
+     assert(prepend != NULL);
+ 
+@@ -584,6 +584,8 @@ void TLSLogError(SSL *ssl, LogLevel level, const char *prepend, int retcode)
+             (errstr2 == NULL) ? "" : errstr2,          /* most likely empty */
+             syserr);
+     }
++
++    return errcode;
+ }
+ 
+ static void assert_SSLIsBlocking(const SSL *ssl)
+@@ -665,9 +667,12 @@ int TLSSend(SSL *ssl, const char *buffer, int length)
+  * @param ssl SSL information.
+  * @param buffer Buffer, of size at least #toget + 1 to store received data.
+  * @param toget Length of the data to receive, must be < CF_BUFSIZE.
++ *
+  * @return The length of the received data, which could be smaller or equal
+- *         than the requested or -1 in case of error or 0 if connection was
+- *         closed.
++ *         than the requested amount.
++ *         -1 in case of timeout or error - SSL session is unusable
++ *         0  if connection was closed
++ *
+  * @note Use only for *blocking* sockets. Set
+  *       SSL_CTX_set_mode(SSL_MODE_AUTO_RETRY) to make sure that either
+  *       operation completed or an error occurred.
+@@ -678,12 +683,33 @@ int TLSRecv(SSL *ssl, char *buffer, int toget)
+     assert(toget < CF_BUFSIZE);
+     assert_SSLIsBlocking(ssl);
+ 
+-    /* TODO what is the return value of SSL_read in case of socket timeout? */
+ 
+     int received = SSL_read(ssl, buffer, toget);
+     if (received < 0)
+     {
+-        TLSLogError(ssl, LOG_LEVEL_ERR, "SSL_read", received);
++        int errcode = TLSLogError(ssl, LOG_LEVEL_ERR, "SSL_read", received);
++
++        /* SSL_read() might get an internal recv() timeout, since we've set
++         * SO_RCVTIMEO. In that case, the internal socket returns EAGAIN or
++         * EWOULDBLOCK and SSL_read() returns SSL_ERROR_WANT_READ. */
++        if (errcode == SSL_ERROR_WANT_READ)               /* recv() timeout */
++        {
++            /* Make sure that the peer will send us no more data. */
++            SSL_shutdown(ssl);
++            shutdown(SSL_get_fd(ssl), SHUT_RDWR);
++
++            /* Empty possible SSL_read() buffers. */
++
++            int ret = 1;
++            int bytes_still_buffered = SSL_pending(ssl);
++            while (bytes_still_buffered > 0 && ret > 0)
++            {
++                char tmpbuf[bytes_still_buffered];
++                ret = SSL_read(ssl, tmpbuf, bytes_still_buffered);
++                bytes_still_buffered -= ret;
++            }
++        }
++
+         return -1;
+     }
+     else if (received == 0)
+diff --git a/libcfnet/tls_generic.h b/libcfnet/tls_generic.h
+index ac537b4..1730bfd 100644
+--- a/libcfnet/tls_generic.h
++++ b/libcfnet/tls_generic.h
+@@ -41,7 +41,7 @@ bool TLSGenericInitialize(void);
+ int TLSVerifyCallback(X509_STORE_CTX *ctx, void *arg);
+ int TLSVerifyPeer(ConnectionInfo *conn_info, const char *remoteip, const char *username);
+ X509 *TLSGenerateCertFromPrivKey(RSA *privkey);
+-void TLSLogError(SSL *ssl, LogLevel level, const char *prepend, int code);
++int TLSLogError(SSL *ssl, LogLevel level, const char *prepend, int code);
+ int TLSSend(SSL *ssl, const char *buffer, int length);
+ int TLSRecv(SSL *ssl, char *buffer, int toget);
+ int TLSRecvLines(SSL *ssl, char *buf, size_t buf_size);
+diff --git a/libutils/platform.h b/libutils/platform.h
+index 6c3fbcd..8f48f5d 100644
+--- a/libutils/platform.h
++++ b/libutils/platform.h
+@@ -63,6 +63,9 @@
+ # include <iphlpapi.h>
+ # include <ws2tcpip.h>
+ # include <objbase.h>           // for disphelper
++# ifndef SHUT_RDWR              // for shutdown()
++#  define SHUT_RDWR SD_BOTH
++# endif
+ #endif
+ 
+ /* Standard C. */

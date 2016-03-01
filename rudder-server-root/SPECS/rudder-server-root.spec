@@ -1,5 +1,5 @@
 #####################################################################################
-# Copyright 2011 Normation SAS
+# Copyright 2011- Normation SAS
 #####################################################################################
 #
 # This program is free software: you can redistribute it and/or modify
@@ -19,9 +19,9 @@
 #=================================================
 # Specification file for rudder-server-root
 #
-# Install rudder-init and force uuid to be root
+# Installs a Rudder root server
 #
-# Copyright (C) 2011 Normation
+# Copyright (C) 2011- Normation
 #=================================================
 
 #=================================================
@@ -46,7 +46,6 @@ URL: http://www.rudder-project.org
 Group: Applications/System
 
 Source1: rudder-sources
-Source5: rudder-server-root.init
 Source8: rudder-server-root
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -58,7 +57,7 @@ Requires: rudder-jetty, rudder-webapp, rudder-inventory-endpoint, rudder-invento
 Rudder is an open source configuration management and audit solution.
 
 This package is essentially a meta-package to install all components required to
-run a Rudder root server on one machine.
+run a Rudder root server on a machine.
 
 #=================================================
 # Source preparation
@@ -78,19 +77,15 @@ rm -rf %{buildroot}
 # Directories
 mkdir -p %{buildroot}%{rudderdir}/etc/
 mkdir -p %{buildroot}%{rudderdir}/etc/server-roles.d/
-mkdir -p %{buildroot}/etc/init.d
-
-# Others
-cp %{SOURCE5} %{buildroot}/etc/init.d/rudder-server-root
 
 install -m 644 %{SOURCE8} %{buildroot}/opt/rudder/etc/server-roles.d/
 
-%pre -n rudder-server-root
+%pre
 #=================================================
 # Pre Installation
 #=================================================
 
-%post -n rudder-server-root
+%post
 #=================================================
 # Post Installation
 #=================================================
@@ -107,7 +102,7 @@ if [ $LDAPCHK -eq 0 ]; then
   echo "************************************************************"
 fi
 
-%postun -n rudder-server-root
+%postun
 #=================================================
 # Post Uninstallation
 #=================================================
@@ -129,10 +124,9 @@ rm -rf %{buildroot}
 #=================================================
 # Files
 #=================================================
-%files -n rudder-server-root
+%files
 %defattr(-, root, root, 0755)
 %{rudderdir}/etc/
-%attr(0755, root, root) /etc/init.d/rudder-server-root
 
 #=================================================
 # Changelog

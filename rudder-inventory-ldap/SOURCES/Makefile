@@ -18,7 +18,7 @@
 
 .DEFAULT_GOAL := localdepends
 
-OPENLDAP_RELEASE = 2.4.30
+OPENLDAP_RELEASE = 2.4.41
 BERKELEYDB_RELEASE = 5.1.29
 
 RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
@@ -39,7 +39,7 @@ localdepends: ./berkeleydb-source ./openldap-source ./rudder.schema ./inventory.
 
 ./openldap-source: /usr/bin/wget
 	# Original URL: ftp://ftp.openldap.org/pub/OpenLDAP/openldap-release/openldap-$(OPENLDAP_RELEASE).tgz
-	$(WGET) -O ./openldap.tgz http://www.normation.com/tarball/openldap-$(OPENLDAP_RELEASE).tgz
+	$(WGET) -O ./openldap.tgz http://www.normation.com/tarball/openldap/openldap-$(OPENLDAP_RELEASE).tgz
 	tar xzf ./openldap.tgz -C .
 	mv ./openldap-$(OPENLDAP_RELEASE) ./openldap-source
 	
@@ -76,6 +76,7 @@ localclean:
 	rm -rf ./rudder-sources
 	rm -rf ./berkeleydb-source
 	rm -rf ./openldap-source
+	rm -rf ./berkeleydb-source
 	rm -rf ./rudder.schema
 	rm -rf ./inventory.schema
 

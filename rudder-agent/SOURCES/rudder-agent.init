@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 #====================================================================
 # Start/stop script for CFEngine Community
@@ -53,9 +53,9 @@
 CFEXECD=0
 CFSERVERD=1
 CFMONITORD=2
-CFENGINE_COMMUNITY_NAME[$CFEXECD]="cf-execd"
-CFENGINE_COMMUNITY_NAME[$CFSERVERD]="cf-serverd"
-CFENGINE_COMMUNITY_NAME[$CFMONITORD]="cf-monitord"
+CFENGINE_COMMUNITY_NAME_0="cf-execd"
+CFENGINE_COMMUNITY_NAME_1="cf-serverd"
+CFENGINE_COMMUNITY_NAME_2="cf-monitord"
 
 #====================================================================
 # Default parameters (if /etc/default/{script_name} is not present)
@@ -63,12 +63,12 @@ CFENGINE_COMMUNITY_NAME[$CFMONITORD]="cf-monitord"
 # Script specific
 PROG_NAME=`basename $0 | sed 's/^[KS][0-9][0-9]//'` # For nice messages
 OS=`uname -s`   # To adapt message printing
-MYUID=`id -u`     # For UNIX compatibility => modify this command
-MYGID=`id -g`     # For UNIX compatibility => modify this command
+MYUID=`id | cut -d\( -f2 | cut -d\) -f1`
+MYGID=`id | cut -d\( -f3 | cut -d\) -f1`
 SYSLOG_FACILITY="local6"
 # Detect the correct ps tool to use
 ns=$(ps --no-header -o utsns --pid $$ 2>/dev/null || true)
-if [ -e "/proc/bc/0" ]; then # we have openvz
+if [ -d "/proc/bc" ] && [ -e "/proc/bc/0" ]; then # we have openvz
   if [ -e /bin/vzps ]; then # we have vzps
     PS_COMMAND="/bin/vzps -E 0"
   else # use rudder provided vzps
@@ -83,20 +83,19 @@ fi
 
 
 # CFEngine Community directory and files
-CFENGINE_COMMUNITY_PATH="/usr/local/cfengine"
-CFENGINE_COMMUNITY_VAR_PATH="/var/cfengine"
-CFENGINE_COMMUNITY_RUN[$CFEXECD]="1"
-CFENGINE_COMMUNITY_RUN[$CFSERVERD]="1"
-CFENGINE_COMMUNITY_RUN[$CFMONITORD]="1"
-CFENGINE_COMMUNITY_BIN[$CFEXECD]="$CFENGINE_COMMUNITY_VAR_PATH/bin/cf-execd"
-CFENGINE_COMMUNITY_BIN[$CFSERVERD]="$CFENGINE_COMMUNITY_VAR_PATH/bin/cf-serverd"
-CFENGINE_COMMUNITY_BIN[$CFMONITORD]="$CFENGINE_COMMUNITY_VAR_PATH/bin/cf-monitord"
-CFENGINE_COMMUNITY_PARAMS[$CFEXECD]=""
-CFENGINE_COMMUNITY_PARAMS[$CFSERVERD]=""
-CFENGINE_COMMUNITY_PARAMS[$CFMONITORD]=""
-CFENGINE_COMMUNITY_PID_FILE[$CFEXECD]="$CFENGINE_COMMUNITY_VAR_PATH/cf-execd.pid"
-CFENGINE_COMMUNITY_PID_FILE[$CFSERVERD]="$CFENGINE_COMMUNITY_VAR_PATH/cf-serverd.pid"
-CFENGINE_COMMUNITY_PID_FILE[$CFMONITORD]="$CFENGINE_COMMUNITY_VAR_PATH/cf-monitord.pid"
+CFENGINE_COMMUNITY_VAR_PATH="/var/rudder/cfengine-community"
+CFENGINE_COMMUNITY_RUN_0="1"
+CFENGINE_COMMUNITY_RUN_1="1"
+CFENGINE_COMMUNITY_RUN_2="0"
+CFENGINE_COMMUNITY_BIN_0="$CFENGINE_COMMUNITY_VAR_PATH/bin/cf-execd"
+CFENGINE_COMMUNITY_BIN_1="$CFENGINE_COMMUNITY_VAR_PATH/bin/cf-serverd"
+CFENGINE_COMMUNITY_BIN_2="$CFENGINE_COMMUNITY_VAR_PATH/bin/cf-monitord"
+CFENGINE_COMMUNITY_PARAMS_0=""
+CFENGINE_COMMUNITY_PARAMS_1=""
+CFENGINE_COMMUNITY_PARAMS_2=""
+CFENGINE_COMMUNITY_PID_FILE_0="$CFENGINE_COMMUNITY_VAR_PATH/cf-execd.pid"
+CFENGINE_COMMUNITY_PID_FILE_1="$CFENGINE_COMMUNITY_VAR_PATH/cf-serverd.pid"
+CFENGINE_COMMUNITY_PID_FILE_2="$CFENGINE_COMMUNITY_VAR_PATH/cf-monitord.pid"
 
 RUDDER_DISABLE_AGENT_FLAG_FILE=/opt/rudder/etc/disable-agent
 
@@ -110,29 +109,18 @@ RETVAL=""
 # Message function
 #====================================================================
 message() {
-	# $1: syslog level
-	# $2: message
+  # $1: syslog level
+  # $2: message
 
-	if [ $OS = "Linux" ]
-	then
-		logger -p "${SYSLOG_FACILITY}.$1" -s -t $PROG_NAME -i "$2"
-	else
-		# Try without option -s
-		logger -p "${SYSLOG_FACILITY}.$1" -t $PROG_NAME -i "$2"
-		echo "$PROG_NAME: $2"
-	fi
+  if [ $OS = "Linux" ]
+  then
+    logger -p "${SYSLOG_FACILITY}.$1" -s -t $PROG_NAME -i "$2"
+  else
+    # Try without option -s
+    logger -p "${SYSLOG_FACILITY}.$1" -t $PROG_NAME -i "$2"
+    echo "$PROG_NAME: $2"
+  fi
 }
-
-#====================================================================
-# Load specific parameters
-#====================================================================
-if [ -f /etc/default/$PROG_NAME ]
-then
-	. /etc/default/$PROG_NAME
-	message "info" "[INFO] Using /etc/default/$PROG_NAME for configuration"
-else
-	message "info" "[INFO] Using built-in configuration - this may cause some problems"
-fi
 
 #====================================================================
 # Initial checks
@@ -141,260 +129,259 @@ fi
 # Which daemons are we running?
 DAEMONS=""
 for daemon in $CFSERVERD $CFMONITORD $CFEXECD; do
-	if [ "z${CFENGINE_COMMUNITY_RUN[$daemon]}" == "z1" ]; then DAEMONS="${DAEMONS} $daemon"; fi
+  if eval [ "\${CFENGINE_COMMUNITY_RUN_$daemon}" = "1" ]; then DAEMONS="${DAEMONS} $daemon"; fi
 done
 
 # Make sure the pidfile directory exists with correct permissions
 for daemon in ${DAEMONS}; do
-	piddir=`dirname "${CFENGINE_COMMUNITY_PID_FILE[$daemon]}"`
-	if [ ! -d "$piddir" ]; then
-		mkdir -p "$piddir"
-	fi
+  piddir=`eval dirname "\\\${CFENGINE_COMMUNITY_PID_FILE_$daemon}"`
+  if [ ! -d "$piddir" ]; then
+    mkdir -p "$piddir"
+  fi
 done
 
 # Rights to execute binaries
 for daemon in ${DAEMONS}
 do
-	if [ ! -x ${CFENGINE_COMMUNITY_BIN[$daemon]} ]
-	then
-		message "alert" "[ALERT] can't execute ${CFENGINE_COMMUNITY_NAME[$daemon]}"
-		exit 1
-	fi
+  if eval [ ! -x "\${CFENGINE_COMMUNITY_BIN_$daemon}" ]
+  then
+    eval message "alert" "\"[ALERT] can't execute \${CFENGINE_COMMUNITY_NAME_$daemon}\""
+    exit 1
+  fi
 done
 
 # Is there a work directory?
 if [ "$CFENGINE_COMMUNITY_VAR_PATH" -a ! -w "$CFENGINE_COMMUNITY_VAR_PATH" ]
 then
-	message "alert" "[ALERT] can't write to work directory $CFENGINE_COMMUNITY_VAR_PATH"
-	exit 1
+  message "alert" "[ALERT] can't write to work directory $CFENGINE_COMMUNITY_VAR_PATH"
+  exit 1
 fi
 message "info" "[INFO] Using $CFENGINE_COMMUNITY_VAR_PATH for CFEngine workdir"
 
 # Are you root?
-if [ $MYUID -ne 0 ]
+if [ "${MYUID}" != "root" ]
 then
-	message "alert" "[ALERT] only root can launch CFEngine Community"
-	exit 1
+  message "alert" "[ALERT] only root can launch CFEngine Community"
+  exit 1
 fi
 
 #====================================================================
 # Functions
 #====================================================================
 start_daemons() {
-	RET=0
+  RET=0
 
-	# Check for disable-agent flag file
-	if [ -f ${RUDDER_DISABLE_AGENT_FLAG_FILE} ]; then
-		message "alert" "[ALERT] The ${RUDDER_DISABLE_AGENT_FLAG_FILE} flag file is present. The agent cannot be started."
-		exit 3
-	fi
+  # Check for disable-agent flag file
+  if [ -f ${RUDDER_DISABLE_AGENT_FLAG_FILE} ]; then
+    message "alert" "[ALERT] The ${RUDDER_DISABLE_AGENT_FLAG_FILE} flag file is present. The agent cannot be started."
+    exit 3
+  fi
 
-	# It's time to start the daemons
-	for daemon in ${DAEMONS}; do
+  # It's time to start the daemons
+  for daemon in ${DAEMONS}; do
     # Test if daemon is already running
-    if [ -s ${CFENGINE_COMMUNITY_PID_FILE[$daemon]} ]
+    if eval [ -s "\${CFENGINE_COMMUNITY_PID_FILE_$daemon}" ]
     then
-      PID=`cat ${CFENGINE_COMMUNITY_PID_FILE[$daemon]}`
+      PID=`eval cat "\\\${CFENGINE_COMMUNITY_PID_FILE_$daemon}"`
       if [ -e /proc/$PID ]
       then
-        message "info" "[INFO] CFEngine Community ${CFENGINE_COMMUNITY_NAME[$daemon]} Is already running"
+        eval message "info" "\"[INFO] CFEngine Community \${CFENGINE_COMMUNITY_NAME_$daemon} is already running\""
         continue
       fi
     fi
 
-		# Start message
-		message "info" "[INFO] Launching CFEngine Community ${CFENGINE_COMMUNITY_NAME[$daemon]}..."
+    # Start message
+    eval message "info" "\"[INFO] Launching CFEngine Community \${CFENGINE_COMMUNITY_NAME_$daemon}...\""
 
-		${CFENGINE_COMMUNITY_BIN[$daemon]} ${CFENGINE_COMMUNITY_PARAMS[$daemon]}
-		sleep 1
+    eval "\${CFENGINE_COMMUNITY_BIN_$daemon}" "\${CFENGINE_COMMUNITY_PARAMS_$daemon}"
+    sleep 1
 
-		# Presence of PID file
+    # Presence of PID file
 
-		# Waiting loop
-		i=1
-		start_failed=0
-		while [ ! -r ${CFENGINE_COMMUNITY_PID_FILE[$daemon]} ]
-		do
-			if [ $i -eq $TIMEOUT -o $i -eq `expr $TIMEOUT / 2` ]
-			then
-				message "alert" "[ALERT] no PID file for ${CFENGINE_COMMUNITY_NAME[$daemon]} after $i seconds. Trying again..."
-				${CFENGINE_COMMUNITY_BIN[$daemon]} ${CFENGINE_COMMUNITY_PARAMS[$daemon]}
-			fi
+    # Waiting loop
+    i=1
+    start_failed=0
+    while eval [ ! -r "\${CFENGINE_COMMUNITY_PID_FILE_$daemon}" ]
+    do
+      if [ $i -eq $TIMEOUT -o $i -eq `expr $TIMEOUT / 2` ]
+      then
+        eval message "alert" "\"[ALERT] no PID file for \${CFENGINE_COMMUNITY_NAME_$daemon} after $i seconds. Trying again...\""
+        eval "\${CFENGINE_COMMUNITY_BIN_$daemon}" "\${CFENGINE_COMMUNITY_PARAMS_$daemon}"
+      fi
 
-			if [ $i -eq `expr $TIMEOUT + 10` ]
-			then
-				message "alert" "[ALERT] no PID file for ${CFENGINE_COMMUNITY_NAME[$daemon]} after $i seconds"
-				RET=1
-				start_failed=1
-				break
-			fi
-			i=`expr $i + 1`
-			sleep 1
-		done
+      if [ $i -eq `expr $TIMEOUT + 10` ]
+      then
+        eval message "alert" "\"[ALERT] no PID file for \${CFENGINE_COMMUNITY_NAME_$daemon} after $i seconds\""
+        RET=1
+        start_failed=1
+        break
+      fi
+      i=`expr $i + 1`
+      sleep 1
+    done
 
-		if [ ${start_failed} -eq 1 ]; then continue; fi
+    if [ ${start_failed} -eq 1 ]; then continue; fi
 
-		# Is daemon launched?
-		PID=`cat ${CFENGINE_COMMUNITY_PID_FILE[$daemon]}`
-		if [ ! -e /proc/$PID ]
-		then
-			message "alert" "[ALERT] daemon ${CFENGINE_COMMUNITY_NAME[$daemon]} not running"
-			RET=1
-			continue
-		else
-			message "info" "[OK] CFEngine Community ${CFENGINE_COMMUNITY_NAME[$daemon]} started after $i seconds"
-		fi
+    # Is daemon launched?
+    PID=`eval cat "\\\${CFENGINE_COMMUNITY_PID_FILE_$daemon}"`
+    if [ ! -d /proc/$PID ]
+    then
+      eval message "alert" "\"[ALERT] daemon \${CFENGINE_COMMUNITY_NAME_$daemon} not running\""
+      RET=1
+      continue
+    else
+      eval message "info" "\"[OK] CFEngine Community \${CFENGINE_COMMUNITY_NAME_$daemon} started after $i seconds\""
+    fi
 
-	done
+  done
 
-	if [ $RET -ne 0 ]; then exit $RET; fi
+  if [ $RET -ne 0 ]; then exit $RET; fi
 
 }
 
 stop_daemons() {
-	RET=0
+  RET=0
 
-	for daemon in ${DAEMONS}; do
-		# Stop message
-		message "info" "[INFO] Halting CFEngine Community ${CFENGINE_COMMUNITY_NAME[$daemon]}..."
+  for daemon in ${DAEMONS}; do
+    # Stop message
+    eval message "info" "\"[INFO] Halting CFEngine Community \${CFENGINE_COMMUNITY_NAME_$daemon}...\""
 
-		# Presence of PID file
-		# If the pid file is not readable or is empty, kill all process by name
-		if [ ! -r ${CFENGINE_COMMUNITY_PID_FILE[$daemon]} -o ! -s ${CFENGINE_COMMUNITY_PID_FILE[$daemon]} ]
-		then
-			message "info" "[INFO] can't read PID file, not stopping ${CFENGINE_COMMUNITY_NAME[$daemon]}"
-			RET=1
-		else
-			PID=`cat ${CFENGINE_COMMUNITY_PID_FILE[$daemon]}`
-			kill -INT $PID
+    # Presence of PID file
+    # If the pid file is not readable or is empty, kill all process by name
+    if eval [ ! -r "\${CFENGINE_COMMUNITY_PID_FILE_$daemon}" ] || eval [ ! -s "\${CFENGINE_COMMUNITY_PID_FILE_$daemon}" ]
+    then
+      eval message "info" "\"[INFO] can't read PID file, not stopping \${CFENGINE_COMMUNITY_NAME_$daemon}\""
+      RET=1
+    else
+      PID=`eval cat "\\\${CFENGINE_COMMUNITY_PID_FILE_$daemon}"`
+      kill -INT $PID
 
-			# Waiting loop
-			i=1
-			while [ -e /proc/$PID ]
-			do
-				if [ $i -eq $TIMEOUT ]
-				then
-					# Timeout
-					message "alert" "[ALERT] ${CFENGINE_COMMUNITY_NAME[$daemon]} still running (PID $PID), try: $0 forcestop"
-					exit 1
-				fi
-				i=`expr $i + 1`
-				sleep 1
-			done
+      # Waiting loop
+      i=1
+      while [ -d /proc/$PID ]
+      do
+        if [ $i -eq $TIMEOUT ]
+        then
+          # Timeout
+          eval message "alert" "\"[ALERT] \${CFENGINE_COMMUNITY_NAME_$daemon} still running (PID $PID), try: $0 forcestop\""
+          exit 1
+        fi
+        i=`expr $i + 1`
+        sleep 1
+      done
 
-			message "info" "[OK] CFEngine Community ${CFENGINE_COMMUNITY_NAME[$daemon]} stopped after $i seconds"
-		fi
-	done
+      eval message "info" "\"[OK] CFEngine Community \${CFENGINE_COMMUNITY_NAME_$daemon} stopped after $i seconds\""
+    fi
+  done
 
-	if [ $RET -ne 0 ]; then return $RET; fi
+  if [ $RET -ne 0 ]; then return $RET; fi
 
 }
 
 forcestop_daemons() {
-	RET=0
+  RET=0
 
-	for daemon in ${DAEMONS}; do
-		# Check if any process is running
-		if [ `$PS_COMMAND | grep ${CFENGINE_COMMUNITY_BIN[$daemon]} | sed -e '/grep/d' | wc -l` -eq 0 ]
-		then
-			message "info" "[INFO] Found no CFEngine Community ${CFENGINE_COMMUNITY_NAME[$daemon]} processes running"
+  for daemon in ${DAEMONS}; do
+    # Check if any process is running
+    if [ `$PS_COMMAND | eval grep "\\\${CFENGINE_COMMUNITY_BIN_$daemon}" | sed -e '/grep/d' | wc -l` -eq 0 ]
+    then
+      eval message "info" "\"[INFO] Found no CFEngine Community \${CFENGINE_COMMUNITY_NAME_$daemon} processes running\""
 
-			# Cleanup PID file
-			rm -f ${CFENGINE_COMMUNITY_PID_FILE[$daemon]}
+      # Cleanup PID file
+      eval rm -f "\${CFENGINE_COMMUNITY_PID_FILE_$daemon}"
 
-			continue
-		fi
+      continue
+    fi
 
-		# Stop message
-		message "info" "[INFO] Killing CFEngine Community ${CFENGINE_COMMUNITY_NAME[$daemon]} with force..."
+    # Stop message
+    eval message "info" "\"[INFO] Killing CFEngine Community \${CFENGINE_COMMUNITY_NAME_$daemon} with force...\""
 
-		# Presence of PID file
-		# If the pid file is not readable or is empty, kill all process by name
-		if [ ! -r ${CFENGINE_COMMUNITY_PID_FILE[$daemon]} -o ! -s ${CFENGINE_COMMUNITY_PID_FILE[$daemon]} ]
-		then
+    # Presence of PID file
+    # If the pid file is not readable or is empty, kill all process by name
+    if eval [ ! -r "\${CFENGINE_COMMUNITY_PID_FILE_$daemon}" ] || eval [ ! -s "\${CFENGINE_COMMUNITY_PID_FILE_$daemon}" ]
+    then
       PID=""
-      for current_pid in `$PS_COMMAND | grep ${CFENGINE_COMMUNITY_BIN[$daemon]} | sed -e '/grep/d' | awk '{print $2}'`; do
+      for current_pid in `$PS_COMMAND | eval grep "\\\${CFENGINE_COMMUNITY_BIN_$daemon}" | sed -e '/grep/d' | awk '{print $2}'`; do
         PID="${PID} ${current_pid}"
       done
-		else
-			PID=`cat ${CFENGINE_COMMUNITY_PID_FILE[$daemon]}`
+    else
+      PID=`eval cat "\\\${CFENGINE_COMMUNITY_PID_FILE_$daemon}"`
     fi
-    
-		kill -KILL $PID
+    kill -KILL $PID
 
-		if [ $? -eq 0 ]
-		then
-			message "info" "[OK] CFEngine Community ${CFENGINE_COMMUNITY_NAME[$daemon]} killed with force (PID $PID)"
+    if [ $? -eq 0 ]
+    then
+      eval message "info" "\"[OK] CFEngine Community \${CFENGINE_COMMUNITY_NAME_$daemon} killed with force (PID $PID)\""
 
-			# Cleanup PID file
-			rm -f ${CFENGINE_COMMUNITY_PID_FILE[$daemon]} || true
-		else
-			message "alert" "[ALERT] Unable to kill CFEngine Community ${CFENGINE_COMMUNITY_NAME[$daemon]} with force (PID $PID)"
-			RET=1
-		continue
-			fi
-	done
+      # Cleanup PID file
+      eval rm -f "\${CFENGINE_COMMUNITY_PID_FILE_$daemon}" || true
+    else
+      eval message "alert" "\"[ALERT] Unable to kill CFEngine Community \${CFENGINE_COMMUNITY_NAME_$daemon} with force (PID $PID)\""
+      RET=1
+      continue
+    fi
+  done
 
-	if [ $RET -ne 0 ]; then exit $RET; fi
+  if [ $RET -ne 0 ]; then exit $RET; fi
 
 }
 
 # Return 0 if all required daemons are running, 1 if any is stopped, 2 if we can't say, 3 if the disable-agent flag is present
 daemons_status() {
-	# Check for disable-agent flag file
-	if [ -f ${RUDDER_DISABLE_AGENT_FLAG_FILE} ]; then
-		return 3
-	fi
+  # Check for disable-agent flag file
+  if [ -f ${RUDDER_DISABLE_AGENT_FLAG_FILE} ]; then
+    return 3
+  fi
 
-	for daemon in ${DAEMONS}; do
-		if [ ! -r ${CFENGINE_COMMUNITY_PID_FILE[$daemon]} ]
-		then
+  for daemon in ${DAEMONS}; do
+    if eval [ ! -r "\${CFENGINE_COMMUNITY_PID_FILE_$daemon}" ]
+    then
 
-			# Check if any process are running
-			if [ `$PS_COMMAND | grep ${CFENGINE_COMMUNITY_BIN[$daemon]} | grep -v grep | wc -l` -eq 0 ]
-			then
-				return 1
-			else
-				return 2
-			fi
-		else
-			PID=`cat ${CFENGINE_COMMUNITY_PID_FILE[$daemon]}`
-		fi
+      # Check if any process are running
+      if [ `$PS_COMMAND | eval grep "\\\${CFENGINE_COMMUNITY_BIN_$daemon}" | sed -e '/grep/d' | wc -l` -eq 0 ]
+      then
+        return 1
+      else
+        return 2
+      fi
+    else
+      PID=`eval cat "\\\${CFENGINE_COMMUNITY_PID_FILE_$daemon}"`
+    fi
 
-		if [ ! -e /proc/$PID ]
-		then
-			return 1
-		fi
-	done
+    if [ ! -d /proc/$PID ]
+    then
+      return 1
+    fi
+  done
 
-	return 0
+  return 0
 }
 
 display_status() {
-	# Get status
-	daemons_status
+  # Get status
+  daemons_status
 
-	status=$?
+  status=$?
 
-	if [ $status -eq 0 ]
-	then
-		message "info" "[INFO] All configured CFEngine Community processes are running"
-	fi
+  if [ $status -eq 0 ]
+  then
+    message "info" "[INFO] All configured CFEngine Community processes are running"
+  fi
 
-	if [ $status -eq 1 ]
-	then
-		message "info" "[INFO] At least one configured CFEngine Community process is not running"
-	fi
+  if [ $status -eq 1 ]
+  then
+    message "info" "[INFO] At least one configured CFEngine Community process is not running"
+  fi
 
-	if [ $status -eq 2 ]
-	then
-		message "info" "[INFO] Unable to determine CFEngine Community processes status"
-	fi
+  if [ $status -eq 2 ]
+  then
+    message "info" "[INFO] Unable to determine CFEngine Community processes status"
+  fi
 
-	if [ $status -eq 3 ]
-	then
-		message "info" "[INFO] The ${RUDDER_DISABLE_AGENT_FLAG_FILE} flag is present, CFEngine Community is halted"
-	fi
+  if [ $status -eq 3 ]
+  then
+    message "info" "[INFO] The ${RUDDER_DISABLE_AGENT_FLAG_FILE} flag is present, CFEngine Community is halted"
+  fi
 
   # Exit with status code
   exit ${status}
@@ -405,26 +392,26 @@ display_status() {
 # Action switch
 #====================================================================
 case $1 in
-	start)
-	start_daemons
-	;;
-	stop)
-	stop_daemons || forcestop_daemons
-	;;
-	forcestop)
-	forcestop_daemons
-	;;
-	restart)
-	stop_daemons
-	start_daemons
-	;;
-	status)
-	display_status
-	;;
-	*)
-	echo "Usage: $0 {start|stop|forcestop|restart|status}"
-	exit 1
-	;;
+  start)
+    start_daemons
+    ;;
+  stop)
+    stop_daemons || forcestop_daemons
+    ;;
+  forcestop)
+    forcestop_daemons
+    ;;
+  restart)
+    stop_daemons
+    start_daemons
+    ;;
+  status)
+    display_status
+    ;;
+  *)
+    echo "Usage: $0 {start|stop|forcestop|restart|status}"
+    exit 1
+    ;;
 esac
 
 #====================================================================

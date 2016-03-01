@@ -1,0 +1,31 @@
+diff -upr cfengine-3.7.1-old/libcfnet/client_code.c cfengine-3.7.1/libcfnet/client_code.c
+--- cfengine-3.7.1-old/libcfnet/client_code.c	2016-01-18 14:25:43.404660718 +0100
++++ cfengine-3.7.1/libcfnet/client_code.c	2016-01-18 14:28:06.454387620 +0100
+@@ -348,6 +348,13 @@ Item *RemoteDirList(const char *dirname,
+             goto err;
+         }
+ 
++        if (encrypt)
++        {
++            memcpy(in, recvbuffer, nbytes);
++            DecryptString(conn->encryption_type, in, recvbuffer,
++                          conn->session_key, nbytes);
++        }
++
+         if (recvbuffer[0] == '\0')
+         {
+             Log(LOG_LEVEL_ERR,
+@@ -357,13 +364,6 @@ Item *RemoteDirList(const char *dirname,
+             goto err;
+         }
+ 
+-        if (encrypt)
+-        {
+-            memcpy(in, recvbuffer, nbytes);
+-            DecryptString(conn->encryption_type, in, recvbuffer,
+-                          conn->session_key, nbytes);
+-        }
+-
+         if (FailedProtoReply(recvbuffer))
+         {
+             Log(LOG_LEVEL_INFO, "Network access to '%s:%s' denied", conn->this_server, dirname);

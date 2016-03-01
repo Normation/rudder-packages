@@ -1,2 +1,3 @@
-SLES11:gcc
 SLES10:gcc
+SLES11:gcc
+SLES12:gcc

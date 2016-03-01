@@ -1,0 +1,27 @@
+#!/bin/sh
+
+# Check ifthe dependencies required to run the Rudder
+# agent are installed
+for i in CSWpcre CSWcurl CSWlibssp0
+do
+
+  if pkginfo -q $i
+  then
+    :
+  else
+    MISSING_DEPS="$i $MISSING_DEPS"
+  fi
+
+done
+
+if [ -n "$MISSING_DEPS" ]
+then
+
+  echo "ERROR: RudderAgent needs the following additional packages to run:"
+  echo "ERROR:"
+  echo "ERROR: $MISSING_DEPS"
+  echo "ERROR:"
+  echo "ERROR: They can be downloaded from http://www.opencsw.org/"
+  exit 1
+
+fi

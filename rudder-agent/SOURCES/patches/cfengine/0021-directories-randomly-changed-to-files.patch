@@ -1,16 +1,15 @@
-diff -upr cfengine-3.6.0/cf-agent/verify_files_utils.c cfengine-3.6.0-new/cf-agent/verify_files_utils.c
---- cfengine-3.6.0/cf-agent/verify_files_utils.c	2014-06-03 14:39:00.000000000 +0200
-+++ cfengine-3.6.0-new/cf-agent/verify_files_utils.c	2015-12-17 16:26:06.911118924 +0100
-@@ -756,7 +756,17 @@ static PromiseResult SourceSearchAndCopy
-     {
+diff -upr cfengine-3.7.1/cf-agent/verify_files_utils.c cfengine-3.7.1-b/cf-agent/verify_files_utils.c
+--- cfengine-3.7.1/cf-agent/verify_files_utils.c	2015-09-06 12:39:13.000000000 +0200
++++ cfengine-3.7.1-b/cf-agent/verify_files_utils.c	2015-12-17 13:05:14.706570253 +0100
+@@ -823,7 +823,16 @@ static PromiseResult SourceSearchAndCopy
+         /* This sends 1st STAT command. */
          if (!ConsiderAbstractFile(dirp->d_name, from, attr.copy, conn))
          {
 -            continue;
-+            if (conn != NULL &&
-+                conn->conn_info->status != CF_CONNECTION_ESTABLISHED)
++            if (conn != NULL && conn->conn_info->is_broken)
 +            {
 +                cfPS(ctx, LOG_LEVEL_INFO, PROMISE_RESULT_INTERRUPTED, pp,
-+                     attr, "connection error");
++                     attr, "connection timeout");
 +                return PROMISE_RESULT_INTERRUPTED;
 +            }
 +            else
@@ -20,16 +19,15 @@ diff -upr cfengine-3.6.0/cf-agent/verify_files_utils.c cfengine-3.6.0-new/cf-age
          }
  
          if (attr.copy.purge)    /* Purge this file */
-@@ -781,7 +791,17 @@ static PromiseResult SourceSearchAndCopy
+@@ -854,7 +863,16 @@ static PromiseResult SourceSearchAndCopy
              if (cf_stat(newfrom, &sb, attr.copy, conn) == -1)
              {
                  Log(LOG_LEVEL_VERBOSE, "Can't stat '%s'. (cf_stat: %s)", newfrom, GetErrorStr());
--                continue;
-+                if (conn != NULL &&
-+                    conn->conn_info->status != CF_CONNECTION_ESTABLISHED)
+-                continue;                                       /* TODO FAIL? */
++                if (conn != NULL && conn->conn_info->is_broken)
 +                {
 +                    cfPS(ctx, LOG_LEVEL_INFO, PROMISE_RESULT_INTERRUPTED, pp,
-+                         attr, "connection error");
++                         attr, "connection timeout");
 +                    return PROMISE_RESULT_INTERRUPTED;
 +                }
 +                else
@@ -39,17 +37,16 @@ diff -upr cfengine-3.6.0/cf-agent/verify_files_utils.c cfengine-3.6.0-new/cf-age
              }
          }
          else
-@@ -789,7 +809,18 @@ static PromiseResult SourceSearchAndCopy
+@@ -862,7 +880,17 @@ static PromiseResult SourceSearchAndCopy
              if (cf_lstat(newfrom, &sb, attr.copy, conn) == -1)
              {
                  Log(LOG_LEVEL_VERBOSE, "Can't stat '%s'. (cf_stat: %s)", newfrom, GetErrorStr());
--                continue;
-+                if (conn != NULL &&
-+                    conn->conn_info->status != CF_CONNECTION_ESTABLISHED)
+-                continue;                                       /* TODO FAIL? */
++                if (conn != NULL && conn->conn_info->is_broken)
 +                {
 +                    cfPS(ctx, LOG_LEVEL_INFO,
 +                         PROMISE_RESULT_INTERRUPTED, pp, attr,
-+                         "connection error");
++                         "connection timeout");
 +                    return PROMISE_RESULT_INTERRUPTED;
 +                }
 +                else
@@ -59,16 +56,15 @@ diff -upr cfengine-3.6.0/cf-agent/verify_files_utils.c cfengine-3.6.0-new/cf-age
              }
          }
  
-@@ -947,7 +978,17 @@ static PromiseResult VerifyCopy(EvalCont
-         {
-             if (!ConsiderAbstractFile(dirp->d_name, sourcedir, attr.copy, conn))
+@@ -1032,7 +1060,16 @@ static PromiseResult VerifyCopy(EvalCont
+             if (!ConsiderAbstractFile(dirp->d_name, sourcedir,
+                                       attr.copy, conn))
              {
 -                continue;
-+                if (conn != NULL &&
-+                    conn->conn_info->status != CF_CONNECTION_ESTABLISHED)
++                if (conn != NULL && conn->conn_info->is_broken)
 +                {
 +                    cfPS(ctx, LOG_LEVEL_INFO, PROMISE_RESULT_INTERRUPTED,
-+                         pp, attr, "connection error");
++                         pp, attr, "connection timeout");
 +                    return PROMISE_RESULT_INTERRUPTED;
 +                }
 +                else
@@ -78,71 +74,33 @@ diff -upr cfengine-3.6.0/cf-agent/verify_files_utils.c cfengine-3.6.0-new/cf-age
              }
  
              strcpy(sourcefile, sourcedir);
-diff -upr cfengine-3.6.0/libcfnet/classic.c cfengine-3.6.0-new/libcfnet/classic.c
---- cfengine-3.6.0/libcfnet/classic.c	2014-06-03 14:39:00.000000000 +0200
-+++ cfengine-3.6.0-new/libcfnet/classic.c	2015-12-17 16:09:53.067533789 +0100
-@@ -53,7 +53,11 @@ static bool LastRecvTimedOut(void)
-  * @param buffer Buffer into which to read data
-  * @param toget Number of bytes to read; a '\0' shall be written after
-  *        the data; buffer must have space for that.
-- * @return -1 on error; or actual length read.
-+ *
-+ * @return number of bytes actually received, might be less than #toget
-+ *         <toget  when connection has been gracefully closed while we
-+ *             were expecting more data.
-+ *         -1  in case of timeout or error - socket is unusable
-  */
- int RecvSocketStream(int sd, char buffer[CF_BUFSIZE], int toget)
- {
-@@ -77,9 +81,17 @@ int RecvSocketStream(int sd, char buffer
-             }
-             else if (LastRecvTimedOut())
-             {
--                Log(LOG_LEVEL_ERR,
--                    "Timeout - remote end did not respond with the expected amount of data (received=%d, expecting=%d). (recv: %s)",
-+                Log(LOG_LEVEL_ERR, "Receive timeout"
-+                    " (received=%dB, expecting=%dB) (recv: %s)",
-                     already, toget, GetErrorStr());
-+                Log(LOG_LEVEL_VERBOSE,
-+                    "Consider increasing body agent control"
-+                    " \"default_timeout\" setting");
-+              
-+                /* Shutdown() TCP connection despite of EAGAIN error, in
-+                 * order to avoid receiving this delayed response later on
-+                 * (Redmine #6027). */
-+                shutdown(sd, SHUT_RDWR);
-             }
-             else
-             {
-diff -upr cfengine-3.6.0/libcfnet/connection_info.h cfengine-3.6.0-new/libcfnet/connection_info.h
---- cfengine-3.6.0/libcfnet/connection_info.h	2014-06-03 14:39:00.000000000 +0200
-+++ cfengine-3.6.0-new/libcfnet/connection_info.h	2015-12-17 16:29:04.442582647 +0100
-@@ -37,13 +37,15 @@
-  */
+diff -upr cfengine-3.7.1/libcfnet/client_code.c cfengine-3.7.1-b/libcfnet/client_code.c
+--- cfengine-3.7.1/libcfnet/client_code.c	2015-09-06 12:39:13.000000000 +0200
++++ cfengine-3.7.1-b/libcfnet/client_code.c	2015-12-17 13:05:14.707570267 +0100
+@@ -754,7 +754,7 @@ int CopyRegularFileNet(const char *sourc
+     {
+         int toget = MIN(size - n_read_total, buf_size);
  
- /**
--  @brief States of the connection.
--  @note  Status of the connection so we can detect if we need to negotiate a new connection or not
--  */
-+ * @brief Status of the connection, for the connection cache and for
-+ *        propagating errors up in function callers.
-+ */
- typedef enum
- {
-     CF_CONNECTION_NOT_ESTABLISHED,
--    CF_CONNECTION_ESTABLISHED
-+    CF_CONNECTION_ESTABLISHED,
-+    /* used to propagate connection errors up in function calls */
-+    CONNECTIONINFO_STATUS_BROKEN
- } ConnectionStatus;
+-        assert(toget != 0);
++        assert(toget > 0);
  
- struct ConnectionInfo {
-Only in cfengine-3.6.0-new/libcfnet: connection_info.h.orig
-Only in cfengine-3.6.0-new/libcfnet: connection_info.h.rej
-diff -upr cfengine-3.6.0/libcfnet/net.c cfengine-3.6.0-new/libcfnet/net.c
---- cfengine-3.6.0/libcfnet/net.c	2014-06-11 16:15:15.000000000 +0200
-+++ cfengine-3.6.0-new/libcfnet/net.c	2015-12-17 16:30:37.388872525 +0100
-@@ -91,7 +91,7 @@ int SendTransaction(const ConnectionInfo
+         /* Stage C1 - receive */
+         int n_read;
+diff -upr cfengine-3.7.1/libcfnet/connection_info.h cfengine-3.7.1-b/libcfnet/connection_info.h
+--- cfengine-3.7.1/libcfnet/connection_info.h	2015-09-06 12:39:13.000000000 +0200
++++ cfengine-3.7.1-b/libcfnet/connection_info.h	2015-12-17 13:05:14.707570267 +0100
+@@ -56,6 +56,7 @@ struct ConnectionInfo {
+     socklen_t ss_len;
+     struct sockaddr_storage ss;
+     bool is_call_collect;       /* Maybe replace with a bitfield later ... */
++    bool is_broken; /* used to propagate connection errors up in function calls */
+ };
+ 
+ typedef struct ConnectionInfo ConnectionInfo;
+diff -upr cfengine-3.7.1/libcfnet/net.c cfengine-3.7.1-b/libcfnet/net.c
+--- cfengine-3.7.1/libcfnet/net.c	2015-09-06 12:39:13.000000000 +0200
++++ cfengine-3.7.1-b/libcfnet/net.c	2015-12-17 13:05:14.707570267 +0100
+@@ -123,7 +123,7 @@ int SendTransaction(const ConnectionInfo
   *  @return 0 in case of socket closed, -1 in case of other error, or
   *          >0 the number of bytes read.
   */
@@ -150,102 +108,83 @@ diff -upr cfengine-3.6.0/libcfnet/net.c cfengine-3.6.0-new/libcfnet/net.c
 +int ReceiveTransaction(ConnectionInfo *conn_info, char *buffer, int *more)
  {
      char proto[CF_INBAND_OFFSET + 1] = { 0 };
-     char status = 'x';
-@@ -113,7 +113,26 @@ int ReceiveTransaction(const ConnectionI
-         ret = -1;
-     }
+     int ret;
+@@ -145,6 +145,13 @@ int ReceiveTransaction(const ConnectionI
+ 
      if (ret == -1 || ret == 0)
-+    {
+     {
 +        /* We are experiencing problems with receiving data from server.
 +         * This might lead to packages being not delivered in correct
 +         * order and unexpected issues like directories being replaced
 +         * with files.
 +         * In order to make sure that file transfer is reliable we have to
 +         * close connection to avoid broken packages being received. */
-+        conn_info->status = CONNECTIONINFO_STATUS_BROKEN;
++        conn_info->is_broken = true;
          return ret;
-+    }
-+    else if (ret != CF_INBAND_OFFSET)
-+    {
-+        /* If we received less bytes than expected. Might happen
-+         * with TLSRecv(). */
-+        Log(LOG_LEVEL_ERR,
-+            "ReceiveTransaction: bogus short header (%d bytes: '%s')",
-+            ret, proto);
-+        conn_info->status = CONNECTIONINFO_STATUS_BROKEN;
-+        return -1;
-+    }
- 
-     LogRaw(LOG_LEVEL_DEBUG, "ReceiveTransaction header: ", proto, ret);
- 
-@@ -121,14 +140,30 @@ int ReceiveTransaction(const ConnectionI
-     if (ret != 2)
-     {
+     }
+     else if (ret != CF_INBAND_OFFSET)
+@@ -152,6 +159,7 @@ int ReceiveTransaction(const ConnectionI
          Log(LOG_LEVEL_ERR,
--            "ReceiveTransaction: Bad packet -- bogus header: %s", proto);
-+            "ReceiveTransaction: bogus header: %s", proto);
-+        conn_info->status = CONNECTIONINFO_STATUS_BROKEN;
-+        return -1;
-+    }
-+    if (status != CF_MORE && status != CF_DONE)
-+    {
-+        Log(LOG_LEVEL_ERR,
-+            "ReceiveTransaction: bogus header (more='%c')", status);
-+        conn_info->status = CONNECTIONINFO_STATUS_BROKEN;
+             "ReceiveTransaction: bogus short header (%d bytes: '%s')",
+             ret, proto);
++        conn_info->is_broken = true;
          return -1;
      }
  
+@@ -165,18 +173,21 @@ int ReceiveTransaction(const ConnectionI
+     {
+         Log(LOG_LEVEL_ERR,
+             "ReceiveTransaction: bogus header: %s", proto);
++        conn_info->is_broken = true;
+         return -1;
+     }
+     if (status != CF_MORE && status != CF_DONE)
+     {
+         Log(LOG_LEVEL_ERR,
+             "ReceiveTransaction: bogus header (more='%c')", status);
++        conn_info->is_broken = true;
+         return -1;
+     }
      if (len > CF_BUFSIZE - CF_INBAND_OFFSET)
      {
          Log(LOG_LEVEL_ERR,
--            "ReceiveTransaction: Bad packet -- too long (len=%d)", len);
-+          "ReceiveTransaction: packet too long (len=%d)", len);
-+        conn_info->status = CONNECTIONINFO_STATUS_BROKEN;
-+        return -1;
-+    }
-+    if (len <= 0)
-+    {
-+        Log(LOG_LEVEL_ERR,
-+            "ReceiveTransaction: packet too short (len=%d)", len);
-+        conn_info->status = CONNECTIONINFO_STATUS_BROKEN;
+             "ReceiveTransaction: packet too long (len=%d)", len);
++        conn_info->is_broken = true;
+         return -1;
+     }
+     else if (len <= 0)
+@@ -185,6 +196,7 @@ int ReceiveTransaction(const ConnectionI
+          * ReceiveTransaction() == 0 currently means connection closed. */
+         Log(LOG_LEVEL_ERR,
+             "ReceiveTransaction: packet too short (len=%d)", len);
++        conn_info->is_broken = true;
          return -1;
      }
  
-@@ -155,6 +190,28 @@ int ReceiveTransaction(const ConnectionI
+@@ -219,8 +231,9 @@ int ReceiveTransaction(const ConnectionI
          ret = -1;
      }
  
+-    if (ret == -1 || ret == 0)
 +    if (ret <= 0)
-+    {
-+        conn_info->status = CONNECTIONINFO_STATUS_BROKEN;
-+        return ret;
-+    }
-+    else if (ret != len)
-+    {
-+        /*
-+         * Should never happen except with TLS, given that we are using
-+         * SSL_MODE_AUTO_RETRY and that transaction payload < CF_BUFSIZE < TLS
-+         * record size, it can currently only happen if the other side does
-+         * TLSSend(wrong_number) for the transaction.
-+         *
-+         * TODO IMPORTANT terminate TLS session in that case.
-+         */
-+        Log(LOG_LEVEL_ERR,
-+            "Partial transaction read %d != %d bytes!",
-+            ret, len);
-+        conn_info->status = CONNECTIONINFO_STATUS_BROKEN;
-+        return -1;
-+    }
-+
-     LogRaw(LOG_LEVEL_DEBUG, "ReceiveTransaction data: ", buffer, ret);
+     {
++        conn_info->is_broken = true;
+         return ret;
+     }
+     else if (ret != len)
+@@ -230,6 +243,7 @@ int ReceiveTransaction(const ConnectionI
+         Log(LOG_LEVEL_ERR,
+             "Partial transaction read %d != %d bytes!",
+             ret, len);
++        conn_info->is_broken = true;
+         return -1;
+     }
  
-     return ret;
-Only in cfengine-3.6.0-new/libcfnet: net.c.orig
-Only in cfengine-3.6.0-new/libcfnet: net.c.rej
-diff -upr cfengine-3.6.0/libcfnet/net.h cfengine-3.6.0-new/libcfnet/net.h
---- cfengine-3.6.0/libcfnet/net.h	2014-04-10 14:46:05.000000000 +0200
-+++ cfengine-3.6.0-new/libcfnet/net.h	2015-12-17 16:11:12.711650620 +0100
-@@ -32,7 +32,7 @@
+Only in cfengine-3.7.1-b/libcfnet: net.c.orig
+diff -upr cfengine-3.7.1/libcfnet/net.h cfengine-3.7.1-b/libcfnet/net.h
+--- cfengine-3.7.1/libcfnet/net.h	2015-09-06 12:39:13.000000000 +0200
++++ cfengine-3.7.1-b/libcfnet/net.h	2015-12-17 13:05:14.707570267 +0100
+@@ -35,7 +35,7 @@ extern uint32_t bwlimit_kbytes;
  
  
  int SendTransaction(const ConnectionInfo *conn_info, const char *buffer, int len, char status);
@@ -254,95 +193,3 @@ diff -upr cfengine-3.6.0/libcfnet/net.h cfengine-3.6.0-new/libcfnet/net.h
  
  int SetReceiveTimeout(int fd, unsigned long ms);
  
-diff -upr cfengine-3.6.0/libcfnet/tls_generic.c cfengine-3.6.0-new/libcfnet/tls_generic.c
---- cfengine-3.6.0/libcfnet/tls_generic.c	2014-06-11 16:15:15.000000000 +0200
-+++ cfengine-3.6.0-new/libcfnet/tls_generic.c	2015-12-17 16:09:53.067533789 +0100
-@@ -524,7 +524,7 @@ static const char *TLSSecondarySSLError(
-  * @warning Use only for SSL_connect(), SSL_accept(), SSL_do_handshake(),
-  *          SSL_read(), SSL_peek(), SSL_write(), see SSL_get_error man page.
-  */
--void TLSLogError(SSL *ssl, LogLevel level, const char *prepend, int code)
-+int TLSLogError(SSL *ssl, LogLevel level, const char *prepend, int code)
- {
-     assert(prepend != NULL);
- 
-@@ -556,6 +556,8 @@ void TLSLogError(SSL *ssl, LogLevel leve
-             (errstr2 == NULL) ? "" : errstr2,          /* most likely empty */
-             syserr);
-     }
-+    
-+    return errcode;
- }
- 
- static void assert_SSLIsBlocking(const SSL *ssl)
-@@ -627,9 +629,12 @@ int TLSSend(SSL *ssl, const char *buffer
-  * @param ssl SSL information.
-  * @param buffer Buffer, of size at least CF_BUFSIZE, to store received data.
-  * @param length Length of the data to receive, must be < CF_BUFSIZE.
-+ *
-  * @return The length of the received data, which could be smaller or equal
-- *         than the requested or -1 in case of error or 0 if connection was
-- *         closed.
-+ *         than the requested amount.
-+ *         -1 in case of timeout or error - SSL session is unusable
-+ *         0  if connection was closed
-+ *
-  * @note Use only for *blocking* sockets. Set
-  *       SSL_CTX_set_mode(SSL_MODE_AUTO_RETRY) to make sure that either
-  *       operation completed or an error occured.
-@@ -643,7 +648,29 @@ int TLSRecv(SSL *ssl, char *buffer, int
-     int received = SSL_read(ssl, buffer, length);
-     if (received < 0)
-     {
--        TLSLogError(ssl, LOG_LEVEL_ERR, "SSL_read", received);
-+        int errcode = TLSLogError(ssl, LOG_LEVEL_ERR, "SSL_read", received);
-+
-+        /* SSL_read() might get an internal recv() timeout, since we've set
-+         * SO_RCVTIMEO. In that case, the internal socket returns EAGAIN or
-+         * EWOULDBLOCK and SSL_read() returns SSL_ERROR_WANT_READ. */
-+        if (errcode == SSL_ERROR_WANT_READ)               /* recv() timeout */
-+        {
-+            /* Make sure that the peer will send us no more data. */
-+            SSL_shutdown(ssl);
-+            shutdown(SSL_get_fd(ssl), SHUT_RDWR);
-+      
-+            /* Empty possible SSL_read() buffers. */
-+      
-+            int ret = 1;
-+            int bytes_still_buffered = SSL_pending(ssl);
-+            while (bytes_still_buffered > 0 && ret > 0)
-+            {
-+                char tmpbuf[bytes_still_buffered];
-+                ret = SSL_read(ssl, tmpbuf, bytes_still_buffered);
-+                bytes_still_buffered -= ret;
-+            }
-+        }
-+
-         return -1;
-     }
-     else if (received == 0)
-diff -upr cfengine-3.6.0/libcfnet/tls_generic.h cfengine-3.6.0-new/libcfnet/tls_generic.h
---- cfengine-3.6.0/libcfnet/tls_generic.h	2014-06-11 16:15:15.000000000 +0200
-+++ cfengine-3.6.0-new/libcfnet/tls_generic.h	2015-12-17 16:09:53.068533803 +0100
-@@ -39,7 +39,7 @@ bool TLSGenericInitialize(void);
- int TLSVerifyCallback(X509_STORE_CTX *ctx, void *arg);
- int TLSVerifyPeer(ConnectionInfo *conn_info, const char *remoteip, const char *username);
- X509 *TLSGenerateCertFromPrivKey(RSA *privkey);
--void TLSLogError(SSL *ssl, LogLevel level, const char *prepend, int code);
-+int TLSLogError(SSL *ssl, LogLevel level, const char *prepend, int code);
- int TLSSend(SSL *ssl, const char *buffer, int length);
- int TLSRecv(SSL *ssl, char *buffer, int length);
- int TLSRecvLines(SSL *ssl, char *buf, size_t buf_size);
-diff -upr cfengine-3.6.0/libutils/platform.h cfengine-3.6.0-new/libutils/platform.h
---- cfengine-3.6.0/libutils/platform.h	2014-06-11 16:15:15.000000000 +0200
-+++ cfengine-3.6.0-new/libutils/platform.h	2015-12-17 16:09:53.068533803 +0100
-@@ -63,6 +63,9 @@
- # include <iphlpapi.h>
- # include <ws2tcpip.h>
- # include <objbase.h>           // for disphelper
-+# ifndef SHUT_RDWR              // for shutdown()
-+#  define SHUT_RDWR SD_BOTH
-+# endif
- #endif
- 
- /* Standard C. */

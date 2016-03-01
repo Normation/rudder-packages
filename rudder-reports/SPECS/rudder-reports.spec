@@ -54,18 +54,18 @@ Source4: rudder-db
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
 
-Requires: postgresql-server >= 8
+Requires: postgresql-server >= 8.4
 Requires: rsyslog >= 4
 
-%if 0%{?sles_version} == 10
+%if 0%{?sles_version} && 0%{?sles_version} == 10
 Requires: %{suse_rsyslog_pgsql} >= 4
 %endif
 
-%if 0%{?sles_version} == 11
+%if 0%{?sles_version} && 0%{?sles_version} == 11
 Requires: %{suse_rsyslog_pgsql} >= 4
 %endif
 
-%if 0%{?el6}
+%if 0%{?rhel} && 0%{?rhel} >= 6
 Requires: rsyslog-pgsql >= 4
 %endif
 
@@ -121,7 +121,7 @@ service ${POSTGRESQL_SERVICE_NAME} status > /dev/null
 
 if [ $? -ne 0 ]
 then
-%if 0%{?el6}
+%if 0%{?rhel} || 0%{?fedora}
   service ${POSTGRESQL_SERVICE_NAME} initdb
 %endif
   service ${POSTGRESQL_SERVICE_NAME} start
@@ -165,8 +165,8 @@ fi
 
 echo -n "INFO: Setting PostgreSQL as a boot service..."
 chkconfig --add ${POSTGRESQL_SERVICE_NAME} >/dev/null 2>&1
-%if 0%{?rhel} >= 6
-chkconfig ${POSTGRESQL_SERVICE_NAME} on >/dev/null 2>&1
+%if 0%{?rhel} && 0%{?rhel} >= 6
+  chkconfig ${POSTGRESQL_SERVICE_NAME} on >/dev/null 2>&1
 %endif
 echo " Done"
 

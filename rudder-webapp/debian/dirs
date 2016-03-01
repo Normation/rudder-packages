@@ -1,6 +1,8 @@
 opt/rudder/bin
 opt/rudder/share/webapps
 opt/rudder/share/rudder-plugins
+opt/rudder/share/certificates
+opt/rudder/share/selinux
 opt/rudder/etc
 opt/rudder/etc/ssl
 opt/rudder/etc/plugins
@@ -18,6 +20,7 @@ var/rudder/inventories/incoming
 var/rudder/inventories/received
 var/rudder/inventories/failed
 var/rudder/inventories/historical
+var/rudder/configuration-repository
 var/rudder/configuration-repository/ncf/ncf-hooks.d
 var/log/rudder/apache2
 var/log/rudder/ldap
