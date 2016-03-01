@@ -65,6 +65,7 @@ trap anomaly_handler ERR INT TERM
 # - 2.11.4 : Add the property for the command line to force the server to reload its promises
 # - 2.11.6 : Remove LDAP indexes
 # - 2.11.6 : Add LDAP cache optimizations
+# - 2.11.19 : Add index on fileformat for eventlog
 #####################################################################################
 
 # Some paths
@@ -557,15 +558,17 @@ rudder.cfengine.reload.server.command=/opt/rudder/bin/rudder-reload-cf-serverd"
 # Check and update database
 ################################################################################
 
-# Upgrade the PostgreSQL database
-upgrade_database() {
+# Upgrade the eventlog
+# This has been separated from the upgrade_database to be run after, as it would allow to create the indexes for eventlog if necessary
+# and have only one location for all the eventlog upgrade part
+upgrade_eventlog() {
   # Upgrade database schema from 2.3 to 2.4 if necessary - seventh part: Check the lowest fileFormat version in the eventLog and update the date if necessary
   STEP="Upgrade database schema from 2.3 to 2.4 if necessary - seventh part: Check the lowest fileFormat version in the eventLog and update the date if necessary"
 
   OLDEST_EVENTLOG_VERSION=0
   for EVENTLOG_VERSION in 2 1
   do
-    CHK_EVENTLOG=$(${PSQL} -t -d rudder -c "select count(*) from (select xpath('/entry/*[@fileFormat=${EVENTLOG_VERSION}]',data) AS x from eventlog) as Y where array_upper(x, 1) > 0;")
+    CHK_EVENTLOG=$(${PSQL} -t -d rudder -c "select count(*) from (select ((xpath('/entry//@fileFormat',data))[1]::text) as id from eventlog) as T where id='${EVENTLOG_VERSION}';")
     if [ ${CHK_EVENTLOG} -ne 0 ]; then
       OLDEST_EVENTLOG_VERSION=${EVENTLOG_VERSION}
     fi
@@ -580,18 +583,10 @@ upgrade_database() {
     ${PSQL} -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.4-2.4-set-migration-needed-flag-for-EventLog.sql > /dev/null
   fi
 
-  # Upgrade database schema from 2.3 to 2.4 if necessary - eighth part: Check if archive of the eventlog exists and create it if necessary
-  STEP="Upgrade database schema from 2.3 to 2.4 if necessary - eighth part: Check if archive of the eventlog exists and create it if necessary"
-
-  RES=$(${PSQL} -t -d rudder -c "select count(1) from pg_class where relname = 'archivedruddersysevents'")
-  if [ $RES -eq 0 ]; then
-    ${PSQL} -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.3-2.4-archive.sql > /dev/null
-  fi
-
   # 2.7.0: File Format migration from 3 to 4
   STEP="2.7.0: File Format migration from 3 to 4"
 
-  RES=$(${PSQL} -t -d rudder -c "select count(*) from (select xpath('/entry/*[@fileFormat=3]',data) AS x from eventlog) as Y where array_upper(x, 1) > 0;")
+  RES=$(${PSQL} -t -d rudder -c "select count(*) from (select ((xpath('/entry//@fileFormat',data))[1]::text) as id from eventlog) as T where id='3';")
   if [ $RES -ne 0 ]; then
     ${PSQL} -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.6-2.7-set-migration-needed-flag-for-EventLog.sql > /dev/null 2>&1
   fi
@@ -599,9 +594,21 @@ upgrade_database() {
   # 2.9.0: File Format migration from 4 to 5
   STEP="2.9.0: File Format migration from 4 to 5"
 
-  RES=$(${PSQL} -t -d rudder -c "select count(*) from (select xpath('/entry/*[@fileFormat=4]',data) AS x from eventlog) as Y where array_upper(x, 1) > 0;")
+  RES=$(${PSQL} -t -d rudder -c "select count(*) from (select ((xpath('/entry//@fileFormat',data))[1]::text) as id from eventlog) as T where id='4';")
   if [ $RES -ne 0 ]; then
     ${PSQL} -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.8-2.9-set-migration-needed-flag-for-EventLog.sql > /dev/null 2>&1
+  fi
+
+}
+
+# Upgrade the PostgreSQL database
+upgrade_database() {
+  # Upgrade database schema from 2.3 to 2.4 if necessary - eighth part: Check if archive of the eventlog exists and create it if necessary
+  STEP="Upgrade database schema from 2.3 to 2.4 if necessary - eighth part: Check if archive of the eventlog exists and create it if necessary"
+
+  RES=$(${PSQL} -t -d rudder -c "select count(1) from pg_class where relname = 'archivedruddersysevents'")
+  if [ $RES -eq 0 ]; then
+    ${PSQL} -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.3-2.4-archive.sql > /dev/null
   fi
 
   # Upgrade database schema from 2.7 to 2.8 if necessary - Check if the execution table is present, and create it if needed.
@@ -656,6 +663,18 @@ upgrade_database() {
     ${PSQL} -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.10-2.10-historization-of-agent-schedule.sql > /dev/null
   fi
 
+  # - 2.11.19 : Migration DB schema to modify indexes on eventlog to improve upgrade speed
+  STEP="Migration DB schema to modify indexes on eventlog to improve upgrade speed"
+
+  RES=$(${PSQL} -t -d rudder -c "select count(oid) from pg_class where lower(relname) = 'eventlog_fileformat_idx'")
+  if [ $RES -eq 0 ]; then
+    echo -n "INFO: Updating the PostgreSQL indexes, this may take several minutes..."
+    ${PSQL} -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.11-2.11-index-eventlog.sql > /dev/null
+    echo " Done"
+  fi
+
+  # Now check the fileFormat in the eventlog
+  upgrade_eventlog
 }
 
 ################################################################################
