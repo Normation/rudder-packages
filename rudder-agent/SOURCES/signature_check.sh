@@ -1,0 +1,76 @@
+#!/bin/bash
+
+# To allow Rudder to provide its own version of openssl
+export PATH=/opt/rudder/bin:$PATH
+
+if openssl -h 2> /dev/null
+then
+  true
+else
+  echo "ERROR: openssl binary is missing !" 
+  exit 1
+fi
+
+# the file to verify
+FILE="$1" 
+if [ ! -e "${FILE}" ]
+then
+  echo "Cannot verify: The file ${FILE} doesn't exist" 
+  exit 2
+fi
+
+# Signature of this file
+SIGNATURE="${FILE}.sign" 
+if [ ! -e "${SIGNATURE}" ]
+then
+  echo "Cannot verify: The file ${SIGNATURE} doesn't exist" 
+  exit 2
+fi
+
+# the public key to use for verification
+PUBKEY="$2" 
+if [ ! -e "${PUBKEY}" ]
+then
+  echo "Cannot verify: The file ${PUBKEY} doesn't exist" 
+  exit 2
+fi
+
+# extract data from signature file
+if [ $(head -n1 "${SIGNATURE}") != "header=rudder-signature-v1" ]
+then
+  echo "Not a valid signature file" 
+  exit 3
+fi
+HASH=$(sed -ne '/algorithm=/s/algorithm=//p' "${SIGNATURE}")
+SIGN_HEX=$(sed -ne '/digest=/s/digest=//p' "${SIGNATURE}")
+HOSTNAME=$(sed -ne '/hostname=/s/hostname=//p' "${SIGNATURE}")
+KEYDATE=$(sed -ne '/keydate=/s/keydate=//p' "${SIGNATURE}")
+KEYID=$(sed -ne '/keyid=/s/keyid=//p' "${SIGNATURE}")
+
+# create binary signature file
+SIGN=$(mktemp)
+echo -ne $(echo "${SIGN_HEX}" | tr -d '[:space:]' | sed 's/../\\x&/g') > "${SIGN}" 
+
+# openssl command only read public keys in X509/pkcs8 format
+PUBKEY8=$(mktemp)
+openssl rsa -RSAPublicKey_in -in "${PUBKEY}" -pubout -out "${PUBKEY8}" 2> /dev/null
+
+# Public key identifier (last 4 bytes of the modulus)
+LOCAL_KEYID=$(openssl rsa -RSAPublicKey_in -in "${PUBKEY}" -noout -modulus | sed 's/.*\(........\)$/\1/')
+
+# Check the signature
+openssl dgst "-${HASH}" -verify "${PUBKEY8}" -signature "${SIGN}" < "${FILE}" 
+RET=$?
+
+rm -f ${PUBKEY8} ${SIGN}
+
+if [ ${RET} -ne 0 ]
+then
+  # if there was an error give disgnostic information is possible
+  echo " - signature created on ${HOSTNAME:-unknown}"
+  echo " - private key file created at ${KEYDATE:-unknown}"
+  echo " - public key id from signature is ${KEYID:-unknown}"
+  echo " - your public key id is ${LOCAL_KEYID}"
+fi
+
+exit ${RET}
