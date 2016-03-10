@@ -72,6 +72,7 @@ trap anomaly_handler ERR INT TERM
 # - 3.0.0        : Replace varchar by text in the database
 # - 3.0.2        : Check for the PostgreSQL version (>= 8.4)
 # - 2.11.19      : Add index on fileformat for eventlog
+# - 3.0.14       : Add index on nodeconfigids for expectedreportsnodes
 ####################################################################################
 
 # Some paths
@@ -719,6 +720,14 @@ upgrade_database() {
   if [ $RES -eq 0 ]; then
     echo -n "INFO: Updating the PostgreSQL indexes, this may take several minutes..."
     ${PSQL} -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.11-2.11-index-eventlog.sql > /dev/null
+    echo " Done"
+  fi
+
+  # - 3.0.14: Migration DB schema to add an indexes on nodeconfigids on table expectedreportsnodes
+  RES=$(${PSQL} -t -d rudder -c "select count(oid) from pg_class where lower(relname) = 'nodeconfigids_idx'")
+  if [ $RES -eq 0 ]; then
+    echo -n "INFO: Updating the PostgreSQL indexes, this may take several minutes..."
+    ${PSQL} -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-3.0-3.0-add-index-nodeconfigids.sql > /dev/null
     echo " Done"
   fi
 
