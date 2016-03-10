@@ -33,10 +33,22 @@ PASSPHRASE="Cfengine passphrase"
 # Create signature
 SIGNATURE=`openssl dgst -passin "pass:${PASSPHRASE}" -${HASH} -hex -sign "${PRIVKEY}" < "${FILE}" | sed -e 's/.*= //'`
 
+# Hostname (informative only, it can be slightly different from the rudder detected one)
+HOSTNAME=`hostname`
+
+# Private key modification date
+KEYDATE=`stat -c %y ${PRIVKEY}`
+
+# Public key identifier (last 4 bytes of the modulus)
+KEYID=`openssl rsa -passin "pass:${PASSPHRASE}" -in "${PRIVKEY}" -noout -modulus | sed 's/.*\(........\)$/\1/'`
+
 # Create a signature FILE
 cat > "${FILE}.sign" <<EOF
 header=rudder-signature-v1
 algorithm=${HASH}
 digest=${SIGNATURE}
+hostname=${HOSTNAME}
+keydate=${KEYDATE}
+keyid=${KEYID}
 EOF
 

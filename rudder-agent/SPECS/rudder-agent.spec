@@ -73,6 +73,7 @@ Source13: uuid.hive
 Source14: uuidgen
 Source15: vzps.py
 Source16: rudder.8.gz
+Source17: signature_check.sh
 
 # Prevent dependency auto-generation, that tries to be helpful by detecting Perl dependencies from
 # FusionInventory. We handle that with the perl standalone installation already.
