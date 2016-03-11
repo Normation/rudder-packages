@@ -62,7 +62,7 @@ trap anomaly_handler ERR INT TERM
 # - 3.2.0        : Add the properties to configuration authentication provider and master admin account
 # - 3.2.0        : Add the properties to configure Rudder roles
 # - 3.2.0        : Call rudderify to make sure local techniques are copied in each agent promises
-#####################################################################################
+####################################################################################
 
 # Some paths
 RUDDER_OPT="/opt/rudder"
