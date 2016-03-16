@@ -1,0 +1,634 @@
+From e14f58c39a94525d46645536ff69dd291d515981 Mon Sep 17 00:00:00 2001
+From: Alexis Mousset <alexis.mousset@normation.com>
+Date: Thu, 20 Aug 2015 14:27:45 +0200
+Subject: [PATCH 1/6] Add this.callers_promisers variable
+
+---
+ libpromises/eval_context.c                | 31 ++++++++++++++
+ libpromises/eval_context.h                |  2 +
+ tests/acceptance/21_methods/callers/01.cf | 51 ++++++++++++++++++++++
+ tests/acceptance/21_methods/callers/02.cf | 70 +++++++++++++++++++++++++++++++
+ 4 files changed, 154 insertions(+)
+ create mode 100644 tests/acceptance/21_methods/callers/01.cf
+ create mode 100644 tests/acceptance/21_methods/callers/02.cf
+
+diff --git a/libpromises/eval_context.c b/libpromises/eval_context.c
+index 55d6786..9fcf9e9 100644
+--- a/libpromises/eval_context.c
++++ b/libpromises/eval_context.c
+@@ -1025,6 +1025,36 @@ void EvalContextClear(EvalContext *ctx)
+ 
+ }
+ 
++Rlist *EvalContextGetPromiseCallerMethods(EvalContext *ctx) {
++	Rlist *callers = NULL;
++
++	for (size_t i = 0; i < SeqLength(ctx->stack); i++)
++	{
++	    StackFrame *frame = SeqAt(ctx->stack, i);
++	    switch (frame->type)
++	    {
++	    case STACK_FRAME_TYPE_BODY:
++	        break;
++
++	    case STACK_FRAME_TYPE_BUNDLE:
++	        break;
++
++	    case STACK_FRAME_TYPE_PROMISE_ITERATION:
++	        break;
++
++	    case STACK_FRAME_TYPE_PROMISE:
++	     	if (strcmp(frame->data.promise.owner->parent_promise_type->name, "methods") == 0) {
++	     		RlistAppendScalar(&callers, frame->data.promise.owner->promiser);
++	      	}
++	        break;
++
++	    case STACK_FRAME_TYPE_PROMISE_TYPE:
++	      	break;
++	    }
++	}
++	return callers;
++}
++
+ void EvalContextSetBundleArgs(EvalContext *ctx, const Rlist *args)
+ {
+     if (ctx->args)
+@@ -1269,6 +1299,7 @@ void EvalContextStackPushPromiseFrame(EvalContext *ctx, const Promise *owner, bo
+     xsnprintf(v, sizeof(v), "%d", (int) ctx->ppid);
+     EvalContextVariablePutSpecial(ctx, SPECIAL_SCOPE_THIS, "promiser_ppid", v, CF_DATA_TYPE_INT, "source=agent");
+ 
++    EvalContextVariablePutSpecial(ctx, SPECIAL_SCOPE_THIS, "callers_promisers", EvalContextGetPromiseCallerMethods(ctx), CF_DATA_TYPE_STRING_LIST, "source=promise");
+     EvalContextVariablePutSpecial(ctx, SPECIAL_SCOPE_THIS, "bundle", PromiseGetBundle(owner)->name, CF_DATA_TYPE_STRING, "source=promise");
+     EvalContextVariablePutSpecial(ctx, SPECIAL_SCOPE_THIS, "namespace", PromiseGetNamespace(owner), CF_DATA_TYPE_STRING, "source=promise");
+ }
+diff --git a/libpromises/eval_context.h b/libpromises/eval_context.h
+index d4e5941..a45c91d 100644
+--- a/libpromises/eval_context.h
++++ b/libpromises/eval_context.h
+@@ -131,6 +131,8 @@ ClassTableIterator *EvalContextClassTableIteratorNewLocal(const EvalContext *ctx
+ 
+ void EvalContextClear(EvalContext *ctx);
+ 
++Rlist *EvalContextGetPromiseCallerMethods(EvalContext *ctx);
++
+ void EvalContextStackPushBundleFrame(EvalContext *ctx, const Bundle *owner, const Rlist *args, bool inherits_previous);
+ void EvalContextStackPushBodyFrame(EvalContext *ctx, const Promise *caller, const Body *body, const Rlist *args);
+ void EvalContextStackPushPromiseTypeFrame(EvalContext *ctx, const PromiseType *owner);
+diff --git a/tests/acceptance/21_methods/callers/01.cf b/tests/acceptance/21_methods/callers/01.cf
+new file mode 100644
+index 0000000..b06a2ff
+--- /dev/null
++++ b/tests/acceptance/21_methods/callers/01.cf
+@@ -0,0 +1,51 @@
++#######################################################
++#
++# Test the variable this.callers_promisers with one bundle
++#
++#######################################################
++
++body common control
++{
++      inputs => { "../../default.cf.sub" };
++      bundlesequence  => { default("$(this.promise_filename)") };
++      version => "1.0";
++}
++
++#######################################################
++
++bundle agent init {
++}
++
++bundle agent test {
++  methods:
++    "test" usebundle => "caller";
++}
++
++bundle agent check {
++  reports:
++    success::
++      "$(this.promise_filename) Pass";
++    !success::
++      "$(this.promise_filename) FAIL";
++}
++
++bundle agent caller {
++  methods:
++    "first call" usebundle => dummy;
++}
++
++bundle agent dummy {
++  vars:
++    "callers_promisers_expect" string => "any, any, test, first call";
++    "callers_promisers_actual" string => join(", ", "this.callers_promisers");
++
++  classes:
++    "success"  expression => strcmp("${callers_promisers_expect}", "${callers_promisers_actual}"),
++      scope => "namespace";
++
++  reports:
++    DEBUG::
++      "EXPECT: callers_promisers_string = ${callers_promisers_expect}";
++      "ACTUAL: callers_promisers_string = ${callers_promisers_actual}";
++}
++
+diff --git a/tests/acceptance/21_methods/callers/02.cf b/tests/acceptance/21_methods/callers/02.cf
+new file mode 100644
+index 0000000..4733b21
+--- /dev/null
++++ b/tests/acceptance/21_methods/callers/02.cf
+@@ -0,0 +1,70 @@
++#######################################################
++#
++# Test the variable this.callers_promisers with one bundle called twice
++#
++#######################################################
++
++body common control
++{
++      inputs => { "../../default.cf.sub" };
++      bundlesequence  => { default("$(this.promise_filename)") };
++      version => "1.0";
++}
++
++#######################################################
++
++bundle agent init {
++}
++
++bundle agent test {
++  methods:
++    "test" usebundle => "caller";
++}
++
++bundle agent check {
++  reports:
++    success_first.success_second::
++      "$(this.promise_filename) Pass";
++    !(success_first.success_second)::
++      "$(this.promise_filename) FAIL";
++}
++
++bundle agent caller {
++
++  methods:
++    "first call" usebundle => dummy;
++    "second call" usebundle => dummy_inter;
++
++}
++
++bundle agent dummy_inter {
++
++  methods:
++    "inter" usebundle => dummy;
++
++}
++
++bundle agent dummy {
++
++  vars:
++    # This bundle gets called twice, once directly, and once via dummy_inter
++
++    "callers_promisers_expect_first" string => "any, any, test, first call";
++    "callers_promisers_expect_second" string => "any, any, test, second call, inter";
++    "callers_promisers_actual" string => join(", ", "this.callers_promisers");
++
++  classes:
++    "success_first"  expression => strcmp("${callers_promisers_expect_first}", "${callers_promisers_actual}"),
++      scope => "namespace";
++    "success_second" expression => strcmp("${callers_promisers_expect_second}", "${callers_promisers_actual}"),
++      scope => "namespace";
++
++  reports:
++    DEBUG::
++      "EXPECT (first in ${this.bundle}): callers_promisers_string = ${callers_promisers_expect_first}";
++      "ACTUAL (first in ${this.bundle}): callers_promisers_string = ${callers_promisers_actual}";
++
++      "EXPECT (second in ${this.bundle}): callers_promisers_string = ${callers_promisers_expect_second}";
++      "ACTUAL (second in ${this.bundle}): callers_promisers_string = ${callers_promisers_actual}";
++}
++
+
+From 8708afce5d5e2f46662410ba59ab78fea62e3219 Mon Sep 17 00:00:00 2001
+From: Ted Zlatanov <tzz@lifelogs.com>
+Date: Fri, 25 Sep 2015 15:57:10 -0400
+Subject: [PATCH 2/6] 
+ libpromises/eval_context.c:EvalContextGetPromiseCallerMethods(): reindent
+
+---
+ libpromises/eval_context.c | 54 +++++++++++++++++++++++-----------------------
+ 1 file changed, 27 insertions(+), 27 deletions(-)
+
+diff --git a/libpromises/eval_context.c b/libpromises/eval_context.c
+index 9fcf9e9..95d19e2e 100644
+--- a/libpromises/eval_context.c
++++ b/libpromises/eval_context.c
+@@ -1026,33 +1026,33 @@ void EvalContextClear(EvalContext *ctx)
+ }
+ 
+ Rlist *EvalContextGetPromiseCallerMethods(EvalContext *ctx) {
+-	Rlist *callers = NULL;
+-
+-	for (size_t i = 0; i < SeqLength(ctx->stack); i++)
+-	{
+-	    StackFrame *frame = SeqAt(ctx->stack, i);
+-	    switch (frame->type)
+-	    {
+-	    case STACK_FRAME_TYPE_BODY:
+-	        break;
+-
+-	    case STACK_FRAME_TYPE_BUNDLE:
+-	        break;
+-
+-	    case STACK_FRAME_TYPE_PROMISE_ITERATION:
+-	        break;
+-
+-	    case STACK_FRAME_TYPE_PROMISE:
+-	     	if (strcmp(frame->data.promise.owner->parent_promise_type->name, "methods") == 0) {
+-	     		RlistAppendScalar(&callers, frame->data.promise.owner->promiser);
+-	      	}
+-	        break;
+-
+-	    case STACK_FRAME_TYPE_PROMISE_TYPE:
+-	      	break;
+-	    }
+-	}
+-	return callers;
++    Rlist *callers = NULL;
++
++    for (size_t i = 0; i < SeqLength(ctx->stack); i++)
++    {
++        StackFrame *frame = SeqAt(ctx->stack, i);
++        switch (frame->type)
++        {
++        case STACK_FRAME_TYPE_BODY:
++            break;
++
++        case STACK_FRAME_TYPE_BUNDLE:
++            break;
++
++        case STACK_FRAME_TYPE_PROMISE_ITERATION:
++            break;
++
++        case STACK_FRAME_TYPE_PROMISE:
++            if (strcmp(frame->data.promise.owner->parent_promise_type->name, "methods") == 0) {
++                RlistAppendScalar(&callers, frame->data.promise.owner->promiser);
++            }
++            break;
++
++        case STACK_FRAME_TYPE_PROMISE_TYPE:
++            break;
++        }
++    }
++    return callers;
+ }
+ 
+ void EvalContextSetBundleArgs(EvalContext *ctx, const Rlist *args)
+
+From 550686ad1ced3afb89e9b8b550e38b90aa6a0238 Mon Sep 17 00:00:00 2001
+From: Ted Zlatanov <tzz@lifelogs.com>
+Date: Fri, 25 Sep 2015 19:28:09 -0400
+Subject: [PATCH 3/6] Add this.callers data container variable
+
+---
+ libpromises/eval_context.c | 56 ++++++++++++++++++++++++++++++++++++++++++++--
+ libpromises/policy.c       |  4 ++--
+ libpromises/policy.h       | 14 ++++++++++++
+ 3 files changed, 70 insertions(+), 4 deletions(-)
+
+diff --git a/libpromises/eval_context.c b/libpromises/eval_context.c
+index 95d19e2e..809245c 100644
+--- a/libpromises/eval_context.c
++++ b/libpromises/eval_context.c
+@@ -51,6 +51,8 @@
+ 
+ static pcre *context_expression_whitespace_rx = NULL;
+ 
++#include <policy.h>
++
+ static bool BundleAborted(const EvalContext *ctx);
+ static void SetBundleAborted(EvalContext *ctx);
+ 
+@@ -1026,7 +1026,7 @@ void EvalContextClear(EvalContext *ctx)
+ }
+ 
+ Rlist *EvalContextGetPromiseCallerMethods(EvalContext *ctx) {
+-    Rlist *callers = NULL;
++    Rlist *callers_promisers = NULL;
+ 
+     for (size_t i = 0; i < SeqLength(ctx->stack); i++)
+     {
+@@ -1044,7 +1046,7 @@ Rlist *EvalContextGetPromiseCallerMethods(EvalContext *ctx) {
+ 
+         case STACK_FRAME_TYPE_PROMISE:
+             if (strcmp(frame->data.promise.owner->parent_promise_type->name, "methods") == 0) {
+-                RlistAppendScalar(&callers, frame->data.promise.owner->promiser);
++                RlistAppendScalar(&callers_promisers, frame->data.promise.owner->promiser);
+             }
+             break;
+ 
+@@ -1052,6 +1054,55 @@ Rlist *EvalContextGetPromiseCallerMethods(EvalContext *ctx) {
+             break;
+         }
+     }
++    return callers_promisers;
++}
++
++JsonElement *EvalContextGetPromiseCallers(EvalContext *ctx) {
++    JsonElement *callers = JsonArrayCreate(4);
++    size_t depth = SeqLength(ctx->stack);
++
++    for (size_t i = 0; i < depth; i++)
++    {
++        StackFrame *frame = SeqAt(ctx->stack, i);
++        JsonElement *f = JsonObjectCreate(10);
++        JsonObjectAppendInteger(f, "frame", depth-i);
++        JsonObjectAppendInteger(f, "depth", i);
++
++        switch (frame->type)
++        {
++        case STACK_FRAME_TYPE_BODY:
++            JsonObjectAppendString(f, "type", "body");
++            JsonObjectAppendObject(f, "body", BodyToJson(frame->data.body.owner));
++            break;
++
++        case STACK_FRAME_TYPE_BUNDLE:
++            JsonObjectAppendString(f, "type", "bundle");
++            JsonObjectAppendObject(f, "bundle", BundleToJson(frame->data.bundle.owner));
++            break;
++
++        case STACK_FRAME_TYPE_PROMISE_ITERATION:
++            JsonObjectAppendString(f, "type", "iteration");
++            JsonObjectAppendInteger(f, "iteration_index", frame->data.promise_iteration.index);
++
++            break;
++
++        case STACK_FRAME_TYPE_PROMISE:
++            JsonObjectAppendString(f, "type", "promise");
++            JsonObjectAppendString(f, "promise_type", frame->data.promise.owner->parent_promise_type->name);
++            JsonObjectAppendString(f, "promiser", frame->data.promise.owner->promiser);
++            JsonObjectAppendString(f, "promise_classes", frame->data.promise.owner->classes);
++            JsonObjectAppendString(f, "promise_comment", NULL == frame->data.promise.owner->comment ? "" : frame->data.promise.owner->comment);
++            break;
++
++        case STACK_FRAME_TYPE_PROMISE_TYPE:
++            JsonObjectAppendString(f, "type", "promise_type");
++            JsonObjectAppendString(f, "promise_type", frame->data.promise_type.owner->name);
++            break;
++        }
++
++        JsonArrayAppendObject(callers, f);
++    }
++
+     return callers;
+ }
+ 
+@@ -1300,6 +1351,7 @@ void EvalContextStackPushPromiseFrame(EvalContext *ctx, const Promise *owner, bo
+     EvalContextVariablePutSpecial(ctx, SPECIAL_SCOPE_THIS, "promiser_ppid", v, CF_DATA_TYPE_INT, "source=agent");
+ 
+     EvalContextVariablePutSpecial(ctx, SPECIAL_SCOPE_THIS, "callers_promisers", EvalContextGetPromiseCallerMethods(ctx), CF_DATA_TYPE_STRING_LIST, "source=promise");
++    EvalContextVariablePutSpecial(ctx, SPECIAL_SCOPE_THIS, "callers", EvalContextGetPromiseCallers(ctx), CF_DATA_TYPE_CONTAINER, "source=promise");
+     EvalContextVariablePutSpecial(ctx, SPECIAL_SCOPE_THIS, "bundle", PromiseGetBundle(owner)->name, CF_DATA_TYPE_STRING, "source=promise");
+     EvalContextVariablePutSpecial(ctx, SPECIAL_SCOPE_THIS, "namespace", PromiseGetNamespace(owner), CF_DATA_TYPE_STRING, "source=promise");
+ }
+diff --git a/libpromises/policy.c b/libpromises/policy.c
+index 2a656ce..7fe6952 100644
+--- a/libpromises/policy.c
++++ b/libpromises/policy.c
+@@ -1761,7 +1761,7 @@ static JsonElement *BundleContextsToJson(const Seq *promises)
+     return json_contexts;
+ }
+ 
+-static JsonElement *BundleToJson(const Bundle *bundle)
++JsonElement *BundleToJson(const Bundle *bundle)
+ {
+     JsonElement *json_bundle = JsonObjectCreate(10);
+ 
+@@ -1810,7 +1810,7 @@ static JsonElement *BundleToJson(const Bundle *bundle)
+ }
+ 
+ 
+-static JsonElement *BodyToJson(const Body *body)
++JsonElement *BodyToJson(const Body *body)
+ {
+     JsonElement *json_body = JsonObjectCreate(10);
+ 
+diff --git a/libpromises/policy.h b/libpromises/policy.h
+index e0331a9..2b0b0c0 100644
+--- a/libpromises/policy.h
++++ b/libpromises/policy.h
+@@ -221,6 +221,20 @@ Body *PolicyAppendBody(Policy *policy, const char *ns, const char *name, const c
+ JsonElement *PolicyToJson(const Policy *policy);
+ 
+ /**
++ * @brief Serialize a bundle as JSON
++ * @param bundle The bundle to serialize
++ * @return A JsonElement representing the input bundle
++ */
++JsonElement *BundleToJson(const Bundle *bundle);
++
++/**
++ * @brief Serialize a body as JSON
++ * @param body The body to serialize
++ * @return A JsonElement representing the input body
++ */
++JsonElement *BodyToJson(const Body *body);
++
++/**
+  * @brief Deserialize a policy from JSON
+  * @param json_policy JSON to deserialize
+  * @return A policy DOM
+
+From 634ebcf3a685fa0497fe9825c250428a1f12fd68 Mon Sep 17 00:00:00 2001
+From: Ted Zlatanov <tzz@lifelogs.com>
+Date: Mon, 28 Sep 2015 17:06:58 -0400
+Subject: [PATCH 4/6] Move this.callers to cfengine_callers() and
+ this.callers_promisers to cfengine_promisers()
+
+---
+ libpromises/cf3.defs.h     |  3 ++-
+ libpromises/eval_context.c |  2 --
+ libpromises/eval_context.h |  3 +++
+ libpromises/evalfunction.c | 35 +++++++++++++++++++++++++++++++++--
+ libpromises/syntax.c       |  3 ++-
+ 5 files changed, 40 insertions(+), 6 deletions(-)
+
+diff --git a/libpromises/cf3.defs.h b/libpromises/cf3.defs.h
+index 7f17c4a..8c9e382 100644
+--- a/libpromises/cf3.defs.h
++++ b/libpromises/cf3.defs.h
+@@ -624,7 +624,8 @@ typedef enum
+     FNCALL_CATEGORY_IO,
+     FNCALL_CATEGORY_COMM,
+     FNCALL_CATEGORY_DATA,
+-    FNCALL_CATEGORY_UTILS
++    FNCALL_CATEGORY_UTILS,
++    FNCALL_CATEGORY_INTERNAL
+ } FnCallCategory;
+ 
+ struct ConstraintSyntax_
+diff --git a/libpromises/eval_context.c b/libpromises/eval_context.c
+index 809245c..3081ff3 100644
+--- a/libpromises/eval_context.c
++++ b/libpromises/eval_context.c
+@@ -1350,8 +1350,6 @@ void EvalContextStackPushPromiseFrame(EvalContext *ctx, const Promise *owner, bo
+     xsnprintf(v, sizeof(v), "%d", (int) ctx->ppid);
+     EvalContextVariablePutSpecial(ctx, SPECIAL_SCOPE_THIS, "promiser_ppid", v, CF_DATA_TYPE_INT, "source=agent");
+ 
+-    EvalContextVariablePutSpecial(ctx, SPECIAL_SCOPE_THIS, "callers_promisers", EvalContextGetPromiseCallerMethods(ctx), CF_DATA_TYPE_STRING_LIST, "source=promise");
+-    EvalContextVariablePutSpecial(ctx, SPECIAL_SCOPE_THIS, "callers", EvalContextGetPromiseCallers(ctx), CF_DATA_TYPE_CONTAINER, "source=promise");
+     EvalContextVariablePutSpecial(ctx, SPECIAL_SCOPE_THIS, "bundle", PromiseGetBundle(owner)->name, CF_DATA_TYPE_STRING, "source=promise");
+     EvalContextVariablePutSpecial(ctx, SPECIAL_SCOPE_THIS, "namespace", PromiseGetNamespace(owner), CF_DATA_TYPE_STRING, "source=promise");
+ }
+diff --git a/libpromises/eval_context.h b/libpromises/eval_context.h
+index a45c91d..15c0ed6 100644
+--- a/libpromises/eval_context.h
++++ b/libpromises/eval_context.h
+@@ -151,6 +151,9 @@ const Promise *EvalContextStackCurrentPromise(const EvalContext *ctx);
+ const Bundle *EvalContextStackCurrentBundle(const EvalContext *ctx);
+ const RingBuffer *EvalContextStackCurrentMessages(const EvalContext *ctx);
+ 
++Rlist *EvalContextGetPromiseCallerMethods(EvalContext *ctx);
++JsonElement *EvalContextGetPromiseCallers(EvalContext *ctx);
++
+ bool EvalContextVariablePut(EvalContext *ctx, const VarRef *ref, const void *value, DataType type, const char *tags);
+ bool EvalContextVariablePutSpecial(EvalContext *ctx, SpecialScope scope, const char *lval, const void *value, DataType type, const char *tags);
+ const void *EvalContextVariableGet(const EvalContext *ctx, const VarRef *ref, DataType *type_out);
+diff --git a/libpromises/evalfunction.c b/libpromises/evalfunction.c
+index 348f348..4ee7bb7 100644
+--- a/libpromises/evalfunction.c
++++ b/libpromises/evalfunction.c
+@@ -24,7 +24,6 @@
+ 
+ #include <evalfunction.h>
+ 
+-#include <eval_context.h>
+ #include <promises.h>
+ #include <dir.h>
+ #include <dbm_api.h>
+@@ -7478,6 +7477,22 @@ void ModuleProtocol(EvalContext *ctx, char *command, const char *line, int print
+ }
+ 
+ /*********************************************************************/
++
++static FnCallResult FnCallCFEngineCallers(EvalContext *ctx, ARG_UNUSED const Policy *policy, const FnCall *fp, ARG_UNUSED const Rlist *finalargs)
++{
++    bool promisersmode = (0 == strcmp(fp->name, "cfengine_promisers"));
++
++    if (promisersmode)
++    {
++        Rlist *returnlist = EvalContextGetPromiseCallerMethods(ctx);
++        return (FnCallResult) { FNCALL_SUCCESS, { returnlist, RVAL_TYPE_LIST } };
++    }
++
++    JsonElement *callers = EvalContextGetPromiseCallers(ctx);
++    return (FnCallResult) { FNCALL_SUCCESS, { callers, RVAL_TYPE_CONTAINER } };
++}
++
++/*********************************************************************/
+ /* Level                                                             */
+ /*********************************************************************/
+ 
+@@ -8363,6 +8378,16 @@ static const FnCallArg CURL_ARGS[] =
+     {NULL, CF_DATA_TYPE_NONE, NULL}
+ };
+ 
++static const FnCallArg CFENGINE_PROMISERS_ARGS[] =
++{
++    {NULL, CF_DATA_TYPE_NONE, NULL}
++};
++
++static const FnCallArg CFENGINE_CALLERS_ARGS[] =
++{
++    {NULL, CF_DATA_TYPE_NONE, NULL}
++};
++
+ /*********************************************************/
+ /* FnCalls are rvalues in certain promise constraints    */
+ /*********************************************************/
+@@ -8678,7 +8703,13 @@ const FnCallType CF_FNCALL_TYPES[] =
+     FnCallTypeNew("variance", CF_DATA_TYPE_REAL, STAT_FOLD_ARGS, &FnCallFold, "Return the variance of a list",
+                   FNCALL_OPTION_NONE, FNCALL_CATEGORY_DATA, SYNTAX_STATUS_NORMAL),
+ 
+-    // Data container functions
++    // CFEngine internal functions
++    FnCallTypeNew("cfengine_promisers", CF_DATA_TYPE_STRING_LIST, CFENGINE_PROMISERS_ARGS, &FnCallCFEngineCallers, "Get the list of promisers to the current promise execution path",
++                  FNCALL_OPTION_NONE, FNCALL_CATEGORY_INTERNAL, SYNTAX_STATUS_NORMAL),
++    FnCallTypeNew("cfengine_callers", CF_DATA_TYPE_CONTAINER, CFENGINE_CALLERS_ARGS, &FnCallCFEngineCallers, "Get the current promise execution stack in detail",
++                  FNCALL_OPTION_NONE, FNCALL_CATEGORY_INTERNAL, SYNTAX_STATUS_NORMAL),
++
++                  // Data container functions
+     FnCallTypeNew("data_regextract", CF_DATA_TYPE_CONTAINER, DATA_REGEXTRACT_ARGS, &FnCallRegExtract, "Matches the regular expression in arg 1 against the string in arg2 and returns a data container holding the backreferences by name",
+                   FNCALL_OPTION_NONE, FNCALL_CATEGORY_DATA, SYNTAX_STATUS_NORMAL),
+     FnCallTypeNew("data_expand", CF_DATA_TYPE_CONTAINER, DATA_EXPAND_ARGS, &FnCallDataExpand, "Expands any CFEngine variables in a data container, keys or values",
+diff --git a/libpromises/syntax.c b/libpromises/syntax.c
+index e2f7e06..7f6fe5d 100644
+--- a/libpromises/syntax.c
++++ b/libpromises/syntax.c
+@@ -1195,7 +1195,8 @@ static const char *FnCallCategoryToString(FnCallCategory category)
+         [FNCALL_CATEGORY_FILES] = "files",
+         [FNCALL_CATEGORY_IO] = "io",
+         [FNCALL_CATEGORY_SYSTEM] = "system",
+-        [FNCALL_CATEGORY_UTILS] = "utils"
++        [FNCALL_CATEGORY_UTILS] = "utils",
++        [FNCALL_CATEGORY_INTERNAL] = "internal"
+     };
+ 
+     return category_str[category];
+
+From 3b03ca795a22d97e8bcc839ccc54eae07b663dd3 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Beno=C3=AEt=20Peccatte?= <benoit.peccatte@normation.com>
+Date: Sat, 17 Oct 2015 11:40:02 +0200
+Subject: [PATCH 5/6] Only evaluate caller promisers when a special meta tag is
+ present
+
+---
+ libpromises/eval_context.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/libpromises/eval_context.c b/libpromises/eval_context.c
+index 3081ff3..52bff8b 100644
+--- a/libpromises/eval_context.c
++++ b/libpromises/eval_context.c
+@@ -1350,6 +1350,15 @@ void EvalContextStackPushPromiseFrame(EvalContext *ctx, const Promise *owner, bo
+     xsnprintf(v, sizeof(v), "%d", (int) ctx->ppid);
+     EvalContextVariablePutSpecial(ctx, SPECIAL_SCOPE_THIS, "promiser_ppid", v, CF_DATA_TYPE_INT, "source=agent");
+ 
++    Rlist *metas = PromiseGetConstraintAsList(ctx, "meta", frame->data.promise.owner);
++    for (Rlist *ptr = metas; ptr; ptr = ptr->next)
++    {
++        if (strcmp(RvalScalarValue(ptr->val), "cfengine:callers_promisers") == 0)
++        {
++            EvalContextVariablePutSpecial(ctx, SPECIAL_SCOPE_THIS, "callers_promisers", EvalContextGetPromiseCallerMethods(ctx), CF_DATA_TYPE_STRING_LIST, "source=promise");
++        }
++    }
++
+     EvalContextVariablePutSpecial(ctx, SPECIAL_SCOPE_THIS, "bundle", PromiseGetBundle(owner)->name, CF_DATA_TYPE_STRING, "source=promise");
+     EvalContextVariablePutSpecial(ctx, SPECIAL_SCOPE_THIS, "namespace", PromiseGetNamespace(owner), CF_DATA_TYPE_STRING, "source=promise");
+ }
+
+From 4ebe0e7f1aa535fe2c1728d68f6c9a38a6d76afa Mon Sep 17 00:00:00 2001
+From: Ted Zlatanov <tzz@lifelogs.com>
+Date: Tue, 27 Oct 2015 05:54:28 -0400
+Subject: [PATCH 6/6] Only add this.callers when the meta tag cfengine:callers
+ is present
+
+---
+ libpromises/eval_context.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/libpromises/eval_context.c b/libpromises/eval_context.c
+index 52bff8b..b1d6d8e 100644
+--- a/libpromises/eval_context.c
++++ b/libpromises/eval_context.c
+@@ -1357,6 +1357,11 @@ void EvalContextStackPushPromiseFrame(EvalContext *ctx, const Promise *owner, bo
+         {
+             EvalContextVariablePutSpecial(ctx, SPECIAL_SCOPE_THIS, "callers_promisers", EvalContextGetPromiseCallerMethods(ctx), CF_DATA_TYPE_STRING_LIST, "source=promise");
+         }
++
++        if (strcmp(RvalScalarValue(ptr->val), "cfengine:callers") == 0)
++        {
++            EvalContextVariablePutSpecial(ctx, SPECIAL_SCOPE_THIS, "callers", EvalContextGetPromiseCallers(ctx), CF_DATA_TYPE_CONTAINER, "source=promise");
++        }
+     }
+ 
+     EvalContextVariablePutSpecial(ctx, SPECIAL_SCOPE_THIS, "bundle", PromiseGetBundle(owner)->name, CF_DATA_TYPE_STRING, "source=promise");

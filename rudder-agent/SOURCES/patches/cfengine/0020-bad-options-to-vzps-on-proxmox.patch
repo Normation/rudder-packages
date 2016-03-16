@@ -13,7 +13,7 @@ diff --git a/libpromises/systype.c b/libpromises/systype.c
 index 7057710..88f59a7 100644
 --- a/libpromises/systype.c
 +++ b/libpromises/systype.c
-@@ -90,7 +90,7 @@ const char *const VPSCOMM[] =
+@@ -92,7 +92,7 @@ const char *const VPSCOMM[] =
  const char *const VPSOPTS[] =
  {
      [PLATFORM_CONTEXT_UNKNOWN] = "",
@@ -21,4 +21,4 @@ index 7057710..88f59a7 100644
 +    [PLATFORM_CONTEXT_OPENVZ] = "-E 0 -o user,pid,ppid,pgid,pcpu,pmem,vsz,ni,rss,thcount,stime,time,args",   /* virt_host_vz_vzps (with vzps, the -E 0 replace the -e) */
      [PLATFORM_CONTEXT_HP] = "-ef",                    /* hpux */
      [PLATFORM_CONTEXT_AIX] =  "-N -eo user,pid,ppid,pgid,pcpu,pmem,vsz,ni,stat,st=STIME,time,args",       /* aix */
-     [PLATFORM_CONTEXT_LINUX] = "-eo user,pid,ppid,pgid,pcpu,pmem,vsz,ni,rss:9,nlwp,stime,etime,time,args",/* linux */
+     /* Note: keep in sync with GetProcessOptions()'s hack for Linux 2.4 */
