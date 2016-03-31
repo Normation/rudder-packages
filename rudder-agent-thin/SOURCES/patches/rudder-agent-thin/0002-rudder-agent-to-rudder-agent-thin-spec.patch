@@ -45,7 +45,7 @@
 -Requires: pcre
 +BuildRequires: gcc bison flex openssl-devel pcre-devel autoconf automake libtool
 +Requires: openssl pcre fusioninventory-agent fusioninventory-agent-task-inventory
- Provides: rudder-agent
+ Provides: Rudder::Agent
 -Conflicts: rudder-agent-thin
 +Conflicts: rudder-agent
  
