@@ -261,7 +261,7 @@ EOF
 ${ECHO} " Done."
 
 ${ECHO} -n "INFO: Triggering promises generation..."
-curl -k "https://localhost/rudder/api/deploy/reload"
+curl --proxy '' -k "https://localhost/rudder/api/deploy/reload"
 ${ECHO} " Done."
 
 ${ECHO} -e "\nSuccess: all steps completed successfully."
