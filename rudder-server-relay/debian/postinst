@@ -24,7 +24,7 @@ case "$1" in
       SITES_TO_DISABLE="default 000-default default-ssl"
       SITES_TO_ENABLE="rudder-relay-vhost rudder-relay-vhost-ssl"
 
-      MODULES_TO_ENABLE="dav dav_fs version ssl"
+      MODULES_TO_ENABLE="dav dav_fs ssl"
 
       for dissite in ${SITES_TO_DISABLE}
       do
@@ -40,6 +40,9 @@ case "$1" in
       do
         a2enmod ${enmod} >/dev/null 2>&1
       done
+      
+      # This module is compiled in core in some distro (debian)
+      a2enmod version >/dev/null 2>&1 || true
 
       # Create inventory repositories and add rights to the apache user to
       # access /var/rudder/inventories/incoming
