@@ -423,6 +423,7 @@ start_slapd() {
 	fi
 
 	# It's time to start slapd
+  sleep 1
 	$SLAPD_BIN -h "$SLAPD_SERVICES" $SLAPD_PARAMS
 	sleep 1
 
