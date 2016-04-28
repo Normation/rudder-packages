@@ -59,6 +59,7 @@ trap anomaly_handler ERR INT TERM
 # - 3.0.2        : Check for the PostgreSQL version (>= 8.4)
 # - 3.0.14       : Add index on nodeconfigids for expectedreportsnodes
 # - 3.1.0        : Add LDAP entry for 'rudder_syslog_protocol' property, and set 'tcp' as value, different from default value (udp) on a fresh 3.1
+# - 3.1.10       : Add masterfiles in the server
 # - 3.2.0        : Add the properties to configuration authentication provider and master admin account
 # - 3.2.0        : Add the properties to configure Rudder roles
 # - 3.2.0        : Call rudderify to make sure local techniques are copied in each agent promises
@@ -376,6 +377,17 @@ rudderify_techniques() {
     /usr/share/ncf/tools/ncf_rudder.py rudderify_techniques ${CONFIGURATION_REPOSITORY}/techniques/ncf_techniques
     cd ${CONFIGURATION_REPOSITORY}/ && git add -A techniques/ncf_techniques && git commit --allow-empty -q -m "Re-Rudderify ncf Techniques - automatically done by rudder-upgrade script"
     trigger_technique_library_reload
+  fi
+}
+
+# Upgrade masterfiles
+upgrade_masterfiles() {
+  # - 3.1.10  Now we should have a masterfiles initialized from initial promises
+  STEP="Upgrade masterfiles from initial promises"
+  if [ -d "${RUDDER_SHARE}/initial-promises/" ]
+  then
+    mkdir -p "${RUDDER_VAR}/cfengine-community/masterfiles/"
+    rsync --delete -rptgoq "${RUDDER_SHARE}/initial-promises/" "${RUDDER_VAR}/cfengine-community/masterfiles/"
   fi
 }
 
@@ -737,6 +749,7 @@ set_git_branch
 upgrade_system_techniques
 upgrade_ncf
 rudderify_techniques
+upgrade_masterfiles
 upgrade_logback_xml
 upgrade_rudder_web_properties
 
