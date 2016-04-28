@@ -278,12 +278,12 @@ backconfig_get_values() {
 #====================================================================
 # Load specific parameters
 #====================================================================
+. /opt/rudder/etc/rudder-slapd.conf
+
 if [ -f /etc/default/$PROG_NAME ]
 then
   . /etc/default/$PROG_NAME
   message "info" "[INFO] Using /etc/default/$PROG_NAME for configuration"
-else
-  message "info" "[INFO] Using built-in configuration - this may cause some problems"
 fi
 
 #====================================================================
@@ -724,6 +724,9 @@ display_status() {
       fi
     done
   fi
+
+  # Final exit code (eqal to $status)
+  exit $status
 }
 
 configtest() {

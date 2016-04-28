@@ -99,15 +99,22 @@ binary-arch: install
 #	dh_installlogrotate
 #	dh_installmime
 #	dh_python
-	dh_installinit --no-start -R # restart after upgrade (instead of stop, upgrade, start)
+        # Init script and configuration files
+	cp -f $(CURDIR)/SOURCES/rudder-agent.default $(CURDIR)/BUILD/rudder-agent
+	dh_install --SOURCEDIR=$(CURDIR)/BUILD/ rudder-agent /etc/default/
+	cp -f $(CURDIR)/SOURCES/rudder-agent.init $(CURDIR)/BUILD/rudder-agent
+	dh_install --SOURCEDIR=$(CURDIR)/BUILD/ rudder-agent /etc/init.d/
+	dh_installinit --name=rudder --no-start -R # restart after upgrade (instead of stop, upgrade, start)
 	# Install the profile.d file (PATH adjustment)
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-agent.sh /etc/profile.d
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/perl-custom/opt rudder /opt
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES run-inventory /opt/rudder/bin
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES signature.sh /opt/rudder/bin
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES initial-promises /opt/rudder/share
 	# Install the rudder command
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-agent-utilities/bin rudder /opt/rudder/bin
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-agent-utilities/share commands /opt/rudder/share
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-agent-utilities/share lib /opt/rudder/share
 	# Install the rudder man page
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder.8.gz /opt/rudder/share/man/man8/
 	# Install an empty uuid.hive file before generating an uuid

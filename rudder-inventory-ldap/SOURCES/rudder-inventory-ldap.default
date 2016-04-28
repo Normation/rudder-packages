@@ -1,52 +1,21 @@
-#========================================================
-# Configuration of Rudder's OpenLDAP instance
-#========================================================
+#
+# OpenLDAP server configuration
+#
 
-# IP and port to listen
-IP="localhost"
-SSLIP="*"
-PORT="389"
-SSLPORT="636"
+# IP and ports to listen on
+#
+# Rudder distributed setup users are likely
+# to want to listen on "0.0.0.0" instead here,
+# or a specific IP belonging to a network interface
+# that will be contacted by the Rudder webapp.
+#
+#IP="127.0.0.1"
+#PORT="389"
 
-# OpenLDAP directory and files
-SLAPD_PATH="/opt/rudder"
-SLAPD_PID_FILE="/var/rudder/run/slapd.pid"
-SLAPD_CONF="$SLAPD_PATH/etc/openldap/slapd.conf"
-SLAPD_CONF_DIR=""
-SLAPD_SERVICES="ldap://$IP:$PORT"
-SLAPD_PARAMS="-n rudder-slapd"
-SLAPD_BIN="$SLAPD_PATH/libexec/slapd"
-SLAPD_USER=""
-SLAPD_GROUP=""
-
-DATA_PATH="auto"
-
-SLAPCAT_BIN="$SLAPD_PATH/sbin/slapcat"
-SLAPINDEX_BIN="$SLAPD_PATH/sbin/slapindex"
-SLAPTEST_BIN="$SLAPD_PATH/sbin/slaptest"
-
-SLURPD_PID_FILE="$SLAPD_PATH/var/run/slurpd.pid"
-SLURPD_PARAMS=""
-SLURPD_BIN="$SLAPD_PATH/libexec/slurpd"
-
-# BerkeleyDB directory and files
-BDB_PATH="/usr"
-DB_ARCHIVE_BIN="$BDB_PATH/bin/db4.6_archive"
-DB_RECOVER_BIN="$BDB_PATH/bin/db4.6_recover"
-RECOVER_AT_STARTUP="0"
-
-# Backup
-BACKUP_AT_SHUTDOWN="1"
-BACKUP_PATH="/var/rudder/ldap/backup"
-BACKUP_FILE="$BACKUP_PATH/data_`date +%Y%m%d%H%M%S`.ldif"
-BACKUP_SUFFIX="`date +%Y%m%d%H%M%S`.ldif"
-
-# Other
-TIMEOUT="30" # Max time to stop process
-FD_LIMIT="1024" # Max file descriptor
-
-# Specify cachesize to set on the Rudder database for OpenLDAP
-# "auto" means choose the best value depending on number of entries and total machine RAM
-# "noauto" means don't touch it
-# a number means use this value
-RUDDER_CACHESIZE="auto" 
+# Specify how cachesize is to be set on the Rudder database for OpenLDAP
+#
+# - "auto"   : Detect the best value depending on number of entries and total machine RAM
+# - <number> : Specify a cachesize manually
+# - "noauto" : Leave the setting alone
+#
+#RUDDER_CACHESIZE="auto" 

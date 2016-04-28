@@ -22,9 +22,9 @@ case "$1" in
     configure)
 
       SITES_TO_DISABLE="default 000-default default-ssl"
-      SITES_TO_ENABLE="rudder-relay-vhost"
+      SITES_TO_ENABLE="rudder-relay-vhost rudder-relay-vhost-ssl"
 
-      MODULES_TO_ENABLE="dav dav_fs"
+      MODULES_TO_ENABLE="dav dav_fs ssl"
 
       for dissite in ${SITES_TO_DISABLE}
       do
@@ -59,6 +59,14 @@ case "$1" in
       do
         htpasswd -bc ${passwdfile} rudder rudder >/dev/null 2>&1
       done
+
+      # Generate the SSL certificates if needed
+      if [ ! -f /opt/rudder/etc/ssl/rudder-relay.crt ] || [ ! -f /opt/rudder/etc/ssl/rudder-relay.key ]; then
+        echo -n "INFO: No usable SSL certificate detected for Rudder relay HTTP/S support, generating one automatically..."
+        openssl req -new -x509 -newkey rsa:2048 -subj "/CN=$(hostname --fqdn)/" -keyout /opt/rudder/etc/ssl/rudder-relay.key -out /opt/rudder/etc/ssl/rudder-relay.crt -days 1460 -nodes -sha256 >/dev/null 2>&1
+        chgrp www-data /opt/rudder/etc/ssl/rudder-relay.key && chmod 640 /opt/rudder/etc/ssl/rudder-relay.key
+        echo " Done"
+      fi
 
       echo -n "INFO: Restarting Apache HTTPd..."
       service apache2 restart >/dev/null 2>&1

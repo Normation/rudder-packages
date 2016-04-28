@@ -71,7 +71,9 @@ Source9: rudder-agent.sh
 Source10: detect_os.sh
 Source11: rudder-perl
 Source12: rudder-agent-utilities
-Source13: rudder.8.gz
+Source13: rudder.init
+Source14: signature.sh
+Source15: rudder.8.gz
 
 # uuidgen doesn't exist on AIX, so we provide a simple shell compatible version
 %if "%{?_os}" == "aix"
@@ -104,7 +106,7 @@ Requires: crontabs net-tools
 %endif
 
 ## For SLES
-%if 0%{?sles_version}
+%if 0%{?suse_version}
 Requires: cron net-tools
 %endif
 
@@ -138,8 +140,13 @@ Requires: dmidecode
 %endif
 
 ## 3 - SLES: No LMDB yet
-%if 0%{?sles_version}
+%if 0%{?suse_version} && 0%{?suse_version} < 1315
 Requires: pmtools
+%define use_system_lmdb false
+%endif
+
+%if 0%{?suse_version} && 0%{?suse_version} >= 1315
+Requires: dmidecode
 %define use_system_lmdb false
 %endif
 
@@ -177,6 +184,7 @@ Requires: pmtools
 ##
 ### SLES 11 OSes come with OpenSSL 0.9.8h,
 ### which is recent enough.
+### SLES12 has no sles_version defined, but openssl is ok too
 ##
 %if 0%{?sles_version} && 0%{?sles_version} < 11
 %define use_system_openssl false
@@ -350,6 +358,7 @@ mkdir -p %{buildroot}%{rudderdir}/share/man/man8
 mkdir -p %{buildroot}%{rudderdir}/etc
 mkdir -p %{buildroot}%{rudderdir}/share
 mkdir -p %{buildroot}%{rudderdir}/share/commands
+mkdir -p %{buildroot}%{rudderdir}/share/lib
 mkdir -p %{buildroot}%{ruddervardir}/cfengine-community/bin
 mkdir -p %{buildroot}%{ruddervardir}/cfengine-community/inputs
 mkdir -p %{buildroot}%{ruddervardir}/tmp
@@ -375,6 +384,7 @@ mkdir -p %{buildroot}/etc/init.d
 mkdir -p %{buildroot}/etc/default
 %{install_command} -m 755 %{SOURCE1} %{buildroot}/etc/init.d/rudder-agent
 %{install_command} -m 644 %{SOURCE2} %{buildroot}/etc/default/rudder-agent
+%{install_command} -m 755 %{SOURCE13} %{buildroot}/etc/init.d/rudder
 %endif
 
 # Cron
@@ -392,6 +402,9 @@ cp -r %{_sourcedir}/initial-promises %{buildroot}%{rudderdir}/share/
 
 # Wrapper script
 %{install_command} -m 755 %{SOURCE3} %{buildroot}/opt/rudder/bin/run-inventory
+
+# Signature script
+%{install_command} -m 755 %{SOURCE14} %{buildroot}/opt/rudder/bin/signature.sh
 
 # Install an empty uuid.hive file before generating an uuid
 cp %{SOURCE4} %{buildroot}%{rudderdir}/etc/
@@ -414,9 +427,10 @@ mkdir -p %{buildroot}/etc/ld.so.conf.d
 # Rudder agent utilities
 %{install_command} -m 755 %{SOURCE12}/bin/rudder %{buildroot}%{rudderdir}/bin/rudder
 %{cp_a_command} %{SOURCE12}/share/commands/* %{buildroot}%{rudderdir}/share/commands/
+%{cp_a_command} %{SOURCE12}/share/lib/* %{buildroot}%{rudderdir}/share/lib/
 
 # Rudder agent command manual
-%{install_command} -m 644 %{SOURCE13} %{buildroot}%{rudderdir}/share/man/man8/rudder.8.gz
+%{install_command} -m 644 %{SOURCE15} %{buildroot}%{rudderdir}/share/man/man8/rudder.8.gz
 
 # Create a symlink to make "rudder" available as part of the
 # default PATH
@@ -488,12 +502,21 @@ then
   /usr/sbin/mkitab "rudder-agent:23456789:once:/usr/bin/startsrc -s rudder-agent"
   # No need to tell init to re-read /etc/inittab, it does it automatically every 60 seconds
 %else
-  chkconfig --add rudder-agent
-%endif
-  %if 0%{?rhel} && 0%{?rhel} >= 6
-  chkconfig rudder-agent on
-  %endif
+  RUDDER_AGENT_INIT_ENABLED=$(LANG=C chkconfig --list 2>/dev/null | grep -Ec "rudder-agent.*on")
 
+  if [ "${RUDDER_AGENT_INIT_ENABLED}" -ne 0 ]
+  then
+    chkconfig --del rudder-agent
+  fi
+  chkconfig --add rudder
+%endif
+%if 0%{?rhel} && 0%{?rhel} >= 6
+  if [ "${RUDDER_AGENT_INIT_ENABLED}" -ne 0 ]
+  then
+    chkconfig rudder-agent off
+  fi
+  chkconfig rudder on
+%endif
   CFRUDDER_FIRST_INSTALL=1
 fi
 
@@ -737,6 +760,7 @@ if [ $1 -eq 0 ]; then
   rm -f /etc/cron.d/rudder-agent
 
   # Make sure that Rudder agent specific files have been removed
+  rm -f /etc/init.d/rudder
   rm -f /etc/init.d/rudder-agent
   rm -f /etc/default/rudder-agent
 %else
@@ -776,6 +800,7 @@ rm -f %{_builddir}/file.list.%{name}
 /etc/profile.d/rudder-agent.sh
 /etc/init.d/rudder-agent
 /etc/default/rudder-agent
+/etc/init.d/rudder
 /etc/cron.d/rudder-agent
 %endif
 

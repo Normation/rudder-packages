@@ -33,7 +33,7 @@
 %define ruddervardir            /var/rudder
 %define rudderlogdir            /var/log/rudder
 
-%if 0%{?sles_version}
+%if 0%{?suse_version}
 %define apache                  apache2
 %define apache_tools            apache2-utils
 %define apache_group            www
@@ -65,6 +65,9 @@ Group: Applications/System
 Source1: rudder-relay-vhost.conf
 Source2: rudder-networks.conf
 Source3: rudder-networks-24.conf
+Source4: rudder-relay-vhost-ssl.conf
+Source5: rudder-relay-apache-common.conf
+Source6: rudder-relay-apache
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
@@ -72,16 +75,11 @@ BuildArch: noarch
 # Requirements
 
 ## General
-Requires: rudder-agent rsyslog
+Requires: rudder-agent rsyslog openssl %{apache} %{apache_tools}
 
 ## RHEL
 %if 0%{?rhel}
-Requires: httpd httpd-tools
-%endif
-
-## SuSE
-%if 0%{?sles_version}
-Requires: apache2 apache2-utils
+Requires: mod_ssl
 %endif
 
 %description
@@ -110,12 +108,17 @@ rm -rf %{buildroot}
 # Directories
 mkdir -p %{buildroot}/etc/%{apache_vhost_dir}
 mkdir -p %{buildroot}%{rudderdir}/etc/
+mkdir -p %{buildroot}%{rudderdir}/etc/ssl/
 mkdir -p %{buildroot}%{ruddervardir}/inventories/incoming
 mkdir -p %{buildroot}%{ruddervardir}/inventories/accepted-nodes-updates
 mkdir -p %{buildroot}%{rudderlogdir}/apache2/
+mkdir -p %{buildroot}/etc/sysconfig/
 
 # Others
 install -m 644 %{SOURCE1} %{buildroot}/etc/%{apache_vhost_dir}/rudder-relay-vhost.conf
+install -m 644 %{SOURCE4} %{buildroot}/etc/%{apache_vhost_dir}/rudder-relay-vhost-ssl.conf
+install -m 644 %{SOURCE5} %{buildroot}%{rudderdir}/etc/rudder-relay-apache-common.conf
+install -m 644 %{SOURCE6} %{buildroot}/etc/sysconfig/rudder-relay-apache
 
 # Copy stub rudder-networks*.conf
 cp %{SOURCE2} %{buildroot}%{rudderdir}/etc/
@@ -148,10 +151,18 @@ done
 %endif
 
 # Do this ONLY at first install
-if [ $1 -eq 1 ]
-then
+if [ $1 -eq 1 ];  then
+  echo -e '# This sources the configuration file needed by Rudder\n. /etc/sysconfig/rudder-relay-apache' >> /etc/sysconfig/apache2
   echo 'DAVLockDB /tmp/davlock.db' > /etc/%{apache}/conf.d/dav_mod.conf
 fi
+
+# Add required includes in the SLES apache2 configuration
+%if 0%{?suse_version}
+if ! grep -qE "^. /etc/sysconfig/rudder-relay-apache$" /etc/sysconfig/apache2; then
+  echo -e '#¬This sources the modules/defines needed by Rudder\n. /etc/sysconfig/rudder-relay-apache' >> /etc/sysconfig/apache2
+fi
+%endif
+
 
 # Create inventory repositories and add rights to the apache user to
 # access /var/rudder/inventories/incoming
@@ -168,6 +179,14 @@ for passwdfile in %{rudderdir}/etc/htpasswd-webdav-initial %{rudderdir}/etc/htpa
 do
   %{htpasswd_cmd} -bc ${passwdfile} rudder rudder >/dev/null 2>&1
 done
+
+# Generate the SSL certificates if needed
+if [ ! -f /opt/rudder/etc/ssl/rudder-relay.crt ] || [ ! -f /opt/rudder/etc/ssl/rudder-relay.key ]; then
+  echo -n "INFO: No usable SSL certificate detected for Rudder HTTP/S support, generating one automatically..."
+  openssl req -new -x509 -newkey rsa:2048 -subj "/CN=$(hostname --fqdn)/" -keyout /opt/rudder/etc/ssl/rudder-relay.key -out /opt/rudder/etc/ssl/rudder-relay.crt -days 1460 -nodes -sha256 >/dev/null 2>&1
+  chgrp %{apache_group} /opt/rudder/etc/ssl/rudder-relay.key && chmod 640 /opt/rudder/etc/ssl/rudder-relay.key
+  echo " Done"
+fi
 
 echo -n "INFO: Starting Apache HTTPd..."
 service %{apache} start >/dev/null 2>&1
@@ -198,9 +217,14 @@ rm -rf %{buildroot}
 #=================================================
 %files -n rudder-server-relay
 %defattr(-, root, root, 0755)
+%{rudderdir}/etc/
+/etc/%{apache_vhost_dir}/
 %config(noreplace) /etc/%{apache_vhost_dir}/rudder-relay-vhost.conf
+%config(noreplace) /etc/%{apache_vhost_dir}/rudder-relay-vhost-ssl.conf
+%config(noreplace) %{rudderdir}/etc/rudder-relay-apache-common.conf
 %config(noreplace) %{rudderdir}/etc/rudder-networks.conf
 %config(noreplace) %{rudderdir}/etc/rudder-networks-24.conf
+%config(noreplace) /etc/sysconfig/rudder-relay-apache
 %{ruddervardir}/inventories/incoming
 %{ruddervardir}/inventories/accepted-nodes-updates
 %{rudderlogdir}/apache2/

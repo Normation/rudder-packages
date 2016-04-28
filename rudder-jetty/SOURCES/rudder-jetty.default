@@ -1,63 +1,43 @@
-######################### WARNING ############################
-#                                                            #
-# Every modification done to this file will be lost at every #
-# Rudder update. To change Jetty memory settings, please use #
-# the /opt/rudder/etc/rudder-jetty.conf file instead         #
-#                                                            #
-######################### WARNING ############################
-
-# Helper function to compare version numbers
-ver() { printf "%03d%03d" `echo "$1" | tr '.' ' '`; }
-
-# Source variables from /opt/rudder/etc/rudder-jetty.conf
-if [ -f /opt/rudder/etc/rudder-jetty.conf ]
-then
-	. /opt/rudder/etc/rudder-jetty.conf
-fi
-
-# Check wich JVM is installed
-# We support Sun Java 6 or OpenJDK 7 or 8, privilege later versions (sort -r)
-if [ -d /usr/lib/jvm ]; then JAVA_HOME=$(find /usr/lib/jvm -maxdepth 1 -type d -name 'java-[78]-openjdk-*' -or -name java-6-sun | sort -r | head -n1); fi
-if [ -d /usr/java ]; then JAVA_HOME=/usr/java/latest; fi
-
-# Java VM location
-if [ -f ${JAVA_HOME}/bin/java ]; then JAVA=${JAVA_HOME}/bin/java; else JAVA=/usr/bin/java; fi
+#
+# Jetty server configuration
+#
 
 # Check JVM major version
 JAVA_MAJOR_VERSION=`${JAVA} -version 2>&1 | grep "^java version" | sed 's/java version "\([0-9]\+\.[0-9]\)\+\..*"/\1/'`
 
 # Memory settings
-JAVA_XMX=${JAVA_XMX:=1024}
-JAVA_MAXPERMSIZE=${JAVA_MAXPERMSIZE:=256}
+#
+# The defaults should be enough for up to ~100 nodes
+#
+# You may want to give Jetty a bit more memory in
+# "JAVA_XMX" for larger setups.
+#
+JAVA_XMX=1024
+JAVA_MAXPERMSIZE=256
 
 # Java VM arguments
-JAVA_OPTIONS="$JAVA_OPTIONS
--server
--Xms${JAVA_XMX}m -Xmx${JAVA_XMX}m
--XX:+CMSClassUnloadingEnabled
--XX:+UseConcMarkSweepGC
--Dfile.encoding=UTF-8
--Drudder.configFile=/opt/rudder/etc/rudder-web.properties
--Drudder.authFile=/opt/rudder/etc/rudder-users.xml
--Dinventoryweb.configFile=/opt/rudder/etc/inventory-web.properties
--Dlogback.configurationFile=/opt/rudder/etc/logback.xml
--Drun.mode=production"
+#
+# Please specify additional options to pass
+# to the Java VM during Jetty setup if needed.
+#
+# Example: -Duser.timezone=Europe/Paris
+# (To be given in case the JRE you use is unable to detect
+# the machine timezone and defaults to a wrong one)
+#
+#JAVA_OPTIONS=""
 
-# These options were deprecated as of Java 1.8, so only use them if we're on an older version
-if [ `ver ${JAVA_MAJOR_VERSION}` -lt `ver 1.8` ]; then
-  JAVA_OPTIONS="$JAVA_OPTIONS -XX:PermSize=128m -XX:MaxPermSize=${JAVA_MAXPERMSIZE}m"
-fi
+# Java VM location
+#
+# This script should be able to automatically detect the majority of
+# common OSes Java setups
+#
+# Please specify a JVM location here if the script is unable to find
+# it.
+#
+#JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64
+#JAVA=java
 
-# Jetty
-JETTY_HOME="/opt/rudder/jetty7/"
-JETTY_RUN="/var/rudder/run"
-JETTY_ARGS="OPTIONS=Server"
-JETTY_LOGS="/var/log/rudder/webapp/"
-
-# By default, Jetty stores files it's going to *serve* under /tmp
-# This causes trouble, if tmpwatch cleans them up (or a over-zealous user)
-TMPDIR="/var/rudder/tmp/jetty"
-mkdir -p ${TMPDIR}
-
-# Prevent Jetty to change locale in its logs
-export LANG=C
+# Source variables from /opt/rudder/etc/rudder-jetty.conf
+# Warning: removing this is likely to prevent Jetty from
+# starting correctly
+[ -f /opt/rudder/etc/rudder-jetty.conf ] && . /opt/rudder/etc/rudder-jetty.conf

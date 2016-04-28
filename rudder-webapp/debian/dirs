@@ -1,6 +1,8 @@
 opt/rudder/bin
 opt/rudder/share/webapps
 opt/rudder/share/rudder-plugins
+opt/rudder/share/certificates
+opt/rudder/share/selinux
 opt/rudder/etc
 opt/rudder/etc/ssl
 opt/rudder/etc/plugins

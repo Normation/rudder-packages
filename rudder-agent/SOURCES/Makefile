@@ -21,7 +21,7 @@
 RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
 RUDDER_MAJOR_VERSION := $(shell echo ${RUDDER_VERSION_TO_PACKAGE} | cut -d'.' -f 1-2)
 
-CFENGINE_RELEASE = 3.6.3
+CFENGINE_RELEASE = 3.6.5
 FUSION_RELEASE = 2.3.6
 LMDB_RELEASE = 0.9.11
 OPENSSL_RELEASE = 1.0.1p
@@ -31,7 +31,7 @@ WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget -q
 PATCH := /usr/bin/patch
 FIND := /usr/bin/find
 
-localdepends: ./initial-promises ./rudder-agent-utilities ./rudder.8.gz ./detect_os.sh ./files ./fusioninventory-agent ./cfengine-source ./openssl-source ./lmdb-source ../debian/rudder-agent.init ../debian/rudder-agent.default ./rudder-agent.cron ../debian/rudder-agent.cron.d
+localdepends: ./initial-promises ./rudder-agent-utilities ./rudder.8.gz ./detect_os.sh ./files ./fusioninventory-agent ./cfengine-source ./openssl-source ./lmdb-source ../debian/rudder-agent.init ../debian/rudder.init ../debian/rudder-agent.default ./rudder-agent.cron ../debian/rudder-agent.cron.d
 	rm -rf $(TMP_DIR)
 
 ./cfengine-source: /usr/bin/wget
@@ -166,6 +166,9 @@ endif
 ../debian/rudder-agent.default:
 	cp ./rudder-agent.default ../debian/
 
+../debian/rudder.init:
+	cp ./rudder.init ../debian/
+
 ./rudder-agent.cron: ./rudder-sources
 	cp ./rudder-sources/rudder-techniques/techniques/system/common/1.0/rudder_agent_community_cron.st ./rudder-agent.cron
 	# Set unexpanded variables of the cron file
@@ -188,6 +191,7 @@ localclean:
 	rm -rf ./detect_os.sh
 	rm -f ../debian/rudder-agent.init
 	rm -f ../debian/rudder-agent.default
+	rm -f ../debian/rudder.init
 	rm -rf ./fusioninventory-agent
 	rm -rf ./tmp
 	rm -rf ./perl-custom
