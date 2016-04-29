@@ -284,6 +284,21 @@ make %{?_smp_mflags}
 make install prefix=%{rudderdir}
 %endif
 
+# Compile PCRE library and install it in /opt/rudder/lib
+%if 0%{?rhel} && 0%{?rhel} == 3
+cd %{_sourcedir}/pcre-source
+./configure --disable-cpp --enable-utf8 --enable-unicode-properties --prefix=%{rudderdir}
+make %{?_smp_mflags}
+
+# First install goes to the local %{rudderdir} to prevent linking issues during
+# CFEngine build
+make install prefix=%{rudderdir}
+
+%define pcre_arg "--with-pcre=%{rudderdir}"
+%else
+%define pcre_arg ""
+%endif
+
 # Prepare CFEngine build
 cd %{_sourcedir}/cfengine-source
 
@@ -314,7 +329,7 @@ then
 fi
 rm -f "${FLAG_TEST_FILE}" "${FLAG_TEST_FILE}.c"
 
-./configure --build=%_target --prefix=%{rudderdir} --with-workdir=%{ruddervardir}/cfengine-community --enable-static=yes --enable-shared=no %{openssl_arg} %{lmdb_arg} CFLAGS="${CFLAGS} ${SECURE_CFLAGS}" LDFLAGS="${SECURE_LDFLAGS}"
+./configure --build=%_target --prefix=%{rudderdir} --with-workdir=%{ruddervardir}/cfengine-community --enable-static=yes --enable-shared=no %{openssl_arg} %{lmdb_arg} %{pcre_arg} CFLAGS="${CFLAGS} ${SECURE_CFLAGS}" LDFLAGS="${SECURE_LDFLAGS}"
 
 make %{?_smp_mflags}
 
@@ -345,6 +360,11 @@ make install prefix=%{rudderdir} DESTDIR=%{buildroot}
 %if "%{use_system_openssl}" != "true"
 cd %{_sourcedir}/openssl-source
 make install INSTALL_PREFIX=%{buildroot}
+%endif
+
+%if 0%{?rhel} && 0%{?rhel} == 3
+cd %{_sourcedir}/pcre-source
+make install prefix=%{rudderdir} DESTDIR=%{buildroot}
 %endif
 
 # Directories

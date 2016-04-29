@@ -25,13 +25,14 @@ CFENGINE_RELEASE = 3.7.1
 FUSION_RELEASE = 2.3.6
 LMDB_RELEASE = 0.9.16
 OPENSSL_RELEASE = 1.0.1p
+PCRE_RELEASE = 8.38
 
 TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX)
 WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget -q
 PATCH := /usr/bin/patch
 FIND := /usr/bin/find
 
-localdepends: ./initial-promises ./rudder-agent-utilities ./rudder.8.gz ./detect_os.sh ./files ./fusioninventory-agent ./cfengine-source ./openssl-source ./lmdb-source ../debian/rudder-agent.init ../debian/rudder.init ../debian/rudder-agent.default ./rudder-agent.cron ../debian/rudder-agent.cron.d
+localdepends: ./initial-promises ./rudder-agent-utilities ./rudder.8.gz ./detect_os.sh ./files ./fusioninventory-agent ./cfengine-source ./openssl-source ./lmdb-source ./pcre-source ../debian/rudder-agent.init ../debian/rudder.init ../debian/rudder-agent.default ./rudder-agent.cron ../debian/rudder-agent.cron.d
 	rm -rf $(TMP_DIR)
 
 ./cfengine-source: /usr/bin/wget
@@ -64,6 +65,15 @@ ifeq ($(shell ../../build-caching get --force-config ./lmdb-source/ name=lmdb-sr
 	tar xzf $(TMP_DIR)/lmdb.tgz -C $(TMP_DIR)
 	mv $(TMP_DIR)/lmdb-$(LMDB_RELEASE) ./lmdb-source
 	../../build-caching put --force-config ./lmdb-source/ name=lmdb-src version=$(LMDB_RELEASE)
+endif
+
+./pcre-source: /usr/bin/wget
+ifeq ($(shell ../../build-caching get --force-config ./pcre-source/ name=pcre-src version=$(PCRE_RELEASE) >/dev/null 2>&1 || echo KO), KO)
+	# Original URL: http://vorboss.dl.sourceforge.net/project/pcre/pcre/8.38/pcre-8.38.tar.gz
+	$(WGET) -O $(TMP_DIR)/pcre.tgz http://www.normation.com/tarball/pcre/pcre-$(PCRE_RELEASE).tar.gz
+	tar xzf $(TMP_DIR)/pcre.tgz -C $(TMP_DIR)
+	mv $(TMP_DIR)/pcre-$(PCRE_RELEASE) ./pcre-source
+	../../build-caching put --force-config ./pcre-source/ name=pcre-src version=$(PCRE_RELEASE)
 endif
 
 ./rudder-sources.tar.bz2:
