@@ -44,6 +44,9 @@
 # Same goes for the use of the local OpenSSL install vs. a bundled one
 %define use_system_openssl true
 
+# Same goes for the use of the local PCRE install vs. a bundled one
+%define use_system_pcre true
+
 #=================================================
 # Header
 #=================================================
@@ -83,8 +86,7 @@ AutoProv: 0
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 # Generic requirements
-BuildRequires: gcc bison flex pcre-devel autoconf automake libtool
-Requires: pcre
+BuildRequires: gcc bison flex autoconf automake libtool
 Provides: rudder-agent
 Conflicts: rudder-agent-thin
 
@@ -197,6 +199,19 @@ BuildRequires: openssl-devel
 Requires: openssl
 %endif
 
+# PCRE handling (builtin or OS-provided)
+
+# 1 - RHEL3: Only RHEL3 needs a specific pcre
+%if 0%{?rhel} && 0%{?rhel} == 3
+%define use_system_pcre false
+%endif
+
+## 2 - Resulting dependencies
+%if "%{use_system_pcre}" == "true"
+BuildRequires: pcre-devel
+Requires: pcre
+%endif
+
 # Common commands
 
 %define install_command        install
@@ -241,7 +256,7 @@ cd %{_sourcedir}
 export CFLAGS="${RPM_OPT_FLAGS}"
 export CXXFLAGS="${RPM_OPT_FLAGS}"
 
-make %{?_smp_mflags} USE_SYSTEM_OPENSSL=%{use_system_openssl} USE_SYSTEM_LMDB=%{use_system_lmdb}
+make %{?_smp_mflags} USE_SYSTEM_OPENSSL=%{use_system_openssl} USE_SYSTEM_LMDB=%{use_system_lmdb} USE_SYSTEM_PCRE=%{use_system_pcre}
 
 # there was a slibclean here on aix
 # TODO, check that it is not necessary anymore since we no more do a make install
@@ -260,7 +275,7 @@ cd %{_sourcedir}
 %define no_profile true
 %endif
 
-make install DESTDIR=%{buildroot} USE_SYSTEM_OPENSSL=%{use_system_openssl} USE_SYSTEM_LMDB=%{use_system_lmdb} NO_INIT=%{no_init} NO_CRON=%{no_cron} NO_LD=%{no_ld} NO_PROFILE=%{no_profile} 
+make install DESTDIR=%{buildroot} USE_SYSTEM_OPENSSL=%{use_system_openssl} USE_SYSTEM_LMDB=%{use_system_lmdb} USE_SYSTEM_PCRE=%{use_system_pcre} NO_INIT=%{no_init} NO_CRON=%{no_cron} NO_LD=%{no_ld} NO_PROFILE=%{no_profile} 
 
 # Build a list of files to include in this package for use in the %files section below
 find %{buildroot}%{rudderdir} %{buildroot}%{ruddervardir} -type f -o -type l | sed "s,%{buildroot},," | sed "s,\.py$,\.py*," | grep -v "%{rudderdir}/etc/uuid.hive" | grep -v "%{ruddervardir}/cfengine-community/ppkeys" > %{_builddir}/file.list.%{name}
