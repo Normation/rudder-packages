@@ -214,7 +214,7 @@ LATEST_BACKUPED_FILES=""
 
 if [ ! -e ${FILE_TO_RESTORE} ]; then
   if [ -d ${BACKUP_DIR} ]; then
-    LATEST_BACKUPED_FILES=$(ls -v1 ${BACKUP_DIR}${FILE_BACKUP_NAME}-* | tail -n1)
+    LATEST_BACKUPED_FILES=$(ls -v1 ${BACKUP_DIR}${FILE_BACKUP_NAME}-* 2> /dev/null | tail -n1)
   fi
   if [ "z${LATEST_BACKUPED_FILES}" != "z" ]; then
     echo_n "WARNING: The file ${FILE_TO_RESTORE} does not exist. The latest backup (${LATEST_BACKUPED_FILES}) will be restored..."
