@@ -315,7 +315,7 @@ echo -n "INFO: Setting Apache HTTPd as a boot service..."
 %if 0%{?rhel} && 0%{?rhel} < 7
 chkconfig --add %{apache} 2&> /dev/null
 %endif
-%if 0%{?rhel} && 0%{?rhel} = 6
+%if 0%{?rhel} && 0%{?rhel} == 6
 chkconfig %{apache} on
 %endif
 %if 0%{?rhel} && 0%{?rhel} >= 7
