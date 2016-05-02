@@ -27,6 +27,7 @@ FUSION_RELEASE = 2.3.6
 LMDB_RELEASE = 0.9.16
 OPENSSL_RELEASE = 1.0.1p
 PERL_VERSION = 5.22.0
+PCRE_RELEASE = 8.38
 
 # Defauth PATHs
 RUDDER_DIR = /opt/rudder
@@ -75,6 +76,12 @@ BUILD_DEPS := $(BUILD_DEPS) build-lmdb
 INSTALL_DEPS := $(INSTALL_DEPS) install-lmdb
 LMDB_ARG := --with-lmdb=$(CURDIR)/build-lmdb/opt/rudder
 endif
+# default: do not build pcre
+ifeq (false,$(USE_SYSTEM_PCRE))
+BUILD_DEPS := $(BUILD_DEPS) build-pcre
+INSTALL_DEPS := $(INSTALL_DEPS) install-pcre
+OPENSSL_ARG := --with-openssl=$(CURDIR)/build-pcre/opt/rudder
+endif
 # default: build perl
 ifneq (true,$(USE_SYSTEM_PERL))
 BUILD_DEPS := $(BUILD_DEPS) build-perl
@@ -97,7 +104,7 @@ endif
 
 # download dependencies
 depend: localdepends
-localdepends: initial-promises rudder-agent-utilities perl-$(PERL_VERSION) fusioninventory-agent cfengine-source openssl-source lmdb-source rudder-agent.cron ./rudder.8.gz
+localdepends: initial-promises rudder-agent-utilities perl-$(PERL_VERSION) fusioninventory-agent cfengine-source openssl-source lmdb-source pcre-source rudder-agent.cron ./rudder.8.gz
 	rm -rf $(TMP_DIR)
 
 # build binaries
@@ -229,6 +236,15 @@ ifeq ($(shell ../../build-caching get --force-config ./lmdb-source/ name=lmdb-sr
 	../../build-caching put --force-config ./lmdb-source/ name=lmdb-src version=$(LMDB_RELEASE)
 endif
 
+pcre-source:
+ifeq ($(shell ../../build-caching get --force-config ./pcre-source/ name=pcre-src version=$(PCRE_RELEASE) >/dev/null 2>&1 || echo KO), KO)
+	# Original URL: http://vorboss.dl.sourceforge.net/project/pcre/pcre/8.38/pcre-8.38.tar.gz
+	$(GET) $(TMP_DIR)/pcre.tgz http://www.normation.com/tarball/pcre/pcre-$(PCRE_RELEASE).tar.gz
+	gunzip < $(TMP_DIR)/pcre.tgz | $(TAR) xf -
+	mv ./pcre-$(PCRE_RELEASE) ./pcre-source
+	../../build-caching put --force-config ./pcre-source/ name=pcre-src version=$(PCRE_RELEASE)
+endif
+
 rudder-sources.tar.bz2:
 	$(GET) rudder-sources.tar.bz2 http://www.rudder-project.org/archives/rudder-sources-$(RUDDER_VERSION_TO_PACKAGE).tar.bz2
 
@@ -306,6 +322,7 @@ build-ssl: openssl-source
 	cd openssl-source && $(SSL_CONFIGURE) -fPIC --prefix=$(RUDDER_DIR) --openssldir=$(RUDDER_DIR)/openssl shared
 	cd openssl-source && $(MAKE)
 	slibclean >/dev/null 2>&1 || true
+	# install to a temporary location is needed to build cfengine
 	cd openssl-source && $(MAKE) install INSTALL_PREFIX=$(CURDIR)/build-ssl
 
 build-lmdb: lmdb-source
@@ -314,7 +331,14 @@ build-lmdb: lmdb-source
 	mkdir -p build-lmdb/opt/rudder
 	# LMDB's Makefile does not know how to create destination files, do it ourselves
 	cd build-lmdb/opt/rudder && mkdir -p bin lib include man/man1
+	# install to a temporary location is needed to build cfengine
 	cd lmdb-source/libraries/liblmdb && $(MAKE) install prefix=$(RUDDER_DIR) DESTDIR=$(CURDIR)/build-lmdb
+
+build-pcre: pcre-source
+	cd pcre-source && ./configure --disable-cpp --enable-utf8 --enable-unicode-properties --prefix=$(RUDDER_DIR)
+	cd pcre-source && $(MAKE)
+	# install to a temporary location is needed to build cfengine
+	cd pcre-source && $(MAKE) install DESTDIR=$(CURDIR)/build-pcre
 
 build-cfengine: get-flags $(BUILD_DEPS) cfengine-source build-cfengine-stamp
 build-cfengine-stamp:
@@ -357,6 +381,10 @@ install-ssl: build-ssl
 install-lmdb: build-lmdb
 	mkdir -p $(DESTDIR)
 	$(CP_A) $(CURDIR)/build-lmdb/* $(DESTDIR)
+
+install-pcre: build-pcre
+	mkdir -p $(DESTDIR)
+	$(CP_A) $(CURDIR)/build-pcre/* $(DESTDIR)
 
 install-cfengine: build-cfengine $(INSTALL_DEPS)
 	cd cfengine-source && $(MAKE) install DESTDIR=$(DESTDIR) STRIP=""
