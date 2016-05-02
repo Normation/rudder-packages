@@ -91,6 +91,10 @@ else
 FUSION_DEPS := cpan-source
 PERL := /usr/bin/perl
 endif
+# default: embed fusion
+ifneq (true,$(USE_SYSTEM_FUSION))
+INSTALL_DEPS := $(INSTALL_DEPS) install-fusion
+endif
 
 # Hack needed because openssl is not guessing correctly the architecture on solaris 32bits
 ifeq (i386-pc-solaris2.10,$(shell ./config.guess))
@@ -111,7 +115,7 @@ localdepends: initial-promises rudder-agent-utilities perl-$(PERL_VERSION) fusio
 build: build-cfengine
 
 # install to DESTDIR
-install: build $(INSTALL_DEPS) install-fusion install-cfengine initial-promises rudder-agent-utilities rudder-agent.cron
+install: build $(INSTALL_DEPS) install-cfengine initial-promises rudder-agent-utilities rudder-agent.cron
 	# Directories
 	mkdir -p $(INSTALL_DIR)/etc
 	mkdir -p $(INSTALL_DIR)/bin
