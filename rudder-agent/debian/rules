@@ -16,7 +16,7 @@ USE_SYSTEM_OPENSSL=true
 USE_SYSTEM_LMDB=false
 USE_SYSTEM_PCRE=true
 
-ifeq(rudder-agent,$(REAL_NAME))
+ifeq (rudder-agent,$(REAL_NAME))
 USE_SYSTEM_PERL=false
 USE_SYSTEM_FUSION=false
 else
