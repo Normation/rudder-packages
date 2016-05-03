@@ -10,16 +10,32 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
+REAL_NAME=rudder-agent
+
+USE_SYSTEM_OPENSSL=true
+USE_SYSTEM_LMDB=false
+USE_SYSTEM_PCRE=true
+
+ifeq(rudder-agent,$(REAL_NAME))
+USE_SYSTEM_PERL=false
+USE_SYSTEM_FUSION=false
+else
+USE_SYSTEM_PERL=true
+USE_SYSTEM_FUSION=true
+endif
+
+MAKE_OPTIONS=USE_SYSTEM_OPENSSL=$(USE_SYSTEM_OPENSSL) USE_SYSTEM_LMDB=$(USE_SYSTEM_LMDB) USE_SYSTEM_PCRE=$(USE_SYSTEM_PCRE) USE_SYSTEM_FUSION=$(USE_SYSTEM_FUSION) USE_SYSTEM_PERL=$(USE_SYSTEM_PERL)
+
 configure:
 
 build:
 	dh_testdir
-	cd SOURCES && make build
+	cd SOURCES && $(MAKE) build $(MAKE_OPTIONS)
 
 clean:
 	dh_testdir
 	dh_testroot
-	cd SOURCES && make clean
+	cd SOURCES && $(MAKE) clean $(MAKE_OPTIONS)
 	rm -f debian/rudder.init
 	dh_clean
 
@@ -27,7 +43,7 @@ install: build
 	dh_testdir
 	dh_testroot
 	dh_installdirs
-	cd SOURCES && make install DESTDIR=$(CURDIR)/debian/tmp
+	cd SOURCES && $(MAKE) install $(MAKE_OPTIONS)
 	# let this file be managed by dh_installinit
 	mv $(CURDIR)/debian/tmp/etc/init.d/rudder debian/rudder.init
 

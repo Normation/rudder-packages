@@ -47,6 +47,15 @@
 # Same goes for the use of the local PCRE install vs. a bundled one
 %define use_system_pcre true
 
+# Perl and fusion
+%if %{real_name} == "rudder-agent"
+%define use_system_fusion false
+%define use_system_perl false
+%else
+%define use_system_fusion true
+%define use_system_perl true
+%endif
+
 #=================================================
 # Header
 #=================================================
@@ -67,7 +76,9 @@ Source4: perl-prepare.sh
 Source5: rudder-agent.default
 Source6: rudder-agent.init
 Source7: rudder-agent.sh
+%if %{use_system_perl} == "false"
 Source8: rudder-perl
+%endif
 Source9: rudder.conf
 Source10: rudder.init
 Source11: run-inventory
@@ -78,19 +89,29 @@ Source15: vzps.py
 Source16: rudder.8.gz
 Source17: signature_check.sh
 
+%if %{use_system_perl} == "false"
 # Prevent dependency auto-generation, that tries to be helpful by detecting Perl dependencies from
 # FusionInventory. We handle that with the perl standalone installation already.
 AutoReq: 0
 AutoProv: 0
+%endif
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 # Generic requirements
 BuildRequires: gcc bison flex autoconf automake libtool
 Provides: rudder-agent
+%if %{real_name} == "rudder-agent"
 Conflicts: rudder-agent-thin
+%else
+Conflicts: rudder-agent
+%endif
 
 # Specific requirements
+
+%if %{use_system_fusion} == "true"
+Requires: fusioninventory-agent fusioninventory-agent-task-inventory
+%endif
 
 ## For EL and Fedora
 %if 0%{?rhel} || 0%{?fedora}
@@ -222,6 +243,7 @@ Requires: pcre
 %define cp_a_command           cp -hpPr
 %endif
 
+%if %{real_name} == "rudder-agent"
 # Replaces rudder-cfengine-community since 2.4.0~beta3
 Provides: rudder-cfengine-community
 Obsoletes: rudder-cfengine-community
@@ -232,6 +254,7 @@ Obsoletes: rudder-cfengine-community
 %define __find_requires %{_sourcedir}/filter-reqs.pl %{use_system_lmdb} %{__find_requires_orig}
 %global __find_provides_orig %{__find_provides}
 %define __find_provides %{_sourcedir}/filter-reqs.pl %{use_system_lmdb} %{__find_provides_orig}
+%endif
 
 %description
 Rudder is an open source configuration management and audit solution.
@@ -256,7 +279,7 @@ cd %{_sourcedir}
 export CFLAGS="${RPM_OPT_FLAGS}"
 export CXXFLAGS="${RPM_OPT_FLAGS}"
 
-make %{?_smp_mflags} USE_SYSTEM_OPENSSL=%{use_system_openssl} USE_SYSTEM_LMDB=%{use_system_lmdb} USE_SYSTEM_PCRE=%{use_system_pcre}
+make %{?_smp_mflags} USE_SYSTEM_OPENSSL=%{use_system_openssl} USE_SYSTEM_LMDB=%{use_system_lmdb} USE_SYSTEM_PCRE=%{use_system_pcre} USE_SYSTEM_FUSION=%{use_system_fusion} USE_SYSTEM_PERL=%{use_system_perl}
 
 # there was a slibclean here on aix
 # TODO, check that it is not necessary anymore since we no more do a make install
@@ -275,12 +298,12 @@ cd %{_sourcedir}
 %define no_profile true
 %endif
 
-make install DESTDIR=%{buildroot} USE_SYSTEM_OPENSSL=%{use_system_openssl} USE_SYSTEM_LMDB=%{use_system_lmdb} USE_SYSTEM_PCRE=%{use_system_pcre} NO_INIT=%{no_init} NO_CRON=%{no_cron} NO_LD=%{no_ld} NO_PROFILE=%{no_profile} 
+make install DESTDIR=%{buildroot} USE_SYSTEM_OPENSSL=%{use_system_openssl} USE_SYSTEM_LMDB=%{use_system_lmdb} USE_SYSTEM_PCRE=%{use_system_pcre} NO_INIT=%{no_init} NO_CRON=%{no_cron} NO_LD=%{no_ld} NO_PROFILE=%{no_profile} USE_SYSTEM_FUSION=%{use_system_fusion} USE_SYSTEM_PERL=%{use_system_perl}
 
 # Build a list of files to include in this package for use in the %files section below
 find %{buildroot}%{rudderdir} %{buildroot}%{ruddervardir} -type f -o -type l | sed "s,%{buildroot},," | sed "s,\.py$,\.py*," | grep -v "%{rudderdir}/etc/uuid.hive" | grep -v "%{ruddervardir}/cfengine-community/ppkeys" > %{_builddir}/file.list.%{name}
 
-%pre -n rudder-agent
+%pre
 #=================================================
 # Pre Installation
 #=================================================
@@ -301,7 +324,7 @@ if [ $1 -eq 2 ];then
 %endif
 fi
 
-%post -n rudder-agent
+%post
 #=================================================
 # Post Installation
 #=================================================
@@ -353,7 +376,7 @@ service_start_cmd="service rudder-agent start"
 
 /opt/rudder/share/package-scripts/rudder-agent-postinst "${CFRUDDER_FIRST_INSTALL}" "${service_stop_cmd}" "${service_start_cmd}"
 
-%preun -n rudder-agent
+%preun
 #=================================================
 # Pre Uninstallation
 #=================================================
@@ -389,7 +412,7 @@ if [ -d /var/rudder/cfengine-community/ppkeys/ ]; then
 fi
 
 
-%postun -n rudder-agent
+%postun
 #=================================================
 # Post Uninstallation
 #=================================================
@@ -442,7 +465,7 @@ rm -f %{_builddir}/file.list.%{name}
 # Files
 #=================================================
 # Files from %{rudderdir} and %{ruddervardir} are automatically added via the -f option
-%files -n rudder-agent -f %{_builddir}/file.list.%{name}
+%files -f %{_builddir}/file.list.%{name}
 %defattr(-, root, root, 0755)
 
 %{bindir}/rudder
@@ -476,6 +499,7 @@ rm -f %{_builddir}/file.list.%{name}
 # Changelog
 #=================================================
 %changelog
+%if %{real_name} == "rudder-agent"
 * Wed Apr  27 2011 - Matthieu CERDA <matthieu.cerda@normation.com> 2.2-beta1-2
 - The packages now builds correctly on both x86 and x86_64 archs, and on EL4/CentOS 4.
 * Tue Mar  1 2011 - Jonathan CLARKE <jonathan.clarke@normation.com> 2.2-beta1-1
@@ -488,3 +512,9 @@ rm -f %{_builddir}/file.list.%{name}
 - Fix bug to get initial promises in RPM
 * Fri Feb 25 2011 - Jonathan CLARKE <jonathan.clarke@normation.com> 2.2-beta0-1
 - Initial package
+%else
+* Fri May  30 2014 - Matthieu CERDA <matthieu.cerda@normation.com> 2.11-beta1
+- Initial package, using rudder-agent as a base
+- Removed fusion-inventory code
+- Removed legacy code
+%endif
