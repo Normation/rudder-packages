@@ -663,6 +663,16 @@ if [ -f ${TMP_CRON} ]; then
 fi
 %endif
 
+# Try to remove POSIX ACL if present, only during the first install
+# http://www.rudder-project.org/redmine/issues/8065
+%if "%{?_os}" != "aix"
+# setfacl does not exist on AIX
+if [ ${CFRUDDER_FIRST_INSTALL} -eq 1 ]
+then
+  setfacl -R -k %{ruddervardir}
+fi
+%endif
+
 # Try to send an inventory after upgrade to see the new agent version on the server
 if [ ${CFRUDDER_FIRST_INSTALL} -ne 1 ]
 then
