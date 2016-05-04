@@ -52,6 +52,7 @@ BuildArch: noarch
 
 # Add Requires here - order is important
 Requires: ncf >= 1398866025:1.0
+BuildRequires: jre
 
 # The following lines allow this package (rudder-techniques) to 
 # replace the older rudder-policy-templates package.
