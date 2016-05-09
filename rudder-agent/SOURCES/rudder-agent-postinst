@@ -163,6 +163,13 @@ then
   touch /opt/rudder/etc/force_inventory
 fi
 
+# Try to remove POSIX ACL if present, only during the first install
+# http://www.rudder-project.org/redmine/issues/8065
+if [ ${CFRUDDER_FIRST_INSTALL} -eq 1 ]
+then
+  setfacl -R -k /var/rudder/
+fi
+
 # launch rudder agent check script, it will generate an UUID on first install or repair it if needed
 nohup /opt/rudder/bin/check-rudder-agent >/dev/null 2>/dev/null &
 
