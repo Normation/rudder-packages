@@ -188,6 +188,7 @@ clean: localclean
 localclean:
 	rm -rf $(DESTDIR)
 	rm -rf build-ssl build-lmdb build-cfengine build-perl fusion-modules
+	rm -rf rudder-sources
 	[ -d cfengine-source ] && cd cfengine-source && $(MAKE) clean 2>/dev/null || true
 	[ -d lmdb-source ] && cd lmdb-source && $(MAKE) clean 2>/dev/null || true
 	[ -d openssl-source ] && cd openssl-source && $(MAKE) clean 2>/dev/null || true
@@ -199,7 +200,6 @@ mrproper: veryclean
 veryclean:
 	rm -f rudder-agent.cron
 	rm -f ./rudder-sources.tar.bz2
-	rm -rf rudder-sources
 	rm -rf initial-promises rudder-agent-utilities fusioninventory-agent
 	rm -rf cfengine-source lmdb-source openssl-source perl-$(PERL_VERSION)
 	rm -rf ./$(TMP_DIR)
@@ -257,7 +257,7 @@ rudder-sources: rudder-sources.tar.bz2
 	mv rudder-sources-$(RUDDER_VERSION_TO_PACKAGE)*/ rudder-sources/ # the '*' is needed for nightly release
 	touch rudder-sources # to make it younger than the bzip source file
 
-./rudder.8.gz:
+rudder.8.gz:
 	# Get man page from rudder-project.org
 	$(WGET) http://www.rudder-project.org/rudder-doc-${RUDDER_MAJOR_VERSION}/rudder.8
 	gzip -f rudder.8
@@ -354,7 +354,7 @@ build-cfengine-stamp:
 	cd cfengine-source && $(MAKE)
 	touch $@
 
-# Test if compiler supporte hardening flags
+# Test if compiler supports hardening flags
 get-flags:
 	$(eval BUILD_CFLAGS:=$(shell [ -x /usr/bin/dpkg-buildflags ] && /usr/bin/dpkg-buildflags --get CFLAGS ))
 	$(eval BUILD_LDFLAGS:=$(shell [ -x /usr/bin/dpkg-buildflags ] && /usr/bin/dpkg-buildflags --get LDFLAGS ))
