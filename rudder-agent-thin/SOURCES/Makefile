@@ -16,6 +16,7 @@ Makefile: always
 	patch -d ../debian --forward -p1 < patches/rudder-agent-thin/0001-rudder-agent-to-rudder-agent-thin-debian.patch
 	test `find . -name \*.rej | wc -l` = 0
 	sed -i 's/^REAL_NAME=rudder-agent/REAL_NAME=rudder-agent-thin/' ../debian/rules
+	sed -i 's/^rudder-agent/rudder-agent-thin/' ../debian/changelog
 	sed -i 's/^%define real_name  *rudder-agent$$/%define real_name rudder-agent-thin/' ../SPECS/rudder-agent.spec
 
 
