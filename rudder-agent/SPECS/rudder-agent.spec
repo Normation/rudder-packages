@@ -365,7 +365,6 @@ if ! grep -q "/opt/rudder/lib" /etc/ld.so.conf; then
 fi
 %endif
 
-
 %if "%{?_os}" == "aix"
 service_stop_cmd="/usr/bin/stopsrc -s rudder-agent"
 service_start_cmd="/usr/bin/startsrc -s rudder-agent"
