@@ -693,7 +693,9 @@ fi
 # setfacl does not exist on AIX
 if [ ${CFRUDDER_FIRST_INSTALL} -eq 1 ]
 then
-  setfacl -R -k %{ruddervardir}
+  if type setfacl > /dev/null 2> /dev/null; then
+    setfacl -R -k %{ruddervardir}
+  fi
 fi
 %endif
 
