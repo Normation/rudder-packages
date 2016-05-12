@@ -53,6 +53,8 @@ Source4: rudder-db
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
+BuildRequires: jre
+
 
 Requires: postgresql-server >= 8.4
 Requires: rsyslog >= 4
