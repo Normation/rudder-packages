@@ -8,3 +8,4 @@ RHEL6:gcc openssl-devel bison flex autoconf automake libtool pcre-devel make bya
 RHEL7:gcc openssl-devel bison flex autoconf automake libtool pcre-devel make byacc pam-devel
 FEDORA18:gcc openssl-devel bison flex autoconf automake libtool pcre-devel make byacc pam-devel
 FEDORA20:gcc openssl-devel bison flex autoconf automake libtool pcre-devel make byacc pam-devel
+JAVA:jdk
