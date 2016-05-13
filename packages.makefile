@@ -16,6 +16,10 @@
 #
 #####################################################################################
 
+# This Makefile contains a call to prepare source dependencies (localdepends)
+# Everything else dedicated to building RPM packages
+# Building debian packages is done in the $(TOOLS_DIR)/build-package.makefile file
+
 include $(TOOLS_DIR)/build-package.makefile
 
 ARCHI := $(shell uname -m)
@@ -42,7 +46,7 @@ localbuild: localdepends buildpackage-debian
 localdepends: SOURCES/.stamp
 
 SOURCES/.stamp:
-	cd SOURCES && $(MAKE)
+	cd SOURCES && $(MAKE) localdepends
 	touch SOURCES/.stamp
 
 buildpackage-rpm-common-prep:
