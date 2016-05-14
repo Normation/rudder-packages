@@ -48,7 +48,7 @@
 %define use_system_pcre true
 
 # Perl and fusion
-%if %{real_name} == "rudder-agent"
+%if "%{real_name}" == "rudder-agent"
 %define use_system_fusion false
 %define use_system_perl false
 %else
@@ -101,7 +101,7 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 # Generic requirements
 BuildRequires: gcc bison flex autoconf automake libtool jre
 Provides: rudder-agent
-%if %{real_name} == "rudder-agent"
+%if "%{real_name}" == "rudder-agent"
 Conflicts: rudder-agent-thin
 %else
 Conflicts: rudder-agent
@@ -243,7 +243,7 @@ Requires: pcre
 %define cp_a_command           cp -hpPr
 %endif
 
-%if %{real_name} == "rudder-agent"
+%if "%{real_name}" == "rudder-agent"
 # Replaces rudder-cfengine-community since 2.4.0~beta3
 Provides: rudder-cfengine-community
 Obsoletes: rudder-cfengine-community
@@ -498,7 +498,7 @@ rm -f %{_builddir}/file.list.%{name}
 # Changelog
 #=================================================
 %changelog
-%if %{real_name} == "rudder-agent"
+%if "%{real_name}" == "rudder-agent"
 * Wed Apr  27 2011 - Matthieu CERDA <matthieu.cerda@normation.com> 2.2-beta1-2
 - The packages now builds correctly on both x86 and x86_64 archs, and on EL4/CentOS 4.
 * Tue Mar  1 2011 - Jonathan CLARKE <jonathan.clarke@normation.com> 2.2-beta1-1

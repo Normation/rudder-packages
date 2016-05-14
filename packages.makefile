@@ -92,6 +92,7 @@ buildpackage-rpm-suse: localdepends buildpackage-rpm-common-prep buildpackage-rp
 buildpackage-rpm-rhel: localdepends buildpackage-rpm-common-prep buildpackage-rpm-common-prep-rhel buildpackage-rpm-common-fix-old-epoch buildpackage-rpm-build-rpmbuild
 buildpackage-rpm-fedora: localdepends buildpackage-rpm-common-prep buildpackage-rpm-common-prep-fedora buildpackage-rpm-common-fix-old-epoch buildpackage-rpm-build-rpmbuild
 
+clean: localclean
 localclean:
 	cd SOURCES && $(MAKE) localclean
 	rm -f SOURCES/.stamp
