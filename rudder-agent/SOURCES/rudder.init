@@ -217,12 +217,6 @@ status_services()
   service_status "Application" "${RUDDER_JETTY}" "${HAVE_JETTY}"
 }
 
-# Ensure this script is run as root
-if [ "$(id -u)" != "0" ]; then
-  echo "Please run this script as root" 1>&2
-  exit 1
-fi
-
 case "$1" in
   start)
     start_services
