@@ -106,9 +106,9 @@ service_details()
 printf "\n * ${BLUE}${1}${NORMAL}:"
 if [ "${3}" -eq 1 ]; then
   echo ""
-  "${COPYPASTE}"
+  ${COPYPASTE}
   service "${2}" status || RETURN=${?}
-  "${COPYPASTE}"
+  ${COPYPASTE}
 else
   printf " ${YELLOW}Not installed${NORMAL}\n"
 fi
