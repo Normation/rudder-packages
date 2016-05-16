@@ -106,9 +106,9 @@ service_details()
 printf "\n * ${BLUE}${1}${NORMAL}:"
 if [ "${3}" -eq 1 ]; then
   echo ""
-  "${COPYPASTE}"
+  ${COPYPASTE}
   service "${2}" status || RETURN=${?}
-  "${COPYPASTE}"
+  ${COPYPASTE}
 else
   printf " ${YELLOW}Not installed${NORMAL}\n"
 fi
@@ -122,6 +122,12 @@ LANGUAGE=C
 LC_ALL=C
 
 export LANG LANGUAGE LC_ALL
+
+# Ensure this script is run as root
+if [ "$(id -u)" != "0" ]; then
+  echo "Please run this script as root" 1>&2
+  exit 1
+fi
 
 ## Colors configuration (enable colors only if stdout is a terminal)
 if [ -t 1 ]; then
