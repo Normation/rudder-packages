@@ -152,7 +152,9 @@ fi
 # http://www.rudder-project.org/redmine/issues/8065
 if [ ${CFRUDDER_FIRST_INSTALL} -eq 1 ]
 then
-  setfacl -R -k /var/rudder/
+  if type setfacl > /dev/null 2> /dev/null; then
+    setfacl -R -k /var/rudder/
+  fi
 fi
 
 # launch rudder agent check script, it will generate an UUID on first install or repair it if needed
