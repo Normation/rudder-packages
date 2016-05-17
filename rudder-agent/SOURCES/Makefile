@@ -146,8 +146,9 @@ endif
 	$(INSTALL) -m 755 run-inventory $(INSTALL_DIR)/bin/
 
 	# Signature script
-	$(INSTALL) -m 755 signature.sh $(INSTALL_DIR)/bin/
+	$(INSTALL) -m 755 rudder-sign $(INSTALL_DIR)/bin/
 	$(INSTALL) -m 755 rudder-signature-check $(INSTALL_DIR)/bin/
+	$(INSTALL) -m 755 signature.sh $(INSTALL_DIR)/bin/ # for backwards compatibility, remove in the next major version after the next LTS after 3.1 is announced
 
 	# Install an empty uuid.hive file before generating an uuid
 	$(INSTALL) -m 644 uuid.hive $(INSTALL_DIR)/etc/
