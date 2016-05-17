@@ -147,7 +147,7 @@ endif
 
 	# Signature script
 	$(INSTALL) -m 755 signature.sh $(INSTALL_DIR)/bin/
-	$(INSTALL) -m 755 signature_check.sh $(INSTALL_DIR)/bin/
+	$(INSTALL) -m 755 rudder-signature-check $(INSTALL_DIR)/bin/
 
 	# Install an empty uuid.hive file before generating an uuid
 	$(INSTALL) -m 644 uuid.hive $(INSTALL_DIR)/etc/
