@@ -88,6 +88,7 @@ Source14: uuidgen
 Source15: vzps.py
 Source16: rudder.8.gz
 Source17: rudder-signature-check
+Source18: rudder-sign
 
 %if %{use_system_perl} == "false"
 # Prevent dependency auto-generation, that tries to be helpful by detecting Perl dependencies from
