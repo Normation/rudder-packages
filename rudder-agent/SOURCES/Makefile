@@ -22,7 +22,7 @@
 RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
 RUDDER_MAJOR_VERSION := $(shell echo ${RUDDER_VERSION_TO_PACKAGE} | cut -d'.' -f 1-2)
 
-CFENGINE_RELEASE = 3.7.1
+CFENGINE_RELEASE = 3.7.3
 FUSION_RELEASE = 2.3.6
 LMDB_RELEASE = 0.9.18
 OPENSSL_RELEASE = 1.0.1p
@@ -211,7 +211,7 @@ veryclean:
 
 cfengine-source:
 ifeq ($(shell ../../build-caching get --force-config ./cfengine-source/ name=cfengine-src version=$(CFENGINE_RELEASE) >/dev/null 2>&1 || echo KO), KO)
-	# Original URL: https://cfengine-package-repos.s3.amazonaws.com/tarballs/cfengine-3.7.1.tar.gz
+	# Original URL: https://cfengine-package-repos.s3.amazonaws.com/tarballs/cfengine-$(CFENGINE_RELEASE).tar.gz
 	$(GET) $(TMP_DIR)/cfengine.tgz http://www.normation.com/tarball/cfengine/cfengine-$(CFENGINE_RELEASE).tar.gz
 	gunzip < $(TMP_DIR)/cfengine.tgz | $(TAR) xf -
 	mv ./cfengine-$(CFENGINE_RELEASE) ./cfengine-source
