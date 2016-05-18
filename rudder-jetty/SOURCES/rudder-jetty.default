@@ -16,8 +16,8 @@ then
 fi
 
 # Check wich JVM is installed
-# We support Sun Java 6 or OpenJDK 7 or 8, privilege later versions (sort -r)
-if [ -d /usr/lib/jvm ]; then JAVA_HOME=$(find /usr/lib/jvm -maxdepth 1 -type d -name 'java-[78]-openjdk-*' -or -name java-6-sun | sort -r | head -n1); fi
+# We support OpenJDK 7 or 8, privilege later versions (sort -r)
+if [ -d /usr/lib/jvm ]; then JAVA_HOME=$(find /usr/lib/jvm -maxdepth 1 -type d -name 'java-[78]-openjdk-*' | sort -r | head -n1); fi
 if [ -d /usr/java ]; then JAVA_HOME=/usr/java/latest; fi
 
 # Java VM location
@@ -25,6 +25,12 @@ if [ -f ${JAVA_HOME}/bin/java ]; then JAVA=${JAVA_HOME}/bin/java; else JAVA=/usr
 
 # Check JVM major version
 JAVA_MAJOR_VERSION=`${JAVA} -version 2>&1 | grep "^java version" | sed 's/java version "\([0-9]\+\.[0-9]\)\+\..*"/\1/'`
+
+if [ `ver ${JAVA_MAJOR_VERSION}` -lt `ver 1.7` ]; then
+  echo "Rudder requires Java 7 or later. Your version of Java (detected as ${JAVA}) is ${JAVA_MAJOR_VERSION}."
+  echo "Please install a more recent JVM."
+  exit 1
+fi
 
 # Memory settings
 JAVA_XMX=${JAVA_XMX:=1024}
