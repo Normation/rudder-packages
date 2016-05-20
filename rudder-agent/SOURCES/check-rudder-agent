@@ -1,6 +1,6 @@
 #!/bin/sh
 #####################################################################################
-# Copyright 2013 Normation SAS
+# Copyright 2013-6 Normation SAS
 #####################################################################################
 #
 # This program is free software: you can redistribute it and/or modify
@@ -250,11 +250,17 @@ base="/var/rudder/cfengine-community/inputs"
 empty() {
   [ ! -f "$1" ] || [ $(du "$1" | awk '{print $1}') = "0" ]
 }
-if empty "${base}/common/1.0/update.cf" || empty "${base}/failsafe.cf" || empty "${base}/promises.cf"
+if empty "${base}/common/1.0/update.cf" || empty "${base}/failsafe.cf" || empty "${base}/promises.cf" || ! ${CFE_BIN_DIR}/cf-promises -f failsafe.cf
 then
-  echo_n "ERROR: There was an error during promises update. Reseting to initial promises and updating..."
+  echo_n "ERROR: There was an error during promises update. Resetting to initial promises and updating..."
   rm -rf /var/rudder/cfengine-community/inputs/*
   cp -r /opt/rudder/share/initial-promises/* /var/rudder/cfengine-community/inputs
   /var/rudder/cfengine-community/bin/cf-agent -K -f failsafe.cf && /var/rudder/cfengine-community/bin/cf-agent
   echo " Done"
+fi
+
+# Ensure main promises are not broken, and force a new download if so
+if ! ${CFE_BIN_DIR}/cf-promises
+then
+  rm -f ${CFE_DIR}/inputs/rudder_promises_updated
 fi
