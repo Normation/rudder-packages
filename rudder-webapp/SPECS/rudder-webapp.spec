@@ -509,11 +509,14 @@ fi
 chgrp -R %{config_repository_group} /var/rudder/configuration-repository
 
 ## Add execution permission for ncf-api only on directories and files with user execution permission
-chmod -R u+rwX,g+rwsX %{ruddervardir}/configuration-repository/.git
-chmod -R u+rwX,g+rwsX %{ruddervardir}/configuration-repository/ncf
-chmod -R u+rwX,g+rwsX %{ruddervardir}/configuration-repository/techniques
+chmod -R u+rwX,g+rwX %{ruddervardir}/configuration-repository/.git
+chmod -R u+rwX,g+rwX %{ruddervardir}/configuration-repository/ncf
+chmod -R u+rwX,g+rwX %{ruddervardir}/configuration-repository/techniques
 
-## Add execution permission for ncf-apo on pre/post-hooks
+## Add setgid to directories so that all files created here belong to the %{config_repository_group} group
+find %{ruddervardir}/configuration-repository/.git %{ruddervardir}/configuration-repository/ncf %{ruddervardir}/configuration-repository/techniques -type d -exec chmod g+s "{}" \;
+
+## Add execution permission for ncf-api on pre/post-hooks
 chmod -R 2750 %{ruddervardir}/configuration-repository/ncf/ncf-hooks.d/
 
 # Create a symlink to the Jetty context if necessary
@@ -542,6 +545,18 @@ if [ $1 -eq 0 ]; then
     groupdel %{config_repository_group}
     echo " Done"
   fi
+
+%if 0%{?sles_version}
+  # Remove required includes in the SLES apache2 configuration
+  if [ -f /etc/sysconfig/apache2 ]; then
+    sed -i "/# This sources the modules\/defines needed by Rudder/d" /etc/sysconfig/apache2
+    sed -i "/. \/etc\/sysconfig\/rudder-apache/d" /etc/sysconfig/apache2
+
+    # Also remove an older comment that was erroneously added until 2.11.21 / 3.0.16 / 3.1.10 / 3.2.3
+    sed -i "/# This sources the configuration file needed by Rudder/d" /etc/sysconfig/apache2
+  fi
+%endif
+
 fi
 
 %if 0%{?rhel} || 0%{?fedora}
