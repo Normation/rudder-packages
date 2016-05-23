@@ -1,6 +1,6 @@
 #!/bin/sh
 #####################################################################################
-# Copyright 2013 Normation SAS
+# Copyright 2013-6 Normation SAS
 #####################################################################################
 #
 # This program is free software: you can redistribute it and/or modify
@@ -228,7 +228,7 @@ empty() {
 
 check_and_fix_inputs() {
   # if file is absent or empty there have been a problem with update
-  if empty "${CFE_DIR}/inputs/common/1.0/update.cf" || empty "${CFE_DIR}/inputs/failsafe.cf" || empty "${CFE_DIR}/inputs/promises.cf"
+  if empty "${CFE_DIR}/inputs/common/1.0/update.cf" || empty "${CFE_DIR}/inputs/failsafe.cf" || empty "${CFE_DIR}/inputs/promises.cf" || ! ${CFE_BIN_DIR}/cf-promises -f failsafe.cf
   then
     echo_n "ERROR: There was an error during promises update. Reseting to initial promises and updating..."
     rm -rf ${CFE_DIR}/inputs/*
@@ -243,6 +243,12 @@ check_and_fix_inputs() {
       fi
     fi
     echo " Done"
+  fi
+
+  # Ensure main promises are not broken, and force a new download if so
+  if ! ${CFE_BIN_DIR}/cf-promises
+  then
+    rm -f ${CFE_DIR}/inputs/rudder_promises_updated
   fi
 }
 
@@ -283,4 +289,3 @@ if [ "${NEED_INIT_FILES}" = "true" ] && [ "${OS_FAMILY}" != "AIX" ] || [ "${OS_F
   check_and_fix_specific_rudder_agent_file /etc/default/rudder-agent rudder-agent.default "Please reinstall the rudder-agent package." "mandatory"
   check_and_fix_specific_rudder_agent_file /etc/cron.d/rudder-agent rudder-agent.cron "Please reinstall the rudder-agent package." "mandatory"
 fi
-
