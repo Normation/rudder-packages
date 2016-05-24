@@ -1,0 +1,47 @@
+From 6cb36ac3949f616f5f40808790b2a8aedfaf4359 Mon Sep 17 00:00:00 2001
+From: Dimitrios Apostolou <dimitrios.apostolou@cfengine.com>
+Date: Thu, 10 Mar 2016 20:54:31 +0100
+Subject: [PATCH] Fix test, order of classes is unpredictable
+
+Order changed because of commit
+5a70c38474b6591993b40204f46e20ed341822d1
+
+(cherry picked from commit d5b417723488f9104c22a23cbd2e9df30cfa8f48)
+---
+ examples/classesmatching.cf | 14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
+
+diff --git a/examples/classesmatching.cf b/examples/classesmatching.cf
+index 2817d8e..599b8b4 100644
+--- a/examples/classesmatching.cf
++++ b/examples/classesmatching.cf
+@@ -29,10 +29,16 @@ body common control
+ bundle agent run
+ {
+   vars:
+-      "all" slist => classesmatching(".*");
+-      "c" slist => classesmatching("cfengine");
+-      "internal_environment" slist => classesmatching(".*", 'cfe_internal', 'source=environment');
++      "all" slist         => classesmatching(".*");
++      "c" slist           => classesmatching("cfengine");
+       "c_plus_plus" slist => classesmatching("cfengine", "plus");
++
++      # order of classes is not guaranteed
++      "internal_environment_unsorted" slist =>
++          classesmatching(".*", 'cfe_internal', 'source=environment');
++      "internal_environment" slist =>
++          sort(internal_environment_unsorted, lex);
++
+   reports:
+       # you may find this list of all classes interesting but it
+       # produces different output every time, so it's commented out here
+@@ -51,8 +57,8 @@ bundle agent run
+ #+begin_src example_output
+ #@ ```
+ #@ R: All classes with the 'cfe_internal' and 'source=environment' tags = '_cfe_output_testing'
+-#@ R: All classes with the 'cfe_internal' and 'source=environment' tags = 'opt_dry_run'
+ #@ R: All classes with the 'cfe_internal' and 'source=environment' tags = 'agent'
++#@ R: All classes with the 'cfe_internal' and 'source=environment' tags = 'opt_dry_run'
+ #@ R: Classes matching 'cfengine' = 'cfengine'
+ #@ ```
+ #+end_src

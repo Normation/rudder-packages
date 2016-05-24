@@ -151,11 +151,12 @@ index 67f2e66..5a498bd 100644
          free(table);
      }
  }
-@@ -134,45 +134,35 @@ bool ClassTablePut(ClassTable *table, co
+@@ -139,38 +136,35 @@ bool ClassTablePut(ClassTable *table,
      assert(is_soft || (!ns || strcmp("default", ns) == 0)); // hard classes should have default namespace
      assert(is_soft || scope == CONTEXT_SCOPE_NAMESPACE); // hard classes cannot be local
  
--    if (ns && strcmp("default", ns) == 0)
+-    if (ns != NULL &&
+-        strcmp("default", ns) == 0)
 +    if (ns == NULL)
      {
 -        ns = NULL;
@@ -172,19 +173,11 @@ index 67f2e66..5a498bd 100644
 -    }
 -    else
 -    {
--        if (ns == NULL ||
--            strcmp("default", ns) == 0)
--        {
--            Log(LOG_LEVEL_DEBUG, "Setting %sclass %s",
--                is_soft ? "" : "hard ",
--                name);
--        }
--        else                                        /* also print namespace */
--        {
--            Log(LOG_LEVEL_DEBUG, "Setting %sclass %s:%s",
--                is_soft ? "" : "hard ",
--                ns, name);
--        }
+-        Log(LOG_LEVEL_DEBUG, "Setting %sclass %s%s%s",
+-            is_soft ? "" : "hard ",
+-            (ns != NULL) ? ns  : "",
+-            (ns != NULL) ? ":" : "",
+-            name);
 -
 -        cls = xmalloc(sizeof(Class));
 -        ClassInit(cls, ns, name, is_soft, scope, tags);
