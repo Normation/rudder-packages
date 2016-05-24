@@ -1,0 +1,261 @@
+From 784b05582ed064e9db5163f46d7e89a5e3340133 Mon Sep 17 00:00:00 2001
+From: Dimitrios Apostolou <dimitrios.apostolou@cfengine.com>
+Date: Tue, 1 Mar 2016 22:23:12 +0100
+Subject: [PATCH 1/3] redmine#7952: Fix use-after-free in ArrayMap and HashMap
+
+When re-inserting a key-value pair into our two Map implementations
+(ArrayMap and HashMap) then the old entry gets overwritten. However the
+implementation only overwrote the value, not the key, since the two keys
+compare as equal. Additionally it *freed the new key*.
+
+Although the old and new keys have the same contents, they are different
+pointers. And if the key is referenced within the value struct, then
+both the value and key must be in sync. Else the value might reference a
+freed key.
+
+The fix was: in case of overwriting a pre-existing key-value pair, write
+both the key and the value (despite the old and new keys comparing as
+equal). Finally free the old key and the old value.
+
+Changelog: Title
+(cherry picked from commit 04b7f1a47845b3b24009ee2050faabd5cccdad37)
+---
+ libutils/array_map.c  |   6 ++-
+ libutils/hash_map.c   |   6 ++-
+ tests/unit/map_test.c | 108 +++++++++++++++++++++++++++++++++++++++++++++++++-
+ 3 files changed, 117 insertions(+), 3 deletions(-)
+
+diff --git a/libutils/array_map.c b/libutils/array_map.c
+index 7f25a1f..4666c06 100644
+--- a/libutils/array_map.c
++++ b/libutils/array_map.c
+@@ -52,8 +52,12 @@ int ArrayMapInsert(ArrayMap *map, void *key, void *value)
+     {
+         if (map->equal_fn(map->values[i].key, key))
+         {
+-            map->destroy_key_fn(key);
++            /* Replace the key with the new one despite those two being the
++             * same, since the new key might be referenced somewhere inside
++             * the new value. */
++            map->destroy_key_fn(map->values[i].key);
+             map->destroy_value_fn(map->values[i].value);
++            map->values[i].key   = key;
+             map->values[i].value = value;
+             return 1;
+         }
+diff --git a/libutils/hash_map.c b/libutils/hash_map.c
+index 1a583b2..382976f 100644
+--- a/libutils/hash_map.c
++++ b/libutils/hash_map.c
+@@ -58,8 +58,12 @@ bool HashMapInsert(HashMap *map, void *key, void *value)
+     {
+         if (map->equal_fn(i->value.key, key))
+         {
+-            map->destroy_key_fn(key);
++            /* Replace the key with the new one despite those two being the
++             * same, since the new key might be referenced somewhere inside
++             * the new value. */
++            map->destroy_key_fn(i->value.key);
+             map->destroy_value_fn(i->value.value);
++            i->value.key   = key;
+             i->value.value = value;
+             return true;
+         }
+diff --git a/tests/unit/map_test.c b/tests/unit/map_test.c
+index c207070..307c342 100644
+--- a/tests/unit/map_test.c
++++ b/tests/unit/map_test.c
+@@ -198,6 +198,110 @@ static void test_hashmap_degenerate_hash_fn(void)
+     HashMapDestroy(hashmap);
+ }
+ 
++/* A special struct for *Value* in the Map, that references the Key. */
++typedef struct
++{
++    char *keyref;                                     /* pointer to the key */
++    int val;                                          /* arbitrary value */
++} TestValue;
++
++/* This tests that in case we insert a pre-existing key, so that the value
++ * gets replaced, the key also gets replaced despite being the same so that
++ * any references in the new value are not invalid. */
++static void test_array_map_key_referenced_in_value(void)
++{
++    ArrayMap *m = ArrayMapNew((MapKeyEqualFn) StringSafeEqual,
++                              free, free);
++
++    char      *key1 = xstrdup("blah");
++    TestValue *val1 = xmalloc(sizeof(*val1));
++    val1->keyref = key1;
++    val1->val    = 1;
++
++    /* Return value of 2 means: new value was inserted. */
++    assert_int_equal(ArrayMapInsert(m, key1, val1), 2);
++
++    /* Now we insert the same key, so that it replaces the value. */
++
++    char      *key2 = xstrdup("blah");                   /* same key string */
++    TestValue *val2 = xmalloc(sizeof(*val2));
++    val2->keyref = key2;
++    val2->val    = 2;
++
++    /* Return value of 1 means: key preexisted, old data is replaced. */
++    assert_int_equal(ArrayMapInsert(m, key2, val2), 1);
++
++    /* And now the important bit: make sure that both "key" and "val->key" are
++     * the same pointer. */
++    /* WARNING: key1 and val1 must have been freed, but there is no way to
++     *          test that. */
++    {
++        MapKeyValue *keyval = ArrayMapGet(m, key2);
++        assert_true(keyval != NULL);
++        char      *key = keyval->key;
++        TestValue *val = keyval->value;
++        assert_true(val->keyref == key);
++        assert_int_equal(val->val, 2);
++        /* Valgrind will barf on the next line if the key has freed by
++         * mistake. */
++        assert_true(strcmp(val->keyref, "blah") == 0);
++        /* A bit irrelevant: make sure that using "blah" in the lookup yields
++         * the same results, as the string is the same as in key2. */
++        MapKeyValue *keyval2 = ArrayMapGet(m, "blah");
++        assert_true(keyval2 == keyval);
++    }
++
++    ArrayMapDestroy(m);
++}
++
++/* Same purpose as the above test. */
++static void test_hash_map_key_referenced_in_value(void)
++{
++    HashMap *m = HashMapNew((MapHashFn) StringHash,
++                            (MapKeyEqualFn) StringSafeEqual,
++                            free, free);
++    char      *key1 = xstrdup("blah");
++    TestValue *val1 = xmalloc(sizeof(*val1));
++    val1->keyref = key1;
++    val1->val    = 1;
++
++    /* Return value false means: new value was inserted. */
++    assert_false(HashMapInsert(m, key1, val1));
++
++    /* Now we insert the same key, so that it replaces the value. */
++
++    char      *key2 = xstrdup("blah");                   /* same key string */
++    TestValue *val2 = xmalloc(sizeof(*val2));
++    val2->keyref = key2;
++    val2->val    = 2;
++
++    /* Return value true means: key preexisted, old data is replaced. */
++    assert_true(HashMapInsert(m, key2, val2));
++
++    /* And now the important bit: make sure that both "key" and "val->key" are
++     * the same pointer. */
++    /* WARNING: key1 and val1 must have been freed, but there is no way to
++     *          test that. */
++    {
++        MapKeyValue *keyval = HashMapGet(m, key2);
++        assert_true(keyval != NULL);
++        char      *key = keyval->key;
++        TestValue *val = keyval->value;
++        assert_true(val->keyref == key);    /* THIS IS WHAT IT'S ALL ABOUT! */
++        assert_int_equal(val->val, 2);
++        /* Valgrind will barf on the next line if the key has freed by
++         * mistake. */
++        assert_true(strcmp(val->keyref, "blah") == 0);
++        /* A bit irrelevant: make sure that using "blah" in the lookup yields
++         * the same results, as the string is the same as in key2. */
++        MapKeyValue *keyval2 = HashMapGet(m, "blah");
++        assert_true(keyval2 == keyval);
++    }
++
++    HashMapDestroy(m);
++}
++
++
+ int main()
+ {
+     PRINT_TEST_BANNER();
+@@ -211,9 +315,11 @@ int main()
+         unit_test(test_has_key),
+         unit_test(test_clear),
+         unit_test(test_soft_destroy),
+-        unit_test(test_iterate_jumbo),
+         unit_test(test_hashmap_new_destroy),
+         unit_test(test_hashmap_degenerate_hash_fn),
++        unit_test(test_array_map_key_referenced_in_value),
++        unit_test(test_hash_map_key_referenced_in_value),
++        unit_test(test_iterate_jumbo),
+     };
+ 
+     return run_tests(tests);
+
+From bc66f7ba8b98964d0e065c1e5f96438c0f2dbf81 Mon Sep 17 00:00:00 2001
+From: Dimitrios Apostolou <dimitrios.apostolou@cfengine.com>
+Date: Tue, 8 Mar 2016 21:03:45 +0100
+Subject: [PATCH 2/3] Redmine#7952: the other half of the fix, only for older
+ releases.
+
+---
+ libpromises/variable.c | 19 ++++---------------
+ 1 file changed, 4 insertions(+), 15 deletions(-)
+
+diff --git a/libpromises/variable.c b/libpromises/variable.c
+index 8825e6a..70187fa 100644
+--- a/libpromises/variable.c
++++ b/libpromises/variable.c
+@@ -99,22 +99,11 @@ bool VariableTablePut(VariableTable *table, const VarRef *ref,
+                       const char *tags, const Promise *promise)
+ {
+     assert(VarRefIsQualified(ref));
+-    bool result;
+ 
+-    Variable *var = VariableTableGet(table, ref);
+-    if (var == NULL)
+-    {
+-        var = VariableNew(VarRefCopy(ref), RvalCopy(*rval), type, StringSetFromString(tags, ','), promise);
+-        result = RBTreePut(table->vars, (void *)var->ref->hash, var);
+-    }
+-    else // if (!RvalsEqual(var->rval *rval) // TODO: implement-me !
+-    {
+-        RvalDestroy(var->rval);
+-        var->rval = RvalCopy(*rval);
+-        var->type = type;
+-        var->promise = promise;
+-        result = true;
+-    }
++    Variable *var = VariableNew(VarRefCopy(ref), RvalCopy(*rval), type,
++                                StringSetFromString(tags, ','), promise);
++    bool result = RBTreePut(table->vars, (void *) var->ref->hash, var);
++
+     return result;
+ }
+ 
+
+From 7ea4791bf834a1eb8df677349fffa13a80aa639e Mon Sep 17 00:00:00 2001
+From: Dimitrios Apostolou <dimitrios.apostolou@cfengine.com>
+Date: Tue, 8 Mar 2016 21:08:13 +0100
+Subject: [PATCH 3/3] Keep key and value in sync in our RBTree
+
+For a more thorough explanation read commit
+04b7f1a47845b3b24009ee2050faabd5cccdad37
+that implements the same fix for our hash table.
+
+(cherry picked from commit 09459e6c46861bbbaffe0362e303151f40939559)
+---
+ libutils/rb-tree.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/libutils/rb-tree.c b/libutils/rb-tree.c
+index 6567364..6e9aa9b 100644
+--- a/libutils/rb-tree.c
++++ b/libutils/rb-tree.c
+@@ -402,6 +402,8 @@ bool RBTreePut(RBTree *tree, const void *key, const void *value)
+         int cmp = tree->KeyCompare(key, x->key);
+         if (cmp == 0)
+         {
++            tree->KeyDestroy(x->key);
++            x->key = tree->KeyCopy(key);
+             tree->ValueDestroy(x->value);
+             x->value = tree->ValueCopy(value);
+             return true;
