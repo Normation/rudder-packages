@@ -1,4 +1,4 @@
-From 4e905716cc762690a4c02ffb17690ce9f8eafee9 Mon Sep 17 00:00:00 2001
+From 3428cde8b821ed5498505c9a6dd06cbd75ff3139 Mon Sep 17 00:00:00 2001
 From: Dimitrios Apostolou <dimitrios.apostolou@cfengine.com>
 Date: Mon, 29 Feb 2016 19:21:51 +0100
 Subject: [PATCH] Redmine#7912: Fix classes being set because of hash collision
@@ -15,16 +15,16 @@ replaces with a hash table, which handles collisions natively.
 Changelog: Title
 (cherry picked from commit 5a70c38474b6591993b40204f46e20ed341822d1)
 ---
- libpromises/class.c     | 155 +++++++++++++++++++++++++-----------------------
+ libpromises/class.c     | 156 ++++++++++++++++++++++++++----------------------
  libpromises/class.h     |   7 +--
  tests/unit/class_test.c |   1 +
- 3 files changed, 86 insertions(+), 77 deletions(-)
+ 3 files changed, 89 insertions(+), 75 deletions(-)
 
 diff --git a/libpromises/class.c b/libpromises/class.c
-index c7796ea..642e4c8 100644
+index 67f2e66..5a498bd 100644
 --- a/libpromises/class.c
 +++ b/libpromises/class.c
-@@ -23,56 +23,53 @@
+@@ -23,61 +23,59 @@
  */
  #include <class.h>
  
@@ -90,7 +90,15 @@ index c7796ea..642e4c8 100644
 -    return (h & (INT_MAX - 1));
 -}
  
- void ClassInit(Class *cls, const char *ns, const char *name, bool is_soft, ContextScope scope)
+ /**
+  * @param #tags is a comma separated string of words.
+  *              Both "" or NULL are equivalent.
+  */
+-void ClassInit(Class *cls, const char *ns, const char *name, bool is_soft,
+-               ContextScope scope, const char *tags)
++static void ClassInit(Class *cls,
++                      const char *ns, const char *name,
++                      bool is_soft, ContextScope scope, const char *tags)
  {
 -    if (ns)
 +    if (ns == NULL || strcmp(ns, "default") == 0)
@@ -105,16 +113,15 @@ index c7796ea..642e4c8 100644
      }
  
      cls->name = xstrdup(name);
-@@ -81,8 +78,6 @@ void ClassInit(Class *cls, const char *ns, const char *name, bool is_soft, Conte
+@@ -85,7 +83,6 @@ void ClassInit(Class *cls, const char *ns, const char *name, bool is_soft,
+ 
      cls->is_soft = is_soft;
      cls->scope = scope;
-     cls->tags = NULL;
--
 -    cls->hash = ClassRefHash(cls->ns, cls->name);
- }
  
- static void ClassDestroySoft(Class *cls)
-@@ -95,7 +90,7 @@ static void ClassDestroySoft(Class *cls)
+     cls->tags = StringSetFromString(tags, ',');
+     if (!is_soft && !StringSetContains(cls->tags, "hardclass"))
+@@ -104,7 +101,7 @@ static void ClassDestroySoft(Class *cls)
      }
  }
  
@@ -123,7 +130,7 @@ index c7796ea..642e4c8 100644
  {
      if (cls)
      {
-@@ -106,9 +101,9 @@ void ClassDestroy(Class *cls)
+@@ -115,9 +112,9 @@ void ClassDestroy(Class *cls)
  
  ClassTable *ClassTableNew(void)
  {
@@ -135,7 +142,7 @@ index c7796ea..642e4c8 100644
  
      return table;
  }
-@@ -117,7 +112,7 @@ void ClassTableDestroy(ClassTable *table)
+@@ -126,7 +123,7 @@ void ClassTableDestroy(ClassTable *table)
  {
      if (table)
      {
@@ -144,7 +151,7 @@ index c7796ea..642e4c8 100644
          free(table);
      }
  }
-@@ -123,45 +123,28 @@ bool ClassTablePut(ClassTable *table, co
+@@ -134,45 +134,35 @@ bool ClassTablePut(ClassTable *table, co
      assert(is_soft || (!ns || strcmp("default", ns) == 0)); // hard classes should have default namespace
      assert(is_soft || scope == CONTEXT_SCOPE_NAMESPACE); // hard classes cannot be local
  
@@ -157,17 +164,12 @@ index c7796ea..642e4c8 100644
  
 -    Class *cls = ClassTableGet(table, ns, name);
 -    if (cls)
-+    Class *cls = xmalloc(sizeof(*cls));
-+    ClassInit(cls, ns, name, is_soft, scope);
-+    cls->tags = StringSetFromString(tags, ',');
-+    
-+    if (!is_soft && !StringSetContains(cls->tags, "hardclass"))
-     {
+-    {
+-        /* Saves a malloc() and an RBTreePut() call. */
 -        ClassDestroySoft(cls);
--        ClassInit(cls, ns, name, is_soft, scope);
+-        ClassInit(cls, ns, name, is_soft, scope, tags);
 -        return true;
-+        StringSetAdd(cls->tags, xstrdup("hardclass"));
-     }
+-    }
 -    else
 -    {
 -        if (ns == NULL ||
@@ -183,29 +185,41 @@ index c7796ea..642e4c8 100644
 -                is_soft ? "" : "hard ",
 -                ns, name);
 -        }
- 
+-
 -        cls = xmalloc(sizeof(Class));
--        ClassInit(cls, ns, name, is_soft, scope);
--        // NULL tags are OK (but you want to give good tags, don't you?)
--        cls->tags = StringSetFromString(tags, ',');
--        if (!is_soft && !StringSetContains(cls->tags, "hardclass"))
--        {
--            StringSetAdd(cls->tags, xstrdup("hardclass"));
--        }
-+    /* (cls->name != name) because canonification has happened. */
-+    char *fullname = StringConcatenate(3, ns, ":", cls->name);
-+    
-+    Log(LOG_LEVEL_DEBUG, "Setting %sclass: %s",
-+      is_soft ? "" : "hard ",
-+      fullname);
- 
+-        ClassInit(cls, ns, name, is_soft, scope, tags);
 -        return RBTreePut(table->classes, (void *)cls->hash, cls);
 -    }
++    Class *cls = xmalloc(sizeof(*cls));
++    ClassInit(cls, ns, name, is_soft, scope, tags);
++
++    /* (cls->name != name) because canonification has happened. */
++    char *fullname = StringConcatenate(3, ns, ":", cls->name);
++
++    Log(LOG_LEVEL_DEBUG, "Setting %sclass: %s",
++        is_soft ? "" : "hard ",
++        fullname);
++
 +    return ClassMapInsert(table->classes, fullname, cls);
  }
  
  Class *ClassTableGet(const ClassTable *table, const char *ns, const char *name)
-@@ -211,23 +203,32 @@ Class *ClassTableMatch(const ClassTable *table, const char *regex)
+ {
+-    size_t hash = ClassRefHash(ns, name);
+-    return RBTreeGet(table->classes, (void *)hash);
++    if (ns == NULL)
++    {
++        ns = "default";
++    }
++
++    char fullname[ strlen(ns) + 1 + strlen(name) + 1 ];
++    xsnprintf(fullname, sizeof(fullname), "%s:%s", ns, name);
++
++    return ClassMapGet(table->classes, fullname);
+ }
+ 
+ Class *ClassTableMatch(const ClassTable *table, const char *regex)
+@@ -214,23 +208,32 @@ Class *ClassTableMatch(const ClassTable *table, const char *regex)
  
  bool ClassTableRemove(ClassTable *table, const char *ns, const char *name)
  {
@@ -245,7 +259,7 @@ index c7796ea..642e4c8 100644
      iter->is_soft = is_soft;
      iter->is_hard = is_hard;
  
-@@ -236,11 +237,17 @@ ClassTableIterator *ClassTableIteratorNew(const ClassTable *table, const char *n
+@@ -239,11 +242,20 @@ ClassTableIterator *ClassTableIteratorNew(const ClassTable *table, const char *n
  
  Class *ClassTableIteratorNext(ClassTableIterator *iter)
  {
@@ -260,13 +274,16 @@ index c7796ea..642e4c8 100644
 +
 +        /* Make sure we never store "default" as namespace in the ClassTable,
 +         * instead we have always ns==NULL in that case. */
-+        assert((cls->ns == NULL ||
-+                strcmp(cls->ns, "default") != 0));
++        CF_ASSERT_FIX(cls->ns == NULL ||
++                      strcmp(cls->ns, "default") != 0,
++                      (cls->ns = NULL),
++                      "Class table contained \"default\" namespace,"
++                      " should never happen!");
 +
          const char *key_ns = cls->ns ? cls->ns : "default";
  
          if (iter->ns && strcmp(key_ns, iter->ns) != 0)
-@@ -268,7 +275,6 @@ void ClassTableIteratorDestroy(ClassTableIterator *iter)
+@@ -271,7 +283,6 @@ void ClassTableIteratorDestroy(ClassTableIterator *iter)
      if (iter)
      {
          free(iter->ns);
@@ -274,7 +291,7 @@ index c7796ea..642e4c8 100644
          free(iter);
      }
  }
-@@ -299,7 +305,10 @@ ClassRef ClassRefParse(const char *expr)
+@@ -302,7 +313,10 @@ ClassRef ClassRefParse(const char *expr)
  
  char *ClassRefToString(const char *ns, const char *name)
  {
