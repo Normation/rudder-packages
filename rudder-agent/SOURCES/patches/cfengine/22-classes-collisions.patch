@@ -144,11 +144,12 @@ index c7796ea..642e4c8 100644
          free(table);
      }
  }
-@@ -123,45 +123,28 @@ bool ClassTablePut(ClassTable *table, co
+@@ -130,44 +125,41 @@ bool ClassTablePut(ClassTable *table,
      assert(is_soft || (!ns || strcmp("default", ns) == 0)); // hard classes should have default namespace
      assert(is_soft || scope == CONTEXT_SCOPE_NAMESPACE); // hard classes cannot be local
  
--    if (ns && strcmp("default", ns) == 0)
+-    if (ns != NULL &&
+-        strcmp("default", ns) == 0)
 +    if (ns == NULL)
      {
 -        ns = NULL;
@@ -160,7 +161,7 @@ index c7796ea..642e4c8 100644
 +    Class *cls = xmalloc(sizeof(*cls));
 +    ClassInit(cls, ns, name, is_soft, scope);
 +    cls->tags = StringSetFromString(tags, ',');
-+    
++
 +    if (!is_soft && !StringSetContains(cls->tags, "hardclass"))
      {
 -        ClassDestroySoft(cls);
@@ -170,20 +171,12 @@ index c7796ea..642e4c8 100644
      }
 -    else
 -    {
--        if (ns == NULL ||
--            strcmp("default", ns) == 0)
--        {
--            Log(LOG_LEVEL_DEBUG, "Setting %sclass %s",
--                is_soft ? "" : "hard ",
--                name);
--        }
--        else                                        /* also print namespace */
--        {
--            Log(LOG_LEVEL_DEBUG, "Setting %sclass %s:%s",
--                is_soft ? "" : "hard ",
--                ns, name);
--        }
- 
+-        Log(LOG_LEVEL_DEBUG, "Setting %sclass %s%s%s",
+-            is_soft ? "" : "hard ",
+-            (ns != NULL) ? ns  : "",
+-            (ns != NULL) ? ":" : "",
+-            name);
+-
 -        cls = xmalloc(sizeof(Class));
 -        ClassInit(cls, ns, name, is_soft, scope);
 -        // NULL tags are OK (but you want to give good tags, don't you?)
@@ -192,19 +185,35 @@ index c7796ea..642e4c8 100644
 -        {
 -            StringSetAdd(cls->tags, xstrdup("hardclass"));
 -        }
-+    /* (cls->name != name) because canonification has happened. */
-+    char *fullname = StringConcatenate(3, ns, ":", cls->name);
-+    
-+    Log(LOG_LEVEL_DEBUG, "Setting %sclass: %s",
-+      is_soft ? "" : "hard ",
-+      fullname);
  
 -        return RBTreePut(table->classes, (void *)cls->hash, cls);
 -    }
++    /* (cls->name != name) because canonification has happened. */
++    char *fullname = StringConcatenate(3, ns, ":", cls->name);
++
++    Log(LOG_LEVEL_DEBUG, "Setting %sclass: %s",
++        is_soft ? "" : "hard ",
++        fullname);
++
 +    return ClassMapInsert(table->classes, fullname, cls);
  }
  
  Class *ClassTableGet(const ClassTable *table, const char *ns, const char *name)
+ {
+-    size_t hash = ClassRefHash(ns, name);
+-    return RBTreeGet(table->classes, (void *)hash);
++    if (ns == NULL)
++    {
++        ns = "default";
++    }
++
++    char fullname[ strlen(ns) + 1 + strlen(name) + 1 ];
++    xsnprintf(fullname, sizeof(fullname), "%s:%s", ns, name);
++
++    return ClassMapGet(table->classes, fullname);
+ }
+ 
+ Class *ClassTableMatch(const ClassTable *table, const char *regex)
 @@ -211,23 +203,32 @@ Class *ClassTableMatch(const ClassTable *table, const char *regex)
  
  bool ClassTableRemove(ClassTable *table, const char *ns, const char *name)
