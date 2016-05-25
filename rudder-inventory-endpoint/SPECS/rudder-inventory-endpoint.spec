@@ -173,8 +173,14 @@ echo "INFO: Launching script to check if a migration is needed"
 %{rudderdir}/bin/rudder-inventory-endpoint-upgrade
 echo "INFO: End of migration script"
 
-echo "Restarting syslogd ..."
-service %{syslogservicename} restart
+echo -n "INFO: Restarting syslogd ..."
+%if 0%{?rhel} < 7
+service %{syslogservicename} restart > /dev/null && echo " Done"
+%endif
+%if 0%{?rhel} >= 7
+/bin/systemctl restart  %{syslogservicename}.service && echo " Done"
+%endif
+
 
 #=================================================
 # Cleaning
