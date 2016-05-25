@@ -236,8 +236,12 @@ chkconfig rudder-slapd on
 echo " Done"
 
 echo -n "INFO: Reloading syslogd... "
-service %{syslogservicename} restart >/dev/null 2>&1
-echo " Done"
+%if 0%{?rhel} < 7
+service %{syslogservicename} restart > /dev/null && echo " Done"
+%endif
+%if 0%{?rhel} >= 7
+/bin/systemctl restart  %{syslogservicename}.service && echo " Done"
+%endif
 
 RUDDER_SHARE=/opt/rudder/share
 RUDDER_UPGRADE_TOOLS=${RUDDER_SHARE}/upgrade-tools

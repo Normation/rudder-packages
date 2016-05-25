@@ -326,7 +326,6 @@ echo " Done"
 echo -n "INFO: Restarting syslog..."
 %if 0%{?rhel} < 7
 service %{syslogservicename} restart > /dev/null
-%{sysloginitscript} restart > /dev/null
 %endif
 %if 0%{?rhel} >= 7
 /bin/systemctl restart  rsyslog.service
