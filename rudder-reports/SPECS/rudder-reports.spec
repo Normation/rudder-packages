@@ -119,14 +119,24 @@ else
 fi
 
 # Check if PostgreSQL is started
+%if 0%{?rhel} < 7
 service ${POSTGRESQL_SERVICE_NAME} status > /dev/null
+%endif
+%if 0%{?rhel} >= 7
+/bin/systemctl status  ${POSTGRESQL_SERVICE_NAME}.service
+%endif
 
 if [ $? -ne 0 ]
 then
 %if 0%{?rhel} || 0%{?fedora}
   service ${POSTGRESQL_SERVICE_NAME} initdb
 %endif
+%if 0%{?rhel} < 7
   service ${POSTGRESQL_SERVICE_NAME} start
+%endif
+%if 0%{?rhel} >= 7
+  /bin/systemctl start  ${POSTGRESQL_SERVICE_NAME}.service
+%endif
 fi
 
 PG_HBA_FILE=$(su - postgres -c "psql -t -P format=unaligned -c 'show hba_file';")
@@ -139,7 +149,12 @@ if [ -f ${PG_HBA_FILE} ]; then
     sed -i 1i"host    all             rudder          127.0.0.1/32            md5" ${PG_HBA_FILE}
 
     # Apply changes in PostgreSQL
+%if 0%{?rhel} < 7
     service ${POSTGRESQL_SERVICE_NAME} reload
+%endif
+%if 0%{?rhel} >= 7
+    /bin/systemctl reload  ${POSTGRESQL_SERVICE_NAME}.service
+%endif
   fi
 fi
 
@@ -158,11 +173,21 @@ else
 fi
 
 #Check if PostgreSQL is started
-service ${POSTGRESQL_SERVICE_NAME} status >/dev/null 2>&1
+%if 0%{?rhel} < 7
+service ${POSTGRESQL_SERVICE_NAME} status > /dev/null 2>&1
+%endif
+%if 0%{?rhel} >= 7
+/bin/systemctl status  ${POSTGRESQL_SERVICE_NAME}.service > /dev/null 2>&1
+%endif
 
 if [ $? -ne 0 ]
 then
-  service ${POSTGRESQL_SERVICE_NAME} start >/dev/null 2>&1
+%if 0%{?rhel} < 7
+  service ${POSTGRESQL_SERVICE_NAME} start > /dev/null
+%endif
+%if 0%{?rhel} >= 7
+  /bin/systemctl start  ${POSTGRESQL_SERVICE_NAME}.service > /dev/null
+%endif
 fi
 
 echo -n "INFO: Setting PostgreSQL as a boot service..."

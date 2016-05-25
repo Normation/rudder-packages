@@ -329,7 +329,6 @@ echo " Done"
 echo -n "INFO: Restarting syslog..."
 %if 0%{?rhel} < 7
 service %{syslogservicename} restart > /dev/null
-%{sysloginitscript} restart > /dev/null
 %endif
 %if 0%{?rhel} >= 7
 /bin/systemctl restart  rsyslog.service
@@ -374,7 +373,7 @@ fi
 %endif
 
 # Update /etc/sysconfig/apache2 in case an old module loading entry has already been created by Rudder
-if grep -q 'APACHE_MODULES="${APACHE_MODULES} rewrite dav dav_fs proxy proxy_http' /etc/sysconfig/apache2
+if [ -f /etc/sysconfig/apache2 ] && grep -q 'APACHE_MODULES="${APACHE_MODULES} rewrite dav dav_fs proxy proxy_http' /etc/sysconfig/apache2
 then
 	echo "INFO: Upgrading the /etc/sysconfig/apache2 file, Rudder needed modules for Apache are now listed in /etc/sysconfig/rudder-apache"
 	sed -i 's%APACHE_MODULES="${APACHE_MODULES} rewrite dav dav_fs proxy proxy_http.*%# This sources the Rudder needed by Rudder\n. /etc/sysconfig/rudder-apache%' /etc/sysconfig/apache2

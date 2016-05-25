@@ -137,8 +137,12 @@ chkconfig %{apache} on
 echo " Done"
 
 echo -n "INFO: Stopping Apache HTTPd..."
-service %{apache} stop >/dev/null 2>&1
-echo " Done"
+%if 0%{?rhel} < 7
+service %{apache} stop > /dev/null && echo " Done"
+%endif
+%if 0%{?rhel} >= 7
+/bin/systemctl stop  %{apache}.service && echo " Done"
+%endif
 
 %if 0%{?sles_version}
 # On SuSE, enable the required modules
@@ -189,8 +193,13 @@ if [ ! -f /opt/rudder/etc/ssl/rudder-relay.crt ] || [ ! -f /opt/rudder/etc/ssl/r
 fi
 
 echo -n "INFO: Starting Apache HTTPd..."
-service %{apache} start >/dev/null 2>&1
-echo " Done"
+%if 0%{?rhel} < 7
+service %{apache} start > /dev/null && echo " Done"
+%endif
+%if 0%{?rhel} >= 7
+/bin/systemctl start  %{apache}.service && echo " Done"
+%endif
+
 
 # Do this ONLY at first install
 if [ $1 -eq 1 ]
