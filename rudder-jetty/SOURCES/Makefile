@@ -57,7 +57,6 @@ localdepends: ./jetty7
 	patch -p0 -s < patches/jetty/jetty-init-stop-fix.patch
 	patch -p0 -s < patches/jetty/jetty-init-sizecheck.patch
 	patch -p0 -s < patches/jetty/jetty-init-use-rudder-jetty-defaults.patch
-	patch -p0 -s < patches/jetty/jetty-init-check-java-version.patch
 	patch -p0 -s < patches/jetty/jetty-init-prevent-false-failed-starts.patch
 	patch -p0 -s < patches/jetty/jetty-init-redirect-stderrout.patch
 	patch -p0 -s < patches/jetty/jetty-init-stop-forcestop.patch
