@@ -290,7 +290,8 @@ then
   echo Reinitialize LDAP database? "$LDAPRESET"
 fi
 echo
-Pause
+# Leave the user a chance to stop only if there is a user
+tty >/dev/null && Pause
 
 # Configure initial promises
 echo -n "Configuring and installing initial CFEngine promises..."
