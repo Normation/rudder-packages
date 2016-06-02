@@ -58,6 +58,7 @@ trap anomaly_handler ERR INT TERM
 # - 3.0.0        : Replace varchar by text in the database
 # - 3.0.2        : Check for the PostgreSQL version (>= 8.4)
 # - 3.0.14       : Add index on nodeconfigids for expectedreportsnodes
+# - 3.0.17       : Add index on eventType and executionTimeStamp on RudderSysEvents
 # - 3.1.0        : Add LDAP entry for 'rudder_syslog_protocol' property, and set 'tcp' as value, different from default value (udp) on a fresh 3.1
 # - 3.1.10       : Add masterfiles in the server
 ####################################################################################
@@ -515,6 +516,14 @@ upgrade_database() {
   if [ $RES -eq 0 ]; then
     echo -n "INFO: Updating the PostgreSQL indexes, this may take several minutes..."
     ${PSQL} -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-3.0-3.0-add-index-nodeconfigids.sql > /dev/null
+    echo " Done"
+  fi
+
+  # - 3.0.17: Migration DB schema to add an indexes on eventType and executionTimeStamp on table RudderSysEvents
+  RES=$(${PSQL} -t -d rudder -c "select count(oid) from pg_class where lower(relname) = 'changes_executiontimestamp_idx'")
+  if [ $RES -eq 0 ]; then
+    echo -n "INFO: Updating the PostgreSQL indexes, this may take several minutes..."
+    ${PSQL} -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-3.0-3.0-add-index-changes-executiontimestamp.sql > /dev/null
     echo " Done"
   fi
 
