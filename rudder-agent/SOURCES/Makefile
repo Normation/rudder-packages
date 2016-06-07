@@ -265,7 +265,6 @@ rudder.8.gz:
 
 initial-promises: ./rudder-sources
 	rm -rf ./initial-promises/
-	cd ./rudder-sources/rudder-techniques/ && $(MAKE)
 	cp -r ./rudder-sources/rudder-techniques/initial-promises/node-server/ ./initial-promises
 
 rudder-agent-utilities: rudder-sources
