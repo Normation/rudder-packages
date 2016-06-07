@@ -100,7 +100,7 @@ AutoProv: 0
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 # Generic requirements
-BuildRequires: gcc bison flex autoconf automake libtool jre
+BuildRequires: gcc bison flex autoconf automake libtool
 Provides: rudder-agent
 %if "%{real_name}" == "rudder-agent"
 Conflicts: rudder-agent-thin
