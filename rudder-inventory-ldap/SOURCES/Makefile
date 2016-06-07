@@ -18,7 +18,7 @@
 
 .DEFAULT_GOAL := localdepends
 
-OPENLDAP_RELEASE = 2.4.41
+OPENLDAP_RELEASE = 2.4.44
 BERKELEYDB_RELEASE = 5.1.29
 
 RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
