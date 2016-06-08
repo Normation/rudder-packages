@@ -46,12 +46,14 @@ FETCH = fetch -q -o
 ifneq (,$(wildcard /usr/bin/curl))
 GET = $(PROXY_ENV) $(CURL)
 GET_OPT = --curl
+CPAN_OPT = --curl --no-wget
 else
 ifneq (,$(wildcard /usr/bin/fetch))
 GET = $(PROXY_ENV) $(FETCH)
 else
 GET = $(PROXY_ENV) $(WGET)
 GET_OPT = --wget
+CPAN_OPT = --wget
 endif
 endif
 
@@ -405,7 +407,7 @@ install-perl: build-perl
 	cd perl-$(PERL_VERSION) && $(MAKE) install DESTDIR=$(DESTDIR)
 	touch build-perl # because perl-$(PERL_VERSION) is touched by make install
 
-CPANM:=$(CURDIR)/perl-$(PERL_VERSION)/App-cpanminus/bin/cpanm $(GET_OPT)
+CPANM:=$(CURDIR)/perl-$(PERL_VERSION)/App-cpanminus/bin/cpanm $(CPAN_OPT)
 MODULE_INSTALL:=MAKEFLAGS= $(PERL) $(CPANM) -l $(INSTALL_DIR) --skip-installed
 MODULE_TEST:=$(PERL) -I $(INSTALL_DIR)/lib/perl5 -e1
 
