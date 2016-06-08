@@ -46,11 +46,13 @@ FETCH = fetch -q -o
 ifneq (,$(wildcard /usr/bin/curl))
 GET = $(PROXY_ENV) $(CURL)
 GET_OPT = --curl
-else ifneq (,$(wildcard /usr/bin/fetch))
+else
+ifneq (,$(wildcard /usr/bin/fetch))
 GET = $(PROXY_ENV) $(FETCH)
 else
 GET = $(PROXY_ENV) $(WGET)
 GET_OPT = --wget
+endif
 endif
 
 # Autodtect presence of gnu tools
@@ -100,10 +102,12 @@ endif
 ifeq (i386-pc-solaris2.10,$(shell ./config.guess))
 SSL_CONFIGURE:=./Configure solaris-x86-gcc
 # Hack needed because openssl is not guessing correctly the architecture on debian 32 bits chroot
-else ifeq (i386,$(shell [ -x /usr/bin/dpkg ] && dpkg --print-architecture))
+else
+ifeq (i386,$(shell [ -x /usr/bin/dpkg ] && dpkg --print-architecture))
 SSL_CONFIGURE:=./Configure linux-generic32
 else
 SSL_CONFIGURE:=./config
+endif
 endif
 
 # download dependencies
