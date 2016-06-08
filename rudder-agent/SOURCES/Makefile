@@ -82,7 +82,7 @@ endif
 ifeq (false,$(USE_SYSTEM_PCRE))
 BUILD_DEPS := $(BUILD_DEPS) build-pcre
 INSTALL_DEPS := $(INSTALL_DEPS) install-pcre
-OPENSSL_ARG := --with-openssl=$(CURDIR)/build-pcre/opt/rudder
+PCRE_ARG := --with-pcre=$(CURDIR)/build-pcre/opt/rudder
 endif
 # default: build perl
 ifneq (true,$(USE_SYSTEM_PERL))
@@ -354,7 +354,7 @@ build-cfengine-stamp:
 	cd cfengine-source && [ -x ./configure ] || NO_CONFIGURE=1 ./autogen.sh
 	# remove temporary rpath added by configure to build options
 	cd cfengine-source && $(SED) 's/[A-Z]*_LDFLAGS="$[A-Z]*_LDFLAGS -R$with_[a-z]*\/lib"/true/' configure > configure.new && mv configure.new configure && chmod +x configure
-	cd cfengine-source && ./configure --prefix=$(RUDDER_DIR) --with-workdir=/var/rudder/cfengine-community --enable-static=yes --enable-shared=no --without-postgresql $(LMDB_ARG) $(OPENSSL_ARG) CFLAGS="$(BUILD_CFLAGS) $(SECURE_CFLAGS)" LDFLAGS="-Wl,-R/opt/rudder/lib $(BUILD_LDFLAGS) $(SECURE_LDFLAGS)"
+	cd cfengine-source && ./configure --prefix=$(RUDDER_DIR) --with-workdir=/var/rudder/cfengine-community --enable-static=yes --enable-shared=no --without-postgresql $(LMDB_ARG) $(OPENSSL_ARG) $(PCRE_ARG) CFLAGS="$(BUILD_CFLAGS) $(SECURE_CFLAGS)" LDFLAGS="-Wl,-R/opt/rudder/lib $(BUILD_LDFLAGS) $(SECURE_LDFLAGS)"
 	cd cfengine-source && $(MAKE)
 	touch $@
 
