@@ -291,7 +291,7 @@ make %{?_smp_mflags} USE_SYSTEM_OPENSSL=%{use_system_openssl} USE_SYSTEM_LMDB=%{
 
 cd %{_sourcedir}
 
-%if "%{?_os}" != "aix"
+%if "%{?_os}" == "aix"
 %define no_init true
 %define no_cron true
 %define no_ld true
