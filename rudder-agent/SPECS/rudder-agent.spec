@@ -475,14 +475,6 @@ rm -f %{_builddir}/file.list.%{name}
 # existing file declared in conffiles
 %ghost %{rudderdir}/etc/uuid.hive
 
-%if "%{?_os}" != "aix"
-/etc/profile.d/rudder-agent.sh
-/etc/init.d/rudder-agent
-/etc/default/rudder-agent
-/etc/init.d/rudder
-/etc/cron.d/rudder-agent
-%endif
-
 %attr(0600, -, -) %dir %{ruddervardir}/cfengine-community/ppkeys
 %dir %{ruddervardir}/cfengine-community/bin
 %dir %{ruddervardir}/cfengine-community/inputs
