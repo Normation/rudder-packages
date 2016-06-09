@@ -69,16 +69,15 @@ URL: http://www.rudder-project.org
 
 Group: Applications/System
 
+
 Source1: Makefile
 Source2: check-rudder-agent
 Source3: filter-reqs.pl
-Source4: perl-prepare.sh
-Source5: rudder-agent.default
+Source4: config.guess
+Source5: rudder-agent-postinst
 Source6: rudder-agent.init
 Source7: rudder-agent.sh
-%if %{use_system_perl} == "false"
 Source8: rudder-perl
-%endif
 Source9: rudder.conf
 Source10: rudder.init
 Source11: run-inventory
