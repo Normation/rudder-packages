@@ -162,8 +162,10 @@ endif
 	# Install /etc/ld.so.conf.d/rudder.conf in order to use libraries
 	# contained in /opt/rudder/lib like LMDB or OpenSSL
 	# (ld.so.conf.d is not supported on RHEL/CentOS 3 and aix)
+ifneq (true,$(NO_LDSO))
 	mkdir -p $(DESTDIR)/etc/ld.so.conf.d
 	$(INSTALL) -m 644 rudder.conf $(DESTDIR)/etc/ld.so.conf.d/
+endif
 
 	mkdir -p $(DESTDIR)/opt/rudder/share/package-scripts
 	$(INSTALL) -m 755 rudder-agent-postinst $(DESTDIR)/opt/rudder/share/package-scripts/
