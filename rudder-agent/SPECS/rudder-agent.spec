@@ -89,7 +89,7 @@ Source16: rudder.8.gz
 Source17: rudder-signature-check
 Source18: rudder-sign
 
-%if %{use_system_perl} == "false"
+%if "%{use_system_perl}" == "false"
 # Prevent dependency auto-generation, that tries to be helpful by detecting Perl dependencies from
 # FusionInventory. We handle that with the perl standalone installation already.
 AutoReq: 0
@@ -109,7 +109,7 @@ Conflicts: rudder-agent
 
 # Specific requirements
 
-%if %{use_system_fusion} == "true"
+%if "%{use_system_fusion}" == "true"
 Requires: fusioninventory-agent fusioninventory-agent-task-inventory
 %endif
 
