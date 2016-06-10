@@ -122,6 +122,17 @@ message() {
   fi
 }
 
+
+#====================================================================
+# Load specific parameters
+#====================================================================
+if [ -f /etc/default/$PROG_NAME ]
+then
+  . /etc/default/$PROG_NAME
+  # No need for a warning sinc we have sane defaults
+  # and the default file is provided with commented out content
+fi
+ 
 #====================================================================
 # Initial checks
 #====================================================================
