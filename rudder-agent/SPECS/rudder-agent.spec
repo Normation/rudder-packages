@@ -491,6 +491,7 @@ rm -f %{_builddir}/file.list.%{name}
 %config(noreplace) /etc/ld.so.conf.d/rudder.conf
 %endif
 
+
 #=================================================
 # Changelog
 #=================================================

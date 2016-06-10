@@ -141,6 +141,7 @@ ifneq (true,$(NO_INIT))
 	mkdir -p $(DESTDIR)/etc/default
 	$(INSTALL) -m 755 rudder-agent.init $(DESTDIR)/etc/init.d/rudder-agent
 	$(INSTALL) -m 755 rudder.init $(DESTDIR)/etc/init.d/rudder
+	$(INSTALL) -m 644 rudder-agent.default $(DESTDIR)/etc/default/rudder-agent
 endif
 
 	# cron files
