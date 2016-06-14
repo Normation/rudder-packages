@@ -30,7 +30,6 @@ localdepends: ./rudder-sources ./rudder.conf
 	mv rudder-sources-*/ rudder-sources/
 
 ./rudder.conf: ./rudder-sources
-	cd rudder-sources/rudder-techniques/ && $(MAKE)
 	cp rudder-sources/rudder-techniques/initial-promises/node-server/distributePolicy/rsyslog.conf/rudder-rsyslog-root.conf rudder.conf
 	sed 's@\$${install_rsyslogd.rsyslog_port\[2\]}@514@' -i rudder.conf
 	sed 's@\$${install_rsyslogd.rudder_postgres_server}@localhost@' -i rudder.conf
