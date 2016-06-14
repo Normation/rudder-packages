@@ -34,10 +34,13 @@ BUILDREQUIRESFEDORA := $(shell grep -s "FEDORA${OSVERSION}" SOURCES/.dependencie
 
 JAVAREQUIRES := $(shell grep -s "JAVA" SOURCES/.dependencies | cut -d ':' -f2)
 
-# Original URL: http://download.oracle.com/otn-pub/java/jdk/6u27-b07/jdk-6u27-linux-x64-rpm.bin
-JDK64URL := "http://www.normation.com/tarball/jdk-6u27-linux-x64-rpm.bin"
-# Original URL: http://download.oracle.com/otn-pub/java/jdk/6u27-b07/jdk-6u27-linux-i586-rpm.bin
-JDK32URL := "http://www.normation.com/tarball/jdk-6u27-linux-i586-rpm.bin"
+# Original URL: http://www.oracle.com/technetwork/java/javase/downloads/index-jsp-138363.html#javasejdk
+JDKURL := http://www.normation.com/tarball/java/jdk-7u71-linux-i586.rpm
+
+ifeq ($(ARCHI),x86_64)
+JDKURL := http://www.normation.com/tarball/java/jdk-7u71-linux-x86_64.rpm
+endif
+
 
 .DEFAULT_GOAL := localbuild
 
@@ -50,8 +53,8 @@ SOURCES/.stamp:
 	touch SOURCES/.stamp
 
 buildpackage-rpm-common-prep:
-	if [ "z$(ARCHI)" = "zx86_64" ] && [ "z$(JAVAREQUIRES)" = "zjdk" ];then wget -q -O /tmp/jdk-6u27-linux-x64-rpm.bin $(JDK64URL);chmod u+x /tmp/jdk-6u27-linux-x64-rpm.bin;/tmp/jdk-6u27-linux-x64-rpm.bin;fi
-	if [ "z$(ARCHI)" != "zx86_64" ] && [ "z$(JAVAREQUIRES)" = "zjdk" ];then wget -q -O /tmp/jdk-6u27-linux-i586-rpm.bin $(JDK32URL);chmod u+x /tmp/jdk-6u27-linux-i586-rpm.bin;/tmp/jdk-6u27-linux-i586-rpm.bin;fi
+	# As of now, only SLES requires this, the other OSes provide a recent enough JDK.
+	if [ "z$(JAVAREQUIRES)" = "zjdk" ] && [ $$(rpm -qa jdk|wc -l) -eq 0 ]; then wget -q -O /tmp/jdk.rpm $(JDKURL); rpm -ivh /tmp/jdk.rpm; fi
 
 buildpackage-rpm-common-prep-suse:
 	# Accept expired GPG Key for zypper on old SLES versions
