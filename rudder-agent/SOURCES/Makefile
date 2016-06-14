@@ -309,6 +309,8 @@ ifeq ($(shell ../../build-caching get --force-config ./perl-$(PERL_VERSION)/ nam
 	$(GET) ./perl-$(PERL_VERSION)/App-cpanminus.tar.gz http://www.normation.com/tarball/cpan/App-cpanminus-1.7036.tar.gz
 	cd perl-$(PERL_VERSION) && gunzip < App-cpanminus.tar.gz | $(TAR) xf -
 	mv ./perl-$(PERL_VERSION)/App-cpanminus-1.7036 ./perl-$(PERL_VERSION)/App-cpanminus
+	# cpanminus+curl have a bug on rhel3+64bits, this is the workaround, see http://www.rudder-project.org/redmine/issues/8533
+	sed -i -e "s/'-#',//" ./perl-$(PERL_VERSION)/App-cpanminus/bin/cpanm
 	../../build-caching put --force-config ./perl-$(PERL_VERSION)/ name=perl-source versions=$(perl_source)
 endif
 
