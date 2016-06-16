@@ -71,7 +71,7 @@ BuildArch: noarch
 
 # Dependencies
 
-Requires: rudder-inventory-ldap
+Requires: rudder-inventory-ldap = %{real_version}
 
 # OS-specific dependencies
 
@@ -103,7 +103,7 @@ Requires: jetty-server
 ## No Jetty provided by SLES... Use our own.
 %if 0%{?sles_version}
 BuildRequires: jdk >= 1.7
-Requires: rudder-jetty
+Requires: rudder-jetty = %{real_version}
 %endif
 
 %description

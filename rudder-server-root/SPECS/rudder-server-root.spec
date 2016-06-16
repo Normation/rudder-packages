@@ -51,7 +51,7 @@ Source8: rudder-server-root
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
 
-Requires: rudder-jetty, rudder-webapp, rudder-inventory-endpoint, rudder-inventory-ldap, rudder-reports, rudder-agent, curl
+Requires: rudder-jetty = %{real_version}, rudder-webapp = %{real_version}, rudder-inventory-endpoint = %{real_version}, rudder-inventory-ldap = %{real_version}, rudder-reports = %{real_version}, rudder-agent = %{real_version}, curl
 
 %description
 Rudder is an open source configuration management and audit solution.
