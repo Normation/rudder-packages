@@ -412,7 +412,7 @@ cp %{SOURCE4} %{buildroot}%{rudderdir}/etc/
 %if 0%{?rhel} != 3 && "%{?_os}" != "aix"
 # Install /etc/ld.so.conf.d/rudder.conf in order to use libraries
 # contained in /opt/rudder/lib like LMDB or OpenSSL
-# (ld.so.conf.d is not supported on RHEL/CentOS 3 and aix)
+# (ld.so.conf.d is not supported on RHEL/CentOS 3 and aix)
 mkdir -p %{buildroot}/etc/ld.so.conf.d
 %{install_command} -m 644 %{SOURCE6} %{buildroot}/etc/ld.so.conf.d/rudder.conf
 

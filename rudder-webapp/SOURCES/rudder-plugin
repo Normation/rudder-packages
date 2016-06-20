@@ -1,10 +1,10 @@
 #!/bin/sh
 
-# Plugin handling for Rudder
+# Plugin handling for Rudder
 #
-# Arguments:
-## register <plugin>:   Register the plugin with Rudder
-## unregister <plugin>: Unregister the plugin from Rudder
+# Arguments:
+## register <plugin>:   Register the plugin with Rudder
+## unregister <plugin>: Unregister the plugin from Rudder
 #
 
 set -e
@@ -49,7 +49,7 @@ if ! grep -q "<Set name=\"extraClasspath\">" ${CONTEXT_XML}; then
   sed -i "s%</Configure>%  <Set name=\"extraClasspath\"></Set>\n\n</Configure>%" ${CONTEXT_XML}
 fi
 
-# Create the PLUGINS_DIR variable
+# Create the PLUGINS_DIR variable
 
 LEGACY_PLUGIN_REMOVED=0
 
@@ -73,7 +73,7 @@ fi
 
 echo ""
 
-# Abort if no PLUGIN_PATH could be created (= plugin not found)
+# Abort if no PLUGIN_PATH could be created (= plugin not found)
 if [ "z${PLUGIN_PATH}" = "z" ]; then
   echo "ERROR: Unable to find the plugin ${PLUGIN_NAME}, please make sure that the name given as an argument is correct, and the plugin is installed."
   exit 1
@@ -82,7 +82,7 @@ fi
 # Get the current extraClasspath
 CURRENT_EXT_CLASSPATH=$(grep extraClasspath ${CONTEXT_XML} | sed "s%^\s*<Set name=\"extraClasspath\">\(.*\)</Set>%\1%")
 
-# Remove the legacy plugin from the extraClasspath
+# Remove the legacy plugin from the extraClasspath
 if [ "${LEGACY_PLUGIN_REMOVED}" -eq 1 ]; then
   CURRENT_EXT_CLASSPATH=$(echo "${CURRENT_EXT_CLASSPATH}" | sed "s%${LEGACY_PLUGINS_DIR}/${PLUGIN_NAME}.jar%%")
 fi
@@ -94,7 +94,7 @@ else
   PLUGIN_REGISTERED=0
 fi
 
-# Register or unregister the plugin
+# Register or unregister the plugin
 if [ "z${OPERATION}" = "zregister" ]; then
 
   if [ ${PLUGIN_REGISTERED} -eq 1 ]; then

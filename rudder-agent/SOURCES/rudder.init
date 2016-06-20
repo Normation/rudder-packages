@@ -129,7 +129,7 @@ if [ "$(id -u)" != "0" ]; then
   exit 1
 fi
 
-## Colors configuration (enable colors only if stdout is a terminal)
+## Colors configuration (enable colors only if stdout is a terminal)
 if [ -t 1 ]; then
   GREEN="\\033[1;32m"
   RED="\\033[1;31m"
@@ -154,7 +154,7 @@ else
   COPYPASTE="printf ---8<---\n"
 fi
 
-## Active roles
+## Active roles
 
 HAVE_SLAPD=0
 HAVE_POSTGRESQL=0
@@ -171,7 +171,7 @@ HAVE_AGENT=1
 [ -e /opt/rudder/etc/server-roles.d/rudder-inventory-endpoint ] && HAVE_JETTY=1
 [ -e /opt/rudder/etc/server-roles.d/rudder-webapp ] && HAVE_JETTY=1
 
-## Service names
+## Service names
 
 RUDDER_SLAPD=rudder-slapd
 RUDDER_JETTY=rudder-jetty

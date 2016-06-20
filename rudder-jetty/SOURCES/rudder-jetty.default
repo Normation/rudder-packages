@@ -1,5 +1,5 @@
 #
-# Jetty server configuration
+# Jetty server configuration
 #
 
 # Memory settings
@@ -12,7 +12,7 @@
 JAVA_XMX=1024
 JAVA_MAXPERMSIZE=256
 
-# Java VM arguments
+# Java VM arguments
 #
 # Please specify additional options to pass
 # to the Java VM during Jetty setup if needed.
