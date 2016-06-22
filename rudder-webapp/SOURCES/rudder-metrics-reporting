@@ -77,7 +77,7 @@ def metrics():
   data["nodes_count"] = psql(sql)
   
   # Number of reports for one day
-  sql = "select count(*) from ruddersysevents where executiontimestamp >= (now() - interval '1 day');"
+  sql = "select (max(id) - min(id)) as count from ruddersysevents where executiontimestamp >= (now() - interval '1 day');"
   data["report_count_last_day"] = psql(sql)
   
   # Report database size
