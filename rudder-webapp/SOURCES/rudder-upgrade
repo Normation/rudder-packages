@@ -355,6 +355,11 @@ upgrade_ncf() {
     cp -f ${CONFIGURATION_REPOSITORY}/ncf/ncf.conf ${RUDDER_VAR}/ncf/local/
   fi
 
+  # Ensure techniques written from the Technique Editor are not world-readable
+  if [ -x ${CONFIGURATION_REPOSITORY}/ncf/50_techniques ]; then
+    chmod -R o-rwx ${CONFIGURATION_REPOSITORY}/ncf/50_techniques/
+  fi
+
 }
 
 # Upgrade masterfiles
