@@ -109,7 +109,7 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
 
 # Dependencies
-Requires: rudder-techniques ncf ncf-api-virtualenv %{apache} %{apache_tools} git-core rsync openssl %{ldap_clients}
+Requires: rudder-techniques = %{real_version}, ncf, ncf-api-virtualenv, %{apache}, %{apache_tools}, git-core, rsync, openssl, %{ldap_clients}
 
 # We need the PostgreSQL client utilities so that we can run database checks and upgrades (rudder-upgrade, in particular)
 Requires: postgresql >= 8.4
@@ -144,7 +144,7 @@ Requires: jetty-server
 ## No Jetty provided by SLES... Use our own.
 %if 0%{?sles_version}
 BuildRequires: jdk >= 1.7
-Requires: rudder-jetty
+Requires: rudder-jetty = %{real_version}
 %endif
 
 %description
