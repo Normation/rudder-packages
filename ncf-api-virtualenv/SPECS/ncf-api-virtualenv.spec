@@ -71,7 +71,7 @@ Source3: ncf-api-virtualenv.te
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
 
-# Disable dependency auto-generation, to prevent Python requirements
+# Disable dependency auto-generation, to prevent Python requirements
 # autodetection, which is not desired here.
 AutoReq: 0
 AutoProv: 0
@@ -81,7 +81,7 @@ BuildRequires: python
 Requires: python ncf
 
 
-## RHEL & Fedora
+## RHEL & Fedora
 %if 0%{?rhel} || 0%{?fedora}
 
 # We need mod_wsgi to use ncf builder
@@ -97,7 +97,7 @@ Requires: policycoreutils-python
 Requires: apache2 apache2-mod_wsgi pwdutils
 %endif
 
-## 1 - RHEL
+## 1 - RHEL
 %if 0%{?rhel} && 0%{?rhel} == 6
 BuildRequires: selinux-policy
 %endif
@@ -132,10 +132,10 @@ cp -f %{SOURCE3} %{_builddir}
 #=================================================
 %build
 
-# Go into SOURCES
+# Go into SOURCES
 cd %{_sourcedir}
 
-# Build Virtualenv
+# Build Virtualenv
 %if 0%{?sles_version}
 # SLES specific exception, see http://www.rudder-project.org/redmine/issues/6365
 python virtualenv-1.10.1/virtualenv.py %{real_name}
@@ -188,7 +188,7 @@ fi
 
 rm -rf %{buildroot}
 
-# Directories
+# Directories
 
 mkdir -p %{buildroot}%{installdir}/
 mkdir -p %{buildroot}%{installdir}/share/selinux/
@@ -227,7 +227,7 @@ fi
 %endif
 
 %if 0%{?rhel} || 0%{?fedora}
-# EL-based systems enable the WSGI module for apache
+# EL-based systems enable the WSGI module for apache
 # automatically, nothing to do here :)
 %endif
 

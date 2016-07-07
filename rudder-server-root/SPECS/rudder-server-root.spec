@@ -110,7 +110,7 @@ fi
 # Do it only during uninstallation
 if [ $1 -eq 0 ]; then
 
-  # Clean up all logrotate leftovers
+  # Clean up all logrotate leftovers
   rm -rf %{_sysconfdir}/logrotate.d/rudder*
 
 fi

@@ -46,7 +46,7 @@ usage() {
 	${ECHO} "Usage: $0 <new hostname for Rudder root server>"
 }
 
-# Get the LDAP access credentials
+# Get the LDAP access credentials
 RELAY_NEW_HOSTNAME=$1
 LDAP_EXISTS=$(/opt/rudder/sbin/slapcat 2>/dev/null | grep "rudder-configuration" | wc -l)
 LDAP_CREDENTIALS=`grep -E "^ldap.(authdn|authpw)=" /opt/rudder/etc/rudder-web.properties | wc -l`
@@ -64,7 +64,7 @@ else
         fi
 fi
 
-# Check arguments
+# Check arguments
 if [ "${RELAY_NEW_HOSTNAME}" = "" ]; then
 	${ECHO} "ERROR: Need the new host name of the Root server as an argument, aborting."
 	usage

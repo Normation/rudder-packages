@@ -84,7 +84,7 @@ case "$1" in
     fi
   done
 
-  # Generate the SSL certificates if needed
+  # Generate the SSL certificates if needed
   if [ ! -f /opt/rudder/etc/ssl/rudder-webapp.crt ] || [ ! -f /opt/rudder/etc/ssl/rudder-webapp.key ]; then
     echo -n "INFO: No usable SSL certificate detected for Rudder HTTP/S support, generating one automatically..."
     openssl req -new -x509 -newkey rsa:2048 -subj "/CN=$(hostname --fqdn)/emailAddress=root@$(hostname --fqdn)/" -keyout /opt/rudder/etc/ssl/rudder-webapp.key -out /opt/rudder/etc/ssl/rudder-webapp.crt -days 1460 -nodes -sha256 >/dev/null 2>&1
@@ -116,7 +116,7 @@ case "$1" in
 
     git init --shared=group
 
-    # Specify default git user name and email (git will refuse to commit without them)
+    # Specify default git user name and email (git will refuse to commit without them)
     git config user.name "root user (CLI)"
     git config user.email "root@localhost"
 
@@ -124,8 +124,8 @@ case "$1" in
     git commit -q -m "initial commit"
   else
 
-    # This should have been set during repository initialization, but might need to be
-    # added if we are upgrading an existing repository
+    # This should have been set during repository initialization, but might need to be
+    # added if we are upgrading an existing repository
     if [ $(git config --get-regexp "user.name|user.email"|wc -l) -ne 2 ]; then
       git config user.name "root user (CLI)"
       git config user.email "root@localhost"
@@ -137,7 +137,7 @@ case "$1" in
     fi
   fi
 
-  # Create the configuration-repository group if it does not exist
+  # Create the configuration-repository group if it does not exist
   if ! getent group rudder > /dev/null; then
     echo -n "INFO: Creating group rudder..."
     groupadd --system rudder
@@ -151,7 +151,7 @@ case "$1" in
     echo " Done"
   fi
 
-  # Adjust permissions on /var/rudder/configuration-repository
+  # Adjust permissions on /var/rudder/configuration-repository
   chgrp -R rudder /var/rudder/configuration-repository
 
   ## Add execution permission for ncf-api only on directories and files with user execution permission
