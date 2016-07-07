@@ -73,10 +73,10 @@ BuildArch: noarch
 # Dependencies for RHEL/CentOS / OpenJDK7 are a bit specific: on EL6.5, the
 # jre7 virtual package was removed. Consistency on EL6 jre/jre7 package is
 # not assured and RPM does not provide something like
-# "Requires: package | package2" so I am forced to fallback to a hardcoded
+# "Requires: package | package2" so I am forced to fallback to a hardcoded
 # package name.
 #
-# Also, I would like to have something like %elif here, but not implemented
+# Also, I would like to have something like %elif here, but not implemented
 # in RPM yet...
 
 %if 0%{?rhel} && 0%{?rhel} > 6
@@ -91,15 +91,15 @@ Requires: java-1.7.0-openjdk
 Requires: jre >= 1.6
 %endif
 
-# We are providing Jetty, but the name of the provided element depends of the
-# OS flavour.
+# We are providing Jetty, but the name of the provided element depends of the
+# OS flavour.
 
 
 %if 0%{?rhel} || 0%{?fedora}
 Provides: jetty-eclipse jetty-server
 %endif
 
-# No Jetty provided by SLES...
+# No Jetty provided by SLES...
 
 %description
 Rudder is an open source configuration management and audit solution.
@@ -184,7 +184,7 @@ then
 
     cat > /etc/default/rudder-jetty << EOF
 #
-# Jetty server configuration
+# Jetty server configuration
 #
 
 # Memory settings
@@ -194,7 +194,7 @@ then
 JAVA_XMX=${JAVA_XMX_MIGRATE}
 JAVA_MAXPERMSIZE=${JAVA_MAXPERMSIZE_MIGRATE}
 
-# Java VM arguments
+# Java VM arguments
 #
 #JAVA_OPTIONS=""
 

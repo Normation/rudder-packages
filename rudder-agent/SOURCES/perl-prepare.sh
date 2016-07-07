@@ -57,7 +57,7 @@ OLD_PATH=$PATH
 NO_PERL_REBUILD=0
 FUSIONINVENTORY_FOLDER="${1}"
 
-# If we are on AIX, use an alternative cp syntax
+# If we are on AIX, use an alternative cp syntax
 if [ "z${OS}" == "zAIX" ]; then
 	CP_A="cp -hpPr"
 else
@@ -137,7 +137,7 @@ echo $archive
 gunzip < $archive | tar xf -
 CPANM=$BUILDDIR/App-cpanminus-1.0004/bin/cpanm
 
-# If we are on RHEL 3, remove unwanted arguments to wget
+# If we are on RHEL 3, remove unwanted arguments to wget
 if [ "z${OS}" == "zRHEL" -a "z${OSVERSION}" == "z3" ]; then
 	sed -i "s/--retry-connrefused //" $BUILDDIR/App-cpanminus-1.0004/bin/cpanm
 fi
