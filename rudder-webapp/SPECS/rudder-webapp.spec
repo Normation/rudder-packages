@@ -492,7 +492,7 @@ rm -rf %{buildroot}
 %{ruddervardir}/configuration-repository/ncf/ncf-hooks.d
 %{rudderlogdir}/apache2/
 /etc/%{apache_vhost_dir}/
-%config(noreplace) %{rudderdir}/etc/rudder-apache-common.conf
+%config %{rudderdir}/etc/rudder-apache-common.conf
 %config(noreplace) /etc/%{apache_vhost_dir}/rudder-vhost.conf
 %config(noreplace) /etc/%{apache_vhost_dir}/rudder-vhost-ssl.conf
 %config(noreplace) %{rudderdir}/etc/rudder-networks.conf
