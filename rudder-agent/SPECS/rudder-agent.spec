@@ -488,9 +488,13 @@ rm -f %{_builddir}/file.list.%{name}
 %dir %{rudderlogdir}/install
 
 %if 0%{?rhel} != 3 && "%{?_os}" != "aix"
-%config(noreplace) /etc/ld.so.conf.d/rudder.conf
+%config /etc/ld.so.conf.d/rudder.conf
 %endif
 
+%config /etc/cron.d/rudder-agent
+%config /etc/profile.d/rudder-agent.sh
+%config(noreplace) /opt/rudder/etc/uuid.hive
+%config(noreplace) /etc/default/rudder-agent
 
 #=================================================
 # Changelog
