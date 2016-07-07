@@ -1,1 +1,5 @@
+RHEL6:java7-devel selinux-policy
+RHEL7:java-devel selinux-policy-devel
+FEDORA18:java-devel selinux-policy-devel
+FEDORA20:java-devel selinux-policy-devel
 JAVA:jdk

@@ -36,14 +36,16 @@
 
 %define maven_settings settings-external.xml
 
-%if 0%{?sles_version} 
-%define sysloginitscript /etc/init.d/syslog
+%if 0%{?sles_version}
+%define syslogservicename syslog
 %endif
-%if 0%{?el5} 
-%define sysloginitscript /etc/init.d/syslog
+
+%if 0%{?rhel} == 5 || 0%{?el5}
+%define syslogservicename syslog
 %endif
-%if 0%{?el6} 
-%define sysloginitscript /etc/init.d/rsyslog
+
+%if 0%{?rhel} && 0%{?rhel} > 5
+%define syslogservicename rsyslog
 %endif
 
 #=================================================
@@ -67,21 +69,41 @@ Source4: endpoint.xml
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
 
-BuildRequires: jdk >= 1.6
-Requires: rudder-inventory-ldap
+# Dependencies
 
-# Those are virtual packages provided by our Jetty package and the system one.
+Requires: rudder-inventory-ldap = %{real_version}
+
+# OS-specific dependencies
+
+##
+## Those jetty packages are virtual packages provided by our Jetty and the system one.
+##
+
+## 1 - RHEL
+%if 0%{?rhel} && 0%{?rhel} == 6
+BuildRequires: java7-devel
+%endif
+
+%if 0%{?rhel} && 0%{?rhel} >= 7
+BuildRequires: java-devel
+%endif
+
 %if 0%{?rhel}
 Requires: jetty-eclipse
 %endif
 
+## 2 - Fedora
 %if 0%{?fedora}
+# Cf. https://fedoraproject.org/wiki/Packaging:Java for details
+BuildRequires: java-devel
 Requires: jetty-server
 %endif
 
-# No Jetty provided by SLES... Use our own.
+## 3 - SLES
+## No Jetty provided by SLES... Use our own.
 %if 0%{?sles_version}
-Requires: rudder-jetty
+BuildRequires: jdk >= 1.7
+Requires: rudder-jetty = %{real_version}
 %endif
 
 %description
@@ -107,11 +129,11 @@ cp -rf %{_sourcedir}/rudder-sources %{_builddir}
 %build
 
 export MAVEN_OPTS=-Xmx512m
-cd %{_builddir}/rudder-sources/rudder-parent-pom && %{_sourcedir}/maven2/bin/mvn --batch-mode -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
-cd %{_builddir}/rudder-sources/rudder-commons && %{_sourcedir}/maven2/bin/mvn --batch-mode -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
-cd %{_builddir}/rudder-sources/scala-ldap && %{_sourcedir}/maven2/bin/mvn --batch-mode -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
-cd %{_builddir}/rudder-sources/ldap-inventory && %{_sourcedir}/maven2/bin/mvn --batch-mode -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
-cd %{_builddir}/rudder-sources/ldap-inventory/inventory-provisioning-web && %{_sourcedir}/maven2/bin/mvn --batch-mode -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install package
+cd %{_builddir}/rudder-sources/rudder-parent-pom && %{_sourcedir}/maven/bin/mvn --batch-mode -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
+cd %{_builddir}/rudder-sources/rudder-commons && %{_sourcedir}/maven/bin/mvn --batch-mode -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
+cd %{_builddir}/rudder-sources/scala-ldap && %{_sourcedir}/maven/bin/mvn --batch-mode -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
+cd %{_builddir}/rudder-sources/ldap-inventory && %{_sourcedir}/maven/bin/mvn --batch-mode -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
+cd %{_builddir}/rudder-sources/ldap-inventory/inventory-provisioning-web && %{_sourcedir}/maven/bin/mvn --batch-mode -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install package
 
 # Installation
 #=================================================
@@ -151,8 +173,14 @@ echo "INFO: Launching script to check if a migration is needed"
 %{rudderdir}/bin/rudder-inventory-endpoint-upgrade
 echo "INFO: End of migration script"
 
-echo "Restarting syslogd ..."
-%{sysloginitscript} restart
+echo -n "INFO: Restarting syslogd ..."
+%if 0%{?rhel} < 7
+service %{syslogservicename} restart > /dev/null && echo " Done"
+%endif
+%if 0%{?rhel} >= 7
+/bin/systemctl restart  %{syslogservicename}.service && echo " Done"
+%endif
+
 
 #=================================================
 # Cleaning

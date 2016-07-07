@@ -62,6 +62,11 @@ elif [ -f /etc/debian_version ]; then
     # No Service Pack
     export OSSP=""
   fi
+elif [ -f /etc/slackware-version ]; then
+  export OS="slackware"
+  export OSVERSION=$(cat /etc/slackware-version | awk '{ print $2 }')
+  # No Service Pack
+  export OSSP=""
 else
   export OS="unknown"
 fi

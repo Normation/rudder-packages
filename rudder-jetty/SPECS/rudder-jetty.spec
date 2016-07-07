@@ -38,6 +38,12 @@
 
 %define _binaries_in_noarch_packages_terminate_build   0
 
+%if 0%{?sles_version}
+%define jetty_init_script jetty-sles.sh
+%else
+%define jetty_init_script jetty-rpm.sh
+%endif
+
 #=================================================
 # Header
 #=================================================
@@ -56,8 +62,6 @@ Source2: rudder-jetty.default
 Source3: rudder-jetty.conf
 Source4: rudder-jetty
 
-Patch1: jetty-init-sles.patch
-
 # Prevent rpmbuild to use 64 bits libraries just because of the presence
 # of one 64 bits binary in the jetty archive.
 AutoReq: 0
@@ -75,11 +79,11 @@ BuildArch: noarch
 # Also, I would like to have something like %elif here, but not implemented
 # in RPM yet...
 
-%if 0%{?rhel} > 6
+%if 0%{?rhel} && 0%{?rhel} > 6
 Requires: jre >= 1.7
 %endif
 
-%if 0%{?rhel} == 6
+%if 0%{?rhel} && 0%{?rhel} == 6
 Requires: java-1.7.0-openjdk
 %endif
 
@@ -109,14 +113,10 @@ This package bundles a version of the Jetty application server to simplify
 installing Rudder. It is required by the rudder-webapp and
 rudder-inventory-endpoint packages.
 
-
 #=================================================
 # Source preparation
 #=================================================
 %prep
-
-cd %{_topdir}/SOURCES
-%patch1
 
 #=================================================
 # Building
@@ -145,7 +145,7 @@ cp -a jetty7 %{buildroot}/opt/rudder
 # Init script
 mkdir -p %{buildroot}/etc/init.d
 mkdir -p %{buildroot}/etc/default
-install -m 755 jetty7/bin/jetty-sles.sh %{buildroot}/etc/init.d/rudder-jetty
+install -m 755 jetty7/bin/%{jetty_init_script} %{buildroot}/etc/init.d/rudder-jetty
 install -m 644 %{SOURCE2} %{buildroot}/etc/default/rudder-jetty
 install -m 644 %{SOURCE3} %{buildroot}/opt/rudder/etc/rudder-jetty.conf
 
@@ -155,6 +155,15 @@ install -m 644 %{SOURCE4} %{buildroot}/opt/rudder/etc/server-roles.d/
 #=================================================
 # Pre Installation
 #=================================================
+
+# Prepare the migration of /etc/default/rudder-jetty
+if [ -e /opt/rudder/etc/rudder-jetty.conf ]
+then
+    if [ $(grep -c '# WARNING #' /opt/rudder/etc/rudder-jetty.conf) -eq 0 ]
+    then
+        cp /opt/rudder/etc/rudder-jetty.conf /opt/rudder/etc/rudder-jetty.conf.migrate
+    fi
+fi
 
 if [ -x /opt/jetty7 ]
 then
@@ -167,13 +176,50 @@ fi
 # Post Installation
 #=================================================
 
+# Migrate old /opt/rudder/etc/rudder-jetty.conf entries
+if [ -e /opt/rudder/etc/rudder-jetty.conf.migrate ]
+then
+    JAVA_XMX_MIGRATE=$(grep '^JAVA_XMX=' /opt/rudder/etc/rudder-jetty.conf.migrate|cut -d = -f 2-)
+    JAVA_MAXPERMSIZE_MIGRATE=$(grep '^JAVA_MAXPERMSIZE=' /opt/rudder/etc/rudder-jetty.conf.migrate|cut -d = -f 2-)
+
+    cat > /etc/default/rudder-jetty << EOF
+#
+# Jetty server configuration
+#
+
+# Memory settings
+#
+# The defaults should be enough for up to ~100 nodes
+#
+JAVA_XMX=${JAVA_XMX_MIGRATE}
+JAVA_MAXPERMSIZE=${JAVA_MAXPERMSIZE_MIGRATE}
+
+# Java VM arguments
+#
+#JAVA_OPTIONS=""
+
+# Java VM location
+#
+#JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64
+#JAVA=java
+
+# Source variables from /opt/rudder/etc/rudder-jetty.conf
+# Warning: removing this is likely to prevent Jetty from
+# starting correctly
+[ -f /opt/rudder/etc/rudder-jetty.conf ] && . /opt/rudder/etc/rudder-jetty.conf
+EOF
+
+    rm -f /opt/rudder/etc/rudder-jetty.conf.migrate
+
+fi
+
 # Do this at first install
 if [ $1 -eq 1 ]
 then
 	# Set rudder-agent as service
-	/sbin/chkconfig --add rudder-jetty
-	%if 0%{?rhel} >= 6
-	/sbin/chkconfig rudder-jetty on
+	chkconfig --del rudder-jetty
+	%if 0%{?rhel} && 0%{?rhel} >= 6
+	chkconfig rudder-jetty off
 	%endif
 fi
 
@@ -204,8 +250,8 @@ rm -rf %{buildroot}
 %{rudderlogdir}/webapp
 /var/rudder/run
 /etc/init.d/rudder-jetty
-/etc/default/rudder-jetty
-%config(noreplace) /opt/rudder/etc/rudder-jetty.conf
+%config(noreplace) /etc/default/rudder-jetty
+/opt/rudder/etc/rudder-jetty.conf
 
 #=================================================
 # Changelog

@@ -43,27 +43,27 @@
 %define apache_tools            apache2-utils
 %define apache_group            www
 %define htpasswd_cmd            htpasswd2
-%define sysloginitscript        /etc/init.d/syslog
+%define syslogservicename       syslog
 %define apache_vhost_dir        %{apache}/vhosts.d
 %define ldap_clients            openldap2-client
 %define usermod_opt             A
 %endif
-%if 0%{?el5}
+%if 0%{?rhel} == 5 || 0%{?el5}
 %define apache                  httpd
 %define apache_tools            httpd-tools
 %define apache_group            apache
 %define htpasswd_cmd            htpasswd
-%define sysloginitscript        /etc/init.d/syslog
+%define syslogservicename       syslog
 %define apache_vhost_dir        %{apache}/conf.d
 %define ldap_clients            openldap-clients
 %define usermod_opt             aG
 %endif
-%if 0%{?el6}
+%if 0%{?rhel} && 0%{?rhel} >= 6
 %define apache                  httpd
 %define apache_tools            httpd-tools
 %define apache_group            apache
 %define htpasswd_cmd            htpasswd
-%define sysloginitscript        /etc/init.d/rsyslog
+%define syslogservicename       rsyslog
 %define apache_vhost_dir        %{apache}/conf.d
 %define ldap_clients            openldap-clients
 %define usermod_opt             aG
@@ -97,33 +97,54 @@ Source13: rudder-passwords.conf
 Source14: rudder-plugin
 Source15: post.write_technique.commit.sh
 Source16: post.write_technique.rudderify.sh
-Source17: rudder-reload-cf-serverd
+Source17: rudder-metrics-reporting
+Source18: ca-bundle.crt
+Source19: rudder-reload-cf-serverd
+Source20: rudder-webapp.te
+Source21: rudder-webapp.fc
+Source22: rudder-keys
+Source23: .gitignore
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
 
-BuildRequires: jdk >= 1.6
-Requires: rudder-techniques ncf ncf-api-virtualenv %{apache} %{apache_tools} git-core rsync openssl %{ldap_clients}
+# Dependencies
+Requires: rudder-techniques = %{real_version}, ncf, ncf-api-virtualenv, %{apache}, %{apache_tools}, git-core, rsync, openssl, %{ldap_clients}
 
-# We need the psql client so that we can run database checks and upgrades (rudder-upgrade, in particular)
-Requires: postgresql
+# We need the PostgreSQL client utilities so that we can run database checks and upgrades (rudder-upgrade, in particular)
+Requires: postgresql >= 8.4
 
-# Those jetty packages are virtual packages provided by our Jetty and the system one.
+# OS-specific dependencies
 
-## RHEL
+##
+## Those jetty packages are virtual packages provided by our Jetty and the system one.
+##
+
+## 1 - RHEL
+%if 0%{?rhel} && 0%{?rhel} == 6
+BuildRequires: java7-devel selinux-policy
+%endif
+
+%if 0%{?rhel} && 0%{?rhel} >= 7
+BuildRequires: java-devel selinux-policy-devel
+%endif
+
 %if 0%{?rhel}
 Requires: mod_ssl jetty-eclipse
 %endif
 
-## Fedora
+## 2 - Fedora
 %if 0%{?fedora}
+# Cf. https://fedoraproject.org/wiki/Packaging:Java for details
+BuildRequires: java-devel selinux-policy-devel
 Requires: jetty-server
 %endif
 
-## SLES
+## 3 - SLES
 ## No Jetty provided by SLES... Use our own.
 %if 0%{?sles_version}
-Requires: rudder-jetty
+BuildRequires: jdk >= 1.7
+Requires: rudder-jetty = %{real_version}
 %endif
 
 %description
@@ -133,12 +154,14 @@ This package contains the web application that is the main user interface to
 Rudder. The webapp is automatically installed and started using the Jetty
 application server bundled in the rudder-jetty package.
 
-
 #=================================================
 # Source preparation
 #=================================================
 %prep
 
+# Copy the required source files to the build directory
+cp -f %{SOURCE20} %{_builddir}
+cp -f %{SOURCE21} %{_builddir}
 cp -rf %{_sourcedir}/rudder-sources %{_builddir}
 cp -rf %{_sourcedir}/rudder-doc %{_builddir}
 
@@ -147,13 +170,19 @@ cp -rf %{_sourcedir}/rudder-doc %{_builddir}
 #=================================================
 %build
 
+%if 0%{?rhel} || 0%{?fedora}
+# Build SELinux policy package
+# Compiles rudder-webapp.te and rudder-webapp.fc into rudder-webapp.pp
+cd %{_builddir} && make -f /usr/share/selinux/devel/Makefile
+%endif
+
+# Build rudder-web war
 export MAVEN_OPTS=-Xmx512m
-cd %{_builddir}/rudder-sources/rudder-parent-pom && %{_sourcedir}/maven2/bin/mvn --batch-mode -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
-cd %{_builddir}/rudder-sources/rudder-commons    && %{_sourcedir}/maven2/bin/mvn --batch-mode -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
-cd %{_builddir}/rudder-sources/scala-ldap        && %{_sourcedir}/maven2/bin/mvn --batch-mode -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
-cd %{_builddir}/rudder-sources/ldap-inventory    && %{_sourcedir}/maven2/bin/mvn --batch-mode -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
-cd %{_builddir}/rudder-sources/cf-clerk          && %{_sourcedir}/maven2/bin/mvn --batch-mode -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
-cd %{_builddir}/rudder-sources/rudder            && %{_sourcedir}/maven2/bin/mvn --batch-mode -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install package
+cd %{_builddir}/rudder-sources/rudder-parent-pom && %{_sourcedir}/maven/bin/mvn --batch-mode -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
+cd %{_builddir}/rudder-sources/rudder-commons    && %{_sourcedir}/maven/bin/mvn --batch-mode -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
+cd %{_builddir}/rudder-sources/scala-ldap        && %{_sourcedir}/maven/bin/mvn --batch-mode -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
+cd %{_builddir}/rudder-sources/ldap-inventory    && %{_sourcedir}/maven/bin/mvn --batch-mode -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
+cd %{_builddir}/rudder-sources/rudder            && %{_sourcedir}/maven/bin/mvn --batch-mode -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install package
 
 #=================================================
 # Installation
@@ -171,6 +200,8 @@ mkdir -p %{buildroot}%{rudderdir}/share/rudder-plugins/
 mkdir -p %{buildroot}%{rudderdir}/share/tools
 mkdir -p %{buildroot}%{rudderdir}/share/plugins/
 mkdir -p %{buildroot}%{rudderdir}/share/upgrade-tools/
+mkdir -p %{buildroot}%{rudderdir}/share/certificates/
+mkdir -p %{buildroot}%{rudderdir}/share/selinux/
 mkdir -p %{buildroot}%{ruddervardir}/inventories/incoming
 mkdir -p %{buildroot}%{ruddervardir}/inventories/accepted-nodes-updates
 mkdir -p %{buildroot}%{ruddervardir}/inventories/received
@@ -195,11 +226,11 @@ cp %{SOURCE11} %{buildroot}%{rudderdir}/bin/
 cp %{SOURCE12} %{buildroot}%{rudderdir}/bin/
 cp %{SOURCE14} %{buildroot}%{rudderdir}/bin/
 cp %{SOURCE17} %{buildroot}%{rudderdir}/bin/
+cp %{SOURCE19} %{buildroot}%{rudderdir}/bin/
 
 cp %{SOURCE1} %{buildroot}%{rudderdir}/etc/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/ldap/bootstrap.ldif %{buildroot}%{rudderdir}/share/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/ldap/init-policy-server.ldif %{buildroot}%{rudderdir}/share/
-cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/ldap/demo-data.ldif %{buildroot}%{rudderdir}/share/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/configuration.properties.sample %{buildroot}%{rudderdir}/etc/rudder-web.properties
 cp %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/logback.xml %{buildroot}%{rudderdir}/etc/
 
@@ -224,22 +255,23 @@ cp %{SOURCE4} %{buildroot}%{rudderdir}/etc/
 sed -i "s%^DocumentRoot /var/www$%DocumentRoot /srv/www%" %{buildroot}%{rudderdir}/etc/rudder-apache-common.conf
 %endif
 
-# Install upgrade tools
-cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.4-2.4-set-migration-needed-flag-for-EventLog.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
-cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.6-2.7-set-migration-needed-flag-for-EventLog.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
-cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.8-2.9-set-migration-needed-flag-for-EventLog.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
-cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.7-2.8-add-nodes-executions-storage.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
-cp %{_sourcedir}/rudder-upgrade-LDAP-schema-2.6-2.7-add-global-parameter-ou.ldif %{buildroot}%{rudderdir}/share/upgrade-tools/
-cp %{_sourcedir}/rudder-upgrade-LDAP-schema-2.6-2.7-add-default-global-parameter.ldif %{buildroot}%{rudderdir}/share/upgrade-tools/
-cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.6-2.6-index-reports.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
+# Install upgrade tools and migration scripts
+
+## SQL
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-change-ids-in-tables.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-migrate-reports-per-node.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.10-2.10-historization-of-groups-in-rules.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.10-2.10-historization-of-agent-schedule.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
-cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ldapMigration-2.10-2.11-add-server-roles.ldif %{buildroot}%{rudderdir}/share/upgrade-tools/
-cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ldapMigration-2.10-2.11-add-node-without-role-group.ldif %{buildroot}%{rudderdir}/share/upgrade-tools/
-cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.10-2.10-historization-of-agent-schedule.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
+cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.11-2.12-add-nodeconfigids-columns.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
+cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.11-3.0-add-insertionids-column.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
+cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.11-3.0-remove-varchar.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
+cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.11-3.0-set-migration-needed-flag-for-EventLog.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.11-2.11-index-eventlog.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
+cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-3.0-3.0-add-index-nodeconfigids.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
+cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-3.0-3.0-add-index-changes-executiontimestamp.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
+
+## LDAP
+cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ldapMigration-3.0-3.1-set-syslog-protocol.ldif %{buildroot}%{rudderdir}/share/upgrade-tools/
 
 cp %{SOURCE5} %{buildroot}%{rudderdir}/bin/
 cp %{SOURCE6} %{buildroot}%{rudderdir}/bin/
@@ -250,9 +282,24 @@ cp %{SOURCE13} %{buildroot}%{rudderdir}/etc/
 install -m 755 %{SOURCE15} %{buildroot}%{ruddervardir}/configuration-repository/ncf/ncf-hooks.d/
 install -m 755 %{SOURCE16} %{buildroot}%{ruddervardir}/configuration-repository/ncf/ncf-hooks.d/
 
+# Add rudder-metrics-reporting
+cp %{SOURCE17} %{buildroot}%{rudderdir}/bin/
+cp %{SOURCE18} %{buildroot}%{rudderdir}/share/certificates/
+
 # Install documentation
 cp -rf %{_builddir}/rudder-doc/pdf %{buildroot}/usr/share/doc/rudder
 cp -rf %{_builddir}/rudder-doc/html %{buildroot}/usr/share/doc/rudder
+
+%if 0%{?rhel} || 0%{?fedora}
+# Install SELinux policy
+install -m 644  %{_builddir}/rudder-webapp.pp %{buildroot}%{rudderdir}/share/selinux/
+%endif
+
+# Install rudder keys
+install -m 755 %{SOURCE22} %{buildroot}%{rudderdir}/bin/
+
+# Install gitignore file for our git repo
+install -m 644 %{SOURCE23} %{buildroot}%{ruddervardir}/configuration-repository/
 
 %pre -n rudder-webapp
 #=================================================
@@ -269,27 +316,42 @@ cp -rf %{_builddir}/rudder-doc/html %{buildroot}/usr/share/doc/rudder
 echo 'root' > /opt/rudder/etc/uuid.hive
 
 echo -n "INFO: Setting Apache HTTPd as a boot service..."
-/sbin/chkconfig --add %{apache} 2&> /dev/null
-%if 0%{?rhel} >= 6
-/sbin/chkconfig %{apache} on
+%if 0%{?rhel} && 0%{?rhel} < 7
+chkconfig --add %{apache} 2&> /dev/null
+%endif
+%if 0%{?rhel} && 0%{?rhel} == 6
+chkconfig %{apache} on
+%endif
+%if 0%{?rhel} && 0%{?rhel} >= 7
+systemctl enable %{apache}.service
 %endif
 echo " Done"
 
 echo -n "INFO: Restarting syslog..."
-%{sysloginitscript} restart > /dev/null
+%if 0%{?rhel} < 7
+service %{syslogservicename} restart > /dev/null
+%endif
+%if 0%{?rhel} >= 7
+/bin/systemctl restart  rsyslog.service
+%endif
 echo " Done"
 
 echo -n "INFO: Stopping Apache HTTPd..."
-/sbin/service %{apache} stop >/dev/null 2>&1
+%if 0%{?rhel} < 7
+service %{apache} stop >/dev/null 2>&1
+%endif
+%if 0%{?rhel} >= 7
+/bin/systemctl stop %{apache}.service
+%endif
 echo " Done"
 
 # Do this ONLY at first install
 if [ $1 -eq 1 ]
 then
-		echo 'DAVLockDB /tmp/davlock.db' > /etc/%{apache}/conf.d/dav_mod.conf
+  echo 'DAVLockDB /tmp/davlock.db' > /etc/%{apache}/conf.d/dav_mod.conf
 fi
 
-# Create the configuration-repository group if it does not exist
+# Create the configuration-repository group if it does not exist
 if ! getent group %{config_repository_group} > /dev/null; then
   echo -n "INFO: Creating group %{config_repository_group}..."
   groupadd --system %{config_repository_group}
@@ -367,8 +429,28 @@ if [ ! -f /opt/rudder/etc/ssl/rudder-webapp.crt ] || [ ! -f /opt/rudder/etc/ssl/
 	echo " Done"
 fi
 
+%if 0%{?rhel} || 0%{?fedora}
+# SELinux support
+# Check "sestatus" presence, and if here tweak our installation to be
+# SELinux compliant
+if type sestatus >/dev/null 2>&1 && sestatus | grep -q "enabled"; then
+  # Add/Update the rudder-webapp SELinux policy
+  semodule -i /opt/rudder/share/selinux/rudder-webapp.pp
+  # Ensure inventory directories context is set by resetting
+  # their context to the contexts defined in SELinux configuration,
+  # including the file contexts defined in the rudder-webapp module
+  restorecon -R /var/rudder/inventories
+  restorecon -R /var/log/rudder/apache2
+fi
+%endif
+
 echo -n "INFO: Starting Apache HTTPd..."
-/sbin/service %{apache} start >/dev/null 2>&1
+%if 0%{?rhel} < 7
+service %{apache} start >/dev/null 2>&1
+%endif
+%if 0%{?rhel} >= 7
+/bin/systemctl start %{apache}.service
+%endif
 echo " Done"
 
 # Run any upgrades
@@ -387,18 +469,40 @@ if [ ! -d /var/rudder/configuration-repository/techniques ]; then
 	cp -a %{rudderdir}/share/techniques /var/rudder/configuration-repository/
 fi
 
+# Apply selinux context on configuration repository so technique editor (via apache/httpd) can write in this directory
+if type sestatus >/dev/null 2>&1 && sestatus | grep -q "enabled"; then
+  semanage fcontext -a -t httpd_sys_rw_content_t '/var/rudder/configuration-repository/techniques(/.*)?'
+  restorecon -RF /var/rudder/configuration-repository/techniques
+fi
+
 # Go into configuration-repository to manage git
 cd /var/rudder/configuration-repository
+
 # Initialize git repository if it is missing, so permissions can be set on it afterwards
 if [ ! -d /var/rudder/configuration-repository/.git ]; then
+
   git init --shared=group
+
+  # Specify default git user name and email (git will refuse to commit without them)
+  git config user.name "root user (CLI)"
+  git config user.email "root@localhost"
+
   git add .
   git commit -q -m "initial commit"
 else
+
+  # This should have been set during repository initialization, but might need to be
+  # added if we are upgrading an existing repository
+  if [ $(git config --get-regexp "user.name|user.email"|wc -l) -ne 2 ]; then
+    git config user.name "root user (CLI)"
+    git config user.email "root@localhost"
+  fi
+
   # Set shared repository value to group if not set
   if ! git config core.sharedRepository >/dev/null 2>&1; then
     git config core.sharedRepository group
   fi
+
 fi
 
 # Adjust permissions on /var/rudder/configuration-repository
@@ -425,7 +529,7 @@ fi
 echo "********************************************************************************"
 echo "rudder-webapp has been upgraded, but for the upgrade to take effect, please"
 echo "restart the jetty application server as follows:"
-echo "# /sbin/service rudder-jetty restart"
+echo "# service rudder-jetty restart"
 echo "********************************************************************************"
 
 %postun -n rudder-webapp
@@ -454,6 +558,20 @@ if [ $1 -eq 0 ]; then
 %endif
 
 fi
+
+%if 0%{?rhel} || 0%{?fedora}
+  # Do it only during uninstallation
+  if [ $1 -eq 0 ]; then
+    if type sestatus >/dev/null 2>&1 && sestatus | grep -q "enabled"; then
+      if semodule -l | grep -q rudder-webapp; then
+        # Remove the rudder-webapp SELinux policy
+        semanage fcontext -d '/var/rudder/configuration-repository/techniques(/.*)?'
+        restorecon -RF /var/rudder/configuration-repository/techniques
+        semodule -r rudder-webapp
+      fi
+    fi
+  fi
+%endif
 
 #=================================================
 # Cleaning
@@ -489,6 +607,7 @@ rm -rf %{buildroot}
 %{ruddervardir}/inventories/incoming
 %{ruddervardir}/inventories/received
 %{ruddervardir}/inventories/failed
+%{ruddervardir}/configuration-repository/.gitignore
 %{ruddervardir}/configuration-repository/ncf/ncf-hooks.d
 %{rudderlogdir}/apache2/
 /etc/%{apache_vhost_dir}/

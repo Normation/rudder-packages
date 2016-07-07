@@ -35,13 +35,15 @@
 %define rudderlogdir     /var/log/rudder
 
 %if 0%{?sles_version} 
-%define sysloginitscript /etc/init.d/syslog
+%define syslogservicename syslog
 %endif
-%if 0%{?el5} 
-%define sysloginitscript /etc/init.d/syslog
+
+%if 0%{?rhel} == 5 || 0%{?el5}
+%define syslogservicename syslog
 %endif
-%if 0%{?el6} 
-%define sysloginitscript /etc/init.d/rsyslog
+
+%if 0%{?rhel} && 0%{?rhel} > 5
+%define syslogservicename rsyslog
 %endif
 
 #=================================================
@@ -68,21 +70,30 @@ Source8: rudder-ldap
 # This file will contain path of /opt/rudder/lib for ld which will
 # find there all necessary libraries for BerkeleyDB.
 Source9: rudder-inventory-ldap.conf
+Source10: rudder-slapd.conf
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
-#Generic requirement
+#Generic requirements
+
 BuildRequires: gcc
 Requires: rsyslog openssl
 
-#Specific requirement
-%if 0%{?sles_version} == 11
-BuildRequires: libopenssl-devel
-%endif
-%if 0%{?sles_version} == 10
+#Specific requirements
+
+%if 0%{?sles_version} && 0%{?sles_version} == 10
 BuildRequires: openssl-devel
 %endif
-%if 0%{?rhel}
+
+%if 0%{?sles_version} && 0%{?sles_version} == 11
+BuildRequires: libopenssl-devel
+%endif
+
+%if 0%{?rhel} && 0%{?rhel} < 7
+BuildRequires: openssl-devel libtool-ltdl-devel
+%endif
+
+%if 0%{?rhel} && 0%{?rhel} >= 7
 BuildRequires: openssl-devel libtool-ltdl-devel
 %endif
 
@@ -143,6 +154,7 @@ make %{?_smp_mflags}
 %install
 rm -rf %{buildroot}
 
+mkdir -p %{buildroot}/etc/ld.so.conf.d
 mkdir -p %{buildroot}/opt/rudder/
 mkdir -p %{buildroot}/etc/ld.so.conf.d
 mkdir -p %{buildroot}/opt/rudder/etc/server-roles.d/
@@ -163,6 +175,7 @@ mkdir -p %{buildroot}/etc/init.d
 mkdir -p %{buildroot}/etc/default
 install -m 755 %{SOURCE1} %{buildroot}/etc/init.d/rudder-slapd
 install -m 644 %{SOURCE2} %{buildroot}/etc/default/rudder-slapd
+install -m 644 %{SOURCE10} %{buildroot}/opt/rudder/etc/rudder-slapd.conf
 
 install -m 644 %{SOURCE3} %{buildroot}/opt/rudder/etc/openldap/slapd.conf
 install -m 644 %{SOURCE4} %{buildroot}/opt/rudder/etc/openldap/schema/
@@ -215,15 +228,20 @@ if [ -f /etc/ld.so.conf.d/rudder-inventory-ldap.conf ]; then
 fi
 
 echo -n "INFO: Setting rudder-slapd as a boot service..."
-/sbin/chkconfig --add rudder-slapd >/dev/null 2>&1
-%if 0%{?rhel} >= 6
-/sbin/chkconfig rudder-slapd on
+chkconfig --add rudder-slapd >/dev/null 2>&1
+
+%if 0%{?rhel} && 0%{?rhel} >= 6
+chkconfig rudder-slapd on
 %endif
 echo " Done"
 
 echo -n "INFO: Reloading syslogd... "
-%{sysloginitscript} restart >/dev/null 2>&1
-echo " Done"
+%if 0%{?rhel} < 7
+service %{syslogservicename} restart > /dev/null && echo " Done"
+%endif
+%if 0%{?rhel} >= 7
+/bin/systemctl restart  %{syslogservicename}.service && echo " Done"
+%endif
 
 RUDDER_SHARE=/opt/rudder/share
 RUDDER_UPGRADE_TOOLS=${RUDDER_SHARE}/upgrade-tools
@@ -259,7 +277,7 @@ if [ -n "${BACKUP_LDIF}" ]; then
 		# Stop OpenLDAP - use forcestop to avoid the init script failing
 		# when trying to do the backup with bad libdb versions
 		echo -n "INFO: Stopping rudder-slapd..."
-		/sbin/service rudder-slapd forcestop >/dev/null 2>&1
+		service rudder-slapd forcestop >/dev/null 2>&1
 		echo " Done"
 
 		# Backup the old database
@@ -272,7 +290,7 @@ if [ -n "${BACKUP_LDIF}" ]; then
 
 		# Start OpenLDAP
 		echo -n "INFO: Starting rudder-slapd..."
-		/sbin/service rudder-slapd start >/dev/null 2>&1
+		service rudder-slapd start >/dev/null 2>&1
 		echo " Done"
 
 		echo "INFO: OpenLDAP database was successfully upgraded to new format"
@@ -290,7 +308,7 @@ fi
 
 # Need to restart to take schema changes into account
 echo -n "INFO: Restarting rudder-slapd..."
-/sbin/service rudder-slapd force-reload >/dev/null 2>&1
+service rudder-slapd force-reload >/dev/null 2>&1
 echo " Done"
 
 %preun -n rudder-inventory-ldap
@@ -328,6 +346,7 @@ rm -rf %{buildroot}
 /opt/rudder/libexec
 /etc/init.d/rudder-slapd
 %config(noreplace) /etc/default/rudder-slapd
+/opt/rudder/etc/rudder-slapd.conf
 %config(noreplace) /opt/rudder/etc/openldap/slapd.conf
 %config(noreplace) /etc/ld.so.conf.d/rudder-inventory-ldap.conf
 

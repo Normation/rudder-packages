@@ -20,31 +20,32 @@ set -e
 
 
 case "$1" in
-	purge|remove)
-		# Make sure that CFEngine is not running anymore
-		for component in cf-agent cf-serverd cf-execd cf-monitord; do
-			if pid=`pidof ${component}`; then
-				kill -9 ${pid}
-			fi
-		done
+  purge|remove)
+    # Make sure that CFEngine is not running anymore
+    for component in cf-agent cf-serverd cf-execd cf-monitord; do
+      if pid=`pidof ${component}`; then
+        kill -9 ${pid}
+      fi
+    done
 
-		# Remove the cron script we create at installation to prevent mail
-		# flooding, re-installation surprises, and general system garbage.
-		rm -f /etc/cron.d/rudder-agent
+    # Remove the cron script we create at installation to prevent mail
+    # flooding, re-installation surprises, and general system garbage.
+    rm -f /etc/cron.d/rudder-agent
 
-		# Make sure that Rudder agent specific files have been removed
-		rm -f /etc/init.d/rudder-agent
-		rm -f /etc/default/rudder-agent
-		rm -f /opt/rudder/etc/uuid.hive
-	;;
+    # Make sure that Rudder agent specific files have been removed
+    rm -f /etc/init.d/rudder-agent
+    rm -f /etc/default/rudder-agent
+    rm -f /opt/rudder/etc/uuid.hive
+    rm -f /var/rudder/cfengine-community/policy_server.dat
+  ;;
 
-	upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
-	;;
+  upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
+  ;;
 
-	*)
-		echo "postrm called with unknown argument \`$1'" >&2
-		exit 1
-	;;
+  *)
+    echo "postrm called with unknown argument \`$1'" >&2
+    exit 1
+  ;;
 esac
 
 # dh_installdeb will replace this with shell code automatically

@@ -1,0 +1,36 @@
+From 5a43e6005ae8dcb8163b25664ce0c171871b8da6 Mon Sep 17 00:00:00 2001
+From: Ted Zlatanov <tzz@lifelogs.com>
+Date: Wed, 1 Jul 2015 23:06:52 -0400
+Subject: [PATCH] Redmine#4309: implement inherit_from
+
+Note: This patch covers only the part of 5a43e60 that is needed for the default
+body feature. We do not backport body inheritance.
+
+diff -upr cfengine-source/libpromises/eval_context.c cfengine-source-c/libpromises/eval_context.c
+--- cfengine-source/libpromises/eval_context.c	2016-06-02 18:20:41.045957637 +0200
++++ cfengine-source-c/libpromises/eval_context.c	2016-06-02 18:54:16.365875477 +0200
+@@ -2043,6 +2043,24 @@ const Bundle *EvalContextResolveBundleEx
+     return bp;
+ }
+ 
++const Body *EvalContextFindFirstMatchingBody(const Policy *policy, const char *type,
++                                             const char *namespace, const char *name)
++{
++    for (size_t i = 0; i < SeqLength(policy->bodies); i++)
++    {
++        const Body *curr_bp = SeqAt(policy->bodies, i);
++        if ((strcmp(curr_bp->type, type) == 0) &&
++            (strcmp(curr_bp->name, name) == 0) &&
++            StringSafeEqual(curr_bp->ns, namespace))
++        {
++            return curr_bp;
++        }
++    }
++
++    return NULL;
++}
++
++
+ const Body *EvalContextResolveBodyExpression(const EvalContext *ctx, const Policy *policy,
+                                              const char *callee_reference, const char *callee_type)
+ {

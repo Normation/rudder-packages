@@ -32,7 +32,6 @@ TMP_LOG=${TMP_LOG}.log
 
 BOOTSTRAP_PATH=$TMP_DIR/bootstrap.ldif
 INITPOLICY_PATH=$TMP_DIR/init-policy-server.ldif
-INITDEMO_PATH=$TMP_DIR/demo-data.ldif
 
 RUDDER_OPT="/opt/rudder"
 RUDDER_VAR="/var/rudder"
@@ -164,7 +163,6 @@ LDAPInit()
 {
   cp /opt/rudder/share/bootstrap.ldif $BOOTSTRAP_PATH
   cp /opt/rudder/share/init-policy-server.ldif $INITPOLICY_PATH
-  cp /opt/rudder/share/demo-data.ldif $INITDEMO_PATH
 
   sed -i "s/^\([^#].*\)%%POLICY_SERVER_HOSTNAME%%/\1${RUDDER_HOSTNAME}/g" $INITPOLICY_PATH
   sed -i "s#^\([^#].*\)%%POLICY_SERVER_ALLOWED_NETWORKS%%#\1$NET#g" $INITPOLICY_PATH

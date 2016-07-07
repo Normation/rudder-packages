@@ -3,8 +3,10 @@
 # Nice hack to write in python and have a valid script working everywhere
 # Maybe we dont need this, since the shell already returns an error in this case
 # vim: syntax=python
-if ! type python >/dev/null 2>&1
+if type python >/dev/null 2>&1
 then
+  true
+else
   # yes we do
   [ "$1" = "put" ] && exit 0
   exit 9

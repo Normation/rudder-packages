@@ -46,6 +46,11 @@ binary-arch: build install
 	dh_installchangelogs
 #	dh_installdocs
 #	dh_installexamples
+	# Init script and configuration files
+	cp -f $(CURDIR)/debian/rudder-jetty.default $(CURDIR)/BUILD/rudder-jetty
+	dh_install --SOURCEDIR=$(CURDIR)/BUILD/ rudder-jetty /etc/default/
+	cp -f $(CURDIR)/debian/rudder-jetty.init $(CURDIR)/BUILD/rudder-jetty
+	dh_install --SOURCEDIR=$(CURDIR)/BUILD/ rudder-jetty /etc/init.d/
 	dh_install --sourcedir=$(CURDIR)/SOURCES jetty7 /opt/rudder
 	dh_install --sourcedir=$(CURDIR)/SOURCES rudder-jetty.conf /opt/rudder/etc
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-jetty /opt/rudder/etc/server-roles.d/
@@ -56,7 +61,6 @@ binary-arch: build install
 #	dh_installpam
 #	dh_installmime
 #	dh_python
-	dh_installinit --no-start
 #	dh_installcron
 #	dh_installinfo
 #	dh_installman
