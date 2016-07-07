@@ -22,7 +22,7 @@ set -e
 case "$1" in
     purge)
       if getent group rudder > /dev/null; then
-        # Remove the configuration-repository group
+        # Remove the configuration-repository group
         echo -n "INFO: Removing group rudder..."
         groupdel rudder
         echo " Done"

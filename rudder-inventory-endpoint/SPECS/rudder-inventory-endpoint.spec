@@ -73,13 +73,13 @@ BuildArch: noarch
 
 Requires: rudder-inventory-ldap = %{real_version}
 
-# OS-specific dependencies
+# OS-specific dependencies
 
 ##
 ## Those jetty packages are virtual packages provided by our Jetty and the system one.
 ##
 
-## 1 - RHEL
+## 1 - RHEL
 %if 0%{?rhel} && 0%{?rhel} == 6
 BuildRequires: java7-devel
 %endif
@@ -100,7 +100,7 @@ Requires: jetty-server
 %endif
 
 ## 3 - SLES
-## No Jetty provided by SLES... Use our own.
+## No Jetty provided by SLES... Use our own.
 %if 0%{?sles_version}
 BuildRequires: jdk >= 1.7
 Requires: rudder-jetty = %{real_version}

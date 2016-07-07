@@ -23,7 +23,7 @@ case "$1" in
     remove|upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
     ;;
     purge)
-        # Clean up all logrotate leftovers
+        # Clean up all logrotate leftovers
         rm -rf /etc/logrotate.d/rudder*
     ;;
     *)

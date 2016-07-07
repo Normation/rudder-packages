@@ -114,13 +114,13 @@ Requires: rudder-techniques = %{real_version}, ncf, ncf-api-virtualenv, %{apache
 # We need the PostgreSQL client utilities so that we can run database checks and upgrades (rudder-upgrade, in particular)
 Requires: postgresql >= 8.4
 
-# OS-specific dependencies
+# OS-specific dependencies
 
 ##
 ## Those jetty packages are virtual packages provided by our Jetty and the system one.
 ##
 
-## 1 - RHEL
+## 1 - RHEL
 %if 0%{?rhel} && 0%{?rhel} == 6
 BuildRequires: java7-devel selinux-policy
 %endif
@@ -141,7 +141,7 @@ Requires: jetty-server
 %endif
 
 ## 3 - SLES
-## No Jetty provided by SLES... Use our own.
+## No Jetty provided by SLES... Use our own.
 %if 0%{?sles_version}
 BuildRequires: jdk >= 1.7
 Requires: rudder-jetty = %{real_version}
@@ -369,15 +369,15 @@ fi
 %if 0%{?sles_version}
 if ! grep -qE "^. /etc/sysconfig/rudder-apache$" /etc/sysconfig/apache2
 then
-	echo -e '# This sources the modules/defines needed by Rudder\n. /etc/sysconfig/rudder-apache' >> /etc/sysconfig/apache2
+	echo -e '# This sources the modules/defines needed by Rudder\n. /etc/sysconfig/rudder-apache' >> /etc/sysconfig/apache2
 fi
 %endif
 
-# Update /etc/sysconfig/apache2 in case an old module loading entry has already been created by Rudder
+# Update /etc/sysconfig/apache2 in case an old module loading entry has already been created by Rudder
 if [ -f /etc/sysconfig/apache2 ] && grep -q 'APACHE_MODULES="${APACHE_MODULES} rewrite dav dav_fs proxy proxy_http' /etc/sysconfig/apache2
 then
 	echo "INFO: Upgrading the /etc/sysconfig/apache2 file, Rudder needed modules for Apache are now listed in /etc/sysconfig/rudder-apache"
-	sed -i 's%APACHE_MODULES="${APACHE_MODULES} rewrite dav dav_fs proxy proxy_http.*%# This sources the Rudder needed by Rudder\n. /etc/sysconfig/rudder-apache%' /etc/sysconfig/apache2
+	sed -i 's%APACHE_MODULES="${APACHE_MODULES} rewrite dav dav_fs proxy proxy_http.*%# This sources the Rudder needed by Rudder\n. /etc/sysconfig/rudder-apache%' /etc/sysconfig/apache2
 fi
 
 # Add right to apache user to access /var/rudder/inventories/incoming
@@ -392,7 +392,7 @@ chmod 655 -R %{rudderdir}/share/load-page
 %{htpasswd_cmd} -bc %{rudderdir}/etc/htpasswd-webdav-initial rudder rudder  >/dev/null 2>&1
 %{htpasswd_cmd} -bc %{rudderdir}/etc/htpasswd-webdav rudder rudder  >/dev/null 2>&1
 
-# If the current Rudder HTTPd configuration uses /var/log/rudder/httpd, change it
+# If the current Rudder HTTPd configuration uses /var/log/rudder/httpd, change it
 for i in /etc/%{apache_vhost_dir}/rudder-*.conf
 do
 	if grep -q /var/log/rudder/httpd "${i}"; then
@@ -402,7 +402,7 @@ do
 	fi
 done
 
-# If this machine has old logging entries on RHEL, migrate them.
+# If this machine has old logging entries on RHEL, migrate them.
 if [ -d %{rudderlogdir}/httpd ]; then
 	echo -n "INFO: Old logging directory detected (%{rudderlogdir}/httpd), migrating to %{rudderlogdir}/apache2..."
 	mkdir -p %{rudderlogdir}/apache2
@@ -421,7 +421,7 @@ for OLD_VHOST in rudder-default rudder-default-ssl rudder-default.conf rudder-de
 	fi
 done
 
-# Generate the SSL certificates if needed
+# Generate the SSL certificates if needed
 if [ ! -f /opt/rudder/etc/ssl/rudder-webapp.crt ] || [ ! -f /opt/rudder/etc/ssl/rudder-webapp.key ]; then
 	echo -n "INFO: No usable SSL certificate detected for Rudder HTTP/S support, generating one automatically..."
 	openssl req -new -x509 -newkey rsa:2048 -subj "/CN=$(hostname --fqdn)/emailAddress=root@$(hostname --fqdn)/" -keyout /opt/rudder/etc/ssl/rudder-webapp.key -out /opt/rudder/etc/ssl/rudder-webapp.crt -days 1460 -nodes -sha256 >/dev/null 2>&1
@@ -483,7 +483,7 @@ if [ ! -d /var/rudder/configuration-repository/.git ]; then
 
   git init --shared=group
 
-  # Specify default git user name and email (git will refuse to commit without them)
+  # Specify default git user name and email (git will refuse to commit without them)
   git config user.name "root user (CLI)"
   git config user.email "root@localhost"
 
@@ -491,8 +491,8 @@ if [ ! -d /var/rudder/configuration-repository/.git ]; then
   git commit -q -m "initial commit"
 else
 
-  # This should have been set during repository initialization, but might need to be
-  # added if we are upgrading an existing repository
+  # This should have been set during repository initialization, but might need to be
+  # added if we are upgrading an existing repository
   if [ $(git config --get-regexp "user.name|user.email"|wc -l) -ne 2 ]; then
     git config user.name "root user (CLI)"
     git config user.email "root@localhost"
@@ -505,7 +505,7 @@ else
 
 fi
 
-# Adjust permissions on /var/rudder/configuration-repository
+# Adjust permissions on /var/rudder/configuration-repository
 chgrp -R %{config_repository_group} /var/rudder/configuration-repository
 
 ## Add execution permission for ncf-api only on directories and files with user execution permission
@@ -540,7 +540,7 @@ echo "**************************************************************************
 # Do it only during uninstallation
 if [ $1 -eq 0 ]; then
   if getent group %{config_repository_group} > /dev/null; then
-    # Remove the configuration-repository group
+    # Remove the configuration-repository group
     echo -n "INFO: Removing group %{config_repository_group}..."
     groupdel %{config_repository_group}
     echo " Done"
@@ -549,7 +549,7 @@ if [ $1 -eq 0 ]; then
 %if 0%{?sles_version}
   # Remove required includes in the SLES apache2 configuration
   if [ -f /etc/sysconfig/apache2 ]; then
-    sed -i "/# This sources the modules\/defines needed by Rudder/d" /etc/sysconfig/apache2
+    sed -i "/# This sources the modules\/defines needed by Rudder/d" /etc/sysconfig/apache2
     sed -i "/. \/etc\/sysconfig\/rudder-apache/d" /etc/sysconfig/apache2
 
     # Also remove an older comment that was erroneously added until 2.11.21 / 3.0.16 / 3.1.10 / 3.2.3

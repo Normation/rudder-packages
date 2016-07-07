@@ -45,7 +45,7 @@ usage() {
 
 RELAY_UUID=$1
 
-# Check arguments
+# Check arguments
 if [ "${RELAY_UUID}" = "" ]; then
 	${ECHO} "ERROR: Need the UUID of the Relay server as an argument, aborting."
 	usage
