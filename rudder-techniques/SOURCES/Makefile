@@ -31,7 +31,7 @@ localdepends: ./rudder-sources
 	tar -xjf rudder-sources.tar.bz2
 	mv rudder-sources-*/ rudder-sources/
 	# Remove tests folders we don't want to package
-	find rudder-sources/rudder-techniques -name "tests" -type d | xargs rm -r
+	find rudder-sources/rudder-techniques -name "tests" -type d | xargs -r rm -r
 
 localclean:
 	rm -rf ./rudder-sources
