@@ -1,0 +1,57 @@
+commit 21222256bcb839dc5413bda78ea3d62a2524b6ca
+Author: Nick Anderson <nick@cmdln.org>
+Date:   Mon Jun 2 15:32:05 2014 -0500
+
+    Add test for failed_returncodes
+    
+    When kept_returncodes or repaired_returncodes are specified
+    failed_returncode is not defaulted properly.
+    
+    (cherry picked from commit 196fa94ae1cf10d3383b11af9e7f4c3405bc8120)
+
+diff --git a/tests/acceptance/08_commands/staging/default_failed_returncodes.cf b/tests/acceptance/08_commands/staging/default_failed_returncodes.cf
+new file mode 100644
+index 0000000..4b43f90
+--- /dev/null
++++ b/tests/acceptance/08_commands/staging/default_failed_returncodes.cf
+@@ -0,0 +1,40 @@
++body common control
++{
++  inputs => { "../default.cf.sub" };
++  bundlesequence => { default("$(this.promise_filename)") };
++}
++
++bundle agent test
++{
++  commands:
++
++    "/bin/false"
++      classes => scoped_classes_generic("namespace", "default"),
++      comment => "Test that by default non zero commands return promise failure";
++
++    "/bin/false"
++      classes => scoped_classes_generic_kept_0("namespace", "specify_kept"),
++      comment => "Test that when specifying kept returncodes that failures are still registered";
++}
++
++bundle agent check
++{
++  methods:
++    "report"
++      usebundle => dcs_passif_expected("default_not_kept,specify_kept_not_kept", "", "$(this.promise_filename)")
++      inherit => "true";
++}
++
++body classes scoped_classes_generic_kept_0(scope, x)
++{
++      scope => "$(scope)";
++      promise_repaired => { "promise_repaired_$(x)", "$(x)_repaired", "$(x)_ok", "$(x)_reached" };
++      repair_failed => { "repair_failed_$(x)", "$(x)_failed", "$(x)_not_ok", "$(x)_not_kept", "$(x)_not_repaired", "$(x)_reached" };
++      repair_denied => { "repair_denied_$(x)", "$(x)_denied", "$(x)_not_ok", "$(x)_not_kept", "$(x)_not_repaired", "$(x)_reached" };
++      repair_timeout => { "repair_timeout_$(x)", "$(x)_timeout", "$(x)_not_ok", "$(x)_not_kept", "$(x)_not_repaired", "$(x)_reached" };
++      promise_kept => { "promise_kept_$(x)", "$(x)_kept", "$(x)_ok", "$(x)_not_repaired", "$(x)_reached" };
++      kept_returncodes => { "0" };
++      #repaired_returncodes => { "2" };
++      #failed_returncodes => { "1" };
++}
++

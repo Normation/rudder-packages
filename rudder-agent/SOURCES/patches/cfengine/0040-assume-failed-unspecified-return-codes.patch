@@ -1,0 +1,65 @@
+commit 7d30292fe27cca8b1ee653ffec31b3c7485fa1d7
+Author: Ted Zlatanov <tzz@lifelogs.com>
+Date:   Mon Jun 2 17:42:43 2014 -0400
+
+    Redmine#5986: fix to assume all non-specified return codes are failed
+    
+    (cherry picked from commit 4e58ff2575b51a42829c469a1d4367aabe99a012)
+
+diff --git a/cf-agent/retcode.c b/cf-agent/retcode.c
+index 1bee6e6..9357910 100644
+--- a/cf-agent/retcode.c
++++ b/cf-agent/retcode.c
+@@ -69,9 +69,11 @@ int VerifyCommandRetcode(EvalContext *ctx, int retcode, Attributes a, const Prom
+ 
+         if (!matched)
+         {
+-            Log(LOG_LEVEL_VERBOSE,
+-                "Command related to promiser '%s' returned code %d -- did not match any failed, repaired or kept lists",
+-                  pp->promiser, retcode);
++            cfPS(ctx, LOG_LEVEL_INFO, PROMISE_RESULT_FAIL, pp, a,
++                 "Command related to promiser '%s' returned code not defined as promise kept, not kept or repaired; setting to failed: %d",
++                 pp->promiser, retcode);
++            *result = PromiseResultUpdate(*result, PROMISE_RESULT_FAIL);
++            result_retcode = false;
+         }
+ 
+     }
+diff --git a/tests/acceptance/00_basics/03_bodies/119.cf b/tests/acceptance/00_basics/03_bodies/119.cf
+index df85f88..4f6ee3d 100644
+--- a/tests/acceptance/00_basics/03_bodies/119.cf
++++ b/tests/acceptance/00_basics/03_bodies/119.cf
+@@ -87,12 +87,12 @@ bundle agent check
+   vars:
+       "expect[promise_kept]" string        => "";
+       "expect[promise_repaired]" string        => "";
+-      "expect[repair_failed]" string        => "";
++      "expect[repair_failed]" string        => "ON";
+       "expect[repair_denied]" string        => "";
+       "expect[repair_timeout]" string        => "";
+       "expect[cancel_kept]" string        => "ON";
+       "expect[cancel_repaired]" string        => "ON";
+-      "expect[cancel_notkept]" string        => "ON";
++      "expect[cancel_notkept]" string        => "";
+ 
+       # Everything from here down is "boilerplate" to these 1xx.cf tests
+       "lookfor" slist => {
+diff --git a/tests/acceptance/00_basics/03_bodies/121.cf b/tests/acceptance/00_basics/03_bodies/121.cf
+index 25b365c..0e74333 100644
+--- a/tests/acceptance/00_basics/03_bodies/121.cf
++++ b/tests/acceptance/00_basics/03_bodies/121.cf
+@@ -87,12 +87,12 @@ bundle agent check
+   vars:
+       "expect[promise_kept]" string        => "";
+       "expect[promise_repaired]" string        => "";
+-      "expect[repair_failed]" string        => "";
++      "expect[repair_failed]" string        => "ON";
+       "expect[repair_denied]" string        => "";
+       "expect[repair_timeout]" string        => "";
+       "expect[cancel_kept]" string        => "ON";
+       "expect[cancel_repaired]" string        => "ON";
+-      "expect[cancel_notkept]" string        => "ON";
++      "expect[cancel_notkept]" string        => "";
+ 
+       # Everything from here down is "boilerplate" to these 1xx.cf tests
+       "lookfor" slist => {
