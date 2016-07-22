@@ -33,7 +33,6 @@ PCRE_RELEASE = 8.38
 RUDDER_DIR = /opt/rudder
 DESTDIR = $(CURDIR)/target
 INSTALL_DIR = $(DESTDIR)$(RUDDER_DIR)
-TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX)
 
 TRY_LDFLAGS=-pie -Wl,-z,relro -Wl,-z,now
 TRY_CFLAGS=-fPIE -fstack-protector
@@ -115,7 +114,6 @@ endif
 # download dependencies
 depend: localdepends
 localdepends: initial-promises rudder-agent-utilities perl-$(PERL_VERSION) fusioninventory-agent cfengine-source openssl-source lmdb-source pcre-source rudder-agent.cron ./rudder.8.gz
-	rm -rf $(TMP_DIR)
 
 # build binaries
 build: build-cfengine
@@ -203,7 +201,6 @@ localclean:
 	[ -d lmdb-source ] && cd lmdb-source && $(MAKE) clean 2>/dev/null || true
 	[ -d openssl-source ] && cd openssl-source && $(MAKE) clean 2>/dev/null || true
 	[ -d perl-$(PERL_VERSION) ] && cd perl-$(PERL_VERSION) && $(MAKE) distclean 2>/dev/null || true
-	rm -rf ./$(TMP_DIR)
 
 # standard name is mrproper
 mrproper: veryclean
@@ -212,7 +209,6 @@ veryclean:
 	rm -f ./rudder-sources.tar.bz2
 	rm -rf initial-promises rudder-agent-utilities fusioninventory-agent
 	rm -rf cfengine-source lmdb-source openssl-source perl-$(PERL_VERSION)
-	rm -rf ./$(TMP_DIR)
 
 ##########################################
 # Dependencies separated into components #
@@ -220,11 +216,13 @@ veryclean:
 
 cfengine-source:
 ifeq ($(shell ../../build-caching get --force-config ./cfengine-source/ name=cfengine-src version=$(CFENGINE_RELEASE) >/dev/null 2>&1 || echo KO), KO)
+	$(eval TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX))
 	# Original URL: https://cfengine-package-repos.s3.amazonaws.com/tarballs/cfengine-$(CFENGINE_RELEASE).tar.gz
 	$(GET) $(TMP_DIR)/cfengine.tgz http://www.normation.com/tarball/cfengine/cfengine-$(CFENGINE_RELEASE).tar.gz
 	gunzip < $(TMP_DIR)/cfengine.tgz | $(TAR) xf -
 	mv ./cfengine-$(CFENGINE_RELEASE) ./cfengine-source
 	../../build-caching put --force-config ./cfengine-source/ name=cfengine-src version=$(CFENGINE_RELEASE)
+	rm -rf $(TMP_DIR)
 endif
 
 	# Apply patches
@@ -234,20 +232,24 @@ endif
 
 openssl-source:
 ifeq ($(shell ../../build-caching get --force-config ./openssl-source/ name=openssl-src version=$(OPENSSL_RELEASE) >/dev/null 2>&1 || echo KO), KO)
+	$(eval TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX))
 	# Original URL: https://www.openssl.org/source/openssl-$(OPENSSL_RELEASE).tar.gz
 	$(GET) $(TMP_DIR)/openssl.tgz http://www.normation.com/tarball/openssl/openssl-$(OPENSSL_RELEASE).tar.gz
 	gunzip < $(TMP_DIR)/openssl.tgz | $(TAR) xf -
 	mv ./openssl-$(OPENSSL_RELEASE) ./openssl-source
 	../../build-caching put --force-config ./openssl-source/ name=openssl-src version=$(OPENSSL_RELEASE)
+	rm -rf $(TMP_DIR)
 endif
 
 lmdb-source:
 ifeq ($(shell ../../build-caching get --force-config ./lmdb-source/ name=lmdb-src version=$(LMDB_RELEASE) >/dev/null 2>&1 || echo KO), KO)
+	$(eval TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX))
 	# Original URL: http://ftp.fr.debian.org/debian/pool/main/l/lmdb/lmdb_$(LMDB_RELEASE).orig.tar.xz
 	$(GET) $(TMP_DIR)/lmdb.tgz http://www.normation.com/tarball/lmdb/lmdb-$(LMDB_RELEASE).tar.gz
 	gunzip < $(TMP_DIR)/lmdb.tgz | $(TAR) xf -
 	mv ./lmdb-LMDB_$(LMDB_RELEASE) ./lmdb-source
 	../../build-caching put --force-config ./lmdb-source/ name=lmdb-src version=$(LMDB_RELEASE)
+	rm -rf $(TMP_DIR)
 endif
 
 pcre-source:
@@ -282,11 +284,13 @@ rudder-agent-utilities: rudder-sources
 
 fusioninventory-agent:
 ifeq ($(shell ../../build-caching get --force-config ./fusioninventory-agent/ name=fusioninventory-agent version=$(FUSION_RELEASE) >/dev/null 2>&1 || echo KO), KO)
+	$(eval TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX))
 	#Original URL: http://search.cpan.org/CPAN/authors/id/G/GR/GROUSSE/FusionInventory-Agent-$(FUSION_RELEASE).tar.gz
 	$(GET) $(TMP_DIR)/fusion.tgz http://www.normation.com/tarball/FusionInventory-Agent-$(FUSION_RELEASE).tar.gz
 	gunzip < $(TMP_DIR)/fusion.tgz | $(TAR) xf -
 	mv ./FusionInventory-Agent-$(FUSION_RELEASE) ./fusioninventory-agent
 	../../build-caching put --force-config ./fusioninventory-agent/ name=fusioninventory-agent version=$(FUSION_RELEASE)
+	rm -rf $(TMP_DIR)
 endif
 
 	# Apply patches
@@ -302,6 +306,7 @@ perl_source=002
 perl-source: perl-$(PERL_VERSION)
 perl-$(PERL_VERSION):
 ifeq ($(shell ../../build-caching get --force-config ./perl-$(PERL_VERSION)/ name=perl-source versions=$(perl_source) >/dev/null 2>&1 || echo KO), KO)
+	$(eval TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX))
 	# Original URL: http://www.cpan.org/src/5.0/perl-5.22.0.tar.gz
 	$(GET) $(TMP_DIR)/perl.tar.gz http://www.normation.com/tarball/perl/perl-$(PERL_VERSION).tar.gz
 	gunzip < $(TMP_DIR)/perl.tar.gz | $(TAR) xf -
@@ -312,15 +317,18 @@ ifeq ($(shell ../../build-caching get --force-config ./perl-$(PERL_VERSION)/ nam
 	# cpanminus+curl have a bug on rhel3+64bits, this is the workaround, see http://www.rudder-project.org/redmine/issues/8533
 	sed -i -e "s/'-#',//" ./perl-$(PERL_VERSION)/App-cpanminus/bin/cpanm
 	../../build-caching put --force-config ./perl-$(PERL_VERSION)/ name=perl-source versions=$(perl_source)
+	rm -rf $(TMP_DIR)
 endif
 
 cpan-source: perl-$(PERL_VERSION)/App-cpanminus
 perl-$(PERL_VERSION)/App-cpanminus:
 	mkdir -p ./perl-$(PERL_VERSION)
+	$(eval TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX))
 	# Original URL: http://www.cpan.org/modules/by-module/App/App-cpanminus-1.7036.tar.gz
 	$(GET) $(TMP_DIR)/App-cpanminus.tar.gz http://www.normation.com/tarball/cpan/App-cpanminus-1.7036.tar.gz
 	cd perl-$(PERL_VERSION) && gunzip < $(TMP_DIR)/App-cpanminus.tar.gz | $(TAR) xf -
 	mv ./perl-$(PERL_VERSION)/App-cpanminus-1.7036 ./perl-$(PERL_VERSION)/App-cpanminus
+	rm -rf $(TMP_DIR)
 
 rudder-agent.cron: rudder-sources
 	cp ./rudder-sources/rudder-techniques/techniques/system/common/1.0/rudder_agent_community_cron.st ./rudder-agent.cron
@@ -340,6 +348,7 @@ build-ssl: openssl-source
 	# install to a temporary location is needed to build cfengine
 	cd openssl-source && $(MAKE) install INSTALL_PREFIX=$(CURDIR)/build-ssl
 
+<<<<<<< HEAD
 build-lmdb: lmdb-source
 	cd lmdb-source/libraries/liblmdb && $(MAKE)
 	# need a temporary install for cfengine
@@ -527,5 +536,25 @@ endif
 	chown root $(DESTDIR)/opt/rudder/share/fusioninventory/html
 	chown root $(DESTDIR)/opt/rudder/etc/fusioninventory
 	cp -r fusioninventory-agent/lib/FusionInventory $(INSTALL_DIR)/lib/perl5/
+=======
+localclean:
+	rm -rf ./cfengine-source
+	rm -rf ./lmdb-source
+	rm -rf ./initial-promises
+	rm -rf ./rudder-agent-utilities
+	rm -rf ./detect_os.sh
+	rm -f ../debian/rudder-agent.init
+	rm -f ../debian/rudder-agent.default
+	rm -f ../debian/rudder.init
+	rm -rf ./fusioninventory-agent
+	rm -rf ./tmp
+	rm -rf ./perl-custom
+	rm -rf ./files
+	rm -rf ./rudder-sources
+	rm -f ./rudder-agent.cron ../debian/rudder-agent.cron.d
+
+veryclean:
+	rm -f ./rudder-sources.tar.bz2
+>>>>>>> branches/rudder/3.2
 
 .PHONY: localclean localdepends veryclean depend build install clean mrproper install-ssl install-lmdb install-cfengine install-perl install-fusion get-flags
