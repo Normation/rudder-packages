@@ -26,7 +26,6 @@ FUSION_RELEASE = 2.3.6
 LMDB_RELEASE = 0.9.11
 OPENSSL_RELEASE = 1.0.2h
 
-TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX)
 WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget -q
 PATCH := /usr/bin/patch
 FIND := /usr/bin/find
@@ -36,11 +35,13 @@ localdepends: ./initial-promises ./rudder-agent-utilities ./rudder.8.gz ./detect
 
 ./cfengine-source: /usr/bin/wget
 ifeq ($(shell ../../build-caching get --force-config ./cfengine-source/ name=cfengine-src version=$(CFENGINE_RELEASE) >/dev/null 2>&1 || echo KO), KO)
+	$(eval TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX))
 	# Original URL: https://s3.amazonaws.com/cfengine.package-repos/tarballs/cfengine-$(CFENGINE_RELEASE).tar.gz
 	$(WGET) -O $(TMP_DIR)/cfengine.tgz http://www.normation.com/tarball/cfengine/cfengine-$(CFENGINE_RELEASE).tar.gz
 	tar xzf $(TMP_DIR)/cfengine.tgz -C $(TMP_DIR)
 	mv $(TMP_DIR)/cfengine-$(CFENGINE_RELEASE) ./cfengine-source
 	../../build-caching put --force-config ./cfengine-source/ name=cfengine-src version=$(CFENGINE_RELEASE)
+	rm -rf $(TMP_DIR)
 endif
 
 	# Apply patches
@@ -53,20 +54,24 @@ endif
 
 ./openssl-source: /usr/bin/wget
 ifeq ($(shell ../../build-caching get --force-config ./openssl-source/ name=openssl-src version=$(OPENSSL_RELEASE) >/dev/null 2>&1 || echo KO), KO)
+	$(eval TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX))
 	# Original URL: https://www.openssl.org/source/openssl-$(OPENSSL_RELEASE).tar.gz
 	$(WGET) -O $(TMP_DIR)/openssl.tgz http://www.normation.com/tarball/openssl/openssl-$(OPENSSL_RELEASE).tar.gz
 	tar xzf $(TMP_DIR)/openssl.tgz -C $(TMP_DIR)
 	mv $(TMP_DIR)/openssl-$(OPENSSL_RELEASE) ./openssl-source
 	../../build-caching put --force-config ./openssl-source/ name=openssl-src version=$(OPENSSL_RELEASE)
+	rm -rf $(TMP_DIR)
 endif
 
 ./lmdb-source: /usr/bin/wget
 ifeq ($(shell ../../build-caching get --force-config ./lmdb-source/ name=lmdb-src version=$(LMDB_RELEASE) >/dev/null 2>&1 || echo KO), KO)
+	$(eval TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX))
 	# Original URL: http://ftp.fr.debian.org/debian/pool/main/l/lmdb/lmdb_$(LMDB_RELEASE).orig.tar.xz
 	$(WGET) -O $(TMP_DIR)/lmdb.tgz http://www.normation.com/tarball/lmdb-$(LMDB_RELEASE).tar.gz
 	tar xzf $(TMP_DIR)/lmdb.tgz -C $(TMP_DIR)
 	mv $(TMP_DIR)/lmdb-$(LMDB_RELEASE) ./lmdb-source
 	../../build-caching put --force-config ./lmdb-source/ name=lmdb-src version=$(LMDB_RELEASE)
+	rm -rf $(TMP_DIR)
 endif
 
 ./rudder-sources.tar.bz2:
@@ -95,11 +100,13 @@ endif
 
 ./fusioninventory-agent: /usr/bin/wget
 ifeq ($(shell ../../build-caching get --force-config ./fusioninventory-agent/ name=fusioninventory-agent version=$(FUSION_RELEASE) >/dev/null 2>&1 || echo KO), KO)
+	$(eval TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX))
 	#Original URL: http://search.cpan.org/CPAN/authors/id/G/GR/GROUSSE/FusionInventory-Agent-$(FUSION_RELEASE).tar.gz
 	$(WGET) -O $(TMP_DIR)/fusion.tgz http://www.normation.com/tarball/FusionInventory-Agent-$(FUSION_RELEASE).tar.gz
 	tar zxf $(TMP_DIR)/fusion.tgz -C $(TMP_DIR)
 	mv $(TMP_DIR)/FusionInventory-Agent-$(FUSION_RELEASE) ./fusioninventory-agent
 	../../build-caching put --force-config ./fusioninventory-agent/ name=fusioninventory-agent version=$(FUSION_RELEASE)
+	rm -rf $(TMP_DIR)
 endif
 
 	# Apply patches
@@ -198,10 +205,8 @@ localclean:
 	rm -rf ./files
 	rm -rf ./rudder-sources
 	rm -f ./rudder-agent.cron ../debian/rudder-agent.cron.d
-	rm -rf ./$(TMP_DIR)
 
 veryclean:
 	rm -f ./rudder-sources.tar.bz2
-	rm -rf ./$(TMP_DIR)
 
 .PHONY: localclean localdepends veryclean
