@@ -32,7 +32,6 @@ PATCH := /usr/bin/patch
 FIND := /usr/bin/find
 
 localdepends: ./initial-promises ./rudder-agent-utilities ./rudder.8.gz ./detect_os.sh ./files ./fusioninventory-agent ./cfengine-source ./openssl-source ./lmdb-source ./pcre-source ../debian/rudder-agent.init ../debian/rudder.init ../debian/rudder-agent.default ./rudder-agent.cron ../debian/rudder-agent.cron.d
-	rm -rf $(TMP_DIR)
 
 ./cfengine-source: /usr/bin/wget
 ifeq ($(shell ../../build-caching get --force-config ./cfengine-source/ name=cfengine-src version=$(CFENGINE_RELEASE) >/dev/null 2>&1 || echo KO), KO)
@@ -74,11 +73,13 @@ endif
 
 ./pcre-source: /usr/bin/wget
 ifeq ($(shell ../../build-caching get --force-config ./pcre-source/ name=pcre-src version=$(PCRE_RELEASE) >/dev/null 2>&1 || echo KO), KO)
+	$(eval TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX))
 	# Original URL: http://vorboss.dl.sourceforge.net/project/pcre/pcre/8.38/pcre-8.38.tar.gz
 	$(WGET) -O $(TMP_DIR)/pcre.tgz http://www.normation.com/tarball/pcre/pcre-$(PCRE_RELEASE).tar.gz
 	tar xzf $(TMP_DIR)/pcre.tgz -C $(TMP_DIR)
 	mv $(TMP_DIR)/pcre-$(PCRE_RELEASE) ./pcre-source
 	../../build-caching put --force-config ./pcre-source/ name=pcre-src version=$(PCRE_RELEASE)
+	rm -rf $(TMP_DIR)
 endif
 
 ./rudder-sources.tar.bz2:
