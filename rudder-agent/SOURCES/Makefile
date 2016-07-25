@@ -254,11 +254,13 @@ endif
 
 pcre-source:
 ifeq ($(shell ../../build-caching get --force-config ./pcre-source/ name=pcre-src version=$(PCRE_RELEASE) >/dev/null 2>&1 || echo KO), KO)
+	$(eval TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX))
 	# Original URL: http://vorboss.dl.sourceforge.net/project/pcre/pcre/8.38/pcre-8.38.tar.gz
 	$(GET) $(TMP_DIR)/pcre.tgz http://www.normation.com/tarball/pcre/pcre-$(PCRE_RELEASE).tar.gz
 	gunzip < $(TMP_DIR)/pcre.tgz | $(TAR) xf -
 	mv ./pcre-$(PCRE_RELEASE) ./pcre-source
 	../../build-caching put --force-config ./pcre-source/ name=pcre-src version=$(PCRE_RELEASE)
+	rm -rf $(TMP_DIR)
 endif
 
 rudder-sources.tar.bz2:
@@ -348,7 +350,6 @@ build-ssl: openssl-source
 	# install to a temporary location is needed to build cfengine
 	cd openssl-source && $(MAKE) install INSTALL_PREFIX=$(CURDIR)/build-ssl
 
-<<<<<<< HEAD
 build-lmdb: lmdb-source
 	cd lmdb-source/libraries/liblmdb && $(MAKE)
 	# need a temporary install for cfengine
@@ -536,25 +537,5 @@ endif
 	chown root $(DESTDIR)/opt/rudder/share/fusioninventory/html
 	chown root $(DESTDIR)/opt/rudder/etc/fusioninventory
 	cp -r fusioninventory-agent/lib/FusionInventory $(INSTALL_DIR)/lib/perl5/
-=======
-localclean:
-	rm -rf ./cfengine-source
-	rm -rf ./lmdb-source
-	rm -rf ./initial-promises
-	rm -rf ./rudder-agent-utilities
-	rm -rf ./detect_os.sh
-	rm -f ../debian/rudder-agent.init
-	rm -f ../debian/rudder-agent.default
-	rm -f ../debian/rudder.init
-	rm -rf ./fusioninventory-agent
-	rm -rf ./tmp
-	rm -rf ./perl-custom
-	rm -rf ./files
-	rm -rf ./rudder-sources
-	rm -f ./rudder-agent.cron ../debian/rudder-agent.cron.d
-
-veryclean:
-	rm -f ./rudder-sources.tar.bz2
->>>>>>> branches/rudder/3.2
 
 .PHONY: localclean localdepends veryclean depend build install clean mrproper install-ssl install-lmdb install-cfengine install-perl install-fusion get-flags
