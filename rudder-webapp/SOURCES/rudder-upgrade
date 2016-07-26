@@ -51,6 +51,7 @@ trap anomaly_handler ERR INT TERM
 # - 2.11.6       : Remove LDAP indexes
 # - 2.11.6       : Add LDAP cache optimizations
 # - 2.11.19      : Add index on fileformat for eventlog
+# - 2.11.23      : Add 'api compatibility' property
 # - 3.0.0        : Add the nodeConfigId column in the ReportsExecution table and add the nodes_info table
 # - 3.0.0        : Add the rudder.jdbc.maxPoolSize property
 # - 3.0.0        : File Format migration from 5 to 6
@@ -582,6 +583,17 @@ EOF
   fi
 
   if [ ${LDAP_EXISTS} -ne 0 ]; then
+
+    # - 2.11.23: Add LDAP entry for 'api_compatibility_mode' property, and set 'true' as value, different from default value (false) on a fresh 3.1
+    STEP="Add LDAP entry for 'api_compatibility_mode' property"
+
+    LDAP_TEST_SYSLOG_PROPERTY=$(${LDAPSEARCH} -b "propertyName=api_compatibility_mode,ou=Application Properties,cn=rudder-configuration" -s base dn 2> /dev/null | grep -c "dn: propertyName=api_compatibility_mode" || true)
+    if [ ${LDAP_TEST_SYSLOG_PROPERTY} -eq 0 ]; then
+      echo -n "INFO: Adding 'api_compatibility_mode' property..."
+      ${LDAPADD} -f ${RUDDER_UPGRADE_TOOLS}/ldapMigration-2.11-2.11-add-api-compatibility-mode.ldif >/dev/null 2>&1
+      echo " Done."
+    fi
+
 
     # - 2.11.0: Add LDAP entries for Server Roles system Technique, Directive and Rule
     STEP="Add LDAP entries for Server Roles system Technique, Directive and Rule"
