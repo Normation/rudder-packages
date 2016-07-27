@@ -48,7 +48,7 @@ elif [ -f /etc/redhat-release ]; then
   # No Service Pack
   export OSSP=""
 elif [ -f /etc/debian_version ]; then
-  if [ -f /etc/lsb-release -a "z$(grep DISTRIB_ID /etc/lsb-release | cut -f2 -d '=' | sed 's/ //')" = "zUbuntu" ]; then
+  if [ -f /etc/lsb-release ] && [ "z$(grep DISTRIB_ID /etc/lsb-release | cut -f2 -d '=' | sed 's/ //')" = "zUbuntu" ]; then
     export OS="UBUNTU"
     # Ubuntu version is always formatted like X.Y
     export OSVERSION=$(cat /etc/lsb-release | grep DISTRIB_RELEASE | cut -f2 -d '=' | sed 's/ //')
