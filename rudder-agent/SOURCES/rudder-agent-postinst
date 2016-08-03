@@ -24,14 +24,6 @@ if [ -f /etc/ld.so.conf.d/rudder.conf ]; then
   ldconfig -v >> /var/log/rudder/install/rudder-agent.log 2>&1
 fi
 
-echo "Making sure that the permissions on the CFEngine key directory are correct..."
-if [ -d /var/rudder/cfengine-community/ppkeys ]; then
-  chmod 700 /var/rudder/cfengine-community/ppkeys
-  if [ `ls /var/rudder/cfengine-community/ppkeys | wc -l` -gt 0 ]; then
-    chmod 600 /var/rudder/cfengine-community/ppkeys/*
-  fi
-fi
-
 # Copy new binaries to workdir, make sure daemons are stopped first
 
 # Set a "lock" to avoid CFEngine being restarted during the upgrade process
