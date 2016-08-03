@@ -190,6 +190,7 @@ endif
 	$(INSTALL) -m 755 uuidgen $(INSTALL_DIR)/bin/
 
 	cp -r initial-promises/ $(INSTALL_DIR)/share/
+	cp -r initial-ncf/ $(INSTALL_DIR)/share/
 
 # clean 
 clean: localclean
@@ -207,7 +208,7 @@ mrproper: veryclean
 veryclean:
 	rm -f rudder-agent.cron
 	rm -f ./rudder-sources.tar.bz2
-	rm -rf initial-promises rudder-agent-utilities fusioninventory-agent
+	rm -rf initial-promises initial-ncf rudder-agent-utilities fusioninventory-agent
 	rm -rf cfengine-source lmdb-source openssl-source perl-$(PERL_VERSION)
 
 ##########################################
@@ -276,9 +277,15 @@ rudder.8.gz:
 	$(WGET) http://www.rudder-project.org/rudder-doc-${RUDDER_MAJOR_VERSION}/rudder.8
 	gzip -f rudder.8
 
-initial-promises: ./rudder-sources
+initial-promises: ./rudder-sources initial-ncf
 	rm -rf ./initial-promises/
 	cp -r ./rudder-sources/rudder-techniques/initial-promises/node-server/ ./initial-promises
+
+initial-ncf: ./rudder-sources
+	rm -rf ./initial-ncf
+	cp -r ./rudder-sources/ncf/tree ./initial-ncf
+	# retreive the rudder specific ncf.conf
+	cp ./initial-promises/node-server/distributePolicy/ncf/rudder-ncf-conf ./initial-ncf/ncf.conf
 
 rudder-agent-utilities: rudder-sources
 	rm -rf ./rudder-agent-utilities/

@@ -73,6 +73,8 @@ if [ ! -f /var/rudder/cfengine-community/inputs/promises.cf ] || ! /var/rudder/c
 then
   rm -rf /var/rudder/cfengine-community/inputs/* || true
   cp -r /opt/rudder/share/initial-promises/* /var/rudder/cfengine-community/inputs/
+  rm -rf /var/rudder/ncf/common/*
+  cp -r /opt/rudder/share/initial-ncf/* /var/rudder/ncf/common/
 fi
 
 # Restore rudder-server-roles.conf if necessary
