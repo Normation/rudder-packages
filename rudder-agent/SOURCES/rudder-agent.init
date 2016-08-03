@@ -49,6 +49,9 @@
 # Source environment variables from /etc/profile
 . /etc/profile
 
+# source library from rudder-agent commands
+. /opt/rudder/share/lib/common.sh
+
 # Array indexes
 CFEXECD=0
 CFSERVERD=1
@@ -62,25 +65,13 @@ CFENGINE_COMMUNITY_NAME_2="cf-monitord"
 #====================================================================
 # Script specific
 PROG_NAME=`basename $0 | sed 's/^[KS][0-9][0-9]//'` # For nice messages
-OS=`uname -s`   # To adapt message printing
 MYUID=`id | cut -d\( -f2 | cut -d\) -f1`
 MYGID=`id | cut -d\( -f3 | cut -d\) -f1`
 SYSLOG_FACILITY="local6"
-# Detect the correct ps tool to use
-ns=$(ps --no-header -o utsns --pid $$ 2>/dev/null || true)
-if [ -d "/proc/bc" ] && [ -e "/proc/bc/0" ]; then # we have openvz
-  if [ -e /bin/vzps ]; then # we have vzps
-    PS_COMMAND="/bin/vzps -E 0"
-  else # use rudder provided vzps
-    PS_COMMAND="/opt/rudder/bin/vzps.py -E 0"
-  fi
-elif [ -n "${ns}" ]; then # we have namespaces
-  # the sed is here to prepend a fake user field that is removed by the -o option (it is never used)
-  PS_COMMAND="eval ps --no-header -e -O utsns | grep -E '^[[:space:]]*[[:digit:]]*[[:space:]]+${ns}' | sed 's/^/user /'"
-else # standard unix
-  PS_COMMAND="ps -ef"
-fi
 
+# import PS_COMMAND and OS_NAME from common.sh
+init_commands
+# Detect the correct ps tool to use
 
 # CFEngine Community directory and files
 CFENGINE_COMMUNITY_VAR_PATH="/var/rudder/cfengine-community"
@@ -112,7 +103,7 @@ message() {
   # $1: syslog level
   # $2: message
 
-  if [ $OS = "Linux" ]
+  if [ $OS_FAMILY = "Linux" ]
   then
     logger -p "${SYSLOG_FACILITY}.$1" -s -t $PROG_NAME -i "$2"
   else
