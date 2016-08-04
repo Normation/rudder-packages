@@ -60,6 +60,16 @@ clean_cf_lock_files() {
   rm -f ${CFE_DIR}/state/cf_lock.${CFENGINE_DB_EXT}.lock
 }
 
+check_and_fix_cfengine_keys() {
+  # Making sure that the permissions on the CFEngine key directory are correct...
+  if [ -d ${CFE_DIR}/ppkeys ]; then
+    chmod 700 ${CFE_DIR}/ppkeys
+    if [ `ls ${CFE_DIR}/ppkeys | wc -l` -gt 0 ]; then
+      chmod 600 ${CFE_DIR}/ppkeys/*
+    fi
+  fi
+}
+
 check_and_fix_cfengine_processes() {
 
   # Detect the correct ps tool to use
@@ -267,6 +277,7 @@ then
   CFE_BIN_DIR="${CFE_DIR}/bin"
   LAST_UPDATE_FILE="${CFE_DIR}/last_successful_inputs_update"
   NEED_INIT_FILES="true"
+  check_and_fix_cfengine_keys
   check_and_fix_cfengine_processes
   check_and_fix_cf_lock
   check_and_fix_inputs
@@ -278,6 +289,7 @@ then
   CFE_DIR="${ENTERPRISE_CFE_DIR}"
   CFE_BIN_DIR="${CFE_DIR}/bin"
   LAST_UPDATE_FILE="${CFE_DIR}/last_successful_inputs_update"
+  check_and_fix_cfengine_keys
   check_and_fix_cfengine_processes
   check_and_fix_cf_lock
   check_and_fix_inputs
