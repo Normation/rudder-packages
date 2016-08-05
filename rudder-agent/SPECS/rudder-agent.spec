@@ -87,7 +87,7 @@ Patch1: fix-missing-headers
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 # Generic requirements
-BuildRequires: gcc bison flex pcre-devel autoconf automake libtool
+BuildRequires: gcc bison flex pcre-devel pam-devel autoconf automake libtool
 Requires: pcre
 Provides: rudder-agent
 Conflicts: rudder-agent-thin
