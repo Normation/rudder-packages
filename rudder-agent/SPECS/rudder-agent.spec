@@ -140,12 +140,13 @@ Requires: dmidecode
 %endif
 
 ## 3 - SLES: No LMDB yet
-%if 0%{?suse_version} && 0%{?suse_version} < 1315
+# Reference for suse_version : https://en.opensuse.org/openSUSE:Build_Service_cross_distribution_howto
+%if 0%{?suse_version} && 0%{?suse_version} < 1140
 Requires: pmtools
 %define use_system_lmdb false
 %endif
 
-%if 0%{?suse_version} && 0%{?suse_version} >= 1315
+%if 0%{?suse_version} && 0%{?suse_version} >= 1140
 Requires: dmidecode
 %define use_system_lmdb false
 %endif
