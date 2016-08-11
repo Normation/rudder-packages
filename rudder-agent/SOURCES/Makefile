@@ -281,7 +281,7 @@ initial-promises: ./rudder-sources initial-ncf
 	rm -rf ./initial-promises/
 	cp -r ./rudder-sources/rudder-techniques/initial-promises/node-server/ ./initial-promises
 
-initial-ncf: ./rudder-sources
+initial-ncf: ./rudder-sources ./initial-promises
 	rm -rf ./initial-ncf
 	cp -r ./rudder-sources/ncf/tree ./initial-ncf
 	# retreive the rudder specific ncf.conf
