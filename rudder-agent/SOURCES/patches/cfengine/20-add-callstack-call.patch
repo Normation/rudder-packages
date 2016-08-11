@@ -36,7 +36,7 @@ diff --git a/libpromises/cf3.defs.h b/libpromises/cf3.defs.h
 index 7f17c4a..8c9e382 100644
 --- a/libpromises/cf3.defs.h
 +++ b/libpromises/cf3.defs.h
-@@ -624,7 +624,8 @@ typedef enum
+@@ -625,7 +625,8 @@ typedef enum
      FNCALL_CATEGORY_IO,
      FNCALL_CATEGORY_COMM,
      FNCALL_CATEGORY_DATA,
@@ -180,7 +180,7 @@ index 348f348..9ede974 100644
  #include <promises.h>
  #include <dir.h>
  #include <dbm_api.h>
-@@ -7075,6 +7074,22 @@ void ModuleProtocol(EvalContext *ctx, ch
+@@ -7184,6 +7183,22 @@ void ModuleProtocol(EvalContext *ctx, ch
  }
  
  /*********************************************************************/
@@ -203,7 +203,7 @@ index 348f348..9ede974 100644
  /* Level                                                             */
  /*********************************************************************/
  
-@@ -7953,6 +7968,16 @@ static const FnCallArg STRING_MUSTACHE_A
+@@ -8062,6 +8077,16 @@ static const FnCallArg STRING_MUSTACHE_A
      {NULL, CF_DATA_TYPE_NONE, NULL}
  };
  
@@ -220,7 +220,7 @@ index 348f348..9ede974 100644
  /*********************************************************/
  /* FnCalls are rvalues in certain promise constraints    */
  /*********************************************************/
-@@ -8266,7 +8291,13 @@ const FnCallType CF_FNCALL_TYPES[] =
+@@ -8375,7 +8400,13 @@ const FnCallType CF_FNCALL_TYPES[] =
      FnCallTypeNew("variance", CF_DATA_TYPE_REAL, STAT_FOLD_ARGS, &FnCallFold, "Return the variance of a list",
                    FNCALL_OPTION_NONE, FNCALL_CATEGORY_DATA, SYNTAX_STATUS_NORMAL),
  
