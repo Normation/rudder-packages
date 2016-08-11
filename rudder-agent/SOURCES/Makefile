@@ -340,7 +340,7 @@ perl-$(PERL_VERSION)/App-cpanminus:
 	rm -rf $(TMP_DIR)
 
 rudder-agent.cron: rudder-sources
-	cp ./rudder-sources/rudder-techniques/techniques/system/common/1.0/rudder_agent_community_cron.st ./rudder-agent.cron
+	cp ./rudder-sources/rudder-techniques/techniques/system/common/1.0/rudder-agent-community-cron ./rudder-agent.cron
 	# Set unexpanded variables of the cron file
 	$(SED) 's@\$${sys.workdir}@/var/rudder/cfengine-community@g' rudder-agent.cron | $(SED) 's@\$${g.rudder_base}@/opt/rudder@g' | $(SED) 's@\\&\\&@\&\&@g' | $(SED) 's@\\&1@\&1@g' > rudder-agent.cron.new
 	mv rudder-agent.cron.new rudder-agent.cron
