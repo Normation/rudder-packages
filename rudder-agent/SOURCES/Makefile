@@ -113,13 +113,13 @@ endif
 
 # download dependencies
 depend: localdepends
-localdepends: initial-promises rudder-agent-utilities perl-$(PERL_VERSION) fusioninventory-agent cfengine-source openssl-source lmdb-source pcre-source rudder-agent.cron ./rudder.8.gz
+localdepends: initial-promises initial-ncf rudder-agent-utilities perl-$(PERL_VERSION) fusioninventory-agent cfengine-source openssl-source lmdb-source pcre-source rudder-agent.cron ./rudder.8.gz
 
 # build binaries
 build: build-cfengine
 
 # install to DESTDIR
-install: build $(INSTALL_DEPS) install-cfengine initial-promises rudder-agent-utilities rudder-agent.cron
+install: build $(INSTALL_DEPS) install-cfengine initial-promises initial-ncf rudder-agent-utilities rudder-agent.cron
 	# Directories
 	mkdir -p $(INSTALL_DIR)/etc
 	mkdir -p $(INSTALL_DIR)/bin
@@ -277,7 +277,7 @@ rudder.8.gz:
 	$(WGET) http://www.rudder-project.org/rudder-doc-${RUDDER_MAJOR_VERSION}/rudder.8
 	gzip -f rudder.8
 
-initial-promises: ./rudder-sources initial-ncf
+initial-promises: ./rudder-sources
 	rm -rf ./initial-promises/
 	cp -r ./rudder-sources/rudder-techniques/initial-promises/node-server/ ./initial-promises
 
