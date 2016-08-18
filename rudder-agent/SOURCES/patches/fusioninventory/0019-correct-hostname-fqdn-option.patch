@@ -1,0 +1,12 @@
+diff -upr fusioninventory-agent-b/lib/FusionInventory/Agent/Task/Inventory/Generic/Rudder.pm fusioninventory-agent/lib/FusionInventory/Agent/Task/Inventory/Generic/Rudder.pm
+--- fusioninventory-agent-b/lib/FusionInventory/Agent/Task/Inventory/Generic/Rudder.pm	2016-06-07 14:27:15.947453556 +0200
++++ fusioninventory-agent/lib/FusionInventory/Agent/Task/Inventory/Generic/Rudder.pm	2016-06-07 14:27:37.198724339 +0200
+@@ -26,7 +26,7 @@ sub doInventory {
+         logger => $logger, command => 'ls /var/rudder'
+     );
+     # get machine hostname
+-    my $command = $OSNAME eq 'linux' ? 'hostname --fqd' : 'hostname';
++    my $command = $OSNAME eq 'linux' ? 'hostname --fqdn' : 'hostname';
+     my $hostname = getFirstLine(
+         logger => $logger, command => $command
+     );

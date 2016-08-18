@@ -15,7 +15,7 @@
              USER          => $user,
              PID           => $pid,
 @@ -316,6 +323,13 @@
-         my $start = $7;
+         my $etime = $7;
          my $cmd   = $8;
  
 +        # Rudder #4314/Alex Tkatchenko: Workaround for a CFEngine bug that truncates
