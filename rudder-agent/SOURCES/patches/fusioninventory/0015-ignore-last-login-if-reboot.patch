@@ -1,7 +1,7 @@
 diff -upr fusioninventory-agent/lib/FusionInventory/Agent/Task/Inventory/Generic/Users.pm fusioninventory-agent-b/lib/FusionInventory/Agent/Task/Inventory/Generic/Users.pm
 --- fusioninventory-agent/lib/FusionInventory/Agent/Task/Inventory/Generic/Users.pm	2014-03-10 12:34:32.000000000 +0100
 +++ fusioninventory-agent-b/lib/FusionInventory/Agent/Task/Inventory/Generic/Users.pm	2016-05-09 15:34:36.706050533 +0200
-@@ -150,15 +150,25 @@ sub _getLastUser {
+@@ -151,15 +151,25 @@ sub _getLastUser {
          @_
      );
  
