@@ -99,7 +99,8 @@ AutoProv: 0
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 # Generic requirements
-BuildRequires: gcc bison flex pam-devel autoconf automake libtool
+BuildRequires: gcc bison flex autoconf automake libtool
+Requires: pcre
 Provides: rudder-agent
 %if "%{real_name}" == "rudder-agent"
 Conflicts: rudder-agent-thin
@@ -111,6 +112,11 @@ Conflicts: rudder-agent
 
 %if "%{use_system_fusion}" == "true"
 Requires: fusioninventory-agent fusioninventory-agent-task-inventory
+%endif
+
+## For Linux
+%if "%{?_os}" != "aix"
+BuildRequires: pam-devel
 %endif
 
 ## For EL and Fedora
