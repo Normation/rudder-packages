@@ -34,6 +34,8 @@ localdepends: ./rudder-sources ./rudder.conf
 	sed 's@\$${install_rsyslogd.rsyslog_port\[2\]}@514@' -i rudder.conf
 	sed 's@\$${install_rsyslogd.rudder_postgres_server}@localhost@' -i rudder.conf
 	sed 's@\$$(p.psql_password\[2\])@Normation@' -i rudder.conf
+	sed 's@\$${install_rsyslogd.rudder_reports_db_name}@rudder@' -i rudder.conf
+	sed 's@\$${install_rsyslogd.rudder_reports_db_user}@rudder@' -i rudder.conf
 
 localclean:
 	rm -rf ./rudder-sources
