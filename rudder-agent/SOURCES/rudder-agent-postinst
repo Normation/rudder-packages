@@ -5,7 +5,7 @@ CFRUDDER_FIRST_INSTALL="$1"
 CFE_DIR="/var/rudder/cfengine-community"
 RUDDER_CMD="/opt/rudder/bin/rudder"
 
-if [ -z "$3" ]
+if [ -z "$1" ]
 then
   echo "Usage: $0 <CFRUDDER_FIRST_INSTALL>"
   echo " This should only be called from a package postinstall command"
