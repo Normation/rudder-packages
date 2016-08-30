@@ -20,7 +20,7 @@
 
 RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
 
-localdepends: ./rudder-sources ./rudder.conf
+localdepends: ./rudder-sources
 
 ./rudder-sources.tar.bz2:
 	$(WGET) -O rudder-sources.tar.bz2 http://www.rudder-project.org/archives/rudder-sources-${RUDDER_VERSION_TO_PACKAGE}.tar.bz2
@@ -29,17 +29,8 @@ localdepends: ./rudder-sources ./rudder.conf
 	tar -xjf rudder-sources.tar.bz2
 	mv rudder-sources-*/ rudder-sources/
 
-./rudder.conf: ./rudder-sources
-	cp rudder-sources/rudder-techniques/initial-promises/node-server/distributePolicy/rsyslog.conf/rudder.conf rudder.conf
-	sed 's@\$${install_rsyslogd.rsyslog_port\[2\]}@514@' -i rudder.conf
-	sed 's@\$${install_rsyslogd.rudder_postgres_server}@localhost@' -i rudder.conf
-	sed 's@\$$(p.psql_password\[2\])@Normation@' -i rudder.conf
-	sed 's@\$${install_rsyslogd.rudder_reports_db_name}@rudder@' -i rudder.conf
-	sed 's@\$${install_rsyslogd.rudder_reports_db_user}@rudder@' -i rudder.conf
-
 localclean:
 	rm -rf ./rudder-sources
-	rm -f ./rudder.conf
 
 veryclean:
 	rm -f ./rudder-sources.tar.bz2
