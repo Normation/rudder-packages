@@ -28,6 +28,8 @@
 # Variables
 #=================================================
 %define real_name        rudder-techniques
+%define real_epoch       0
+
 %define rudderdir        /opt/rudder
 
 #=================================================
@@ -37,7 +39,7 @@ Summary: Configuration management and audit tool - techniques
 Name: %{real_name}
 Version: %{real_version}
 Release: 1%{?dist}
-Epoch: 0
+Epoch: %{real_epoch}
 License: GPLv3
 URL: http://www.rudder-project.org
 

@@ -28,6 +28,7 @@
 # Variables
 #=================================================
 %define real_name               rudder-webapp
+%define real_epoch              0
 
 %define rudderdir               /opt/rudder
 %define ruddervardir            /var/rudder
@@ -76,7 +77,7 @@ Summary: Configuration management and audit tool - webapp
 Name: %{real_name}
 Version: %{real_version}
 Release: 1%{?dist}
-Epoch: 0
+Epoch: %{real_epoch}
 License: GPLv3
 URL: http://www.rudder-project.org
 
@@ -109,7 +110,7 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
 
 # Dependencies
-Requires: rudder-techniques = %{real_version}, ncf, ncf-api-virtualenv, %{apache}, %{apache_tools}, git-core, rsync, openssl, %{ldap_clients}
+Requires: rudder-techniques = %{real_epoch}:%{real_version}, ncf, ncf-api-virtualenv, %{apache}, %{apache_tools}, git-core, rsync, openssl, %{ldap_clients}
 
 # We need the PostgreSQL client utilities so that we can run database checks and upgrades (rudder-upgrade, in particular)
 Requires: postgresql >= 8.4
@@ -144,7 +145,7 @@ Requires: jetty-server
 ## No Jetty provided by SLES... Use our own.
 %if 0%{?sles_version}
 BuildRequires: jdk >= 1.7
-Requires: rudder-jetty = %{real_version}
+Requires: rudder-jetty = %{real_epoch}:%{real_version}
 %endif
 
 %description

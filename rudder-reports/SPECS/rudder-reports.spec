@@ -28,6 +28,8 @@
 # Variables
 #=================================================
 %define real_name          rudder-reports
+%define real_epoch       0
+
 %define rudderdir          /opt/rudder
 %define ruddervardir       /var/rudder
 %define rudderlogdir       /var/log/rudder
@@ -40,7 +42,7 @@ Summary: Configuration management and audit tool - reports database
 Name: %{real_name}
 Version: %{real_version}
 Release: 1%{?dist}
-Epoch: 0
+Epoch: %{real_epoch}
 License: GPLv3
 URL: http://www.rudder-project.org
 

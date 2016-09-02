@@ -77,7 +77,7 @@ buildpackage-rpm-common-prep-aix:
 buildpackage-rpm-common-fix-old-epoch:
 	# We used to use the epoch field of RPM spec files to manage version comparaisons
 	# But we stopped doing this on the day with timestamp 1366900520
-	sed -i "s@^Epoch.*@Epoch: 1398866025@" SPECS/*.spec
+	sed -i "s@^%define real_epoch.*@%define real_epoch 1398866025@"
 
 buildpackage-rpm-build-plainrpm:
 	mkdir -p $(PWD)/tmp

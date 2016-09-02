@@ -29,6 +29,7 @@
 # Variables
 #=================================================
 %define real_name        rudder-inventory-endpoint
+%define real_epoch       0
 
 %define rudderdir        /opt/rudder
 %define ruddervardir     /var/rudder
@@ -55,7 +56,7 @@ Summary: Configuration management and audit tool - service to receive inventory 
 Name: %{real_name}
 Version: %{real_version}
 Release: 1%{?dist}
-Epoch: 0
+Epoch: %{real_epoch}
 License: GPLv3
 URL: http://www.rudder-project.org
 
@@ -71,7 +72,7 @@ BuildArch: noarch
 
 # Dependencies
 
-Requires: rudder-inventory-ldap = %{real_version}
+Requires: rudder-inventory-ldap = %{real_epoch}:%{real_version}
 
 # OS-specific dependencies
 
@@ -103,7 +104,7 @@ Requires: jetty-server
 ## No Jetty provided by SLES... Use our own.
 %if 0%{?sles_version}
 BuildRequires: jdk >= 1.7
-Requires: rudder-jetty = %{real_version}
+Requires: rudder-jetty = %{real_epoch}:%{real_version}
 %endif
 
 %description

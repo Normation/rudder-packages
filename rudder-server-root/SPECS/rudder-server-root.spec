@@ -28,6 +28,7 @@
 # Variables
 #=================================================
 %define real_name        rudder-server-root
+%define real_epoch       0
 %define rudderdir        /opt/rudder
 %define ruddervardir     /var/rudder
 %define rudderlogdir     /var/log/rudder
@@ -39,7 +40,7 @@ Summary: Configuration management and audit tool - root server base package
 Name: %{real_name}
 Version: %{real_version}
 Release: 1%{?dist}
-Epoch: 0
+Epoch: %{real_epoch}
 License: GPLv3
 URL: http://www.rudder-project.org
 
@@ -51,7 +52,7 @@ Source8: rudder-server-root
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
 
-Requires: rudder-jetty = %{real_version}, rudder-webapp = %{real_version}, rudder-inventory-endpoint = %{real_version}, rudder-inventory-ldap = %{real_version}, rudder-reports = %{real_version}, rudder-agent = %{real_version}, curl
+Requires: rudder-jetty = %{real_epoch}:%{real_version}, rudder-webapp = %{real_epoch}:%{real_version}, rudder-inventory-endpoint = %{real_epoch}:%{real_version}, rudder-inventory-ldap = %{real_epoch}:%{real_version}, rudder-reports = %{real_epoch}:%{real_version}, rudder-agent = %{real_epoch}:%{real_version}, curl
 
 %description
 Rudder is an open source configuration management and audit solution.

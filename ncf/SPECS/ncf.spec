@@ -28,6 +28,8 @@
 # Variables
 #=================================================
 %define real_name        ncf
+%define real_epoch       0
+
 %define installdir       /usr/share
 %define bindir           /usr/bin
 
@@ -38,7 +40,7 @@ Summary: ncf - CFEngine framework
 Name: %{real_name}
 Version: %{real_version}
 Release: 1%{?dist}
-Epoch: 0
+Epoch: %{real_epoch}
 License: GPLv3
 URL: http://www.ncf.io
 

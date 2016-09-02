@@ -30,6 +30,7 @@
 # Variables
 #=================================================
 %define real_name            rudder-agent
+%define real_epoch           0
 
 %define rudderdir            /opt/rudder
 %define ruddervardir         /var/rudder
@@ -63,7 +64,7 @@ Summary: Configuration management and audit tool - agent
 Name: %{real_name}
 Version: %{real_version}
 Release: 1%{?dist}
-Epoch: 0
+Epoch: %{real_epoch}
 License: GPLv3
 URL: http://www.rudder-project.org
 

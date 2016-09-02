@@ -31,6 +31,7 @@
 
 # What is the package name
 %define real_name        ncf-api-virtualenv
+%define real_epoch       0
 
 # Where should the package contents be installed
 %define installdir       /usr/share/%{real_name}
@@ -58,7 +59,7 @@ Summary: ncf API Virtualenv - ncf API Python virtual environment
 Name: %{real_name}
 Version: %{real_version}
 Release: 1%{?dist}
-Epoch: 0
+Epoch: %{real_epoch}
 License: GPLv3
 URL: http://www.ncf.io
 
