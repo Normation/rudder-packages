@@ -1,1 +1,4 @@
 opt/rudder
+etc
+usr/bin
+var/rudder
