@@ -38,7 +38,7 @@
 
 %define maven_settings settings-external.xml
 
-%if 0%{?sles_version}
+%if 0%{?suse_version}
 %define apache                  apache2
 %define apache_tools            apache2-utils
 %define apache_group            www
@@ -141,7 +141,7 @@ Requires: jetty-server
 
 ## 3 - SLES
 ## No Jetty provided by SLES... Use our own.
-%if 0%{?sles_version}
+%if 0%{?suse_version}
 BuildRequires: jdk >= 1.7
 Requires: rudder-jetty
 %endif
@@ -250,7 +250,7 @@ install -m 644 %{SOURCE2} %{buildroot}%{rudderdir}/share/webapps/
 cp %{SOURCE3} %{buildroot}%{rudderdir}/etc/
 cp %{SOURCE4} %{buildroot}%{rudderdir}/etc/
 
-%if 0%{?sles_version}
+%if 0%{?suse_version}
 # On SLES, change the Apache DocumentRoot to the OS default
 sed -i "s%^DocumentRoot /var/www$%DocumentRoot /srv/www%" %{buildroot}%{rudderdir}/etc/rudder-apache-common.conf
 %endif
@@ -364,7 +364,7 @@ if ! getent group %{config_repository_group} | grep -q ncf-api-venv > /dev/null;
 fi
 
 # Add required includes in the SLES apache2 configuration
-%if 0%{?sles_version}
+%if 0%{?suse_version}
 if ! grep -qE "^. /etc/sysconfig/rudder-apache$" /etc/sysconfig/apache2
 then
 	echo -e '# This sources the modules/defines needed by Rudder\n. /etc/sysconfig/rudder-apache' >> /etc/sysconfig/apache2
@@ -544,7 +544,7 @@ if [ $1 -eq 0 ]; then
     echo " Done"
   fi
 
-%if 0%{?sles_version}
+%if 0%{?suse_version}
   # Remove required includes in the SLES apache2 configuration
   if [ -f /etc/sysconfig/apache2 ]; then
     sed -i "/# This sources the modules\/defines needed by Rudder/d" /etc/sysconfig/apache2

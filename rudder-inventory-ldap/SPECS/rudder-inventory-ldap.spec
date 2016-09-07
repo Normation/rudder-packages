@@ -34,7 +34,7 @@
 %define ruddervardir     /var/rudder
 %define rudderlogdir     /var/log/rudder
 
-%if 0%{?sles_version} 
+%if 0%{?suse_version}
 %define syslogservicename syslog
 %endif
 
@@ -86,6 +86,12 @@ BuildRequires: openssl-devel
 %endif
 
 %if 0%{?sles_version} && 0%{?sles_version} == 11
+BuildRequires: libopenssl-devel
+%endif
+
+## See at: https://en.opensuse.org/openSUSE:Build_Service_cross_distribution_howto
+## SLE 12 => %if 0%{?suse_version} == 1315 (but could also be Leap 42.1*)
+%if 0%{?suse_version} && 0%{?suse_version} == 1315
 BuildRequires: libopenssl-devel
 %endif
 
