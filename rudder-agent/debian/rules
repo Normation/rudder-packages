@@ -26,7 +26,7 @@ endif
 
 # add openssl to old distributions
 OS_CODENAME := $(shell lsb_release -s -c)
-ifneq (lucid,$(OS_CODENAME))
+ifeq (lucid,$(OS_CODENAME))
 USE_SYSTEM_OPENSSL=false
 endif
 
