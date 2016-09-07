@@ -31,7 +31,8 @@ localdepends: ./rudder-sources ./maven/bin/mvn ./rudder-users.xml ./rudder-doc .
 
 ./maven.tgz: /usr/bin/wget
 	# Original URL: http://apache.multidist.com/maven/binaries/apache-maven-$(MAVEN_RELEASE)-bin.tar.gz
-	$(WGET) -O ./maven.tgz http://www.normation.com/tarball/apache-maven-$(MAVEN_RELEASE)-bin.tar.gz
+	$(WGET) -O ./maven.tgz.dl http://www.normation.com/tarball/apache-maven-$(MAVEN_RELEASE)-bin.tar.gz
+	mv ./maven.tgz.dl ./maven.tgz
 
 ./maven/bin/mvn: ./maven.tgz
 	tar -xzf ./maven.tgz -C .
@@ -39,7 +40,8 @@ localdepends: ./rudder-sources ./maven/bin/mvn ./rudder-users.xml ./rudder-doc .
 	mv ./apache-maven-$(MAVEN_RELEASE) ./maven
 
 ./rudder-sources.tar.bz2:
-	$(WGET) -O rudder-sources.tar.bz2 http://www.rudder-project.org/archives/rudder-sources-${RUDDER_VERSION_TO_PACKAGE}.tar.bz2
+	$(WGET) -O rudder-sources.tar.bz2.dl http://www.rudder-project.org/archives/rudder-sources-${RUDDER_VERSION_TO_PACKAGE}.tar.bz2
+	mv ./rudder-sources.tar.bz2.dl ./rudder-sources.tar.bz2
 
 ./rudder-sources: ./rudder-sources.tar.bz2
 	tar -xjf rudder-sources.tar.bz2
