@@ -1,5 +1,3 @@
-RHEL6:java7-devel
-RHEL7:java-devel
-FEDORA18:java-devel
-FEDORA20:java-devel
+RHEL6:java-1.8.0-openjdk-devel
+RHEL7:java-1.8.0-openjdk-devel
 JAVA:jdk

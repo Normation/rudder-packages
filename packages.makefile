@@ -35,10 +35,10 @@ BUILDREQUIRESFEDORA := $(shell grep -s "FEDORA${OSVERSION}" SOURCES/.dependencie
 JAVAREQUIRES := $(shell grep -s "JAVA" SOURCES/.dependencies | cut -d ':' -f2)
 
 # Original URL: http://www.oracle.com/technetwork/java/javase/downloads/index-jsp-138363.html#javasejdk
-JDKURL := http://www.normation.com/tarball/java/jdk-7u71-linux-i586.rpm
+JDKURL := http://www.normation.com/tarball/java/jdk-8u101-linux-i586.rpm
 
 ifeq ($(ARCHI),x86_64)
-JDKURL := http://www.normation.com/tarball/java/jdk-7u71-linux-x86_64.rpm
+JDKURL := http://www.normation.com/tarball/java/jdk-8u101-linux-x86_64.rpm
 endif
 
 

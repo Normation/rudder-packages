@@ -123,28 +123,21 @@ Requires: postgresql >= 8.4
 
 ## 1 - RHEL
 %if 0%{?rhel} && 0%{?rhel} == 6
-BuildRequires: java7-devel selinux-policy
+BuildRequires: java-1.8.0-openjdk-devel selinux-policy
 %endif
 
 %if 0%{?rhel} && 0%{?rhel} >= 7
-BuildRequires: java-devel selinux-policy-devel
+BuildRequires: java-1.8.0-openjdk-devel selinux-policy-devel
 %endif
 
 %if 0%{?rhel}
 Requires: mod_ssl jetty-eclipse
 %endif
 
-## 2 - Fedora
-%if 0%{?fedora}
-# Cf. https://fedoraproject.org/wiki/Packaging:Java for details
-BuildRequires: java-devel selinux-policy-devel
-Requires: jetty-server
-%endif
-
 ## 3 - SLES
 ## No Jetty provided by SLES... Use our own.
 %if 0%{?sles_version}
-BuildRequires: jdk >= 1.7
+BuildRequires: jdk >= 1.8
 Requires: rudder-jetty = %{real_epoch}:%{real_version}
 %endif
 
