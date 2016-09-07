@@ -19,6 +19,18 @@
 MAVEN_RELEASE = 3.0.4
 WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget -q
 
+MAVEN_PROXY := $(if $(PROXY), $(shell echo "$(PROXY)" |  perl -ne ' \
+    if (m|(https?)://(?:([^:@]+)(?::([^@]+))?\@)?([^:/]+)(?::([0-9]+))?|) { \
+        chomp;
+        my $$proto = "<protocol>$$1</protocol>"; \
+        my $$user = defined($$2) ? "<username>$$2</username>" : ""; \
+        my $$pass = defined($$3) ? "<password><![CDATA[$$3]]></password>" : ""; \
+        my $$host = "<host>$$4</host>";  \
+        my $$id   = "<id>$$4</id>"; \
+        my $$port = defined($5) ? "<port>$$5</port>" : ""; \
+        print "<proxies> <proxy> <active>true</active> $$id $$proto $$user $$pass $$host $$port </proxy> </proxies>"; \
+    }'))
+
 .DEFAULT_GOAL := localdepends
 
 RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
@@ -37,6 +49,7 @@ localdepends: ./rudder-sources ./maven/bin/mvn ./rudder-users.xml ./rudder-doc .
 	tar -xzf ./maven.tgz -C .
 	rm -rf ./maven
 	mv ./apache-maven-$(MAVEN_RELEASE) ./maven
+	sed 's|<!--PROXY-->|$(MAVEN_PROXY)|g' ./settings-external.xml.tpl > ./settings-external.xml
 
 ./rudder-sources.tar.bz2:
 	$(WGET) -O rudder-sources.tar.bz2 http://www.rudder-project.org/archives/rudder-sources-${RUDDER_VERSION_TO_PACKAGE}.tar.bz2
@@ -66,6 +79,7 @@ localclean:
 	rm -rf ./rudder-sources
 	rm -rf ./rudder-doc
 	rm -rf ./.gitignore
+	rm -rf ./settings-external.xml
 
 veryclean:
 	rm -f ./rudder-sources.tar.bz2
