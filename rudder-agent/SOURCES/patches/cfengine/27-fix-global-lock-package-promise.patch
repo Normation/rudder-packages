@@ -74,6 +74,16 @@ skipped with "XX Another cf-agent seems to have done this since I
 started" messages in the log, most notably in long running cf-agent
 runs (longer than one minute).
 ---
+ libpromises/locks.c                                | 29 ++++++----
+ .../timed/package_lock.cf                          | 56 ++++++++++++++++++
+ .../timed/package_lock.cf.expected                 | 12 ++++
+ .../timed/package_lock.cf.module                   | 64 +++++++++++++++++++++
+ .../timed/package_lock.cf.sub                      | 66 ++++++++++++++++++++++
+ 5 files changed, 215 insertions(+), 12 deletions(-)
+ create mode 100644 tests/acceptance/00_basics/ifelapsed_and_expireafter/timed/package_lock.cf
+ create mode 100644 tests/acceptance/00_basics/ifelapsed_and_expireafter/timed/package_lock.cf.expected
+ create mode 100644 tests/acceptance/00_basics/ifelapsed_and_expireafter/timed/package_lock.cf.module
+ create mode 100644 tests/acceptance/00_basics/ifelapsed_and_expireafter/timed/package_lock.cf.sub
 
 diff --git a/libpromises/locks.c b/libpromises/locks.c
 index 98e7b7b..cb71d45 100644
@@ -117,3 +127,225 @@ index 98e7b7b..cb71d45 100644
      }
  
      // Look for existing (current) processes
+diff --git a/tests/acceptance/00_basics/ifelapsed_and_expireafter/timed/package_lock.cf b/tests/acceptance/00_basics/ifelapsed_and_expireafter/timed/package_lock.cf
+new file mode 100644
+index 0000000..334b1de
+--- /dev/null
++++ b/tests/acceptance/00_basics/ifelapsed_and_expireafter/timed/package_lock.cf
+@@ -0,0 +1,56 @@
++# Test whether successive package locks can be grabbed, both immediately
++# following each other and after a time delay. (Redmine #7933).
++
++body common control
++{
++    inputs => { "../../../default.cf.sub" };
++    bundlesequence => { default("$(this.promise_filename)") };
++}
++
++bundle agent init
++{
++  meta:
++      # "no_fds" won't work correctly on Windows.
++      # Also Solaris 9 and 10 don't seem to handle the backgrounding used in
++      # this test. But it seems unrelated to the actual fix.
++      "test_skip_needs_work" string => "windows|sunos_5_9|sunos_5_10";
++
++      # The backgrounding doesn't work well under fakeroot.
++      "test_skip_unsupported" string => "using_fakeroot";
++
++  files:
++    test_pass_1::
++      "$(sys.workdir)/modules/packages/."
++        create => "true";
++      "$(sys.workdir)/modules/packages/test_module"
++        copy_from => local_cp("$(this.promise_filename).module"),
++        perms => m("ugo+x");
++}
++
++bundle agent test
++{
++  commands:
++    test_pass_1::
++      # Note: No -K. We need locks.
++      # Also get rid of file descriptor ties to the parent with no_fds.
++      # Note that we need to redirect descriptors 0, 1 and 2, since there is
++      # apparently some unrelated bug in the output if we close them (otherwise
++      # we would have used --no-std argument to no_fds).
++      "$(G.no_fds) $(sys.cf_agent) -f $(this.promise_filename).sub < /dev/null > /dev/null 2>&1 &"
++        contain => in_shell;
++}
++
++bundle agent check
++{
++  methods:
++    test_pass_1::
++      # We wait 61 seconds in the sub invocation, but in practice test platforms
++      # experience all sorts of timing delays, let's give it plenty of time to
++      # make sure it finishes.
++      "any" usebundle => dcs_wait($(this.promise_filename), 120);
++
++    test_pass_2::
++      "any" usebundle => dcs_check_diff($(G.testfile),
++                                        "$(this.promise_filename).expected",
++                                        $(this.promise_filename));
++}
+diff --git a/tests/acceptance/00_basics/ifelapsed_and_expireafter/timed/package_lock.cf.expected b/tests/acceptance/00_basics/ifelapsed_and_expireafter/timed/package_lock.cf.expected
+new file mode 100644
+index 0000000..db5293a
+--- /dev/null
++++ b/tests/acceptance/00_basics/ifelapsed_and_expireafter/timed/package_lock.cf.expected
+@@ -0,0 +1,12 @@
++Name=first_pkg
++Version=1.0
++Architecture=generic
++Name=second_pkg
++Version=1.0
++Architecture=generic
++Name=third_pkg
++Version=1.0
++Architecture=generic
++Name=fourth_pkg
++Version=1.0
++Architecture=generic
+diff --git a/tests/acceptance/00_basics/ifelapsed_and_expireafter/timed/package_lock.cf.module b/tests/acceptance/00_basics/ifelapsed_and_expireafter/timed/package_lock.cf.module
+new file mode 100644
+index 0000000..cf8adac
+--- /dev/null
++++ b/tests/acceptance/00_basics/ifelapsed_and_expireafter/timed/package_lock.cf.module
+@@ -0,0 +1,64 @@
++#!/bin/sh
++
++set -e
++
++case "$1" in
++    supports-api-version)
++        echo 1
++        ;;
++    get-package-data)
++        while read line; do
++            case "$line" in
++                File=*)
++                    echo PackageType=repo
++                    echo Name=${line#File=}
++                    ;;
++                *)
++                    true
++                    ;;
++            esac
++        done
++        ;;
++    list-installed)
++        while read line; do
++            case "$line" in
++                options=*)
++                    OUTPUT=${line#options=}
++                    ;;
++                *)
++                    exit 1
++                    ;;
++            esac
++        done
++        if [ -f "$OUTPUT" ]; then
++            cat "$OUTPUT"
++        fi
++        ;;
++    list-*)
++        # Drain input.
++        cat > /dev/null
++        ;;
++    repo-install)
++        while read line; do
++            case "$line" in
++                options=*)
++                    OUTPUT=${line#options=}
++                    ;;
++                Name=*)
++                    NAME=${line#Name=}
++                    ;;
++                *)
++                    exit 1
++                    ;;
++            esac
++        done
++        echo "Name=$NAME" >> "$OUTPUT"
++        echo "Version=1.0" >> "$OUTPUT"
++        echo "Architecture=generic" >> "$OUTPUT"
++        ;;
++    *)
++        exit 1
++        ;;
++esac
++
++exit 0
+diff --git a/tests/acceptance/00_basics/ifelapsed_and_expireafter/timed/package_lock.cf.sub b/tests/acceptance/00_basics/ifelapsed_and_expireafter/timed/package_lock.cf.sub
+new file mode 100644
+index 0000000..e86035b
+--- /dev/null
++++ b/tests/acceptance/00_basics/ifelapsed_and_expireafter/timed/package_lock.cf.sub
+@@ -0,0 +1,66 @@
++body common control
++{
++    inputs => { "../../../default.cf.sub" };
++    bundlesequence => { "test" };
++}
++
++bundle agent test
++{
++  methods:
++    debug_package_lock::
++      # Normally done by parent test.
++      "debug_init";
++    any::
++      "test1";
++      "test2";
++      "test3";
++}
++
++body package_module test_module
++{
++    query_installed_ifelapsed => "60";
++    query_updates_ifelapsed => "14400";
++    default_options => { "$(G.testfile)" };
++}
++
++bundle agent debug_init
++{
++  files:
++      "$(sys.workdir)/modules/packages/."
++        create => "true";
++      "$(sys.workdir)/modules/packages/test_module"
++        copy_from => local_cp("$(this.promise_dirname)/package_lock.cf.module"),
++        perms => m("ugo+x");
++}
++
++bundle agent test1
++{
++  packages:
++      "first_pkg"
++        policy => "present",
++        package_module => test_module,
++        action => immediate;
++      "second_pkg"
++        policy => "present",
++        package_module => test_module,
++        action => immediate;
++}
++
++bundle agent test2
++{
++  commands:
++      "$(G.sleep) 61";
++}
++
++bundle agent test3
++{
++  packages:
++      "third_pkg"
++        policy => "present",
++        package_module => test_module,
++        action => immediate;
++      "fourth_pkg"
++        policy => "present",
++        package_module => test_module,
++        action => immediate;
++}
