@@ -37,7 +37,7 @@
 
 %define maven_settings settings-external.xml
 
-%if 0%{?sles_version}
+%if 0%{?suse_version}
 %define syslogservicename syslog
 %endif
 
@@ -102,7 +102,7 @@ Requires: jetty-server
 
 ## 3 - SLES
 ## No Jetty provided by SLES... Use our own.
-%if 0%{?sles_version}
+%if 0%{?suse_version}
 BuildRequires: jdk >= 1.7
 Requires: rudder-jetty = %{real_epoch}:%{real_version}
 %endif
