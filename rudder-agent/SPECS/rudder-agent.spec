@@ -369,6 +369,8 @@ mkdir -p %{buildroot}%{ruddervardir}/cfengine-community/bin
 mkdir -p %{buildroot}%{ruddervardir}/cfengine-community/inputs
 mkdir -p %{buildroot}%{ruddervardir}/tmp
 mkdir -p %{buildroot}%{ruddervardir}/tools
+mkdir -p %{buildroot}%{ruddervardir}/ncf/common
+mkdir -p %{buildroot}%{ruddervardir}/ncf/local
 mkdir -p %{buildroot}%{rudderlogdir}/install
 mkdir -p %{buildroot}%{bindir}
 

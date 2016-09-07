@@ -99,7 +99,7 @@ binary-arch: install
 #	dh_installlogrotate
 #	dh_installmime
 #	dh_python
-        # Init script and configuration files
+# Init script and configuration files
 	cp -f $(CURDIR)/SOURCES/rudder-agent.default $(CURDIR)/BUILD/rudder-agent
 	dh_install --SOURCEDIR=$(CURDIR)/BUILD/ rudder-agent /etc/default/
 	cp -f $(CURDIR)/SOURCES/rudder-agent.init $(CURDIR)/BUILD/rudder-agent
