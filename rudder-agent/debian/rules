@@ -77,7 +77,7 @@ binary-arch: install
 	dh_link
 	dh_strip
 	dh_compress
-	dh_fixperms
+	dh_fixperms -Xppkeys
 #	dh_perl
 	dh_makeshlibs
 	dh_installdeb
