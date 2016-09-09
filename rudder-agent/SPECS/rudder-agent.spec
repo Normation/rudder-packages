@@ -48,6 +48,9 @@
 # Same goes for the use of the local PCRE install vs. a bundled one
 %define use_system_pcre true
 
+# Should we embeb a uuidgen equivalent (i.e. for AIX)
+%define use_system_uuidgen true
+
 # Perl and fusion
 %if "%{real_name}" == "rudder-agent"
 %define use_system_fusion false
@@ -240,6 +243,12 @@ BuildRequires: pcre-devel
 Requires: pcre
 %endif
 
+# uuidgen handling
+
+%if "%{?_os}" == "aix"
+%define use_system_uuidgen false
+%endif
+
 # Common commands
 
 %define install_command        install
@@ -286,7 +295,7 @@ cd %{_sourcedir}
 export CFLAGS="${RPM_OPT_FLAGS}"
 export CXXFLAGS="${RPM_OPT_FLAGS}"
 
-make %{?_smp_mflags} USE_SYSTEM_OPENSSL=%{use_system_openssl} USE_SYSTEM_LMDB=%{use_system_lmdb} USE_SYSTEM_PCRE=%{use_system_pcre} USE_SYSTEM_FUSION=%{use_system_fusion} USE_SYSTEM_PERL=%{use_system_perl}
+make %{?_smp_mflags} USE_SYSTEM_OPENSSL=%{use_system_openssl} USE_SYSTEM_LMDB=%{use_system_lmdb} USE_SYSTEM_PCRE=%{use_system_pcre} USE_SYSTEM_FUSION=%{use_system_fusion} USE_SYSTEM_PERL=%{use_system_perl} USE_SYSTEM_UUIDGEN=%{use_system_uuidgen}
 
 # there was a slibclean here on aix
 # TODO, check that it is not necessary anymore since we no more do a make install

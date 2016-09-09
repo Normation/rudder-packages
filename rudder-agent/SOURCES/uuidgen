@@ -1,6 +1,7 @@
 #!/bin/sh
 
 # uuidgen doesn't exist on AIX, so provide a compatible shell function
+# This is not compatible with Linux systems.
 
 if [ -f /etc/ncs/uuid_gen ]
 then

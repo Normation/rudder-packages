@@ -99,6 +99,11 @@ ifneq (true,$(USE_SYSTEM_FUSION))
 INSTALL_DEPS := $(INSTALL_DEPS) install-fusion
 endif
 
+ifneq (true,$(USE_SYSTEM_UUIDGEN))
+INSTALL_DEPS := $(INSTALL_DEPS) install-uuidgen
+endif
+
+
 # Hack needed because openssl is not guessing correctly the architecture on solaris 32bits
 ifeq (i386-pc-solaris2.10,$(shell ./config.guess))
 SSL_CONFIGURE:=./Configure solaris-x86-gcc
@@ -185,9 +190,6 @@ ifneq (true,$(NO_PROFILE))
 	mkdir -p $(DESTDIR)/etc/profile.d
 	$(INSTALL) -m 644 rudder-agent.sh $(DESTDIR)/etc/profile.d/
 endif
-
-	# Install a uuidgen script just in case the original one doesn't exist
-	$(INSTALL) -m 755 uuidgen $(INSTALL_DIR)/bin/
 
 	cp -r initial-promises/ $(INSTALL_DIR)/share/
 	cp -r initial-ncf/ $(INSTALL_DIR)/share/
@@ -544,5 +546,10 @@ endif
 	chown root $(DESTDIR)/opt/rudder/share/fusioninventory/html
 	chown root $(DESTDIR)/opt/rudder/etc/fusioninventory
 	cp -r fusioninventory-agent/lib/FusionInventory $(INSTALL_DIR)/lib/perl5/
+
+install-uuidgen:
+# Install a uuidgen script just in case the original one doesn't exist
+	mkdir -p $(INSTALL_DIR)/bin/
+	$(INSTALL) -m 755 uuidgen $(INSTALL_DIR)/bin/
 
 .PHONY: localclean localdepends veryclean depend build install clean mrproper install-ssl install-lmdb install-cfengine install-perl install-fusion get-flags
