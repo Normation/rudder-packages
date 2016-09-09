@@ -4,6 +4,7 @@ set -e
 CFRUDDER_FIRST_INSTALL="$1"
 CFE_DIR="/var/rudder/cfengine-community"
 RUDDER_CMD="/opt/rudder/bin/rudder"
+LOG_FILE="/var/log/rudder/install/rudder-agent.log"
 
 if [ -z "$1" ]
 then
@@ -13,16 +14,12 @@ then
   exit 1
 fi
 
-echo "`date` - Starting rudder-agent post installation script" >> /var/log/rudder/install/rudder-agent.log
-
-# Ensure our PATH includes Rudder's bin dir (for uuidgen on AIX in particular)
-PATH=/opt/rudder/bin/:$PATH
-export PATH
+echo "`date` - Starting rudder-agent post installation script" >> ${LOG_FILE}
 
 # Reload the linker cache (to acknowledge LMDB's presence if needed)
 if [ -f /etc/ld.so.conf.d/rudder.conf ]; then
-  echo "Found /etc/ld.so.conf.d/rudder.conf, running ldconfig" >> /var/log/rudder/install/rudder-agent.log
-  ldconfig -v >> /var/log/rudder/install/rudder-agent.log 2>&1
+  echo "Found /etc/ld.so.conf.d/rudder.conf, running ldconfig" >> ${LOG_FILE}
+  ldconfig -v >> ${LOG_FILE} 2>&1
 fi
 
 # Set a "lock" to avoid CFEngine being restarted during the upgrade process
@@ -37,7 +34,7 @@ ${RUDDER_CMD} agent stop || true
 
 # On AIX, trigger slibclean to remove any unused library/binary object from memory
 # Will prevent "Text file busy" errors during the following copy
-if type slibclean >/dev/null 2>&1; then 
+if type slibclean >> ${LOG_FILE} 2>&1; then 
   slibclean
 fi
 
@@ -46,7 +43,7 @@ cp -r -f /opt/rudder/bin/cf-* ${CFE_DIR}/bin/
 cp -r -f /opt/rudder/bin/rpmvercmp ${CFE_DIR}/bin/
 NB_COPIED_BINARIES=`ls -1 ${CFE_DIR}/bin/ | wc -l`
 if [ ${NB_COPIED_BINARIES} -gt 0 ]; then
-  echo "CFEngine binaries copied to workdir" >> /var/log/rudder/install/rudder-agent.log
+  echo "CFEngine binaries copied to workdir" >> ${LOG_FILE}
 fi
 
 # Backup rudder-server-roles.conf
@@ -60,8 +57,8 @@ fi
 # Copy initial promises if there aren't any already or,
 # if the cf-promises validation fails, it means we have a broken set of promises (possibly a pre-2.8 set).
 # Reset the initial promises so the server is able to send the agent a new set of correct ones.
-RUDDER_UUID=`cat /opt/rudder/etc/uuid.hive 2>/dev/null || true`
-if [ ! -f ${CFE_DIR}/inputs/promises.cf ] || ! ${CFE_DIR}/bin/cf-promises >/dev/null 2>&1 && [ "${RUDDER_UUID}" != "root" ]
+RUDDER_UUID=`cat /opt/rudder/etc/uuid.hive 2>>${LOG_FILE} || true`
+if [ ! -f ${CFE_DIR}/inputs/promises.cf ] || ! ${CFE_DIR}/bin/cf-promises >> ${LOG_FILE} 2>&1 && [ "${RUDDER_UUID}" != "root" ]
 then
   mkdir -p ${CFE_DIR}/inputs
   rm -rf ${CFE_DIR}/inputs/* || true
@@ -80,7 +77,7 @@ fi
 if [ ! -f ${CFE_DIR}/ppkeys/localhost.priv ]
 then
   echo -n "INFO: Creating keys for CFEngine agent..."
-  ${CFE_DIR}/bin/cf-key >> /var/log/rudder/install/rudder-agent.log 2>&1
+  ${CFE_DIR}/bin/cf-key >> ${LOG_FILE} 2>&1
   echo " Done."
 fi
 
@@ -147,11 +144,11 @@ fi
 # http://www.rudder-project.org/redmine/issues/8065
 if [ ${CFRUDDER_FIRST_INSTALL} -eq 1 ]
 then
-  if type setfacl > /dev/null 2> /dev/null; then
+  if type setfacl >> ${LOG_FILE} 2>&1; then
     setfacl -R -k /var/rudder/
   fi
 fi
 
 # launch rudder agent check script, it will generate an UUID on first install or repair it if needed
-nohup /opt/rudder/bin/check-rudder-agent >/dev/null 2>/dev/null &
+nohup ${RUDDER_CMD} agent check >> ${LOG_FILE} 2>&1 &
 
