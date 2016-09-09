@@ -285,7 +285,7 @@ initial-ncf: ./rudder-sources ./initial-promises
 	rm -rf ./initial-ncf
 	cp -r ./rudder-sources/ncf/tree ./initial-ncf
 	# retreive the rudder specific ncf.conf
-	cp ./initial-promises/distributePolicy/ncf/rudder-ncf-conf ./initial-ncf/ncf.conf
+	cp ./initial-promises/distributePolicy/ncf/ncf.conf ./initial-ncf/
 
 rudder-agent-utilities: rudder-sources
 	rm -rf ./rudder-agent-utilities/
