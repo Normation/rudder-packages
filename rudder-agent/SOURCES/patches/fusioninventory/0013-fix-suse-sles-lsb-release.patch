@@ -4,8 +4,8 @@
      ["FusionInventory::Agent::Task::Inventory::Linux::Distro::LSB"];
  
  sub isEnabled {
--    return canRead('/etc/oracle-release') || !canRun('lsb_release');
-+    return canRead('/etc/SuSE-release') || canRead('/etc/oracle-release') || !canRun('lsb_release');
+-    return -r '/etc/oracle-release' || !canRun('lsb_release');
++    return -r '/etc/SuSE-release' || -r '/etc/oracle-release' || !canRun('lsb_release');
  }
  
  sub doInventory {

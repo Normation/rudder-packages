@@ -17,7 +17,7 @@ index d89bb78..37ed589 100644
  
  sub isEnabled {
 -    return canRun('lsb_release');
-+    return !canRead('/etc/oracle-release') && canRun('lsb_release');
++    return ! -r '/etc/oracle-release' && canRun('lsb_release');
  }
  
  sub doInventory {
@@ -30,7 +30,7 @@ index 357f9ea..928cd98 100644
  
  sub isEnabled {
 -    return !canRun('lsb_release');
-+    return canRead('/etc/oracle-release') || !canRun('lsb_release');
++    return -r '/etc/oracle-release' || !canRun('lsb_release');
  }
  
  sub doInventory {
