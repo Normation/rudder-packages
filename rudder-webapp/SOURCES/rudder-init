@@ -37,6 +37,7 @@ RUDDER_OPT="/opt/rudder"
 RUDDER_VAR="/var/rudder"
 
 RUDDER_ROLES_FILE="${RUDDER_VAR}/cfengine-community/inputs/rudder-server-roles.conf"
+DISABLE_AUTODETECT_NETWORKS_FILE="/opt/rudder/etc/disable-autodetect-networks"
 
 RUDDER_CONTEXT=$(grep contextPath ${RUDDER_OPT}/share/webapps/rudder.xml | sed "s@^\s*<Set name=\"contextPath\">\(.*\)</Set>@\1@")
 
@@ -192,6 +193,27 @@ function reset_policy_server() {
   echo "127.0.0.1" > /var/rudder/cfengine-community/policy_server.dat
 }
 
+function add_allowed_networks() {
+  network="$1"
+  if [ "${network}" = "auto" ]
+  then
+    # list all ipv4 networks matching each non loopback interface
+    for i in $(LANG=C ip -family inet -oneline address | grep -v " lo " | sed -e 's/.*inet \([0-9.\/]\+\) .*/\1/')
+    do
+      if [ -n "${DISABLE_AUTODETECT_NETWORKS}" ] || [ -e "${DISABLE_AUTODETECT_NETWORKS_FILE}" ]
+      then
+        # if automatic network is not allowed, just add the host's ip/32
+        ALLOWEDNETWORK[${#ALLOWEDNETWORK[*]}]=$(echo ${i} | sed 's|/.*|/32|')
+      else
+        ALLOWEDNETWORK[${#ALLOWEDNETWORK[*]}]="${i}"
+      fi
+    done
+  else
+    # just use the provided network
+    ALLOWEDNETWORK[${#ALLOWEDNETWORK[*]}]="${network}"
+  fi
+}
+
 # Check if some arguments have been given
 if [ $# -gt 0 ]
 then
@@ -200,17 +222,13 @@ then
     echo "ERROR: Usage is: ${0} LDAPReset AllowedNetwork1 [AllowedNetwork2]..."
     exit 1
   else
-    if [ $# -ge 5 ]
-    then
-      # Using deprecated call to rudder-init
-      echo "WARNING: Using deprecated arguments"
-      echo "INFO: Usage is now: ${0} LDAPReset AllowedNetwork1 [AllowedNetwork2]..."
-      LDAPRESET=${3}         # Reset LDAP ?
-      ALLOWEDNETWORK[0]=${5} # Allowed networks
-    else
-      LDAPRESET=${1}         # Reset LDAP ?
-      ALLOWEDNETWORK[0]=${2} # Allowed networks
-    fi
+    LDAPRESET=${1}         # Reset LDAP ?
+    shift
+    while [ -n "$1" ]
+    do
+      add_allowed_networks "$1"
+      shift
+    done
   fi
 else
   echo
