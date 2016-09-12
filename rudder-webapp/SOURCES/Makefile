@@ -21,7 +21,7 @@ WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget -q
 
 MAVEN_PROXY := $(if $(PROXY), $(shell echo "$(PROXY)" |  perl -ne ' \
     if (m|(https?)://(?:([^:@]+)(?::([^@]+))?\@)?([^:/]+)(?::([0-9]+))?|) { \
-        chomp;
+        chomp; \
         my $$proto = "<protocol>$$1</protocol>"; \
         my $$user = defined($$2) ? "<username>$$2</username>" : ""; \
         my $$pass = defined($$3) ? "<password><![CDATA[$$3]]></password>" : ""; \
