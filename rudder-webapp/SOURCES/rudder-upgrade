@@ -330,6 +330,7 @@ upgrade_system_techniques() {
 
 # Upgrade ncf from ncf package and check ncf.conf
 upgrade_ncf() {
+  # All versions: Upgrade ncf
   STEP="Upgrade ncf"
 
   mkdir -p ${RUDDER_VAR}/ncf/common
@@ -340,25 +341,25 @@ upgrade_ncf() {
   fi
 
   if [ -f ${CONFIGURATION_REPOSITORY}/ncf/ncf.conf ]; then
-    # Make sure that ncf uses the right logger bundles (_logger_default and logger_rudder)
+    # 2.9.0 & 2.11.11, 3.0.5: Make sure that ncf uses the right logger bundles (_logger_default and logger_rudder)
     STEP="Make sure that ncf uses the right logger bundles (_logger_default and logger_rudder)"
 
-    # Rename _logger_default to _log_default
+    # 3.2.0 Rename _logger_default to _log_default
     if grep -Eq "^loggers=.*_logger_default.*" ${CONFIGURATION_REPOSITORY}/ncf/ncf.conf; then
       sed -i "s%^loggers=\(.*\)_logger_default\(.*\)$%loggers=\1_log_default\2%" ${CONFIGURATION_REPOSITORY}/ncf/ncf.conf
     fi
 
-    # Rename logger_rudder to log_rudder
+    # 3.2.0: Rename logger_rudder to log_rudder
     if grep -Eq "^loggers=.*logger_rudder.*" ${CONFIGURATION_REPOSITORY}/ncf/ncf.conf; then
       sed -i "s%^loggers=\(.*\)logger_rudder\(.*\)$%loggers=\1log_rudder\2%" ${CONFIGURATION_REPOSITORY}/ncf/ncf.conf
     fi
 
-    # Add log_rudder if it's not present
+    # 3.2.0: Add log_rudder if it's not present
     if ! grep -Eq "^loggers=.*log_rudder.*" ${CONFIGURATION_REPOSITORY}/ncf/ncf.conf; then
       sed -i "s%^loggers=\(.*\)%loggers=\1,log_rudder%" ${CONFIGURATION_REPOSITORY}/ncf/ncf.conf
     fi
 
-    # Make sure that ncf uses the right CFEngine port (5309)
+    # 2.9.0: Make sure that ncf uses the right CFEngine port (5309)
     STEP="Make sure that ncf uses the right CFEngine port (5309)"
 
     if ! cat ${CONFIGURATION_REPOSITORY}/ncf/ncf.conf | perl -p0e "s/\n/%%%%%/g" | egrep -q "classes.community_edition[^%]*%%%%%cfengine_port=5309"; then
@@ -366,18 +367,18 @@ upgrade_ncf() {
       mv ${CONFIGURATION_REPOSITORY}/ncf/ncf.conf.new ${CONFIGURATION_REPOSITORY}/ncf/ncf.conf
     fi
 
-    # Anticipate the copy from ${CONFIGURATION_REPOSITORY}/ncf to ${RUDDER_VAR}/ncf/local
+    #  2.11.18, 3.0.13, 3.1.6 and 3.2.0: Anticipate the copy from ${CONFIGURATION_REPOSITORY}/ncf to ${RUDDER_VAR}/ncf/local
     cp -f ${CONFIGURATION_REPOSITORY}/ncf/ncf.conf ${RUDDER_VAR}/ncf/local/
   fi
 
-  # Ensure techniques written from the Technique Editor are not world-readable
+  # 2.11.23, 3.1.12 and 3.2.5: Ensure techniques written from the Technique Editor are not world-readable
   if [ -x ${CONFIGURATION_REPOSITORY}/ncf/50_techniques ]; then
     chmod -R o-rwx ${CONFIGURATION_REPOSITORY}/ncf/50_techniques/
   fi
 
 }
 
-# Call rudderify on all local ncf techniques to make sure the promises will be properly generated
+# 3.2.0: Call rudderify on all local ncf techniques to make sure the promises will be properly generated
 rudderify_techniques() {
   STEP="Call rudderify on all local ncf techniques (#7443)"
   if [ -d ${CONFIGURATION_REPOSITORY}/techniques ]; then
@@ -574,7 +575,7 @@ upgrade_database() {
     echo " Done"
   fi
 
-  # - 2.10.17 : Migration DB schema to correct the historization of rules
+  # - 2.10.17, 2.11.14, 3.0.9 and 3.1.2 : Migration DB schema to correct the historization of rules
   RES=$(${PSQL} -t -d rudder -c "select count(*) from information_schema.columns where table_name='rulesgroupjoin' and column_name = 'targetserialisation';")
   if [ $RES -eq 0 ]; then
     ${PSQL} -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.10-2.10-historization-of-groups-in-rules.sql > /dev/null
@@ -609,7 +610,7 @@ upgrade_database() {
     ${PSQL} -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.11-3.0-remove-varchar.sql > /dev/null 2>&1
   fi
 
-  # - 2.11.19 : Migration DB schema to modify indexes on eventlog to improve upgrade speed
+  # - 2.11.19, 3.0.14, 3.1.8 and 3.2.1 : Migration DB schema to modify indexes on eventlog to improve upgrade speed
   STEP="Migration DB schema to modify indexes on eventlog to improve upgrade speed"
 
   RES=$(${PSQL} -t -d rudder -c "select count(oid) from pg_class where lower(relname) = 'eventlog_fileformat_idx'")
@@ -619,7 +620,7 @@ upgrade_database() {
     echo " Done"
   fi
 
-  # - 3.0.14: Migration DB schema to add an indexes on nodeconfigids on table expectedreportsnodes
+  # - 2.11.19, 3.0.14, 3.1.8 and 3.2.1 : Migration DB schema to add an indexes on nodeconfigids on table expectedreportsnodes
   RES=$(${PSQL} -t -d rudder -c "select count(oid) from pg_class where lower(relname) = 'nodeconfigids_idx'")
   if [ $RES -eq 0 ]; then
     echo -n "INFO: Updating the PostgreSQL indexes, this may take several minutes..."
@@ -627,7 +628,7 @@ upgrade_database() {
     echo " Done"
   fi
 
-  # - 3.0.17: Migration DB schema to add an indexes on eventType and executionTimeStamp on table RudderSysEvents
+  # - 3.0.17, 3.1.11 and 3.2.4 : Migration DB schema to add an indexes on eventType and executionTimeStamp on table RudderSysEvents
   RES=$(${PSQL} -t -d rudder -c "select count(oid) from pg_class where lower(relname) = 'changes_executiontimestamp_idx'")
   if [ $RES -eq 0 ]; then
     echo -n "INFO: Updating the PostgreSQL indexes, this may take several minutes..."
@@ -638,7 +639,7 @@ upgrade_database() {
   # Now check the fileFormat in the eventlog
   upgrade_eventlog
 
-  # - 3.0.2: Check for the PostgreSQL version (>= 8.4)
+  # - All versions: Check for the PostgreSQL version (>= 8.4)
   STEP="Check for the current PosgresSQL version"
 
   # If installing on SLES11 and PostgreSQL 8.3 was used
@@ -669,7 +670,7 @@ upgrade_inventory() {
   # Check if the LDAP has been initialised
   LDAP_EXISTS=$(${LDAPSEARCH} -b "cn=rudder-configuration" -s base dn 2>/dev/null | grep -c "dn: cn=rudder-configuration" || true)
 
-  ## Change attribute from dn:ruleId=inventory-all,ou=Rules,ou=Rudder,cn=rudder-configuration
+  ## 2.4.0 : Change attribute from dn:ruleId=inventory-all,ou=Rules,ou=Rudder,cn=rudder-configuration
   ## Check if ruleTarget attribute contains all nodes or all except policy server and LDAP is setting up
   STEP="Check if ruleTarget attribute contains all nodes or all except policy server and LDAP is setting up"
 
@@ -686,7 +687,7 @@ EOF
 
   if [ ${LDAP_EXISTS} -ne 0 ]; then
 
-    # - 2.11.23: Add LDAP entry for 'api_compatibility_mode' property, and set 'true' as value, different from default value (false) on a fresh 3.1
+    # - 2.11.23, 3.1.12 and 3.2.5 : Add LDAP entry for 'api_compatibility_mode' property, and set 'true' as value, different from default value (false) on a fresh 3.1
     STEP="Add LDAP entry for 'api_compatibility_mode' property"
 
     LDAP_TEST_SYSLOG_PROPERTY=$(${LDAPSEARCH} -b "propertyName=api_compatibility_mode,ou=Application Properties,cn=rudder-configuration" -s base dn 2> /dev/null | grep -c "dn: propertyName=api_compatibility_mode" || true)
@@ -729,7 +730,7 @@ EOF
 
   fi
 
-  # - 2.11.6 : Remove LDAP indexes
+  # - 2.11.7 : Remove LDAP indexes
   STEP="Remove LDAP indexes"
 
   LDAP_REINDEX_NEEDED=0
@@ -783,7 +784,7 @@ upgrade_rudder_web_properties
 RUDDER_DB_INITIALIZED=true
 echo -n "INFO: Checking PostgreSQL service status..."
 
-# If the server should be on this machine, make sure rudder-reports is available - if not the DB will simply not be initialised yet
+# All versions: If the server should be on this machine, make sure rudder-reports is available - if not the DB will simply not be initialised yet
 if [ "${SQL_SERVER}" = "localhost" ] && [ ! -f ${RUDDER_OPT}/etc/server-roles.d/rudder-reports ]; then
   # Server is localhost but rudder-reports is not installed - this is probably a half-installed server, warn and give up
   RUDDER_DB_INITIALIZED=false
@@ -791,6 +792,7 @@ if [ "${SQL_SERVER}" = "localhost" ] && [ ! -f ${RUDDER_OPT}/etc/server-roles.d/
   echo "INFO: No local database found. During initial install, this is expected."
 fi
 
+# All version: upgrade database if it is not empty
 if ${RUDDER_DB_INITIALIZED}; then
   if retry_wrapper "${PSQL} -t -d rudder -c 'select count(ruleid) from rules' >/dev/null 2>&1" "PostgreSQL";
   then
@@ -805,7 +807,7 @@ fi
 RUDDER_LDAP_INITIALIZED=true
 echo -n "INFO: Checking LDAP service status..."
 
-# If the server should be on this machine, make sure rudder-inventory-ldap is available - if not LDAP will simply not be initialised yet
+# All versions: If the server should be on this machine, make sure rudder-inventory-ldap is available - if not LDAP will simply not be initialised yet
 if [ "${LDAP_SERVER}" = "localhost" ] && [ ! -f ${RUDDER_OPT}/etc/server-roles.d/rudder-inventory-ldap ]; then
   # Server is localhost but rudder-inventory-ldap is not installed - this is probably a half-installed server, warn and give up
   RUDDER_LDAP_INITIALIZED=false
@@ -813,6 +815,7 @@ if [ "${LDAP_SERVER}" = "localhost" ] && [ ! -f ${RUDDER_OPT}/etc/server-roles.d
   echo "INFO: No local LDAP server found. During initial install, this is expected."
 fi
 
+# All version: upgrade ldap if it is not empty
 if ${RUDDER_LDAP_INITIALIZED}; then
   # Using retry_wrapper is necessary because during an upgrade, slapd may be restarted, so we need to wait
   # for it to be available again
