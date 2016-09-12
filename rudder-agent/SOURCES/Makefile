@@ -166,11 +166,12 @@ ifneq (true,$(NO_LDSO))
 	$(INSTALL) -m 644 rudder.conf $(DESTDIR)/etc/ld.so.conf.d/
 endif
 
-	mkdir -p $(DESTDIR)/opt/rudder/share/package-scripts
-	$(INSTALL) -m 755 rudder-agent-postinst $(DESTDIR)/opt/rudder/share/package-scripts/
-	$(INSTALL) -m 755 check-rudder-agent $(DESTDIR)/opt/rudder/bin/
-	$(INSTALL) -m 755 vzps.py $(DESTDIR)/opt/rudder/bin/
-	$(INSTALL) -m 755 rudder-perl $(DESTDIR)/opt/rudder/bin/
+	mkdir -p $(INSTALL_DIR)/share/package-scripts
+	$(INSTALL) -m 755 rudder-agent-postinst $(INSTALL_DIR)/share/package-scripts/
+	$(INSTALL) -m 755 check-rudder-agent $(INSTALL_DIR)/bin/
+	$(INSTALL) -m 755 vzps.py $(INSTALL_DIR)/bin/
+	$(INSTALL) -m 755 rudder-perl $(INSTALL_DIR)/bin/
+	$(INSTALL) -m 755 rudder-uuidgen $(INSTALL_DIR)/bin/
 
 	# Rudder agent utilities
 	$(INSTALL) -m 755 rudder-agent-utilities/bin/rudder $(INSTALL_DIR)/bin/
@@ -185,9 +186,6 @@ ifneq (true,$(NO_PROFILE))
 	mkdir -p $(DESTDIR)/etc/profile.d
 	$(INSTALL) -m 644 rudder-agent.sh $(DESTDIR)/etc/profile.d/
 endif
-
-	# Install a uuidgen script just in case the original one doesn't exist
-	$(INSTALL) -m 755 uuidgen $(INSTALL_DIR)/bin/
 
 	cp -r initial-promises/ $(INSTALL_DIR)/share/
 	cp -r initial-ncf/ $(INSTALL_DIR)/share/
