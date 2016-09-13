@@ -7,7 +7,4 @@ var/rudder/cfengine-community/inputs
 var/rudder/cfengine-community/bin
 opt/rudder/etc
 var/rudder/tmp
-var/rudder/tools
-var/rudder/ncf/common
-var/rudder/ncf/local
 var/log/rudder/install
