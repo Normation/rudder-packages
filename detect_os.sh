@@ -37,6 +37,12 @@ elif [ -f /etc/SuSE-release ]; then
   export OS="SLES"
   export OSVERSION=$(cat /etc/SuSE-release | grep VERSION | cut -f2 -d '=' | sed 's/ //')
   export OSSP=$(cat /etc/SuSE-release | grep PATCHLEVEL | cut -f2 -d '=' | sed 's/ //')
+elif [ -f /etc/os-release ] && grep -q -s 'NAME="SLES"' /etc/os-release; then
+  # This file is present as of SLES12 SP1, and SuSE-release is obsoletes, so the logic above should
+  # still catch SLES12 GA before this becomes valid.
+  export OS="SLES"
+  export OSVERSION=$( eval "$( grep ^VERSION_ID /etc/os-release )"; echo "$VERSION_ID" | awk -F'.' '{ print $1 }' )
+  export OSSP=$( eval "$( grep ^VERSION_ID /etc/os-release )"; echo "$VERSION_ID" | awk -F'.' '{ print (NF==2) ? $2 : "0";}' )
 elif [ -f /etc/fedora-release ]; then
   export OS="FEDORA"
   export OSVERSION=$(cat /etc/fedora-release | sed 's/^.* release \([^\.][^\.]\).*$/\1/')
