@@ -1,0 +1,60 @@
+From 852faf3e32149fa4ffba1e916a8139ee27331ada Mon Sep 17 00:00:00 2001
+From: Brian Bennett <bahamat@digitalelf.net>
+Date: Mon, 7 Jul 2014 11:43:13 -0700
+Subject: [PATCH 1/2] No longer ignore Linux virtual interfaces. Fixes redmine
+ #1490, #3420
+
+---
+ libenv/unix_iface.c | 10 +---------
+ 1 file changed, 1 insertion(+), 9 deletions(-)
+
+diff --git a/libenv/unix_iface.c b/libenv/unix_iface.c
+index 7c60a9e..4c3d7fe 100644
+--- a/libenv/unix_iface.c
++++ b/libenv/unix_iface.c
+@@ -359,20 +359,12 @@ void GetInterfacesInfo(EvalContext *ctx)
+             continue;
+         }
+ 
+-        /* Skip virtual network interfaces for Linux, which seems to be a problem */
++        /* Skip virtual network interfaces listed in ignore_interfaces.rx */
+ 
+         if (IgnoreInterface(ifp->ifr_name))
+         {
+             continue;
+         }
+-
+-        if (strstr(ifp->ifr_name, ":"))
+-        {
+-#ifdef __linux__
+-            Log(LOG_LEVEL_VERBOSE, "Skipping apparent virtual interface %d: %s", j + 1, ifp->ifr_name);
+-            continue;
+-#endif
+-        }
+         else
+         {
+             Log(LOG_LEVEL_VERBOSE, "Interface %d: %s", j + 1, ifp->ifr_name);
+
+From a2c8ddb1c55879387c1eb33ee97b7b39d0ed4e4c Mon Sep 17 00:00:00 2001
+From: Brian Bennett <bahamat@digitalelf.net>
+Date: Tue, 8 Jul 2014 09:56:47 -0700
+Subject: [PATCH 2/2] Update comment to reflect that all interfaces, not just
+ virtual, listed in ignore_interfaces.rx may be skipped
+
+---
+ libenv/unix_iface.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/libenv/unix_iface.c b/libenv/unix_iface.c
+index 4c3d7fe..f02a801 100644
+--- a/libenv/unix_iface.c
++++ b/libenv/unix_iface.c
+@@ -359,7 +359,7 @@ void GetInterfacesInfo(EvalContext *ctx)
+             continue;
+         }
+ 
+-        /* Skip virtual network interfaces listed in ignore_interfaces.rx */
++        /* Skip network interfaces listed in ignore_interfaces.rx */
+ 
+         if (IgnoreInterface(ifp->ifr_name))
+         {
