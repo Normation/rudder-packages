@@ -170,8 +170,6 @@ ifeq ($(shell ../../build-caching get --force-config ./files/ name=perl-files ve
 	$(WGET) -O ./files/Test-Script-1.07.tar.gz http://www.normation.com/tarball/Test-Script-1.07.tar.gz
 	#Original URL: http://search.cpan.org/CPAN/authors/id/K/KW/KWILLIAMS/Probe-Perl-0.03.tar.gz
 	$(WGET) -O ./files/Probe-Perl-0.03.tar.gz http://www.normation.com/tarball/Probe-Perl-0.03.tar.gz
-	#Original URL: http://search.cpan.org/CPAN/authors/id/R/RJ/RJBS/IPC-Run3-0.048.tar.gz
-	$(WGET) -O ./files/IPC-Run3-0.048.tar.gz http://www.normation.com/tarball/IPC-Run3-0.048.tar.gz
 	../../build-caching put --force-config ./files/ name=perl-files versions=$(files_version)
 endif
 
