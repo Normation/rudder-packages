@@ -388,6 +388,9 @@ mkdir -p %{buildroot}%{ruddervardir}/ncf/common
 mkdir -p %{buildroot}%{ruddervardir}/ncf/local
 mkdir -p %{buildroot}%{rudderlogdir}/install
 mkdir -p %{buildroot}%{bindir}
+%if "%{?_os}" != "aix"
+mkdir -p %{buildroot}/etc/bash_completion.d
+%endif
 
 cd %{_sourcedir}/cfengine-source
 
@@ -451,6 +454,9 @@ mkdir -p %{buildroot}/etc/ld.so.conf.d
 %{install_command} -m 755 %{SOURCE12}/bin/rudder %{buildroot}%{rudderdir}/bin/rudder
 %{cp_a_command} %{SOURCE12}/share/commands/* %{buildroot}%{rudderdir}/share/commands/
 %{cp_a_command} %{SOURCE12}/share/lib/* %{buildroot}%{rudderdir}/share/lib/
+%if "%{?_os}" != "aix"
+%{cp_a_command} %{SOURCE12}/etc/* %{buildroot}/etc/
+%endif
 
 # Rudder agent command manual
 %{install_command} -m 644 %{SOURCE15} %{buildroot}%{rudderdir}/share/man/man8/rudder.8.gz
