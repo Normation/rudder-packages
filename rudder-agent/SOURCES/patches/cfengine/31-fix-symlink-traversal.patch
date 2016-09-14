@@ -1,0 +1,36 @@
+diff -rNu cfengine-source/libutils/file_lib.c cfengine-source-new/libutils/file_lib.c
+--- cfengine-source/libutils/file_lib.c	2015-03-12 21:21:31.000000000 +0100
++++ cfengine-source-new/libutils/file_lib.c	2016-09-13 10:37:55.734495650 +0200
+@@ -376,6 +376,7 @@
+     char *next_component;
+     bool trunc = false;
+     int orig_flags = flags;
++    bool p_uid;
+ 
+     if (flags & O_TRUNC)
+     {
+@@ -408,6 +409,9 @@
+         return -1;
+     }
+ 
++    // current process user id
++    p_uid = geteuid();
++
+     while (next_component)
+     {
+         char *component = next_component;
+@@ -514,7 +518,9 @@
+                     close(currentfd);
+                     return -1;
+                 }
+-                if (stat_before.st_uid != stat_after.st_uid || stat_before.st_gid != stat_after.st_gid)
++                # The probable logic behind the user matching test is that some attacks use symlink creation to exploit a race condition
++                # This attack is not useful if the symlink has been created by root
++                # This attack is not useful if the process's user is the owner of the symlink
++                # As everyone use symlink for server administration, we reenable those cases.
++                if ( stat_before.st_uid != 0 &&
++                     stat_before.st_uid != p_uid && 
++                     (stat_before.st_uid != stat_after.st_uid || stat_before.st_gid != stat_after.st_gid) )
+                 {
+                     close(currentfd);
+                     errno = EACCES;
