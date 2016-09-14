@@ -84,7 +84,6 @@ Source10: rudder.init
 Source11: run-inventory
 Source12: signature.sh
 Source13: uuid.hive
-Source14: uuidgen
 Source15: vzps.py
 Source16: rudder.8.gz
 Source17: rudder-signature-check
