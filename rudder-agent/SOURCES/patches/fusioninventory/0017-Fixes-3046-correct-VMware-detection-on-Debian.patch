@@ -1,0 +1,25 @@
+From b37cf415971fb117752b51f9944b7b1ad840df7b Mon Sep 17 00:00:00 2001
+From: Nicolas Charles <nicolas.charles@normation.com>
+Date: Wed, 14 Sep 2016 17:59:17 +0200
+Subject: [PATCH] Fixes #3046: correct VMware detection on Debian
+
+---
+ lib/FusionInventory/Agent/Task/Inventory/Virtualization/Vmsystem.pm | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/FusionInventory/Agent/Task/Inventory/Virtualization/Vmsystem.pm b/lib/FusionInventory/Agent/Task/Inventory/Virtualization/Vmsystem.pm
+index e8d361f..6b78023 100644
+--- a/lib/FusionInventory/Agent/Task/Inventory/Virtualization/Vmsystem.pm
++++ b/lib/FusionInventory/Agent/Task/Inventory/Virtualization/Vmsystem.pm
+@@ -7,7 +7,7 @@ use FusionInventory::Agent::Tools;
+ use FusionInventory::Agent::Tools::Solaris;
+ 
+ my @vmware_patterns = (
+-    'VMware vmxnet virtual NIC driver',
++    'VMware vmxnet3? virtual NIC driver',
+     'Vendor: VMware\s+Model: Virtual disk',
+     'Vendor: VMware,\s+Model: VMware Virtual ',
+     ': VMware Virtual IDE CDROM Drive'
+-- 
+1.9.1
+
