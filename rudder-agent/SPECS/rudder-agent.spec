@@ -829,6 +829,7 @@ rm -f %{_builddir}/file.list.%{name}
 /etc/default/rudder-agent
 /etc/init.d/rudder
 /etc/cron.d/rudder-agent
+/etc/bash_completion.d/rudder
 %endif
 
 %attr(0600, -, -) %dir %{ruddervardir}/cfengine-community/ppkeys
