@@ -491,6 +491,7 @@ rm -f %{_builddir}/file.list.%{name}
 
 %config /etc/cron.d/rudder-agent
 %config /etc/profile.d/rudder-agent.sh
+%config /etc/bash_completion.d/rudder
 %config(noreplace) /opt/rudder/etc/uuid.hive
 %config(noreplace) /etc/default/rudder-agent
 
