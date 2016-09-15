@@ -11,10 +11,10 @@ diff --git a/lib/FusionInventory/Agent/Task/Inventory/Virtualization/Vmsystem.pm
 index e8d361f..6b78023 100644
 --- a/lib/FusionInventory/Agent/Task/Inventory/Virtualization/Vmsystem.pm
 +++ b/lib/FusionInventory/Agent/Task/Inventory/Virtualization/Vmsystem.pm
-@@ -7,7 +7,7 @@ use FusionInventory::Agent::Tools;
- use FusionInventory::Agent::Tools::Solaris;
+@@ -8,7 +8,7 @@ use FusionInventory::Agent::Tools::Solaris;
  
  my @vmware_patterns = (
+     'Hypervisor detected: VMware',
 -    'VMware vmxnet virtual NIC driver',
 +    'VMware vmxnet3? virtual NIC driver',
      'Vendor: VMware\s+Model: Virtual disk',
