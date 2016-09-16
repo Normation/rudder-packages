@@ -1,0 +1,24 @@
+From 60bc8a5fbc1f8c8dafe5b5c785514c7253adb25d Mon Sep 17 00:00:00 2001
+From: Nicolas Charles <nicolas.charles@normation.com>
+Date: Wed, 14 Sep 2016 17:32:15 +0200
+Subject: [PATCH] Fix detection of KVM
+
+---
+ lib/FusionInventory/Agent/Task/Inventory/Virtualization/Vmsystem.pm | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/lib/FusionInventory/Agent/Task/Inventory/Virtualization/Vmsystem.pm b/lib/FusionInventory/Agent/Task/Inventory/Virtualization/Vmsystem.pm
+index d2992a1..8415260 100644
+--- a/lib/FusionInventory/Agent/Task/Inventory/Virtualization/Vmsystem.pm
++++ b/lib/FusionInventory/Agent/Task/Inventory/Virtualization/Vmsystem.pm
+@@ -101,6 +101,7 @@ sub _getType {
+     if ($bios->{SMODEL}) {
+         return 'VMware'          if $bios->{SMODEL} =~ /VMware/;
+         return 'Virtual Machine' if $bios->{SMODEL} =~ /Virtual Machine/;
++        return 'QEMU'            if $bios->{SMODEL} =~ /KVM/;
+     }
+     if ($bios->{BVERSION}) {
+         return 'VirtualBox'  if $bios->{BVERSION} =~ /VirtualBox/;
+-- 
+1.9.1
+
