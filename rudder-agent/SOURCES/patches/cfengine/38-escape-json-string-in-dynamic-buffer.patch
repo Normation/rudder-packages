@@ -1,0 +1,165 @@
+From 3704a0ca683577ff98d4748c06c1806523dccd02 Mon Sep 17 00:00:00 2001
+From: Alexis Mousset <alexis.mousset@normation.com>
+Date: Tue, 19 Jul 2016 18:34:03 +0200
+Subject: [PATCH] CFE-2383: Use a dynamic buffer to escape json strings
+
+Changelog: Remove 2k limit on strings length when writing JSON policies
+(cherry picked from commit dab2d270a6bed5beff797b67aa1404228d769634)
+---
+ libpromises/policy.c                               | 23 +++++------
+ .../01_compiler/cf-promises-json-long-strings.cf   | 29 +++++++++++++
+ .../cf-promises-json-long-strings.cf.sub           | 47 ++++++++++++++++++++++
+ 3 files changed, 85 insertions(+), 14 deletions(-)
+ create mode 100644 tests/acceptance/00_basics/01_compiler/cf-promises-json-long-strings.cf
+ create mode 100644 tests/acceptance/00_basics/01_compiler/cf-promises-json-long-strings.cf.sub
+
+diff --git a/libpromises/policy.c b/libpromises/policy.c
+index 2a656ce..bfc28c7 100644
+--- a/libpromises/policy.c
++++ b/libpromises/policy.c
+@@ -1450,30 +1450,23 @@ const PromiseType *BundleGetPromiseType(const Bundle *bp, const char *name)
+ 
+ /****************************************************************************/
+ 
+-static char *EscapeQuotes(const char *s, char *out, int outSz)
++static Buffer *EscapeQuotes(const char *raw, Buffer *out)
+ {
+-    char *spt;
+     const char *spf;
+-    int i = 0;
+-
+-    memset(out, 0, outSz);
+ 
+-    for (spf = s, spt = out; (i < outSz - 2) && (*spf != '\0'); spf++, spt++, i++)
++    for (spf = raw; *spf != '\0'; spf++)
+     {
+         switch (*spf)
+         {
+         case '\'':
+         case '\"':
+-            *spt++ = '\\';
+-            *spt = *spf;
+-            i += 3;
++            BufferAppendChar(out, '\\');
+             break;
+ 
+         default:
+-            *spt = *spf;
+-            i++;
+             break;
+         }
++        BufferAppendChar(out, *spf);
+     }
+ 
+     return out;
+@@ -1487,9 +1480,9 @@ static JsonElement *AttributeValueToJson(Rval rval, bool symbolic_reference)
+     { 
+     case RVAL_TYPE_SCALAR:
+         {
+-            char buffer[CF_BUFSIZE];
++            Buffer *buffer = BufferNewWithCapacity(strlen(rval.item));
+ 
+-            EscapeQuotes((const char *) rval.item, buffer, sizeof(buffer));
++            EscapeQuotes((const char *) rval.item, buffer);
+
+             if (symbolic_reference) 
+             {
+@@ -1499,7 +1492,9 @@ static JsonElement *AttributeValueToJson(Rval rval, bool symbolic_reference)
+             {
+                 JsonObjectAppendString(json_attribute, "type", "string");
+             }
+-            JsonObjectAppendString(json_attribute, "value", buffer);
++            JsonObjectAppendString(json_attribute, "value", BufferData(buffer));
++
++            BufferDestroy(buffer);
+ 
+         return json_attribute;
+     }
+diff --git a/tests/acceptance/00_basics/01_compiler/cf-promises-json-long-strings.cf b/tests/acceptance/00_basics/01_compiler/cf-promises-json-long-strings.cf
+new file mode 100644
+index 0000000..ae751ef
+--- /dev/null
++++ b/tests/acceptance/00_basics/01_compiler/cf-promises-json-long-strings.cf
+@@ -0,0 +1,29 @@
++# Test that cf-promises doesn't fail if ppkeys are missing
++
++body common control
++{
++      inputs => { "../../default.cf.sub" };
++      bundlesequence  => { default("$(this.promise_filename)") };
++      version => "1.0";
++}
++
++bundle agent init
++{
++}
++
++bundle agent test
++{
++classes:
++ "validated_ok" expression => returnszero("$(sys.cf_promises) -p json -f $(this.promise_filename).sub | $(G.grep) endflag", "useshell"),
++                     scope => "namespace";
++}
++
++bundle agent check
++{
++
++  reports:
++    validated_ok::
++      "$(this.promise_filename) Pass";
++    !validated_ok::
++      "$(this.promise_filename) FAIL";
++}
+diff --git a/tests/acceptance/00_basics/01_compiler/cf-promises-json-long-strings.cf.sub b/tests/acceptance/00_basics/01_compiler/cf-promises-json-long-strings.cf.sub
+new file mode 100644
+index 0000000..3c2beb8
+--- /dev/null
++++ b/tests/acceptance/00_basics/01_compiler/cf-promises-json-long-strings.cf.sub
+@@ -0,0 +1,47 @@
++bundle agent main
++{
++vars:
++  "content" string => 
++    "flag
++This is a file template containing variables to expan
++This is a file template containing variables to expan
++This is a file template containing variables to expan
++This is a file template containing variables to expan
++This is a file template containing variables to expan
++This is a file template containing variables to expan
++This is a file template containing variables to expan
++This is a file template containing variables to expan
++This is a file template containing variables to expan
++This is a file template containing variables to expan
++This is a file template containing variables to expan
++This is a file template containing variables to expan
++This is a file template containing variables to expan
++This is a file template containing variables to expan
++This is a file template containing variables to expan
++This is a file template containing variables to expan
++This is a file template containing variables to expan
++This is a file template containing variables to expan
++This is a file template containing variables to expan
++This is a file template containing variables to expan
++This is a file template containing variables to expan
++This is a file template containing variables to expan
++This is a file template containing variables to expan
++This is a file template containing variables to expan
++This is a file template containing variables to expan
++This is a file template containing variables to expan
++This is a file template containing variables to expan
++This is a file template containing variables to expan
++This is a file template containing variables to expan
++This is a file template containing variables to expan
++This is a file template containing variables to expan
++This is a file template containing variables to expan
++This is a file template containing variables to expan
++This is a file template containing variables to expan
++This is a file template containing variables to expan
++This is a file template containing variables to expan
++This is a file template containing variables to expan
++This is a file template containing variables to expan
++This is a file template containing variables to expan
++endflag";
++
++}
