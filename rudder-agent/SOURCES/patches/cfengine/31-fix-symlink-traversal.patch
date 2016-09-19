@@ -19,15 +19,15 @@ diff -rNu cfengine-source/libutils/file_lib.c cfengine-source-new/libutils/file_
      while (next_component)
      {
          char *component = next_component;
-@@ -514,7 +518,9 @@
+@@ -514,7 +521,13 @@
                      close(currentfd);
                      return -1;
                  }
 -                if (stat_before.st_uid != stat_after.st_uid || stat_before.st_gid != stat_after.st_gid)
-+                # The probable logic behind the user matching test is that some attacks use symlink creation to exploit a race condition
-+                # This attack is not useful if the symlink has been created by root
-+                # This attack is not useful if the process's user is the owner of the symlink
-+                # As everyone use symlink for server administration, we reenable those cases.
++                // The probable logic behind the user matching test is that some attacks use symlink creation to exploit a race condition
++                // This attack is not useful if the symlink has been created by root
++                // This attack is not useful if the process's user is the owner of the symlink
++                // As everyone use symlink for server administration, we reenable those cases.
 +                if ( stat_before.st_uid != 0 &&
 +                     stat_before.st_uid != p_uid && 
 +                     (stat_before.st_uid != stat_after.st_uid || stat_before.st_gid != stat_after.st_gid) )
