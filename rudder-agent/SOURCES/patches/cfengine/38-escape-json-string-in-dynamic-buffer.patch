@@ -17,7 +17,7 @@ diff --git a/libpromises/policy.c b/libpromises/policy.c
 index 2a656ce..bfc28c7 100644
 --- a/libpromises/policy.c
 +++ b/libpromises/policy.c
-@@ -1450,30 +1450,23 @@ const PromiseType *BundleGetPromiseType(const Bundle *bp, const char *name)
+@@ -1525,30 +1525,23 @@ const PromiseType *BundleGetPromiseType(const Bundle *bp, const char *name)
  
  /****************************************************************************/
  
@@ -52,26 +52,26 @@ index 2a656ce..bfc28c7 100644
      }
  
      return out;
-@@ -1487,9 +1480,9 @@ static JsonElement *AttributeValueToJson(Rval rval, bool symbolic_reference)
-     { 
-     case RVAL_TYPE_SCALAR:
-         {
--            char buffer[CF_BUFSIZE];
-+            Buffer *buffer = BufferNewWithCapacity(strlen(rval.item));
+@@ -1565,9 +1558,9 @@ static JsonElement *AttributeValueToJson(Rval rval, bool symbolic_reference)
  
--            EscapeQuotes((const char *) rval.item, buffer, sizeof(buffer));
-+            EscapeQuotes((const char *) rval.item, buffer);
-
-             if (symbolic_reference) 
-             {
-@@ -1499,7 +1492,9 @@ static JsonElement *AttributeValueToJson(Rval rval, bool symbolic_reference)
-             {
-                 JsonObjectAppendString(json_attribute, "type", "string");
-             }
--            JsonObjectAppendString(json_attribute, "value", buffer);
-+            JsonObjectAppendString(json_attribute, "value", BufferData(buffer));
+     case RVAL_TYPE_SCALAR:
+     {
+-        char buffer[CF_BUFSIZE];
++        Buffer *buffer = BufferNewWithCapacity(strlen(rval.item));
+ 
+-        EscapeQuotes((const char *) rval.item, buffer, sizeof(buffer));
++        EscapeQuotes((const char *) rval.item, buffer);
+ 
+         JsonElement *json_attribute = JsonObjectCreate(10);
+ 
+@@ -1579,7 +1572,9 @@ static JsonElement *AttributeValueToJson(Rval rval, bool symbolic_reference)
+         {
+             JsonObjectAppendString(json_attribute, "type", "string");
+         }
+-        JsonObjectAppendString(json_attribute, "value", buffer);
++        JsonObjectAppendString(json_attribute, "value", BufferData(buffer));
 +
-+            BufferDestroy(buffer);
++        BufferDestroy(buffer);
  
          return json_attribute;
      }
