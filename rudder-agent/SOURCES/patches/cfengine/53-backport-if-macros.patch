@@ -1,0 +1,145 @@
+From cb8e3117ae46c82750e325c2ad01963b3562b93a Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Beno=C3=AEt=20Peccatte?= <benoit.peccatte@normation.com>
+Date: Thu, 15 Oct 2015 11:24:47 +0200
+Subject: [PATCH] Add @if feature() syntax
+
+@if feature work like @if minimum_version but allows distinguishing
+between features choosen at compile time.
+
+Changelog: Commit
+---
+ libpromises/Makefile.am |  1 +
+ libpromises/cf3lex.l    | 31 +++++++++++++++++++++++++++++--
+ libpromises/feature.c   | 32 ++++++++++++++++++++++++++++++++
+ libpromises/feature.h   |  8 ++++++++
+ 4 files changed, 70 insertions(+), 2 deletions(-)
+ create mode 100644 libpromises/feature.c
+ create mode 100644 libpromises/feature.h
+
+diff --git a/libpromises/Makefile.am b/libpromises/Makefile.am
+index e8066b7..c763698 100644
+--- a/libpromises/Makefile.am
++++ b/libpromises/Makefile.am
+@@ -81,6 +81,7 @@ libpromises_la_SOURCES = \
+         exec_tools.c exec_tools.h \
+         expand.c expand.h \
+         extensions.c extensions.h \
++        feature.c feature.h \
+         files_copy.c files_copy.h \
+         files_hashes.c files_hashes.h \
+         files_interfaces.c files_interfaces.h \
+diff --git a/libpromises/cf3lex.l b/libpromises/cf3lex.l
+index 175536e..a94eeda 100644
+--- a/libpromises/cf3lex.l
++++ b/libpromises/cf3lex.l
+@@ -35,6 +35,7 @@
+ #include <cf3parse.h>
+ #include <parser_state.h>
+ #include <file_lib.h>
++#include <feature.h>
+ 
+ /* yyinput/input are generated and unused */
+ 
+@@ -83,7 +84,8 @@ line       ^.*$
+ 
+ comment    #[^\n]*
+ 
+-macro_if    ^@if\ minimum_version\([0-9]{1,10}\.[0-9]{1,10}\)
++macro_if_version    ^@if\ minimum_version\([0-9]{1,10}\.[0-9]{1,10}\)
++macro_if_feature    ^@if\ feature\([a-zA-Z0-9_]+\)
+ macro_endif ^@endif
+ 
+ promises   bundle
+@@ -143,7 +145,7 @@ promise_type   [a-zA-Z_]+:
+                           P.line_pos = 0;
+                       }
+ 
+-{macro_if}            {
++{macro_if_version}    {
+                         const char* version_text = yytext+20;
+                         ParserDebug("\tL:macro @if %d:version=%s\n", P.line_pos, version_text);
+                         {
+@@ -191,6 +193,31 @@ promise_type   [a-zA-Z_]+:
+                         }
+                       }
+ 
++{macro_if_feature}    {
++                        const char* feature_text = yytext+12;
++                        ParserDebug("\tL:macro @if %d:feature=%s\n", P.line_pos, feature_text);
++                        {
++                          if (P.if_depth > 0)
++                          {
++                            yyerror("fatal: nested @if macros are not allowed");
++                            return 0;
++                          }
++
++                          P.if_depth++;
++
++                          if (KnownFeature(feature_text))
++                          {
++                            ParserDebug("\tL:macro @if %d:accepted to next @endif\n", P.line_pos);
++                          }
++                          else
++                          {
++                            /* ignore to the next @endif */
++                            ParserDebug("\tL:macro @if %d:ignoring to next @endif or EOF\n", P.line_pos);
++                            BEGIN(if_ignore_state);
++                          }
++                        }
++                      }
++
+ {macro_endif}         {
+                         ParserDebug("\tL:macro @endif %d\n", P.line_pos);
+                         BEGIN(INITIAL);
+diff --git a/libpromises/feature.c b/libpromises/feature.c
+new file mode 100644
+index 0000000..24eeb8c
+--- /dev/null
++++ b/libpromises/feature.c
+@@ -0,0 +1,32 @@
++#include <syntax.h>
++
++#include <string.h>
++
++static const char* features[] = {
++// the parser leaves a trailing ')' 
++#ifdef HAVE_LIBYAML
++  "yaml)",
++#endif
++#ifdef HAVE_LIBXML2
++  "xml2)",
++#endif
++
++  ")" // This terminates the array and declares empty as an always existing feature
++};
++
++int KnownFeature(const char *feature)
++{
++  int feature_count = sizeof(features)/sizeof(const char*);
++  char copy[200];
++
++  // dumb algorithm, but still effective for a small number of features
++  for(int i=0 ; i<feature_count ; i++) {
++    int r = strcmp(feature, features[i]);
++    printf("%d: %s <-> %s\n", r, feature, features[i]);
++    if(r==0) {
++      return 1;
++    }
++  }
++  return 0;
++}
++
+diff --git a/libpromises/feature.h b/libpromises/feature.h
+new file mode 100644
+index 0000000..0c4a2f0
+--- /dev/null
++++ b/libpromises/feature.h
+@@ -0,0 +1,8 @@
++#ifndef CFENGINE_SYNTAX_H
++#define CFENGINE_SYNTAX_H
++
++
++int KnownFeature(const char *feature);
++
++#endif
++

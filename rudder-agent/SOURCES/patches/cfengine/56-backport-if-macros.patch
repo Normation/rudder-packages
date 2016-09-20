@@ -1,0 +1,105 @@
+From 98636f534c87175ce0268e05f2d55df011241acf Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Beno=C3=AEt=20Peccatte?= <benoit.peccatte@normation.com>
+Date: Thu, 15 Oct 2015 17:45:38 +0200
+Subject: [PATCH] Add support for patch release level in @if minimum version
+
+And use Buffer instead of char[]
+---
+ libpromises/cf3lex.l  | 30 +++++++++++++++++++++---------
+ libpromises/feature.c |  9 +++++----
+ 2 files changed, 26 insertions(+), 13 deletions(-)
+
+diff --git a/libpromises/cf3lex.l b/libpromises/cf3lex.l
+index 6ee3603..f931a73 100644
+--- a/libpromises/cf3lex.l
++++ b/libpromises/cf3lex.l
+@@ -84,7 +84,7 @@ line       ^.*$
+ 
+ comment    #[^\n]*
+ 
+-macro_if_version    ^@if\ minimum_version\([0-9]{1,10}\.[0-9]{1,10}\)
++macro_if_version    ^@if\ minimum_version\([0-9]{1,10}\.[0-9]{1,10}(\.[0-9]{1,10})?\)
+ macro_if_feature    ^@if\ feature\([a-zA-Z0-9_]+\)
+ macro_endif ^@endif
+ 
+@@ -151,6 +151,8 @@ promise_type   [a-zA-Z_]+:
+                         {
+                           int request_major = 0;
+                           int request_minor = 0;
++                          int request_patch = 0;
++                          int request_level = 0;
+                           int major = 0;
+                           int minor = 0;
+                           int patch = 0;
+@@ -165,18 +167,28 @@ promise_type   [a-zA-Z_]+:
+ 
+                           if (3 == sscanf(Version(), "%d.%d.%d", &major, &minor, &patch))
+                           {
+-                            if (2 == sscanf(version_text, "%d.%d", &request_major, &request_minor))
++                            request_level=sscanf(version_text, "%d.%d.%d", &request_major, &request_minor, &request_patch);
++                            if (request_level >= 1)
+                             {
+-                            if ((request_major > major) ||
+-                                (request_major == major && request_minor > minor))
+-                              {
+-                                /* ignore to the next @endif */
++                              if (request_major > major) {
+                                 ParserDebug("\tL:macro @if %d:ignoring to next @endif or EOF\n", P.line_pos);
+                                 BEGIN(if_ignore_state);
+-                              }
+-                              else /* we're OK with the version */
+-                              {
++                              } else if (request_major < major || request_level == 1) {
+                                 ParserDebug("\tL:macro @if %d:accepted to next @endif\n", P.line_pos);
++                              } else { // request_major==major && request_level > 1
++                                if (request_minor > minor) {
++                                  ParserDebug("\tL:macro @if %d:ignoring to next @endif or EOF\n", P.line_pos);
++                                  BEGIN(if_ignore_state);
++                                } else if (request_minor < minor || request_level == 2) {
++                                  ParserDebug("\tL:macro @if %d:accepted to next @endif\n", P.line_pos);
++                                } else { // request_minor==minor && request_level > 2
++                                  if (request_patch > patch) {
++                                    ParserDebug("\tL:macro @if %d:ignoring to next @endif or EOF\n", P.line_pos);
++                                    BEGIN(if_ignore_state);
++                                  } else { // request_patch <= patch
++                                    ParserDebug("\tL:macro @if %d:accepted to next @endif\n", P.line_pos);
++                                  }
++                                }
+                               }
+                             }
+                             else
+diff --git a/libpromises/feature.c b/libpromises/feature.c
+index bbed9e2..d2c686a 100644
+--- a/libpromises/feature.c
++++ b/libpromises/feature.c
+@@ -2,6 +2,7 @@
+ #include <string.h>
+ #include <cfnet.h>
+ #include <sysinfo.h>
++#include <buffer.h>
+ 
+ static const char* features[] = {
+ #ifdef HAVE_LIBYAML
+@@ -19,7 +20,6 @@ int KnownFeature(const char *feature)
+   // dumb algorithm, but still effective for a small number of features
+   for(int i=0 ; features[i]!=NULL ; i++) {
+     int r = strcmp(feature, features[i]);
+-    printf("%d: %s <-> %s\n", r, feature, features[i]);
+     if(r==0) {
+       return 1;
+     }
+@@ -29,10 +29,11 @@ int KnownFeature(const char *feature)
+ 
+ void CreateHardClassesFromfeatures(EvalContext *ctx, char *tags)
+ {
+-  char vbuff[CF_BUFSIZE];
++  Buffer *buffer = BufferNew();
+ 
+   for(int i=0 ; features[i]!=NULL ; i++) {
+-    snprintf(vbuff, CF_BUFSIZE, "feature_%s", features[i]);
+-    CreateHardClassesFromCanonification(ctx, vbuff, tags);
++    BufferPrintf(buffer, "feature_%s", features[i]);
++    CreateHardClassesFromCanonification(ctx, BufferData(buffer), tags);
+   }
++  BufferDestroy(buffer);
+ }

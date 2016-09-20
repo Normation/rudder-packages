@@ -1,0 +1,63 @@
+From dc617860dbb749494b724fa51c6868dfba6e2ee1 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Beno=C3=AEt=20Peccatte?= <benoit.peccatte@normation.com>
+Date: Fri, 16 Oct 2015 10:37:32 +0200
+Subject: [PATCH] Test nested @if
+
+---
+ .../00_basics/macros/if_feature_nested.x.cf        | 47 ++++++++++++++++++++++
+ 1 file changed, 47 insertions(+)
+ create mode 100644 tests/acceptance/00_basics/macros/if_feature_nested.x.cf
+
+diff --git a/tests/acceptance/00_basics/macros/if_feature_nested.x.cf b/tests/acceptance/00_basics/macros/if_feature_nested.x.cf
+new file mode 100644
+index 0000000..8079aab
+--- /dev/null
++++ b/tests/acceptance/00_basics/macros/if_feature_nested.x.cf
+@@ -0,0 +1,47 @@
++######################################################
++#
++#  Test that nested @if with features fails
++#
++#####################################################
++
++body common control
++{
++      inputs => { "../../default.cf.sub" };
++      bundlesequence  => { default("$(this.promise_filename)") };
++      version => "1.0";
++}
++
++bundle common test
++{
++@if minimum_version(3.6)
++@if feature(xml)
++  classes:
++      "expected" expression => "any";
++@endif
++@endif
++
++@if feature(xml)
++@if minimum_version(3.6)
++  classes:
++      "expected2" expression => "any";
++@endif
++@endif
++
++@if minimum_version(300.700)
++  classes:
++      "not_expected" expression => "any";
++@endif
++}
++
++bundle agent check
++{
++  methods:
++      "" usebundle => dcs_passif_expected("expected,expected2",
++                                         "not_expected",
++                                         $(this.promise_filename));
++}
++
++@if minimum_version(300.600)
++
++This text should never be seen, it's completely ignored
++@endif
