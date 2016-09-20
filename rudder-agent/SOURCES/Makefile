@@ -540,7 +540,8 @@ endif
 	# bug in fusion installer that doesn't set the right owner to some files
 	chown root $(DESTDIR)/opt/rudder/share/fusioninventory
 	chown root $(DESTDIR)/opt/rudder/share/fusioninventory/html
-	chown root $(DESTDIR)/opt/rudder/etc/fusioninventory
+	# fusion configuration file is never used, do not include it to avoid mistakes
+	rm -rf $(DESTDIR)/opt/rudder/etc/fusioninventory
 	cp -r fusioninventory-agent/lib/FusionInventory $(INSTALL_DIR)/lib/perl5/
 
 .PHONY: localclean localdepends veryclean depend build install clean mrproper install-ssl install-lmdb install-cfengine install-perl install-fusion get-flags
