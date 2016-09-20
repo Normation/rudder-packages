@@ -1,7 +1,8 @@
-diff -rNu cfengine-source/libutils/file_lib.c cfengine-source-new/libutils/file_lib.c
---- cfengine-source/libutils/file_lib.c	2015-03-12 21:21:31.000000000 +0100
-+++ cfengine-source-new/libutils/file_lib.c	2016-09-13 10:37:55.734495650 +0200
-@@ -376,6 +376,7 @@
+diff --git a/libutils/file_lib.c b/libutils/file_lib.c
+index 0b1394d..616fea9 100644
+--- a/libutils/file_lib.c
++++ b/libutils/file_lib.c
+@@ -380,6 +380,7 @@ int safe_open(const char *pathname, int flags, ...)
      char *next_component;
      bool trunc = false;
      int orig_flags = flags;
@@ -9,7 +10,7 @@ diff -rNu cfengine-source/libutils/file_lib.c cfengine-source-new/libutils/file_
  
      if (flags & O_TRUNC)
      {
-@@ -408,6 +409,9 @@
+@@ -412,6 +413,9 @@ int safe_open(const char *pathname, int flags, ...)
          return -1;
      }
  
@@ -19,7 +20,7 @@ diff -rNu cfengine-source/libutils/file_lib.c cfengine-source-new/libutils/file_
      while (next_component)
      {
          char *component = next_component;
-@@ -514,7 +521,13 @@
+@@ -528,7 +532,9 @@ int safe_open(const char *pathname, int flags, ...)
                      close(currentfd);
                      return -1;
                  }
@@ -33,4 +34,30 @@ diff -rNu cfengine-source/libutils/file_lib.c cfengine-source-new/libutils/file_
 +                     (stat_before.st_uid != stat_after.st_uid || stat_before.st_gid != stat_after.st_gid) )
                  {
                      close(currentfd);
-                     errno = EACCES;
+                     // Return ENOLINK to signal that the link cannot be followed
+@@ -691,6 +697,7 @@ static int safe_open_true_parent_dir(const char *path,
+     char *parent_dir = dirname(parent_dir_alloc);
+     char *leaf = basename(leaf_alloc);
+     struct stat statbuf;
++    uid_t p_uid = geteuid();
+ 
+     if ((dirfd = safe_open(parent_dir, O_RDONLY)) == -1)
+     {
+@@ -702,7 +709,10 @@ static int safe_open_true_parent_dir(const char *path,
+         goto cleanup;
+     }
+ 
+-    if (traversed_link && (link_user != statbuf.st_uid || link_group != statbuf.st_gid))
++    // The probable logic behind the user matching test is that some attacks use symlink creation to exploit a race condition
++    // This attack is not useful if the symlink has been created by root
++    // This attack is not useful if the process's user is the owner of the symlink
++    // As everyone use symlink for server administration, we reenable those cases.
++    if ( traversed_link && 
++         link_user != 0 &&
++         link_user != p_uid &&
++         (link_user != statbuf.st_uid || link_group != statbuf.st_gid) )
+     {
+         errno = ENOLINK;
+         ret = -1;
+
+0
