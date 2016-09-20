@@ -1,0 +1,124 @@
+From 73a893a64d250139dd599df05d5fcc42788b0801 Mon Sep 17 00:00:00 2001
+From: Bas van der Vlies <bas.vandervlies@surfsara.nl>
+Date: Tue, 12 Apr 2016 08:56:01 +0200
+Subject: [PATCH] Jira #2337: The lexer can go wrong with @if minimum_version
+ macro
+
+Changelog: Fix the lexer which could not handle empty newline(s)
+before a ```@endif```.
+
+Modified by: Kristian Amlie <kristian.amlie@cfengine.com>
+- Removed dedicated test and instead made more permutations in
+  existing tests.
+- Fix misquoted ParseDebug strings.
+---
+ libpromises/cf3lex.l                            | 12 ++++++++----
+ tests/acceptance/00_basics/macros/if.cf         | 21 +++++++++++++++++++++
+ tests/acceptance/00_basics/macros/if_feature.cf | 23 ++++++++++++++++++++++-
+ 3 files changed, 51 insertions(+), 5 deletions(-)
+
+diff --git a/libpromises/cf3lex.l b/libpromises/cf3lex.l
+index 45a4d0d..f8c8e23 100644
+--- a/libpromises/cf3lex.l
++++ b/libpromises/cf3lex.l
+@@ -87,7 +87,7 @@ comment    #[^\n]*
+ macro_if_version    ^@if\ minimum_version\([0-9]{1,10}\.[0-9]{1,10}(\.[0-9]{1,10})?\)
+ macro_if_feature    ^@if\ feature\([a-zA-Z0-9_]+\)
+ macro_endif ^@endif
+-macro_line ^[^@].*$
++macro_line ^[^@\n\xd\xa].*$
+ 
+ promises   bundle
+ 
+@@ -246,7 +246,7 @@ promise_type   [a-zA-Z_]+:
+ 
+ 
+ <if_ignore_state>{macro_line}  {
+-                                  ParserDebug("\tL:inside macro @if, ignoring text:%s\n", yytext);
++                                  ParserDebug("\tL:inside macro @if, ignoring line text:\"%s\"\n", yytext);
+                                }
+ 
+ <if_ignore_state>{macro_endif} {
+@@ -258,10 +258,14 @@ promise_type   [a-zA-Z_]+:
+                                    return 0;
+                                  }
+                                  P.if_depth--;
+-                               }\
++                               }
++
++<if_ignore_state>{newline} {
++                           }
++
+ <if_ignore_state>.    {
+                           /* eat up al unknown chars when line starts with @*/
+-                          ParserDebug("\tL:inside macro @if, ignoring text:%s\n", yytext);
++                          ParserDebug("\tL:inside macro @if, ignoring char text:\"%s\"\n", yytext);
+                       }
+ 
+ {promises}            {
+diff --git a/tests/acceptance/00_basics/macros/if.cf b/tests/acceptance/00_basics/macros/if.cf
+index c6442eb..8114e33 100644
+--- a/tests/acceptance/00_basics/macros/if.cf
++++ b/tests/acceptance/00_basics/macros/if.cf
+@@ -46,3 +46,24 @@ bundle agent check
+ 
+ This text should never be seen, it's completely ignored
+ @endif
++
++@if minimum_version(300.600)
++
++Nor should this
++
++@endif
++
++@if minimum_version(300.600)
++
++Nor this
++
++Not this either
++
++@endif
++
++@if minimum_version(300.600)
++Nothing should be seen here really
++
++Who knows, perhaps this text doesn't exist..?
++
++@endif
+diff --git a/tests/acceptance/00_basics/macros/if_feature.cf b/tests/acceptance/00_basics/macros/if_feature.cf
+index a47e5ac..b1a60d6 100644
+--- a/tests/acceptance/00_basics/macros/if_feature.cf
++++ b/tests/acceptance/00_basics/macros/if_feature.cf
+@@ -1,6 +1,6 @@
+ ######################################################
+ #
+-#  Test that @if feature() wirks
++#  Test that @if feature() works
+ #
+ #####################################################
+ 
+@@ -50,3 +50,24 @@ bundle agent check
+ 
+ This text should never be seen, it's completely ignored
+ @endif
++
++@if feature(ABCD)
++
++Nor should this
++
++@endif
++
++@if feature(ABCD)
++
++Nor this
++
++Not this either
++
++@endif
++
++@if feature(ABCD)
++Nothing should be seen here really
++
++Who knows, perhaps this text doesn't exist..?
++
++@endif

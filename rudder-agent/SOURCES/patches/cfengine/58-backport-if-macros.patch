@@ -1,0 +1,121 @@
+From 70b7f6b67e5b77d8a7ac615ae0ef93a1fc10e698 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Beno=C3=AEt=20Peccatte?= <benoit.peccatte@normation.com>
+Date: Fri, 16 Oct 2015 09:45:56 +0200
+Subject: [PATCH] Cleanup @if feature PR
+
+---
+ libenv/sysinfo.c                                |  2 +-
+ libpromises/cf3lex.l                            |  2 +-
+ libpromises/feature.c                           | 34 ++++++++++++-------------
+ libpromises/feature.h                           |  2 +-
+ tests/acceptance/00_basics/macros/if_feature.cf |  2 +-
+ 5 files changed, 21 insertions(+), 21 deletions(-)
+
+diff --git a/libenv/sysinfo.c b/libenv/sysinfo.c
+index b3e7280..ac8b7b2 100644
+--- a/libenv/sysinfo.c
++++ b/libenv/sysinfo.c
+@@ -946,7 +946,7 @@ static void BuiltinClasses(EvalContext *ctx)
+     snprintf(vbuff, CF_BUFSIZE, "cfengine_%s", CanonifyName(Version()));
+     CreateHardClassesFromCanonification(ctx, vbuff, "inventory,attribute_name=none,source=agent");
+ 
+-    CreateHardClassesFromfeatures(ctx, "source=agent");
++    CreateHardClassesFromFeatures(ctx, "source=agent");
+ }
+ 
+ /*******************************************************************/
+diff --git a/libpromises/cf3lex.l b/libpromises/cf3lex.l
+index f931a73..db79a1f 100644
+--- a/libpromises/cf3lex.l
++++ b/libpromises/cf3lex.l
+@@ -167,7 +167,7 @@ promise_type   [a-zA-Z_]+:
+ 
+                           if (3 == sscanf(Version(), "%d.%d.%d", &major, &minor, &patch))
+                           {
+-                            request_level=sscanf(version_text, "%d.%d.%d", &request_major, &request_minor, &request_patch);
++                            request_level = sscanf(version_text, "%d.%d.%d", &request_major, &request_minor, &request_patch);
+                             if (request_level >= 1)
+                             {
+                               if (request_major > major) {
+diff --git a/libpromises/feature.c b/libpromises/feature.c
+index d2c686a..fac9664 100644
+--- a/libpromises/feature.c
++++ b/libpromises/feature.c
+@@ -6,34 +6,34 @@
+ 
+ static const char* features[] = {
+ #ifdef HAVE_LIBYAML
+-  "yaml",
++    "yaml",
+ #endif
+ #ifdef HAVE_LIBXML2
+-  "xml2",
++    "xml2",
+ #endif
+ 
+-  NULL
++    NULL
+ };
+ 
+ int KnownFeature(const char *feature)
+ {
+-  // dumb algorithm, but still effective for a small number of features
+-  for(int i=0 ; features[i]!=NULL ; i++) {
+-    int r = strcmp(feature, features[i]);
+-    if(r==0) {
+-      return 1;
++    // dumb algorithm, but still effective for a small number of features
++    for(int i=0 ; features[i]!=NULL ; i++) {
++        int r = strcmp(feature, features[i]);
++        if(r==0) {
++            return 1;
++        }
+     }
+-  }
+-  return 0;
++    return 0;
+ }
+ 
+-void CreateHardClassesFromfeatures(EvalContext *ctx, char *tags)
++void CreateHardClassesFromFeatures(EvalContext *ctx, char *tags)
+ {
+-  Buffer *buffer = BufferNew();
++    Buffer *buffer = BufferNew();
+ 
+-  for(int i=0 ; features[i]!=NULL ; i++) {
+-    BufferPrintf(buffer, "feature_%s", features[i]);
+-    CreateHardClassesFromCanonification(ctx, BufferData(buffer), tags);
+-  }
+-  BufferDestroy(buffer);
++    for(int i=0 ; features[i]!=NULL ; i++) {
++        BufferPrintf(buffer, "feature_%s", features[i]);
++        CreateHardClassesFromCanonification(ctx, BufferData(buffer), tags);
++    }
++    BufferDestroy(buffer);
+ }
+diff --git a/libpromises/feature.h b/libpromises/feature.h
+index 477ab20..1667832 100644
+--- a/libpromises/feature.h
++++ b/libpromises/feature.h
+@@ -4,7 +4,7 @@
+ 
+ int KnownFeature(const char *feature);
+ 
+-void CreateHardClassesFromfeatures(EvalContext *ctx, char *tags);
++void CreateHardClassesFromFeatures(EvalContext *ctx, char *tags);
+ 
+ #endif
+ 
+diff --git a/tests/acceptance/00_basics/macros/if_feature.cf b/tests/acceptance/00_basics/macros/if_feature.cf
+index 2495116..12a3e23 100644
+--- a/tests/acceptance/00_basics/macros/if_feature.cf
++++ b/tests/acceptance/00_basics/macros/if_feature.cf
+@@ -32,7 +32,7 @@ bundle common test
+ bundle agent check
+ {
+   methods:
+-      "" usebundle => dcs_passif_expected("expected,expected2,expected2",
++      "" usebundle => dcs_passif_expected("expected,expected2",
+                                          "not_expected",
+                                          $(this.promise_filename));
+ }
