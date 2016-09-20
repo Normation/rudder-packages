@@ -439,6 +439,7 @@ mkdir -p %{buildroot}/etc/ld.so.conf.d
 %{install_command} -m 755 %{SOURCE12}/bin/rudder %{buildroot}%{rudderdir}/bin/rudder
 %{cp_a_command} %{SOURCE12}/share/commands/* %{buildroot}%{rudderdir}/share/commands/
 %{cp_a_command} %{SOURCE12}/share/lib/* %{buildroot}%{rudderdir}/share/lib/
+%{cp_a_command} %{SOURCE12}/rudder-version %{buildroot}%{rudderdir}/etc/
 %if "%{?_os}" != "aix"
 %{cp_a_command} %{SOURCE12}/etc/* %{buildroot}/etc/
 %endif
