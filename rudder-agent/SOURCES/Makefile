@@ -37,24 +37,32 @@ INSTALL_DIR = $(DESTDIR)$(RUDDER_DIR)
 TRY_LDFLAGS=-pie -Wl,-z,relro -Wl,-z,now
 TRY_CFLAGS=-fPIE -fstack-protector
 
-# Autodetect wget or curl or curl usage and proxy configuration
+# GENERIC_GET: do not remove this line
+# This is a generic get code that is common to many of our Makefiles.
+# The tag is here to find them.
+# If you change this code, change all the places where you can find this tag too.
+# It is duplicated because it is the code that is used to manage dependency
+# to other repositories, hence allowing deduplication of other code.
+# Autodetect wget, curl or fetch usage and proxy configuration
+# Usage: $(GET) <destination_file> <url>
 PROXY_ENV = $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY))
 WGET = wget -q -O
-CURL = curl -s -o
+CURL = curl -s -L -o
 FETCH = fetch -q -o
 ifneq (,$(wildcard /usr/bin/curl))
-GET = $(PROXY_ENV) $(CURL)
+_GET = $(PROXY_ENV) $(CURL)
 GET_OPT = --curl
 CPAN_OPT = --curl --no-wget
 else
 ifneq (,$(wildcard /usr/bin/fetch))
-GET = $(PROXY_ENV) $(FETCH)
+_GET = $(PROXY_ENV) $(FETCH)
 else
-GET = $(PROXY_ENV) $(WGET)
+_GET = $(PROXY_ENV) $(WGET)
 GET_OPT = --wget
 CPAN_OPT = --wget
 endif
 endif
+GET=get() { $(_GET) "$$1.part" "$$2" && mv "$$1.part" "$$1"; }; get
 
 # Autodtect presence of gnu tools
 TAR := $(shell type gtar >/dev/null 2>&1 && echo gtar || echo tar)
