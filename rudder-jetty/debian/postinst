@@ -45,7 +45,7 @@ JAVA_MAXPERMSIZE=${JAVA_MAXPERMSIZE_MIGRATE}
 
 # Java VM location
 #
-#JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+#JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64
 #JAVA=java
 
 # Source variables from /opt/rudder/etc/rudder-jetty.conf
