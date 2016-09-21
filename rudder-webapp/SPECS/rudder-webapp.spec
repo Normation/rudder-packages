@@ -88,7 +88,6 @@ Source2: rudder.xml
 Source3: rudder-networks.conf
 Source4: rudder-networks-24.conf
 Source5: rudder-upgrade
-Source6: rudder-upgrade-database
 Source7: rudder-webapp
 Source8: rudder-web
 Source10: rudder-init
@@ -269,7 +268,6 @@ cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ldapMigration-3.0-3.1-set-syslog-protocol.ldif %{buildroot}%{rudderdir}/share/upgrade-tools/
 
 cp %{SOURCE5} %{buildroot}%{rudderdir}/bin/
-cp %{SOURCE6} %{buildroot}%{rudderdir}/bin/
 
 install -m 644 %{SOURCE7} %{buildroot}/opt/rudder/etc/server-roles.d/
 cp %{SOURCE13} %{buildroot}%{rudderdir}/etc/
@@ -613,7 +611,6 @@ rm -rf %{buildroot}
 %config(noreplace) %{rudderdir}/etc/rudder-networks-24.conf
 %config(noreplace) /etc/sysconfig/rudder-apache
 /usr/share/doc/rudder
-%{rudderdir}/bin/rudder-upgrade-database
 
 #=================================================
 # Changelog
