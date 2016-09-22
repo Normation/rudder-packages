@@ -1,0 +1,46 @@
+diff -upr cfengine-source/libpromises/evalfunction.c cfengine-source-3/libpromises/evalfunction.c
+--- cfengine-source/libpromises/evalfunction.c	2015-09-06 12:39:13.000000000 +0200
++++ cfengine-source-3/libpromises/evalfunction.c	2016-09-22 17:13:02.125381566 +0200
+@@ -2956,6 +2956,33 @@ static FnCallResult FnCallDatastate(Eval
+     return  (FnCallResult) { FNCALL_SUCCESS, (Rval) { state, RVAL_TYPE_CONTAINER } };
+ }
+ 
++static FnCallResult FnCallDumpDatastate(EvalContext *ctx,
++                                        ARG_UNUSED const Policy *policy,
++                                        ARG_UNUSED const FnCall *fp,
++                                        const Rlist *args)
++{
++	    char *path = RlistScalarValue(args);
++
++	    FILE *fout;
++            if ((fout = fopen(path, "w")) == NULL)
++	    {
++                Log(LOG_LEVEL_ERR, "dumpdatastate: Cannot open the destination file '%s'. (fopen: %s)",
++                  path, GetErrorStr());
++                return FnReturnContext(false);
++           }
++
++            Writer *writer = FileWriter(fout);
++
++            JsonElement *state = DefaultTemplateData(ctx, NULL);
++            JsonWrite(writer, state, 0);
++
++            WriterClose(writer);
++            fclose(fout);
++
++            return FnReturnContext(true);
++}
++
++
+ static FnCallResult FnCallBundlestate(EvalContext *ctx,
+                                       ARG_UNUSED const Policy *policy,
+                                       ARG_UNUSED const FnCall *fp,
+@@ -8109,6 +8136,8 @@ const FnCallType CF_FNCALL_TYPES[] =
+                   FNCALL_OPTION_NONE, FNCALL_CATEGORY_IO, SYNTAX_STATUS_NORMAL),
+     FnCallTypeNew("datastate", CF_DATA_TYPE_CONTAINER, DATASTATE_ARGS, &FnCallDatastate, "Construct a container of the variable and class state",
+                   FNCALL_OPTION_NONE, FNCALL_CATEGORY_UTILS, SYNTAX_STATUS_NORMAL),
++    FnCallTypeNew("dumpdatastate", CF_DATA_TYPE_CONTEXT, FILESTAT_ARGS, &FnCallDumpDatastate, "Dump the current datastate() into the given file",
++		    FNCALL_OPTION_NONE, FNCALL_CATEGORY_FILES, SYNTAX_STATUS_NORMAL),
+     FnCallTypeNew("difference", CF_DATA_TYPE_STRING_LIST, SETOP_ARGS, &FnCallSetop, "Returns all the unique elements of list arg1 that are not in list arg2",
+                   FNCALL_OPTION_NONE, FNCALL_CATEGORY_DATA, SYNTAX_STATUS_NORMAL),
+     FnCallTypeNew("dirname", CF_DATA_TYPE_STRING, DIRNAME_ARGS, &FnCallDirname, "Return the parent directory name for given path",
