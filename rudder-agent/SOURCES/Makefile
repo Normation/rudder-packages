@@ -93,6 +93,7 @@ endif
 ./rudder-agent-utilities: ./rudder-sources
 	rm -rf ./rudder-agent-utilities/
 	cp -a ./rudder-sources/rudder-agent/ ./rudder-agent-utilities
+	echo "{ \"rudder_version\": \"RUDDER_VERSION_TO_PACKAGE\" }" > ./rudder-agent-utilities/rudder-version
 
 # Needed for perl-prepare.sh
 ./detect_os.sh: ./rudder-sources
