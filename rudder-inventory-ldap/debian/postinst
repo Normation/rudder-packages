@@ -82,10 +82,10 @@ case "$1" in
 
 				echo "INFO: OpenLDAP database was successfully upgraded to new format"
 
-				if [ -x /opt/rudder/bin/rudder-upgrade ]
+				if [ -x /opt/rudder/bin/rudder-upgrade-ldap ]
 				then
 					echo "INFO: Running the Rudder upgrade script to replay LDAP migrations on the old database content..."
-					/opt/rudder/bin/rudder-upgrade
+					/opt/rudder/bin/rudder-upgrade-ldap
 				fi
 
 				echo "INFO: You can safely remove the backups in ${LDAP_BACKUP_DIR}"
