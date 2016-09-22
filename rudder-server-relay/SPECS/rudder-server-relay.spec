@@ -146,7 +146,7 @@ service %{apache} stop > /dev/null && echo " Done"
 /bin/systemctl stop  %{apache}.service && echo " Done"
 %endif
 
-%if 0%{?sles_version}
+%if 0%{?suse_version}
 # On SuSE, enable the required modules
 MODULES_TO_ENABLE="dav dav_fs version"
 
