@@ -39,7 +39,7 @@
 
 %define _binaries_in_noarch_packages_terminate_build   0
 
-%if 0%{?sles_version}
+%if 0%{?suse_version}
 %define jetty_init_script jetty-sles.sh
 %else
 %define jetty_init_script jetty-rpm.sh

@@ -47,7 +47,7 @@
 %endif
 
 ## SLES
-%if 0%{?sles_version}
+%if 0%{?suse_version}
 %define apache_vhost_dir    /etc/apache2/conf.d
 %endif
 
@@ -94,7 +94,7 @@ Requires: policycoreutils-python
 %endif
 
 ## SLES
-%if 0%{?sles_version}
+%if 0%{?suse_version}
 Requires: apache2 apache2-mod_wsgi pwdutils
 %endif
 
@@ -137,7 +137,7 @@ cp -f %{SOURCE3} %{_builddir}
 cd %{_sourcedir}
 
 # Build Virtualenv
-%if 0%{?sles_version}
+%if 0%{?suse_version}
 # SLES specific exception, see http://www.rudder-project.org/redmine/issues/6365
 python virtualenv-1.10.1/virtualenv.py %{real_name}
 
@@ -232,7 +232,7 @@ fi
 # automatically, nothing to do here :)
 %endif
 
-%if 0%{?sles_version}
+%if 0%{?suse_version}
 # Enable mod_wsgi using a2enmod
 a2enmod wsgi >/dev/null 2>&1
 
