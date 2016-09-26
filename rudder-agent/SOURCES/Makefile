@@ -101,6 +101,9 @@ endif
 ./rudder-agent-utilities: ./rudder-sources
 	rm -rf ./rudder-agent-utilities/
 	cp -a ./rudder-sources/rudder-agent/ ./rudder-agent-utilities
+	# Add capabilities
+	echo cfengine >> ./rudder-agent-utilities/agent-capabilities
+	echo dumpdatastate >> ./rudder-agent-utilities/agent-capabilities
 
 # Needed for perl-prepare.sh
 ./detect_os.sh: ./rudder-sources
