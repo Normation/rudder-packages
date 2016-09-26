@@ -197,10 +197,14 @@ stop_services()
 {
   printf "${GREEN}Stopping Rudder services:${NORMAL}\n"
 
-  service_action "${RUDDER_SLAPD}" stop "${HAVE_SLAPD}"
-  service_action "${POSTGRESQL}"   stop "${HAVE_POSTGRESQL}"
-  service_action "${RUDDER_JETTY}" stop "${HAVE_JETTY}"
+  # Stop Rudder applications before databases to prevent
+  # hangs at shutdown due to still active client connexions
+  # and connexion failure from appearing in rudder-jetty
+  # logs.
   service_action "${RUDDER_AGENT}" stop "${HAVE_AGENT}"
+  service_action "${RUDDER_JETTY}" stop "${HAVE_JETTY}"
+  service_action "${POSTGRESQL}"   stop "${HAVE_POSTGRESQL}"
+  service_action "${RUDDER_SLAPD}" stop "${HAVE_SLAPD}"
 }
 
 details_services()
