@@ -177,6 +177,7 @@ endif
 	$(INSTALL) -m 755 rudder-agent-utilities/bin/rudder $(INSTALL_DIR)/bin/
 	$(INSTALL) -m 755 rudder-agent-utilities/share/commands/* $(INSTALL_DIR)/share/commands/
 	$(INSTALL) -m 755 rudder-agent-utilities/share/lib/* $(INSTALL_DIR)/share/lib/
+	$(INSTALL) -m 755 rudder-agent-utilities/agent-capabilities $(INSTALL_DIR)/etc/
 
 	# Create a symlink to make "rudder" available as part of the default PATH
 	ln -sf $(RUDDER_DIR)/bin/rudder $(DESTDIR)/usr/bin/rudder
@@ -288,6 +289,9 @@ initial-ncf: ./rudder-sources ./initial-promises
 rudder-agent-utilities: rudder-sources
 	rm -rf ./rudder-agent-utilities/
 	cp -r ./rudder-sources/rudder-agent/ ./rudder-agent-utilities
+	# Add capabilities
+	echo cfengine >> ./rudder-agent-utilities/agent-capabilities
+	echo dumpdatastate >> ./rudder-agent-utilities/agent-capabilities
 
 fusioninventory-agent:
 ifeq ($(shell ../../build-caching get --force-config ./fusioninventory-agent/ name=fusioninventory-agent version=$(FUSION_RELEASE) >/dev/null 2>&1 || echo KO), KO)
