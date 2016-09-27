@@ -1,0 +1,67 @@
+Fixes #9131: Add capabilities in inventory
+
+http://www.rudder-project.org/redmine/issues/9131
+
+--- a/lib/FusionInventory/Agent/Inventory.pm
++++ b/lib/FusionInventory/Agent/Inventory.pm
+@@ -38,7 +38,7 @@
+     PORTS       => [ qw/CAPTION DESCRIPTION NAME TYPE/ ],
+     PROCESSES   => [ qw/USER PID CPUUSAGE MEM VIRTUALMEMORY TTY STARTED CMD/ ],
+     REGISTRY    => [ qw/NAME REGVALUE HIVE/ ],
+-    RUDDER      => [ qw/AGENT UUID HOSTNAME SERVER_ROLES/ ],
++    RUDDER      => [ qw/AGENT UUID HOSTNAME SERVER_ROLES AGENT_CAPABILITIES/ ],
+     SLOTS       => [ qw/DESCRIPTION DESIGNATION NAME STATUS/ ],
+     SOFTWARES   => [ qw/COMMENTS FILESIZE FOLDER FROM HELPLINK INSTALLDATE NAME
+                         NO_REMOVE RELEASE_TYPE PUBLISHER UNINSTALL_STRING
+
+--- a/lib/FusionInventory/Agent/Task/Inventory/Generic/Rudder.pm	2016-09-27 18:14:14.566489431 +0200
++++ b/lib/FusionInventory/Agent/Task/Inventory/Generic/Rudder.pm	2016-09-27 18:13:48.154418990 +0200
+@@ -39,11 +39,15 @@
+     # Get server roles
+     my @serverRoles = _listServerRoles();
+ 
++    # Get agent capabilities
++    my @agentCapabilities = _listAgentCapabilities();
++
+     my $rudder = {
+         HOSTNAME => $hostname,
+         UUID => $Uuid,
+         AGENT => \@agents,
+         SERVER_ROLES => { SERVER_ROLE => \@serverRoles },
++        AGENT_CAPABILITIES => { AGENT_CAPABILITY => \@agentCapabilities },
+     };
+ 
+     $inventory->addEntry(
+@@ -58,6 +62,7 @@
+     if (-d "$server_roles_dir") {
+         opendir(DIR, $server_roles_dir); # or die $!;
+ 
++        # List each file in the server-roles directory, each file name is a role
+         while (my $file = readdir(DIR)) {
+             # Use a regular expression to ignore files beginning with a period
+             next if ($file =~ m/^\./);
+@@ -68,6 +73,23 @@
+     return @server_roles;
+ }
+ 
++sub _listAgentCapabilities {
++    my $capabilities_file = ($OSNAME eq 'MSWin32') ? 'C:\Program Files\Rudder\etc\agent-capabilities' : '/opt/rudder/etc/agent-capabilities';
++    my @capabilities;
++
++    # List agent capabilities, one per line in the file
++    if (-f "$capabilities_file") {
++        if (open(my $fh, '<:encoding(UTF-8)', $capabilities_file)) {
++            while (my $row = <$fh>) {
++                chomp $row;
++                push @capabilities, $row;
++            }
++            close $fh;
++        }
++    }
++    return @capabilities;
++}
++
+ sub _manageAgent {
+     my %params = @_;
+     my $logger = $params{logger};
+
