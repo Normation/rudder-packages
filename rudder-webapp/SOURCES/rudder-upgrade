@@ -62,6 +62,9 @@ trap anomaly_handler ERR INT TERM
 # - 3.0.17       : Add index on eventType and executionTimeStamp on RudderSysEvents
 # - 3.1.0        : Add LDAP entry for 'rudder_syslog_protocol' property, and set 'tcp' as value, different from default value (udp) on a fresh 3.1
 # - 3.1.10       : Add masterfiles in the server
+# - 3.1.14, 3.2.7: Disable 'global quicksearch' feature on upgrade
+# - 3.1.14, 3.2.7: Disable 'json node properties in Directives' feature on upgrade
+# - 3.1.14, 3.2.7: Disable 'javascript engine' feature on upgrade
 ####################################################################################
 
 # Some paths
@@ -622,6 +625,36 @@ EOF
     if [ ${LDAP_TEST_SYSLOG_PROPERTY} -eq 0 ]; then
       echo -n "INFO: Adding 'rudder_syslog_protocol' property..."
       ${LDAPADD} -f ${RUDDER_UPGRADE_TOOLS}/ldapMigration-3.0-3.1-set-syslog-protocol.ldif >/dev/null 2>&1
+      echo " Done."
+    fi
+
+    # - 3.1.14, 3.2.7 : Disable 'global quicksearch' feature on upgrade    STEP="Add LDAP entry for 'rudder_syslog_protocol' property"
+    STEP="Disable 'global quicksearch' feature"
+
+    LDAP_TEST_SYSLOG_PROPERTY=$(${LDAPSEARCH} -b "propertyName=rudder_featureSwitch_quicksearchEverything,ou=Application Properties,cn=rudder-configuration" -s base dn 2> /dev/null | grep -c "dn: propertyName=rudder_featureSwitch_quicksearchEverything" || true)
+    if [ ${LDAP_TEST_SYSLOG_PROPERTY} -eq 0 ]; then
+      echo -n "INFO: Disabling 'global quicksearch' feature..."
+      ${LDAPADD} -f ${RUDDER_UPGRADE_TOOLS}/ldapMigration-3.1.x-3.1.14-3.2.7-disable-quicksearch.ldif
+      echo " Done."
+    fi
+
+    # - 3.1.14, 3.2.7 : Disable 'json node properties in Directives' feature on upgrade
+    STEP="Disable 'json node properties' feature"
+
+    LDAP_TEST_SYSLOG_PROPERTY=$(${LDAPSEARCH} -b "propertyName=rudder_featureSwitch_directiveNodeProperties,ou=Application Properties,cn=rudder-configuration" -s base dn 2> /dev/null | grep -c "dn: propertyName=rudder_featureSwitch_directiveNodeProperties" || true)
+    if [ ${LDAP_TEST_SYSLOG_PROPERTY} -eq 0 ]; then
+      echo -n "INFO: Disabling 'json node properties' feature..."
+      ${LDAPADD} -f ${RUDDER_UPGRADE_TOOLS}/ldapMigration-3.1.x-3.1.14-3.2.7-disable-json-properties.ldif
+      echo " Done."
+    fi
+
+    # - 3.1.14, 3.2.7 : Disable 'javascript engine' feature on upgrade
+    STEP="Disable 'javascript script engine' feature"
+
+    LDAP_TEST_SYSLOG_PROPERTY=$(${LDAPSEARCH} -b "propertyName=rudder_featureSwitch_directiveScriptEngine,ou=Application Properties,cn=rudder-configuration" -s base dn 2> /dev/null | grep -c "dn: propertyName=rudder_featureSwitch_directiveScriptEngine" || true)
+    if [ ${LDAP_TEST_SYSLOG_PROPERTY} -eq 0 ]; then
+      echo -n "INFO: Disabling 'javascript script engine' feature..."
+      ${LDAPADD} -f ${RUDDER_UPGRADE_TOOLS}/ldapMigration-3.1.x-3.1.14-3.2.7-disable-js-directive.ldif
       echo " Done."
     fi
 
