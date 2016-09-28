@@ -332,7 +332,7 @@ upgrade_ncf() {
   mkdir -p ${RUDDER_VAR}/ncf/common
   if [ -d ${RUDDER_NCF_SOURCE_DIRECTORY}/tree ]; then
     if ! diff -aur ${RUDDER_NCF_SOURCE_DIRECTORY}/tree/ ${RUDDER_VAR}/ncf/common/ >/dev/null 2>&1; then
-      rsync --delete -rptgoq ${RUDDER_NCF_SOURCE_DIRECTORY}/tree/ ${RUDDER_VAR}/ncf/common/
+      rsync --delete -rpgoq ${RUDDER_NCF_SOURCE_DIRECTORY}/tree/ ${RUDDER_VAR}/ncf/common/
     fi
   fi
 
