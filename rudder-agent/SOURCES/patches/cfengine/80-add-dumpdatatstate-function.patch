@@ -12,21 +12,21 @@ diff -upr cfengine-source/libpromises/evalfunction.c cfengine-source-3/libpromis
 +{
 +	    char *path = RlistScalarValue(args);
 +
-+	    FILE *fout;
-+            if ((fout = fopen(path, "w")) == NULL)
-+	    {
++           FILE *fout;
++           if ((fout = fopen(path, "w")) == NULL)
++           {
 +                Log(LOG_LEVEL_ERR, "dumpdatastate: Cannot open the destination file '%s'. (fopen: %s)",
-+                  path, GetErrorStr());
++                    path, GetErrorStr());
 +                return FnReturnContext(false);
-+           }
++            }
 +
 +            Writer *writer = FileWriter(fout);
 +
 +            JsonElement *state = DefaultTemplateData(ctx, NULL);
 +            JsonWrite(writer, state, 0);
++            JsonDestroy(state);
 +
 +            WriterClose(writer);
-+            fclose(fout);
 +
 +            return FnReturnContext(true);
 +}
