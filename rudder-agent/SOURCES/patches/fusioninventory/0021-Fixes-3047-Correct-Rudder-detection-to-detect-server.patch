@@ -4,29 +4,21 @@ Date: Thu, 15 Sep 2016 12:56:49 +0200
 Subject: [PATCH] Fixes #3047: Correct Rudder detection to detect server roles,
  and work on windows
 
----
- lib/FusionInventory/Agent/Inventory.pm             |  2 +-
- .../Agent/Task/Inventory/Generic/Rudder.pm         | 90 ++++++++++++++--------
- 2 files changed, 61 insertions(+), 31 deletions(-)
-
-diff --git a/lib/FusionInventory/Agent/Inventory.pm b/lib/FusionInventory/Agent/Inventory.pm
-index 14fdbae..fbdbe0d 100644
 --- a/lib/FusionInventory/Agent/Inventory.pm
 +++ b/lib/FusionInventory/Agent/Inventory.pm
-@@ -71,7 +71,7 @@ my %fields = (
+@@ -68,7 +68,7 @@
+     PROCESSES        => [ qw/USER PID CPUUSAGE MEM VIRTUALMEMORY TTY STARTED
                               CMD/ ],
      REGISTRY         => [ qw/NAME REGVALUE HIVE/ ],
-     REMOTE_MGMT      => [ qw/ID TYPE/ ],
 -    RUDDER           => [ qw/AGENT UUID HOSTNAME/ ],
 +    RUDDER           => [ qw/AGENT UUID HOSTNAME SERVER_ROLES/ ],
      SLOTS            => [ qw/DESCRIPTION DESIGNATION NAME STATUS/ ],
      SOFTWARES        => [ qw/COMMENTS FILESIZE FOLDER FROM HELPLINK INSTALLDATE
                              NAME NO_REMOVE RELEASE_TYPE PUBLISHER
-diff --git a/lib/FusionInventory/Agent/Task/Inventory/Generic/Rudder.pm b/lib/FusionInventory/Agent/Task/Inventory/Generic/Rudder.pm
-index 7317c38..4f963e7 100644
+
 --- a/lib/FusionInventory/Agent/Task/Inventory/Generic/Rudder.pm
 +++ b/lib/FusionInventory/Agent/Task/Inventory/Generic/Rudder.pm
-@@ -8,32 +8,42 @@ use English qw(-no_match_vars);
+@@ -8,7 +8,11 @@
  use FusionInventory::Agent::Tools;
  
  sub isEnabled {
@@ -39,12 +31,9 @@ index 7317c38..4f963e7 100644
  }
  
  sub doInventory {
-     my (%params) = @_;
- 
--    my $inventory = $params{inventory};
--    my $logger    = $params{logger};
-+    my $inventory    = $params{inventory};
-+    my $logger       = $params{logger};
+@@ -17,23 +21,29 @@
+     my $inventory = $params{inventory};
+     my $logger    = $params{logger};
  
 -    # get Rudder UUID
 +    my $uuid_hive = getUuidFile();
@@ -61,9 +50,8 @@ index 7317c38..4f963e7 100644
 +        logger => $logger
      );
 -    # get machine hostname
--    my $command = $OSNAME eq 'linux' ? 'hostname --fqd' : 'hostname';
 +    # Get machine hostname
-+    my $command = $OSNAME eq 'linux' ? 'hostname --fqdn' : 'hostname';
+     my $command = $OSNAME eq 'linux' ? 'hostname --fqdn' : 'hostname';
      my $hostname = getFirstLine(
          logger => $logger, command => $command
      );
@@ -78,7 +66,7 @@ index 7317c38..4f963e7 100644
      };
  
      $inventory->addEntry(
-@@ -41,37 +51,58 @@ sub doInventory {
+@@ -41,23 +51,44 @@
      );
  }
  
@@ -105,7 +93,7 @@ index 7317c38..4f963e7 100644
      my $logger = $params{logger};
 -
      my @agents;
--
+ 
 -    # each line could be a new agent
 -    while(my $name = <$handle>){
 -
@@ -116,8 +104,6 @@ index 7317c38..4f963e7 100644
 -        my $server_hostname_file = "/var/rudder/$name/policy_server.dat";
 -        my $uuid_file            = "/var/rudder/$name/rudder-server-uuid.txt";
 -        my $cfengine_key_file    = "/var/rudder/$name/ppkeys/localhost.pub";
--
-+	
 +    # Potential agent directory candidates
 +    my %agent_candidates = ( '/var/rudder/cfengine-community' => 'cfengine-community',
 +                             '/var/cfengine'                  => 'cfengine-nova',
@@ -134,12 +120,10 @@ index 7317c38..4f963e7 100644
 +        my $server_hostname_file = "${candidate}/policy_server.dat";
 +        my $uuid_file            = "${candidate}/rudder-server-uuid.txt";
 +        my $cfengine_key_file    = "${candidate}/ppkeys/localhost.pub";
-+		
+ 
          # get policy server hostname
          my $serverHostname = getFirstLine (
-             logger => $logger,
--            file => $server_hostname_file
-+            file   => $server_hostname_file
+@@ -66,12 +97,12 @@
          );
          chomp $serverHostname;
  
@@ -156,7 +140,7 @@ index 7317c38..4f963e7 100644
          my $serverUuid = getFirstLine (
              logger => $logger,
              file => ( -e "$uuid_file" ) ? $uuid_file : "/var/rudder/tmp/uuid.txt"
-@@ -91,7 +122,7 @@ sub _manageAgent {
+@@ -91,7 +122,7 @@
  
          # build agent from datas
          my $agent = {
@@ -165,7 +149,7 @@ index 7317c38..4f963e7 100644
              POLICY_SERVER_HOSTNAME => $serverHostname,
              CFENGINE_KEY           => $cfengineKey,
              OWNER                  => $owner,
-@@ -102,7 +133,6 @@ sub _manageAgent {
+@@ -102,7 +133,6 @@
  
      }
  
@@ -173,6 +157,3 @@ index 7317c38..4f963e7 100644
      return @agents;
  }
  
--- 
-1.9.1
-
