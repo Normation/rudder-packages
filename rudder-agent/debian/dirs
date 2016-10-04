@@ -1,5 +1,6 @@
 etc/ld.so.conf.d
 etc/profile.d
+etc/bash_completion.d
 opt/rudder
 opt/rudder/share/man/man8
 var/rudder/cfengine-community

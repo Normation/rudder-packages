@@ -179,6 +179,10 @@ endif
 	$(INSTALL) -m 755 rudder-agent-utilities/share/lib/* $(INSTALL_DIR)/share/lib/
 	$(INSTALL) -m 755 rudder-agent-utilities/agent-capabilities $(INSTALL_DIR)/etc/
 
+        # Install /etc/bash_completion.d/rudder in order to autocomplete rudder commands
+	mkdir -p $(DESTDIR)/etc/bash_completion.d
+	$(INSTALL) -m 644 rudder-agent-utilities/etc/bash_completion.d/rudder $(DESTDIR)/etc/bash_completion.d/
+
 	# Create a symlink to make "rudder" available as part of the default PATH
 	ln -sf $(RUDDER_DIR)/bin/rudder $(DESTDIR)/usr/bin/rudder
 
