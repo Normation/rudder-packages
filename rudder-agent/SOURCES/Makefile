@@ -183,6 +183,10 @@ endif
 	mkdir -p $(DESTDIR)/etc/bash_completion.d
 	$(INSTALL) -m 644 rudder-agent-utilities/etc/bash_completion.d/rudder $(DESTDIR)/etc/bash_completion.d/
 
+        # Install rudder man page
+	mkdir -p $(INSTALL_DIR)/share/man/man8/
+	$(INSTALL) -m 644 rudder.8.gz $(INSTALL_DIR)/share/man/man8/
+
 	# Create a symlink to make "rudder" available as part of the default PATH
 	ln -sf $(RUDDER_DIR)/bin/rudder $(DESTDIR)/usr/bin/rudder
 
