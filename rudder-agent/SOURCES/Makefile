@@ -300,6 +300,7 @@ rudder-agent-utilities: rudder-sources
 	# Add capabilities
 	echo cfengine >> ./rudder-agent-utilities/agent-capabilities
 	echo dumpdatastate >> ./rudder-agent-utilities/agent-capabilities
+	echo bodydefault >> ./rudder-agent-utilities/agent-capabilities
 
 fusioninventory-agent:
 ifeq ($(shell ../../build-caching get --force-config ./fusioninventory-agent/ name=fusioninventory-agent version=$(FUSION_RELEASE) >/dev/null 2>&1 || echo KO), KO)
