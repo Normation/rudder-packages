@@ -195,6 +195,15 @@ function reset_policy_server() {
 
 function add_allowed_networks() {
   network="$1"
+  # check for invalid network definition
+  if [ $(echo -n "${network}" | sed 's|^[0-9]\+\.[0-9]\+\.[0-9]\+\.[0-9]\+/[0-9]\+$|OK|') != "OK" ]
+  then
+    echo "ERROR: Invalid network ${network}"
+    echo "Usage is: ${0} LDAPReset AllowedNetwork1 [AllowedNetwork2]..."
+    exit 1
+  fi
+
+  # add it to the ALLOWEDNETWORK array
   if [ "${network}" = "auto" ]
   then
     # list all ipv4 networks matching each non loopback interface
