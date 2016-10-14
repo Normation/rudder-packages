@@ -56,7 +56,7 @@ buildpackage-rpm-common-prep:
 	# As of now, only SLES requires this, the other OSes provide a recent enough JDK.
 	if [ "z$(JAVAREQUIRES)" = "zjdk" ] && [ $$(rpm -qa jdk|wc -l) -eq 0 ]; then wget -q -O /tmp/jdk.rpm $(JDKURL); rpm -ivh /tmp/jdk.rpm; fi
 	# Workaround for #9358
-	sed -i -e '/sun.security.ec.SunEC/s/^/#/' /usr/java/jdk1.7.*/jre/lib/security/java.security
+	sed -i -e '/sun.security.ec.SunEC/s/^/#/' /usr/java/jdk1.7.*/jre/lib/security/java.security || true
 
 buildpackage-rpm-common-prep-suse:
 	# Accept expired GPG Key for zypper on old SLES versions
