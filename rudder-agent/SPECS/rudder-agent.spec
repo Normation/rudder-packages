@@ -70,24 +70,8 @@ URL: http://www.rudder-project.org
 
 Group: Applications/System
 
-
 Source1: Makefile
-Source2: check-rudder-agent
-Source3: filter-reqs.pl
-Source4: config.guess
-Source5: rudder-agent-postinst
-Source6: rudder-agent.init
-Source7: rudder-agent.sh
-Source8: rudder-perl
-Source9: rudder.conf
-Source10: rudder.init
-Source11: run-inventory
-Source12: signature.sh
-Source13: uuid.hive
-Source15: vzps.py
-Source16: rudder.8.gz
-Source17: rudder-signature-check
-Source18: rudder-sign
+Source2: filter-reqs.pl
 
 %if "%{use_system_perl}" == "false"
 # Prevent dependency auto-generation, that tries to be helpful by detecting Perl dependencies from
