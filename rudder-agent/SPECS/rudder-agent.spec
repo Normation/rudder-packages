@@ -473,11 +473,14 @@ rm -f %{_builddir}/file.list.%{name}
 %config /etc/ld.so.conf.d/rudder.conf
 %endif
 
+%if "%{?_os}" != "aix"
+# no init no cron and no profile with aix
 %config /etc/cron.d/rudder-agent
 %config /etc/profile.d/rudder-agent.sh
+%config(noreplace) /etc/default/rudder-agent
+%endif
 %config /etc/bash_completion.d/rudder
 %config(noreplace) /opt/rudder/etc/uuid.hive
-%config(noreplace) /etc/default/rudder-agent
 
 #=================================================
 # Changelog
