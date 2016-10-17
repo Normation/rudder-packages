@@ -63,6 +63,7 @@ localdepends: ./rudder-sources ./maven/bin/mvn ./rudder-users.xml ./rudder-doc .
 
 	# Change rudder version displayed in the Web UI
 	for page in $(PAGES_WITH_VERSION); do \
+	  sed -i "s%@PACKAGING_RUDDER_MAJOR_VERSION@%$(RUDDER_MAJOR_VERSION)%" "rudder-sources/$${page}" ; \
 	  sed -i "s%@PACKAGING_RUDDER_VERSION@%$(RUDDER_VERSION_TO_PACKAGE)%" "rudder-sources/$${page}" ; \
 	done
 
