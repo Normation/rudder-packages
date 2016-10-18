@@ -296,7 +296,7 @@ cd %{_sourcedir}
 make install DESTDIR=%{buildroot} USE_SYSTEM_OPENSSL=%{use_system_openssl} USE_SYSTEM_LMDB=%{use_system_lmdb} USE_SYSTEM_PCRE=%{use_system_pcre} NO_INIT=%{no_init} NO_CRON=%{no_cron} NO_LD=%{no_ld} NO_PROFILE=%{no_profile} USE_SYSTEM_FUSION=%{use_system_fusion} USE_SYSTEM_PERL=%{use_system_perl} NO_LDSO=%{no_ldso}
 
 # Build a list of files to include in this package for use in the %files section below
-find %{buildroot} -type f -o -type l | sed "s,%{buildroot},," | sed "s,\.py$,\.py*," | grep -v "%{rudderdir}/etc/uuid.hive" | grep -v "%{ruddervardir}/cfengine-community/ppkeys" > %{_builddir}/file.list.%{name}
+find %{buildroot} -type f -o -type l | sed "s,%{buildroot},," | sed "s,\.py$,\.py*," | grep -v "%{rudderdir}/etc/uuid.hive" | grep -v "%{rudderdir}/etc/bash_completion.d" | grep -v "%{ruddervardir}/cfengine-community/ppkeys" > %{_builddir}/file.list.%{name}
 
 %pre
 #=================================================
@@ -454,8 +454,6 @@ rm -f %{_builddir}/file.list.%{name}
 %files -f %{_builddir}/file.list.%{name}
 %defattr(-, root, root, 0755)
 
-%{bindir}/rudder
-
 # The following file is declared to belong to this package but will not be installed
 # This is because it is populated during post-inst scriptlet
 # This is not reflected in debian packaging, because dpkg will never replace an
@@ -480,7 +478,6 @@ rm -f %{_builddir}/file.list.%{name}
 %config(noreplace) /etc/default/rudder-agent
 %endif
 %config /etc/bash_completion.d/rudder
-%config(noreplace) /opt/rudder/etc/uuid.hive
 
 #=================================================
 # Changelog
