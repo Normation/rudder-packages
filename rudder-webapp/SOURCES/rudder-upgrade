@@ -529,9 +529,9 @@ upgrade_database() {
   fi
 
   # - 3.1.x and 3.2.x to 4.0.0: Migration DB schema to add table "nodeConfiguration" and related indexes 
-  RES=$(${PSQL} -t -d rudder -c "select count(*) from information_schema.columns where table_name = 'nodeConfigurations'")
+  RES=$(${PSQL} -t -d rudder -c "select count(*) from information_schema.columns where lower(table_name) = 'nodeconfigurations'")
   if [ $RES -eq 0 ]; then
-    echo -n "INFO: Adding new 'nodeConfigurations' table and updating indexes, this may take several minutes..."
+    echo -n "INFO: Adding new 'nodeConfigurations' table and updating indexes, this may take several seconds..."
     ${PSQL} -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-3.2.x-4.0-add-nodeconfigurations.sql > /dev/null
     echo " Done"
   fi
