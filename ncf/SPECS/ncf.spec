@@ -110,6 +110,11 @@ rm -rf %{buildroot}
 %config(noreplace) %{installdir}/ncf/tree/ncf.conf
 %{bindir}/ncf
 
+# Avoid having .pyo and .pyc files in our package
+# as they will always be regenerated
+%exclude %{installdir}/ncf/tree/10_ncf_internals/modules/templates/*.pyc
+%exclude %{installdir}/ncf/tree/10_ncf_internals/modules/templates/*.pyo
+
 #=================================================
 # Changelog
 #=================================================
