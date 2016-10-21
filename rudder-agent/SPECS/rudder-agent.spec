@@ -460,7 +460,7 @@ rm -f %{_builddir}/file.list.%{name}
 # existing file declared in conffiles
 %ghost %{rudderdir}/etc/uuid.hive
 
-%attr(0700, -, -) %dir %{ruddervardir}/cfengine-community/ppkeys
+%attr(0700, -, -) %{ruddervardir}/cfengine-community/ppkeys
 %dir %{ruddervardir}/cfengine-community/bin
 %dir %{ruddervardir}/cfengine-community/inputs
 %dir %{ruddervardir}/tmp
