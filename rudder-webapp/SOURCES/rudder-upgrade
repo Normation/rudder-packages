@@ -55,6 +55,7 @@ trap anomaly_handler ERR INT TERM
 # - 3.2.0        : Call rudderify to make sure local techniques are copied in each agent promises
 # - 3.1.14, 3.2.7: Disable 'javascript engine' feature on upgrade - keeping that in 4.0 to avoid behaviour changes
 # - 4.0.0        : Add new nodeConfigurations table and related indexes
+# - 4.0.0        : Add new archive table for nodeConfigurations and reportsexecution
 ####################################################################################
 
 # Some paths
@@ -533,6 +534,15 @@ upgrade_database() {
   if [ $RES -eq 0 ]; then
     echo -n "INFO: Adding new 'nodeConfigurations' table and updating indexes, this may take several seconds..."
     ${PSQL} -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-3.2.x-4.0-add-nodeconfigurations.sql > /dev/null
+    echo " Done"
+  fi
+
+
+  # - 3.1.x and 3.2.x to 4.0.0: Migration DB schema to add archive table "archivedNodeConfigurations" and "ArchivedReportsExecution" 
+  RES=$(${PSQL} -t -d rudder -c "select count(*) from information_schema.columns where lower(table_name) = 'archivednodeconfigurations'")
+  if [ $RES -eq 0 ]; then
+    echo -n "INFO: Adding new 'archivedNodeConfigurations' and 'ArchivedReportsExecution' tables"
+    ${PSQL} -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-3.2.x-4.0-add-archived-tables.sql > /dev/null
     echo " Done"
   fi
 
