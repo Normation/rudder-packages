@@ -198,7 +198,8 @@ function reset_policy_server() {
 function add_allowed_networks() {
   network="$1"
   # check for invalid network definition
-  if echo -n "${network}" | grep "${IP_NET_RE}" > /dev/null
+  echo -n "${network}" | grep "${IP_NET_RE}" > /dev/null
+  if [ $? -ne 0 ]
   then
     echo "ERROR: Invalid network ${network}"
     echo "Usage is: ${0} LDAPReset AllowedNetwork1 [AllowedNetwork2]..."
