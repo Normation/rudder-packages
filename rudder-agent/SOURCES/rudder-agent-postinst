@@ -29,8 +29,8 @@ if [ ! -f /opt/rudder/etc/disable-agent ]; then
   ${RUDDER_CMD} agent disable
 fi
 
-# Make sure the daemons are stopped
-${RUDDER_CMD} agent stop || true
+# Make sure the daemons are stopped (if the daemon exists)
+[ -x "${CFE_DIR}/bin/cf-execd" ] && ${RUDDER_CMD} agent stop || true
 
 # On AIX, trigger slibclean to remove any unused library/binary object from memory
 # Will prevent "Text file busy" errors during the following copy
