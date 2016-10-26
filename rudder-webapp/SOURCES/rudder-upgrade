@@ -47,7 +47,6 @@ trap anomaly_handler ERR INT TERM
 # - 2.10.17      : Migration DB schema to add historization of global agent schedule
 # - 2.11.19      : Add index on fileformat for eventlog
 # - 2.11.23      : Add 'api compatibility' property
-# - 3.0.14       : Add index on nodeconfigids for expectedreportsnodes
 # - 3.0.17       : Add index on eventType and executionTimeStamp on RudderSysEvents
 # - 3.1.10       : Add masterfiles in the server
 # - 3.2.0        : Add the properties to configuration authentication provider and master admin account
@@ -510,14 +509,6 @@ upgrade_database() {
   if [ $RES -eq 0 ]; then
     echo -n "INFO: Updating the PostgreSQL indexes, this may take several minutes..."
     ${PSQL} -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.11-2.11-index-eventlog.sql > /dev/null
-    echo " Done"
-  fi
-
-  # - 2.11.19, 3.0.14, 3.1.8 and 3.2.1 : Migration DB schema to add an indexes on nodeconfigids on table expectedreportsnodes
-  RES=$(${PSQL} -t -d rudder -c "select count(oid) from pg_class where lower(relname) = 'nodeconfigids_idx'")
-  if [ $RES -eq 0 ]; then
-    echo -n "INFO: Updating the PostgreSQL indexes, this may take several minutes..."
-    ${PSQL} -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-3.0-3.0-add-index-nodeconfigids.sql > /dev/null
     echo " Done"
   fi
 
