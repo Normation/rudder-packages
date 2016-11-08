@@ -317,6 +317,10 @@ echo -n "INFO: Restarting rudder-slapd..."
 service rudder-slapd force-reload >/dev/null 2>&1
 echo " Done"
 
+# Remove slapd.confe which was due to a bug in the init script
+# that existed in 3.1/3.2 (#6197).
+rm -f /opt/rudder/etc/openldap/slapd.confe
+
 %preun -n rudder-inventory-ldap
 #=================================================
 # Pre Un-installation
