@@ -398,9 +398,9 @@ start_slapd() {
       # set cache size to the value provided
       CACHESIZE=${RUDDER_CACHESIZE}
     fi
-    sed -ie '/^[ \t]*\(cachesize\|idlcachesize\)/d' /opt/rudder/etc/openldap/slapd.conf
-    sed -ie 's/^\([ \t]*suffix[ \t]\+"cn=rudder-configuration".*\)/\1\ncachesize '${CACHESIZE}'/' /opt/rudder/etc/openldap/slapd.conf
-    sed -ie 's/^\([ \t]*suffix[ \t]\+"cn=rudder-configuration".*\)/\1\nidlcachesize '$((${CACHESIZE}*3))'/' /opt/rudder/etc/openldap/slapd.conf
+    sed -i '/^[ \t]*\(cachesize\|idlcachesize\)/d' /opt/rudder/etc/openldap/slapd.conf
+    sed -i 's/^\([ \t]*suffix[ \t]\+"cn=rudder-configuration".*\)/\1\ncachesize '${CACHESIZE}'/' /opt/rudder/etc/openldap/slapd.conf
+    sed -i 's/^\([ \t]*suffix[ \t]\+"cn=rudder-configuration".*\)/\1\nidlcachesize '$((${CACHESIZE}*3))'/' /opt/rudder/etc/openldap/slapd.conf
   fi
 
   # Parameters
