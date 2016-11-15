@@ -46,7 +46,12 @@
 %define syslogservicename       syslog
 %define apache_vhost_dir        %{apache}/vhosts.d
 %define ldap_clients            openldap2-client
+## suse_version 1315 is SLES12 (but could also be Leap 42.1*)
+%if 0%{?suse_version} >= 1315
+%define usermod_opt             aG
+%else
 %define usermod_opt             A
+%endif
 %endif
 %if 0%{?rhel} == 5 || 0%{?el5}
 %define apache                  httpd
