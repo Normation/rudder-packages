@@ -1,30 +1,30 @@
-diff --git a/libutils/file_lib.c b/libutils/file_lib.c
-index 0b1394d..616fea9 100644
---- a/libutils/file_lib.c
-+++ b/libutils/file_lib.c
-@@ -380,6 +380,7 @@ int safe_open(const char *pathname, int flags, ...)
-     char *next_component;
+diff -upr cfengine-a/libutils/file_lib.c cfengine-b/libutils/file_lib.c
+--- cfengine-a/libutils/file_lib.c	2016-11-01 08:47:08.000000000 +0100
++++ cfengine-b/libutils/file_lib.c	2016-11-25 18:21:44.163553332 +0100
+@@ -387,6 +387,7 @@ int safe_open(const char *pathname, int
      bool trunc = false;
-     int orig_flags = flags;
+     const int orig_flags = flags;
+     char *next_component = path;
 +    bool p_uid;
  
-     if (flags & O_TRUNC)
+     if (*next_component == '/')
      {
-@@ -412,6 +413,9 @@ int safe_open(const char *pathname, int flags, ...)
+@@ -408,6 +409,9 @@ int safe_open(const char *pathname, int
          return -1;
      }
  
 +    // current process user id
 +    p_uid = geteuid();
 +
+     size_t final_size = (size_t) -1;
      while (next_component)
      {
-         char *component = next_component;
-@@ -528,7 +532,9 @@ int safe_open(const char *pathname, int flags, ...)
+@@ -558,8 +562,13 @@ int safe_open(const char *pathname, int
                      close(currentfd);
                      return -1;
                  }
--                if (stat_before.st_uid != stat_after.st_uid || stat_before.st_gid != stat_after.st_gid)
+-                if (stat_before.st_uid != stat_after.st_uid ||
+-                    stat_before.st_gid != stat_after.st_gid)
 +                // The probable logic behind the user matching test is that some attacks use symlink creation to exploit a race condition
 +                // This attack is not useful if the symlink has been created by root
 +                // This attack is not useful if the process's user is the owner of the symlink
@@ -35,7 +35,7 @@ index 0b1394d..616fea9 100644
                  {
                      close(currentfd);
                      // Return ENOLINK to signal that the link cannot be followed
-@@ -691,6 +697,7 @@ static int safe_open_true_parent_dir(const char *path,
+@@ -736,6 +745,7 @@ static int safe_open_true_parent_dir(con
      char *parent_dir = dirname(parent_dir_alloc);
      char *leaf = basename(leaf_alloc);
      struct stat statbuf;
@@ -43,7 +43,7 @@ index 0b1394d..616fea9 100644
  
      if ((dirfd = safe_open(parent_dir, O_RDONLY)) == -1)
      {
-@@ -702,7 +709,10 @@ static int safe_open_true_parent_dir(const char *path,
+@@ -747,7 +757,14 @@ static int safe_open_true_parent_dir(con
          goto cleanup;
      }
  
@@ -59,5 +59,3 @@ index 0b1394d..616fea9 100644
      {
          errno = ENOLINK;
          ret = -1;
-
-0
