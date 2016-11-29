@@ -139,7 +139,7 @@ check_and_fix_cfengine_processes() {
   # If there are more than 8 agent/executor processes, we should kill them, and purge the lock database
   if [ ${NB_CF_PROCESS_RUNNING} -gt 8 ]; then
     echo_n "WARNING: Too many instance of CFEngine processes running. Killing them, and purging the CFEngine lock database..."
-    echo "${CF_PROCESS_RUNNING}" | awk 'BEGIN { OFS=" "} {print $2 }' | xargs kill -9 || true
+    echo "${CF_PROCESS_RUNNING}" | awk 'BEGIN { OFS=" "} {print -$2 }' | xargs kill -9 || true
     if [ "z${OS_FAMILY}" != "zAIX" ]; then
       /etc/init.d/rudder-agent forcestop || true
     fi
