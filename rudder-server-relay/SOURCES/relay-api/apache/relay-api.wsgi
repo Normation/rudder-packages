@@ -3,7 +3,7 @@ import sys
 
 # Set up paths
 api_path = '/opt/rudder/share/relay-api'
-virtualenv_path = '/opt/rudder/share/relay-api'
+virtualenv_path = '/opt/rudder/share/relay-api/flask'
 
 # Virtualenv initialization
 activate_this = virtualenv_path + '/bin/activate_this.py'

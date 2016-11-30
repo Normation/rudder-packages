@@ -72,16 +72,26 @@ Source5: rudder-relay-apache-common.conf
 Source6: rudder-relay-apache
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
-BuildArch: noarch
 
 # Requirements
 
 ## General
-Requires: rudder-agent, rsyslog, openssl, %{apache}, %{apache_tools}
+BuildRequires: python
+Requires: rudder-agent, rsyslog, openssl, %{apache}, %{apache_tools}, python
 
 ## RHEL
 %if 0%{?rhel}
 Requires: mod_ssl
+%endif
+
+## RHEL & Fedora
+%if 0%{?rhel} || 0%{?fedora}
+Requires: mod_wsgi shadow-utils
+%endif
+
+## SLES
+%if 0%{?suse_version}
+Requires: apache2-mod_wsgi pwdutils
 %endif
 
 %description
@@ -100,6 +110,14 @@ run a Rudder relay server on a machine.
 #=================================================
 %build
 
+# Build Virtualenv
+cd relay-api
+python virtualenv.py flask
+
+# Get all requirements via pip
+flask/bin/pip install -r requirements.txt
+
+
 #=================================================
 # Installation
 #=================================================
@@ -115,6 +133,13 @@ mkdir -p %{buildroot}%{ruddervardir}/inventories/incoming
 mkdir -p %{buildroot}%{ruddervardir}/inventories/accepted-nodes-updates
 mkdir -p %{buildroot}%{rudderlogdir}/apache2/
 mkdir -p %{buildroot}/etc/sysconfig/
+mkdir -p %{buildroot}%{rudderdir}/share/relay-api/
+
+# relay api
+cp -r %{_sourcedir}/relay-api/flask %{buildroot}%{rudderdir}/share/relay-api/
+cp -r %{_sourcedir}/relay-api/relay_api %{buildroot}%{rudderdir}/share/relay-api/
+cp %{_sourcedir}/relay-api/apache/relay-api.wsgi %{buildroot}%{rudderdir}/share/relay-api/
+install -m 644 %{_sourcedir}/relay-api/apache/relay-api.conf %{buildroot}/etc/httpd/conf.d/relay-api.conf
 
 # Others
 install -m 644 %{SOURCE1} %{buildroot}/etc/%{apache_vhost_dir}/rudder-relay-vhost.conf
@@ -130,6 +155,13 @@ cp %{SOURCE3} %{buildroot}%{rudderdir}/etc/
 #=================================================
 # Post Installation
 #=================================================
+
+# Create the rudder user
+if ! getent passwd rudder >/dev/null; then
+  echo -n "INFO: Creating the rudder user..."
+  useradd -r -m -d /var/rudder -c "Rudder,,," rudder >/dev/null 2>&1
+  echo " Done"
+fi
 
 echo -n "INFO: Setting Apache HTTPd as a boot service..."
 chkconfig --add %{apache} 2&> /dev/null
@@ -148,7 +180,7 @@ service %{apache} stop > /dev/null && echo " Done"
 
 %if 0%{?suse_version}
 # On SuSE, enable the required modules
-MODULES_TO_ENABLE="dav dav_fs version"
+MODULES_TO_ENABLE="dav dav_fs version wsgi"
 
 for enmod in ${MODULES_TO_ENABLE}
 do
