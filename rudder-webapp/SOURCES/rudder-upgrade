@@ -534,7 +534,7 @@ upgrade_database() {
   RES=$(${PSQL} -t -d ${SQL_DATABASE} -c "select count(*) from information_schema.columns where lower(table_name) = 'archivednodeconfigurations'")
   if [ $RES -eq 0 ]; then
     echo -n "INFO: Adding new 'archivedNodeConfigurations' and 'ArchivedReportsExecution' tables"
-    ${PSQL} -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-3.2.x-4.0-add-archived-tables.sql > /dev/null
+    ${PSQL} -d ${SQL_DATABASE} -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-3.2.x-4.0-add-archived-tables.sql > /dev/null
     echo " Done"
   fi
 
