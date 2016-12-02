@@ -21,7 +21,7 @@ diff -ruN cfengine-source/cf-key/Makefile.in cfengine-source.new/cf-key/Makefile
  	-I$(srcdir)/../libutils \
  	-I$(srcdir)/../libcfnet \
  	-I$(srcdir)/../libpromises \
-+	$(PCRE_CPPFLAGS)
++	$(PCRE_CPPFLAGS) \
  	$(ENTERPRISE_CPPFLAGS)
  
  AM_CFLAGS = \
