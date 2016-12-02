@@ -92,6 +92,7 @@ if [ -f /opt/rudder/etc/rudder-web.properties -a ${TOTAL_CREDENTIALS} -eq 4 ]; t
   SQL_PASSWORD="$(grep -E '^rudder.jdbc.password[ \t]*=' ${RUDDER_OPT}/etc/rudder-web.properties | cut -d "=" -f 2-)"
   SQL_SERVER="$(grep -E '^rudder.jdbc.url[ \t]*=' ${RUDDER_OPT}/etc/rudder-web.properties | cut -d '=' -f 2- | sed 's%^.*://\(.*\):\(.*\)/.*$%\1%')"
   SQL_PORT="$(grep -E '^rudder.jdbc.url[ \t]*=' ${RUDDER_OPT}/etc/rudder-web.properties | cut -d '=' -f 2- | sed 's%^.*://\(.*\):\(.*\)/.*$%\2%')"
+  SQL_DATABASE="$(grep -E '^rudder.jdbc.url[ \t]*=' ${RUDDER_OPT}/etc/rudder-web.properties | cut -d '=' -f 2- | sed 's%^.*://.*:.*/\(.*\)$%\1%')"
 
   export PGPASSWORD="${SQL_PASSWORD}"
 else
@@ -481,10 +482,10 @@ upgrade_database() {
   # All versions: Check that Rudder database is able to handle backslash
   STEP="All versions: Check that Rudder database is able to handle backslash"
 
-  CHECK_BACKSLASH=$(${PSQL} -t -d rudder -c "select '\\foo';" 2>/dev/null | grep -c "foo" || true)
+  CHECK_BACKSLASH=$(${PSQL} -t -d ${SQL_DATABASE} -c "select '\\foo';" 2>/dev/null | grep -c "foo" || true)
   if [ ${CHECK_BACKSLASH} -ne 1 ]; then
     echo -n "INFO: Rudder database is not backslash compliant, fixing..."
-    ${PSQL} -t -d rudder -c "alter database rudder set standard_conforming_strings=true;" >/dev/null 2>&1
+    ${PSQL} -t -d ${SQL_DATABASE} -c "alter database rudder set standard_conforming_strings=true;" >/dev/null 2>&1
     echo " Done"
     echo -n "INFO: Rudder application will now restart..."
     ${JETTY_INIT} restart >/dev/null 2>&1 || echo "WARNING: Jetty failed to start, maybe there is not enough RAM or swap on the machine. Skipping..."
@@ -492,45 +493,45 @@ upgrade_database() {
   fi
 
   # - 2.10.17, 2.11.14, 3.0.9 and 3.1.2 : Migration DB schema to correct the historization of rules
-  RES=$(${PSQL} -t -d rudder -c "select count(*) from information_schema.columns where table_name='rulesgroupjoin' and column_name = 'targetserialisation';")
+  RES=$(${PSQL} -t -d ${SQL_DATABASE} -c "select count(*) from information_schema.columns where table_name='rulesgroupjoin' and column_name = 'targetserialisation';")
   if [ $RES -eq 0 ]; then
-    ${PSQL} -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.10-2.10-historization-of-groups-in-rules.sql > /dev/null
+    ${PSQL} -d ${SQL_DATABASE} -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.10-2.10-historization-of-groups-in-rules.sql > /dev/null
   fi
 
-  RES=$(${PSQL} -t -d rudder -c "select count(*) from information_schema.tables where table_name='globalschedule';")
+  RES=$(${PSQL} -t -d ${SQL_DATABASE} -c "select count(*) from information_schema.tables where table_name='globalschedule';")
   if [ $RES -eq 0 ]; then
-    ${PSQL} -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.10-2.10-historization-of-agent-schedule.sql > /dev/null
+    ${PSQL} -d ${SQL_DATABASE} -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.10-2.10-historization-of-agent-schedule.sql > /dev/null
   fi
 
   # - 2.11.19, 3.0.14, 3.1.8 and 3.2.1 : Migration DB schema to modify indexes on eventlog to improve upgrade speed
   STEP="Migration DB schema to modify indexes on eventlog to improve upgrade speed"
 
-  RES=$(${PSQL} -t -d rudder -c "select count(oid) from pg_class where lower(relname) = 'eventlog_fileformat_idx'")
+  RES=$(${PSQL} -t -d ${SQL_DATABASE} -c "select count(oid) from pg_class where lower(relname) = 'eventlog_fileformat_idx'")
   if [ $RES -eq 0 ]; then
     echo -n "INFO: Updating the PostgreSQL indexes, this may take several minutes..."
-    ${PSQL} -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.11-2.11-index-eventlog.sql > /dev/null
+    ${PSQL} -d ${SQL_DATABASE} -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.11-2.11-index-eventlog.sql > /dev/null
     echo " Done"
   fi
 
   # - 3.0.17, 3.1.11 and 3.2.4 : Migration DB schema to add an indexes on eventType and executionTimeStamp on table RudderSysEvents
-  RES=$(${PSQL} -t -d rudder -c "select count(oid) from pg_class where lower(relname) = 'changes_executiontimestamp_idx'")
+  RES=$(${PSQL} -t -d ${SQL_DATABASE} -c "select count(oid) from pg_class where lower(relname) = 'changes_executiontimestamp_idx'")
   if [ $RES -eq 0 ]; then
     echo -n "INFO: Updating the PostgreSQL indexes, this may take several minutes..."
-    ${PSQL} -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-3.0-3.0-add-index-changes-executiontimestamp.sql > /dev/null
+    ${PSQL} -d ${SQL_DATABASE} -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-3.0-3.0-add-index-changes-executiontimestamp.sql > /dev/null
     echo " Done"
   fi
 
   # - 3.1.x and 3.2.x to 4.0.0: Migration DB schema to add table "nodeConfiguration" and related indexes 
-  RES=$(${PSQL} -t -d rudder -c "select count(*) from information_schema.columns where lower(table_name) = 'nodeconfigurations'")
+  RES=$(${PSQL} -t -d ${SQL_DATABASE} -c "select count(*) from information_schema.columns where lower(table_name) = 'nodeconfigurations'")
   if [ $RES -eq 0 ]; then
     echo -n "INFO: Adding new 'nodeConfigurations' table and updating indexes, this may take several seconds..."
-    ${PSQL} -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-3.2.x-4.0-add-nodeconfigurations.sql > /dev/null
+    ${PSQL} -d ${SQL_DATABASE} -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-3.2.x-4.0-add-nodeconfigurations.sql > /dev/null
     echo " Done"
   fi
 
 
   # - 3.1.x and 3.2.x to 4.0.0: Migration DB schema to add archive table "archivedNodeConfigurations" and "ArchivedReportsExecution" 
-  RES=$(${PSQL} -t -d rudder -c "select count(*) from information_schema.columns where lower(table_name) = 'archivednodeconfigurations'")
+  RES=$(${PSQL} -t -d ${SQL_DATABASE} -c "select count(*) from information_schema.columns where lower(table_name) = 'archivednodeconfigurations'")
   if [ $RES -eq 0 ]; then
     echo -n "INFO: Adding new 'archivedNodeConfigurations' and 'ArchivedReportsExecution' tables"
     ${PSQL} -d rudder -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-3.2.x-4.0-add-archived-tables.sql > /dev/null
@@ -623,7 +624,7 @@ fi
 
 # All version: upgrade database if it is not empty
 if ${RUDDER_DB_INITIALIZED}; then
-  if retry_wrapper "${PSQL} -t -d rudder -c 'select count(ruleid) from rules' >/dev/null 2>&1" "PostgreSQL";
+  if retry_wrapper "${PSQL} -t -d ${SQL_DATABASE} -c 'select count(ruleid) from rules' >/dev/null 2>&1" "PostgreSQL";
   then
     echo " OK"
     upgrade_database
