@@ -186,6 +186,8 @@ function generate_promises_at_temporary_location() {
 
   cp -r /opt/rudder/share/initial-promises/ ${TMP_DIR}/community
 
+  [ -n "${COMPUTED_ALLOWED_NETWORKS}" ] && COMPUTED_ALLOWED_NETWORKS="${COMPUTED_ALLOWED_NETWORKS},"
+  COMPUTED_ALLOWED_NETWORKS=" ${COMPUTED_ALLOWED_NETWORKS} \"127.0.0.0/8\" , \"::1\" "
   find $TMP_DIR/community -name "cf-served.cf" -type f -exec sed -i "s@'%%POLICY_SERVER_ALLOWED_NETWORKS%%'@$COMPUTED_ALLOWED_NETWORKS@g" {} \;
 }
 
