@@ -21,10 +21,17 @@ set -e
 case "$1" in
     configure)
 
+      # Create the rudder user
+      if ! getent passwd rudder >/dev/null; then
+        echo -n "INFO: Creating the rudder user..."
+        useradd -r -m -d /var/rudder -c "Rudder,,," rudder >/dev/null 2>&1
+        echo " Done"
+      fi
+
       SITES_TO_DISABLE="default 000-default default-ssl"
       SITES_TO_ENABLE="rudder-relay-vhost rudder-relay-vhost-ssl"
 
-      MODULES_TO_ENABLE="dav dav_fs ssl"
+      MODULES_TO_ENABLE="dav dav_fs ssl wsgi"
 
       for dissite in ${SITES_TO_DISABLE}
       do

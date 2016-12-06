@@ -19,6 +19,12 @@ build: build-stamp
 build-stamp: configure-stamp
 	dh_testdir
 
+	# Build Virtualenv
+	cd SOURCES/relay-api && python virtualenv.py flask
+
+	# Get all requirements via pip
+	cd SOURCES/relay-api && flask/bin/pip install -r requirements.txt
+
 	touch $@
 
 clean:
@@ -56,6 +62,10 @@ binary-arch: install
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-relay-apache-common.conf /opt/rudder/etc/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-networks.conf /opt/rudder/etc/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-networks-24.conf /opt/rudder/etc/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/relay-api relay_api/ /opt/rudder/share/relay-api/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/relay-api flask/ /opt/rudder/share/relay-api/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/relay-api apache/relay-api.wsgi /usr/share/relay-api/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/relay-api apache/relay-api.conf /etc/apache2/conf.d/
 #	dh_installmenu
 #	dh_installdebconf
 #	dh_installlogrotate
