@@ -20,7 +20,7 @@ index 0b1394d..616fea9 100644
      while (next_component)
      {
          char *component = next_component;
-@@ -528,7 +532,9 @@ int safe_open(const char *pathname, int flags, ...)
+@@ -528,7 +532,13 @@ int safe_open(const char *pathname, int flags, ...)
                      close(currentfd);
                      return -1;
                  }
@@ -43,7 +43,7 @@ index 0b1394d..616fea9 100644
  
      if ((dirfd = safe_open(parent_dir, O_RDONLY)) == -1)
      {
-@@ -702,7 +709,10 @@ static int safe_open_true_parent_dir(const char *path,
+@@ -702,7 +709,14 @@ static int safe_open_true_parent_dir(const char *path,
          goto cleanup;
      }
  
