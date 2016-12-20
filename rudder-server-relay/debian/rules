@@ -20,7 +20,7 @@ build-stamp: configure-stamp
 	dh_testdir
 
 	# Build Virtualenv
-	cd SOURCES/relay-api && python virtualenv.py flask
+	cd SOURCES/relay-api && python virtualenv/virtualenv.py flask
 
 	# Get all requirements via pip
 	cd SOURCES/relay-api && flask/bin/pip install -r requirements.txt

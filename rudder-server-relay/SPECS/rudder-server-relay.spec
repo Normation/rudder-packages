@@ -112,7 +112,7 @@ run a Rudder relay server on a machine.
 
 # Build Virtualenv
 cd %{_sourcedir}/relay-api
-python virtualenv.py flask
+python virtualenv/virtualenv.py flask
 
 # Get all requirements via pip
 flask/bin/pip install -r requirements.txt
