@@ -76,7 +76,7 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 # Requirements
 
 ## General
-BuildRequires: python
+BuildRequires: python, python-devel
 Requires: rudder-agent, rsyslog, openssl, %{apache}, %{apache_tools}, python
 
 ## RHEL
