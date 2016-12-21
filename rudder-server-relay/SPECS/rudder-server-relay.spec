@@ -271,6 +271,15 @@ rm -rf %{buildroot}
 %{ruddervardir}/inventories/incoming
 %{ruddervardir}/inventories/accepted-nodes-updates
 %{rudderlogdir}/apache2/
+%{rudderdir}/share/relay-api/
+
+# on sles11, .pyc and .pyo files are not generated, which fails with rpmbuild
+%if ! 0%{?sles_version} || 0%{?sles_version} != 11
+# Avoid having .pyo and .pyc files in our package
+# as they will always be regenerated
+%exclude %(find %{rudderdir}/share/relay-api/ -type f -name '*.pyc')
+%exclude %(find %{rudderdir}/share/relay-api/ -type f -name '*.pyo')
+%endif
 
 #=================================================
 # Changelog
