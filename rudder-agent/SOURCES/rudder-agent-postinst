@@ -118,21 +118,11 @@ else
   echo "********************************************************************************"
 fi
 
-# Add temporary cron for checking UUID. This cron is created in postinst
-# in order to remove it later without complains of the package manager.
-CHECK_RUDDER_AGENT_CRON=`grep "/opt/rudder/bin/check-rudder-agent" /etc/cron.d/rudder-agent | wc -l`
-TMP_CRON=/etc/cron.d/rudder-agent-uuid
-# Add it only if the default cron file does not call check-rudder-agent script
-if [ ${CHECK_RUDDER_AGENT_CRON} -eq 0 ]; then
-  if [ ! -f ${TMP_CRON} ]; then
-    echo "0,5,10,15,20,25,30,35,40,45,50,55 * * * * root ${RUDDER_CMD} agent check" > ${TMP_CRON}
-  fi
-fi
-
-# Vixie-cron and cronie (at least) expect specific permissions to be applied
-# on /etc/cron.d entries, and will refuse to load executable files.
-if [ -f ${TMP_CRON} ]; then
-  chmod 644 ${TMP_CRON}
+# Add a default agent cron at first install
+if [ ${CFRUDDER_FIRST_INSTALL} -eq 1 ]
+then
+  echo "0,5,10,15,20,25,30,35,40,45,50,55 * * * * root ${RUDDER_CMD} agent check > /dev/null" > /etc/cron.d/rudder-agent
+  chmod 644 /etc/cron.d/rudder-agent
 fi
 
 # Try to send an inventory after upgrade to see the new agent version on the server
