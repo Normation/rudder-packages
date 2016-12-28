@@ -199,6 +199,7 @@ mkdir -p %{buildroot}%{rudderdir}/etc/
 mkdir -p %{buildroot}%{rudderdir}/etc/ssl/
 mkdir -p %{buildroot}%{rudderdir}/etc/plugins/
 mkdir -p %{buildroot}%{rudderdir}/etc/server-roles.d/
+mkdir -p %{buildroot}%{rudderdir}/etc/hooks.d/
 mkdir -p %{buildroot}%{rudderdir}/bin/
 mkdir -p %{buildroot}%{rudderdir}/share/webapps/
 mkdir -p %{buildroot}%{rudderdir}/share/rudder-plugins/
@@ -248,6 +249,8 @@ cp %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/rudder-apac
 cp %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/rudder-vhost.conf %{buildroot}/etc/%{apache_vhost_dir}/rudder-vhost.conf
 cp %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/rudder-vhost-ssl.conf %{buildroot}/etc/%{apache_vhost_dir}/rudder-vhost-ssl.conf
 cp %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/apache2-sysconfig %{buildroot}/etc/sysconfig/rudder-apache
+
+cp -r %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/hooks.d %{buildroot}%{rudderdir}/etc/
 
 install -m 644 %{SOURCE2} %{buildroot}%{rudderdir}/share/webapps/
 
