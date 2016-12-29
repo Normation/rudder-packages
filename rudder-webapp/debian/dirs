@@ -6,6 +6,7 @@ opt/rudder/share/selinux
 opt/rudder/etc
 opt/rudder/etc/ssl
 opt/rudder/etc/plugins
+opt/rudder/etc/hooks.d
 opt/rudder/share/tools
 opt/rudder/share/plugins
 opt/rudder/share/upgrade-tools
