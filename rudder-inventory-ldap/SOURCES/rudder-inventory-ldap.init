@@ -382,25 +382,24 @@ start_slapd() {
   fi
 
   # configuration
-  if [ "${RUDDER_CACHESIZE}" != "noauto" ]
+  if [ "${RUDDER_MDBSIZE}" != "noauto" ]
   then
-    if [ "${RUDDER_CACHESIZE}" = "auto" ] || [ "${RUDDER_CACHESIZE}" = "" ]
+    if [ "${RUDDER_MDBSIZE}" = "auto" ] || [ "${RUDDER_MDBSIZE}" = "" ]
     then
-      # calculate the value to use about 10% of RAM
+      # calculate the value to match about 50% of RAM (this is only virtual memory)
       MEMSIZE=$(sed -n '/^MemTotal/s/[^0-9]//gp' /proc/meminfo)
-      # Round down using integer division (800 bytes is the size of an entry)
-      CACHESIZE=$((${MEMSIZE} * 1024 / 800 / 10 / 10000 * 10000))
-      # Maximum cache size of 40M entries. Above about 40G of RAM (about 53.6M entries) OpenLDAP dumps core, so we force an upper limit.
-      if [ ${CACHESIZE} -gt 40000000 ]; then
-        CACHESIZE=40000000
+      MDBSIZE=$((${MEMSIZE} * 1024 / 2 ))
+      # on 32 bits architectures max it to 500M (PAE allows more ram but not more virtual memory)
+      if [ "$(getconf LONG_BIT)" -ne "64" ] && [ "${MDBSIZE}" -gt 524288000 ]
+      then
+        MDBSIZE=524288000
       fi
     else
       # set cache size to the value provided
-      CACHESIZE=${RUDDER_CACHESIZE}
+      MDBSIZE=${RUDDER_MDBSIZE}
     fi
-    sed -i '/^[ \t]*\(cachesize\|idlcachesize\)/d' /opt/rudder/etc/openldap/slapd.conf
-    sed -i 's/^\([ \t]*suffix[ \t]\+"cn=rudder-configuration".*\)/\1\ncachesize '${CACHESIZE}'/' /opt/rudder/etc/openldap/slapd.conf
-    sed -i 's/^\([ \t]*suffix[ \t]\+"cn=rudder-configuration".*\)/\1\nidlcachesize '$((${CACHESIZE}*3))'/' /opt/rudder/etc/openldap/slapd.conf
+    sed -i '/^[ \t]*\(maxsize\|maxsize\)/d' /opt/rudder/etc/openldap/slapd.conf
+    sed -i 's/^\([ \t]*suffix[ \t]\+"cn=rudder-configuration".*\)/\1\nmaxsize '${MDBSIZE}'/' /opt/rudder/etc/openldap/slapd.conf
   fi
 
   # Parameters

@@ -150,7 +150,7 @@ export LD_LIBRARY_PATH="/opt/rudder/lib"
 export CPPFLAGS="-I/opt/rudder/include"
 export LDFLAGS="-L/opt/rudder/lib"
 
-./configure --build=%{_target} --prefix=%{rudderdir} --libdir=%{rudderdir}/lib/ldap --enable-dynamic --enable-debug --enable-modules --enable-hdb=mod --enable-monitor=mod --enable-dynlist=mod
+./configure --build=%{_target} --prefix=%{rudderdir} --libdir=%{rudderdir}/lib/ldap --enable-dynamic --enable-debug --enable-modules --enable-hdb=mod --enable-monitor=mod --enable-dynlist=mod --enable-mdb=yes
 
 make %{?_smp_mflags} depend
 make %{?_smp_mflags}
@@ -254,8 +254,9 @@ RUDDER_SHARE=/opt/rudder/share
 RUDDER_UPGRADE_TOOLS=${RUDDER_SHARE}/upgrade-tools
 BACKUP_LDIF_PATH=/var/rudder/ldap/backup/
 BACKUP_LDIF_REGEX="^/var/rudder/ldap/backup/openldap-data-pre-upgrade-\([0-9]\{14\}\)\.ldif$"
+SLAPD_CONF="/opt/rudder/etc/openldap/slapd.conf"
 
-# Do we have a backup file from a previous upgrade?
+# Do we have a backup file from preinst
 BACKUP_LDIF=$(find ${BACKUP_LDIF_PATH} -regextype sed -regex "${BACKUP_LDIF_REGEX}" 2>&1 | sort -nr | head -n1)
 if [ -n "${BACKUP_LDIF}" ]; then
 	TIMESTAMP=$(echo ${BACKUP_LDIF} | sed "s%${BACKUP_LDIF_REGEX}%\1%")
@@ -287,12 +288,17 @@ if [ -n "${BACKUP_LDIF}" ]; then
 		service rudder-slapd forcestop >/dev/null 2>&1
 		echo " Done"
 
-		# Backup the old database
+		# Backup the current database
 		LDAP_BACKUP_DIR="/var/rudder/ldap/openldap-data-backup-upgrade-on-${TIMESTAMP}/"
 		mkdir -p "${LDAP_BACKUP_DIR}"
 		find /var/rudder/ldap/openldap-data -maxdepth 1 -mindepth 1 -not -name "DB_CONFIG" -exec mv {} ${LDAP_BACKUP_DIR} \;
 
-		# Import the backed up database
+    # Upgrade backend to lmdb
+    sed -i 's/^database.*hdb/database    mdb/' "${SLAPD_CONF}"
+    sed -i '/^idlcachesize.*/d' "${SLAPD_CONF}"
+    sed -i '/^cachesize.*/d' "${SLAPD_CONF}"
+
+# Import the backed up database
 		/opt/rudder/sbin/slapadd -q -l ${BACKUP_LDIF}
 
 		# Start OpenLDAP
