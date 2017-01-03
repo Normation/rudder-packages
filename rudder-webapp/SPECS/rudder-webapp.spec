@@ -17,14 +17,6 @@
 #####################################################################################
 
 #=================================================
-# Specification file for rudder-webapp
-#
-# Installs Rudder's WAR files
-#
-# Copyright (C) 2011 Normation
-#=================================================
-
-#=================================================
 # Variables
 #=================================================
 %define real_name               rudder-webapp
@@ -90,8 +82,6 @@ Group: Applications/System
 
 Source1: rudder-users.xml
 Source2: rudder.xml
-Source3: rudder-networks.conf
-Source4: rudder-networks-24.conf
 Source5: rudder-upgrade
 Source7: rudder-webapp
 Source8: rudder-web
@@ -109,12 +99,13 @@ Source20: rudder-webapp.te
 Source21: rudder-webapp.fc
 Source22: rudder-keys
 Source23: .gitignore
+Source24: rudder-webapp-apache
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
 
 # Dependencies
-Requires: rudder-techniques = %{real_epoch}:%{real_version}, ncf, ncf-api-virtualenv, %{apache}, %{apache_tools}, git-core, rsync, openssl, %{ldap_clients}
+Requires: rudder-techniques = %{real_epoch}:%{real_version}, rudder-server-relay = %{real_epoch}:%{real_version}, ncf, ncf-api-virtualenv, %{apache}, %{apache_tools}, git-core, rsync, openssl, %{ldap_clients}
 
 # We need the PostgreSQL client utilities so that we can run database checks and upgrades (rudder-upgrade, in particular)
 Requires: postgresql >= 8.4
@@ -196,7 +187,6 @@ cd %{_builddir}/rudder-sources/rudder            && %{_sourcedir}/maven/bin/mvn 
 rm -rf %{buildroot}
 
 mkdir -p %{buildroot}%{rudderdir}/etc/
-mkdir -p %{buildroot}%{rudderdir}/etc/ssl/
 mkdir -p %{buildroot}%{rudderdir}/etc/plugins/
 mkdir -p %{buildroot}%{rudderdir}/etc/server-roles.d/
 mkdir -p %{buildroot}%{rudderdir}/etc/hooks.d/
@@ -208,8 +198,6 @@ mkdir -p %{buildroot}%{rudderdir}/share/plugins/
 mkdir -p %{buildroot}%{rudderdir}/share/upgrade-tools/
 mkdir -p %{buildroot}%{rudderdir}/share/certificates/
 mkdir -p %{buildroot}%{rudderdir}/share/selinux/
-mkdir -p %{buildroot}%{ruddervardir}/inventories/incoming
-mkdir -p %{buildroot}%{ruddervardir}/inventories/accepted-nodes-updates
 mkdir -p %{buildroot}%{ruddervardir}/inventories/received
 mkdir -p %{buildroot}%{ruddervardir}/inventories/failed
 mkdir -p %{buildroot}%{ruddervardir}/configuration-repository/ncf/ncf-hooks.d
@@ -245,23 +233,14 @@ cp %{_builddir}/rudder-sources/rudder/rudder-web/target/rudder-web*.war %{buildr
 cp -rf %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/load-page %{buildroot}%{rudderdir}/share/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/test/resources/script/cfe-red-button.sh %{buildroot}%{rudderdir}/bin/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/reportsInfo.xml %{buildroot}%{rudderdir}/etc/
-cp %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/rudder-apache-common.conf %{buildroot}%{rudderdir}/etc/rudder-apache-common.conf
-cp %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/rudder-vhost.conf %{buildroot}/etc/%{apache_vhost_dir}/rudder-vhost.conf
-cp %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/rudder-vhost-ssl.conf %{buildroot}/etc/%{apache_vhost_dir}/rudder-vhost-ssl.conf
-cp %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/apache2-sysconfig %{buildroot}/etc/sysconfig/rudder-apache
+cp %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/rudder-apache-webapp-common.conf %{buildroot}%{rudderdir}/etc/rudder-apache-webapp-common.conf
+cp %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/rudder-apache-webapp-ssl.conf %{buildroot}%{rudderdir}/etc/rudder-apache-webapp-ssl.conf
+cp %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/rudder-apache-webapp-nossl.conf %{buildroot}%{rudderdir}/etc/rudder-apache-webapp-no-ssl.conf
+cp %{SOURCE24} %{buildroot}/etc/sysconfig/rudder-webapp-apache
 
 cp -r %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/hooks.d %{buildroot}%{rudderdir}/etc/
 
 install -m 644 %{SOURCE2} %{buildroot}%{rudderdir}/share/webapps/
-
-# Copy stub rudder-networks*.conf
-cp %{SOURCE3} %{buildroot}%{rudderdir}/etc/
-cp %{SOURCE4} %{buildroot}%{rudderdir}/etc/
-
-%if 0%{?suse_version}
-# On SLES, change the Apache DocumentRoot to the OS default
-sed -i "s%^DocumentRoot /var/www$%DocumentRoot /srv/www%" %{buildroot}%{rudderdir}/etc/rudder-apache-common.conf
-%endif
 
 # Install upgrade tools and migration scripts
 
@@ -370,67 +349,23 @@ fi
 
 # Add required includes in the SLES apache2 configuration
 %if 0%{?suse_version}
-if ! grep -qE "^. /etc/sysconfig/rudder-apache$" /etc/sysconfig/apache2
+if ! grep -qE "^. /etc/sysconfig/rudder-webapp-apache$" /etc/sysconfig/apache2
 then
-	echo -e '# This sources the modules/defines needed by Rudder\n. /etc/sysconfig/rudder-apache' >> /etc/sysconfig/apache2
+	echo -e '# This sources the modules/defines needed by Rudder\n. /etc/sysconfig/rudder-webapp-apache' >> /etc/sysconfig/apache2
 fi
 %endif
 
 # Update /etc/sysconfig/apache2 in case an old module loading entry has already been created by Rudder
 if [ -f /etc/sysconfig/apache2 ] && grep -q 'APACHE_MODULES="${APACHE_MODULES} rewrite dav dav_fs proxy proxy_http' /etc/sysconfig/apache2
 then
-	echo "INFO: Upgrading the /etc/sysconfig/apache2 file, Rudder needed modules for Apache are now listed in /etc/sysconfig/rudder-apache"
-	sed -i 's%APACHE_MODULES="${APACHE_MODULES} rewrite dav dav_fs proxy proxy_http.*%# This sources the Rudder needed by Rudder\n. /etc/sysconfig/rudder-apache%' /etc/sysconfig/apache2
+	echo "INFO: Upgrading the /etc/sysconfig/apache2 file, Rudder needed modules for Apache are now listed in /etc/sysconfig/rudder-relay-apache"
+	sed -i 's%APACHE_MODULES="${APACHE_MODULES} rewrite dav dav_fs proxy proxy_http.*%# This sources the Rudder needed by Rudder\n. /etc/sysconfig/rudder-relay-apache%' /etc/sysconfig/apache2
 fi
 
-# Add right to apache user to access /var/rudder/inventories/incoming
+# Add perms on tools and inventories
 chmod 751 /var/rudder/inventories
-chown root:%{apache_group} %{ruddervardir}/inventories/incoming
-chmod 2770 %{ruddervardir}/inventories/incoming
-chown root:%{apache_group} %{ruddervardir}/inventories/accepted-nodes-updates
-chmod 2770 %{ruddervardir}/inventories/accepted-nodes-updates
 chmod 755 -R %{rudderdir}/share/tools
 chmod 655 -R %{rudderdir}/share/load-page
-
-%{htpasswd_cmd} -bc %{rudderdir}/etc/htpasswd-webdav-initial rudder rudder  >/dev/null 2>&1
-%{htpasswd_cmd} -bc %{rudderdir}/etc/htpasswd-webdav rudder rudder  >/dev/null 2>&1
-
-# If the current Rudder HTTPd configuration uses /var/log/rudder/httpd, change it
-for i in /etc/%{apache_vhost_dir}/rudder-*.conf
-do
-	if grep -q /var/log/rudder/httpd "${i}"; then
-		echo -n "INFO: Old logging configuration detected in ${i}, changing to log into %{rudderlogdir}/apache2..."
-		sed -i "s%/var/log/rudder/httpd/\(.*\).log%/var/log/rudder/apache2/\1.log%" "${i}"
-		echo " Done"
-	fi
-done
-
-# If this machine has old logging entries on RHEL, migrate them.
-if [ -d %{rudderlogdir}/httpd ]; then
-	echo -n "INFO: Old logging directory detected (%{rudderlogdir}/httpd), migrating to %{rudderlogdir}/apache2..."
-	mkdir -p %{rudderlogdir}/apache2
-	mv %{rudderlogdir}/httpd/* %{rudderlogdir}/apache2/
-	rmdir %{rudderlogdir}/httpd
-	echo " Done"
-fi
-
-# Move old virtual hosts out of the way
-for OLD_VHOST in rudder-default rudder-default-ssl rudder-default.conf rudder-default-ssl.conf; do
-	if [ -f /etc/%{apache_vhost_dir}/${OLD_VHOST} ]; then
-		echo -n "INFO: An old rudder virtual host file has been detected (${OLD_VHOST}), it will be moved to /var/backups."
-		mkdir -p /var/backups
-		mv /etc/%{apache_vhost_dir}/${OLD_VHOST} /var/backups/${OLD_VHOST}-$(date +%s)
-		echo " Done"
-	fi
-done
-
-# Generate the SSL certificates if needed
-if [ ! -f /opt/rudder/etc/ssl/rudder-webapp.crt ] || [ ! -f /opt/rudder/etc/ssl/rudder-webapp.key ]; then
-	echo -n "INFO: No usable SSL certificate detected for Rudder HTTP/S support, generating one automatically..."
-	openssl req -new -x509 -newkey rsa:2048 -subj "/C=FR/ST=France/L=Paris/CN=$(hostname --fqdn)/emailAddress=root@$(hostname --fqdn)/" -keyout /opt/rudder/etc/ssl/rudder-webapp.key -out /opt/rudder/etc/ssl/rudder-webapp.crt -days 1460 -nodes -sha256 >/dev/null 2>&1
-	chgrp %{apache_group} /opt/rudder/etc/ssl/rudder-webapp.key && chmod 640 /opt/rudder/etc/ssl/rudder-webapp.key
-	echo " Done"
-fi
 
 %if 0%{?rhel} || 0%{?fedora}
 # SELinux support
@@ -553,7 +488,7 @@ if [ $1 -eq 0 ]; then
   # Remove required includes in the SLES apache2 configuration
   if [ -f /etc/sysconfig/apache2 ]; then
     sed -i "/# This sources the modules\/defines needed by Rudder/d" /etc/sysconfig/apache2
-    sed -i "/. \/etc\/sysconfig\/rudder-apache/d" /etc/sysconfig/apache2
+    sed -i "/. \/etc\/sysconfig\/rudder-webapp-apache/d" /etc/sysconfig/apache2
 
     # Also remove an older comment that was erroneously added until 2.11.21 / 3.0.16 / 3.1.10 / 3.2.3
     sed -i "/# This sources the configuration file needed by Rudder/d" /etc/sysconfig/apache2
@@ -614,12 +549,8 @@ rm -rf %{buildroot}
 %{ruddervardir}/configuration-repository/ncf/ncf-hooks.d
 %{rudderlogdir}/apache2/
 /etc/%{apache_vhost_dir}/
-%config %{rudderdir}/etc/rudder-apache-common.conf
-%config(noreplace) /etc/%{apache_vhost_dir}/rudder-vhost.conf
-%config(noreplace) /etc/%{apache_vhost_dir}/rudder-vhost-ssl.conf
-%config(noreplace) %{rudderdir}/etc/rudder-networks.conf
-%config(noreplace) %{rudderdir}/etc/rudder-networks-24.conf
-%config(noreplace) /etc/sysconfig/rudder-apache
+%config %{rudderdir}/etc/rudder-apache-webapp.conf
+%config(noreplace) /etc/sysconfig/rudder-webapp-apache
 /usr/share/doc/rudder
 
 #=================================================
