@@ -112,7 +112,19 @@ run a Rudder relay server on a machine.
 
 # Build Virtualenv
 cd %{_sourcedir}/relay-api
+
+# Build Virtualenv
+%if 0%{?suse_version} && 0%{?suse_version} < 1140
+# SLES specific exception, see http://www.rudder-project.org/redmine/issues/6365
+python virtualenv-1.10.1/virtualenv.py flask
+
+# Using a recent pip on SLES is not possible due to
+# bad interaction between pip and an old OpenSSL.
+# See http://stackoverflow.com/questions/17416938/pip-can-not-install-anything
+%{real_name}/bin/easy_install pip==1.2.1
+%else
 python virtualenv/virtualenv.py flask
+%endif
 
 # Get all requirements via pip
 flask/bin/pip install -r requirements.txt

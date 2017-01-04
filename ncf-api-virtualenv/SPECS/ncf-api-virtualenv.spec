@@ -137,7 +137,7 @@ cp -f %{SOURCE3} %{_builddir}
 cd %{_sourcedir}
 
 # Build Virtualenv
-%if 0%{?suse_version}
+%if 0%{?suse_version} && 0%{?suse_version} < 1140
 # SLES specific exception, see http://www.rudder-project.org/redmine/issues/6365
 python virtualenv-1.10.1/virtualenv.py %{real_name}
 
