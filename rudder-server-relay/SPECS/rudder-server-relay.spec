@@ -306,10 +306,12 @@ rm -rf %{buildroot}
 %defattr(-, root, root, 0755)
 %{rudderdir}/etc/
 /etc/%{apache_vhost_dir}/
-%config(noreplace) /etc/%{apache_vhost_dir}/rudder-vhost.conf
-%config(noreplace) %{rudderdir}/etc/rudder-relay-apache-relay-common.conf
+%config(noreplace) /etc/%{apache_vhost_dir}/rudder.conf
+%config(noreplace) %{rudderdir}/etc/rudder-apache-relay-common.conf
 %config(noreplace) %{rudderdir}/etc/rudder-networks.conf
 %config(noreplace) %{rudderdir}/etc/rudder-networks-24.conf
+%config(noreplace) %{rudderdir}/etc/rudder-networks-policy-server.conf
+%config(noreplace) %{rudderdir}/etc/rudder-networks-policy-server-24.conf
 %config(noreplace) /etc/sysconfig/rudder-relay-apache
 %{ruddervardir}/inventories/incoming
 %{ruddervardir}/inventories/accepted-nodes-updates
