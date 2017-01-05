@@ -69,6 +69,8 @@ Source2: rudder-networks.conf
 Source3: rudder-networks-24.conf
 Source5: rudder-apache-relay-common.conf
 Source6: rudder-relay-apache
+Source7: rudder-networks-policy-server.conf
+Source8: rudder-networks-policy-server-24.conf
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
@@ -160,6 +162,8 @@ install -m 644 %{SOURCE6} %{buildroot}/etc/sysconfig/rudder-relay-apache
 # Copy stub rudder-networks*.conf
 cp %{SOURCE2} %{buildroot}%{rudderdir}/etc/
 cp %{SOURCE3} %{buildroot}%{rudderdir}/etc/
+cp %{SOURCE7} %{buildroot}%{rudderdir}/etc/
+cp %{SOURCE8} %{buildroot}%{rudderdir}/etc/
 
 %post -n rudder-server-relay
 #=================================================
@@ -190,7 +194,7 @@ service %{apache} stop > /dev/null && echo " Done"
 
 %if 0%{?suse_version}
 # On SuSE, enable the required modules
-MODULES_TO_ENABLE="dav dav_fs version wsgi"
+MODULES_TO_ENABLE="dav dav_fs ssl version wsgi"
 
 for enmod in ${MODULES_TO_ENABLE}
 do

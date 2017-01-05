@@ -1,5 +1,5 @@
 # Apache modules
-APACHE_MODULES="${APACHE_MODULES} dav dav_fs ssl version"
+APACHE_MODULES="${APACHE_MODULES} dav dav_fs ssl version wsgi"
 
 # Apache configuration flags
 APACHE_SERVER_FLAGS="${APACHE_SERVER_FLAGS} SSL"

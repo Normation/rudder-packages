@@ -2,3 +2,5 @@
 /opt/rudder/etc/rudder-apache-relay-common.conf
 /opt/rudder/etc/rudder-networks.conf
 /opt/rudder/etc/rudder-networks-24.conf
+/opt/rudder/etc/rudder-networks-policy-server.conf
+/opt/rudder/etc/rudder-networks-policy-server-24.conf
