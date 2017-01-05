@@ -1,0 +1,17 @@
+---
+ libpromises/generic_agent.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/libpromises/generic_agent.c b/libpromises/generic_agent.c
+index e82abc2..269fd81 100644
+--- a/libpromises/generic_agent.c
++++ b/libpromises/generic_agent.c
+@@ -851,7 +851,7 @@ bool GenericAgentArePromisesValid(const GenericAgentConfig *config)
+ #if !defined(__MINGW32__)
+ static void OpenLog(int facility)
+ {
+-    openlog(NULL, LOG_PID | LOG_NOWAIT | LOG_ODELAY, facility);
++    openlog(VPREFIX, LOG_PID | LOG_NOWAIT | LOG_ODELAY, facility);
+ }
+ #endif
+ 
