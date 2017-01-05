@@ -44,7 +44,7 @@ localdepends: ./rudder-sources ./relay-api/virtualenv/virtualenv.py ./relay-api/
 	cd relay-api && $(WGET) -O virtualenv-1.10.1.tgz http://www.normation.com/tarball/virtualenv/virtualenv-1.10.1.tar.gz
 
 # This is needed for SLES11
-./relay-api/relay-api/virtualenv-1.10.1/virtualenv.py: ./relay-api/virtualenv-1.10.1.tgz
+./relay-api/virtualenv-1.10.1/virtualenv.py: ./relay-api/virtualenv-1.10.1.tgz
 	cd relay-api && tar -xzf ./virtualenv-1.10.1.tgz
 
 localclean:
