@@ -4,7 +4,6 @@ opt/rudder/share/rudder-plugins
 opt/rudder/share/certificates
 opt/rudder/share/selinux
 opt/rudder/etc
-opt/rudder/etc/ssl
 opt/rudder/etc/plugins
 opt/rudder/etc/hooks.d
 opt/rudder/share/tools
@@ -16,8 +15,6 @@ var/rudder/files
 var/rudder/lock
 var/rudder/tools
 var/rudder/run
-var/rudder/inventories/accepted-nodes-updates
-var/rudder/inventories/incoming
 var/rudder/inventories/received
 var/rudder/inventories/failed
 var/rudder/inventories/historical

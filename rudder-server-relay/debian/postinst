@@ -28,8 +28,8 @@ case "$1" in
         echo " Done"
       fi
 
-      SITES_TO_DISABLE="default 000-default default-ssl"
-      SITES_TO_ENABLE="rudder-relay-vhost rudder-relay-vhost-ssl"
+      SITES_TO_DISABLE="default 000-default default-ssl rudder-vhost rudder-vhost-ssl rudder-relay-vhost rudder-relay-vhost-ssl"
+      SITES_TO_ENABLE="rudder"
 
       MODULES_TO_ENABLE="dav dav_fs ssl wsgi"
 
@@ -67,13 +67,35 @@ case "$1" in
         htpasswd -bc ${passwdfile} rudder rudder >/dev/null 2>&1
       done
 
-      # Generate the SSL certificates if needed
-      if [ ! -f /opt/rudder/etc/ssl/rudder-relay.crt ] || [ ! -f /opt/rudder/etc/ssl/rudder-relay.key ]; then
+      # Migrate existing certificates
+      if [ ! -f /opt/rudder/etc/ssl/rudder.crt ] || [ ! -f /opt/rudder/etc/ssl/rudder.key ]; then
+        for source in relay webapp; do
+          if [ -f /opt/rudder/etc/ssl/rudder-${source}.crt ] && [ -f /opt/rudder/etc/ssl/rudder-${source}.key ]; then
+            echo -n "INFO: Importing existing ${source} certificates..."
+            mv /opt/rudder/etc/ssl/rudder-${source}.crt /opt/rudder/etc/ssl/rudder.crt
+            mv /opt/rudder/etc/ssl/rudder-${source}.key /opt/rudder/etc/ssl/rudder.key
+            echo " Done"
+          fi
+        done
+      fi
+
+      # Generate certificates if needed
+      if [ ! -f /opt/rudder/etc/ssl/rudder.crt ] || [ ! -f /opt/rudder/etc/ssl/rudder.key ]; then
         echo -n "INFO: No usable SSL certificate detected for Rudder relay HTTP/S support, generating one automatically..."
-        openssl req -new -x509 -newkey rsa:2048 -subj "/CN=$(hostname --fqdn)/" -keyout /opt/rudder/etc/ssl/rudder-relay.key -out /opt/rudder/etc/ssl/rudder-relay.crt -days 1460 -nodes -sha256 >/dev/null 2>&1
-        chgrp www-data /opt/rudder/etc/ssl/rudder-relay.key && chmod 640 /opt/rudder/etc/ssl/rudder-relay.key
+        openssl req -new -x509 -newkey rsa:2048 -subj "/CN=$(hostname --fqdn)/" -keyout /opt/rudder/etc/ssl/rudder.key -out /opt/rudder/etc/ssl/rudder.crt -days 1460 -nodes -sha256 >/dev/null 2>&1
+        chgrp www-data /opt/rudder/etc/ssl/rudder.key && chmod 640 /opt/rudder/etc/ssl/rudder.key
         echo " Done"
       fi
+
+      # Move old virtual hosts out of the way
+      for OLD_VHOST in rudder-default rudder-default-ssl rudder-vhost.conf rudder-vhost-ssl.conf rudder-relay-vhost.conf rudder-relay-vhost-ssl.conf; do
+        if [ -f /etc/apache2/sites-available/${OLD_VHOST} ]; then
+          echo -n "INFO: An old rudder virtual host file has been detected (${OLD_VHOST}), it will be moved to /var/backups."
+          mkdir -p /var/backups
+          mv /etc/apache2/sites-available/${OLD_VHOST} /var/backups/${OLD_VHOST}-$(date +%s)
+          echo " Done"
+        fi
+      done
 
       echo -n "INFO: Restarting Apache HTTPd..."
       service apache2 restart >/dev/null 2>&1
@@ -85,10 +107,11 @@ case "$1" in
         echo "*****************************************************************************************"
         echo "INFO: rudder-server-relay setup complete.                                                "
         echo "INFO:                                                                                    "
-        echo "INFO: Now run '/opt/rudder/bin/rudder-node-to-relay $(cat /opt/rudder/etc/uuid.hive)'    "
-        echo "INFO: on your root server to complete this node transition to a relay server.            "
-        echo "INFO:                                                                                    "
-        echo "INFO: Please look at the documentation for details (Section 'Relay servers')             "
+	echo "INFO: * If you are installing a root server, configuration is automatically done         "
+	echo "INFO: * If you are installing a simple relay, run:                                       "
+        echo "INFO:   '/opt/rudder/bin/rudder-node-to-relay $(cat /opt/rudder/etc/uuid.hive)'          "
+        echo "INFO:   on your root server to complete this node transition to a relay server.          "
+        echo "INFO:   Please look at the documentation for details (Section 'Relay servers')           "
         echo "*****************************************************************************************"
       fi
 

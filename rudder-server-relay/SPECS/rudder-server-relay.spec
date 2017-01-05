@@ -64,11 +64,10 @@ URL: http://www.rudder-project.org
 
 Group: Applications/System
 
-Source1: rudder-relay-vhost.conf
+Source1: rudder-vhost.conf
 Source2: rudder-networks.conf
 Source3: rudder-networks-24.conf
-Source4: rudder-relay-vhost-ssl.conf
-Source5: rudder-relay-apache-common.conf
+Source5: rudder-apache-relay-common.conf
 Source6: rudder-relay-apache
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -77,7 +76,7 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 ## General
 BuildRequires: python, python-devel
-Requires: rudder-agent, rsyslog, openssl, %{apache}, %{apache_tools}, python
+Requires: rudder-agent >= %{real_epoch}:%{real_version}, rsyslog, openssl, %{apache}, %{apache_tools}, python
 
 ## RHEL
 %if 0%{?rhel}
@@ -154,9 +153,8 @@ cp %{_sourcedir}/relay-api/apache/relay-api.wsgi %{buildroot}%{rudderdir}/share/
 install -m 644 %{_sourcedir}/relay-api/apache/relay-api.conf %{buildroot}/etc/%{apache_vhost_dir}/relay-api.conf
 
 # Others
-install -m 644 %{SOURCE1} %{buildroot}/etc/%{apache_vhost_dir}/rudder-relay-vhost.conf
-install -m 644 %{SOURCE4} %{buildroot}/etc/%{apache_vhost_dir}/rudder-relay-vhost-ssl.conf
-install -m 644 %{SOURCE5} %{buildroot}%{rudderdir}/etc/rudder-relay-apache-common.conf
+install -m 644 %{SOURCE1} %{buildroot}/etc/%{apache_vhost_dir}/rudder.conf
+install -m 644 %{SOURCE5} %{buildroot}%{rudderdir}/etc/rudder-apache-relay-common.conf
 install -m 644 %{SOURCE6} %{buildroot}/etc/sysconfig/rudder-relay-apache
 
 # Copy stub rudder-networks*.conf
@@ -187,7 +185,7 @@ echo -n "INFO: Stopping Apache HTTPd..."
 service %{apache} stop > /dev/null && echo " Done"
 %endif
 %if 0%{?rhel} >= 7
-/bin/systemctl stop  %{apache}.service && echo " Done"
+/bin/systemctl stop %{apache}.service && echo " Done"
 %endif
 
 %if 0%{?suse_version}
@@ -202,17 +200,25 @@ done
 
 # Do this ONLY at first install
 if [ $1 -eq 1 ];  then
-  echo -e '# This sources the configuration file needed by Rudder\n. /etc/sysconfig/rudder-relay-apache' >> /etc/sysconfig/apache2
   echo 'DAVLockDB /tmp/davlock.db' > /etc/%{apache}/conf.d/dav_mod.conf
 fi
 
-# Add required includes in the SLES apache2 configuration
 %if 0%{?suse_version}
+# Add required includes in the apache2 configuration
 if ! grep -qE "^. /etc/sysconfig/rudder-relay-apache$" /etc/sysconfig/apache2; then
-  echo -e '#¬This sources the modules/defines needed by Rudder\n. /etc/sysconfig/rudder-relay-apache' >> /etc/sysconfig/apache2
+  echo -e '# This sources the modules/defines needed by Rudder\n. /etc/sysconfig/rudder-relay-apache' >> /etc/sysconfig/apache2
 fi
-%endif
 
+# Remove old includes in the SLES apache2 configuration
+if [ -f /etc/sysconfig/apache2 ]; then
+  if grep -qE "^. /etc/sysconfig/rudder-apache$" /etc/sysconfig/apache2; then
+    sed -i "/. \/etc\/sysconfig\/rudder-apache/d" /etc/sysconfig/apache2
+  fi
+fi
+
+# On SLES, change the Apache DocumentRoot to the OS default
+sed -i "s%^DocumentRoot /var/www$%DocumentRoot /srv/www%" %{buildroot}%{rudderdir}/etc/rudder-apache-relay-common.conf
+%endif
 
 # Create inventory repositories and add rights to the apache user to
 # access /var/rudder/inventories/incoming
@@ -230,13 +236,35 @@ do
   %{htpasswd_cmd} -bc ${passwdfile} rudder rudder >/dev/null 2>&1
 done
 
-# Generate the SSL certificates if needed
-if [ ! -f /opt/rudder/etc/ssl/rudder-relay.crt ] || [ ! -f /opt/rudder/etc/ssl/rudder-relay.key ]; then
+# Migrate existing certificates
+if [ ! -f /opt/rudder/etc/ssl/rudder.crt ] || [ ! -f /opt/rudder/etc/ssl/rudder.key ]; then
+  for source in relay webapp; do
+    if [ -f /opt/rudder/etc/ssl/rudder-${source}.crt ] && [ -f /opt/rudder/etc/ssl/rudder-${source}.key ]; then
+      echo -n "INFO: Importing existing ${source} certificates..."
+      mv /opt/rudder/etc/ssl/rudder-${source}.crt /opt/rudder/etc/ssl/rudder.crt
+      mv /opt/rudder/etc/ssl/rudder-${source}.key /opt/rudder/etc/ssl/rudder.key
+      echo " Done"
+    fi
+  done
+fi
+
+# Generate certificates if needed
+if [ ! -f /opt/rudder/etc/ssl/rudder.crt ] || [ ! -f /opt/rudder/etc/ssl/rudder.key ]; then
   echo -n "INFO: No usable SSL certificate detected for Rudder HTTP/S support, generating one automatically..."
-  openssl req -new -x509 -newkey rsa:2048 -subj "/CN=$(hostname --fqdn)/" -keyout /opt/rudder/etc/ssl/rudder-relay.key -out /opt/rudder/etc/ssl/rudder-relay.crt -days 1460 -nodes -sha256 >/dev/null 2>&1
-  chgrp %{apache_group} /opt/rudder/etc/ssl/rudder-relay.key && chmod 640 /opt/rudder/etc/ssl/rudder-relay.key
+  openssl req -new -x509 -newkey rsa:2048 -subj "/CN=$(hostname --fqdn)/" -keyout /opt/rudder/etc/ssl/rudder.key -out /opt/rudder/etc/ssl/rudder.crt -days 1460 -nodes -sha256 >/dev/null 2>&1
+  chgrp %{apache_group} /opt/rudder/etc/ssl/rudder.key && chmod 640 /opt/rudder/etc/ssl/rudder.key
   echo " Done"
 fi
+
+# Move old virtual hosts out of the way
+for OLD_VHOST in rudder-default rudder-default-ssl rudder-default.conf rudder-default-ssl.conf rudder-vhost.conf rudder-vhost-ssl.conf rudder-relay-vhost.conf rudder-relay-vhost-ssl.conf; do
+	if [ -f /etc/%{apache_vhost_dir}/${OLD_VHOST} ]; then
+		echo -n "INFO: An old rudder virtual host file has been detected (${OLD_VHOST}), it will be moved to /var/backups."
+		mkdir -p /var/backups
+		mv /etc/%{apache_vhost_dir}/${OLD_VHOST} /var/backups/${OLD_VHOST}-$(date +%s)
+		echo " Done"
+	fi
+done
 
 echo -n "INFO: Starting Apache HTTPd..."
 %if 0%{?rhel} < 7
@@ -246,7 +274,6 @@ service %{apache} start > /dev/null && echo " Done"
 /bin/systemctl start  %{apache}.service && echo " Done"
 %endif
 
-
 # Do this ONLY at first install
 if [ $1 -eq 1 ]
 then
@@ -254,10 +281,11 @@ then
   echo "*****************************************************************************************"
   echo "INFO: rudder-server-relay setup complete.                                                "
   echo "INFO:                                                                                    "
-  echo "INFO: Now run '/opt/rudder/bin/rudder-node-to-relay $(cat %{rudderdir}/etc/uuid.hive)'   "
-  echo "INFO: on your root server to complete this node transition to a relay server.            "
-  echo "INFO:                                                                                    "
-  echo "INFO: Please look at the documentation for details (Section 'Relay servers')             "
+  echo "INFO: * If you are installing a root server, configuration is automatically done         "
+  echo "INFO: * If you are installing a simple relay, run:                                       "
+  echo "INFO:   '/opt/rudder/bin/rudder-node-to-relay $(cat /opt/rudder/etc/uuid.hive)'          "
+  echo "INFO:   on your root server to complete this node transition to a relay server.          "
+  echo "INFO:   Please look at the documentation for details (Section 'Relay servers')           "
   echo "*****************************************************************************************"
 fi
 
@@ -274,9 +302,8 @@ rm -rf %{buildroot}
 %defattr(-, root, root, 0755)
 %{rudderdir}/etc/
 /etc/%{apache_vhost_dir}/
-%config(noreplace) /etc/%{apache_vhost_dir}/rudder-relay-vhost.conf
-%config(noreplace) /etc/%{apache_vhost_dir}/rudder-relay-vhost-ssl.conf
-%config(noreplace) %{rudderdir}/etc/rudder-relay-apache-common.conf
+%config(noreplace) /etc/%{apache_vhost_dir}/rudder-vhost.conf
+%config(noreplace) %{rudderdir}/etc/rudder-relay-apache-relay-common.conf
 %config(noreplace) %{rudderdir}/etc/rudder-networks.conf
 %config(noreplace) %{rudderdir}/etc/rudder-networks-24.conf
 %config(noreplace) /etc/sysconfig/rudder-relay-apache
