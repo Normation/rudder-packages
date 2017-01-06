@@ -130,6 +130,17 @@ python virtualenv/virtualenv.py flask
 # Get all requirements via pip
 flask/bin/pip install -r requirements.txt
 
+# Clean up unwanted binaries
+if [ "z%{real_name}" != "" ]; then
+  for i in easy_install python pip; do
+      rm -f %{real_name}/bin/${i}*
+  done
+else
+  echo "WARNING: Skipping Virtualenv cleanup, as it"
+  echo "WARNING: would operate on /bin ..."
+  echo "WARNING: Please make sure the real_name macro"
+  echo "WARNING: is defined"
+fi
 
 #=================================================
 # Installation
