@@ -545,8 +545,6 @@ rm -rf %{buildroot}
 %{rudderdir}/share/webapps/
 %{rudderdir}/share/rudder-plugins/
 %{rudderdir}/share
-%{ruddervardir}/inventories/accepted-nodes-updates
-%{ruddervardir}/inventories/incoming
 %{ruddervardir}/inventories/received
 %{ruddervardir}/inventories/failed
 %{ruddervardir}/configuration-repository/.gitignore
