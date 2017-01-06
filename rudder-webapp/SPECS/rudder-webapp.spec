@@ -100,6 +100,10 @@ Source21: rudder-webapp.fc
 Source22: rudder-keys
 Source23: .gitignore
 Source24: rudder-webapp-apache
+Source25: rudder-apache-webapp-common.conf
+Source26: rudder-apache-webapp-ssl.conf
+Source27: rudder-apache-webapp-no-ssl.conf
+
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
@@ -233,9 +237,9 @@ cp %{_builddir}/rudder-sources/rudder/rudder-web/target/rudder-web*.war %{buildr
 cp -rf %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/load-page %{buildroot}%{rudderdir}/share/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/test/resources/script/cfe-red-button.sh %{buildroot}%{rudderdir}/bin/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/reportsInfo.xml %{buildroot}%{rudderdir}/etc/
-cp %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/rudder-apache-webapp-common.conf %{buildroot}%{rudderdir}/etc/rudder-apache-webapp-common.conf
-cp %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/rudder-apache-webapp-ssl.conf %{buildroot}%{rudderdir}/etc/rudder-apache-webapp-ssl.conf
-cp %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/rudder-apache-webapp-nossl.conf %{buildroot}%{rudderdir}/etc/rudder-apache-webapp-no-ssl.conf
+cp %{SOURCE25} %{buildroot}%{rudderdir}/etc/rudder-apache-webapp-common.conf
+cp %{SOURCE26} %{buildroot}%{rudderdir}/etc/rudder-apache-webapp-ssl.conf
+cp %{SOURCE27} %{buildroot}%{rudderdir}/etc/rudder-apache-webapp-no-ssl.conf
 cp %{SOURCE24} %{buildroot}/etc/sysconfig/rudder-webapp-apache
 
 cp -r %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/hooks.d %{buildroot}%{rudderdir}/etc/
@@ -549,7 +553,9 @@ rm -rf %{buildroot}
 %{ruddervardir}/configuration-repository/ncf/ncf-hooks.d
 %{rudderlogdir}/apache2/
 /etc/%{apache_vhost_dir}/
-%config %{rudderdir}/etc/rudder-apache-webapp.conf
+%config %{rudderdir}/etc/rudder-apache-webapp-common.conf
+%config %{rudderdir}/etc/rudder-apache-webapp-ssl.conf
+%config %{rudderdir}/etc/rudder-apache-webapp-nossl.conf
 %config(noreplace) /etc/sysconfig/rudder-webapp-apache
 /usr/share/doc/rudder
 

@@ -2,6 +2,8 @@
 /opt/rudder/etc/rudder-users.xml
 /opt/rudder/etc/logback.xml
 /opt/rudder/etc/rudder-apache-webapp-common.conf
+/opt/rudder/etc/rudder-apache-webapp-ssl.conf
+/opt/rudder/etc/rudder-apache-webapp-nossl.conf
 /opt/rudder/etc/rudder-networks.conf
 /opt/rudder/etc/rudder-networks-24.conf
 /opt/rudder/etc/rudder-passwords.conf

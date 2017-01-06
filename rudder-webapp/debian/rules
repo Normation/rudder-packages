@@ -74,9 +74,9 @@ binary-arch: install
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/test/resources/script/ cfe-red-button.sh /opt/rudder/bin/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/ reportsInfo.xml /opt/rudder/etc/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-web/src/main/resources/ load-page/  /opt/rudder/share/
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-web/src/main/resources/ rudder-apache-webapp-common.conf /opt/rudder/etc/
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-web/src/main/resources/ rudder-apache-webapp-ssl.conf /opt/rudder/etc/
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-web/src/main/resources/ rudder-apache-webapp-nossl.conf /opt/rudder/etc/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-apache-webapp-common.conf /opt/rudder/etc/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-apache-webapp-ssl.conf /opt/rudder/etc/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-apache-webapp-nossl.conf /opt/rudder/etc/
 
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/ hooks.d/  /opt/rudder/etc/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder.xml /opt/rudder/share/webapps/
