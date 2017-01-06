@@ -102,7 +102,7 @@ Source23: .gitignore
 Source24: rudder-webapp-apache
 Source25: rudder-apache-webapp-common.conf
 Source26: rudder-apache-webapp-ssl.conf
-Source27: rudder-apache-webapp-no-ssl.conf
+Source27: rudder-apache-webapp-nossl.conf
 
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -239,7 +239,7 @@ cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/test/resources/script/cfe
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/reportsInfo.xml %{buildroot}%{rudderdir}/etc/
 cp %{SOURCE25} %{buildroot}%{rudderdir}/etc/rudder-apache-webapp-common.conf
 cp %{SOURCE26} %{buildroot}%{rudderdir}/etc/rudder-apache-webapp-ssl.conf
-cp %{SOURCE27} %{buildroot}%{rudderdir}/etc/rudder-apache-webapp-no-ssl.conf
+cp %{SOURCE27} %{buildroot}%{rudderdir}/etc/rudder-apache-webapp-nossl.conf
 cp %{SOURCE24} %{buildroot}/etc/sysconfig/rudder-webapp-apache
 
 cp -r %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/hooks.d %{buildroot}%{rudderdir}/etc/
