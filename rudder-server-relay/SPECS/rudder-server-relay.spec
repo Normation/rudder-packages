@@ -115,7 +115,7 @@ run a Rudder relay server on a machine.
 cd %{_sourcedir}/relay-api
 
 # Build Virtualenv
-%if 0%{?suse_version} && 0%{?suse_version} < 1140
+%if 0%{?suse_version} && 0%{?suse_version} < 1200
 # SLES specific exception, see http://www.rudder-project.org/redmine/issues/6365
 python virtualenv-1.10.1/virtualenv.py flask
 
@@ -330,7 +330,8 @@ rm -rf %{buildroot}
 %{rudderdir}/share/relay-api/
 
 # on sles11, .pyc and .pyo files are not generated, which fails with rpmbuild
-%if ! 0%{?sles_version} || 0%{?sles_version} != 11
+# Reference for suse_version : https://en.opensuse.org/openSUSE:Build_Service_cross_distribution_howto
+%if ! 0%{?suse_version} || 0%{?suse_version} >= 1200
 # Avoid having .pyo and .pyc files in our package
 # as they will always be regenerated
 %exclude %(find %{rudderdir}/share/relay-api/ -type f -name '*.pyc')

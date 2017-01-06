@@ -186,11 +186,10 @@ Requires: dmidecode
 
 ## 3 - SLES: Bundled for pre-sles11 oses
 ##
-### SLES 11 OSes come with OpenSSL 0.9.8h,
-### which is recent enough.
-### SLES12 has no sles_version defined, but openssl is ok too
+### SLES 11 OSes come with OpenSSL 0.9.8h which is recent enough.
 ##
-%if 0%{?sles_version} && 0%{?sles_version} < 11
+# Reference for suse_version : https://en.opensuse.org/openSUSE:Build_Service_cross_distribution_howto
+%if 0%{?suse_version} && 0%{?suse_version} < 1100
 %define use_system_openssl false
 %endif
 

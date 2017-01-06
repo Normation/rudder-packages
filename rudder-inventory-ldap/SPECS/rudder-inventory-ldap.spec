@@ -82,17 +82,12 @@ Requires: rsyslog openssl
 
 #Specific requirements
 
-%if 0%{?sles_version} && 0%{?sles_version} == 10
+# Reference for suse_version : https://en.opensuse.org/openSUSE:Build_Service_cross_distribution_howto
+%if 0%{?suse_version} && 0%{?suse_version} < 1100
 BuildRequires: openssl-devel
 %endif
 
-%if 0%{?sles_version} && 0%{?sles_version} == 11
-BuildRequires: libopenssl-devel
-%endif
-
-## See at: https://en.opensuse.org/openSUSE:Build_Service_cross_distribution_howto
-## SLE 12 => %if 0%{?suse_version} == 1315 (but could also be Leap 42.1*)
-%if 0%{?suse_version} && 0%{?suse_version} == 1315
+%if 0%{?suse_version} && 0%{?suse_version} >= 1100
 BuildRequires: libopenssl-devel
 %endif
 
