@@ -122,7 +122,7 @@ python virtualenv-1.10.1/virtualenv.py flask
 # Using a recent pip on SLES is not possible due to
 # bad interaction between pip and an old OpenSSL.
 # See http://stackoverflow.com/questions/17416938/pip-can-not-install-anything
-%{real_name}/bin/easy_install pip==1.2.1
+flask/bin/easy_install pip==1.2.1
 %else
 python virtualenv/virtualenv.py flask
 %endif
