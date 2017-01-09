@@ -1,5 +1,6 @@
 from relay_api import app
 from relay_api.shared_files import shared_files_put, shared_files_head, shared_files_put_forward, shared_files_head_forward
+from relay_api.remote_run import remote_run_generic
 from relay_api.common import *
 
 from flask import Flask, jsonify, request, abort, make_response
@@ -68,6 +69,35 @@ def head_file(target_uuid, source_uuid, file_id):
     print(traceback.format_exc())
     return format_error(e, API_DEBUGINFO)
 
+@app.route('/relay-api/remote-run/all', methods=['POST'])
+def remote_run_all():
+  try:
+    nodes = get_nodes_list(NODESLIST_FILE)
+    my_uuid = get_file_content(UUID_FILE)
+    return remote_run_generic(nodes, my_uuid, None, True, request.form)
+  except Exception as e:
+    print(traceback.format_exc())
+    return format_error(e, API_DEBUGINFO)
+
+@app.route('/relay-api/remote-run/nodes', methods=['POST'])
+def remote_run_nodes():
+  try:
+    nodes = get_nodes_list(NODESLIST_FILE)
+    my_uuid = get_file_content(UUID_FILE)
+    return remote_run_generic(nodes, my_uuid, request.form['nodes'].split(','), False, request.form)
+  except Exception as e:
+    print(traceback.format_exc())
+    return format_error(e, API_DEBUGINFO)
+
+@app.route('/relay-api/remote-run/nodes/<string:node_id>', methods=['POST'])
+def remote_run_node(node_id):
+  try:
+    nodes = get_nodes_list(NODESLIST_FILE)
+    my_uuid = get_file_content(UUID_FILE)
+    return remote_run_generic(nodes, my_uuid, [node_id], False, request.form)
+  except Exception as e:
+    print(traceback.format_exc())
+    return format_error(e, API_DEBUGINFO)
 
 # main
 if __name__ == '__main__':
