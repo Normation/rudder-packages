@@ -19,10 +19,10 @@ python - "$@" <<'EOF'
 Rudder cache management system
 
 Usage:
-    deps get [--force-config] <destination> [--from=<file>] [<key>=<value> ...]
-    deps put [--force-config] <source> [--move] [--from=<file>] [<key>=<value> ...]
-    deps show [--force-config] [--from=<file>] [<key>=<value> ...]
-    deps purge [--force-config] [--keep=<count>] [--from=<file>] [<key>=<value> ...]
+    build-caching get <destination> [--force-config] [--from=<file>] [<key>=<value> ...]
+    build-caching put <source> [--force-config] [--move] [--from=<file>] [<key>=<value> ...]
+    build-caching show [--force-config] [--from=<file>] [<key>=<value> ...]
+    build-caching purge [--force-config] [--keep=<count>] [--from=<file>] [<key>=<value> ...]
 
 Options:
     --force-config    Force the configuration to define explicitly a cache path
