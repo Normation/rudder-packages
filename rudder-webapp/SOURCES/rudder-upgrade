@@ -56,6 +56,7 @@ trap anomaly_handler ERR INT TERM
 # - 4.0.0        : Add new nodeConfigurations table and related indexes
 # - 4.0.0        : Add new archive table for nodeConfigurations and reportsexecution
 # - 4.1.0        : Add new data source table
+# - 4.1.0        : Add new compliance tables
 ####################################################################################
 
 # Some paths
@@ -543,6 +544,14 @@ upgrade_database() {
   if [ $RES -eq 0 ]; then
     echo -n "INFO: Adding new 'datasources' table"
     ${PSQL} -d ${SQL_DATABASE} -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-4.0.x-4.1-add-datasource-table.sql > /dev/null
+    echo " Done"
+  fi
+
+  # - 4.0.x to 4.1.0: add compliance table
+  RES=$(${PSQL} -t -d ${SQL_DATABASE} -c "select count(*) from information_schema.columns where lower(table_name) = 'nodecompliance'")
+  if [ $RES -eq 0 ]; then
+    echo -n "INFO: Adding new 'compliances' table"
+    ${PSQL} -d ${SQL_DATABASE} -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-4.0.x-4.1-add-compliance-table.sql > /dev/null
     echo " Done"
   fi
 
