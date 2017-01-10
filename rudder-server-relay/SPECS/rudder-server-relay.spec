@@ -76,6 +76,11 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 # Requirements
 
+# Disable dependency auto-generation, to prevent Python requirements
+# autodetection, which is not desired here.
+AutoReq: 0
+AutoProv: 0
+
 ## General
 BuildRequires: python, python-devel
 Requires: rudder-agent >= %{real_epoch}:%{real_version}, rsyslog, openssl, %{apache}, %{apache_tools}, python
