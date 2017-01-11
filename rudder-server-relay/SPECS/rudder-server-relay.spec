@@ -51,7 +51,7 @@
 %endif
 
 # avoid error during byte compilation of pyc since they are removed anyway
-%define _python_bytecompile_errors_terminate_build 1
+%define _python_bytecompile_errors_terminate_build 0
 
 
 #=================================================
