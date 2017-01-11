@@ -69,7 +69,7 @@ def head_file(target_uuid, source_uuid, file_id):
     print(traceback.format_exc())
     return format_error(e, API_DEBUGINFO)
 
-@app.route('/relay-api/remote-run/all', methods=['POST'])
+@app.route('/remote-run/all', methods=['POST'])
 def remote_run_all():
   try:
     nodes = get_nodes_list(NODESLIST_FILE)
@@ -79,7 +79,7 @@ def remote_run_all():
     print(traceback.format_exc())
     return format_error(e, API_DEBUGINFO)
 
-@app.route('/relay-api/remote-run/nodes', methods=['POST'])
+@app.route('/remote-run/nodes', methods=['POST'])
 def remote_run_nodes():
   try:
     nodes = get_nodes_list(NODESLIST_FILE)
@@ -89,7 +89,7 @@ def remote_run_nodes():
     print(traceback.format_exc())
     return format_error(e, API_DEBUGINFO)
 
-@app.route('/relay-api/remote-run/nodes/<string:node_id>', methods=['POST'])
+@app.route('/remote-run/nodes/<string:node_id>', methods=['POST'])
 def remote_run_node(node_id):
   try:
     nodes = get_nodes_list(NODESLIST_FILE)

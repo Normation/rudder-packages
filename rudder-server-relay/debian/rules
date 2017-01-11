@@ -64,7 +64,7 @@ binary-arch: install
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-networks-policy-server-24.conf /opt/rudder/etc/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/relay-api relay_api/ /opt/rudder/share/relay-api/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/relay-api flask/ /opt/rudder/share/relay-api/
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/relay-api apache/relay-api.wsgi /usr/share/relay-api/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/relay-api apache/relay-api.wsgi /opt/rudder/share/relay-api/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/relay-api apache/relay-api.conf /etc/apache2/conf.d/
 #	dh_installmenu
 #	dh_installdebconf
