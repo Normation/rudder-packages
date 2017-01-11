@@ -50,6 +50,10 @@
 %define apache_vhost_dir        %{apache}/conf.d
 %endif
 
+# avoid error during byte compilation of pyc since they are removed anyway
+%define _python_bytecompile_errors_terminate_build 1
+
+
 #=================================================
 # Header
 #=================================================
