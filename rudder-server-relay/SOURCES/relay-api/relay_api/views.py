@@ -9,7 +9,7 @@ import traceback
 
 from pprint import pprint
 
-NODESLIST_FILE = "/var/rudder/cfengine-community/inputs/distributePolicy/1.0/nodeslist.json"
+NODESLIST_FILE = "/opt/rudder/etc/nodeslist.json"
 UUID_FILE = '/opt/rudder/etc/uuid.hive'
 API_DEBUGINFO = True
 POLICY_SERVER_FILE = "/var/rudder/cfengine-community/policy_server.dat"
