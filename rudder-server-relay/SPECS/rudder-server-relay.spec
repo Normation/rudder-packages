@@ -75,6 +75,7 @@ Source5: rudder-apache-relay-common.conf
 Source6: rudder-relay-apache
 Source7: rudder-networks-policy-server.conf
 Source8: rudder-networks-policy-server-24.conf
+Source9: rudder-relay.cron
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
@@ -96,12 +97,12 @@ Requires: mod_ssl
 
 ## RHEL & Fedora
 %if 0%{?rhel} || 0%{?fedora}
-Requires: mod_wsgi shadow-utils
+Requires: mod_wsgi shadow-utils crontabs
 %endif
 
 ## SLES
 %if 0%{?suse_version}
-Requires: apache2-mod_wsgi pwdutils
+Requires: apache2-mod_wsgi pwdutils cron
 %endif
 
 %description
@@ -166,6 +167,7 @@ mkdir -p %{buildroot}%{ruddervardir}/inventories/incoming
 mkdir -p %{buildroot}%{ruddervardir}/inventories/accepted-nodes-updates
 mkdir -p %{buildroot}%{rudderlogdir}/apache2/
 mkdir -p %{buildroot}/etc/sysconfig/
+mkdir -p %{buildroot}/etc/cron.d/
 mkdir -p %{buildroot}%{rudderdir}/share/relay-api/
 
 # relay api
@@ -173,11 +175,13 @@ cp -r %{_sourcedir}/relay-api/flask %{buildroot}%{rudderdir}/share/relay-api/
 cp -r %{_sourcedir}/relay-api/relay_api %{buildroot}%{rudderdir}/share/relay-api/
 cp %{_sourcedir}/relay-api/apache/relay-api.wsgi %{buildroot}%{rudderdir}/share/relay-api/
 install -m 644 %{_sourcedir}/relay-api/apache/relay-api.conf %{buildroot}/etc/%{apache_vhost_dir}/relay-api.conf
+install -m 644 %{_sourcedir}/relay-api/cleanup.sh %{buildroot}%{rudderdir}/share/relay-api/
 
 # Others
 install -m 644 %{SOURCE1} %{buildroot}/etc/%{apache_vhost_dir}/rudder.conf
 install -m 644 %{SOURCE5} %{buildroot}%{rudderdir}/etc/rudder-apache-relay-common.conf
 install -m 644 %{SOURCE6} %{buildroot}/etc/sysconfig/rudder-relay-apache
+install -m 644 %{SOURCE9} rudder-relay.cron %{buildroot}/etc/cron.d/rudder-relay
 
 # Copy stub rudder-networks*.conf
 cp %{SOURCE2} %{buildroot}%{rudderdir}/etc/
@@ -333,6 +337,7 @@ rm -rf %{buildroot}
 %config(noreplace) %{rudderdir}/etc/rudder-networks-policy-server.conf
 %config(noreplace) %{rudderdir}/etc/rudder-networks-policy-server-24.conf
 %config(noreplace) /etc/sysconfig/rudder-relay-apache
+%config /etc/cron.d/rudder-relay
 %{ruddervardir}/inventories/incoming
 %{ruddervardir}/inventories/accepted-nodes-updates
 %{rudderlogdir}/apache2/
