@@ -279,7 +279,7 @@ fi
 # Generate certificates if needed
 if [ ! -f /opt/rudder/etc/ssl/rudder.crt ] || [ ! -f /opt/rudder/etc/ssl/rudder.key ]; then
   echo -n "INFO: No usable SSL certificate detected for Rudder HTTP/S support, generating one automatically..."
-  openssl req -new -x509 -newkey rsa:2048 -subj "/CN=$(hostname --fqdn)/" -keyout /opt/rudder/etc/ssl/rudder.key -out /opt/rudder/etc/ssl/rudder.crt -days 1460 -nodes -sha256 >/dev/null 2>&1
+  openssl req -new -x509 -newkey rsa:2048 -subj "/C=FR/ST=France/L=Paris/CN=$(hostname --fqdn)/emailAddress=root@$(hostname --fqdn)/" -keyout /opt/rudder/etc/ssl/rudder.key -out /opt/rudder/etc/ssl/rudder.crt -days 1460 -nodes -sha256 >/dev/null 2>&1
   chgrp %{apache_group} /opt/rudder/etc/ssl/rudder.key && chmod 640 /opt/rudder/etc/ssl/rudder.key
   echo " Done"
 fi
