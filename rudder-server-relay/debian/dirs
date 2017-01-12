@@ -4,3 +4,4 @@ opt/rudder/share/relay-api
 var/rudder/inventories/accepted-nodes-updates
 var/rudder/inventories/incoming
 var/log/rudder/apache2
+etc/apache2/conf-available
