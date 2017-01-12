@@ -29,7 +29,7 @@ case "$1" in
       fi
 
       SITES_TO_DISABLE="default 000-default default-ssl rudder-vhost rudder-vhost-ssl rudder-relay-vhost rudder-relay-vhost-ssl"
-      SITES_TO_ENABLE="rudder"
+      SITES_TO_ENABLE="rudder.conf"
 
       MODULES_TO_ENABLE="dav dav_fs ssl wsgi"
 
