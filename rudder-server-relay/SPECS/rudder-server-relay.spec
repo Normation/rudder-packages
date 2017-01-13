@@ -177,7 +177,6 @@ mkdir -p %{buildroot}%{rudderdir}/share/relay-api/
 cp -r %{_sourcedir}/relay-api/flask %{buildroot}%{rudderdir}/share/relay-api/
 cp -r %{_sourcedir}/relay-api/relay_api %{buildroot}%{rudderdir}/share/relay-api/
 cp %{_sourcedir}/relay-api/apache/relay-api.wsgi %{buildroot}%{rudderdir}/share/relay-api/
-install -m 644 %{_sourcedir}/relay-api/apache/relay-api.conf %{buildroot}/etc/%{apache_vhost_dir}/relay-api.conf
 install -m 644 %{_sourcedir}/relay-api/cleanup.sh %{buildroot}%{rudderdir}/share/relay-api/
 
 # Others
@@ -207,7 +206,7 @@ fi
 # Create the rudder user
 if ! getent passwd %{rudder_user} >/dev/null; then
   echo -n "INFO: Creating the %{rudder_user} user..."
-  useradd -r -m -G %{rudder_group} -d /var/rudder -c "Rudder,,," %{rudder_user} >/dev/null 2>&1
+  useradd -r -m -g %{rudder_group} -d /var/rudder -c "Rudder,,," %{rudder_user} >/dev/null 2>&1
   echo " Done"
 fi
 
