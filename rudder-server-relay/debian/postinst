@@ -32,7 +32,7 @@ case "$1" in
       # Create the rudder user
       if ! getent passwd rudder >/dev/null; then
         echo -n "INFO: Creating the rudder user..."
-        useradd -r -m -g rudder -d /var/rudder -c "Rudder,,," rudder >/dev/null 2>&1
+        useradd -r -m -s /bin/false -g rudder -d /var/rudder -c "Rudder,,," rudder >/dev/null 2>&1
         echo " Done"
       fi
 

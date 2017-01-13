@@ -68,6 +68,8 @@ binary-arch: install
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/relay-api cleanup.sh /opt/rudder/share/relay-api/
 	cp $(CURDIR)/SOURCES/rudder-relay.cron $(CURDIR)/BUILD/rudder-relay
 	dh_install --SOURCEDIR=$(CURDIR)/BUILD/ rudder-relay /etc/cron.d/
+	cp $(CURDIR)/SOURCES/rudder-relay.sudo $(CURDIR)/BUILD/rudder-relay
+	dh_install --SOURCEDIR=$(CURDIR)/BUILD/ rudder-relay /etc/sudoers.d/
 #	dh_installmenu
 #	dh_installdebconf
 #	dh_installlogrotate

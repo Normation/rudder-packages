@@ -79,6 +79,7 @@ Source6: rudder-relay-apache
 Source7: rudder-networks-policy-server.conf
 Source8: rudder-networks-policy-server-24.conf
 Source9: rudder-relay.cron
+Source10: rudder-relay.sudo
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
@@ -171,6 +172,7 @@ mkdir -p %{buildroot}%{ruddervardir}/inventories/accepted-nodes-updates
 mkdir -p %{buildroot}%{rudderlogdir}/apache2/
 mkdir -p %{buildroot}/etc/sysconfig/
 mkdir -p %{buildroot}/etc/cron.d/
+mkdir -p %{buildroot}/etc/sudoers.d/
 mkdir -p %{buildroot}%{rudderdir}/share/relay-api/
 
 # relay api
@@ -184,6 +186,7 @@ install -m 644 %{SOURCE1} %{buildroot}/etc/%{apache_vhost_dir}/rudder.conf
 install -m 644 %{SOURCE5} %{buildroot}%{rudderdir}/etc/rudder-apache-relay-common.conf
 install -m 644 %{SOURCE6} %{buildroot}/etc/sysconfig/rudder-relay-apache
 install -m 644 %{SOURCE9} %{buildroot}/etc/cron.d/rudder-relay
+install -m 644 %{SOURCE10} %{buildroot}/etc/sudoers.d/rudder-relay
 
 # Copy stub rudder-networks*.conf
 cp %{SOURCE2} %{buildroot}%{rudderdir}/etc/
@@ -206,8 +209,13 @@ fi
 # Create the rudder user
 if ! getent passwd %{rudder_user} >/dev/null; then
   echo -n "INFO: Creating the %{rudder_user} user..."
-  useradd -r -m -g %{rudder_group} -d /var/rudder -c "Rudder,,," %{rudder_user} >/dev/null 2>&1
+  useradd -r -m -s /bin/false -g %{rudder_group} -d /var/rudder -c "Rudder,,," %{rudder_user} >/dev/null 2>&1
   echo " Done"
+fi
+
+# Include files from /etc/sudoers.d (needed on SLES11)
+if ! grep -qE "^#includedir /etc/sudoers.d$" /etc/sudoers; then
+  echo -e '#includedir /etc/sudoers.d' >> /etc/sudoers
 fi
 
 echo -n "INFO: Setting Apache HTTPd as a boot service..."

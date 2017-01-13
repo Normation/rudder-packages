@@ -1,0 +1,2 @@
+# Allow the relay API to trigger remote runs
+rudder ALL = NOPASSWD: /opt/rudder/bin/rudder remote run *
