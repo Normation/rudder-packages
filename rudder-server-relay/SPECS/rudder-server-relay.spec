@@ -35,6 +35,9 @@
 %define ruddervardir            /var/rudder
 %define rudderlogdir            /var/log/rudder
 
+%define rudder_user rudder
+%define rudder_group rudder
+
 %if 0%{?suse_version}
 %define apache                  apache2
 %define apache_tools            apache2-utils
@@ -194,10 +197,17 @@ cp %{SOURCE8} %{buildroot}%{rudderdir}/etc/
 # Post Installation
 #=================================================
 
+# Create the rudder group
+if ! getent group %{rudder_group} > /dev/null; then
+  echo -n "INFO: Creating group %{rudder_group}..."
+  groupadd --system %{rudder_group}
+  echo " Done"
+fi
+
 # Create the rudder user
-if ! getent passwd rudder >/dev/null; then
-  echo -n "INFO: Creating the rudder user..."
-  useradd -r -m -d /var/rudder -c "Rudder,,," rudder >/dev/null 2>&1
+if ! getent passwd %{rudder_user} >/dev/null; then
+  echo -n "INFO: Creating the %{rudder_user} user..."
+  useradd -r -m -G %{rudder_group} -d /var/rudder -c "Rudder,,," %{rudder_user} >/dev/null 2>&1
   echo " Done"
 fi
 
