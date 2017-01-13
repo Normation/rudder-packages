@@ -180,8 +180,13 @@ cd %{_builddir} && make -f /usr/share/selinux/devel/Makefile
 # Create the package user
 if ! getent passwd %{user_name} >/dev/null; then
   echo -n "INFO: Creating the %{user_name} user..."
-  useradd -r -d /var/lib/%{user_name} -c "ncf API,,," %{user_name} >/dev/null 2>&1
+  useradd -r -s /bin/false -d /var/lib/%{user_name} -c "ncf API,,," %{user_name} >/dev/null 2>&1
   echo " Done"
+fi
+
+# Ensure setting the shell to /bin/false in migrations
+if ! getent passwd %{user_name} | cut -d: -f7 | grep -qE "^/bin/false$"; then
+  usermod -s /bin/false %{user_name}
 fi
 
 

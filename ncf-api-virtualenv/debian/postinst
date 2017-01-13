@@ -26,8 +26,13 @@ case "$1" in
       # Create the package user
       if ! getent passwd ncf-api-venv >/dev/null; then
         echo -n "INFO: Creating the ncf-api-venv user..."
-        useradd -r -m -d /var/lib/ncf-api-venv -c "ncf API,,," ncf-api-venv >/dev/null 2>&1
+        useradd -r -m -s /bin/false -d /var/lib/ncf-api-venv -c "ncf API,,," ncf-api-venv >/dev/null 2>&1
         echo " Done"
+      fi
+
+      # Ensure setting the shell to /bin/false in migrations
+      if ! getent passwd ncf-api-venv | cut -d: -f7 | grep -qE "^/bin/false$"; then
+        usermod -s /bin/false ncf-api-venv
       fi
 
       # Enable mod_wsgi in apache
