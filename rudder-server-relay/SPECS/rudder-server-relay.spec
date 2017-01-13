@@ -355,6 +355,7 @@ rm -rf %{buildroot}
 %config(noreplace) %{rudderdir}/etc/rudder-networks-policy-server-24.conf
 %config(noreplace) /etc/sysconfig/rudder-relay-apache
 %config /etc/cron.d/rudder-relay
+%config /etc/sudoers.d/rudder-relay
 %{ruddervardir}/inventories/incoming
 %{ruddervardir}/inventories/accepted-nodes-updates
 %{rudderlogdir}/apache2/
