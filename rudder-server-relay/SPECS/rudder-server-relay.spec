@@ -215,7 +215,11 @@ fi
 
 # Include files from /etc/sudoers.d (needed on SLES11)
 if ! grep -qE "^#includedir /etc/sudoers.d$" /etc/sudoers; then
-  echo -e '#includedir /etc/sudoers.d' >> /etc/sudoers
+  if [[ ${RUDDER_NO_SUDOERS_EDIT} = 1 ]]; then
+    echo "WARN: Skipping editing /etc/sudoers. Make sure the sudo rules are in place!"
+  else
+    echo -e '#includedir /etc/sudoers.d' >> /etc/sudoers
+  fi
 fi
 
 echo -n "INFO: Setting Apache HTTPd as a boot service..."
