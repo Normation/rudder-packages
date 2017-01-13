@@ -28,8 +28,17 @@ then
   exit 2
 fi
 
+VERSION="$2"
+# default version is 1.0
+# Versions 1.x are compatible
+if [ "${VERSION}" = "" ]
+then
+  VERSION="1.0"
+fi
+
 # the key to use for signature
-PRIVKEY=/var/rudder/cfengine-community/ppkeys/localhost.priv
+PRIVKEY="/var/rudder/cfengine-community/ppkeys/localhost.priv"
+PUBKEY="/var/rudder/cfengine-community/ppkeys/localhost.pub"
 
 # cfengine  passphrase
 PASSPHRASE="Cfengine passphrase"
@@ -46,8 +55,10 @@ KEYDATE=`stat -c %y ${PRIVKEY}`
 # Public key identifier (last 4 bytes of the modulus)
 KEYID=`openssl rsa -passin "pass:${PASSPHRASE}" -in "${PRIVKEY}" -noout -modulus | sed 's/.*\(........\)$/\1/'`
 
-# Create a signature FILE
-cat > "${FILE}.sign" <<EOF
+if [ "${VERSION}" = "1.0" ]
+then
+  # Create a signature FILE
+  cat > "${FILE}.sign" <<EOF
 header=rudder-signature-v1
 algorithm=${HASH}
 digest=${SIGNATURE}
@@ -56,3 +67,24 @@ keydate=${KEYDATE}
 keyid=${KEYID}
 EOF
 
+elif [ "${VERSION}" = "1.1" ]
+then
+  SHORT_PUBKEY=`sed '/---/d' "${PUBKEY}" | tr -d '\n'`
+  HASH_VALUE=`openssl "${HASH}" "${FILE}" | sed "s/${HASH}(.*)= *\\(.*\\)/\\1/i"`
+  # Create a signature FILE
+  cat > "${FILE}.sign" <<EOF
+header=rudder-signature-v1
+algorithm=${HASH}
+digest=${SIGNATURE}
+hash_value=${HASH_VALUE}
+short_pubkey=${SHORT_PUBKEY}
+hostname=${HOSTNAME}
+keydate=${KEYDATE}
+keyid=${KEYID}
+EOF
+
+else
+  echo "ERROR: Unsupported signature version ${VERSION}"
+  exit 1
+
+fi

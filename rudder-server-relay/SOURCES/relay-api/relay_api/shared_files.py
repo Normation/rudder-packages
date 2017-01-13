@@ -84,7 +84,7 @@ def get_header(data_stream):
 # Extract informations from header
 def parse_header(header):
   data = {}
-  for line in header.rstrip().split():
+  for line in header.rstrip().split("\n"):
     m = re.match(r"(\w+)\s*=\s*(.*)", line)
     if m:
       data[m.group(1)] = m.group(2)
@@ -211,7 +211,8 @@ def shared_files_put(target_uuid, source_uuid, file_id, data_stream, nodes, my_u
 
   # add headers
   header += expiry_line(info)
-  header += "hash_value=" + message_hash + "\n"
+  # replace hash by a guaranteed one
+  header = re.sub(r'hash_value=.*?\n', "hash_value=" + message_hash + "\n", header)
 
   # where to store file
   path = file_directory(shared_path, nodes, my_uuid, target_uuid, source_uuid, file_id)
