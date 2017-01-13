@@ -23,7 +23,7 @@ except:
 from pprint import pprint
 
 NEXTHOP = None
-RUDDER_COMMAND = "/opt/rudder/bin/rudder"
+REMOTE_RUN_COMMAND = "sudo /opt/rudder/bin/rudder remote run"
 
 def get_next_hop(nodes, my_uuid):
   """ Build a dict of node_id => nexthop_id """
@@ -84,11 +84,11 @@ def resolve_hostname(local_nodes, node):
 def call_remote_run(host, uuid, classes, keep_output, asynchronous):
   """ Call the remote run command locally """
   if classes:
-    classes_parameter = "-D " + classes
+    classes_parameter = " -D " + classes
   else:
     classes_parameter = ""
 
-  return run_command(RUDDER_COMMAND + " remote run " + classes_parameter + " " + host, uuid, keep_output, asynchronous)
+  return run_command(REMOTE_RUN_COMMAND + classes_parameter + " " + host, uuid, keep_output, asynchronous)
 
 def run_command(command, prefix, keep_output, asynchronous):
   """ Run the given command, prefixing all output lines with prefix """
