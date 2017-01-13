@@ -23,7 +23,7 @@ except:
 from pprint import pprint
 
 NEXTHOP = None
-RUDDER_COMMAND = "/opt/rudder/bin"
+RUDDER_COMMAND = "/opt/rudder/bin/rudder"
 
 def get_next_hop(nodes, my_uuid):
   """ Build a dict of node_id => nexthop_id """
@@ -92,18 +92,19 @@ def call_remote_run(host, uuid, classes, keep_output, asynchronous):
 
 def run_command(command, prefix, keep_output, asynchronous):
   """ Run the given command, prefixing all output lines with prefix """
+
   if keep_output:
     process = Popen(command, shell=True, stdout=PIPE, stderr=STDOUT)
     output = "".join([prefix + ":" + line for line in process.stdout.readlines()])
     retval = process.wait()
   else:
+    output = ""
     if asynchronous:
       command = command + " &"
       process = Popen(command)
     else:
       process = Popen(command, shell=True)
       retval = process.wait()
-    output = None
 
   return output
 
