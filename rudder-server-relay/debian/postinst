@@ -65,7 +65,7 @@ case "$1" in
       # Enable the conf-available entry if running Apache 2.4
       if [ ${APACHE_VERSION} = 2.4 ]
       then
-          [ ! -e /etc/apache2/conf-available/ncf-api-virtualenv.conf ] || a2enconf ncf-api-virtualenv
+          [ ! -e /etc/apache2/conf-available/relay-api.conf ] || a2enconf relay-api
       fi
 
       # Create inventory repositories and add rights to the apache user to
