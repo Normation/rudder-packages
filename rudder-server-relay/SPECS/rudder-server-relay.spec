@@ -145,7 +145,7 @@ python virtualenv/virtualenv.py flask
 flask/bin/pip install -r requirements.txt
 
 # Clean up unwanted binaries
-if [ "z%{real_name}" != "" ]; then
+if [ "%{real_name}" != "" ]; then
   for i in easy_install python pip; do
       rm -f %{real_name}/bin/${i}*
   done
