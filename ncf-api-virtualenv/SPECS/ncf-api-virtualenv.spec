@@ -152,7 +152,7 @@ python virtualenv/virtualenv.py %{real_name}
 %{real_name}/bin/pip install -r %{_sourcedir}/rudder-sources/ncf/api/requirements.txt
 
 # Clean up unwanted binaries
-if [ "z%{real_name}" != "" ]; then
+if [ "%{real_name}" != "" ]; then
   for i in easy_install python pip; do
       rm -f %{real_name}/bin/${i}*
   done
