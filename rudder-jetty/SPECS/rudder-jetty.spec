@@ -81,15 +81,11 @@ BuildArch: noarch
 # in RPM yet...
 
 %if 0%{?rhel} && 0%{?rhel} > 6
-Requires: jre >= 1.7
+Requires: jre >= 1.8
 %endif
 
 %if 0%{?rhel} && 0%{?rhel} == 6
-Requires: java-1.7.0-openjdk
-%endif
-
-%if 0%{!?rhel}
-Requires: jre >= 1.6
+Requires: java-1.8.0-openjdk
 %endif
 
 # We are providing Jetty, but the name of the provided element depends of the
@@ -201,7 +197,7 @@ JAVA_MAXPERMSIZE=${JAVA_MAXPERMSIZE_MIGRATE}
 
 # Java VM location
 #
-#JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64
+#JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
 #JAVA=java
 
 # Source variables from /opt/rudder/etc/rudder-jetty.conf
