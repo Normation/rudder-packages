@@ -140,7 +140,8 @@ cp -f %{SOURCE3} %{_builddir}
 cd %{_sourcedir}
 
 # Build Virtualenv
-%if 0%{?suse_version} && 0%{?suse_version} < 1140
+# Reference for suse_version : https://en.opensuse.org/openSUSE:Build_Service_cross_distribution_howto
+%if 0%{?suse_version} && 0%{?suse_version} < 1200
 # SLES specific exception, see http://www.rudder-project.org/redmine/issues/6365
 python virtualenv-1.10.1/virtualenv.py %{real_name}
 

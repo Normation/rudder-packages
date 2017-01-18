@@ -59,11 +59,8 @@ BuildArch: noarch
 Requires: postgresql-server >= 8.4
 Requires: rsyslog >= 4
 
-%if 0%{?sles_version} && 0%{?sles_version} == 10
-Requires: %{suse_rsyslog_pgsql} >= 4
-%endif
-
-%if 0%{?sles_version} && 0%{?sles_version} == 11
+# Reference for suse_version : https://en.opensuse.org/openSUSE:Build_Service_cross_distribution_howto
+%if 0%{?suse_version} && 0%{?suse_version} < 1200
 Requires: %{suse_rsyslog_pgsql} >= 4
 %endif
 

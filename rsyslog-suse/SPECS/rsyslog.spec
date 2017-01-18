@@ -145,9 +145,6 @@ dos2unix doc/*.html
 
 %build
 export CFLAGS="$RPM_OPT_FLAGS -fno-strict-aliasing -W -Wall"
-%if 0%{?suse_version} > 1000 && 0%{?suse_version} < 1030
-    export CFLAGS="$CFLAGS -fstack-protector"
-%endif
 autoreconf -fi
 %configure			\
 %if ! 0%{install_all_modules_in_lib}

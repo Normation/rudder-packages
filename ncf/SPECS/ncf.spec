@@ -113,7 +113,8 @@ rm -rf %{buildroot}
 %{bindir}/ncf
 
 # on sles11, .pyc and .pyo files are not generated, which fails with rpmbuild
-%if ! 0%{?sles_version} || 0%{?sles_version} != 11
+# Reference for suse_version : https://en.opensuse.org/openSUSE:Build_Service_cross_distribution_howto
+%if ! 0%{?suse_version} || 0%{?suse_version} >= 1200
 # Avoid having .pyo and .pyc files in our package
 # as they will always be regenerated
 %exclude %{installdir}/ncf/tree/10_ncf_internals/modules/templates/*.pyc

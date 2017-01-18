@@ -39,8 +39,8 @@
 %define syslogservicename       syslog
 %define apache_vhost_dir        %{apache}/vhosts.d
 %define ldap_clients            openldap2-client
-## suse_version 1315 is SLES12 (but could also be Leap 42.1*)
-%if 0%{?suse_version} >= 1315
+# Reference for suse_version : https://en.opensuse.org/openSUSE:Build_Service_cross_distribution_howto
+%if 0%{?suse_version} >= 1200
 %define usermod_opt             aG
 %else
 %define usermod_opt             A
