@@ -53,18 +53,17 @@ SOURCES/.stamp:
 	touch SOURCES/.stamp
 
 buildpackage-rpm-common-prep:
-	# As of now, only SLES requires this, the other OSes provide a recent enough JDK.
-	if [ "z$(JAVAREQUIRES)" = "zjdk" ] && [ $$(rpm -qa jdk|wc -l) -eq 0 ]; then wget -q -O /tmp/jdk.rpm $(JDKURL); rpm -ivh /tmp/jdk.rpm; fi
 
 buildpackage-rpm-common-prep-suse:
 	# Accept expired GPG Key for zypper on old SLES versions
-	if [ "z${OS}" = "zSLES" -a "z${OSVERSION}" = "z10" ];then echo -e "y\ny" | zypper ref || true;fi
+	if [ "${OS}" = "SLES" -a "${OSVERSION}" = "10" ];then echo -e "y\ny" | zypper ref || true;fi
 	if [ ! -z "${BUILDREQUIRESSLES}" ];then zypper -n install ${BUILDREQUIRESSLES};fi
 	if [ ! -z "${BUILDREQUIRESSLESSP}" ];then zypper -n install ${BUILDREQUIRESSLESSP};fi
+	if [ "$(JAVAREQUIRES)" = "jdk" ] && [ $$(rpm -qa jdk|wc -l) -eq 0 ]; then wget -q -O /tmp/jdk.rpm $(JDKURL); rpm -ivh /tmp/jdk.rpm; fi
 
 buildpackage-rpm-common-prep-rhel:
 	# Add basic package to have macros for rpm and be able to know which part of .spec file concerns rhel 5
-	if [ "z${OS}" = "zRHEL" -a "z${OSVERSION}" = "z5" ];then yum -y install buildsys-macros;fi
+	if [ "${OS}" = "RHEL" -a "${OSVERSION}" = "5" ];then yum -y install buildsys-macros;fi
 	if [ ! -z "${BUILDREQUIRESRHEL}" ];then yum -y install ${BUILDREQUIRESRHEL};fi
 
 buildpackage-rpm-common-prep-fedora:
