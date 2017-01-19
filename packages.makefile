@@ -36,10 +36,11 @@ JAVAREQUIRES := $(shell grep -s "JAVA" SOURCES/.dependencies | cut -d ':' -f2)
 
 # Original URL: http://www.oracle.com/technetwork/java/javase/downloads/index-jsp-138363.html#javasejdk
 JDKURL := http://www.normation.com/tarball/java/jdk-8u101-linux-i586.rpm
-
+JDKPACKAGE := jdk1.8.0_101
 ifeq ($(ARCHI),x86_64)
 JDKURL := http://www.normation.com/tarball/java/jdk-8u101-linux-x86_64.rpm
 endif
+
 
 
 .DEFAULT_GOAL := localbuild
@@ -59,7 +60,7 @@ buildpackage-rpm-common-prep-suse:
 	if [ "${OS}" = "SLES" -a "${OSVERSION}" = "10" ];then echo -e "y\ny" | zypper ref || true;fi
 	if [ ! -z "${BUILDREQUIRESSLES}" ];then zypper -n install ${BUILDREQUIRESSLES};fi
 	if [ ! -z "${BUILDREQUIRESSLESSP}" ];then zypper -n install ${BUILDREQUIRESSLESSP};fi
-	if [ "$(JAVAREQUIRES)" = "jdk" ] && [ $$(rpm -qa jdk|wc -l) -eq 0 ]; then wget -q -O /tmp/jdk.rpm $(JDKURL); rpm -ivh /tmp/jdk.rpm; fi
+	if [ "$(JAVAREQUIRES)" = "jdk" ] && [ $$(rpm -qa $(JDKPACKAGE)|wc -l) -eq 0 ]; then wget -q -O /tmp/jdk.rpm $(JDKURL); rpm -ivh /tmp/jdk.rpm; fi
 
 buildpackage-rpm-common-prep-rhel:
 	# Add basic package to have macros for rpm and be able to know which part of .spec file concerns rhel 5
