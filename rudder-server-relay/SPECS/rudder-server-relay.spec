@@ -315,6 +315,9 @@ for OLD_VHOST in rudder-default rudder-default-ssl rudder-default.conf rudder-de
 	fi
 done
 
+# Remove old apache config file
+rm -f %{rudderdir}/etc/rudder-apache-common.conf
+
 echo -n "INFO: Starting Apache HTTPd..."
 %if 0%{?rhel} < 7
 service %{apache} start > /dev/null && echo " Done"
