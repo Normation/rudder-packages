@@ -19,7 +19,7 @@ configure-stamp:
 
 build: build-stamp
 
-build-stamp: configure-stamp
+build-stamp: configure-stamp java8
 	dh_testdir
 	
 	cd $(CURDIR)/SOURCES/rudder-sources/rudder-parent-pom && $(CURDIR)/SOURCES/maven/bin/mvn --batch-mode -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true install
@@ -29,6 +29,28 @@ build-stamp: configure-stamp
 	cd $(CURDIR)/SOURCES/rudder-sources/rudder            && $(CURDIR)/SOURCES/maven/bin/mvn --batch-mode -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true install package
 
 	touch $@
+
+# dirty hack, don't do this, if your builder comes with java preinstalled you can remove this
+# TODO remove as soon as possible
+java8:
+	dpkg -l | egrep "openjdk-8-jdk|oracle-java8-installer" || ( echo "Installing JDK"; \
+		dist=$$(grep '^deb' /etc/apt/sources.list | head -n1  | perl -pe 's/^deb .*? (\w+) .*/$$1/') \
+		[ $$dist = "wheezy" ] && dist="precise"; \
+		if [ $$dist = "xenial" ]; then \
+			apt-get install openjdk-8-jdk; \
+		elif [ $$dist = "jessie" ]; then \
+			echo "deb http://ftp.fr.debian.org/debian/ jessie-backports main" > /etc/apt/sources.list.d/openjdk.list ; \
+			apt-get update && apt-get install openjdk-8-jdk ; \
+		else \
+			echo "deb http://ppa.launchpad.net/webupd8team/java/ubuntu $$dist main" > /etc/apt/sources.list.d/jdk.list ; \
+			echo "oracle-java8-installer	shared/present-oracle-license-v1-1	note	" | debconf-set-selections; \
+			echo "oracle-java8-installer	shared/accepted-oracle-license-v1-1	boolean	true" | debconf-set-selections; \
+			echo "oracle-java8-installer	shared/error-oracle-license-v1-1	error	" | debconf-set-selections; \
+			echo "oracle-java8-installer	oracle-java8-installer/not_exist	error	" | debconf-set-selections; \
+			echo "oracle-java8-installer	oracle-java8-installer/local	string	" | debconf-set-selections; \
+			apt-get update && apt-get install oracle-java8-installer ; \
+		fi \
+	)
 
 clean:
 	dh_testdir
