@@ -49,7 +49,7 @@ java8:
 			echo "oracle-java8-installer	shared/error-oracle-license-v1-1	error	" | debconf-set-selections; \
 			echo "oracle-java8-installer	oracle-java8-installer/not_exist	error	" | debconf-set-selections; \
 			echo "oracle-java8-installer	oracle-java8-installer/local	string	" | debconf-set-selections; \
-			apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y oracle-java8-installer ; \
+			apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --force-yes oracle-java8-installer ; \
 		fi \
 	)
 

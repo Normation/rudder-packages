@@ -60,6 +60,8 @@ buildpackage-rpm-common-prep-suse:
 	if [ "${OS}" = "SLES" -a "${OSVERSION}" = "10" ];then echo -e "y\ny" | zypper ref || true;fi
 	if [ ! -z "${BUILDREQUIRESSLES}" ];then zypper -n install ${BUILDREQUIRESSLES};fi
 	if [ ! -z "${BUILDREQUIRESSLESSP}" ];then zypper -n install ${BUILDREQUIRESSLESSP};fi
+	# alternatives doesn't exist on sles11 but it is a rewrite of update-alternatives so this works
+	ln -s /usr/sbin/update-alternatives /usr/sbin/alternatives || true
 	if [ "$(JAVAREQUIRES)" = "jdk" ] && [ $$(rpm -qa $(JDKPACKAGE)|wc -l) -eq 0 ]; then wget -q -O /tmp/jdk.rpm $(JDKURL); rpm -ivh /tmp/jdk.rpm; fi
 
 buildpackage-rpm-common-prep-rhel:
