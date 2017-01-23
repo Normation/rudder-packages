@@ -96,7 +96,6 @@ Source17: rudder-metrics-reporting
 Source18: ca-bundle.crt
 Source19: rudder-reload-cf-serverd
 Source20: rudder-webapp.te
-Source21: rudder-webapp.fc
 Source22: rudder-keys
 Source23: .gitignore
 Source24: rudder-webapp-apache
@@ -154,7 +153,6 @@ application server bundled in the rudder-jetty package.
 
 # Copy the required source files to the build directory
 cp -f %{SOURCE20} %{_builddir}
-cp -f %{SOURCE21} %{_builddir}
 cp -rf %{_sourcedir}/rudder-sources %{_builddir}
 cp -rf %{_sourcedir}/rudder-doc %{_builddir}
 
