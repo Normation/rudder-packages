@@ -70,6 +70,8 @@ Source3: rudder-networks-24.conf
 Source4: rudder-relay-vhost-ssl.conf
 Source5: rudder-relay-apache-common.conf
 Source6: rudder-relay-apache
+Source7: rudder-relay.fc
+Source8: rudder-relay.te
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
@@ -84,6 +86,19 @@ Requires: rudder-agent, rsyslog, openssl, %{apache}, %{apache_tools}
 Requires: mod_ssl
 %endif
 
+## SELinux
+%if 0%{?rhel} && 0%{?rhel} == 6
+BuildRequires: selinux-policy
+%endif
+
+%if 0%{?rhel} && 0%{?rhel} >= 7
+BuildRequires: selinux-policy-devel
+%endif
+
+%if 0%{?fedora}
+BuildRequires: selinux-policy-devel
+%endif
+
 %description
 Rudder is an open source configuration management and audit solution.
 
@@ -95,10 +110,19 @@ run a Rudder relay server on a machine.
 #=================================================
 %prep
 
+cp -f %{SOURCE7} %{_builddir}
+cp -f %{SOURCE8} %{_builddir}
+
 #=================================================
 # Building
 #=================================================
 %build
+
+%if 0%{?rhel} || 0%{?fedora}
+# Build SELinux policy package
+# Compiles rudder-relay.te and rudder-relay.fc into rudder-relay.pp
+cd %{_builddir} && make -f /usr/share/selinux/devel/Makefile
+%endif
 
 #=================================================
 # Installation
@@ -125,6 +149,11 @@ install -m 644 %{SOURCE6} %{buildroot}/etc/sysconfig/rudder-relay-apache
 # Copy stub rudder-networks*.conf
 cp %{SOURCE2} %{buildroot}%{rudderdir}/etc/
 cp %{SOURCE3} %{buildroot}%{rudderdir}/etc/
+
+%if 0%{?rhel} || 0%{?fedora}
+# Install SELinux policy
+install -m 644  %{_builddir}/rudder-relay.pp %{buildroot}%{rudderdir}/share/selinux/
+%endif
 
 %post -n rudder-server-relay
 #=================================================
@@ -202,6 +231,20 @@ service %{apache} start > /dev/null && echo " Done"
 /bin/systemctl start  %{apache}.service && echo " Done"
 %endif
 
+%if 0%{?rhel} || 0%{?fedora}
+# SELinux support
+# Check "sestatus" presence, and if here tweak our installation to be
+# SELinux compliant
+if type sestatus >/dev/null 2>&1 && sestatus | grep -q "enabled"; then
+  # Add/Update the rudder-relay SELinux policy
+  semodule -i /opt/rudder/share/selinux/rudder-relay.pp
+  # Ensure inventory directories context is set by resetting
+  # their context to the contexts defined in SELinux configuration,
+  # including the file contexts defined in the rudder-relay module
+  restorecon -R /var/rudder/inventories
+  restorecon -R /var/log/rudder/apache2
+fi
+%endif
 
 # Do this ONLY at first install
 if [ $1 -eq 1 ]
@@ -216,6 +259,25 @@ then
   echo "INFO: Please look at the documentation for details (Section 'Relay servers')             "
   echo "*****************************************************************************************"
 fi
+
+%postun -n rudder-server-relay
+#=================================================
+# Post Uninstallation
+#=================================================
+
+%if 0%{?rhel} || 0%{?fedora}
+  # Do it only during uninstallation
+  if [ $1 -eq 0 ]; then
+    if type sestatus >/dev/null 2>&1 && sestatus | grep -q "enabled"; then
+      if semodule -l | grep -q rudder-relay; then
+        # Remove the rudder-relay SELinux policy
+        semanage fcontext -d '/var/rudder/configuration-repository/techniques(/.*)?'
+        restorecon -RF /var/rudder/configuration-repository/techniques
+        semodule -r rudder-relay
+      fi
+    fi
+  fi
+%endif
 
 #=================================================
 # Cleaning
