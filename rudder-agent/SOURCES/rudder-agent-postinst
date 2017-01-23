@@ -73,12 +73,15 @@ if [ "${RESTORE_SERVER_ROLES_BACKUP}" = "1" ]; then
   cp -r /var/backups/rudder/rudder-server-roles.conf ${CFE_DIR}/inputs/rudder-server-roles.conf
 fi
 
+echo -n "INFO: Ensuring correct permissions on the keys directory..."
+# The chmod is a workaround for the limitations of rpm in rhel6 but it could be useful in other situations
+chmod 700 ${CFE_DIR}/ppkeys
+echo " Done."
+
 # Create a key if we don't have one yet
 if [ ! -f ${CFE_DIR}/ppkeys/localhost.priv ]
 then
   echo -n "INFO: Creating keys for CFEngine agent..."
-  # The chmod is a workaround for the limitations of rpm in rhel6 but it could be useful in other situations
-  chmod 700 ${CFE_DIR}/ppkeys
   ${CFE_DIR}/bin/cf-key >> ${LOG_FILE} 2>&1
   echo " Done."
 fi
