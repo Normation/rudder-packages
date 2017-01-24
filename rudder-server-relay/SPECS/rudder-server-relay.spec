@@ -135,6 +135,7 @@ rm -rf %{buildroot}
 mkdir -p %{buildroot}/etc/%{apache_vhost_dir}
 mkdir -p %{buildroot}%{rudderdir}/etc/
 mkdir -p %{buildroot}%{rudderdir}/etc/ssl/
+mkdir -p %{buildroot}%{rudderdir}/share/selinux/
 mkdir -p %{buildroot}%{ruddervardir}/inventories/incoming
 mkdir -p %{buildroot}%{ruddervardir}/inventories/accepted-nodes-updates
 mkdir -p %{buildroot}%{rudderlogdir}/apache2/
