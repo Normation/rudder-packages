@@ -290,6 +290,7 @@ rm -rf %{buildroot}
 %files -n rudder-server-relay
 %defattr(-, root, root, 0755)
 %{rudderdir}/etc/
+%{rudderdir}/share/selinux/
 /etc/%{apache_vhost_dir}/
 %config(noreplace) /etc/%{apache_vhost_dir}/rudder-relay-vhost.conf
 %config(noreplace) /etc/%{apache_vhost_dir}/rudder-relay-vhost-ssl.conf
