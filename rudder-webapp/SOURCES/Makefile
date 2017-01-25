@@ -37,7 +37,7 @@ RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
 RUDDER_MAJOR_VERSION := $(shell echo ${RUDDER_VERSION_TO_PACKAGE} | cut -d'.' -f 1-2)
 PAGES_WITH_VERSION = "rudder/rudder-web/src/main/webapp/index.html" "rudder/rudder-web/src/main/webapp/templates-hidden/common-layout.html"
 
-localdepends: ./rudder-sources ./maven/bin/mvn ./rudder-users.xml ./rudder-doc ./rudder-doc/html/rudder-doc.pdf ./.gitignore
+localdepends: ./rudder-sources ./maven/bin/mvn ./rudder-users.xml ./rudder-doc ./rudder-doc/html/rudder-doc.pdf ./.gitignore ./rudder.war
 
 /usr/bin/wget:
 	sudo aptitude --assume-yes install wget
@@ -52,6 +52,9 @@ localdepends: ./rudder-sources ./maven/bin/mvn ./rudder-users.xml ./rudder-doc .
 	rm -rf ./maven
 	mv ./apache-maven-$(MAVEN_RELEASE) ./maven
 	sed 's|<!--PROXY-->|$(MAVEN_PROXY)|g' ./settings-external.xml.tpl > ./settings-external.xml
+
+./rudder.war: ./maven/bin/mvn ./rudder-sources
+	./maven/bin/mvn -s settings-external.xml --batch-mode org.apache.maven.plugins:maven-dependency-plugin:3.0.0:copy -Dartifact=com.normation.rudder:rudder-web:$$(sed -n '/<parent>/,/<.parent>/s/.*<version>\(.*\)<.version>.*/\1/p' ./rudder-sources/rudder/pom.xml):war -DoutputDirectory=. && mv rudder-web*.war rudder.war || true
 
 ./rudder-sources.tar.bz2:
 	$(WGET) -O rudder-sources.tar.bz2.dl http://www.rudder-project.org/archives/rudder-sources-${RUDDER_VERSION_TO_PACKAGE}.tar.bz2

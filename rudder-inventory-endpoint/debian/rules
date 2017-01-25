@@ -19,17 +19,19 @@ configure-stamp:
 
 build: build-stamp
 
-build-stamp: configure-stamp java8
+build-stamp: configure-stamp SOURCES/endpoint.war
 	dh_testdir
+	touch $@
 
+SOURCES/endpoint.war: java8
 	ls -lh $(CURDIR)/SOURCES/rudder-sources
 	cd $(CURDIR)/SOURCES/rudder-sources/rudder-parent-pom && $(CURDIR)/SOURCES/maven/bin/mvn --batch-mode -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true install
 	cd $(CURDIR)/SOURCES/rudder-sources/rudder-commons && $(CURDIR)/SOURCES/maven/bin/mvn --batch-mode -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true install
 	cd $(CURDIR)/SOURCES/rudder-sources/scala-ldap && $(CURDIR)/SOURCES/maven/bin/mvn --batch-mode -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true install
 	cd $(CURDIR)/SOURCES/rudder-sources/ldap-inventory && $(CURDIR)/SOURCES/maven/bin/mvn --batch-mode -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true install
 	cd $(CURDIR)/SOURCES/rudder-sources/ldap-inventory/inventory-provisioning-web && $(CURDIR)/SOURCES/maven/bin/mvn --batch-mode -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true install package
+	cp $(CURDIR)/SOURCES/rudder-sources/ldap-inventory/inventory-provisioning-web/target/inventory-provisioning-web*.war $(CURDIR)/SOURCES/endpoint.war
 
-	touch $@
 
 # dirty hack, don't do this, if your builder comes with java preinstalled you can remove this
 # TODO remove as soon as possible
@@ -83,8 +85,7 @@ binary-arch: install
 	dh_installchangelogs
 #	dh_installdocs
 #	dh_installexamples
-	cp $(CURDIR)/SOURCES/rudder-sources/ldap-inventory/inventory-provisioning-web/target/inventory-provisioning-web*.war $(CURDIR)/BUILD/endpoint.war
-	dh_install --SOURCEDIR=$(CURDIR)/BUILD/ endpoint.war /opt/rudder/share/webapps/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ endpoint.war /opt/rudder/share/webapps/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ endpoint.xml /opt/rudder/share/webapps/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ inventory-web.properties /opt/rudder/etc/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-inventory-endpoint-upgrade /opt/rudder/bin/

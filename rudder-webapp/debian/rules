@@ -19,16 +19,17 @@ configure-stamp:
 
 build: build-stamp
 
-build-stamp: configure-stamp java8
+build-stamp: configure-stamp SOURCES/rudder.war
 	dh_testdir
-	
+	touch $@
+
+SOURCES/rudder.war: java8
 	cd $(CURDIR)/SOURCES/rudder-sources/rudder-parent-pom && $(CURDIR)/SOURCES/maven/bin/mvn --batch-mode -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true install
 	cd $(CURDIR)/SOURCES/rudder-sources/rudder-commons    && $(CURDIR)/SOURCES/maven/bin/mvn --batch-mode -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true install
 	cd $(CURDIR)/SOURCES/rudder-sources/scala-ldap        && $(CURDIR)/SOURCES/maven/bin/mvn --batch-mode -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true install
 	cd $(CURDIR)/SOURCES/rudder-sources/ldap-inventory    && $(CURDIR)/SOURCES/maven/bin/mvn --batch-mode -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true install
 	cd $(CURDIR)/SOURCES/rudder-sources/rudder            && $(CURDIR)/SOURCES/maven/bin/mvn --batch-mode -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true install package
-
-	touch $@
+	cp $(CURDIR)/SOURCES/rudder-sources/rudder/rudder-web/target/rudder-web*.war $(CURDIR)/SOURCES/rudder.war
 
 # dirty hack, don't do this, if your builder comes with java preinstalled you can remove this
 # TODO remove as soon as possible
@@ -91,8 +92,7 @@ binary-arch: install
 	cp $(CURDIR)/SOURCES/rudder-sources/rudder/rudder-web/src/main/resources/configuration.properties.sample $(CURDIR)/BUILD/rudder-web.properties
 	dh_install --SOURCEDIR=$(CURDIR)/BUILD/ rudder-web.properties /opt/rudder/etc/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-web/src/main/resources/ logback.xml /opt/rudder/etc/
-	cp $(CURDIR)/SOURCES/rudder-sources/rudder/rudder-web/target/rudder-web*.war $(CURDIR)/BUILD/rudder.war
-	dh_install --SOURCEDIR=$(CURDIR)/BUILD/ rudder.war /opt/rudder/share/webapps/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder.war /opt/rudder/share/webapps/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/test/resources/script/ cfe-red-button.sh /opt/rudder/bin/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/ reportsInfo.xml /opt/rudder/etc/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-web/src/main/resources/ load-page/  /opt/rudder/share/

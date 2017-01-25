@@ -9,29 +9,4 @@
       <url>http://nexus.normation.com/nexus/content/groups/public</url>
     </mirror>
   </mirrors>
-  <localRepository>/tmp/m2-repository</localRepository>
-  <profiles>
-    <profile>
-      <id>nexus</id>
-      <repositories>
-        <repository>
-          <id>normation</id>
-          <url>http://nexus.normation.com/nexus/content/repositories/normation</url>
-          <releases><enabled>true</enabled></releases>
-          <snapshots><enabled>true</enabled></snapshots>
-        </repository>
-      </repositories>
-     <pluginRepositories>
-        <pluginRepository>
-          <id>normation</id>
-          <url>http://nexus.normation.com/nexus/content/repositories/normation</url>
-          <releases><enabled>true</enabled></releases>
-          <snapshots><enabled>true</enabled></snapshots>
-        </pluginRepository>
-      </pluginRepositories>
-    </profile>
-  </profiles>
-  <activeProfiles>
-    <activeProfile>nexus</activeProfile>
-  </activeProfiles>
 </settings>

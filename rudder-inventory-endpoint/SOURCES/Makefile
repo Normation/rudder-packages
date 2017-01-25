@@ -22,8 +22,19 @@ WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget -q
 .DEFAULT_GOAL := localdepends
 
 RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
+MAVEN_PROXY := $(if $(PROXY), $(shell echo "$(PROXY)" |  perl -ne ' \
+    if (m|(https?)://(?:([^:@]+)(?::([^@]+))?\@)?([^:/]+)(?::([0-9]+))?|) { \
+        chomp; \
+        my $$proto = "<protocol>$$1</protocol>"; \
+        my $$user = defined($$2) ? "<username>$$2</username>" : ""; \
+        my $$pass = defined($$3) ? "<password><![CDATA[$$3]]></password>" : ""; \
+        my $$host = "<host>$$4</host>";  \
+        my $$id   = "<id>$$4</id>"; \
+        my $$port = defined($5) ? "<port>$$5</port>" : ""; \
+        print "<proxies> <proxy> <active>true</active> $$id $$proto $$user $$pass $$host $$port </proxy> </proxies>"; \
+    }'))
 
-localdepends: ./rudder-sources ./inventory-web.properties ./maven/bin/mvn
+localdepends: ./rudder-sources ./inventory-web.properties ./maven/bin/mvn ./endpoint.war
 
 /usr/bin/wget:
 	sudo aptitude --assume-yes install wget
@@ -36,6 +47,10 @@ localdepends: ./rudder-sources ./inventory-web.properties ./maven/bin/mvn
 	tar -xzf ./maven.tgz -C .
 	rm -rf ./maven
 	mv ./apache-maven-$(MAVEN_RELEASE) ./maven
+	sed 's|<!--PROXY-->|$(MAVEN_PROXY)|g' ./settings-external.xml.tpl > ./settings-external.xml
+
+./endpoint.war: ./maven/bin/mvn ./rudder-sources
+	./maven/bin/mvn -s settings-external.xml --batch-mode org.apache.maven.plugins:maven-dependency-plugin:3.0.0:copy -Dartifact=com.normation.inventory:inventory-provisioning-web:$$(sed -n '/<parent>/,/<.parent>/s/.*<version>\(.*\)<.version>.*/\1/p' ./rudder-sources/ldap-inventory/pom.xml):war -DoutputDirectory=. && mv inventory-provisioning-web*.war endpoint.war || true
 
 ./rudder-sources.tar.bz2:
 	$(WGET) -O rudder-sources.tar.bz2 http://www.rudder-project.org/archives/rudder-sources-${RUDDER_VERSION_TO_PACKAGE}.tar.bz2
@@ -51,6 +66,7 @@ localclean:
 	rm -rf ./maven
 	rm -rf ./inventory-web.properties
 	rm -rf ./rudder-sources
+	rm -rf ./settings-external.xml
 
 veryclean:
 	rm -f ./rudder-sources.tar.bz2

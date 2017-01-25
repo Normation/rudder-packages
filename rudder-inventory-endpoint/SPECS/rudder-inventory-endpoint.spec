@@ -119,11 +119,18 @@ cp -rf %{_sourcedir}/rudder-sources %{_builddir}
 %build
 
 export MAVEN_OPTS=-Xmx512m
-cd %{_builddir}/rudder-sources/rudder-parent-pom && %{_sourcedir}/maven/bin/mvn --batch-mode -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
-cd %{_builddir}/rudder-sources/rudder-commons && %{_sourcedir}/maven/bin/mvn --batch-mode -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
-cd %{_builddir}/rudder-sources/scala-ldap && %{_sourcedir}/maven/bin/mvn --batch-mode -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
-cd %{_builddir}/rudder-sources/ldap-inventory && %{_sourcedir}/maven/bin/mvn --batch-mode -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
-cd %{_builddir}/rudder-sources/ldap-inventory/inventory-provisioning-web && %{_sourcedir}/maven/bin/mvn --batch-mode -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install package
+
+if [ -f %{_sourcedir}/endpoint.war ]
+then
+  cp %{_sourcedir}/endpoint.war %{_builddir}/endpoint.war
+else
+  cd %{_builddir}/rudder-sources/rudder-parent-pom && %{_sourcedir}/maven/bin/mvn --batch-mode -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
+  cd %{_builddir}/rudder-sources/rudder-commons && %{_sourcedir}/maven/bin/mvn --batch-mode -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
+  cd %{_builddir}/rudder-sources/scala-ldap && %{_sourcedir}/maven/bin/mvn --batch-mode -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
+  cd %{_builddir}/rudder-sources/ldap-inventory && %{_sourcedir}/maven/bin/mvn --batch-mode -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
+  cd %{_builddir}/rudder-sources/ldap-inventory/inventory-provisioning-web && %{_sourcedir}/maven/bin/mvn --batch-mode -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install package
+  cp %{_builddir}/rudder-sources/ldap-inventory/inventory-provisioning-web/target/inventory-provisioning-web*.war %{_builddir}/endpoint.war
+fi
 
 # Installation
 #=================================================
@@ -135,7 +142,7 @@ mkdir -p %{buildroot}/opt/rudder/etc/server-roles.d/
 mkdir -p %{buildroot}%{rudderdir}/bin/
 mkdir -p %{buildroot}/opt/rudder/share/webapps/
 
-cp %{_builddir}/rudder-sources/ldap-inventory/inventory-provisioning-web/target/inventory-provisioning-web*.war %{buildroot}/opt/rudder/share/webapps/endpoint.war
+cp %{_builddir}/endpoint.war %{buildroot}/opt/rudder/share/webapps/endpoint.war
 cp %{SOURCE1} %{buildroot}/opt/rudder/etc/
 cp %{SOURCE2} %{buildroot}%{rudderdir}/bin/
 
