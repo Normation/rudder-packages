@@ -1,0 +1,4 @@
+RHEL6:selinux-policy
+RHEL7:selinux-policy-devel
+FEDORA18:selinux-policy-devel
+FEDORA20:selinux-policy-devel
