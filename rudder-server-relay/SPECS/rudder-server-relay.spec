@@ -149,7 +149,7 @@ install -m 644 %{SOURCE6} %{buildroot}/etc/sysconfig/rudder-relay-apache
 cp %{SOURCE2} %{buildroot}%{rudderdir}/etc/
 cp %{SOURCE3} %{buildroot}%{rudderdir}/etc/
 
-%if 0%{?rhel} || 0%{?fedora}
+%if 0%{?rhel} && 0%{?rhel} >= 6 || 0%{?fedora}
 # Install SELinux policy
 install -m 644  %{_builddir}/rudder-relay.pp %{buildroot}%{rudderdir}/share/selinux/
 %endif
@@ -230,7 +230,7 @@ service %{apache} start > /dev/null && echo " Done"
 /bin/systemctl start  %{apache}.service && echo " Done"
 %endif
 
-%if 0%{?rhel} || 0%{?fedora}
+%if 0%{?rhel} && 0%{?rhel} >= 6 || 0%{?fedora}
 # SELinux support
 # Check "sestatus" presence, and if here tweak our installation to be
 # SELinux compliant
@@ -264,7 +264,7 @@ fi
 # Post Uninstallation
 #=================================================
 
-%if 0%{?rhel} || 0%{?fedora}
+%if 0%{?rhel} && 0%{?rhel} >= 6 || 0%{?fedora}
   # Do it only during uninstallation
   if [ $1 -eq 0 ]; then
     if type sestatus >/dev/null 2>&1 && sestatus | grep -q "enabled"; then
