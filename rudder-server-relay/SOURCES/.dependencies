@@ -2,7 +2,7 @@ SLES10:python-devel
 SLES11:python-devel
 SLES12:python-devel
 RHEL5:python-devel
-RHEL6:python-devel
-RHEL7:python-devel
-FEDORA18:python-devel
-FEDORA20:python-devel
+RHEL6:python-devel selinux-policy
+RHEL7:python-devel selinux-policy-devel
+FEDORA18:python-devel selinux-policy-devel
+FEDORA20:python-devel selinux-policy-devel
