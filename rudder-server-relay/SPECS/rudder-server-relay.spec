@@ -174,7 +174,7 @@ else
   echo "WARNING: is defined"
 fi
 
-%if 0%{?rhel} || 0%{?fedora}
+%if 0%{?rhel} && 0%{?rhel} >= 6 || 0%{?fedora}
 # Build SELinux policy package
 # Compiles rudder-relay.te and rudder-relay.fc into rudder-relay.pp
 cd %{_builddir} && make -f /usr/share/selinux/devel/Makefile
