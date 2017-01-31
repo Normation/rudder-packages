@@ -36,6 +36,7 @@ MAVEN_PROXY := $(if $(PROXY), $(shell echo "$(PROXY)" |  perl -ne ' \
 RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
 RUDDER_MAJOR_VERSION := $(shell echo ${RUDDER_VERSION_TO_PACKAGE} | cut -d'.' -f 1-2)
 PAGES_WITH_VERSION = "rudder/rudder-web/src/main/webapp/index.html" "rudder/rudder-web/src/main/webapp/templates-hidden/common-layout.html"
+CURRENT_YEAR = $(date +'%Y')
 
 localdepends: ./rudder-sources ./maven/bin/mvn ./rudder-users.xml ./rudder-doc ./rudder-doc/html/rudder-doc.pdf ./.gitignore ./rudder.war
 
@@ -68,6 +69,7 @@ localdepends: ./rudder-sources ./maven/bin/mvn ./rudder-users.xml ./rudder-doc .
 	for page in $(PAGES_WITH_VERSION); do \
 	  sed -i "s%@PACKAGING_RUDDER_MAJOR_VERSION@%$(RUDDER_MAJOR_VERSION)%" "rudder-sources/$${page}" ; \
 	  sed -i "s%@PACKAGING_RUDDER_VERSION@%$(RUDDER_VERSION_TO_PACKAGE)%" "rudder-sources/$${page}" ; \
+	  sed -i "s%@PACKAGING_CURRENT_YEAR@%$(CURRENT_YEAR)%" "rudder-sources/$${page}" ; \
 	done
 
 ./rudder-doc: /usr/bin/wget
