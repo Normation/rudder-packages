@@ -1,0 +1,17 @@
+export CCACHE_DIR="/tmp/work/ccache"
+export PATH="/usr/lib/ccache:${PATH}"
+
+EXTRAPACKAGES="${EXTRAPACKAGES} ccache debconf"
+BINDMOUNTS="${BINDMOUNTS} ${CCACHE_DIR} /tmp/m2-repository ${HOME}"
+APTCACHEHARDLINK=no
+
+DEBOOTSTRAPOPTS=(
+  '--variant=buildd'
+  '--keyring' '/usr/share/keyrings/debian-archive-keyring.gpg'
+  )
+
+ALLOWUNTRUSTED=yes
+APTGETOPT=(
+  '--force-yes'
+  )
+

@@ -233,13 +233,13 @@ veryclean:
 ##########################################
 
 cfengine-source:
-ifeq ($(shell ../../build-caching get ./cfengine-source/ --force-config name=cfengine-src version=$(CFENGINE_RELEASE) >/dev/null 2>&1 || echo KO), KO)
+ifeq ($(shell ../../../tools/build-caching get ./cfengine-source/ --force-config name=cfengine-src version=$(CFENGINE_RELEASE) >/dev/null 2>&1 || echo KO), KO)
 	$(eval TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX))
 	# Original URL: https://cfengine-package-repos.s3.amazonaws.com/tarballs/cfengine-$(CFENGINE_RELEASE).tar.gz
 	$(GET) $(TMP_DIR)/cfengine.tgz http://www.normation.com/tarball/cfengine/cfengine-$(CFENGINE_RELEASE).tar.gz
 	gunzip < $(TMP_DIR)/cfengine.tgz | $(TAR) xf -
 	mv ./cfengine-$(CFENGINE_RELEASE) ./cfengine-source
-	../../build-caching put ./cfengine-source/ --force-config name=cfengine-src version=$(CFENGINE_RELEASE)
+	../../../tools/build-caching put ./cfengine-source/ --force-config name=cfengine-src version=$(CFENGINE_RELEASE)
 	rm -rf $(TMP_DIR)
 endif
 
@@ -249,35 +249,35 @@ endif
 	test `$(FIND) ./cfengine-source -name \*.rej | wc -l` = 0
 
 openssl-source:
-ifeq ($(shell ../../build-caching get ./openssl-source/ --force-config name=openssl-src version=$(OPENSSL_RELEASE) >/dev/null 2>&1 || echo KO), KO)
+ifeq ($(shell ../../../tools/build-caching get ./openssl-source/ --force-config name=openssl-src version=$(OPENSSL_RELEASE) >/dev/null 2>&1 || echo KO), KO)
 	$(eval TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX))
 	# Original URL: https://www.openssl.org/source/openssl-$(OPENSSL_RELEASE).tar.gz
 	$(GET) $(TMP_DIR)/openssl.tgz http://www.normation.com/tarball/openssl/openssl-$(OPENSSL_RELEASE).tar.gz
 	gunzip < $(TMP_DIR)/openssl.tgz | $(TAR) xf -
 	mv ./openssl-$(OPENSSL_RELEASE) ./openssl-source
-	../../build-caching put ./openssl-source/ --force-config name=openssl-src version=$(OPENSSL_RELEASE)
+	../../../tools/build-caching put ./openssl-source/ --force-config name=openssl-src version=$(OPENSSL_RELEASE)
 	rm -rf $(TMP_DIR)
 endif
 
 lmdb-source:
-ifeq ($(shell ../../build-caching get ./lmdb-source/ --force-config name=lmdb-src version=$(LMDB_RELEASE) >/dev/null 2>&1 || echo KO), KO)
+ifeq ($(shell ../../../tools/build-caching get ./lmdb-source/ --force-config name=lmdb-src version=$(LMDB_RELEASE) >/dev/null 2>&1 || echo KO), KO)
 	$(eval TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX))
 	# Original URL: http://ftp.fr.debian.org/debian/pool/main/l/lmdb/lmdb_$(LMDB_RELEASE).orig.tar.xz
 	$(GET) $(TMP_DIR)/lmdb.tgz http://www.normation.com/tarball/lmdb/lmdb-$(LMDB_RELEASE).tar.gz
 	gunzip < $(TMP_DIR)/lmdb.tgz | $(TAR) xf -
 	mv ./lmdb-LMDB_$(LMDB_RELEASE) ./lmdb-source
-	../../build-caching put ./lmdb-source/ --force-config name=lmdb-src version=$(LMDB_RELEASE)
+	../../../tools/build-caching put ./lmdb-source/ --force-config name=lmdb-src version=$(LMDB_RELEASE)
 	rm -rf $(TMP_DIR)
 endif
 
 pcre-source:
-ifeq ($(shell ../../build-caching get ./pcre-source/ --force-config name=pcre-src version=$(PCRE_RELEASE) >/dev/null 2>&1 || echo KO), KO)
+ifeq ($(shell ../../../tools/build-caching get ./pcre-source/ --force-config name=pcre-src version=$(PCRE_RELEASE) >/dev/null 2>&1 || echo KO), KO)
 	$(eval TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX))
 	# Original URL: http://vorboss.dl.sourceforge.net/project/pcre/pcre/8.38/pcre-8.38.tar.gz
 	$(GET) $(TMP_DIR)/pcre.tgz http://www.normation.com/tarball/pcre/pcre-$(PCRE_RELEASE).tar.gz
 	gunzip < $(TMP_DIR)/pcre.tgz | $(TAR) xf -
 	mv ./pcre-$(PCRE_RELEASE) ./pcre-source
-	../../build-caching put ./pcre-source/ --force-config name=pcre-src version=$(PCRE_RELEASE)
+	../../../tools/build-caching put ./pcre-source/ --force-config name=pcre-src version=$(PCRE_RELEASE)
 	rm -rf $(TMP_DIR)
 endif
 
@@ -313,13 +313,13 @@ rudder-agent-utilities: rudder-sources
 	echo bodydefault >> ./rudder-agent-utilities/agent-capabilities
 
 fusioninventory-agent:
-ifeq ($(shell ../../build-caching get ./fusioninventory-agent/ --force-config name=fusioninventory-agent version=$(FUSION_RELEASE) >/dev/null 2>&1 || echo KO), KO)
+ifeq ($(shell ../../../tools/build-caching get ./fusioninventory-agent/ --force-config name=fusioninventory-agent version=$(FUSION_RELEASE) >/dev/null 2>&1 || echo KO), KO)
 	$(eval TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX))
 	#Original URL: http://search.cpan.org/CPAN/authors/id/G/GR/GROUSSE/FusionInventory-Agent-$(FUSION_RELEASE).tar.gz
 	$(GET) $(TMP_DIR)/fusion.tgz http://www.normation.com/tarball/FusionInventory-Agent-$(FUSION_RELEASE).tar.gz
 	gunzip < $(TMP_DIR)/fusion.tgz | $(TAR) xf -
 	mv ./FusionInventory-Agent-$(FUSION_RELEASE) ./fusioninventory-agent
-	../../build-caching put ./fusioninventory-agent/ --force-config name=fusioninventory-agent version=$(FUSION_RELEASE)
+	../../../tools/build-caching put ./fusioninventory-agent/ --force-config name=fusioninventory-agent version=$(FUSION_RELEASE)
 	rm -rf $(TMP_DIR)
 endif
 
@@ -335,7 +335,7 @@ endif
 perl_source=002
 perl-source: perl-$(PERL_VERSION)
 perl-$(PERL_VERSION):
-ifeq ($(shell ../../build-caching get ./perl-$(PERL_VERSION)/ --force-config name=perl-source versions=$(perl_source) >/dev/null 2>&1 || echo KO), KO)
+ifeq ($(shell ../../../tools/build-caching get ./perl-$(PERL_VERSION)/ --force-config name=perl-source versions=$(perl_source) >/dev/null 2>&1 || echo KO), KO)
 	$(eval TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX))
 	# Original URL: http://www.cpan.org/src/5.0/perl-5.22.0.tar.gz
 	$(GET) $(TMP_DIR)/perl.tar.gz http://www.normation.com/tarball/perl/perl-$(PERL_VERSION).tar.gz
@@ -346,7 +346,7 @@ ifeq ($(shell ../../build-caching get ./perl-$(PERL_VERSION)/ --force-config nam
 	mv ./perl-$(PERL_VERSION)/App-cpanminus-1.7036 ./perl-$(PERL_VERSION)/App-cpanminus
 	# cpanminus+curl have a bug on rhel3+64bits, this is the workaround, see http://www.rudder-project.org/redmine/issues/8533
 	sed -i -e "s/'-#',//" ./perl-$(PERL_VERSION)/App-cpanminus/bin/cpanm
-	../../build-caching put ./perl-$(PERL_VERSION)/ --force-config name=perl-source versions=$(perl_source)
+	../../../tools/build-caching put ./perl-$(PERL_VERSION)/ --force-config name=perl-source versions=$(perl_source)
 	rm -rf $(TMP_DIR)
 endif
 
