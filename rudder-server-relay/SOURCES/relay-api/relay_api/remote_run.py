@@ -100,12 +100,9 @@ def run_command(command, prefix, keep_output, asynchronous):
     retval = process.wait()
   else:
     output = ""
-    if asynchronous:
-      command = command + " &"
-      process = Popen(command)
-    else:
-      process = Popen(command, shell=True)
-      retval = process.wait()
+    process = Popen(command, shell=True)
+    if not asynchronous:
+      process.wait()
 
   return output
 
