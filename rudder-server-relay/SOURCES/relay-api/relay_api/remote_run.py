@@ -28,10 +28,11 @@ REMOTE_RUN_COMMAND = "sudo /opt/rudder/bin/rudder remote run"
 def get_next_hop(nodes, my_uuid):
   """ Build a dict of node_id => nexthop_id """
   global NEXTHOP
-  if NEXTHOP is not None:
-    return NEXTHOP
-  else:
-    NEXTHOP = {}
+  ## uncomment to enable nexthop caching caching (depends on nodeslist caching)
+  #if NEXTHOP is not None:
+  #  return NEXTHOP
+  #else:
+  NEXTHOP = {}
   for node in nodes:
     NEXTHOP[node] = node_route(nodes, my_uuid, node)[0]
   return NEXTHOP
