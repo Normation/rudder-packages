@@ -50,8 +50,9 @@ def node_route(nodes, my_uuid, uuid):
 # Returns the parsed content of the nodeslist file
 def get_nodes_list(nodeslist_file):
   global NODES
-  if NODES is not None:
-    return NODES
+  ## uncomment to enable nodeslist caching
+  #if NODES is not None:
+  #  return NODES
   fd = open(nodeslist_file, 'r')
   NODES = json.load(fd)
   fd.close()
