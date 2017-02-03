@@ -201,6 +201,7 @@ mkdir -p %{buildroot}%{rudderdir}/etc/ssl/
 mkdir -p %{buildroot}%{rudderdir}/share/selinux/
 mkdir -p %{buildroot}%{ruddervardir}/inventories/incoming
 mkdir -p %{buildroot}%{ruddervardir}/inventories/accepted-nodes-updates
+mkdir -p %{buildroot}%{ruddervardir}/shared-files
 mkdir -p %{buildroot}%{rudderlogdir}/apache2/
 mkdir -p %{buildroot}/etc/sysconfig/
 mkdir -p %{buildroot}/etc/cron.d/
@@ -433,6 +434,7 @@ rm -rf %{buildroot}
 %attr(0440, root, root) %config /etc/sudoers.d/rudder-relay
 %{ruddervardir}/inventories/incoming
 %{ruddervardir}/inventories/accepted-nodes-updates
+%{ruddervardir}/shared-files/
 %{rudderlogdir}/apache2/
 %{rudderdir}/share/relay-api/
 

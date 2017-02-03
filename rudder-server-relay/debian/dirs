@@ -3,5 +3,6 @@ opt/rudder/etc/ssl
 opt/rudder/share/relay-api
 var/rudder/inventories/accepted-nodes-updates
 var/rudder/inventories/incoming
+var/rudder/shared-files
 var/log/rudder/apache2
 etc/apache2/conf-available
