@@ -23,18 +23,19 @@ SHARED_FILES_PATH = "/var/rudder/shared-files"
 def put_file(target_uuid, source_uuid, file_id):
   try:
     nodes = get_nodes_list(NODESLIST_FILE)
+    ttl = request.args.get('ttl', '')
+    my_uuid = get_file_content(UUID_FILE)
     if target_uuid not in nodes:
       # forward the file if the node is unknown
-      policy_server = get_file_content(POLICY_SERVER_FILE)
-      if policy_server == "root":
+      if my_uuid == "root":
         return format_response("Unknown UUID: "+target_uuid, 404)
       else:
-        url = "https://"+policy_server+"/rudder/relay-api/shared-files/" + target_uuid + "/" + source_uuid + "/" + file_id + "?hash=" + file_hash
+        policy_server = get_file_content(POLICY_SERVER_FILE)
+        url = "https://"+policy_server+"/rudder/relay-api/shared-files/" + target_uuid + "/" + source_uuid + "/" + file_id + "?ttl=" + ttl
         res = shared_files_put_forward(request.stream, url)
     else:
       # process the file if it is known
-      my_uuid = get_file_content(UUID_FILE)
-      filename = shared_files_put(target_uuid, source_uuid, file_id, request.stream, nodes, my_uuid, SHARED_FILES_PATH)
+      filename = shared_files_put(target_uuid, source_uuid, file_id, request.stream, nodes, my_uuid, SHARED_FILES_PATH, ttl)
       if API_DEBUGINFO:
         res = "OK\nWritten to: " + filename + "\n"
       else:
@@ -49,17 +50,17 @@ def head_file(target_uuid, source_uuid, file_id):
   try:
     nodes = get_nodes_list(NODESLIST_FILE)
     file_hash = request.args.get('hash', '')
+    my_uuid = get_file_content(UUID_FILE)
     if target_uuid not in nodes:
       # forward the request if the node is unknown
-      policy_server = get_file_content(POLICY_SERVER_FILE)
-      if policy_server == "root":
+      if my_uuid == "root":
         return format_response("Unknown UUID: "+target_uuid, 404)
       else:
+        policy_server = get_file_content(POLICY_SERVER_FILE)
         url = "https://"+policy_server+"/rudder/relay-api/shared-files/" + target_uuid + "/" + source_uuid + "/" + file_id + "?hash=" + file_hash
         res = shared_files_head_forward(url)
     else:
       # process the request if it is known
-      my_uuid = get_file_content(UUID_FILE)
       res = shared_files_head(target_uuid, source_uuid, file_id, file_hash, nodes, my_uuid, SHARED_FILES_PATH)
     if res:
       return format_response("", 200)

@@ -96,21 +96,24 @@ def parse_header(header):
 # Extract a public key object from headers
 def get_pubkey(header_info):
   # validate header content first
-  if 'digest' not in header_info or 'pubkey' not in header_info:
+  if 'digest' not in header_info or 'short_pubkey' not in header_info:
     raise ValueError("ERROR incomplete header, missing digest or public key")
-  pem = "-----BEGIN RSA PRIVATE KEY-----\n" + header_info['pubkey'] + "\n-----END RSA PRIVATE KEY-----\n"
+  pem = "-----BEGIN RSA PRIVATE KEY-----\n" + header_info['short_pubkey'] + "\n-----END RSA PRIVATE KEY-----\n"
   return RSA.importKey(pem)
 
 
 # Create expiry header line
-def expiry_line(header_info):
-  if 'ttl' not in header_info:
-    raise ValueError("ERROR: No TTL provided")
-  else:
+def expiry_line(header_info, ttl_value):
+  if ttl_value is None or ttl_value == '':
+    if 'ttl' not in header_info:
+      raise ValueError("ERROR: No TTL provided")
     ttl = parse_ttl(header_info['ttl'])
-    expires = datetime.datetime.utcnow() + ttl # we take utcnow because we write a unix timestamp
-    timestamp = int((expires - datetime.datetime(1970, 1, 1)).total_seconds()) # convert to unix timestamp
-    return "expires=" + str(timestamp) + "\n"
+  else:
+    ttl = parse_ttl(ttl_value)
+  expires = datetime.datetime.utcnow() + ttl # we take utcnow because we write a unix timestamp
+  delta = expires - datetime.datetime(1970, 1, 1)
+  timestamp = delta.days*24*3600 + delta.seconds # convert to unix timestamp
+  return "expires=" + str(timestamp) + "\n"
     
 
 # Hash a message with a given algorithm
@@ -186,8 +189,9 @@ def get_metadata_hash(metadata_file):
 # - nodes        the content of the nodes_list file
 # - my_uuid      uuid of the current relay (self)
 # - shared_path  the shared-files directory path
+# - ttl          duration to keep the file
 # Returns the full path of the created file
-def shared_files_put(target_uuid, source_uuid, file_id, data_stream, nodes, my_uuid, shared_path):
+def shared_files_put(target_uuid, source_uuid, file_id, data_stream, nodes, my_uuid, shared_path, ttl):
   header = get_header(data_stream)
   info = parse_header(header)
 
@@ -195,9 +199,9 @@ def shared_files_put(target_uuid, source_uuid, file_id, data_stream, nodes, my_u
   pubkey = get_pubkey(info)
   if source_uuid not in nodes:
     raise ValueError("ERROR unknown source node: " + str(source_uuid))
-  if "keyhash" not in nodes[source_uuid]:
+  if "key-hash" not in nodes[source_uuid]:
     raise ValueError("ERROR invalid nodes file on the server for " + source_uuid)
-  keyhash = nodes[source_uuid]["keyhash"]
+  keyhash = nodes[source_uuid]["key-hash"]
 
   # validate key
   if not validate_key(pubkey, keyhash):
@@ -210,7 +214,7 @@ def shared_files_put(target_uuid, source_uuid, file_id, data_stream, nodes, my_u
     raise ValueError("ERROR invalid signature")
 
   # add headers
-  header += expiry_line(info)
+  header += expiry_line(info, ttl)
   # replace hash by a guaranteed one
   header = re.sub(r'hash_value=.*?\n', "hash_value=" + message_hash + "\n", header)
 
