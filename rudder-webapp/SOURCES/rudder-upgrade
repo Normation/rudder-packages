@@ -56,6 +56,7 @@ trap anomaly_handler ERR INT TERM
 # - 4.0.0        : Add new nodeConfigurations table and related indexes
 # - 4.0.0        : Add new archive table for nodeConfigurations and reportsexecution
 # - 4.1.0        : Add new compliance tables
+# - 4.1.0        : Add the property to configure relay api location
 ####################################################################################
 
 # Some paths
@@ -462,6 +463,18 @@ rudder.server-roles.relay-promises-only=autodetect
 
 # The hosts with the cfengine mission portal role
 rudder.server-roles.cfengine-mission-portal=autodetect
+
+"
+
+  # - 4.1.0 : Add property to configure relay api location
+  STEP="Add property to configure relay api location"
+
+  check_and_add_config_property rudder.server.relay.api "
+#
+# Location of the relay api used by rudder webapp
+# It's the base url of relay api, Rudder will manage to call the correct url from that base
+#
+rudder.server.relay.api=https://localhost/rudder/relay-api
 
 "
 
