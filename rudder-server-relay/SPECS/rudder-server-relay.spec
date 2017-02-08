@@ -302,6 +302,7 @@ if [ -f /etc/sysconfig/apache2 ]; then
     sed -i "/. \/etc\/sysconfig\/rudder-apache/d" /etc/sysconfig/apache2
   fi
 fi
+%endif
 
 # Create inventory repositories and add rights to the apache user to
 # access /var/rudder/inventories/incoming
