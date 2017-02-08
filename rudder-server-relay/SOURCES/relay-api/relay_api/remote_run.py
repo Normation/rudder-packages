@@ -134,11 +134,12 @@ def make_api_call(host, nodes, all_nodes, classes, keep_output, asynchronous):
     response = ""
     if asynchronous:
       def stream():
-        for content in req.iter_content():
-          yield content
+        for content in req.iter_lines():
+          yield content+"\n"
       response = stream()
     else:
-      return req.text
+      response = req.text
+    return response
   else:
     raise ValueError("Upstream Error: " + req.text)
 
