@@ -135,7 +135,11 @@ run a Rudder relay server on a machine.
 #=================================================
 %prep
 
-cp -f %{SOURCE5} %{_builddir}
+%if 0%{?suse_version}
+# On SLES, change the Apache DocumentRoot to the OS default
+sed -i "s%^DocumentRoot /var/www$%DocumentRoot /srv/www%" %{SOURCE5}
+%endif
+
 cp -f %{SOURCE11} %{_builddir}
 cp -f %{SOURCE12} %{_builddir}
 
@@ -181,11 +185,6 @@ fi
 cd %{_builddir} && make -f /usr/share/selinux/devel/Makefile
 %endif
 
-%if 0%{?suse_version}
-# On SLES, change the Apache DocumentRoot to the OS default
-sed -i "s%^DocumentRoot /var/www$%DocumentRoot /srv/www%" %{_builddir}/%{SOURCE5}
-%endif
-
 
 #=================================================
 # Installation
@@ -216,7 +215,7 @@ install -m 755 %{_sourcedir}/relay-api/cleanup.sh %{buildroot}%{rudderdir}/share
 
 # Others
 install -m 644 %{SOURCE1} %{buildroot}/etc/%{apache_vhost_dir}/rudder.conf
-install -m 644 %{_builddir}/%{SOURCE5} %{buildroot}%{rudderdir}/etc/rudder-apache-relay-common.conf
+install -m 644 %{SOURCE5} %{buildroot}%{rudderdir}/etc/rudder-apache-relay-common.conf
 install -m 644 %{SOURCE6} %{buildroot}/etc/sysconfig/rudder-relay-apache
 install -m 644 %{SOURCE9} %{buildroot}/etc/cron.d/rudder-relay
 install -m 644 %{SOURCE10} %{buildroot}/etc/sudoers.d/rudder-relay
