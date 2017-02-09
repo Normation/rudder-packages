@@ -216,7 +216,7 @@ install -m 755 %{_sourcedir}/relay-api/cleanup.sh %{buildroot}%{rudderdir}/share
 
 # Others
 install -m 644 %{SOURCE1} %{buildroot}/etc/%{apache_vhost_dir}/rudder.conf
-install -m 644 %{_builddir}/%{SOURCE5} %{buildroot}%{rudderdir}/etc/rudder-apache-relay-common.conf
+install -m 644 %{_builddir}/rudder-apache-relay-common.conf %{buildroot}%{rudderdir}/etc/rudder-apache-relay-common.conf
 install -m 644 %{SOURCE6} %{buildroot}/etc/sysconfig/rudder-relay-apache
 install -m 644 %{SOURCE9} %{buildroot}/etc/cron.d/rudder-relay
 install -m 644 %{SOURCE10} %{buildroot}/etc/sudoers.d/rudder-relay
