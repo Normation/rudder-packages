@@ -43,7 +43,7 @@ java8:
 			DEBIAN_FRONTEND=noninteractive apt-get install -y  openjdk-8-jdk; \
 		elif [ $$dist = "jessie" ]; then \
 			echo "deb http://ftp.fr.debian.org/debian/ jessie-backports main" > /etc/apt/sources.list.d/openjdk.list ; \
-			apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y openjdk-8-jdk ; \
+			apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -t jessie-backports install -y openjdk-8-jdk ; \
 		else \
 			echo "deb http://ppa.launchpad.net/webupd8team/java/ubuntu $$dist main" > /etc/apt/sources.list.d/jdk.list ; \
 			echo "oracle-java8-installer	shared/present-oracle-license-v1-1	note	" | debconf-set-selections; \
