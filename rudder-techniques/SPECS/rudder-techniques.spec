@@ -59,6 +59,13 @@ Requires: ncf >= 1398866025:1.0.0.201609271540
 Provides: rudder-policy-templates
 Obsoletes: rudder-policy-templates
 
+# Use our own dependency generator
+%global _use_internal_dependency_generator 0
+%global __find_requires_orig %{__find_requires}
+%define __find_requires %{_sourcedir}/filter-reqs.pl true %{__find_requires_orig}
+%global __find_provides_orig %{__find_provides}
+%define __find_provides %{_sourcedir}/filter-reqs.pl true %{__find_provides_orig}
+
 %description
 Rudder is an open source configuration management and audit solution.
 
