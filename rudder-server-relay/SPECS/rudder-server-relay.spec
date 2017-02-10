@@ -250,6 +250,10 @@ if ! getent passwd %{rudder_user} >/dev/null; then
   echo " Done"
 fi
 
+# change some directory to rudder owner
+chown rudder: /var/rudder/shared-files
+chmod 640 /var/rudder/shared-files
+
 # Include files from /etc/sudoers.d (needed on SLES11)
 if ! grep -qE "^#includedir /etc/sudoers.d$" /etc/sudoers; then
   if [[ ${RUDDER_NO_SUDOERS_EDIT} = 1 ]]; then

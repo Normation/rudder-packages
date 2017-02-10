@@ -36,6 +36,10 @@ case "$1" in
         echo " Done"
       fi
 
+      # change some directory to rudder owner
+      chown rudder: /var/rudder/shared-files
+      chmod 640 /var/rudder/shared-files
+
       SITES_TO_DISABLE="default 000-default default-ssl rudder-vhost rudder-vhost-ssl rudder-relay-vhost rudder-relay-vhost-ssl"
       SITES_TO_ENABLE="rudder.conf"
 
