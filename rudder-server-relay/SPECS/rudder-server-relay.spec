@@ -252,7 +252,7 @@ fi
 
 # change some directory to rudder owner
 chown rudder: /var/rudder/shared-files
-chmod 640 /var/rudder/shared-files
+chmod 770 /var/rudder/shared-files
 
 # Include files from /etc/sudoers.d (needed on SLES11)
 if ! grep -qE "^#includedir /etc/sudoers.d$" /etc/sudoers; then
