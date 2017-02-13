@@ -101,7 +101,7 @@ def run_command(command, prefix, keep_output, asynchronous):
     else:
       def stream():
         for line in iter(process.stdout.readline,''):
-          yield line.rstrip()+"\n"
+          yield prefix + ":" + line.rstrip()+"\n"
       output=stream()
   else:
     output = ""
