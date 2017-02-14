@@ -1,0 +1,12 @@
+diff --git a/libpromises/generic_agent.c b/libpromises/generic_agent.c
+index 7bbd796..ee2e319 100644
+--- a/libpromises/generic_agent.c
++++ b/libpromises/generic_agent.c
+@@ -871,6 +871,7 @@ void CloseLog(void)
+ ENTERPRISE_VOID_FUNC_1ARG_DEFINE_STUB(void, GenericAgentAddEditionClasses, EvalContext *, ctx)
+ {
+     EvalContextClassPutHard(ctx, "community_edition", "inventory,attribute_name=none,source=agent");
++    EvalContextClassPutHard(ctx, "rudder_edition", "inventory,attribute_name=none,source=agent");
+ }
+ 
+ void GenericAgentInitialize(EvalContext *ctx, GenericAgentConfig *config)
