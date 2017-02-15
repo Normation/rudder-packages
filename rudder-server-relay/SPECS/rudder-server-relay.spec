@@ -280,7 +280,7 @@ service %{apache} stop > /dev/null && echo " Done"
 
 %if 0%{?suse_version}
 # On SuSE, enable the required modules
-MODULES_TO_ENABLE="dav dav_fs ssl version wsgi"
+MODULES_TO_ENABLE="rewrite dav dav_fs ssl version wsgi"
 
 for enmod in ${MODULES_TO_ENABLE}
 do

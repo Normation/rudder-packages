@@ -43,7 +43,7 @@ case "$1" in
       SITES_TO_DISABLE="default 000-default default-ssl rudder-vhost rudder-vhost-ssl rudder-relay-vhost rudder-relay-vhost-ssl"
       SITES_TO_ENABLE="rudder.conf"
 
-      MODULES_TO_ENABLE="dav dav_fs ssl wsgi"
+      MODULES_TO_ENABLE="rewrite dav dav_fs ssl wsgi"
 
       for dissite in ${SITES_TO_DISABLE}
       do
