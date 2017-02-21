@@ -1,0 +1,26 @@
+diff -upr FusionInventory-Agent-2.3.19/Makefile.PL FusionInventory-Agent-2.3.19-new/Makefile.PL
+--- FusionInventory-Agent-2.3.19/Makefile.PL	2017-02-17 19:46:15.000000000 +0100
++++ FusionInventory-Agent-2.3.19-new/Makefile.PL	2017-02-21 13:45:17.743160028 +0100
+@@ -68,6 +68,9 @@ test_requires 'Parallel::ForkManager'
+ recommends 'Parse::EDID'                     => '0';
+ recommends 'Net::CUPS'                       => 0.60 if $OSNAME ne 'MSWin32';
+ recommends 'DateTime'                        => '0';
++recommends 'DateTime::TimeZone'               => '0';
++recommends 'DateTime::TimeZone::Local::Unix'  => '0' if $OSNAME ne 'MSWin32';
++recommends 'DateTime::TimeZone::Local::Win32' => '0' if $OSNAME eq 'MSWin32';
+ 
+ # Deploy
+ recommends 'Archive::Extract'             => '0';
+diff -upr FusionInventory-Agent-2.3.19/README FusionInventory-Agent-2.3.19-new/README
+--- FusionInventory-Agent-2.3.19/README	2016-11-10 14:43:41.000000000 +0100
++++ FusionInventory-Agent-2.3.19-new/README	2017-02-21 13:43:46.934255513 +0100
+@@ -40,7 +40,8 @@ Optional Perl modules:
+ 
+ * Net::CUPS, for printers detection
+ * Parse::EDID, for EDID data parsing
+-* DateTime, for reliable timezone name extraction
++* DateTime, DateTime::TimeZone and DateTime::TimeZone::Local::{Win32,Unix}
++  for reliable timezone name extraction 
+ 
+ Optional programs:
+ 
