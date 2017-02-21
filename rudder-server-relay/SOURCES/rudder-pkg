@@ -1,0 +1,295 @@
+#!/usr/bin/python
+
+"""
+Rudder package manager
+
+Usage:
+    rudder-pkg install-file <package.rpkg>
+    rudder-pkg list
+    rudder-pkg remove <package>
+    rudder-pkg disable-incompatibles
+
+Options:
+
+Commands:
+    install-file
+        install a single package file into Rudder
+
+    list
+        list installed packages
+
+    remove
+        remove the given package from Rudder
+
+    check-compatibility
+        disable plugins that are not compatible with current Rudder version
+"""
+
+# nice to have
+#   rudder-pkg install package   # from std dir / from repo
+#   rudder-pkg upgrade package   # from std dir / from repo
+
+from __future__ import print_function
+import sys
+sys.path.insert(0,"/opt/rudder/share/python")
+
+from pprint import pprint
+import argparse
+import json
+import os
+import tempfile
+import shutil
+import copy
+import re
+import docopt
+from subprocess import Popen,PIPE
+
+RUDDER_VERSION="4.1"
+DB = { "plugins": { } }
+DB_DIRECTORY = '/var/rudder/packages'
+# Contains the installed package database
+DB_FILE = DB_DIRECTORY + '/index.json'
+# Contains known incompatible plugins (installed by the relay package)
+# this is a simple list with names od the form "plugin_name-version"
+COMPATIBILITY_DB = { "incompatibles": [] }
+COMPATIBILITY_FILE = DB_DIRECTORY + '/compatible.json'
+
+# Plugins specific resources
+PLUGINS_CONTEXT_XML = "/opt/rudder/share/webapps/rudder.xml"
+PLUGINS_JAR_DIR = '/opt/rudder/share/plugins'
+
+
+# Run a command in a shell like a script would do
+# And inform the user of its execution
+def shell(command, comment=None, keep_output=False, fail_exit=True, keep_error=False):
+  if comment is not None:
+    print(comment)
+    print(" $ " + command)
+  if keep_output or keep_error:
+    if keep_output:
+      keep_out = PIPE
+    else:
+      keep_out = None
+    if keep_error:
+      keep_err = PIPE
+    else:
+      keep_err = None
+    process = Popen(command, stdout=keep_out, stderr=keep_err, shell=True, universal_newlines=True)
+    output, error = process.communicate()
+    retcode = process.poll()
+  else: # keep tty management and thus colors
+    process = Popen(command, shell=True)
+    retcode = process.wait()
+    output = None
+    error = None
+  if fail_exit and retcode != 0:
+    exit(retcode)
+  return (retcode, output, error)
+
+
+def fail(message, code=1):
+  print(message)
+  exit(code)
+
+
+# Indexing methods
+def db_load():
+  """ Load the index file into a global variable """
+  global DB, COMPATIBILITY_DB
+  if os.path.isfile(DB_FILE):
+    with open(DB_FILE) as fd:
+      DB = json.load(fd)
+  if os.path.isfile(COMPATIBILITY_FILE):
+    with open(COMPATIBILITY_FILE) as fd:
+      COMPATIBILITY_DB = json.load(fd)
+
+def db_save():
+  """ Save the index into a file """
+  with open(DB_FILE, 'w') as fd:
+    json.dump(DB, fd)
+
+
+def rpkg_metadata(package_file):
+  (_, output, _) = shell("ar p '" + package_file + "' metadata", keep_output=True)
+  return json.loads(output)
+
+
+def package_check(metadata):
+  # we can only install pugins at the moment
+  if 'type' not in metadata or metadata['type'] != 'plugin':
+    fail("Package type not supported")
+  # sanity checks
+  if 'name' not in metadata:
+    fail("Package name undefined")
+  name = metadata['name']
+  if 'version' not in metadata:
+    fail("Package version undefined")
+  # version check
+  match = re.match(r'(\d+\.\d+)-(\d+)\.(\d+)', metadata['version'])
+  if not match:
+    fail("Invalid package version " + metadata['version'])
+  rudder_version = match.group(1)
+  major_version = match.group(2)
+  minor_version = match.group(3)
+  if rudder_version != RUDDER_VERSION:
+    fail("Package not compatible with current Rudder version")
+  # incompatibility check
+  if metadata['type'] == 'plugin':
+    if not check_plugin_compatibility(metadata):
+      fail("Package incompatble with this Rudder version, please use a more recent one")
+  # do not compare with exiting version to allow people to reinstall or downgrade
+  return name in DB['plugins']
+
+
+def check_plugin_compatibility(metadata):
+  full_name = metadata['name'] + '-' + metadata['version']
+  if full_name in COMPATIBILITY_DB['incompatibles']:
+    return False
+  return True
+
+
+def install_dependencies(metadata):
+  # not supported yet
+  has_depends = False
+  depends_printed = False
+  for system in metadata["depends"]:
+    has_depends = True
+    if not depends_printed:
+      print("This package depends on the following")
+      depends_printed = True
+    print("  on " + system + " : " + ", ".join(metadata["depends"][system]))
+  if has_depends:
+    print("It is up to you to make sure those dependencies are installed")
+
+
+def extract_scripts(metadata,package_file):
+  package_dir = DB_DIRECTORY + "/" + metadata["name"]
+  shell("mkdir -p " + package_dir + "; ar p '" + package_file + "' scripts.txz | tar xJ -C " + package_dir)
+  return package_dir
+
+
+def run_script(name, script_dir, exist):
+  script = script_dir + "/" + name 
+  if os.path.isfile(script):
+    if exist is None:
+      param = ""
+    elif exist:
+      param = "upgrade"
+    else:
+      param = "install"
+    shell(script + " " + param)
+
+
+def plugin_status(name, enable):
+  global jetty_needs_restart
+  name = PLUGINS_JAR_DIR + '/' + name
+  text = open(PLUGINS_CONTEXT_XML).read()
+  def repl(match):
+    enabled = [x for x in match.group(1).split(',') if x != name and x != '']
+    pprint(enabled)
+    if enable:
+      enabled.append(name)
+    plugins = ','.join(enabled)
+    return '<Set name="extraClasspath">' + plugins + '</Set>'
+  text = re.sub(r'<Set name="extraClasspath">(.*?)</Set>', repl, text)
+  open(PLUGINS_CONTEXT_XML, "w").write(text)
+  jetty_needs_restart = True
+
+
+def remove_files(metadata):
+  for filename in reversed(metadata['files']):
+    # remove old files
+    if filename.endswith('/'):
+      try:
+        os.rmdir(filename)
+      except OSError:
+        pass
+    else:
+      os.remove(filename)
+
+
+def install(metadata, package_file, exist):
+  if exist:
+    remove_files(DB['plugins'][metadata['name']])
+  # add new files
+  files = []
+  for tarfile in metadata['content']:
+    dest = metadata['content'][tarfile]
+    (_, file_list, _) = shell("mkdir -p " + dest + "; ar p '" + package_file + "' " + tarfile + " | tar xJv -C " + dest, keep_output=True)
+    files.append(dest+'/')
+    files.extend([ dest + '/' + x for x in file_list.split("\n") if x != ''])
+
+  metadata['files'] = files
+  # update db
+  DB['plugins'][metadata['name']] = metadata
+  db_save()
+
+
+## Package commands
+
+def install_file(package_file):
+  metadata = rpkg_metadata(package_file)
+  exist = package_check(metadata)
+  if exist:
+    print("The package is already installed, I will upgrade it.")
+  install_dependencies(metadata)
+  script_dir = extract_scripts(metadata, package_file)
+  run_script("preinst", script_dir, exist)
+  install(metadata, package_file, exist)
+  run_script("postinst", script_dir, exist)
+  if metadata['type'] == 'plugin' and 'jar-files' in metadata:
+    for j in metadata['jar-files']:
+      plugin_status(j, True)
+
+
+def package_list():
+  for p in DB["plugins"].keys():
+    print(p + "\t" + DB["plugins"][p]["version"])
+
+
+def remove(package_name):
+  if package_name not in DB["plugins"]:
+    fail("This package is not installed. Aborting!", 2)
+  script_dir = DB_DIRECTORY + "/" + package_name
+  metadata = DB["plugins"][package_name]
+  if metadata['type'] == 'plugin' and 'jar-files' in metadata:
+    for j in metadata['jar-files']:
+      plugin_status(j, False)
+  run_script("prerm", script_dir, None)
+  remove_files(metadata)
+  run_script("postrm", script_dir, None)
+  shutil.rmtree(script_dir)
+  del DB["plugins"][package_name]
+  db_save()
+
+
+def check_compatibility():
+  global jetty_needs_restart
+  for p in DB["plugins"]:
+    metadata = DB["plugins"][p]
+    if not check_plugin_compatibility(metadata):
+      print("Plugin " + p + " is not compatible with rudder anymore, disabling it.")
+      for j in metadata['jar-files']:
+        plugin_status(j, False)
+      print("Please install a new version of " + p + " to enable it again.")
+      print("")
+      jetty_needs_restart = True
+
+
+## MAIN
+if __name__ == "__main__":
+  args = docopt.docopt(__doc__)
+  db_load()
+  jetty_needs_restart = False
+
+  if args['install-file']:
+    install_file(args['<package.rpkg>'])
+  elif args['list']:
+    package_list()
+  elif args['remove']:
+    remove(args['<package>'])
+  elif args['disable-incompatibles']:
+    check_compatibility()
+
+  if jetty_needs_restart:
+    shell("service rudder-jetty restart", "Restarting jetty")
