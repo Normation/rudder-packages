@@ -34,6 +34,7 @@ MAVEN_PROXY := $(if $(PROXY), $(shell echo "$(PROXY)" |  perl -ne ' \
 .DEFAULT_GOAL := localdepends
 
 RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
+RUDDER_MAJOR_VERSION := $(shell echo ${RUDDER_VERSION_TO_PACKAGE} | cut -d'.' -f 1-2)
 
 localdepends: ./rudder-sources ./maven/bin/mvn ./rudder-users.xml ./rudder-doc ./rudder-doc/html/rudder-doc.pdf ./.gitignore ./rudder.war
 
