@@ -43,11 +43,11 @@ def parse_ttl(string):
     days = 0
     seconds = int(m.group(1))
   else:
-    daymatch  = r'(\d+)d(?:ays?)?'
-    hourmatch = r'(\d+)h(?:ours?)?'
-    minmatch  = r'(\d+)m(?:inutes?)?'
-    secmatch  = r'(\d+)s(?:econds?)?'
-    match = r'^\s*(?:' + daymatch + r'\s*)?(?:' + hourmatch + r'\s*)?(?:' + minmatch + r'\s*)?(?:' + secmatch + r'\s*)?$'
+    daymatch  = r'(\d+)\s*d(?:ays?)?'
+    hourmatch = r'(\d+)\s*h(?:ours?)?'
+    minmatch  = r'(\d+)\s*m(?:inutes?)?'
+    secmatch  = r'(\d+)\s*s(?:econds?)?'
+    match = r'^\s*(?:' + daymatch + r')?\s*(?:' + hourmatch + r')?\s*(?:' + minmatch + r')?\s*(?:' + secmatch + r')?\s*$'
     m = re.match(match, string)
     if m:
       days = 0
