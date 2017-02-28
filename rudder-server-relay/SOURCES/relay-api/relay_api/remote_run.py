@@ -23,6 +23,7 @@ except:
 
 NEXTHOP = None
 REMOTE_RUN_COMMAND = "sudo /opt/rudder/bin/rudder remote run"
+LOCAL_RUN_COMMAND = "sudo /opt/rudder/bin/rudder agent run"
 
 def get_next_hop(nodes, my_uuid):
   """ Build a dict of node_id => nexthop_id """
@@ -81,14 +82,20 @@ def resolve_hostname(local_nodes, node):
     raise ValueError("ERROR invalid nodes file on the server for " + node)
   return local_nodes[node]["hostname"]
 
-def call_remote_run(host, uuid, classes, keep_output, asynchronous):
-  """ Call the remote run command locally """
+def call_agent_run(host, uuid, classes, keep_output, asynchronous):
+  """ Call the run command locally """
   if classes:
     classes_parameter = " -D " + classes
   else:
     classes_parameter = ""
-
-  return run_command(REMOTE_RUN_COMMAND + classes_parameter + " " + host, uuid, keep_output, asynchronous)
+  
+  if uuid == "root":
+    # root cannot make a remote run call to itself (certificate is not recognized correctly)
+    # We do a standard local run instead.
+    command = LOCAL_RUN_COMMAND
+  else:
+    command = REMOTE_RUN_COMMAND
+  return run_command(command + classes_parameter + " " + host, uuid, keep_output, asynchronous)
 
 def run_command(command, prefix, keep_output, asynchronous):
   """ Run the given command, prefixing all output lines with prefix """
@@ -178,7 +185,7 @@ def remote_run_generic(local_nodes, my_uuid, nodes, all_nodes, form):
       local_nodes_to_call = get_my_nodes(NEXTHOP, nodes)
     for node in local_nodes_to_call:
       host = resolve_hostname(local_nodes, node)
-      result.append( call_remote_run(host, node, classes, keep_output, asynchronous))
+      result.append( call_agent_run(host, node, classes, keep_output, asynchronous))
     return result
 
   # depending on wether we want an asynch result we need to do something different on the output
