@@ -290,6 +290,10 @@ install -m 644 %{SOURCE23} %{buildroot}%{ruddervardir}/configuration-repository/
 # Pre Installation
 #=================================================
 service rudder-jetty stop
+if [ -x /opt/ruder/bin/rudder-pkg ]
+then
+  /opt/ruder/bin/rudder-pkg save-status > /tmp/rudder-plugins-upgrade
+fi
 
 %post -n rudder-webapp
 #=================================================
@@ -463,6 +467,11 @@ chmod -R 2750 %{ruddervardir}/configuration-repository/ncf/ncf-hooks.d/
 # Create a symlink to the Jetty context if necessary
 if [ -d "%{rudderdir}/jetty7/contexts" ]; then
   ln -sf %{rudderdir}/share/webapps/rudder.xml %{rudderdir}/jetty7/contexts/rudder.xml
+fi
+
+if [ -f /tmp/rudder-plugins-upgrade ]
+then
+  /opt/ruder/bin/rudder-pkg restore-status < /tmp/rudder-plugins-upgrade
 fi
 
 service rudder-jetty start
