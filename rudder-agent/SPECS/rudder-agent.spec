@@ -189,7 +189,7 @@ Requires: dmidecode
 ### SLES 11 OSes come with OpenSSL 0.9.8h which is recent enough.
 ##
 # Reference for suse_version : https://en.opensuse.org/openSUSE:Build_Service_cross_distribution_howto
-%if 0%{?suse_version} && 0%{?suse_version} < 1100
+%if 0%{?suse_version} && 0%{?suse_version} < 1200
 %define use_system_openssl false
 %endif
 
