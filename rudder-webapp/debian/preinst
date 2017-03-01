@@ -33,6 +33,8 @@ case "$1" in
       echo "INFO: take care of this automatically.                                          "
       echo "INFO:                                                                           "
       echo "********************************************************************************"
+      #if the stops fails, it's probably because it was not started
+      service rudder-jetty stop || true
 
     ;;
 

@@ -289,6 +289,7 @@ install -m 644 %{SOURCE23} %{buildroot}%{ruddervardir}/configuration-repository/
 #=================================================
 # Pre Installation
 #=================================================
+service rudder-jetty stop
 
 %post -n rudder-webapp
 #=================================================
@@ -464,13 +465,7 @@ if [ -d "%{rudderdir}/jetty7/contexts" ]; then
   ln -sf %{rudderdir}/share/webapps/rudder.xml %{rudderdir}/jetty7/contexts/rudder.xml
 fi
 
-# Warn the user that Jetty needs restarting. This can't be done automatically due to a bug in Jetty's init script.
-# See http://www.rudder-project.org/redmine/issues/2807
-echo "********************************************************************************"
-echo "rudder-webapp has been upgraded, but for the upgrade to take effect, please"
-echo "restart the jetty application server as follows:"
-echo "# service rudder-jetty restart"
-echo "********************************************************************************"
+service rudder-jetty start
 
 %postun -n rudder-webapp
 #=================================================

@@ -136,11 +136,7 @@ case "$1" in
 
   # Restart the webapp
   echo -n "INFO: Restarting Rudder webapp and inventory-endpoint..."
-  if [ /etc/init.d/rudder-jetty check >/dev/null 2>&1 ];then
-    /etc/init.d/rudder-jetty start >/dev/null 2>&1
-  else
-    /etc/init.d/rudder-jetty restart >/dev/null 2>&1 || echo -n "WARNING: Jetty failed to start, maybe there is not enough RAM or swap on the machine. Skipping... "
-  fi
+  service rudder-jetty start >/dev/null 2>&1
   echo " Done"
 
     ;;
