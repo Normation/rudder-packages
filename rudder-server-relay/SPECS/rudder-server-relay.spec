@@ -314,7 +314,7 @@ chmod 751 %{ruddervardir}/inventories
 for inventorydir in %{ruddervardir}/inventories/incoming %{ruddervardir}/inventories/accepted-nodes-updates
 do
   chmod 770 ${inventorydir}
-  chown -R root:%{apache_group} ${inventorydir}
+  chown root:%{apache_group} ${inventorydir}
 done
 
 # Setup password files for inventory reception WebDAV access

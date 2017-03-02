@@ -70,7 +70,7 @@ case "$1" in
       for inventorydir in /var/rudder/inventories/incoming /var/rudder/inventories/accepted-nodes-updates
       do
         chmod 770 ${inventorydir}
-        chown -R root:www-data ${inventorydir}
+        chown root:www-data ${inventorydir}
       done
 
       # Setup password files for inventory reception WebDAV access
