@@ -463,6 +463,8 @@ rm -f %{_builddir}/file.list.%{name}
 %dir %{ruddervardir}/cfengine-community/bin
 %dir %{ruddervardir}/cfengine-community/inputs
 %dir %{ruddervardir}/tmp
+%dir %{ruddervardir}/ncf/common
+%dir %{ruddervardir}/ncf/local
 %dir %{ruddervardir}/tools
 %dir %{rudderlogdir}/install
 
