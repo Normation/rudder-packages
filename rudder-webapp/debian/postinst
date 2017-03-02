@@ -134,6 +134,11 @@ case "$1" in
     ln -sf /opt/rudder/share/webapps/rudder.xml /opt/rudder/jetty7/contexts/rudder.xml
   fi
 
+  if [ -f /tmp/rudder-plugins-upgrade ]
+  then
+    /opt/ruder/bin/rudder-pkg restore-status < /tmp/rudder-plugins-upgrade
+  fi
+
   # Restart the webapp
   echo -n "INFO: Restarting Rudder webapp and inventory-endpoint..."
   service rudder-jetty start >/dev/null 2>&1

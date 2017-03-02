@@ -7,7 +7,10 @@ Usage:
     rudder-pkg install-file <package.rpkg>
     rudder-pkg list
     rudder-pkg remove <package>
-    rudder-pkg disable-incompatibles
+    rudder-pkg plugin save-status
+    rudder-pkg plugin restore-status
+    rudder-pkg plugin enable <plugin>
+    rudder-pkg plugin disable <plugin>
 
 Options:
 
@@ -42,6 +45,7 @@ import shutil
 import copy
 import re
 import docopt
+import sys
 from subprocess import Popen,PIPE
 
 RUDDER_VERSION="4.1"
@@ -56,7 +60,6 @@ COMPATIBILITY_FILE = DB_DIRECTORY + '/compatible.json'
 
 # Plugins specific resources
 PLUGINS_CONTEXT_XML = "/opt/rudder/share/webapps/rudder.xml"
-PLUGINS_JAR_DIR = '/opt/rudder/share/plugins'
 
 
 # Run a command in a shell like a script would do
@@ -180,9 +183,8 @@ def run_script(name, script_dir, exist):
     shell(script + " " + param)
 
 
-def plugin_status(name, enable):
+def jar_status(name, enable):
   global jetty_needs_restart
-  name = PLUGINS_JAR_DIR + '/' + name
   text = open(PLUGINS_CONTEXT_XML).read()
   def repl(match):
     enabled = [x for x in match.group(1).split(',') if x != name and x != '']
@@ -239,7 +241,7 @@ def install_file(package_file):
   run_script("postinst", script_dir, exist)
   if metadata['type'] == 'plugin' and 'jar-files' in metadata:
     for j in metadata['jar-files']:
-      plugin_status(j, True)
+      jar_status(j, True)
 
 
 def package_list():
@@ -254,7 +256,7 @@ def remove(package_name):
   metadata = DB["plugins"][package_name]
   if metadata['type'] == 'plugin' and 'jar-files' in metadata:
     for j in metadata['jar-files']:
-      plugin_status(j, False)
+      jar_status(j, False)
   run_script("prerm", script_dir, None)
   remove_files(metadata)
   run_script("postrm", script_dir, None)
@@ -269,11 +271,48 @@ def check_compatibility():
     metadata = DB["plugins"][p]
     if not check_plugin_compatibility(metadata):
       print("Plugin " + p + " is not compatible with rudder anymore, disabling it.")
-      for j in metadata['jar-files']:
-        plugin_status(j, False)
+      if 'jar-files' in metadata:
+        for j in metadata['jar-files']:
+          jar_status(j, False)
       print("Please install a new version of " + p + " to enable it again.")
       print("")
       jetty_needs_restart = True
+
+
+def plugin_save_status():
+  enabled = []
+  text = open(PLUGINS_CONTEXT_XML).read()
+  match = re.search(r'<Set name="extraClasspath">(.*?)</Set>', text)
+  if match:
+    enabled = match.group(1).split(',')
+  for p in DB["plugins"]:
+    metadata = DB["plugins"][p]
+    if 'jar-files' in metadata:
+      for j in metadata['jar-files']:
+        if j in enabled:
+          print("enabled " + j)
+        else:
+          print("disabled " + j)
+
+
+def plugin_restore_status():
+  lines = sys.stdin.readlines()
+  for line in lines:
+    line = line.strip()
+    if line.startswith("enabled "):
+      print("enable " + line.split(' ')[1])
+      jar_status(line.split(' ')[1], True)
+    if line.startswith("disabled "):
+      jar_status(line.split(' ')[1], False)
+  check_compatibility()
+
+
+def plugin_status(plugin, status):
+  if plugin not in DB["plugins"]:
+    fail("Unknown plugin " + plugin)
+  metadata = DB["plugins"][plugin]
+  for j in metadata['jar-files']:
+    jar_status(j, status)
 
 
 ## MAIN
@@ -288,8 +327,15 @@ if __name__ == "__main__":
     package_list()
   elif args['remove']:
     remove(args['<package>'])
-  elif args['disable-incompatibles']:
-    check_compatibility()
+  elif args['plugin']:
+    if args['save-status']:
+      plugin_save_status()
+    elif args['restore-status']:
+      plugin_restore_status()
+    elif args['enable']:
+      plugin_status(args['<plugin>'], True)
+    elif args['disable']:
+      plugin_status(args['<plugin>'], False)
 
   if jetty_needs_restart:
     shell("service rudder-jetty restart", "Restarting jetty")
