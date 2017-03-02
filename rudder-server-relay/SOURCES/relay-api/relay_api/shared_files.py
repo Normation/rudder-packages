@@ -153,8 +153,8 @@ def validate_message(message, pubkey, algorithm, digest):
 
 # Find in which directory a shared file should be stored
 def file_directory(shared_path, nodes, my_uuid, target_uuid, source_uuid, file_id):
-  if not re.match(r"^[\w\-]+$", file_id):
-    raise ValueError("ERROR file_id must be an identifier [A-z0-9_-]: " + str(file_id))
+  if not re.match(r"^[\w\-.]+$", file_id):
+    raise ValueError("ERROR file_id must be an identifier [A-z0-9_-.]: " + str(file_id))
   route_path = '/shared-files/'.join(node_route(nodes, my_uuid, target_uuid))
   return shared_path + "/" + route_path + "/files/" + source_uuid
 
