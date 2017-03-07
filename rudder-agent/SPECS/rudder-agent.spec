@@ -645,7 +645,8 @@ then
 %endif
     echo "********************************************************************************"
   fi
-else
+elif [ "${RUDDER_UUID}" != "root" ]
+then
   echo "********************************************************************************"
   echo "rudder-agent has been installed (not started). This host can be a Rudder node."
   echo "To get started, configure your Rudder server's hostname and launch the agent:"
