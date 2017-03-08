@@ -28,7 +28,7 @@ case "$1" in
   invoke-rc.d rsyslog restart >/dev/null 2>&1
   echo "Done"
 
-  MODULES_TO_ENABLE="rewrite proxy_http headers ssl"
+  MODULES_TO_ENABLE="rewrite proxy_http headers ssl filter deflate"
 
   # This module is compiled in core in some distro (debian)
   a2enmod version >/dev/null 2>&1 || true
