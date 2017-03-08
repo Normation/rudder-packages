@@ -77,26 +77,31 @@ case "$1" in
         sed -i 's/^database.*hdb/database    mdb/' "${SLAPD_CONF}"
         sed -i '/^idlcachesize.*/d' "${SLAPD_CONF}"
         sed -i '/^cachesize.*/d' "${SLAPD_CONF}"
+        # Configure mdb backend
+        /opt/rudder/bin/rudder-slapd-configure
 
 				# Import the backed up database
-				/opt/rudder/sbin/slapadd -q -l ${BACKUP_LDIF}
-
-				# Start OpenLDAP
-				echo -n "INFO: Starting rudder-slapd..."
-				invoke-rc.d rudder-slapd start >/dev/null 2>&1
-				echo " Done"
-
-				echo "INFO: OpenLDAP database was successfully upgraded to new format"
-
-				if [ -x /opt/rudder/bin/rudder-upgrade-ldap ]
+				if /opt/rudder/sbin/slapadd -q -l ${BACKUP_LDIF}
 				then
-					echo "INFO: Running the Rudder upgrade script to replay LDAP migrations on the old database content..."
-					/opt/rudder/bin/rudder-upgrade-ldap
+					echo "ERROR: Failed to restore data from old format into the new format"
+					echo "You can reimport manually the data from backup file ${BACKUP_LDIF}"
+				else
+					# Start OpenLDAP
+					echo -n "INFO: Starting rudder-slapd..."
+					invoke-rc.d rudder-slapd start >/dev/null 2>&1
+					echo " Done"
+
+					echo "INFO: OpenLDAP database was successfully upgraded to new format"
+
+					if [ -x /opt/rudder/bin/rudder-upgrade-ldap ]
+					then
+						echo "INFO: Running the Rudder upgrade script to replay LDAP migrations on the old database content..."
+						/opt/rudder/bin/rudder-upgrade-ldap
+					fi
+
+					echo "INFO: You can safely remove the backups in ${LDAP_BACKUP_DIR}"
+					echo "INFO: and ${BACKUP_LDIF}"
 				fi
-
-				echo "INFO: You can safely remove the backups in ${LDAP_BACKUP_DIR}"
-				echo "INFO: and ${BACKUP_LDIF}"
-
 			fi
 		fi
 

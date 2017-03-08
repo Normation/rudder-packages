@@ -83,6 +83,7 @@ binary-arch: install
 	dh_install SOURCES/inventory.schema /opt/rudder/etc/openldap/schema/
 	dh_install SOURCES/rudder.schema /opt/rudder/etc/openldap/schema/
 	dh_install SOURCES/DB_CONFIG /var/rudder/ldap/openldap-data/
+	dh_install SOURCES/rudder-slapd-configure /opt/rudder/bin
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-inventory-ldap /opt/rudder/etc/server-roles.d/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-ldap /opt/rudder/etc/server-roles.d/
 #	dh_installmenu

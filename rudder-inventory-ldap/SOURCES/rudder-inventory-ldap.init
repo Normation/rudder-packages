@@ -381,26 +381,8 @@ start_slapd() {
     message "info" "[INFO] file descriptor limit not modified (require root privileges)"
   fi
 
-  # configuration
-  if [ "${RUDDER_MDBSIZE}" != "noauto" ]
-  then
-    if [ "${RUDDER_MDBSIZE}" = "auto" ] || [ "${RUDDER_MDBSIZE}" = "" ]
-    then
-      # calculate the value to match about 50% of RAM (this is only virtual memory)
-      MEMSIZE=$(sed -n '/^MemTotal/s/[^0-9]//gp' /proc/meminfo)
-      MDBSIZE=$((${MEMSIZE} * 1024 / 2 ))
-      # on 32 bits architectures max it to 500M (PAE allows more ram but not more virtual memory)
-      if [ "$(getconf LONG_BIT)" -ne "64" ] && [ "${MDBSIZE}" -gt 524288000 ]
-      then
-        MDBSIZE=524288000
-      fi
-    else
-      # set cache size to the value provided
-      MDBSIZE=${RUDDER_MDBSIZE}
-    fi
-    sed -i '/^[ \t]*\(maxsize\|maxsize\)/d' /opt/rudder/etc/openldap/slapd.conf
-    sed -i 's/^\([ \t]*suffix[ \t]\+"cn=rudder-configuration".*\)/\1\nmaxsize '${MDBSIZE}'/' /opt/rudder/etc/openldap/slapd.conf
-  fi
+  # Configure MDB parameters
+  /opt/rudder/bin/rudder-slapd-configure
 
   # Parameters
   if [ "$SLAPD_CONF_DIR" ]

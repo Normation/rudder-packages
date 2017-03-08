@@ -72,6 +72,7 @@ Source8: rudder-ldap
 # find there all necessary libraries for BerkeleyDB.
 Source9: rudder-inventory-ldap.conf
 Source10: rudder-slapd.conf
+Source11: rudder-slapd-configure
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
@@ -191,6 +192,9 @@ install -m 644 %{SOURCE8} %{buildroot}/opt/rudder/etc/server-roles.d/
 # contained in /opt/rudder/lib like BerkeleyDB
 install -m 644 %{SOURCE9} %{buildroot}/etc/ld.so.conf.d/rudder-inventory-ldap.conf
 
+# Install mdb configuration file
+install -m 755 %{SOURCE11} %{buildroot}/opt/rudder/bin/rudder-slapd-configure
+
 # Syslog configuration
 mkdir -p %{buildroot}/etc/rsyslog.d
 cp %{_sourcedir}/rsyslog/rudder-slapd.conf %{buildroot}/etc/rsyslog.d/rudder-slapd.conf
@@ -292,25 +296,31 @@ if [ -n "${BACKUP_LDIF}" ]; then
     sed -i 's/^database.*hdb/database    mdb/' "${SLAPD_CONF}"
     sed -i '/^idlcachesize.*/d' "${SLAPD_CONF}"
     sed -i '/^cachesize.*/d' "${SLAPD_CONF}"
+    # Configure mdb backend
+    /opt/rudder/bin/rudder-slapd-configure
 
-# Import the backed up database
-		/opt/rudder/sbin/slapadd -q -l ${BACKUP_LDIF}
-
-		# Start OpenLDAP
-		echo -n "INFO: Starting rudder-slapd..."
-		service rudder-slapd start >/dev/null 2>&1
-		echo " Done"
-
-		echo "INFO: OpenLDAP database was successfully upgraded to new format"
-
-		if [ -x /opt/rudder/bin/rudder-upgrade-ldap ]
+		# Import the backed up database
+		if /opt/rudder/sbin/slapadd -q -l ${BACKUP_LDIF}
 		then
-			echo "INFO: Running the Rudder upgrade script to replay LDAP migrations on the old database content..."
-			/opt/rudder/bin/rudder-upgrade-ldap
-		fi
+			echo "ERROR: Failed to restore data from old format into the new format"
+			echo "You can reimport manually the data from backup file ${BACKUP_LDIF}"
+		else
+			# Start OpenLDAP
+			echo -n "INFO: Starting rudder-slapd..."
+			service rudder-slapd start >/dev/null 2>&1
+			echo " Done"
 
-		echo "INFO: You can safely remove the backups in ${LDAP_BACKUP_DIR}"
-		echo "INFO: and ${BACKUP_LDIF}"
+			echo "INFO: OpenLDAP database was successfully upgraded to new format"
+
+			if [ -x /opt/rudder/bin/rudder-upgrade-ldap ]
+			then
+				echo "INFO: Running the Rudder upgrade script to replay LDAP migrations on the old database content..."
+				/opt/rudder/bin/rudder-upgrade-ldap
+			fi
+
+			echo "INFO: You can safely remove the backups in ${LDAP_BACKUP_DIR}"
+			echo "INFO: and ${BACKUP_LDIF}"
+		fi
 	fi
 fi
 

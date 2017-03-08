@@ -1,0 +1,63 @@
+#!/bin/sh
+
+# Configure maxsize in /opt/rudder/etc/openldap/slapd.conf based on
+# content of /etc/default/rudder-slapd, or auto-computed based on available memory
+
+# Script specific
+PROG_NAME='rudder-slapd'
+OS=`uname -s`   # To adapt message printing
+
+
+#====================================================================
+# Message function
+#====================================================================
+message() {
+  # $1: syslog level
+  # $2: message
+
+  if [ $OS = "Linux" ]
+  then
+    logger -p "local4.$1" -s -t $PROG_NAME -i "$2"
+  else
+    # Try without option -s
+    logger -p "local4.$1" -t $PROG_NAME -i "$2"
+    echo "$PROG_NAME: $2"
+  fi
+}
+
+#====================================================================
+
+
+
+#====================================================================
+# Load specific parameters
+#====================================================================
+. /opt/rudder/etc/rudder-slapd.conf
+
+if [ -f /etc/default/$PROG_NAME ]
+then
+  . /etc/default/$PROG_NAME
+  message "info" "[INFO] Using /etc/default/$PROG_NAME for configuration"
+fi
+
+# configuration of mdbsize
+if [ "${RUDDER_MDBSIZE}" != "noauto" ]
+then
+  if [ "${RUDDER_MDBSIZE}" = "auto" ] || [ "${RUDDER_MDBSIZE}" = "" ]
+  then
+    # calculate the value to match about 50% of RAM (this is only virtual memory)
+    MEMSIZE=$(sed -n '/^MemTotal/s/[^0-9]//gp' /proc/meminfo)
+    MDBSIZE=$((${MEMSIZE} * 1024 / 2 ))
+    # on 32 bits architectures max it to 500M (PAE allows more ram but not more virtual memory)
+    if [ "$(getconf LONG_BIT)" -ne "64" ] && [ "${MDBSIZE}" -gt 524288000 ]
+    then
+      MDBSIZE=524288000
+    fi
+  else
+    # set cache size to the value provided
+    MDBSIZE=${RUDDER_MDBSIZE}
+  fi
+  sed -i '/^[ \t]*\(maxsize\|maxsize\)/d' /opt/rudder/etc/openldap/slapd.conf
+  sed -i 's/^\([ \t]*suffix[ \t]\+"cn=rudder-configuration".*\)/\1\nmaxsize '${MDBSIZE}'/' /opt/rudder/etc/openldap/slapd.conf
+fi
+
