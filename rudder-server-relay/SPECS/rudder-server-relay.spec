@@ -369,6 +369,11 @@ service %{apache} start > /dev/null && echo " Done"
 # Check "sestatus" presence, and if here tweak our installation to be
 # SELinux compliant
 if type sestatus >/dev/null 2>&1 && sestatus | grep -q "enabled"; then
+  # Remove old webapp policy if exists because it conflicts with rudder-server-relay
+  # First version in 4.1 is 1.3
+  if semodule -l | egrep -q "rudder-webapp[[:space:]]+1\.[0-2]"; then
+    semodule -r rudder-webapp
+  fi
   # Add/Update the rudder-relay SELinux policy
   semodule -i /opt/rudder/share/selinux/rudder-relay.pp
   # Ensure inventory directories context is set by resetting
