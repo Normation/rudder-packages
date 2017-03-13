@@ -302,9 +302,6 @@ if [ -n "${BACKUP_LDIF}" ]; then
 		# Import the backed up database
 		if /opt/rudder/sbin/slapadd -q -l ${BACKUP_LDIF}
 		then
-			echo "ERROR: Failed to restore data from old format into the new format"
-			echo "You can reimport manually the data from backup file ${BACKUP_LDIF}"
-		else
 			# Start OpenLDAP
 			echo -n "INFO: Starting rudder-slapd..."
 			service rudder-slapd start >/dev/null 2>&1
@@ -320,6 +317,9 @@ if [ -n "${BACKUP_LDIF}" ]; then
 
 			echo "INFO: You can safely remove the backups in ${LDAP_BACKUP_DIR}"
 			echo "INFO: and ${BACKUP_LDIF}"
+		else
+			echo "ERROR: Failed to restore data from old format into the new format"
+			echo "You can reimport manually the data from backup file ${BACKUP_LDIF}"
 		fi
 	fi
 fi
