@@ -464,6 +464,61 @@ find %{ruddervardir}/configuration-repository/.git %{ruddervardir}/configuration
 ## Add execution permission for ncf-api on pre/post-hooks
 chmod -R 2750 %{ruddervardir}/configuration-repository/ncf/ncf-hooks.d/
 
+RUDDER_WEB_PROPERTIES="/opt/rudder/etc/rudder-web.properties"
+# Replace checkpromises with a hook
+HOOK_NAME="/opt/rudder/etc/hooks.d/policy-generation-node-ready/10-cf-promise-check"
+MIGRATED_HOOK_NAME="/opt/rudder/etc/hooks.d/policy-generation-node-ready/20-migrated-posthook"
+CURRENT_CHECKPROMISES=$(sed -n '/^rudder.community.checkpromises.command/s/rudder.community.checkpromises.command=//p' "${RUDDER_WEB_PROPERTIES}")
+[ "${CURRENT_CHECKPROMISES}" = "" ] && CURRENT_CHECKPROMISES=$(sed -n '/^rudder.nova.checkpromises.command/s/rudder.nova.checkpromises.command=//p' "${RUDDER_WEB_PROPERTIES}")
+if [ "${CURRENT_CHECKPROMISES}" = "/bin/true" ]
+then
+  # if /bin/true, just remove the hook
+  mv "${HOOK_NAME}" "${HOOK_NAME}.disabled"
+elif [ "${CURRENT_CHECKPROMISES}" = "/var/rudder/cfengine-community/bin/cf-promises" ] || [ "${CURRENT_CHECKPROMISES}" = "" ]
+then
+  # if default value, do nothing
+  true
+else
+  # if anything else present, put it in a hook replacing the distributed one
+  mv "${HOOK_NAME}" "${HOOK_NAME}.disabled"
+  cat > "${MIGRATED_HOOK_NAME}" << EOF
+#!/bin/sh
+
+# This file has been created by Rudder postinstall from your pre 4.1 rudder-web.properties file
+# The matching property has been commented out
+${CURRENT_CHECKPROMISES} -f "\${RUDDER_NEXT_POLICIES_DIRECTORY}/promises.cf" 
+EOF
+  chmod +x "${MIGRATED_HOOK_NAME}"
+  echo "INFO: A non default checkpromises command has been found in your rudder-web.properties file"
+  echo "INFO: It has been converted into a hook in ${MIGRATED_HOOK_NAME} You may want to take a look"
+fi
+sed -i 's/^rudder.community.checkpromises.command/#rudder.community.checkpromises.command/' "${RUDDER_WEB_PROPERTIES}"
+sed -i 's/^rudder.nova.checkpromises.command/#rudder.community.checkpromises.command/' "${RUDDER_WEB_PROPERTIES}"
+
+# Replace reload server command with a hook
+HOOK_NAME="/opt/rudder/hooks.d/policy-generation-finished/50-reload-policy-file-server"
+MIGRATED_HOOK_NAME="/opt/rudder/hooks.d/policy-generation-finished/60-migrated-posthook"
+CURRENT_SERVER_COMMAND=$(sed -n '/^rudder.cfengine.reload.server.command/s/rudder.cfengine.reload.server.command=//p' "${RUDDER_WEB_PROPERTIES}")
+if [ "${CURRENT_SERVER_COMMAND}" = "/opt/rudder/bin/rudder-reload-cf-serverd" ]
+then
+  # if default value, do nothing
+  true
+else
+  # if anything else present, put it in a hook replacing the distributed one
+  mv "${HOOK_NAME}" "${HOOK_NAME}.disabled"
+  cat > "${MIGRATED_HOOK_NAME}" << EOF
+#!/bin/sh
+
+# This file has been created by Rudder postinstall from your pre 4.1 rudder-web.properties file
+# The matching property has been commented out
+${CURRENT_SERVER_COMMAND} 
+EOF
+  chmod +x "${MIGRATED_HOOK_NAME}"
+  echo "INFO: A non default reload server command has been found in your rudder-web.properties file"
+  echo "INFO: It has been converted into a hook in ${MIGRATED_HOOK_NAME} You may want to take a look"
+fi
+sed -i 's/^rudder.cfengine.reload.server.command/#rudder.cfengine.reload.server.command/' "${RUDDER_WEB_PROPERTIES}"
+
 # Create a symlink to the Jetty context if necessary
 if [ -d "%{rudderdir}/jetty7/contexts" ]; then
   ln -sf %{rudderdir}/share/webapps/rudder.xml %{rudderdir}/jetty7/contexts/rudder.xml
