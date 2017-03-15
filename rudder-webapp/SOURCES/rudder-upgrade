@@ -57,6 +57,7 @@ trap anomaly_handler ERR INT TERM
 # - 4.0.0        : Add new archive table for nodeConfigurations and reportsexecution
 # - 4.1.0        : Add new compliance tables
 # - 4.1.0        : Add the property to configure relay api location
+# - 4.1.0        : Add property to define hooks ignore suffixes
 ####################################################################################
 
 # Some paths
@@ -475,6 +476,31 @@ rudder.server-roles.cfengine-mission-portal=autodetect
 # It's the base url of relay api, Rudder will manage to call the correct url from that base
 #
 rudder.server.relay.api=https://localhost/rudder/relay-api
+
+"
+
+  # - 4.1.0 : Add property to define hooks ignore suffixes
+  STEP="Add property to define the list of suffixes to ignore hooks"
+
+  check_and_add_config_property rudder.hooks.ignore-suffixes "
+####################
+# Server side Hooks #############################################################
+####################
+
+# This property contains the comma separated list of suffixes that will be checked 
+# before running a hook under /opt/rudder/etc/hooks.d. 
+# If an executable file has one of the following suffixes, it
+# will be IGNORED and the corresponding hook skipped. Non executable files are 
+# always ignored, with or without any of these suffixes. 
+# 
+# Spaces are trimmed. Case is not relevant (both .disabled and .DISABLED will be ignored)
+
+rudder.hooks.ignore-suffixes= .swp, ~, .bak, \
+ .cfnew   , .cfsaved  , .cfedited, .cfdisabled, .cfmoved,\
+ .dpkg-old, .dpkg-dist, .dpkg-new, .dpkg-tmp,\
+ .disable , .disabled , _disable , _disabled,\
+ .ucf-old , .ucf-dist , .ucf-new ,\
+ .rpmnew  , .rpmsave  , .rpmorig
 
 "
 
