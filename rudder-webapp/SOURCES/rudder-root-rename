@@ -46,6 +46,9 @@ usage() {
 	${ECHO} "Usage: $0 <new hostname for Rudder root server>"
 }
 
+# We need it to be able to open big mdb memory-mapped databases
+ulimit -v unlimited
+
 # Get the LDAP access credentials
 RELAY_NEW_HOSTNAME=$1
 LDAP_EXISTS=$(/opt/rudder/sbin/slapcat 2>/dev/null | grep "rudder-configuration" | wc -l)

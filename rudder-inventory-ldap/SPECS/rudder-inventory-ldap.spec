@@ -255,6 +255,9 @@ BACKUP_LDIF_PATH=/var/rudder/ldap/backup/
 BACKUP_LDIF_REGEX="^/var/rudder/ldap/backup/openldap-data-pre-upgrade-\([0-9]\{14\}\)\.ldif$"
 SLAPD_CONF="/opt/rudder/etc/openldap/slapd.conf"
 
+# We need it to be able to open big mdb memory-mapped databases
+ulimit -v unlimited
+
 # Do we have a backup file from preinst
 BACKUP_LDIF=$(find ${BACKUP_LDIF_PATH} -regextype sed -regex "${BACKUP_LDIF_REGEX}" 2>&1 | sort -nr | head -n1)
 if [ -n "${BACKUP_LDIF}" ]; then
