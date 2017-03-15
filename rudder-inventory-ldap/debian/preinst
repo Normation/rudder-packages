@@ -22,6 +22,10 @@ case "$1" in
 		TIMESTAMP=`date +%Y%m%d%H%M%S`
 		# Ensure backup folder exist
 		mkdir -p /var/rudder/ldap/backup/
+
+		# We need it to be able to open big mdb memory-mapped databases
+                ulimit -v unlimited
+
 		/opt/rudder/sbin/slapcat -b "cn=rudder-configuration" -l /var/rudder/ldap/backup/openldap-data-pre-upgrade-${TIMESTAMP}.ldif
 
 		# Store version of libdb used to make this backup

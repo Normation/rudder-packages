@@ -94,6 +94,9 @@ install -m 644 %{SOURCE8} %{buildroot}/opt/rudder/etc/server-roles.d/
 # then we can set UUID to 'root' serenly
 echo 'root' > %{rudderdir}/etc/uuid.hive
 
+# We need it to be able to open big mdb memory-mapped databases
+ulimit -v unlimited
+
 # Check if Rudder LDAP has already been initialize previously
 LDAPCHK=`/opt/rudder/sbin/slapcat  | grep "^dn: " | wc -l`
 if [ $LDAPCHK -eq 0 ]; then
