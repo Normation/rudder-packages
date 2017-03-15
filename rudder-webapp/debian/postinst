@@ -115,7 +115,8 @@ case "$1" in
   ## Add execution permission for ncf-api on pre/post-hooks
   chmod -R 2750 /var/rudder/configuration-repository/ncf/ncf-hooks.d/
 
-
+  
+  RUDDER_WEB_PROPERTIES="/opt/rudder/etc/rudder-web.properties"
 	# Only for Ubuntu:
 	## Change rsyslog port number since Ubuntu 12.04 doesn't allow to use standard
 	## rsyslog port number (https://bugs.launchpad.net/ubuntu/+source/rsyslog/+bug/789174)
@@ -124,9 +125,63 @@ case "$1" in
 	CHECK_RSYSLOG_PORT=`grep -E "^rudder.syslog.port\s*=\s*[0-9]+\s*$" /opt/rudder/etc/rudder-web.properties | cut -d "=" -f2`
 	if [ "z${CHECK_DIST}" = "zUbuntu" -a ${CHECK_UBUNTU_VERSION} -ge 12 -a ${CHECK_RSYSLOG_PORT} -lt 1024 ]; then
 		echo "INFO: Since Ubuntu 12.04, rsyslog port number used by Rudder needs to be >1024"
-		sed -i "s/^rudder.syslog.port\w*=.*$/rudder.syslog.port=5514/" /opt/rudder/etc/rudder-web.properties
+		sed -i "s/^rudder.syslog.port\w*=.*$/rudder.syslog.port=5514/" "${RUDDER_WEB_PROPERTIES}"
 		echo "INFO: rsyslog port number changed to 5514"
 	fi
+
+  # Replace checkpromises with a hook
+  HOOK_NAME="/opt/rudder/etc/hooks.d/policy-generation-node-ready/10-cf-promise-check"
+  MIGRATED_HOOK_NAME="/opt/rudder/etc/hooks.d/policy-generation-node-ready/20-migrated-posthook"
+  CURRENT_CHECKPROMISES=$(sed -n '/^rudder.community.checkpromises.command/s/rudder.community.checkpromises.command=//p' "${RUDDER_WEB_PROPERTIES}")
+  [ "${CURRENT_CHECKPROMISES}" = "" ] && CURRENT_CHECKPROMISES=$(sed -n '/^rudder.nova.checkpromises.command/s/rudder.nova.checkpromises.command=//p' "${RUDDER_WEB_PROPERTIES}")
+  if [ "${CURRENT_CHECKPROMISES}" = "/bin/true" ]
+  then
+    # if /bin/true, just remove the hook
+    mv "${HOOK_NAME}" "${HOOK_NAME}.disabled"
+  elif [ "${CURRENT_CHECKPROMISES}" = "/var/rudder/cfengine-community/bin/cf-promises" ] || [ "${CURRENT_CHECKPROMISES}" = "" ]
+  then
+    # if default value, do nothing
+    true
+  else
+    # if anything else present, put it in a hook replacing the distributed one
+    mv "${HOOK_NAME}" "${HOOK_NAME}.disabled"
+    cat > "${MIGRATED_HOOK_NAME}" << EOF
+#!/bin/sh
+
+# This file has been created by Rudder postinstall from your pre 4.1 rudder-web.properties file
+# The matching property has been commented out
+${CURRENT_CHECKPROMISES} -f "\${RUDDER_NEXT_POLICIES_DIRECTORY}/promises.cf" 
+EOF
+    chmod +x "${MIGRATED_HOOK_NAME}"
+    echo "INFO: A non default checkpromises command has been found in your rudder-web.properties file"
+    echo "INFO: It has been converted into a hook in ${MIGRATED_HOOK_NAME} You may want to take a look"
+  fi
+  sed -i 's/^rudder.community.checkpromises.command/#rudder.community.checkpromises.command/' "${RUDDER_WEB_PROPERTIES}"
+  sed -i 's/^rudder.nova.checkpromises.command/#rudder.community.checkpromises.command/' "${RUDDER_WEB_PROPERTIES}"
+
+  # Replace reload server command with a hook
+  HOOK_NAME="/opt/rudder/hooks.d/policy-generation-finished/50-reload-policy-file-server"
+  MIGRATED_HOOK_NAME="/opt/rudder/hooks.d/policy-generation-finished/60-migrated-posthook"
+  CURRENT_SERVER_COMMAND=$(sed -n '/^rudder.cfengine.reload.server.command/s/rudder.cfengine.reload.server.command=//p' "${RUDDER_WEB_PROPERTIES}")
+  if [ "${CURRENT_SERVER_COMMAND}" = "/opt/rudder/bin/rudder-reload-cf-serverd" ]
+  then
+    # if default value, do nothing
+    true
+  else
+    # if anything else present, put it in a hook replacing the distributed one
+    mv "${HOOK_NAME}" "${HOOK_NAME}.disabled"
+    cat > "${MIGRATED_HOOK_NAME}" << EOF
+#!/bin/sh
+
+# This file has been created by Rudder postinstall from your pre 4.1 rudder-web.properties file
+# The matching property has been commented out
+${CURRENT_SERVER_COMMAND} 
+EOF
+    chmod +x "${MIGRATED_HOOK_NAME}"
+    echo "INFO: A non default reload server command has been found in your rudder-web.properties file"
+    echo "INFO: It has been converted into a hook in ${MIGRATED_HOOK_NAME} You may want to take a look"
+  fi
+  sed -i 's/^rudder.cfengine.reload.server.command/#rudder.cfengine.reload.server.command/' "${RUDDER_WEB_PROPERTIES}"
 
 
   # Create a symlink to the Jetty context if necessary
