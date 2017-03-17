@@ -105,32 +105,42 @@ install -m 644 %{SOURCE3} %{buildroot}/opt/rudder/etc/server-roles.d/
 # Pre Installation
 #=================================================
 
+
+%post -n rudder-reports
+#=================================================
+# Post Installation
+#=================================================
+
 if type systemctl >/dev/null 2>&1; then
   POSTGRESQL_SERVICE_NAME=$(systemctl list-unit-files --type service | awk -F'.' '{print $1}' | grep -E "^postgresql[0-9]*$" | tail -n 1)
-elif type chkconfig >/dev/null 2>&1; then
+fi
+if [ -z "${POSTGRESQL_SERVICE_NAME}" ] && type chkconfig >/dev/null 2>&1; then
   POSTGRESQL_SERVICE_NAME=$(chkconfig 2>/dev/null | awk '{ print $1 }' | grep "postgresql" | tail -n 1)
-else
+fi
+if [ -z "${POSTGRESQL_SERVICE_NAME}" ]
   POSTGRESQL_SERVICE_NAME=$(ls -1 /etc/init.d | grep "postgresql" | tail -n 1)
 fi
 
 # Check if PostgreSQL is started
-%if 0%{?rhel} < 7
-service ${POSTGRESQL_SERVICE_NAME} status > /dev/null
+%if 0%{?rhel} < 7 || 0%{?suse_version} < 1200
+  service ${POSTGRESQL_SERVICE_NAME} status > /dev/null
 %endif
-%if 0%{?rhel} >= 7
-/bin/systemctl status  ${POSTGRESQL_SERVICE_NAME}.service
+%if 0%{?rhel} >= 7 || 0%{?suse_version} >= 1200
+  /bin/systemctl status ${POSTGRESQL_SERVICE_NAME}.service
 %endif
 
-if [ $? -ne 0 ]
-then
-%if 0%{?rhel} || 0%{?fedora}
+if [ $? -ne 0 ]; then
+%if 0%{?rhel}
+  echo -n "INFO: Initializing PostgreSQL ..."
+  # rhel package doesn't initialize database
   service ${POSTGRESQL_SERVICE_NAME} initdb
+  echo " Done"
 %endif
-%if 0%{?rhel} < 7
+%if 0%{?rhel} < 7 || 0%{?suse_version} < 1200
   service ${POSTGRESQL_SERVICE_NAME} start
 %endif
-%if 0%{?rhel} >= 7
-  /bin/systemctl start  ${POSTGRESQL_SERVICE_NAME}.service
+%if 0%{?rhel} >= 7 || 0%{?suse_version} >= 1200
+  /bin/systemctl start ${POSTGRESQL_SERVICE_NAME}.service
 %endif
 fi
 
@@ -143,46 +153,14 @@ if [ -f ${PG_HBA_FILE} ]; then
     sed -i 1i"host    all             rudder             ::1/128              md5" ${PG_HBA_FILE}
     sed -i 1i"host    all             rudder          127.0.0.1/32            md5" ${PG_HBA_FILE}
 
-    # Apply changes in PostgreSQL
-%if 0%{?rhel} < 7
+# Apply changes in PostgreSQL
+%if 0%{?rhel} < 7 || 0%{?suse_version} < 1200
     service ${POSTGRESQL_SERVICE_NAME} reload
 %endif
-%if 0%{?rhel} >= 7
-    /bin/systemctl reload  ${POSTGRESQL_SERVICE_NAME}.service
+%if 0%{?rhel} >= 7 || 0%{?suse_version} >= 1200
+    /bin/systemctl reload ${POSTGRESQL_SERVICE_NAME}.service
 %endif
   fi
-fi
-
-
-%post -n rudder-reports
-#=================================================
-# Post Installation
-#=================================================
-
-if type systemctl >/dev/null 2>&1; then
-  POSTGRESQL_SERVICE_NAME=$(systemctl list-unit-files --type service | awk -F'.' '{print $1}' | grep -E "^postgresql[0-9]*$" | tail -n 1)
-elif type chkconfig >/dev/null 2>&1; then
-  POSTGRESQL_SERVICE_NAME=$(chkconfig 2>/dev/null | awk '{ print $1 }' | grep "postgresql" | tail -n 1)
-else
-  POSTGRESQL_SERVICE_NAME=$(ls -1 /etc/init.d | grep "postgresql" | tail -n 1)
-fi
-
-#Check if PostgreSQL is started
-%if 0%{?rhel} < 7
-service ${POSTGRESQL_SERVICE_NAME} status > /dev/null 2>&1
-%endif
-%if 0%{?rhel} >= 7
-/bin/systemctl status  ${POSTGRESQL_SERVICE_NAME}.service > /dev/null 2>&1
-%endif
-
-if [ $? -ne 0 ]
-then
-%if 0%{?rhel} < 7
-  service ${POSTGRESQL_SERVICE_NAME} start > /dev/null
-%endif
-%if 0%{?rhel} >= 7
-  /bin/systemctl start  ${POSTGRESQL_SERVICE_NAME}.service > /dev/null
-%endif
 fi
 
 echo -n "INFO: Setting PostgreSQL as a boot service..."
