@@ -117,7 +117,7 @@ fi
 if [ -z "${POSTGRESQL_SERVICE_NAME}" ] && type chkconfig >/dev/null 2>&1; then
   POSTGRESQL_SERVICE_NAME=$(chkconfig 2>/dev/null | awk '{ print $1 }' | grep "postgresql" | tail -n 1)
 fi
-if [ -z "${POSTGRESQL_SERVICE_NAME}" ]
+if [ -z "${POSTGRESQL_SERVICE_NAME}" ]; then
   POSTGRESQL_SERVICE_NAME=$(ls -1 /etc/init.d | grep "postgresql" | tail -n 1)
 fi
 
