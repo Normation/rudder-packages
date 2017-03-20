@@ -343,7 +343,12 @@ rm -f /opt/rudder/etc/openldap/slapd.confe
 
 if [[ $1 -eq 0 ]]
 then
+%if 0%{?suse_version} < 1200
   service rudder-slapd forcestop
+%endif
+%if 0%{?suse_version} >= 1200
+  service rudder-slapd stop
+%endif
 fi
 
 #=================================================
