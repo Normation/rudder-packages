@@ -329,7 +329,7 @@ fi
 
 # Need to restart to take schema changes into account
 echo -n "INFO: Restarting rudder-slapd..."
-service rudder-slapd force-reload >/dev/null 2>&1
+service rudder-slapd restart >/dev/null
 echo " Done"
 
 # Remove slapd.confe which was due to a bug in the init script
