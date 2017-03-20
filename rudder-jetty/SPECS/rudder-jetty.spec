@@ -85,7 +85,7 @@ Requires: jre >= 1.8
 %endif
 
 %if 0%{?rhel} && 0%{?rhel} == 6
-Requires: java-1.8.0-openjdk
+Requires: java-1.8.0-openjdk-headless
 %endif
 
 # We are providing Jetty, but the name of the provided element depends of the
