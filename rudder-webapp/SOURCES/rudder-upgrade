@@ -517,7 +517,7 @@ rudder.hooks.ignore-suffixes= .swp, ~, .bak, \
   then
     # if /bin/true, just remove the hook
     mv "${HOOK_NAME}" "${HOOK_NAME}.disabled"
-  elif [ "${CURRENT_CHECKPROMISES}" = "/var/rudder/cfengine-community/bin/cf-promises" ] || [ "${CURRENT_CHECKPROMISES}" = "" ]
+  elif [ "${CURRENT_CHECKPROMISES}" = "/var/rudder/cfengine-community/bin/cf-promises" ] || [ -z "${CURRENT_CHECKPROMISES}"  ] || [ -f "${HOOK_NAME}.disabled" ]
   then
     # if default value, do nothing
     true
@@ -545,6 +545,10 @@ EOF
   if [ "${CURRENT_SERVER_COMMAND}" = "/opt/rudder/bin/rudder-reload-cf-serverd" ]
   then
     # if default value, do nothing
+    true
+  elif [ -z "${CURRENT_SERVER_COMMAND}" ] || [ -f "${HOOK_NAME}.disabled" ]
+  then
+    # already migrated
     true
   else
     # if anything else present, put it in a hook replacing the distributed one
