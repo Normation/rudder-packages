@@ -71,6 +71,7 @@ Group: Applications/System
 Source1: ncf_api_flask_app.wsgi
 Source2: ncf-api-virtualenv.conf
 Source3: ncf-api-virtualenv.te
+Source4: ncf-api-virtualenv.fc
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
@@ -90,9 +91,6 @@ Requires: python ncf
 
 # We need mod_wsgi to use ncf builder
 Requires: httpd mod_wsgi shadow-utils
-
-# We need policycoreutils-python to provide the semanage command for selinux compatibility
-Requires: policycoreutils-python
 
 %endif
 
@@ -130,6 +128,7 @@ of the ncf API easier.
 
 # Copy the required source files to the build directory
 cp -f %{SOURCE3} %{_builddir}
+cp -f %{SOURCE4} %{_builddir}
 
 #=================================================
 # Building
@@ -230,7 +229,6 @@ if type sestatus >/dev/null 2>&1 && sestatus | grep -q "enabled"; then
   echo -n "INFO: Applying ncf-api-virtualenv selinux policy..."
   # Add/Update the ncf-api-virtualenv SELinux policy
   semodule -i %{installdir}/share/selinux/ncf-api-virtualenv.pp
-  semanage fcontext -a -t httpd_sys_rw_content_t '/var/lib/ncf-api-venv(/.*)?'
   restorecon -RF /var/lib/ncf-api-venv/
   echo " Done"
 fi

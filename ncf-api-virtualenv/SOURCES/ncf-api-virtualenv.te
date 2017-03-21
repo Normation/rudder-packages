@@ -1,4 +1,4 @@
-module ncf-api-virtualenv 1.0;
+module ncf-api-virtualenv 1.1;
 
 require {
   type httpd_t;
