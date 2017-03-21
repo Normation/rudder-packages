@@ -88,9 +88,13 @@ Requires: jre >= 1.8
 Requires: java-1.8.0-openjdk-headless
 %endif
 
+# Reference for sle_version : https://en.opensuse.org/openSUSE:Build_Service_cross_distribution_howto
+%if 0%{?sle_version} && 0%{?sle_version} >= 120100
+Requires: java-1_8_0-openjdk-headless
+%endif
+
 # We are providing Jetty, but the name of the provided element depends of the
 # OS flavour.
-
 
 %if 0%{?rhel} || 0%{?fedora}
 Provides: jetty-eclipse jetty-server
