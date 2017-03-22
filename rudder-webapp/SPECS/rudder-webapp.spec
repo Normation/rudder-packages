@@ -386,6 +386,7 @@ if type sestatus >/dev/null 2>&1 && sestatus | grep -q "enabled"; then
   # including the file contexts defined in the rudder-webapp module
   restorecon -R /var/rudder/inventories
   restorecon -R /var/log/rudder/apache2
+  restorecon -RF /var/rudder/configuration-repository/techniques
 fi
 %endif
 
@@ -413,12 +414,6 @@ fi
 if [ ! -d /var/rudder/configuration-repository/techniques ]; then
 	cp -a %{rudderdir}/share/techniques /var/rudder/configuration-repository/
         touch /opt/rudder/etc/force_technique_reload
-fi
-
-# Apply selinux context on configuration repository so technique editor (via apache/httpd) can write in this directory
-if type sestatus >/dev/null 2>&1 && sestatus | grep -q "enabled"; then
-  semanage fcontext -a -t httpd_sys_rw_content_t '/var/rudder/configuration-repository/techniques(/.*)?'
-  restorecon -RF /var/rudder/configuration-repository/techniques
 fi
 
 # Go into configuration-repository to manage git
@@ -510,9 +505,8 @@ fi
     if type sestatus >/dev/null 2>&1 && sestatus | grep -q "enabled"; then
       if semodule -l | grep -q rudder-webapp; then
         # Remove the rudder-webapp SELinux policy
-        semanage fcontext -d '/var/rudder/configuration-repository/techniques(/.*)?'
-        restorecon -RF /var/rudder/configuration-repository/techniques
         semodule -r rudder-webapp
+        restorecon -RF /var/rudder/configuration-repository/techniques
       fi
     fi
   fi

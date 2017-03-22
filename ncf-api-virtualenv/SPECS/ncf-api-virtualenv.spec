@@ -270,9 +270,8 @@ fi
       if semodule -l | grep -q ncf-api-virtualenv;  then
         echo -n "INFO: Removing ncf-api-virtualenv selinux policy..."
         # Remove the ncf-api-virtualenv SELinux policy
-        semanage fcontext -d '/var/lib/ncf-api-venv(/.*)?'
-        restorecon -RF /var/lib/ncf-api-venv/
         semodule -r ncf-api-virtualenv 2>/dev/null
+        restorecon -RF /var/lib/ncf-api-venv/
         echo " Done"
       fi
     fi
