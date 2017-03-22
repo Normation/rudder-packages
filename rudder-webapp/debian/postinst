@@ -57,6 +57,7 @@ case "$1" in
 	if [ ! -d /var/rudder/configuration-repository/shared-files ]; then mkdir -p /var/rudder/configuration-repository/shared-files; fi
 	if [ ! -d /var/rudder/configuration-repository/techniques ]; then
 		cp -a /opt/rudder/share/techniques /var/rudder/configuration-repository/
+		touch /opt/rudder/etc/force_technique_reload
 	fi
 
   # Go into configuration-repository to manage git

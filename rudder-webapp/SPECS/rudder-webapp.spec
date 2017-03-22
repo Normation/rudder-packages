@@ -412,6 +412,7 @@ if [ ! -d /var/rudder/configuration-repository/shared-files ]; then
 fi
 if [ ! -d /var/rudder/configuration-repository/techniques ]; then
 	cp -a %{rudderdir}/share/techniques /var/rudder/configuration-repository/
+        touch /opt/rudder/etc/force_technique_reload
 fi
 
 # Apply selinux context on configuration repository so technique editor (via apache/httpd) can write in this directory
