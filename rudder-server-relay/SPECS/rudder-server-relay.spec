@@ -370,8 +370,8 @@ service %{apache} start > /dev/null && echo " Done"
 # SELinux compliant
 if type sestatus >/dev/null 2>&1 && sestatus | grep -q "enabled"; then
   # Remove old webapp policy if exists because it conflicts with rudder-server-relay
-  # First version in 4.1 is 1.3
-  if semodule -l | egrep -q "rudder-webapp[[:space:]]+1\.[0-2]"; then
+  # First version in 4.1 is 1.4
+  if semodule -l | egrep -q "rudder-webapp[[:space:]]+1\.[0-3]"; then
     semodule -r rudder-webapp
   fi
   # Add/Update the rudder-relay SELinux policy
@@ -410,9 +410,11 @@ fi
     if type sestatus >/dev/null 2>&1 && sestatus | grep -q "enabled"; then
       if semodule -l | grep -q rudder-relay; then
         # Remove the rudder-relay SELinux policy
-        semanage fcontext -d '/var/rudder/configuration-repository/techniques(/.*)?'
-        restorecon -RF /var/rudder/configuration-repository/techniques
         semodule -r rudder-relay
+        restorecon -RF /var/rudder/inventories
+        restorecon -RF /var/log/rudder/apache2
+        restorecon -RF /opt/rudder/etc/uuid.hive
+        restorecon -RF /var/rudder/configuration-repository/techniques
       fi
     fi
   fi

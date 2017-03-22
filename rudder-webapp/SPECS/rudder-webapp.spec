@@ -102,7 +102,7 @@ Source24: rudder-webapp-apache
 Source25: rudder-apache-webapp-common.conf
 Source26: rudder-apache-webapp-ssl.conf
 Source27: rudder-apache-webapp-nossl.conf
-
+Source28: rudder-webapp.fc
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
@@ -153,6 +153,7 @@ application server bundled in the rudder-jetty package.
 
 # Copy the required source files to the build directory
 cp -f %{SOURCE20} %{_builddir}
+cp -f %{SOURCE28} %{_builddir}
 cp -rf %{_sourcedir}/rudder-sources %{_builddir}
 cp -rf %{_sourcedir}/rudder-doc %{_builddir}
 
@@ -384,8 +385,6 @@ if type sestatus >/dev/null 2>&1 && sestatus | grep -q "enabled"; then
   # Ensure inventory directories context is set by resetting
   # their context to the contexts defined in SELinux configuration,
   # including the file contexts defined in the rudder-webapp module
-  restorecon -R /var/rudder/inventories
-  restorecon -R /var/log/rudder/apache2
   restorecon -RF /var/rudder/configuration-repository/techniques
 fi
 %endif
