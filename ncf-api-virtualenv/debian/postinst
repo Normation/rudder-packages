@@ -38,6 +38,9 @@ case "$1" in
       # Enable mod_wsgi in apache
       a2enmod wsgi >/dev/null 2>&1
 
+      # Enable mod_expires in apache
+      a2enmod expires >/dev/null 2>&1
+
       # Enable the conf-available entry if running Apache 2.4
       if [ ${APACHE_VERSION} = 2.4 ]
       then

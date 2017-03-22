@@ -242,6 +242,7 @@ fi
 %if 0%{?suse_version}
 # Enable mod_wsgi using a2enmod
 a2enmod wsgi >/dev/null 2>&1
+a2enmod expires >/dev/null 2>&
 
 echo -n "INFO: Restarting Apache HTTPd..."
 service apache2 restart >/dev/null 2>&1
