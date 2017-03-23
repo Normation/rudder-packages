@@ -287,12 +287,7 @@ if [ -n "${BACKUP_LDIF}" ]; then
 		# Stop OpenLDAP - use forcestop to avoid the init script failing
 		# when trying to do the backup with bad libdb versions
 		echo -n "INFO: Stopping rudder-slapd..."
-      %if 0%{?rhel} < 7
-      service rudder-slapd forcestop >/dev/null 2>&1
-      %endif
-      %if 0%{?rhel} >= 7
-      /bin/systemctl stop rudder-slapd.service >/dev/null 2>&1
-      %endif
+		service rudder-slapd forcestop >/dev/null 2>&1
 		echo " Done"
 
 		# Backup the current database
@@ -312,12 +307,7 @@ if [ -n "${BACKUP_LDIF}" ]; then
 		then
 			# Start OpenLDAP
 			echo -n "INFO: Starting rudder-slapd..."
-      %if 0%{?rhel} < 7
-      service rudder-slapd start >/dev/null 2>&1
-      %endif
-      %if 0%{?rhel} >= 7
-      /bin/systemctl start rudder-slapd.service >/dev/null 2>&1
-      %endif
+			service rudder-slapd start >/dev/null 2>&1
 			echo " Done"
 
 			echo "INFO: OpenLDAP database was successfully upgraded to new format"
@@ -339,12 +329,7 @@ fi
 
 # Need to restart to take schema changes into account
 echo -n "INFO: Restarting rudder-slapd..."
-%if 0%{?rhel} < 7
 service rudder-slapd restart >/dev/null
-%endif
-%if 0%{?rhel} >= 7
-/bin/systemctl restart rudder-slapd.service >/dev/null
-%endif
 echo " Done"
 
 # Remove slapd.confe which was due to a bug in the init script
