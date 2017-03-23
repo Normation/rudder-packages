@@ -343,7 +343,7 @@ echo -n "INFO: Restarting rudder-slapd..."
 service rudder-slapd restart >/dev/null
 %endif
 %if 0%{?rhel} >= 7
-/bin/systemctl stop rudder-slapd.service >/dev/null
+/bin/systemctl restart rudder-slapd.service >/dev/null
 %endif
 echo " Done"
 
