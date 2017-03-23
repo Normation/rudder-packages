@@ -375,6 +375,23 @@ chmod 751 /var/rudder/inventories
 chmod 755 -R %{rudderdir}/share/tools
 chmod 655 -R %{rudderdir}/share/load-page
 
+# Run any upgrades
+# Note this must happen *before* creating the technique store, as it was moved in version 2.3.2
+# and creating it manually would break the upgrade logic
+echo "INFO: Launching script to check if a migration is needed"
+%{rudderdir}/bin/rudder-upgrade
+echo "INFO: End of migration script"
+
+# Create and populate technique store
+if [ ! -d /var/rudder/configuration-repository/shared-files ]; then
+  mkdir -p /var/rudder/configuration-repository/shared-files
+  touch /var/rudder/configuration-repository/shared-files/.placeholder
+fi
+if [ ! -d /var/rudder/configuration-repository/techniques ]; then
+	cp -a %{rudderdir}/share/techniques /var/rudder/configuration-repository/
+        touch /opt/rudder/etc/force_technique_reload
+fi
+
 %if 0%{?rhel} || 0%{?fedora}
 # SELinux support
 # Check "sestatus" presence, and if here tweak our installation to be
@@ -398,22 +415,6 @@ service %{apache} start >/dev/null 2>&1
 %endif
 echo " Done"
 
-# Run any upgrades
-# Note this must happen *before* creating the technique store, as it was moved in version 2.3.2
-# and creating it manually would break the upgrade logic
-echo "INFO: Launching script to check if a migration is needed"
-%{rudderdir}/bin/rudder-upgrade
-echo "INFO: End of migration script"
-
-# Create and populate technique store
-if [ ! -d /var/rudder/configuration-repository/shared-files ]; then
-  mkdir -p /var/rudder/configuration-repository/shared-files
-  touch /var/rudder/configuration-repository/shared-files/.placeholder
-fi
-if [ ! -d /var/rudder/configuration-repository/techniques ]; then
-	cp -a %{rudderdir}/share/techniques /var/rudder/configuration-repository/
-        touch /opt/rudder/etc/force_technique_reload
-fi
 
 # Go into configuration-repository to manage git
 cd /var/rudder/configuration-repository
