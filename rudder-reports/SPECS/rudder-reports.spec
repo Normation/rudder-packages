@@ -60,7 +60,7 @@ Requires: postgresql-server >= 8.4
 Requires: rsyslog >= 4
 
 # Reference for suse_version : https://en.opensuse.org/openSUSE:Build_Service_cross_distribution_howto
-%if 0%{?suse_version} && 0%{?suse_version} < 1200
+%if 0%{?suse_version}
 Requires: %{suse_rsyslog_pgsql} >= 4
 %endif
 
