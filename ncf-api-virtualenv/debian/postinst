@@ -45,7 +45,9 @@ case "$1" in
       fi
 
       echo -n "INFO: Restarting Apache HTTPd..."
-      service apache2 restart >/dev/null 2>&1
+      # or true because if we are in the middle of many package upgrade, the destination of a link can disapear during file extract and their postinst may not have yet been run
+      # TODO, this should be handled in a prerm
+      service apache2 restart >/dev/null 2>&1 || true
       echo " Done"
 
     ;;
