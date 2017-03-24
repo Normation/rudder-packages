@@ -21,7 +21,7 @@ set -e
 case "$1" in
     configure)
 		echo -n "INFO: Restarting syslogd..."
-		invoke-rc.d rsyslog restart >/dev/null 2>&1
+		service rsyslog restart >/dev/null 2>&1
 		echo " Done"
 
 		# Reload the linker cache (to acknowledge BerkeleyDB's presence if needed)
@@ -68,7 +68,7 @@ case "$1" in
 				# Stop OpenLDAP - use forcestop to avoid the init script failing
 				# when trying to do the backup with bad libdb versions
 				echo -n "INFO: Stopping rudder-slapd..."
-				invoke-rc.d rudder-slapd forcestop >/dev/null 2>&1
+				service rudder-slapd forcestop >/dev/null 2>&1
 				echo " Done"
 
 				# Backup the current database
@@ -88,7 +88,7 @@ case "$1" in
 				then
 					# Start OpenLDAP
 					echo -n "INFO: Starting rudder-slapd..."
-					invoke-rc.d rudder-slapd start >/dev/null 2>&1
+					service rudder-slapd start >/dev/null 2>&1
 					echo " Done"
 
 					echo "INFO: OpenLDAP database was successfully upgraded to new format"
@@ -110,7 +110,7 @@ case "$1" in
 
 		# Restart rudder-slapd to take schema changes into account
 		echo -n "INFO: Restarting rudder-slapd..."
-		invoke-rc.d rudder-slapd restart >/dev/null
+		service rudder-slapd restart >/dev/null
 		echo " Done"
 
 		# Remove slapd.confe which was due to a bug in the init script

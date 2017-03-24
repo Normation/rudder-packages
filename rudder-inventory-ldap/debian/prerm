@@ -21,7 +21,7 @@ case "$1" in
     remove)
       # Ensure OpenLDAP is stopped
       printf "INFO: Stopping rudder-slapd..."
-      invoke-rc.d rudder-slapd forcestop >/dev/null 2>&1
+      service rudder-slapd forcestop >/dev/null 2>&1
       echo " Done"
     ;;
 

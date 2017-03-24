@@ -31,7 +31,7 @@ case "$1" in
 	/opt/rudder/bin/rudder-inventory-endpoint-upgrade
 	echo "INFO: End of migration script"
 
-	invoke-rc.d rsyslog restart
+	service rsyslog restart
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)

@@ -25,7 +25,7 @@ case "$1" in
   echo 'root' > /opt/rudder/etc/uuid.hive
 
   echo -n "INFO: Restarting syslog..."
-  invoke-rc.d rsyslog restart >/dev/null 2>&1
+  service rsyslog restart >/dev/null 2>&1
   echo "Done"
 
   MODULES_TO_ENABLE="rewrite proxy_http headers ssl filter deflate"
@@ -43,7 +43,7 @@ case "$1" in
   chmod 755 -R /opt/rudder/share/tools
 
   echo -n "INFO: Restarting Apache HTTPd..."
-  /etc/init.d/apache2 restart >/dev/null 2>&1
+  service apache2 restart >/dev/null 2>&1
   echo " Done"
 
   # Run any upgrades
