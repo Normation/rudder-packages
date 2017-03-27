@@ -140,6 +140,10 @@ case "$1" in
     /opt/ruder/bin/rudder-pkg restore-status < /tmp/rudder-plugins-upgrade
   fi
 
+  # Reload systemd when it is available so that it creates sysv-init shims
+  # This is necessary to make the service command work, and will be obsolete when we create systemd units
+  [ -x /bin/systemctl ] && /bin/systemctl daemon-reload
+
   # Restart the webapp
   echo -n "INFO: Restarting Rudder webapp and inventory-endpoint..."
   service rudder-jetty start >/dev/null 2>&1

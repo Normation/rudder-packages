@@ -65,6 +65,10 @@ case "$1" in
 					exit 1
 				fi
 
+        # Reload systemd when it is available so that it creates sysv-init shims
+        # This is necessary to make the service command work, and will be obsolete when we create systemd units
+        [ -x /bin/systemctl ] && /bin/systemctl daemon-reload
+
 				# Stop OpenLDAP - use forcestop to avoid the init script failing
 				# when trying to do the backup with bad libdb versions
 				echo -n "INFO: Stopping rudder-slapd..."
