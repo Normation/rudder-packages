@@ -99,6 +99,10 @@ Requires: httpd mod_wsgi shadow-utils
 Requires: apache2 apache2-mod_wsgi pwdutils
 %endif
 
+%if 0%{?suse_version} && 0%{?suse_version} >= 1200
+Requires: python-pyOpenSSL
+%endif
+
 ## 1 - RHEL
 %if 0%{?rhel} && 0%{?rhel} == 6
 BuildRequires: selinux-policy

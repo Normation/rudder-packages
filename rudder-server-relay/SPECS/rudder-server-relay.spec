@@ -111,6 +111,10 @@ Requires: mod_wsgi shadow-utils crontabs
 Requires: apache2-mod_wsgi pwdutils cron
 %endif
 
+%if 0%{?suse_version} && 0%{?suse_version} >= 1200
+Requires: python-pyOpenSSL
+%endif
+
 ## SELinux
 %if 0%{?rhel} && 0%{?rhel} == 6
 BuildRequires: selinux-policy
