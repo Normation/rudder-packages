@@ -253,7 +253,7 @@ service %{syslogservicename} restart > /dev/null && echo " Done"
 RUDDER_SHARE=/opt/rudder/share
 RUDDER_UPGRADE_TOOLS=${RUDDER_SHARE}/upgrade-tools
 BACKUP_LDIF_PATH=/var/rudder/ldap/backup/
-BACKUP_LDIF_REGEX="^/var/rudder/ldap/backup/openldap-data-pre-upgrade-\([0-9]\{14\}\)\.ldif$"
+BACKUP_LDIF_REGEX="^/var/rudder/ldap/backup/openldap-data-pre-upgrade-\([0-9]\{14\}\)\.ldif\(\.gz\)\?$"
 
 # Do we have a backup file from a previous upgrade?
 BACKUP_LDIF=$(find ${BACKUP_LDIF_PATH} -regextype sed -regex "${BACKUP_LDIF_REGEX}" 2>&1 | sort -nr | head -n1)
@@ -291,6 +291,13 @@ if [ -n "${BACKUP_LDIF}" ]; then
 		LDAP_BACKUP_DIR="/var/rudder/ldap/openldap-data-backup-upgrade-on-${TIMESTAMP}/"
 		mkdir -p "${LDAP_BACKUP_DIR}"
 		find /var/rudder/ldap/openldap-data -maxdepth 1 -mindepth 1 -not -name "DB_CONFIG" -exec mv {} ${LDAP_BACKUP_DIR} \;
+
+    # unzip backup if it is needed
+    if [ "${BACKUP_LDIF%.gz}" != "${BACKUP_LDIF}" ]
+    then
+      gunzip ${BACKUP_LDIF}
+      BACKUP_LDIF=$(echo ${BACKUP_LDIF%.gz})
+    fi
 
 		# Import the backed up database
 		/opt/rudder/sbin/slapadd -q -l ${BACKUP_LDIF}
