@@ -254,11 +254,15 @@ service %{syslogservicename} restart > /dev/null && echo " Done"
 RUDDER_SHARE=/opt/rudder/share
 RUDDER_UPGRADE_TOOLS=${RUDDER_SHARE}/upgrade-tools
 BACKUP_LDIF_PATH=/var/rudder/ldap/backup/
+<<<<<<< HEAD
 BACKUP_LDIF_REGEX="^/var/rudder/ldap/backup/openldap-data-pre-upgrade-\([0-9]\{14\}\)\.ldif$"
 SLAPD_CONF="/opt/rudder/etc/openldap/slapd.conf"
 
 # We need it to be able to open big mdb memory-mapped databases
 ulimit -v unlimited
+=======
+BACKUP_LDIF_REGEX="^/var/rudder/ldap/backup/openldap-data-pre-upgrade-\([0-9]\{14\}\)\.ldif\(\.gz\)\?$"
+>>>>>>> branches/rudder/4.0
 
 # Do we have a backup file from preinst
 BACKUP_LDIF=$(find ${BACKUP_LDIF_PATH} -regextype sed -regex "${BACKUP_LDIF_REGEX}" 2>&1 | sort -nr | head -n1)
@@ -294,6 +298,13 @@ if [ -n "${BACKUP_LDIF}" ]; then
     sed -i '/^cachesize.*/d' "${SLAPD_CONF}"
     # Configure mdb backend
     /opt/rudder/bin/rudder-slapd-configure
+
+    # unzip backup if it is needed
+    if [ "${BACKUP_LDIF%.gz}" != "${BACKUP_LDIF}" ]
+    then
+      gunzip ${BACKUP_LDIF}
+      BACKUP_LDIF=$(echo ${BACKUP_LDIF%.gz})
+    fi
 
 		# Import the backed up database
 		if /opt/rudder/sbin/slapadd -q -l ${BACKUP_LDIF}
