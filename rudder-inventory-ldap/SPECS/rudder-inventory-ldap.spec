@@ -219,8 +219,10 @@ then
 	/opt/rudder/sbin/slapcat -b "cn=rudder-configuration" -l /var/rudder/ldap/backup/openldap-data-pre-upgrade-${TIMESTAMP}.ldif
 
 	# Store version of libdb used to make this backup
-	echo $(ldd /opt/rudder/sbin/slapcat | grep libdb | cut -d"=" -f1) > /var/rudder/ldap/backup/openldap-data-pre-upgrade-${TIMESTAMP}.libdb-version
-
+	if [ -f /var/rudder/ldap/openldap-data/objectClass.bdb ]
+	then
+		echo $(ldd /opt/rudder/sbin/slapcat | grep libdb | cut -d"=" -f1) > /var/rudder/ldap/backup/openldap-data-pre-upgrade-${TIMESTAMP}.libdb-version
+	fi
 fi
 
 %post -n rudder-inventory-ldap
@@ -267,16 +269,7 @@ if [ -n "${BACKUP_LDIF}" ]; then
    	# we may need to drop and reimport the database if the underlying version
 	# of libdb has changed.
 	if [ -f "/var/rudder/ldap/backup/openldap-data-pre-upgrade-${TIMESTAMP}.libdb-version" ]; then
-		# Did the underlying version of libdb change?
-		current_libdb_version=$(ldd /opt/rudder/sbin/slapcat | grep libdb | cut -d"=" -f1)
-		previous_libdb_version=$(cat /var/rudder/ldap/backup/openldap-data-pre-upgrade-${TIMESTAMP}.libdb-version)
-		if [ "${current_libdb_version}" != "${previous_libdb_version}" ]; then
-			# OK, we need to remove the old DB and import the backup
-			REINIT_DB="yes"
-		fi
-	fi
-
-	if [ "${REINIT_DB}" = "yes" ]; then
+		# OK, we need to remove the old DB and import the backup
 
 		# Do we have a database backup to restore from?
 		if [ ! -f ${BACKUP_LDIF} ]; then
