@@ -94,6 +94,10 @@ if [ ${I_SET_THE_LOCK} -eq 1 ]; then
   ${RUDDER_CMD} agent enable
 fi
 
+# Ensure the modification date of the capability file is correct
+# as it is used for cache invalidation in ncf lis-compatible-inputs
+touch /opt/rudder/etc/agent-capabilities
+
 # Restart daemons if we stopped them, otherwise not
 if [ ${CFRUDDER_FIRST_INSTALL} -ne 1 ]
 then
