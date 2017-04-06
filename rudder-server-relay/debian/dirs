@@ -1,6 +1,7 @@
 opt/rudder/etc
 opt/rudder/etc/ssl
 opt/rudder/share/relay-api
+opt/rudder/share/python
 var/rudder/inventories/accepted-nodes-updates
 var/rudder/inventories/incoming
 var/rudder/shared-files

@@ -94,7 +94,7 @@ AutoProv: 0
 
 ## General
 BuildRequires: python, python-devel
-Requires: rudder-agent >= %{real_epoch}:%{real_version}, rsyslog, openssl, %{apache}, %{apache_tools}, python
+Requires: rudder-agent >= %{real_epoch}:%{real_version}, rsyslog, openssl, %{apache}, %{apache_tools}, python, binutils
 
 ## RHEL
 %if 0%{?rhel}
@@ -210,12 +210,17 @@ mkdir -p %{buildroot}/etc/sysconfig/
 mkdir -p %{buildroot}/etc/cron.d/
 mkdir -p %{buildroot}/etc/sudoers.d/
 mkdir -p %{buildroot}%{rudderdir}/share/relay-api/
+mkdir -p %{buildroot}%{rudderdir}/share/python/
 
 # relay api
 cp -r %{_sourcedir}/relay-api/flask %{buildroot}%{rudderdir}/share/relay-api/
 cp -r %{_sourcedir}/relay-api/relay_api %{buildroot}%{rudderdir}/share/relay-api/
 cp %{_sourcedir}/relay-api/apache/relay-api.wsgi %{buildroot}%{rudderdir}/share/relay-api/
 install -m 755 %{_sourcedir}/relay-api/cleanup.sh %{buildroot}%{rudderdir}/share/relay-api/
+
+# rudder packaging
+install -m 755 %{_sourcedir}/rudder-pkg %{buildroot}%{rudderdir}/bin/
+cp %{_sourcedir}/docopt.py %{buildroot}%{rudderdir}/share/python/
 
 # Others
 install -m 644 %{SOURCE1} %{buildroot}/etc/%{apache_vhost_dir}/rudder.conf

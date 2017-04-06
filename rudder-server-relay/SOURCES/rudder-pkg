@@ -155,14 +155,15 @@ def install_dependencies(metadata):
   # not supported yet
   has_depends = False
   depends_printed = False
-  for system in metadata["depends"]:
-    has_depends = True
-    if not depends_printed:
-      print("This package depends on the following")
-      depends_printed = True
-    print("  on " + system + " : " + ", ".join(metadata["depends"][system]))
-  if has_depends:
-    print("It is up to you to make sure those dependencies are installed")
+  if "depends" in metadata:
+    for system in metadata["depends"]:
+      has_depends = True
+      if not depends_printed:
+        print("This package depends on the following")
+        depends_printed = True
+      print("  on " + system + " : " + ", ".join(metadata["depends"][system]))
+    if has_depends:
+      print("It is up to you to make sure those dependencies are installed")
 
 
 def extract_scripts(metadata,package_file):

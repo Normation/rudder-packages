@@ -66,6 +66,8 @@ binary-arch: install
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/relay-api flask/ /opt/rudder/share/relay-api/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/relay-api apache/relay-api.wsgi /opt/rudder/share/relay-api/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/relay-api cleanup.sh /opt/rudder/share/relay-api/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-pkg /opt/rudder/bin/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ docopt.py /opt/rudder/share/python/
 	cp $(CURDIR)/SOURCES/rudder-relay.cron $(CURDIR)/BUILD/rudder-relay
 	dh_install --SOURCEDIR=$(CURDIR)/BUILD/ rudder-relay /etc/cron.d/
 	cp $(CURDIR)/SOURCES/rudder-relay.sudo $(CURDIR)/BUILD/rudder-relay
