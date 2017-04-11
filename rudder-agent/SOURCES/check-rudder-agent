@@ -259,8 +259,9 @@ then
   echo " Done"
 fi
 
-# Ensure main promises are not broken, and force a new download if so
+# Ensure main promises are not broken, and clean ncf cache and force a new download if so
 if ! ${CFE_BIN_DIR}/cf-promises
 then
+  rm -rf ${CFE_DIR}/state/ncf-exclude-cache-*
   rm -f ${CFE_DIR}/inputs/rudder_promises_updated
 fi
