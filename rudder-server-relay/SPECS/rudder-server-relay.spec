@@ -199,6 +199,7 @@ rm -rf %{buildroot}
 
 # Directories
 mkdir -p %{buildroot}/etc/%{apache_vhost_dir}
+mkdir -p %{buildroot}%{rudderdir}/bin/
 mkdir -p %{buildroot}%{rudderdir}/etc/
 mkdir -p %{buildroot}%{rudderdir}/etc/ssl/
 mkdir -p %{buildroot}%{rudderdir}/share/selinux/
