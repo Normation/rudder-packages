@@ -1,7 +1,8 @@
-diff -upr cfengine-source/libpromises/eval_context.c cfengine-source-2/libpromises/eval_context.c
---- cfengine-source/libpromises/eval_context.c	2015-03-12 21:21:31.000000000 +0100
-+++ cfengine-source-2/libpromises/eval_context.c	2017-04-11 15:03:42.047054384 +0200
-@@ -1109,16 +1109,7 @@ void EvalContextStackPushPromiseFrame(Ev
+diff --git a/libpromises/eval_context.c b/libpromises/eval_context.c
+index e4f8738..8e443f0 100644
+--- a/libpromises/eval_context.c
++++ b/libpromises/eval_context.c
+@@ -1109,16 +1109,7 @@ void EvalContextStackPushPromiseFrame(EvalContext *ctx, const Promise *owner, bo
  
      EvalContextStackPushFrame(ctx, frame);
  
@@ -19,7 +20,7 @@ diff -upr cfengine-source/libpromises/eval_context.c cfengine-source-2/libpromis
  
      if (PromiseGetBundle(owner)->source_path)
      {
-@@ -1770,9 +1761,11 @@ static Variable *VariableResolve(const E
+@@ -1770,9 +1761,11 @@ static Variable *VariableResolve(const EvalContext *ctx, const VarRef *ref)
      }
  
      VariableTable *table = GetVariableTableForScope(ctx, ref->ns, ref->scope);
@@ -32,7 +33,7 @@ diff -upr cfengine-source/libpromises/eval_context.c cfengine-source-2/libpromis
          if (var)
          {
              return var;
-@@ -1790,6 +1783,17 @@ static Variable *VariableResolve(const E
+@@ -1790,6 +1783,17 @@ static Variable *VariableResolve(const EvalContext *ctx, const VarRef *ref)
          }
      }
  
@@ -50,13 +51,14 @@ diff -upr cfengine-source/libpromises/eval_context.c cfengine-source-2/libpromis
      return NULL;
  }
  
-diff -upr cfengine-source/libpromises/var_expressions.c cfengine-source-2/libpromises/var_expressions.c
---- cfengine-source/libpromises/var_expressions.c	2015-02-27 14:18:52.000000000 +0100
-+++ cfengine-source-2/libpromises/var_expressions.c	2017-04-11 15:05:24.780133633 +0200
-@@ -316,6 +316,17 @@ VarRef *VarRefParseFromNamespaceAndScope
- 
-     if (scope)
-     {
+diff --git a/libpromises/var_expressions.c b/libpromises/var_expressions.c
+index fbbe6b7..48d1042 100644
+--- a/libpromises/var_expressions.c
++++ b/libpromises/var_expressions.c
+@@ -320,6 +320,16 @@ VarRef *VarRefParseFromNamespaceAndScope(const char *qualified_name, const char
+         {
+             _ns = NULL;
+         }
 +
 +        /*
 +         * Force considering non-special "this." variables as unqualified.
@@ -67,11 +69,10 @@ diff -upr cfengine-source/libpromises/var_expressions.c cfengine-source-2/libpro
 +            free(scope);
 +            scope = NULL;
 +        }
-+
-         if (SpecialScopeFromString(scope) != SPECIAL_SCOPE_NONE)
-         {
-             _ns = NULL;
-@@ -342,6 +353,29 @@ VarRef *VarRefParseFromNamespaceAndScope
+     }
+     else
+     {
+@@ -342,6 +352,29 @@ VarRef *VarRefParseFromNamespaceAndScope(const char *qualified_name, const char
      return ref;
  }
  
@@ -101,9 +102,10 @@ diff -upr cfengine-source/libpromises/var_expressions.c cfengine-source-2/libpro
  VarRef *VarRefParse(const char *var_ref_string)
  {
      return VarRefParseFromNamespaceAndScope(var_ref_string, NULL, NULL, CF_NS, '.');
-diff -upr cfengine-source/libpromises/var_expressions.h cfengine-source-2/libpromises/var_expressions.h
---- cfengine-source/libpromises/var_expressions.h	2014-08-29 16:44:14.000000000 +0200
-+++ cfengine-source-2/libpromises/var_expressions.h	2017-04-11 15:05:41.572146586 +0200
+diff --git a/libpromises/var_expressions.h b/libpromises/var_expressions.h
+index cd9d0a8..7ea1605 100644
+--- a/libpromises/var_expressions.h
++++ b/libpromises/var_expressions.h
 @@ -44,6 +44,8 @@ VarRef *VarRefCopy(const VarRef *ref);
  VarRef *VarRefCopyLocalized(const VarRef *ref);
  VarRef *VarRefCopyIndexless(const VarRef *ref);
