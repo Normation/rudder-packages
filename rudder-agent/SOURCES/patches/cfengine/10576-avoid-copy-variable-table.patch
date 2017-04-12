@@ -51,6 +51,19 @@ index e4f8738..8e443f0 100644
      return NULL;
  }
  
+diff --git a/libpromises/expand.c b/libpromises/expand.c
+index d121fb9..9d96cdc 100644
+--- a/libpromises/expand.c
++++ b/libpromises/expand.c
+@@ -485,7 +485,7 @@ static void ExpandAndMapIteratorsFromScalar(EvalContext *ctx,
+                 }
+ 
+                 // No need to map this.* even though it's technically qualified
+-                if (success && IsQualifiedVariable(BufferData(value)) && strcmp(ref->scope, "this") != 0)
++                if (success && IsQualifiedVariable(BufferData(value)) && (!ref->scope || (strcmp(ref->scope, "this") != 0)))
+                 {
+                     char *dotpos = strchr(substring, '.');
+                     if (dotpos)
 diff --git a/libpromises/var_expressions.c b/libpromises/var_expressions.c
 index fbbe6b7..48d1042 100644
 --- a/libpromises/var_expressions.c
