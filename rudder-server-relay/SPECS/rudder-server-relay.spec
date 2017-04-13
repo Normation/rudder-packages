@@ -458,7 +458,7 @@ rm -rf %{buildroot}
 %{ruddervardir}/shared-files/
 %{rudderlogdir}/apache2/
 %{rudderdir}/share/relay-api/
-%{rudderdir}/share/python/docopt.py
+%{rudderdir}/share/python/
 %{rudderdir}/bin/rudder-pkg
 
 # on sles11, .pyc and .pyo files are not generated, which fails with rpmbuild
