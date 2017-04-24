@@ -94,7 +94,7 @@ AutoProv: 0
 
 ## General
 BuildRequires: python, python-devel
-Requires: rudder-agent >= %{real_epoch}:%{real_version}, rsyslog, openssl, %{apache}, %{apache_tools}, python, binutils
+Requires: rudder-agent >= %{real_epoch}:%{real_version}, rsyslog, openssl, %{apache}, %{apache_tools}, python, binutils, xz
 
 ## RHEL
 %if 0%{?rhel}
