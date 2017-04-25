@@ -66,6 +66,7 @@ localdepends: ./jetty7
 
 	patch -p0 -s < patches/jetty/jetty-init-lsb-fix-debian.patch
 	patch -p0 -s < patches/jetty/jetty-init-lsb-fix-rpm.patch
+	patch -p0 -s < patches/jetty/jetty-init-softokn-version-check.patch
 
 	cp ./jetty7/bin/jetty-rpm.sh ./jetty7/bin/jetty-sles.sh
 	patch -p0 -s < patches/jetty/jetty-init-sles.patch
