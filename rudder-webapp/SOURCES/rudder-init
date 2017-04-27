@@ -35,6 +35,7 @@ INITPOLICY_PATH=$TMP_DIR/init-policy-server.ldif
 
 RUDDER_OPT="/opt/rudder"
 RUDDER_VAR="/var/rudder"
+CF_AGENT="${RUDDER_OPT}/bin/cf-agent"
 
 RUDDER_ROLES_FILE="${RUDDER_VAR}/cfengine-community/inputs/rudder-server-roles.conf"
 
@@ -364,9 +365,9 @@ echo -n "Restarting services..."
 
 ## Manually launch cf-agent to set up policy server
 # Running failsafe will create required directories (such as /var/rudder/ncf/local) and populate tools
-cf-agent -f failsafe.cf >> "$TMP_LOG" 2>&1
+"${CF_AGENT}" -f failsafe.cf >> "$TMP_LOG" 2>&1
 # Run all server-specific bundles (except propagatePromises, because they're aren't any yet)
-cf-agent -b propagatePromises,install_rsyslogd,root_component_check >> "$TMP_LOG" 2>&1
+"${CF_AGENT}" -b propagatePromises,install_rsyslogd,root_component_check >> "$TMP_LOG" 2>&1
 
 # The previous run will create /var/rudder/configuration-repository/ncf/ncf.conf but it still needs copying to /var/rudder/ncf/local/ncf.conf
 if [ -f /var/rudder/configuration-repository/ncf/ncf.conf ]; then
