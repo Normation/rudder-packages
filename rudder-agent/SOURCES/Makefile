@@ -201,6 +201,7 @@ localclean:
 	rm -rf ./files
 	rm -rf ./rudder-sources
 	rm -f ./rudder-agent.cron ../debian/rudder-agent.cron.d
+	rm -f ./rudder.8.gz
 
 veryclean:
 	rm -f ./rudder-sources.tar.bz2
