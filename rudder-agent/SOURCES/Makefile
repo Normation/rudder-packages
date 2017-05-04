@@ -217,6 +217,7 @@ localclean:
 	rm -rf $(DESTDIR)
 	rm -rf build-ssl build-lmdb build-cfengine build-perl fusion-modules build-cfengine-stamp
 	rm -rf rudder-sources
+	rm -f ./rudder.8.gz
 	[ -d cfengine-source ] && cd cfengine-source && $(MAKE) clean 2>/dev/null || true
 	[ -d lmdb-source ] && cd lmdb-source && $(MAKE) clean 2>/dev/null || true
 	[ -d openssl-source ] && cd openssl-source && $(MAKE) clean 2>/dev/null || true
