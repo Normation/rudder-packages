@@ -73,7 +73,7 @@ CP_A := cp -rp
 FIND := find
 
 # Use parameters to guess what should be packaged
-BUILD_DEPS :=
+BUILD_DEPS := ./rudder.8.gz
 INSTALL_DEPS :=
 # default: do not build openssl
 ifeq (false,$(USE_SYSTEM_OPENSSL))
