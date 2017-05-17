@@ -145,6 +145,18 @@ if [ $? -ne 0 ]; then
 fi
 
 PG_HBA_FILE=$(su - postgres -c "psql -t -P format=unaligned -c 'show hba_file';")
+%if 0%{?rhel} > 0 && 0%{?rhel} < 7
+if [ $? -ne 0 ]; then
+  # sometime postgresql fails to start on centos 6... see https://www.rudder-project.org/redmine/issues/10704
+  service ${POSTGRESQL_SERVICE_NAME} stop
+  service ${POSTGRESQL_SERVICE_NAME} start
+  PG_HBA_FILE=$(su - postgres -c "psql -t -P format=unaligned -c 'show hba_file';")
+fi
+%endif
+if [ $? -ne 0 ]; then
+  echo "Postgresql failed to start! Halting"
+  exit 1
+fi
 
 #HACK: Give rights for login without unix account
 if [ -f ${PG_HBA_FILE} ]; then
