@@ -90,8 +90,8 @@ Source11: rudder-node-to-relay
 Source12: rudder-root-rename
 Source13: rudder-passwords.conf
 Source14: rudder-plugin
-Source15: post.write_technique.commit.sh
-Source16: post.write_technique.rudderify.sh
+Source15: post.write_technique.10_commit.sh
+Source16: post.write_technique.50_rudderify.sh
 Source17: rudder-metrics-reporting
 Source18: ca-bundle.crt
 Source19: rudder-reload-cf-serverd
@@ -103,6 +103,7 @@ Source25: rudder-apache-webapp-common.conf
 Source26: rudder-apache-webapp-ssl.conf
 Source27: rudder-apache-webapp-nossl.conf
 Source28: rudder-webapp.fc
+Source29: post.write_technique.99_reload.sh
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
@@ -266,6 +267,7 @@ cp %{SOURCE13} %{buildroot}%{rudderdir}/etc/
 
 install -m 755 %{SOURCE15} %{buildroot}%{ruddervardir}/configuration-repository/ncf/ncf-hooks.d/
 install -m 755 %{SOURCE16} %{buildroot}%{ruddervardir}/configuration-repository/ncf/ncf-hooks.d/
+install -m 755 %{SOURCE29} %{buildroot}%{ruddervardir}/configuration-repository/ncf/ncf-hooks.d/
 
 # Add rudder-metrics-reporting
 cp %{SOURCE17} %{buildroot}%{rudderdir}/bin/
