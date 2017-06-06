@@ -372,6 +372,7 @@ mkdir -p %{buildroot}%{ruddervardir}/tools
 mkdir -p %{buildroot}%{ruddervardir}/ncf/common
 mkdir -p %{buildroot}%{ruddervardir}/ncf/local
 mkdir -p %{buildroot}%{rudderlogdir}/install
+mkdir -p %{buildroot}%{rudderlogdir}/agent-check
 mkdir -p %{buildroot}%{bindir}
 %if "%{?_os}" != "aix"
 mkdir -p %{buildroot}/etc/bash_completion.d
@@ -676,7 +677,7 @@ TMP_CRON=/etc/cron.d/rudder-agent-uuid
 # Add it only if the default cron file does not call check-rudder-agent script
 if [ ${CHECK_RUDDER_AGENT_CRON} -eq 0 ]; then
   if [ ! -f ${TMP_CRON} ]; then
-    echo "0,5,10,15,20,25,30,35,40,45,50,55 * * * * root /opt/rudder/bin/check-rudder-agent" > ${TMP_CRON}
+    echo "0,5,10,15,20,25,30,35,40,45,50,55 * * * * root /opt/rudder/bin/check-rudder-agent >> /var/log/rudder/agent-check/check.log 2>&1" > ${TMP_CRON}
   fi
 fi
 
@@ -707,7 +708,7 @@ then
 fi
 
 # launch rudder agent check script, it will generate an UUID on first install or repair it if needed
-nohup /opt/rudder/bin/check-rudder-agent >/dev/null 2>/dev/null &
+nohup /opt/rudder/bin/check-rudder-agent >> /var/log/rudder/agent-check/check.log 2>&1 &
 
 %preun -n rudder-agent
 #=================================================
@@ -826,6 +827,7 @@ rm -f %{_builddir}/file.list.%{name}
 %dir %{ruddervardir}/ncf/local
 %dir %{ruddervardir}/tools
 %dir %{rudderlogdir}/install
+%dir %{rudderlogdir}/agent-check
 
 %if 0%{?rhel} != 3 && "%{?_os}" != "aix"
 %config(noreplace) /etc/ld.so.conf.d/rudder.conf

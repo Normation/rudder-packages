@@ -11,3 +11,4 @@ var/rudder/tools
 var/rudder/ncf/common
 var/rudder/ncf/local
 var/log/rudder/install
+var/log/rudder/agent-check

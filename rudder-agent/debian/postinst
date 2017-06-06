@@ -154,7 +154,7 @@ case "$1" in
     # Add it only if the default cron file does not call check-rudder-agent script
     if [ ${CHECK_RUDDER_AGENT_CRON} -eq 0 ]; then
       if [ ! -f ${TMP_CRON} ]; then
-        echo "0,5,10,15,20,25,30,35,40,45,50,55 * * * * root /opt/rudder/bin/check-rudder-agent" > ${TMP_CRON}
+        echo "0,5,10,15,20,25,30,35,40,45,50,55 * * * * root /opt/rudder/bin/check-rudder-agent >> /var/log/rudder/agent-check/check.log 2>&1" > ${TMP_CRON}
       fi
     fi
 
@@ -181,7 +181,7 @@ case "$1" in
     fi
 
     # launch rudder agent check script, it will generate an UUID on first install or repair it if needed
-    nohup /opt/rudder/bin/check-rudder-agent >/dev/null 2>/dev/null &
+    nohup /opt/rudder/bin/check-rudder-agent >> /var/log/rudder/agent-check/check.log 2>&1 &
 
     ;;
 

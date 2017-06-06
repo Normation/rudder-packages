@@ -104,8 +104,8 @@ check_and_fix_cfengine_processes() {
   # But this is applied only on servers or nodes already initialized (policy server set)
   if [ ! -e ${CFE_DISABLE_FILE} -a ${NB_CF_PROCESS_RUNNING} -eq 0 -a -f ${CFE_DIR}/policy_server.dat ]; then
     echo_n "WARNING: No disable file detected and no CFEngine process neither. Relaunching CFEngine processes..."
-    ${CFE_BIN_DIR}/cf-agent -f failsafe.cf >/dev/null 2>&1
-    ${CFE_BIN_DIR}/cf-agent >/dev/null 2>&1
+    ${CFE_BIN_DIR}/cf-agent -f failsafe.cf 
+    ${CFE_BIN_DIR}/cf-agent >/dev/null
     echo " Done"
   fi
 
@@ -179,7 +179,7 @@ if [ ! -e ${UUID_FILE} ]; then
   fi
   if [ "z${LATEST_BACKUPED_UUID}" != "z" ]; then
     echo_n "WARNING: The UUID of the node does not exist. The lastest backup (${LATEST_BACKUPED_UUID}) will be recovered..."
-    ${CP_A} ${LATEST_BACKUPED_UUID} ${UUID_FILE} >/dev/null 2>&1
+    ${CP_A} ${LATEST_BACKUPED_UUID} ${UUID_FILE} >/dev/null
     echo " Done"
   else
     echo_n "WARNING: The UUID of the node does not exist and no backup exist. A new one will be generated..."
@@ -214,11 +214,11 @@ LATEST_BACKUPED_FILES=""
 
 if [ ! -e ${FILE_TO_RESTORE} ]; then
   if [ -d ${BACKUP_DIR} ]; then
-    LATEST_BACKUPED_FILES=$(ls -v1 ${BACKUP_DIR}${FILE_BACKUP_NAME}-* 2> /dev/null | tail -n1)
+    LATEST_BACKUPED_FILES=$(ls -v1 ${BACKUP_DIR}${FILE_BACKUP_NAME}-* | tail -n1)
   fi
   if [ "z${LATEST_BACKUPED_FILES}" != "z" ]; then
     echo_n "WARNING: The file ${FILE_TO_RESTORE} does not exist. The latest backup (${LATEST_BACKUPED_FILES}) will be restored..."
-    ${CP_A} ${LATEST_BACKUPED_FILES} ${FILE_TO_RESTORE} >/dev/null 2>&1
+    ${CP_A} ${LATEST_BACKUPED_FILES} ${FILE_TO_RESTORE} >/dev/null
     echo " Done"
   else
     if [ "${MANDATORY}" = "mandatory" ]; then
