@@ -36,17 +36,16 @@ http://www.rudder-project.org/HowToContribute
 This git repository contains all the packaging and patches required to build
 Rudder packages, in debian and RPM format.
 
-Currently, rudder-agent has been tested and built on Debian 5-6, CentOS 5-6,
-RHEL 5-6, Ubuntu 10.04-11.04, SLES 10-11. Other packages are necessary on the
-Rudder root server only, and have only been tested and built on Debian 5-6 and
-SLES 11.
-
 === Usage
 
 The easiest way to test and use Rudder is to install it from the provided Linux packages, 
-see: http://www.rudder-project.org/foswiki/Main/Installation
+see: https://www.rudder-project.org/site/get-rudder/downloads/
 
-You can also build these packages yourself. Each directory in this git
+You can also build these packages yourself.
+There as detailed build instructions for Rudder agent in the manual:
+https://www.rudder-project.org/doc-4.1/_building_the_rudder_agent.html
+
+Each directory in this git
 repository contains the packaging for one package, including the following
 
 .directories
@@ -65,8 +64,5 @@ by entering the SOURCES directory and running make:
 $ cd <package name>/SOURCES && make
 ----
 
-IMPORTANT: GIT_BRANCH_RUDDER is not defined by default. You have to replace "<put branch or tag name here>" by a branch or a tag name.
+IMPORTANT: RUDDER_VERSION_TO_PACKAGE is not defined by default. You have to replace "<put branch or tag name here>" by a branch or a tag name.
 
-.Branches
-* branches/rudder/2.3 (maintained versions)
-* origin/master (alpha version)
