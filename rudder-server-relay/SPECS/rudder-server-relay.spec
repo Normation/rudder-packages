@@ -253,6 +253,19 @@ if ! getent group %{rudder_group} > /dev/null; then
   echo " Done"
 fi
 
+# Create the rudder-policy-reader group
+if ! getent group rudder-policy-reader > /dev/null; then
+  echo -n "INFO: Creating group rudder-policy-reader..."
+  groupadd --system rudder-policy-reader
+%if 0%{?suse_version}
+  usermod -a -G rudder-policy-reader wwwrun
+%endif
+%if 0%{?rhel}
+  usermod -a -G rudder-policy-reader apache
+%endif
+  echo " Done"
+fi
+
 # Create the rudder user
 if ! getent passwd %{rudder_user} >/dev/null; then
   echo -n "INFO: Creating the %{rudder_user} user..."
