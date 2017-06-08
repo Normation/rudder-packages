@@ -467,6 +467,7 @@ rm -f %{_builddir}/file.list.%{name}
 %dir %{ruddervardir}/ncf/local
 %dir %{ruddervardir}/tools
 %dir %{rudderlogdir}/install
+%dir %{rudderlogdir}/agent-check
 
 %if 0%{?rhel} != 3 && "%{?_os}" != "aix"
 %config /etc/ld.so.conf.d/rudder.conf
