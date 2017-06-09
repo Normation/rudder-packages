@@ -82,6 +82,7 @@ Source9: rudder-relay.cron
 Source10: rudder-relay.sudo
 Source11: rudder-relay.fc
 Source12: rudder-relay.te
+Source13: rudder-apache-relay-ssl.conf
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
@@ -227,6 +228,7 @@ cp %{_sourcedir}/docopt.py %{buildroot}%{rudderdir}/share/python/
 # Others
 install -m 644 %{SOURCE1} %{buildroot}/etc/%{apache_vhost_dir}/rudder.conf
 install -m 644 %{SOURCE5} %{buildroot}%{rudderdir}/etc/rudder-apache-relay-common.conf
+install -m 644 %{SOURCE13} %{buildroot}%{rudderdir}/etc/rudder-apache-relay-ssl.conf
 install -m 644 %{SOURCE6} %{buildroot}/etc/sysconfig/rudder-relay-apache
 install -m 644 %{SOURCE9} %{buildroot}/etc/cron.d/rudder-relay
 install -m 644 %{SOURCE10} %{buildroot}/etc/sudoers.d/rudder-relay
@@ -465,6 +467,7 @@ rm -rf %{buildroot}
 /etc/%{apache_vhost_dir}/
 %config(noreplace) /etc/%{apache_vhost_dir}/rudder.conf
 %config(noreplace) %{rudderdir}/etc/rudder-apache-relay-common.conf
+%config(noreplace) %{rudderdir}/etc/rudder-apache-relay-ssl.conf
 %config(noreplace) %{rudderdir}/etc/rudder-networks.conf
 %config(noreplace) %{rudderdir}/etc/rudder-networks-24.conf
 %config(noreplace) %{rudderdir}/etc/rudder-networks-policy-server.conf
