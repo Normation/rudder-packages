@@ -9,7 +9,6 @@ opt/rudder/etc/hooks.d
 opt/rudder/share/tools
 opt/rudder/share/plugins
 opt/rudder/share/upgrade-tools
-var/rudder/share
 var/rudder/backup
 var/rudder/files
 var/rudder/lock

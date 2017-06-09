@@ -5,5 +5,6 @@ opt/rudder/share/python
 var/rudder/inventories/accepted-nodes-updates
 var/rudder/inventories/incoming
 var/rudder/shared-files
+var/rudder/share
 var/log/rudder/apache2
 etc/apache2/conf-available

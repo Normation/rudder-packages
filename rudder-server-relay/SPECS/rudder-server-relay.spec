@@ -206,6 +206,7 @@ mkdir -p %{buildroot}%{rudderdir}/share/selinux/
 mkdir -p %{buildroot}%{ruddervardir}/inventories/incoming
 mkdir -p %{buildroot}%{ruddervardir}/inventories/accepted-nodes-updates
 mkdir -p %{buildroot}%{ruddervardir}/shared-files
+mkdir -p %{buildroot}%{ruddervardir}/share
 mkdir -p %{buildroot}%{rudderlogdir}/apache2/
 mkdir -p %{buildroot}/etc/sysconfig/
 mkdir -p %{buildroot}/etc/cron.d/
@@ -265,6 +266,11 @@ if ! getent group rudder-policy-reader > /dev/null; then
 %endif
   echo " Done"
 fi
+
+# share directory with rudder-policy-reader
+chgrp -R rudder-policy-reader %{buildroot}%{ruddervardir}/share
+chmod 770 /var/rudder/share
+find %{buildroot}%{ruddervardir}/share -type d | xargs chmod g+s
 
 # Create the rudder user
 if ! getent passwd %{rudder_user} >/dev/null; then
@@ -469,6 +475,7 @@ rm -rf %{buildroot}
 %{ruddervardir}/inventories/incoming
 %{ruddervardir}/inventories/accepted-nodes-updates
 %{ruddervardir}/shared-files/
+%{ruddervardir}/share/
 %{rudderlogdir}/apache2/
 %{rudderdir}/share/relay-api/
 %{rudderdir}/share/python/
