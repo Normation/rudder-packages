@@ -142,6 +142,7 @@ install: build $(INSTALL_DEPS) install-cfengine initial-promises initial-ncf rud
 	mkdir -p $(DESTDIR)/var/rudder/ncf/local
 	mkdir -p $(DESTDIR)/var/rudder/ncf/common
 	mkdir -p $(DESTDIR)/var/log/rudder/install
+	mkdir -p $(DESTDIR)/var/log/rudder/agent-check
 	mkdir -p $(DESTDIR)/usr/bin
 	mkdir -p $(DESTDIR)/etc/cron.d
 
