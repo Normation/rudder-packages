@@ -362,6 +362,36 @@ upgrade_ncf() {
     chmod -R o-rwx ${CONFIGURATION_REPOSITORY}/ncf/50_techniques/
   fi
 
+  # 4.2.0: Rename hooks to have a better ordering of hooks
+  CURRENT="$(pwd)"
+  cd ${CONFIGURATION_REPOSITORY}/ncf
+  for hook_file in commit.sh rudderify.sh; do
+    hook=ncf-hooks.d/post.write_technique.${hook_file}
+    if [ -f ${hook} ]; then
+      git ls-files --error-unmatch ${hook} >/dev/null 2>&1
+      MANAGED_BY_GIT=$?
+      if [ ${MANAGED_BY_GIT} -eq 0 ]; then
+        git rm ${hook}
+        git commit -m "Remove technique editor hook \"${hook}\""
+      else
+        rm ${hook}
+      fi
+    fi
+  done
+  cd ${CURRENT}
+
+  # all, started from 4.2.0: Commit new hooks
+  CURRENT="$(pwd)"
+  cd ${CONFIGURATION_REPOSITORY}/ncf
+  for hook_file in 10_commit.sh 50_rudderify.sh 90_reload.sh; do
+    hook=ncf-hooks.d/post.write_technique.${hook_file}
+    if [ -f ${hook} ]; then
+      git add ${hook}
+      git commit -m "Update technique editor hook \"${hook}\"" --allow-empty
+    fi
+  done
+  cd ${CURRENT}
+
 }
 
 # 3.2.0: Call rudderify on all local ncf techniques to make sure the promises will be properly generated
