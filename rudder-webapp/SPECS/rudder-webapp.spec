@@ -103,7 +103,7 @@ Source25: rudder-apache-webapp-common.conf
 Source26: rudder-apache-webapp-ssl.conf
 Source27: rudder-apache-webapp-nossl.conf
 Source28: rudder-webapp.fc
-Source29: post.write_technique.99_reload.sh
+Source29: post.write_technique.90_reload.sh
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
