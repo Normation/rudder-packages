@@ -149,7 +149,7 @@ binary-arch: install
 	dh_installman
 	dh_link
 	dh_strip
-	dh_compress -X.pdf
+	dh_compress -X.pdf -X.ico
 	dh_fixperms
 #	dh_perl
 #	dh_makeshlibs
