@@ -48,7 +48,7 @@ import docopt
 import sys
 from subprocess import Popen,PIPE
 
-RUDDER_VERSION="4.1"
+RUDDER_VERSION="4.2"
 DB = { "plugins": { } }
 DB_DIRECTORY = '/var/rudder/packages'
 # Contains the installed package database
