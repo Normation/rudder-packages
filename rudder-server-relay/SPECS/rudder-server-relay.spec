@@ -83,6 +83,8 @@ Source10: rudder-relay.sudo
 Source11: rudder-relay.fc
 Source12: rudder-relay.te
 Source13: rudder-apache-relay-ssl.conf
+Source14: rudder-share-acl.conf
+Source15: rudder-share-acl-24.conf
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
@@ -236,6 +238,8 @@ install -m 644 %{SOURCE10} %{buildroot}/etc/sudoers.d/rudder-relay
 # Copy stub rudder-networks*.conf
 cp %{SOURCE2} %{buildroot}%{rudderdir}/etc/
 cp %{SOURCE3} %{buildroot}%{rudderdir}/etc/
+cp %{SOURCE14} %{buildroot}%{rudderdir}/etc/
+cp %{SOURCE15} %{buildroot}%{rudderdir}/etc/
 cp %{SOURCE7} %{buildroot}%{rudderdir}/etc/
 cp %{SOURCE8} %{buildroot}%{rudderdir}/etc/
 
@@ -374,6 +378,12 @@ if [ ! -f /opt/rudder/etc/ssl/rudder.crt ] || [ ! -f /opt/rudder/etc/ssl/rudder.
   echo " Done"
 fi
 
+# put this certificate in ca.cert if it doesn't exist (we need at least on certificate there)
+if [ ! -f /opt/rudder/etc/ssl/ca.cert ]; then
+  cp /opt/rudder/etc/ssl/rudder.crt /opt/rudder/etc/ssl/ca.cert
+fi
+
+
 # Move old virtual hosts out of the way
 for OLD_VHOST in rudder-default rudder-default-ssl rudder-default.conf rudder-default-ssl.conf rudder-vhost.conf rudder-vhost-ssl.conf rudder-relay-vhost.conf rudder-relay-vhost-ssl.conf; do
 	if [ -f /etc/%{apache_vhost_dir}/${OLD_VHOST} ]; then
@@ -470,6 +480,8 @@ rm -rf %{buildroot}
 %config(noreplace) %{rudderdir}/etc/rudder-apache-relay-ssl.conf
 %config(noreplace) %{rudderdir}/etc/rudder-networks.conf
 %config(noreplace) %{rudderdir}/etc/rudder-networks-24.conf
+%config(noreplace) %{rudderdir}/etc/rudder-share-acl.conf
+%config(noreplace) %{rudderdir}/etc/rudder-share-acl-24.conf
 %config(noreplace) %{rudderdir}/etc/rudder-networks-policy-server.conf
 %config(noreplace) %{rudderdir}/etc/rudder-networks-policy-server-24.conf
 %config(noreplace) /etc/sysconfig/rudder-relay-apache

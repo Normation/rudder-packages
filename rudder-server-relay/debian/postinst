@@ -113,6 +113,11 @@ case "$1" in
         echo " Done"
       fi
 
+      # put this certificate in ca.cert if it doesn't exist (we need at least on certificate there)
+      if [ ! -f /opt/rudder/etc/ssl/ca.cert ]; then
+        cp /opt/rudder/etc/ssl/rudder.crt /opt/rudder/etc/ssl/ca.cert
+      fi
+
       # Move old virtual hosts out of the way
       for OLD_VHOST in rudder-default rudder-default-ssl rudder-vhost.conf rudder-vhost-ssl.conf rudder-relay-vhost.conf rudder-relay-vhost-ssl.conf; do
         if [ -f /etc/apache2/sites-available/${OLD_VHOST} ]; then
