@@ -83,8 +83,6 @@ Source10: rudder-relay.sudo
 Source11: rudder-relay.fc
 Source12: rudder-relay.te
 Source13: rudder-apache-relay-ssl.conf
-Source14: rudder-share-acl.conf
-Source15: rudder-share-acl-24.conf
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
@@ -238,8 +236,6 @@ install -m 644 %{SOURCE10} %{buildroot}/etc/sudoers.d/rudder-relay
 # Copy stub rudder-networks*.conf
 cp %{SOURCE2} %{buildroot}%{rudderdir}/etc/
 cp %{SOURCE3} %{buildroot}%{rudderdir}/etc/
-cp %{SOURCE14} %{buildroot}%{rudderdir}/etc/
-cp %{SOURCE15} %{buildroot}%{rudderdir}/etc/
 cp %{SOURCE7} %{buildroot}%{rudderdir}/etc/
 cp %{SOURCE8} %{buildroot}%{rudderdir}/etc/
 
@@ -480,8 +476,6 @@ rm -rf %{buildroot}
 %config(noreplace) %{rudderdir}/etc/rudder-apache-relay-ssl.conf
 %config(noreplace) %{rudderdir}/etc/rudder-networks.conf
 %config(noreplace) %{rudderdir}/etc/rudder-networks-24.conf
-%config(noreplace) %{rudderdir}/etc/rudder-share-acl.conf
-%config(noreplace) %{rudderdir}/etc/rudder-share-acl-24.conf
 %config(noreplace) %{rudderdir}/etc/rudder-networks-policy-server.conf
 %config(noreplace) %{rudderdir}/etc/rudder-networks-policy-server-24.conf
 %config(noreplace) /etc/sysconfig/rudder-relay-apache
