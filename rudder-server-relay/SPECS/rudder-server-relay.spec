@@ -394,19 +394,30 @@ if type sestatus >/dev/null 2>&1 && sestatus | grep -q "enabled"; then
 fi
 %endif
 
-# Do this ONLY at first install
-if [ $1 -eq 1 ]
-then
-  echo ""
-  echo "*****************************************************************************************"
-  echo "INFO: rudder-server-relay setup complete.                                                "
-  echo "INFO:                                                                                    "
-  echo "INFO: * If you are installing a root server, configuration is automatically done         "
-  echo "INFO: * If you are installing a simple relay, run:                                       "
-  echo "INFO:   '/opt/rudder/bin/rudder-node-to-relay $(cat /opt/rudder/etc/uuid.hive)'          "
-  echo "INFO:   on your root server to complete this node transition to a relay server.          "
-  echo "INFO:   Please look at the documentation for details (Section 'Relay servers')           "
-  echo "*****************************************************************************************"
+# Only output this notice during initial installation
+if [ $1 -eq 1 ]; then
+  echo "INFO: rudder-server-relay setup complete."
+  uuid_file="/opt/rudder/etc/uuid.hive"
+  if [ -f "${uuid_file}" ]; then
+    uuid=$(cat ${uuid_file})
+    if [ "${uuid}" != "root" ]; then
+      echo ""
+      echo "*****************************************************************************************"
+      echo "INFO: Now run on your root server:                                                             "
+      echo "INFO:   '/opt/rudder/bin/rudder-node-to-relay ${uuid}"
+      echo "INFO: Please look at the documentation for details (Section 'Relay servers')           "
+      echo "*******************************************************************i*********************"
+    fi
+  else # if for some reason there is no uuid here
+    echo ""
+    echo "*****************************************************************************************"
+    echo "INFO: * If you are installing a root server, configuration is automatically done         "
+    echo "INFO: * If you are installing a simple relay, run:                                       "
+    echo "INFO:   '/opt/rudder/bin/rudder-node-to-relay <your uuid>'          "
+    echo "INFO:   on your root server to complete this node transition to a relay server.          "
+    echo "INFO:   Please look at the documentation for details (Section 'Relay servers')           "
+    echo "*****************************************************************************************"
+  fi
 fi
 
 %postun -n rudder-server-relay
