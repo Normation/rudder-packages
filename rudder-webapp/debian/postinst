@@ -46,13 +46,6 @@ case "$1" in
   service apache2 restart >/dev/null 2>&1
   echo " Done"
 
-  # Run any upgrades
-  # Note this must happen *before* creating the technique store, as it was moved in version 2.3.2
-  # and creating it manually would break the upgrade logic
-  echo "INFO: Launching script to check if a migration is needed"
-  /opt/rudder/bin/rudder-upgrade
-  echo "INFO: End of migration script"
-
 	# Create and populate technique store
 	if [ ! -d /var/rudder/configuration-repository/shared-files ]; then mkdir -p /var/rudder/configuration-repository/shared-files; fi
 	if [ ! -d /var/rudder/configuration-repository/techniques ]; then
@@ -87,6 +80,11 @@ case "$1" in
       git config core.sharedRepository group
     fi
   fi
+
+  # Run any upgrades
+  echo "INFO: Launching script to check if a migration is needed"
+  /opt/rudder/bin/rudder-upgrade
+  echo "INFO: End of migration script"
 
   # Create the configuration-repository group if it does not exist
   if ! getent group rudder > /dev/null; then
