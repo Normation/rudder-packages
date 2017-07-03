@@ -201,6 +201,11 @@ def jar_status(name, enable):
 
 def remove_files(metadata):
   for filename in reversed(metadata['files']):
+    # ignore already removed files
+    if not os.path.exists(filename):
+      print("Skipping removal of " + filename + " as it does not exist")
+      continue
+
     # remove old files
     if filename.endswith('/'):
       try:
