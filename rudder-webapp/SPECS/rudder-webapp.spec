@@ -375,13 +375,6 @@ chmod 751 /var/rudder/inventories
 chmod 755 -R %{rudderdir}/share/tools
 chmod 655 -R %{rudderdir}/share/load-page
 
-# Run any upgrades
-# Note this must happen *before* creating the technique store, as it was moved in version 2.3.2
-# and creating it manually would break the upgrade logic
-echo "INFO: Launching script to check if a migration is needed"
-%{rudderdir}/bin/rudder-upgrade
-echo "INFO: End of migration script"
-
 # Create and populate technique store
 if [ ! -d /var/rudder/configuration-repository/shared-files ]; then
   mkdir -p /var/rudder/configuration-repository/shared-files
@@ -445,6 +438,11 @@ else
   fi
 
 fi
+
+# Run any upgrades
+echo "INFO: Launching script to check if a migration is needed"
+%{rudderdir}/bin/rudder-upgrade
+echo "INFO: End of migration script"
 
 # Adjust permissions on /var/rudder/configuration-repository
 chgrp -R %{config_repository_group} /var/rudder/configuration-repository
