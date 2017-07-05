@@ -320,7 +320,10 @@ set_git_branch() {
 upgrade_system_techniques() {
   STEP="Upgrade system Techniques"
 
-  update_rudder_repository_from_system_directory /opt/rudder/share/techniques/system/ techniques/system/
+  update_rudder_repository_from_system_directory /opt/rudder/share/techniques/system/common/ techniques/system/common/
+  update_rudder_repository_from_system_directory /opt/rudder/share/techniques/system/distributePolicy/ techniques/system/distributePolicy/
+  update_rudder_repository_from_system_directory /opt/rudder/share/techniques/system/inventory/ techniques/system/inventory/
+  update_rudder_repository_from_system_directory /opt/rudder/share/techniques/system/server-roles/ techniques/system/server-roles/
 }
 
 # Upgrade ncf from ncf package and check ncf.conf
