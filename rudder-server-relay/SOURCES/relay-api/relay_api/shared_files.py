@@ -5,6 +5,7 @@ import re
 import os
 import datetime
 import requests
+import hashlib
 
 # disable ssl warning on rudder connection in all the possible ways
 try:
@@ -26,6 +27,8 @@ from Crypto.PublicKey import RSA
 
 SIGNATURE_FORMAT="header=rudder-signature-v1"
 METADATA_EXTENSION=".metadata"
+BLOCKSIZE = 65536
+SHARED_FOLDER="/var/rudder/configuration-repository/shared-files"
 
 # convert a byte string to hexadecimal representation
 toHex = lambda x:"".join([hex(ord(c))[2:].zfill(2) for c in x])
@@ -177,6 +180,13 @@ def get_metadata_hash(metadata_file):
       fd.close()
       raise ValueError("ERROR invalid storage: " + line)
 
+def get_shared_folder_hash(file_path, hasher):
+  with open(file_path, 'rb') as afile:
+    buf = afile.read(BLOCKSIZE)
+    while len(buf) > 0:
+      hasher.update(buf)
+      buf = afile.read(BLOCKSIZE)
+  return hasher.hexdigest()
 
 # =====================
 #  Manage PUT API call
@@ -292,3 +302,32 @@ def shared_files_head_forward(url):
   if req.status_code == 404:
     return False
   raise ValueError("ERROR from server:" + str(req.status_code))
+
+# ======================
+# Share folder HEAD API call
+# ======================
+# Parameters:
+# - file_name    Name of the file in shared folder
+# - file_hash    The hash to compare with, can be None or Empty
+# - hash_type    hash algorithm
+# Returns correponding return code, 404 (file does not exists), 304 (hash is the same, not modified), 200 (file is different or no Hash sent, download)
+# 500 if hash_type is invalid
+def shared_folder_head(file_name, file_hash, hash_type):
+  # where to find file
+  file_path = os.path.join(SHARED_FOLDER, file_name)
+  # check if the file and signature exist
+  if not os.path.isfile(file_path):
+    return 404
+  else:
+    if file_hash is None or file_hash == "":
+      return 200
+    try:
+      hasher = hashlib.new(hash_type)
+    except:
+      return 500
+    # check hash
+    hash_value = get_shared_folder_hash(file_path, hasher)
+    if hash_value == file_hash:
+      return 304
+    else:
+      return 200
