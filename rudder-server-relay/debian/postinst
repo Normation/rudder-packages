@@ -121,9 +121,9 @@ case "$1" in
       # Move old virtual hosts out of the way
       for OLD_VHOST in rudder-default rudder-default-ssl rudder-vhost.conf rudder-vhost-ssl.conf rudder-relay-vhost.conf rudder-relay-vhost-ssl.conf; do
         if [ -f /etc/apache2/sites-available/${OLD_VHOST} ]; then
-          echo -n "INFO: An old rudder virtual host file has been detected (${OLD_VHOST}), it will be moved to /var/backups."
-          mkdir -p /var/backups
-          mv /etc/apache2/sites-available/${OLD_VHOST} /var/backups/${OLD_VHOST}-$(date +%s)
+          echo -n "INFO: An old rudder virtual host file has been detected (${OLD_VHOST}), it will be moved to /var/backups/rudder/."
+          mkdir -p /var/backups/rudder
+          mv /etc/apache2/sites-available/${OLD_VHOST} /var/backups/rudder/${OLD_VHOST}-$(date +%s)
           echo " Done"
         fi
       done
