@@ -1,5 +1,5 @@
 from relay_api import app
-from relay_api.shared_files import shared_files_put, shared_files_head, shared_files_put_forward, shared_files_head_forward
+from relay_api.shared_files import shared_files_put, shared_files_head, shared_files_put_forward, shared_files_head_forward, shared_folder_head
 from relay_api.remote_run import remote_run_generic
 from relay_api.common import *
 
@@ -44,6 +44,20 @@ def put_file(target_uuid, source_uuid, file_id):
   except Exception as e:
     return format_error(e, API_DEBUGINFO)
 
+
+@app.route("/shared-folder/<path:file_name>", methods=["HEAD"])
+def head_shared_folder(file_name):
+  try:
+    hash_type = request.args["hash_type"]
+    if hash_type is None:
+      hash_type = "sha256"
+    file_hash = request.args["hash"]
+    return_code = shared_folder_head(file_name, file_hash, hash_type)
+    return format_response("", return_code)
+
+  except Exception as e:
+    print(traceback.format_exc())
+    return format_error(e, API_DEBUGINFO)
 
 @app.route('/shared-files/<string:target_uuid>/<string:source_uuid>/<string:file_id>', methods=['HEAD'])
 def head_file(target_uuid, source_uuid, file_id):
