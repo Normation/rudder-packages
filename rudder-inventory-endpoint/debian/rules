@@ -39,7 +39,7 @@ java8:
 	dpkg -l | egrep "openjdk-8-jdk|oracle-java8-installer" || ( echo "Installing JDK"; \
 		dist=$$(grep '^deb' /etc/apt/sources.list | grep -v backports | head -n1  | LANG=C perl -pe 's/^deb .*? (\w+) .*/$$1/') ;\
 		[ $$dist = "wheezy" ] && dist="precise"; \
-		if [ $$dist = "xenial" ]; then \
+		if [ $$dist = "xenial" ] || [ $$dist = "stretch" ]; then \
 			DEBIAN_FRONTEND=noninteractive apt-get install -y  openjdk-8-jdk; \
 		elif [ $$dist = "jessie" ]; then \
 			echo "deb http://ftp.fr.debian.org/debian/ jessie-backports main" > /etc/apt/sources.list.d/openjdk.list ; \
