@@ -38,7 +38,7 @@ case "$1" in
 
       if [ -x /opt/ruder/bin/rudder-pkg ]
       then
-        /opt/ruder/bin/rudder-pkg save-status > /tmp/rudder-plugins-upgrade
+        /opt/ruder/bin/rudder-pkg plugin save-status > /tmp/rudder-plugins-upgrade
       fi
 
 
