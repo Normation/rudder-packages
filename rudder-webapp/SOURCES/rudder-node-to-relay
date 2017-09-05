@@ -161,13 +161,13 @@ ${LDAPADD} <<EOF >/dev/null 2>&1 || echo -n " entries already exist."
 dn: nodeGroupId=hasPolicyServer-${RELAY_UUID},groupCategoryId=SystemGroups,groupCategoryId=GroupRoot,ou=Rudder,cn=rudder-configuration
 objectClass: nodeGroup
 objectClass: top
-cn: All nodes managed by ${RELAY_UUID} policy server
-description: All nodes known by Rudder directly connected to the ${RELAY_UUID} server
+cn: All classic Nodes managed by ${RELAY_UUID} policy server
+description: All classic Nodes known by Rudder directly connected to the ${RELAY_UUID} server. This group exists only as internal purpose and should not be used to configure Nodes.
 isDynamic: TRUE
 nodeGroupId: hasPolicyServer-${RELAY_UUID}
 isSystem: TRUE
 isEnabled: TRUE
-jsonNodeGroupQuery: {"select":"nodeAndPolicyServer","composition":"And","where":[{"objectType":"node","attribute":"policyServerId","comparator":"eq","value":"${RELAY_UUID}"}]}
+jsonNodeGroupQuery: {"select":"nodeAndPolicyServer","composition":"And","where":[{"objectType":"node","attribute":"policyServerId","comparator":"eq","value":"${RELAY_UUID}"},{"objectType":"node","attribute":"agentName","comparator":"eq","value":"cfengine"}]}
 ${EXISTING_NODEID}
 
 dn: ruleTarget=policyServer:${RELAY_UUID},groupCategoryId=SystemGroups,groupCategoryId=GroupRoot,ou=Rudder,cn=rudder-configuration
