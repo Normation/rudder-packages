@@ -287,6 +287,9 @@ then
   message "info" "[INFO] Using /etc/default/$PROG_NAME for configuration"
 fi
 
+# Recompute aggregated value after default file sourcing
+SLAPD_SERVICES="ldap://$IP:$PORT"
+
 #====================================================================
 # Initiate 'su' command
 #====================================================================
