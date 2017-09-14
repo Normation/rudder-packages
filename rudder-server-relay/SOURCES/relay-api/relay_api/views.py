@@ -44,14 +44,20 @@ def put_file(target_uuid, source_uuid, file_id):
   except Exception as e:
     return format_error(e, API_DEBUGINFO)
 
-
-@app.route("/shared-folder/<path:file_name>", methods=["HEAD"])
+# mod_wsgi rewrites HEAD request to GET in some cases (don't know exactly when, but it depends on apache output filter, and breaks centos7 and not ubuntu 16)
+# Broken with wod_wsgi 3.4, works with mod_wsgi 4.3.0
+# GET requests here a rewritten HEAD, Real GET while be send at another location by a rewrite (cond and rule in rudder-apache-relay-ssl.conf file)
+# Some explanation: http://blog.dscpl.com.au/2009/10/wsgi-issues-with-http-head-requests.html
+# Some workaround: https://github.com/GrahamDumpleton/mod_wsgi/issues/2
+@app.route("/shared-folder/<path:file_name>", methods=["HEAD", "GET"])
 def head_shared_folder(file_name):
   try:
-    hash_type = request.args["hash_type"]
-    if hash_type is None:
-      hash_type = "sha256"
-    file_hash = request.args["hash"]
+    hash_type = "sha256"
+    if "hash_type" in request.args:
+      hash_type = request.args["hash_type"]
+    file_hash = None
+    if "hash" in request.args:
+      file_hash = request.args["hash"]
     return_code = shared_folder_head(file_name, file_hash, hash_type)
     return format_response("", return_code)
 
