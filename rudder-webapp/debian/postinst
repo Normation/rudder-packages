@@ -132,7 +132,7 @@ case "$1" in
 
   if [ -f /tmp/rudder-plugins-upgrade ]
   then
-    /opt/ruder/bin/rudder-pkg plugin restore-status < /tmp/rudder-plugins-upgrade
+    /opt/rudder/bin/rudder-pkg plugin restore-status < /tmp/rudder-plugins-upgrade
   fi
 
   # Reload systemd when it is available so that it creates sysv-init shims
