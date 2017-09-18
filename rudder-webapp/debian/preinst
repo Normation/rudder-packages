@@ -36,9 +36,9 @@ case "$1" in
       #if the stops fails, it's probably because it was not started
       service rudder-jetty stop || true
 
-      if [ -x /opt/ruder/bin/rudder-pkg ]
+      if [ -x /opt/rudder/bin/rudder-pkg ]
       then
-        /opt/ruder/bin/rudder-pkg plugin save-status > /tmp/rudder-plugins-upgrade
+        /opt/rudder/bin/rudder-pkg plugin save-status > /tmp/rudder-plugins-upgrade
       fi
 
 

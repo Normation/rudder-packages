@@ -291,9 +291,9 @@ install -m 644 %{SOURCE23} %{buildroot}%{ruddervardir}/configuration-repository/
 # Pre Installation
 #=================================================
 service rudder-jetty stop
-if [ -x /opt/ruder/bin/rudder-pkg ]
+if [ -x /opt/rudder/bin/rudder-pkg ]
 then
-  /opt/ruder/bin/rudder-pkg plugin save-status > /tmp/rudder-plugins-upgrade
+  /opt/rudder/bin/rudder-pkg plugin save-status > /tmp/rudder-plugins-upgrade
 fi
 
 %post -n rudder-webapp
@@ -465,7 +465,7 @@ fi
 
 if [ -f /tmp/rudder-plugins-upgrade ]
 then
-  /opt/ruder/bin/rudder-pkg plugin restore-status < /tmp/rudder-plugins-upgrade
+  /opt/rudder/bin/rudder-pkg plugin restore-status < /tmp/rudder-plugins-upgrade
 fi
 
 service rudder-jetty start
