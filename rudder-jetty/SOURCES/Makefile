@@ -70,6 +70,7 @@ localdepends: ./jetty7
 
 	cp ./jetty7/bin/jetty-rpm.sh ./jetty7/bin/jetty-sles.sh
 	patch -p0 -s < patches/jetty/jetty-init-sles.patch
+	patch -p0 -s < patches/jetty/jetty-init-ulimit.patch
 	
 	# Provide jetty's init script to the debian package's standard location
 	cp ./jetty7/bin/jetty-debian.sh ../debian/rudder-jetty.init
