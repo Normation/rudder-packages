@@ -287,6 +287,10 @@ def check_compatibility():
 
 def plugin_save_status():
   enabled = []
+
+  if not os.path.exists(PLUGINS_CONTEXT_XML):
+    return
+
   text = open(PLUGINS_CONTEXT_XML).read()
   match = re.search(r'<Set name="extraClasspath">(.*?)</Set>', text)
   if match:
