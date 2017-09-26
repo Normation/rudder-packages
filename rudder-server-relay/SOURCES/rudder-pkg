@@ -7,6 +7,7 @@ Usage:
     rudder-pkg install-file <package.rpkg>
     rudder-pkg list
     rudder-pkg remove <package>
+    rudder-pkg rudder-postupgrade
     rudder-pkg plugin save-status
     rudder-pkg plugin restore-status
     rudder-pkg plugin enable <plugin>
@@ -317,6 +318,12 @@ def plugin_restore_status():
   check_compatibility()
 
 
+def rudder_postupgrade()
+  for package in DB["plugins"]:
+    script_dir = DB_DIRECTORY + "/" + package_name
+    run_script("postinst", script_dir, True)
+
+
 def plugin_status(plugin, status):
   if plugin not in DB["plugins"]:
     fail("Unknown plugin " + plugin)
@@ -337,6 +344,8 @@ if __name__ == "__main__":
     package_list()
   elif args['remove']:
     remove(args['<package>'])
+  elif args['rudder-postupgrade']:
+    rudder_postupgrade()
   elif args['plugin']:
     if args['save-status']:
       plugin_save_status()
