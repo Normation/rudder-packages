@@ -318,7 +318,7 @@ def plugin_restore_status():
   check_compatibility()
 
 
-def rudder_postupgrade()
+def rudder_postupgrade():
   for package in DB["plugins"]:
     script_dir = DB_DIRECTORY + "/" + package_name
     run_script("postinst", script_dir, True)
