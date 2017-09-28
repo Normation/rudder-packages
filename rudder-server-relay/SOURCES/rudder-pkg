@@ -319,8 +319,8 @@ def plugin_restore_status():
 
 
 def rudder_postupgrade():
-  for package in DB["plugins"]:
-    script_dir = DB_DIRECTORY + "/" + package_name
+  for plugin in DB["plugins"]:
+    script_dir = DB_DIRECTORY + "/" + plugin
     run_script("postinst", script_dir, True)
 
 
