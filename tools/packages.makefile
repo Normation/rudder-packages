@@ -17,15 +17,11 @@
 #####################################################################################
 
 # This Makefile contains a call to prepare source dependencies (localdepends)
-# Everything else dedicated to building RPM packages
-# Building debian packages is done in the $(TOOLS_DIR)/build-package.makefile file
-
-include $(TOOLS_DIR)/build-package.makefile
 
 ARCHI := $(shell uname -m)
-OS := $(shell . ../detect_os.sh && echo $${OS})
-OSSP := $(shell . ../detect_os.sh && echo $${OSSP})
-OSVERSION := $(shell . ../detect_os.sh && echo $${OSVERSION})
+OS := $(shell . ../tools/detect_os.sh && echo $${OS})
+OSSP := $(shell . ../tools/detect_os.sh && echo $${OSSP})
+OSVERSION := $(shell . ../tools/detect_os.sh && echo $${OSVERSION})
 
 BUILDREQUIRESSLES := $(shell grep -s "SLES${OSVERSION}:" SOURCES/.dependencies | cut -d ':' -f2)
 BUILDREQUIRESSLESSP := $(shell grep -s "SLES${OSVERSION}SP${OSSP}:" SOURCES/.dependencies | cut -d ':' -f2)
@@ -41,6 +37,39 @@ ifeq ($(ARCHI),x86_64)
 JDKURL := http://www.normation.com/tarball/java/jdk-8u101-linux-x86_64.rpm
 endif
 
+# Configuration: change these values as needed
+ARCH = amd64
+DISTRIBUTION = jessie
+WORKDIR = /tmp/work
+RESULTDIR = /tmp/result
+PROXY = http://filer.interne.normation.com:3128
+DEBMIRROR = http://mirrors.online.net/debian/
+DEBCOMPONENTS = main
+OTHERMIRROR_OPTIONS =
+KEYRING = '/usr/share/keyrings/debian-archive-keyring.gpg'
+
+# Other directory paths derived from main configuration above
+CCACHEDIR = $(WORKDIR)/ccache
+M2REPOSITORY = /tmp/m2-repository
+BASETGZ = /srv/cache/pbuilder/base-debian-$(DISTRIBUTION)-$(ARCH).tgz
+
+# This Makefile should be called with variables BUILD_ROOT and TOOLS_DIR defined
+
+# Options to debootstrap a new environment: define mirror, distribution and arch.
+PBUILDER_CREATE_OPTIONS = --distribution $(DISTRIBUTION) --mirror $(DEBMIRROR) --debootstrapopts --arch=$(ARCH) --components "$(DEBCOMPONENTS)" $(if $(LOCALDEBMIRROR), --othermirror "$(LOCALDEBMIRROR)")
+
+# Options to use everytime pbuilder is called (including through pdebuild): proxy, and dirs
+PBUILDER_OPTIONS = --basetgz "$(BASETGZ)" $(if $(PROXY), --http-proxy $(PROXY)) --buildplace "$(WORKDIR)" --configfile "$(WORKDIR)/pbuilderrc" --hookdir $(TOOLS_DIR)/pbuilder-hooks $(OTHERMIRROR_OPTIONS) --debootstrapopts '--variant=buildd' --debootstrapopts '--keyring' $(KEYRING)
+ 
+
+# pdebuild specific options: arch for cross-arch-building and dirs
+PDEBUILD_OPTIONS = --use-pdebuild-internal --arch $(ARCH) --buildresult "$(RESULTDIR)" --debbuildopts "-i -I"
+
+# Clean up the environment
+unexport JAVA_HOME
+unexport JDK_HOME
+unexport M2_HOME
+unexport M2
 
 
 .DEFAULT_GOAL := localbuild
@@ -48,6 +77,42 @@ endif
 localbuild: localdepends buildpackage-debian
 
 localdepends: SOURCES/.stamp
+
+depends: /usr/bin/dh_testdir /usr/bin/pdebuild /usr/bin/fakeroot /usr/share/keyrings/debian-archive-keyring.gpg
+
+/usr/bin/dh_testdir:
+	sudo apt-get update
+	sudo apt-get --assume-yes install debhelper
+
+/usr/bin/pdebuild:
+	sudo apt-get update
+	sudo apt-get --assume-yes install pbuilder
+
+/usr/bin/fakeroot:
+	sudo apt-get update
+	sudo apt-get --assume-yes install fakeroot
+
+/usr/share/keyrings/debian-archive-keyring.gpg:
+	sudo apt-get update
+	sudo apt-get --assume-yes install debian-archive-keyring
+
+/usr/bin/expect:
+	sudo apt-get update
+	sudo apt-get --assume-yes install expect
+
+init:
+	mkdir -p "$(M2REPOSITORY)"
+	mkdir -p "$(WORKDIR)"
+	mkdir -p "$(RESULTDIR)"
+	mkdir -p "$(CCACHEDIR)"
+	cp "$(TOOLS_DIR)/pbuilderrc" "$(WORKDIR)/"
+
+$(BASETGZ):
+	sudo pbuilder --create $(PBUILDER_OPTIONS) $(PBUILDER_CREATE_OPTIONS) || rm -f "$(BASETGZ)"
+
+buildpackage-debian: init depends $(CONFFILES) $(BASETGZ)
+	"$(TOOLS_DIR)/pdebuild" $(PDEBUILD_OPTIONS) -- $(PBUILDER_OPTIONS)
+
 
 SOURCES/.stamp:
 	cd SOURCES && $(MAKE) localdepends
@@ -98,6 +163,11 @@ buildpackage-rpm-rhel: localdepends buildpackage-rpm-common-prep buildpackage-rp
 buildpackage-rpm-fedora: localdepends buildpackage-rpm-common-prep buildpackage-rpm-common-prep-fedora buildpackage-rpm-common-fix-old-epoch buildpackage-rpm-build-rpmbuild
 
 clean: localclean
+	if [ -e debian/control ]; then for package in $$(awk '/^Source: / {print $$2}' debian/control); do rm -f $(BUILD_ROOT)/$${package}*.*; done; fi
+	if [ -e debian/control ]; then for package in $$(awk '/^Package: / {print $$2}' debian/control); do rm -f $(BUILD_ROOT)/$${package}*.*; done; fi
+	if [ -d BUILD ]; then rm -rf BUILD/*; fi
+	if [ -e debian/rules ]; then fakeroot debian/rules clean; fi
+
 localclean:
 	cd SOURCES && $(MAKE) localclean
 	rm -f SOURCES/.stamp
@@ -105,4 +175,4 @@ localclean:
 veryclean:
 	cd SOURCES && $(MAKE) veryclean
 
-.PHONY: localclean localbuild localdepends veryclean buildpackage-rpm-suse buildpackage-rpm-rhel buildpackage-rpm-aix buildpackage-rpm-fedora
+.PHONY: localclean localbuild localdepends veryclean buildpackage-rpm-suse buildpackage-rpm-rhel buildpackage-rpm-aix buildpackage-rpm-fedora init buildpackage-debian clean depends
