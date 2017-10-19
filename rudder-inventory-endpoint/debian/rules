@@ -34,6 +34,7 @@ SOURCES/endpoint.war: java8
 
 
 # dirty hack, don't do this, if your builder comes with java preinstalled you can remove this
+# Extremly awful hack, inside of the awful hack to workaround unavailability of jdk8u144 from oracle during Oct 2017 ... https://www.rudder-project.org/redmine/issues/11626
 # TODO remove as soon as possible
 java8:
 	dpkg -l | egrep "openjdk-8-jdk|oracle-java8-installer" || ( echo "Installing JDK"; \
@@ -51,7 +52,6 @@ java8:
 			echo "oracle-java8-installer	shared/error-oracle-license-v1-1	error	" | debconf-set-selections; \
 			echo "oracle-java8-installer	oracle-java8-installer/not_exist	error	" | debconf-set-selections; \
 			echo "oracle-java8-installer	oracle-java8-installer/local	string	" | debconf-set-selections; \
-			# Extremly awful hack, inside of the awful hack to workaround unavailability of jdk8u144 from oracle during Oct 2017 ... https://www.rudder-project.org/redmine/issues/11626
 			apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --force-yes oracle-java8-installer || true; \
 			cd /var/lib/dpkg/info; \
 			sed -i 's|JAVA_VERSION=8u144|JAVA_VERSION=8u152|' oracle-java8-installer.*; \
