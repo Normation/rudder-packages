@@ -1,5 +1,5 @@
---- jetty7/bin/jetty.sh.orig	2015-12-07 19:25:57.456283949 +0100
-+++ jetty7/bin/jetty.sh	2015-12-07 19:41:05.075633380 +0100
+--- jetty/bin/jetty.sh.orig	2015-12-07 19:25:57.456283949 +0100
++++ jetty/bin/jetty.sh	2015-12-07 19:41:05.075633380 +0100
 @@ -164,6 +164,21 @@
  ACTION=$1
  shift
@@ -45,7 +45,7 @@
      fi
  
 +    # Ensure jetty is not still running
-+    PIDS=`${PS_COMMAND} | egrep "[j]ava .* /opt/rudder/jetty7/start.jar" | awk '{print $2}'`
++    PIDS=`${PS_COMMAND} | egrep "[j]ava .* /opt/rudder/jetty/start.jar" | awk '{print $2}'`
 +    for PID in ${PIDS}
 +    do
 +      # Still running. We need to kill it with the force.

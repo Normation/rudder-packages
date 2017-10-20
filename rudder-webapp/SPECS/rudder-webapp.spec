@@ -210,8 +210,7 @@ mkdir -p %{buildroot}/etc/sysconfig/
 mkdir -p %{buildroot}/usr/share/doc/rudder
 
 # Emulate installation of file rudder.xml in order to be owned by package
-mkdir -p %{buildroot}%{rudderdir}/jetty7/contexts/
-touch %{buildroot}%{rudderdir}/jetty7/contexts/rudder.xml
+touch %{buildroot}%{rudderdir}/share/webapp/rudder.xml
 
 # Install helper scripts
 cp %{SOURCE10} %{buildroot}%{rudderdir}/bin/
@@ -473,11 +472,6 @@ find %{ruddervardir}/configuration-repository/.git %{ruddervardir}/configuration
 ## Add execution permission for ncf-api on pre/post-hooks
 chmod -R 2750 %{ruddervardir}/configuration-repository/ncf/ncf-hooks.d/
 
-# Create a symlink to the Jetty context if necessary
-if [ -d "%{rudderdir}/jetty7/contexts" ]; then
-  ln -sf %{rudderdir}/share/webapps/rudder.xml %{rudderdir}/jetty7/contexts/rudder.xml
-fi
-
 if [ -f /tmp/rudder-plugins-upgrade ]
 then
   /opt/rudder/bin/rudder-pkg plugin restore-status < /tmp/rudder-plugins-upgrade
@@ -543,8 +537,6 @@ rm -rf %{buildroot}
 %config(noreplace) %{rudderdir}/etc/logback.xml
 %config(noreplace) %{rudderdir}/etc/rudder-passwords.conf
 %attr(0600, root, root) %{rudderdir}/etc/rudder-passwords.conf
-# Prevent /opt/rudder/jetty7/contexts/rudder.xml to be erased during upgrade
-%ghost %{rudderdir}/jetty7/contexts/rudder.xml
 
 %{rudderdir}/bin/
 %{rudderdir}/bin/rudder-node-to-relay

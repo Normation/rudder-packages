@@ -18,39 +18,30 @@
 
 .DEFAULT_GOAL := localdepends
 
-JETTY_RELEASE = 7.6.21
-DATE_RELEASE = 20160908
+JETTY_RELEASE = 9.4.7
+DATE_RELEASE = 20170914
 TMP_DIR := $(shell mktemp -dq)
 WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget -q
 FIND := /usr/bin/find
+# this is the orginal URL for Jetty distribution
+JETTY_URL := "http://repo1.maven.org/maven2/org/eclipse/jetty/jetty-distribution/$(JETTY_RELEASE).v$(DATE_RELEASE)/jetty-distribution-$(JETTY_RELEASE).v$(DATE_RELEASE).tar.gz"
+# this is our "local" copy, used to make reproducible build whatever happen to original URL
+JETTY_NRM_URL := "http://www.normation.com/tarball/jetty/jetty-distribution-$(JETTY_RELEASE).v$(DATE_RELEASE).tar.gz"
 
-localdepends: ./jetty7
+
+localdepends: ./jetty
 	rm -rf $(TMP_DIR)
 
-./jetty7: /usr/bin/wget
+./jetty: /usr/bin/wget
 	# Download and uncompress the Jetty distribution
-	# Original URL: http://repo1.maven.org/maven2/org/eclipse/jetty/jetty-distribution/$(JETTY_RELEASE).v$(DATE_RELEASE)/jetty-distribution-$(JETTY_RELEASE).v$(DATE_RELEASE).tar.gz
-	$(WGET) -O $(TMP_DIR)/jetty.tgz http://www.normation.com/tarball/jetty/jetty-distribution-$(JETTY_RELEASE).v$(DATE_RELEASE).tar.gz
+	$(WGET) -O $(TMP_DIR)/jetty.tgz $(JETTY_NRM_URL) 
 	tar xzf $(TMP_DIR)/jetty.tgz -C $(TMP_DIR)
-	mv $(TMP_DIR)/jetty-distribution-$(JETTY_RELEASE).v$(DATE_RELEASE) ./jetty7
+	mv $(TMP_DIR)/jetty-distribution-$(JETTY_RELEASE).v$(DATE_RELEASE) ./jetty
 	rm -rf $(TMP_DIR)
 
 	# Remove useless / demo elements from Jetty
-	rm -rf ./jetty7/javadoc
-
-	rm -rf ./jetty7/webapps/*
-	rm -rf ./jetty7/contexts/*
-
-	touch ./jetty7/webapps/.donotdelete
-
-	# Change default log directory for jetty
-	sed -i 's/default=\".\/logs\"/default=\"\/var\/log\/rudder\/webapp\"/g' ./jetty7/etc/jetty-logging.xml
-
-	# Change jetty's default settings to listen on localhost only
-	sed -i 's/\(<Set\ name=\"host\"><Property\ name=\"jetty.host\"\ \)\(\/>\)/\1default="127.0.0.1"\2/g' ./jetty7/etc/jetty.xml
-
-	# Set jetty requestHeaderSize if not yet modified
-	grep 'Set name="requestHeaderSize"' ./jetty7/etc/jetty.xml >/dev/null || sed -i -e '/<New class="org.eclipse.jetty.server.nio.SelectChannelConnector">/s/$$/\n            <Set name="requestHeaderSize">8192<\/Set>/' ./jetty7/etc/jetty.xml
+	# jetty9 is clean now - only demo-base
+	rm -rf ./jetty/demo-base
 
 	# Change jetty.sh before distincts files
 	patch -p0 -s < patches/jetty/jetty-init-umask.patch
@@ -61,19 +52,19 @@ localdepends: ./jetty7
 	patch -p0 -s < patches/jetty/jetty-init-redirect-stderrout.patch
 	patch -p0 -s < patches/jetty/jetty-init-stop-forcestop.patch
 
-	cp ./jetty7/bin/jetty.sh ./jetty7/bin/jetty-debian.sh
-	cp ./jetty7/bin/jetty.sh ./jetty7/bin/jetty-rpm.sh
+	cp ./jetty/bin/jetty.sh ./jetty/bin/jetty-debian.sh
+	cp ./jetty/bin/jetty.sh ./jetty/bin/jetty-rpm.sh
 
 	patch -p0 -s < patches/jetty/jetty-init-lsb-fix-debian.patch
 	patch -p0 -s < patches/jetty/jetty-init-lsb-fix-rpm.patch
 	patch -p0 -s < patches/jetty/jetty-init-softokn-version-check.patch
 
-	cp ./jetty7/bin/jetty-rpm.sh ./jetty7/bin/jetty-sles.sh
+	cp ./jetty/bin/jetty-rpm.sh ./jetty/bin/jetty-sles.sh
 	patch -p0 -s < patches/jetty/jetty-init-sles.patch
 	patch -p0 -s < patches/jetty/jetty-init-ulimit.patch
 	
 	# Provide jetty's init script to the debian package's standard location
-	cp ./jetty7/bin/jetty-debian.sh ../debian/rudder-jetty.init
+	cp ./jetty/bin/jetty-debian.sh ../debian/rudder-jetty.init
 	cp ./rudder-jetty.default ../debian/rudder-jetty.default
 	chmod +x ../debian/rudder-jetty.init
 
@@ -84,7 +75,7 @@ localdepends: ./jetty7
 	sudo aptitude --assume-yes install wget
 
 localclean:
-	rm -rf ./jetty7
+	rm -rf ./jetty
 	rm -f ../debian/rudder-jetty.init
 	rm -f ../debian/rudder-jetty.default
 	rm -rf $(TMP_DIR)

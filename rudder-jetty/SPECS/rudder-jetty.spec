@@ -19,7 +19,7 @@
 #=================================================
 # Specification file for rudder-jetty
 #
-# Installs Jetty7
+# Installs Jetty
 #
 # Copyright (C) 2011 Normation
 #=================================================
@@ -34,8 +34,8 @@
 %define ruddervardir     /var/rudder
 %define rudderlogdir     /var/log/rudder
 
-%define jetty_release    7.2.2
-%define date_release     20101205
+%define jetty_release    9.4.7
+%define date_release     20170914
 
 %define _binaries_in_noarch_packages_terminate_build   0
 
@@ -58,7 +58,7 @@ URL: http://www.rudder-project.org
 
 Group: Applications/System
 
-#Source1: jetty7/bin/jetty.sh
+#Source1: jetty/bin/jetty.sh
 Source2: rudder-jetty.default
 Source3: rudder-jetty.conf
 Source4: rudder-jetty
@@ -141,12 +141,13 @@ mkdir -p %{buildroot}/var/rudder/run
 
 cd %{_topdir}/SOURCES
 
-cp -a jetty7 %{buildroot}/opt/rudder
+cp -a jetty %{buildroot}/opt/rudder
+cp -a rudder-jetty-base %{buildroot}/opt/rudder/etc
 
 # Init script
 mkdir -p %{buildroot}/etc/init.d
 mkdir -p %{buildroot}/etc/default
-install -m 755 jetty7/bin/%{jetty_init_script} %{buildroot}/etc/init.d/rudder-jetty
+install -m 755 jetty/bin/%{jetty_init_script} %{buildroot}/etc/init.d/rudder-jetty
 install -m 644 %{SOURCE2} %{buildroot}/etc/default/rudder-jetty
 install -m 644 %{SOURCE3} %{buildroot}/opt/rudder/etc/rudder-jetty.conf
 
@@ -164,12 +165,6 @@ then
     then
         cp /opt/rudder/etc/rudder-jetty.conf /opt/rudder/etc/rudder-jetty.conf.migrate
     fi
-fi
-
-if [ -x /opt/jetty7 ]
-then
-        TMP_BACKUP=`mktemp -d -t jetty.backup.XXXXXXXXXX -q`
-        mv /opt/jetty7 $TMP_BACKUP/
 fi
 
 %post -n rudder-jetty
@@ -246,8 +241,9 @@ rm -rf %{buildroot}
 #=================================================
 %files -n rudder-jetty
 %defattr(-, root, root, 0755)
-/opt/rudder/jetty7
+/opt/rudder/jetty
 /opt/rudder/etc
+/opt/rudder/etc/rudder-jetty-base
 %{rudderlogdir}/webapp
 /var/rudder/run
 /etc/init.d/rudder-jetty

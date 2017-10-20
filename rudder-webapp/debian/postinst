@@ -125,11 +125,6 @@ case "$1" in
   
   RUDDER_WEB_PROPERTIES="/opt/rudder/etc/rudder-web.properties"
 
-  # Create a symlink to the Jetty context if necessary
-  if [ -d "/opt/rudder/jetty7/contexts" ]; then
-    ln -sf /opt/rudder/share/webapps/rudder.xml /opt/rudder/jetty7/contexts/rudder.xml
-  fi
-
   if [ -f /tmp/rudder-plugins-upgrade ]
   then
     /opt/rudder/bin/rudder-pkg plugin restore-status < /tmp/rudder-plugins-upgrade

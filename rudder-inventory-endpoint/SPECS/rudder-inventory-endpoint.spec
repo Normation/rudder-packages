@@ -160,11 +160,6 @@ install -m 644 %{SOURCE4} %{buildroot}%{rudderdir}/share/webapps/
 # Post Installation
 #=================================================
 
-# Create a symlink to the Jetty context if necessary
-if [ -d "%{rudderdir}/jetty7/contexts" ]; then
-  ln -sf %{rudderdir}/share/webapps/endpoint.xml %{rudderdir}/jetty7/contexts/endpoint.xml
-fi
-
 # Run any upgrades
 echo "INFO: Launching script to check if a migration is needed"
 %{rudderdir}/bin/rudder-inventory-endpoint-upgrade

@@ -1,5 +1,5 @@
---- jetty7/bin/jetty-rpm.sh.orig	2017-05-17 13:56:36.919856595 +0200
-+++ jetty7/bin/jetty-rpm.sh	2017-05-17 14:01:52.135850950 +0200
+--- jetty/bin/jetty-rpm.sh.orig	2017-05-17 13:56:36.919856595 +0200
++++ jetty/bin/jetty-rpm.sh	2017-05-17 14:01:52.135850950 +0200
 @@ -483,6 +483,18 @@
      UMASK="0007"
      echo "Setting umask to ${UMASK}"
