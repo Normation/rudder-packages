@@ -102,6 +102,14 @@ Requires: rudder-agent >= %{real_epoch}:%{real_version}, rsyslog, openssl, %{apa
 Requires: mod_ssl
 %endif
 
+%if 0%{?rhel} && 0%{?rhel} == 6
+Requires: python-argparse
+%endif
+
+%if 0%{?suse_version} && 0%{?suse_version} < 1200
+Requires: python-argparse
+%endif
+
 ## RHEL & Fedora
 %if 0%{?rhel} || 0%{?fedora}
 Requires: mod_wsgi shadow-utils crontabs
