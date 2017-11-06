@@ -8,7 +8,7 @@ Homepage: http://www.rudder-project.org
 
 Package: rudder-techniques
 Architecture: all
-Depends: ${shlibs:Depends}, ${misc:Depends}, ncf (>=1.2.0.201709201540)
+Depends: ${shlibs:Depends}, ${misc:Depends}, ncf (= ${binary:Version})
 # The following lines allow this package (rudder-techniques)
 # to replace rudder-policy-templates cleanly.
 # No need to have a dummy binary package for transition, as
