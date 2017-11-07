@@ -26,7 +26,7 @@ if [ -x /opt/rudder/bin/perl ]; then
   # Rudder's perl installation is present, use it.
   echo "[info] FusionInventory instance: builtin"
 
-  /opt/rudder/bin/perl -I /opt/rudder/lib/perl5 /opt/rudder/bin/fusioninventory-agent --config=none "$@"
+  /opt/rudder/bin/perl -I /opt/rudder/lib/perl5 /opt/rudder/bin/fusioninventory-agent --config=none --no-task=Deploy "$@"
 
 elif command -v fusioninventory-agent >/dev/null 2>&1; then
 
@@ -36,7 +36,7 @@ elif command -v fusioninventory-agent >/dev/null 2>&1; then
 
     # The system FusionInventory installation has an acceptable version, use it.
     echo "[info] FusionInventory instance: system"
-    fusioninventory-agent --config=none "$@"
+    fusioninventory-agent --config=none --no-task=Deploy "$@"
 
   else
 
