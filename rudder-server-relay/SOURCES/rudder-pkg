@@ -169,7 +169,7 @@ def install_dependencies(metadata):
 
 def extract_scripts(metadata,package_file):
   package_dir = DB_DIRECTORY + "/" + metadata["name"]
-  shell("mkdir -p " + package_dir + "; ar p '" + package_file + "' scripts.txz | tar xJ -C " + package_dir)
+  shell("mkdir -p " + package_dir + "; ar p '" + package_file + "' scripts.txz | tar xJ --no-same-owner -C " + package_dir)
   return package_dir
 
 
@@ -224,7 +224,7 @@ def install(metadata, package_file, exist):
   files = []
   for tarfile in metadata['content']:
     dest = metadata['content'][tarfile]
-    (_, file_list, _) = shell("mkdir -p " + dest + "; ar p '" + package_file + "' " + tarfile + " | tar xJv -C " + dest, keep_output=True)
+    (_, file_list, _) = shell("mkdir -p " + dest + "; ar p '" + package_file + "' " + tarfile + " | tar xJv --no-same-owner -C " + dest, keep_output=True)
     files.append(dest+'/')
     files.extend([ dest + '/' + x for x in file_list.split("\n") if x != ''])
 
