@@ -181,6 +181,10 @@ chkconfig --add ${POSTGRESQL_SERVICE_NAME} >/dev/null 2>&1
   chkconfig ${POSTGRESQL_SERVICE_NAME} on >/dev/null 2>&1
 %endif
 echo " Done"
+# mandatory with systemd wrapper for old init
+%if 0%{?suse_version} && 0%{?suse_version} >= 1315
+systemctl daemon-reload
+%endif
 
 echo -n "INFO: Waiting for PostgreSQL to be up..."
 CPT=0
