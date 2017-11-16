@@ -18,7 +18,7 @@ configure-stamp:
 		CPPFLAGS="-I$(CURDIR)/debian/tmp/opt/rudder/include" \
 		CFLAGS="-I$(CURDIR)/debian/tmp/opt/rudder/include" \
 		LDFLAGS="-L$(CURDIR)/debian/tmp/opt/rudder/lib" \
-		./configure --prefix=/opt/rudder --libdir=/opt/rudder/lib/ldap --enable-dynamic --enable-debug --enable-modules --enable-monitor=mod --enable-dynlist=mod --enable-mdb=yes
+		./configure --prefix=/opt/rudder --libdir=/opt/rudder/lib/ldap --enable-dynamic --enable-debug --enable-modules --enable-monitor=mod --enable-dynlist=mod --enable-mdb=yes --enable-hdb=no --enable-bdb=no
 
 	touch configure-stamp
 
