@@ -23,11 +23,19 @@ RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
 RUDDER_MAJOR_VERSION := $(shell echo ${RUDDER_VERSION_TO_PACKAGE} | cut -d'.' -f 1-2)
 
 CFENGINE_RELEASE = 3.10.2
+CFENGINE_SHA1 = c40adf04c7ef9a6d115957484a901a48f1dcf6a1
 FUSION_RELEASE = 2.3.19
+FUSION_SHA1 = a01af094613a69feac778c2402cb639cb227eb1f
 LMDB_RELEASE = 0.9.21
+LMDB_SHA1 = 54d10ee9afaba8db75c8c73832da10b0a47e5807
 OPENSSL_RELEASE = 1.0.2m
+OPENSSL_SHA1 = b58d5d0e9cea20e571d903aafa853e2ccd914138
 PERL_VERSION = 5.22.0
+PERL_SHA1 = e4c9e40d18efa7368e77343e0fd3339ca87e34f8
 PCRE_RELEASE = 8.38
+PCRE_SHA1 = 3ab418d0026c2a4e693ec783bd60660debc32b8f
+CPANMINUS_RELEASE = 1.7036
+CPANMINUS_SHA1 = a12043498ab54d9abdc58d1ebb4988da3bd515db
 
 # Defauth PATHs
 RUDDER_DIR = /opt/rudder
@@ -46,7 +54,8 @@ TRY_CFLAGS=-fPIE -fstack-protector
 # Autodetect wget, curl or fetch usage and proxy configuration
 # Usage: $(GET) <destination_file> <url>
 PROXY_ENV = $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY))
-WGET = wget -q -O
+# No accept encoding to prevent the webserver form altering the distributed file
+WGET = wget -q --header="accept-encoding:" -O
 CURL = curl -s -L -o
 FETCH = fetch -q -o
 ifneq (,$(wildcard /usr/bin/curl))
@@ -62,9 +71,12 @@ GET_OPT = --wget
 CPAN_OPT = --wget
 endif
 endif
-GET=get() { $(_GET) "$$1.part" "$$2" && mv "$$1.part" "$$1"; }; get
+# We are using sha1 as sha256 is not supported on RHEL3
+# Not using the sha1sum command as it is not available on AIX
+# Pass an empty string to skip hash check
+GET=get() { $(_GET) "$$1.part" "$$2" && { openssl dgst -sha1 "$$1.part" | grep -q "$$3" || { echo "Wrong checksum, aborting"; exit 1; }; } && mv "$$1.part" "$$1"; }; get
 
-# Autodtect presence of gnu tools
+# Autodetect presence of gnu tools
 TAR := $(shell type gtar >/dev/null 2>&1 && echo gtar || echo tar)
 PATCH := $(shell type gpatch >/dev/null 2>&1 && echo gpatch || echo patch)
 SED := $(shell type gsed >/dev/null 2>&1 && echo gsed || echo sed)
@@ -240,7 +252,7 @@ cfengine-source:
 ifeq ($(shell ../../build-caching get ./cfengine-source/ --force-config name=cfengine-src version=$(CFENGINE_RELEASE) >/dev/null 2>&1 || echo KO), KO)
 	$(eval TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX))
 	# Original URL: https://cfengine-package-repos.s3.amazonaws.com/tarballs/cfengine-$(CFENGINE_RELEASE).tar.gz
-	$(GET) $(TMP_DIR)/cfengine.tgz http://www.normation.com/tarball/cfengine/cfengine-$(CFENGINE_RELEASE).tar.gz
+	$(GET) $(TMP_DIR)/cfengine.tgz https://www.normation.com/tarball/cfengine/cfengine-$(CFENGINE_RELEASE).tar.gz $(CFENGINE_SHA1)
 	gunzip < $(TMP_DIR)/cfengine.tgz | $(TAR) xf -
 	mv ./cfengine-$(CFENGINE_RELEASE) ./cfengine-source
 	../../build-caching put ./cfengine-source/ --force-config name=cfengine-src version=$(CFENGINE_RELEASE)
@@ -256,7 +268,7 @@ openssl-source:
 ifeq ($(shell ../../build-caching get ./openssl-source/ --force-config name=openssl-src version=$(OPENSSL_RELEASE) >/dev/null 2>&1 || echo KO), KO)
 	$(eval TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX))
 	# Original URL: https://www.openssl.org/source/openssl-$(OPENSSL_RELEASE).tar.gz
-	$(GET) $(TMP_DIR)/openssl.tgz http://www.normation.com/tarball/openssl/openssl-$(OPENSSL_RELEASE).tar.gz
+	$(GET) $(TMP_DIR)/openssl.tgz https://www.normation.com/tarball/openssl/openssl-$(OPENSSL_RELEASE).tar.gz $(OPENSSL_SHA1)
 	gunzip < $(TMP_DIR)/openssl.tgz | $(TAR) xf -
 	mv ./openssl-$(OPENSSL_RELEASE) ./openssl-source
 	../../build-caching put ./openssl-source/ --force-config name=openssl-src version=$(OPENSSL_RELEASE)
@@ -267,7 +279,7 @@ lmdb-source:
 ifeq ($(shell ../../build-caching get ./lmdb-source/ --force-config name=lmdb-src version=$(LMDB_RELEASE) >/dev/null 2>&1 || echo KO), KO)
 	$(eval TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX))
 	# Original URL: http://ftp.fr.debian.org/debian/pool/main/l/lmdb/lmdb_$(LMDB_RELEASE).orig.tar.xz
-	$(GET) $(TMP_DIR)/lmdb.tgz http://www.normation.com/tarball/lmdb/lmdb-$(LMDB_RELEASE).tar.gz
+	$(GET) $(TMP_DIR)/lmdb.tgz https://www.normation.com/tarball/lmdb/lmdb-$(LMDB_RELEASE).tar.gz $(LMDB_SHA1)
 	gunzip < $(TMP_DIR)/lmdb.tgz | $(TAR) xf -
 	mv ./lmdb-LMDB_$(LMDB_RELEASE) ./lmdb-source
 	../../build-caching put ./lmdb-source/ --force-config name=lmdb-src version=$(LMDB_RELEASE)
@@ -278,7 +290,7 @@ pcre-source:
 ifeq ($(shell ../../build-caching get ./pcre-source/ --force-config name=pcre-src version=$(PCRE_RELEASE) >/dev/null 2>&1 || echo KO), KO)
 	$(eval TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX))
 	# Original URL: http://vorboss.dl.sourceforge.net/project/pcre/pcre/8.38/pcre-8.38.tar.gz
-	$(GET) $(TMP_DIR)/pcre.tgz http://www.normation.com/tarball/pcre/pcre-$(PCRE_RELEASE).tar.gz
+	$(GET) $(TMP_DIR)/pcre.tgz https://www.normation.com/tarball/pcre/pcre-$(PCRE_RELEASE).tar.gz $(PCRE_SHA1)
 	gunzip < $(TMP_DIR)/pcre.tgz | $(TAR) xf -
 	mv ./pcre-$(PCRE_RELEASE) ./pcre-source
 	../../build-caching put ./pcre-source/ --force-config name=pcre-src version=$(PCRE_RELEASE)
@@ -286,7 +298,7 @@ ifeq ($(shell ../../build-caching get ./pcre-source/ --force-config name=pcre-sr
 endif
 
 rudder-sources.tar.bz2:
-	$(GET) rudder-sources.tar.bz2 http://www.rudder-project.org/archives/rudder-sources-$(RUDDER_VERSION_TO_PACKAGE).tar.bz2
+	$(GET) rudder-sources.tar.bz2 https://www.rudder-project.org/archives/rudder-sources-$(RUDDER_VERSION_TO_PACKAGE).tar.bz2 ""
 
 rudder-sources: rudder-sources.tar.bz2
 	bunzip2 < rudder-sources.tar.bz2 | $(TAR) xf -
@@ -295,7 +307,7 @@ rudder-sources: rudder-sources.tar.bz2
 
 rudder.8.gz:
 	# Get man page from rudder-project.org
-	$(GET) rudder.8 http://www.rudder-project.org/rudder-doc-${RUDDER_MAJOR_VERSION}/rudder.8
+	$(GET) rudder.8 https://www.rudder-project.org/rudder-doc-${RUDDER_MAJOR_VERSION}/rudder.8 ""
 	gzip -f rudder.8
 
 initial-promises: ./rudder-sources
@@ -320,7 +332,7 @@ fusioninventory-agent:
 ifeq ($(shell ../../build-caching get ./fusioninventory-agent/ --force-config name=fusioninventory-agent version=$(FUSION_RELEASE) >/dev/null 2>&1 || echo KO), KO)
 	$(eval TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX))
 	#Original URL: https://github.com/fusioninventory/fusioninventory-agent/releases/download/2.3.19/FusionInventory-Agent-$(FUSION_RELEASE).tar.gz
-	$(GET) $(TMP_DIR)/fusion.tgz http://www.normation.com/tarball/fusioninventory/FusionInventory-Agent-$(FUSION_RELEASE).tar.gz
+	$(GET) $(TMP_DIR)/fusion.tgz https://www.normation.com/tarball/fusioninventory/FusionInventory-Agent-$(FUSION_RELEASE).tar.gz $(FUSION_SHA1)
 	gunzip < $(TMP_DIR)/fusion.tgz | $(TAR) xf -
 	mv ./FusionInventory-Agent-$(FUSION_RELEASE) ./fusioninventory-agent
 	../../build-caching put ./fusioninventory-agent/ --force-config name=fusioninventory-agent version=$(FUSION_RELEASE)
@@ -342,12 +354,12 @@ perl-$(PERL_VERSION):
 ifeq ($(shell ../../build-caching get ./perl-$(PERL_VERSION)/ --force-config name=perl-source versions=$(perl_source) >/dev/null 2>&1 || echo KO), KO)
 	$(eval TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX))
 	# Original URL: http://www.cpan.org/src/5.0/perl-5.22.0.tar.gz
-	$(GET) $(TMP_DIR)/perl.tar.gz http://www.normation.com/tarball/perl/perl-$(PERL_VERSION).tar.gz
+	$(GET) $(TMP_DIR)/perl.tar.gz https://www.normation.com/tarball/perl/perl-$(PERL_VERSION).tar.gz $(PERL_SHA1)
 	gunzip < $(TMP_DIR)/perl.tar.gz | $(TAR) xf -
 	# Original URL: http://www.cpan.org/modules/by-module/App/App-cpanminus-1.7036.tar.gz
-	$(GET) ./perl-$(PERL_VERSION)/App-cpanminus.tar.gz http://www.normation.com/tarball/cpan/App-cpanminus-1.7036.tar.gz
+	$(GET) ./perl-$(PERL_VERSION)/App-cpanminus.tar.gz https://www.normation.com/tarball/cpan/App-cpanminus-$(CPANMINUS_RELEASE).tar.gz $(CPANMINUS_SHA1)
 	cd perl-$(PERL_VERSION) && gunzip < App-cpanminus.tar.gz | $(TAR) xf -
-	mv ./perl-$(PERL_VERSION)/App-cpanminus-1.7036 ./perl-$(PERL_VERSION)/App-cpanminus
+	mv ./perl-$(PERL_VERSION)/App-cpanminus-$(CPANMINUS_RELEASE) ./perl-$(PERL_VERSION)/App-cpanminus
 	# cpanminus+curl have a bug on rhel3+64bits, this is the workaround, see http://www.rudder-project.org/redmine/issues/8533
 	sed -i -e "s/'-#',//" ./perl-$(PERL_VERSION)/App-cpanminus/bin/cpanm
 	../../build-caching put ./perl-$(PERL_VERSION)/ --force-config name=perl-source versions=$(perl_source)
@@ -359,7 +371,7 @@ perl-$(PERL_VERSION)/App-cpanminus:
 	mkdir -p ./perl-$(PERL_VERSION)
 	$(eval TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX))
 	# Original URL: http://www.cpan.org/modules/by-module/App/App-cpanminus-1.7036.tar.gz
-	$(GET) $(TMP_DIR)/App-cpanminus.tar.gz http://www.normation.com/tarball/cpan/App-cpanminus-1.7036.tar.gz
+	$(GET) $(TMP_DIR)/App-cpanminus.tar.gz https://www.normation.com/tarball/cpan/App-cpanminus-1.7036.tar.gz $(CPANMINUS_SHA1)
 	cd perl-$(PERL_VERSION) && gunzip < $(TMP_DIR)/App-cpanminus.tar.gz | $(TAR) xf -
 	mv ./perl-$(PERL_VERSION)/App-cpanminus-1.7036 ./perl-$(PERL_VERSION)/App-cpanminus
 	rm -rf $(TMP_DIR)
@@ -494,58 +506,25 @@ fusion-modules: $(FUSION_DEPS)
 # TODO rework these dependencies, they are not the right ones 
 # CPAN Modules installation
 	# Original URL: http://www.cpan.org/modules/by-module/URI/URI-1.67.tar.gz
-	$(MODULE_INSTALL) http://www.normation.com/tarball/cpan/URI-1.67.tar.gz
+	$(MODULE_INSTALL) https://www.normation.com/tarball/cpan/URI-1.67.tar.gz
 	$(MODULE_TEST) -MURI
-#	# Original URL: http://www.cpan.org/modules/by-module/HTML/HTML-Tagset-3.20.tar.gz
-#	$(MODULE_INSTALL) http://www.normation.com/tarball/cpan/HTML-Tagset-3.20.tar.gz
-#	$(MODULE_TEST) -MHTML::Tagset
-#	# Original URL: http://www.cpan.org/modules/by-module/HTML/HTML-Parser-3.71.tar.gz
-#	$(MODULE_INSTALL) http://www.normation.com/tarball/cpan/HTML-Parser-3.71.tar.gz
-#	$(MODULE_TEST) -MHTML::Parser
 	# Original URL: http://www.cpan.org/modules/by-module/LWP/libwww-perl-6.13.tar.gz
-	$(MODULE_INSTALL) http://www.normation.com/tarball/cpan/libwww-perl-6.13.tar.gz
+	$(MODULE_INSTALL) https://www.normation.com/tarball/cpan/libwww-perl-6.13.tar.gz
 	$(MODULE_TEST) -MLWP
-#	# Original URL: http://www.cpan.org/modules/by-module/Compress/Compress-Raw-Bzip2-2.068.tar.gz
-#	$(MODULE_INSTALL) http://www.normation.com/tarball/cpan/Compress-Raw-Bzip2-2.068.tar.gz
-#	$(MODULE_TEST) -MCompress::Raw::Bzip2
-#	# Original URL: http://www.cpan.org/modules/by-module/Compress/Compress-Raw-Zlib-2.068.tar.gz
-#	$(MODULE_INSTALL) http://www.normation.com/tarball/cpan/Compress-Raw-Zlib-2.068.tar.gz
-#	$(MODULE_TEST) -MCompress::Raw::Zlib
-#	# Original URL: http://www.cpan.org/modules/by-module/IO/IO-Compress-2.068.tar.gz
-#	$(MODULE_INSTALL) http://www.normation.com/tarball/cpan/IO-Compress-2.068.tar.gz
-#	#No test: IO::Compress cannot be called directly
 	# Original URL: http://www.cpan.org/modules/by-module/Digest/Digest-MD5-2.54.tar.gz
-	$(MODULE_INSTALL) http://www.normation.com/tarball/cpan/Digest-MD5-2.54.tar.gz
+	$(MODULE_INSTALL) https://www.normation.com/tarball/cpan/Digest-MD5-2.54.tar.gz
 	$(MODULE_TEST) -MDigest::MD5
 	# Orignal URL: http://www.cpan.org/modules/by-module/Net/Net-IP-1.26.tar.gz
-	$(MODULE_INSTALL) http://www.normation.com/tarball/cpan/Net-IP-1.26.tar.gz
+	$(MODULE_INSTALL) https://www.normation.com/tarball/cpan/Net-IP-1.26.tar.gz
 	$(MODULE_TEST) -MNet::IP
-#	# Original URL: http://www.cpan.org/modules/by-module/XML/XML-NamespaceSupport-1.11.tar.gz
-#	$(MODULE_INSTALL) http://www.normation.com/tarball/cpan/XML-NamespaceSupport-1.11.tar.gz
-#	$(MODULE_TEST) -MXML::NamespaceSupport
-#	# Original URL: http://www.cpan.org/modules/by-module/XML/XML-SAX-0.99.tar.gz
-#	$(MODULE_INSTALL) http://www.normation.com/tarball/cpan/XML-SAX-0.99.tar.gz
-#	$(MODULE_TEST) -MXML::SAX
-#	# Original URL: http://www.cpan.org/modules/by-module/XML/XML-Simple-2.20.tar.gz
-#	$(MODULE_INSTALL) http://www.normation.com/tarball/cpan/XML-Simple-2.20.tar.gz
-#	$(MODULE_TEST) -MXML::Simple
 	# Original URL: http://www.cpan.org/modules/by-module/XML/XML-TreePP-0.43.tar.gz
-	$(MODULE_INSTALL) http://www.normation.com/tarball/cpan/XML-TreePP-0.43.tar.gz
+	$(MODULE_INSTALL) https://www.normation.com/tarball/cpan/XML-TreePP-0.43.tar.gz
 	$(MODULE_TEST) -MXML::TreePP
 	# Original URL: http://www.cpan.org/modules/by-module/UNIVERSAL/UNIVERSAL-require-0.18.tar.gz
-	$(MODULE_INSTALL) http://www.normation.com/tarball/cpan/UNIVERSAL-require-0.18.tar.gz
+	$(MODULE_INSTALL) https://www.normation.com/tarball/cpan/UNIVERSAL-require-0.18.tar.gz
 	$(MODULE_TEST) -MUNIVERSAL::require
-#	# Original URL: http://search.cpan.org/CPAN/authors/id/K/KW/KWILLIAMS/Probe-Perl-0.03.tar.gz
-#	$(MODULE_INSTALL) http://www.normation.com/tarball/cpan/Probe-Perl-0.03.tar.gz
-#	$(MODULE_TEST) -MProbe::Perl
-#	# Original URL: http://www.cpan.org/modules/by-module/IPC/IPC-Run3-0.048.tar.gz
-#	$(MODULE_INSTALL) http://www.normation.com/tarball/cpan/IPC-Run3-0.048.tar.gz
-#	$(MODULE_TEST) -MIPC::Run3
-#	# Original URL: http://www.cpan.org/modules/by-module/Test/Test-Script-1.10.tar.gz
-#	$(MODULE_INSTALL) http://www.normation.com/tarball/cpan/Test-Script-1.10.tar.gz
-#	$(MODULE_TEST) -MTest::Script
 	# Original URL: http://www.cpan.org/modules/by-module/File/File-Which-1.21.tar.gz
-	$(MODULE_INSTALL) http://www.normation.com/tarball/cpan/File-Which-1.21.tar.gz
+	$(MODULE_INSTALL) https://www.normation.com/tarball/cpan/File-Which-1.21.tar.gz
 	$(MODULE_TEST) -MFile::Which
 
         # Replace destdir by prefix in files generated by cpanm
