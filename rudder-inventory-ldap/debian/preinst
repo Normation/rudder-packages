@@ -27,12 +27,6 @@ case "$1" in
                 ulimit -v unlimited
 
 		/opt/rudder/sbin/slapcat -b "cn=rudder-configuration" -l /var/rudder/ldap/backup/openldap-data-pre-upgrade-${TIMESTAMP}.ldif
-
-		# Store version of libdb used to make this backup
-		if [ -f /var/rudder/ldap/openldap-data/objectClass.bdb ] 
-		then
-			echo $(ldd /opt/rudder/sbin/slapcat | grep libdb | cut -d"=" -f1) > /var/rudder/ldap/backup/openldap-data-pre-upgrade-${TIMESTAMP}.libdb-version
-	        fi
     ;;
 
 	install)

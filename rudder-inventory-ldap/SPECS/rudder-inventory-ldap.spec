@@ -118,7 +118,6 @@ rudder-agent package installed) and for configuration rules and parameters.
 #=================================================
 %prep
 
-cp -rf %{_sourcedir}/berkeleydb-source %{_builddir}
 cp -rf %{_sourcedir}/openldap-source %{_builddir}
 
 #=================================================
@@ -130,23 +129,14 @@ cp -rf %{_sourcedir}/openldap-source %{_builddir}
 export CFLAGS="$RPM_OPT_FLAGS"
 export CXXFLAGS="$RPM_OPT_FLAGS"
 
-# 1 - BerkeleyDB
-cd berkeleydb-source/build_unix/
-../dist/configure --build=%{_target} --prefix=%{rudderdir}
-
-make %{?_smp_mflags}
-make install
-
-cd ../..
-
-# 2 - OpenLDAP
+# OpenLDAP
 cd openldap-source
 
 export LD_LIBRARY_PATH="/opt/rudder/lib"
 export CPPFLAGS="-I/opt/rudder/include"
 export LDFLAGS="-L/opt/rudder/lib"
 
-./configure --build=%{_target} --prefix=%{rudderdir} --libdir=%{rudderdir}/lib/ldap --enable-dynamic --enable-debug --enable-modules --enable-hdb=mod --enable-monitor=mod --enable-dynlist=mod --enable-mdb=yes
+./configure --build=%{_target} --prefix=%{rudderdir} --libdir=%{rudderdir}/lib/ldap --enable-dynamic --enable-debug --enable-modules --enable-monitor=mod --enable-dynlist=mod --enable-mdb=yes
 
 make %{?_smp_mflags} depend
 make %{?_smp_mflags}
@@ -165,13 +155,7 @@ mkdir -p %{buildroot}%{rudderlogdir}/ldap
 mkdir -p %{buildroot}/var/rudder/ldap/openldap-data
 mkdir -p %{buildroot}/var/rudder/run
 
-# Now, we install BerkeleyDB in %{buildroot} to package it
-cd berkeleydb-source/build_unix && make install DESTDIR=%{buildroot}
-
 cd ../../openldap-source && make install DESTDIR=%{buildroot}
-
-# Remove useless BerkeleyDB documentation
-rm -rf %{buildroot}/opt/rudder/docs
 
 # Init script
 mkdir -p %{buildroot}/etc/init.d
@@ -208,21 +192,16 @@ cp %{_sourcedir}/rsyslog/rudder-slapd.conf %{buildroot}/etc/rsyslog.d/rudder-sla
 # Only do this on package upgrade
 if [ $1 -gt 1 ]
 then
-
 	# When upgrading OpenLDAP, we may need to dump the database
-	# so that it can be restored from LDIF in case the new
-	# package uses a different version of BerkeleyDB (libdb)
+	# so that it can be restored from LDIF
 	TIMESTAMP=`date +%%Y%%m%%d%%H%%M%%S`
 	# Ensure backup folder exist
 	mkdir -p /var/rudder/ldap/backup/
 
-	/opt/rudder/sbin/slapcat -b "cn=rudder-configuration" -l /var/rudder/ldap/backup/openldap-data-pre-upgrade-${TIMESTAMP}.ldif
+        # We need it to be able to open big mdb memory-mapped databases
+        ulimit -v unlimited
 
-	# Store version of libdb used to make this backup
-	if [ -f /var/rudder/ldap/openldap-data/objectClass.bdb ]
-	then
-		echo $(ldd /opt/rudder/sbin/slapcat | grep libdb | cut -d"=" -f1) > /var/rudder/ldap/backup/openldap-data-pre-upgrade-${TIMESTAMP}.libdb-version
-	fi
+	/opt/rudder/sbin/slapcat -b "cn=rudder-configuration" -l /var/rudder/ldap/backup/openldap-data-pre-upgrade-${TIMESTAMP}.ldif
 fi
 
 %post -n rudder-inventory-ldap
@@ -251,90 +230,10 @@ service %{syslogservicename} restart > /dev/null && echo " Done"
 /bin/systemctl restart  %{syslogservicename}.service && echo " Done"
 %endif
 
-RUDDER_SHARE=/opt/rudder/share
-RUDDER_UPGRADE_TOOLS=${RUDDER_SHARE}/upgrade-tools
-BACKUP_LDIF_PATH=/var/rudder/ldap/backup/
-BACKUP_LDIF_REGEX="^/var/rudder/ldap/backup/openldap-data-pre-upgrade-\([0-9]\{14\}\)\.ldif\(\.gz\)\?$"
-SLAPD_CONF="/opt/rudder/etc/openldap/slapd.conf"
-
-# We need it to be able to open big mdb memory-mapped databases
-ulimit -v unlimited
-
-# Do we have a backup file from preinst
-BACKUP_LDIF=$(find ${BACKUP_LDIF_PATH} -regextype sed -regex "${BACKUP_LDIF_REGEX}" 2>&1 | sort -nr | head -n1)
-if [ -n "${BACKUP_LDIF}" ]; then
-	TIMESTAMP=$(echo ${BACKUP_LDIF} | sed "s%${BACKUP_LDIF_REGEX}%\1%")
-
-	# If this is an upgrade from an older version of rudder-inventory-ldap
-   	# we may need to drop and reimport the database if the underlying version
-	# of libdb has changed.
-	if [ -f "/var/rudder/ldap/backup/openldap-data-pre-upgrade-${TIMESTAMP}.libdb-version" ]; then
-		# OK, we need to remove the old DB and import the backup
-
-		# Do we have a database backup to restore from?
-		if [ ! -f ${BACKUP_LDIF} ]; then
-			echo >&2 "ERROR: No database backup for old version. Can't upgrade rudder-inventory-ldap database..."
-			exit 1
-		fi
-
-		# Stop OpenLDAP - use forcestop to avoid the init script failing
-		# when trying to do the backup with bad libdb versions
-		echo -n "INFO: Stopping rudder-slapd..."
-		service rudder-slapd forcestop >/dev/null 2>&1
-		echo " Done"
-
-		# Backup the current database
-		LDAP_BACKUP_DIR="/var/rudder/ldap/openldap-data-backup-upgrade-on-${TIMESTAMP}/"
-		mkdir -p "${LDAP_BACKUP_DIR}"
-		find /var/rudder/ldap/openldap-data -maxdepth 1 -mindepth 1 -not -name "DB_CONFIG" -exec mv {} ${LDAP_BACKUP_DIR} \;
-
-    # Upgrade backend to lmdb
-    sed -i 's/^database.*hdb/database    mdb/' "${SLAPD_CONF}"
-    sed -i '/^idlcachesize.*/d' "${SLAPD_CONF}"
-    sed -i '/^cachesize.*/d' "${SLAPD_CONF}"
-    # Configure mdb backend
-    /opt/rudder/bin/rudder-slapd-configure
-
-    # unzip backup if it is needed
-    if [ "${BACKUP_LDIF%.gz}" != "${BACKUP_LDIF}" ]
-    then
-      gunzip ${BACKUP_LDIF}
-      BACKUP_LDIF=$(echo ${BACKUP_LDIF%.gz})
-    fi
-
-		# Import the backed up database
-		if /opt/rudder/sbin/slapadd -q -l ${BACKUP_LDIF}
-		then
-			# Start OpenLDAP
-			echo -n "INFO: Starting rudder-slapd..."
-			service rudder-slapd start >/dev/null 2>&1
-			echo " Done"
-
-			echo "INFO: OpenLDAP database was successfully upgraded to new format"
-
-			if [ -x /opt/rudder/bin/rudder-upgrade-ldap ]
-			then
-				echo "INFO: Running the Rudder upgrade script to replay LDAP migrations on the old database content..."
-				/opt/rudder/bin/rudder-upgrade-ldap
-			fi
-
-			echo "INFO: You can safely remove the backups in ${LDAP_BACKUP_DIR}"
-			echo "INFO: and ${BACKUP_LDIF}"
-		else
-			echo "ERROR: Failed to restore data from old format into the new format"
-			echo "You can reimport manually the data from backup file ${BACKUP_LDIF}"
-		fi
-	fi
-fi
-
 # Need to restart to take schema changes into account
 echo -n "INFO: Restarting rudder-slapd..."
 service rudder-slapd restart >/dev/null
 echo " Done"
-
-# Remove slapd.confe which was due to a bug in the init script
-# that existed in 3.1/3.2 (#6197).
-rm -f /opt/rudder/etc/openldap/slapd.confe
 
 %preun -n rudder-inventory-ldap
 #=================================================

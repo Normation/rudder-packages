@@ -29,96 +29,14 @@ case "$1" in
 			ldconfig
 		fi
 
-		RUDDER_SHARE=/opt/rudder/share
-		RUDDER_UPGRADE_TOOLS=${RUDDER_SHARE}/upgrade-tools
-		BACKUP_LDIF_PATH=/var/rudder/ldap/backup/
-		SLAPD_CONF="/opt/rudder/etc/openldap/slapd.conf"
-		BACKUP_LDIF_REGEX="^/var/rudder/ldap/backup/openldap-data-pre-upgrade-\([0-9]\{14\}\)\.ldif\(\.gz\)\?$"
-
-                # We need it to be able to open big mdb memory-mapped databases
-                ulimit -v unlimited
-
                 # Reload systemd when it is available so that it creates sysv-init shims
                 # This is necessary to make the service command work, and will be obsolete when we create systemd units
                 [ -x /bin/systemctl ] && /bin/systemctl daemon-reload
-
-
-		# Do we have a backup file from preinst
-		BACKUP_LDIF=$(find ${BACKUP_LDIF_PATH} -regextype sed -regex "${BACKUP_LDIF_REGEX}" 2>&1 | sort -nr | head -n1)
-		if [ -n "${BACKUP_LDIF}" ]; then
-			TIMESTAMP=$(echo ${BACKUP_LDIF} | sed "s%${BACKUP_LDIF_REGEX}%\1%")
-
-
-			# If this is an upgrade from an older version of rudder-inventory-ldap
-			# we may need to drop and reimport the database if the underlying version
-			# of libdb has changed.
-			if [ -f "/var/rudder/ldap/backup/openldap-data-pre-upgrade-${TIMESTAMP}.libdb-version" ]; then
-				# OK, we need to remove the old DB and import the backup
-
-				# Do we have a database backup to restore from?
-				if [ ! -f ${BACKUP_LDIF} ]; then
-					echo >&2 "ERROR: No database backup for old version. Can't upgrade rudder-inventory-ldap database..."
-					exit 1
-				fi
-
-				# Stop OpenLDAP - use forcestop to avoid the init script failing
-				# when trying to do the backup with bad libdb versions
-				echo -n "INFO: Stopping rudder-slapd..."
-				service rudder-slapd forcestop >/dev/null 2>&1
-				echo " Done"
-
-				# Backup the current database
-				LDAP_BACKUP_DIR="/var/rudder/ldap/openldap-data-backup-upgrade-on-${TIMESTAMP}/"
-				mkdir -p "${LDAP_BACKUP_DIR}"
-				find /var/rudder/ldap/openldap-data -maxdepth 1 -mindepth 1 -not -name "DB_CONFIG" -exec mv {} ${LDAP_BACKUP_DIR} \;
-
-        # Upgrade backend to lmdb
-        sed -i 's/^database.*hdb/database    mdb/' "${SLAPD_CONF}"
-        sed -i '/^idlcachesize.*/d' "${SLAPD_CONF}"
-        sed -i '/^cachesize.*/d' "${SLAPD_CONF}"
-        # Configure mdb backend
-        /opt/rudder/bin/rudder-slapd-configure
-
-        # unzip backup if it is needed
-        if [ "${BACKUP_LDIF%.gz}" != "${BACKUP_LDIF}" ]
-        then
-          gunzip ${BACKUP_LDIF}
-          BACKUP_LDIF=$(echo ${BACKUP_LDIF%.gz})
-        fi
-
-				# Import the backed up database
-				if /opt/rudder/sbin/slapadd -q -l ${BACKUP_LDIF}
-				then
-					# Start OpenLDAP
-					echo -n "INFO: Starting rudder-slapd..."
-					service rudder-slapd start >/dev/null 2>&1
-					echo " Done"
-
-					echo "INFO: OpenLDAP database was successfully upgraded to new format"
-
-					if [ -x /opt/rudder/bin/rudder-upgrade-ldap ]
-					then
-						echo "INFO: Running the Rudder upgrade script to replay LDAP migrations on the old database content..."
-						/opt/rudder/bin/rudder-upgrade-ldap
-					fi
-
-					echo "INFO: You can safely remove the backups in ${LDAP_BACKUP_DIR}"
-					echo "INFO: and ${BACKUP_LDIF}"
-				else
-					echo "ERROR: Failed to restore data from old format into the new format"
-					echo "You can reimport manually the data from backup file ${BACKUP_LDIF}"
-				fi
-			fi
-		fi
 
 		# Restart rudder-slapd to take schema changes into account
 		echo -n "INFO: Restarting rudder-slapd..."
 		service rudder-slapd restart >/dev/null
 		echo " Done"
-
-		# Remove slapd.confe which was due to a bug in the init script
-		# that existed in 3.1/3.2 (#6197).
-		rm -f /opt/rudder/etc/openldap/slapd.confe
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
