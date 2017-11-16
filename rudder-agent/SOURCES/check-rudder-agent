@@ -226,11 +226,32 @@ if [ ! -e ${FILE_TO_RESTORE} ]; then
 fi
 }
 
+check_varspace() {
+  # check max space available for databases and stop if there is a risk
+  ldap_space=$(df /var/rudder/ | tail -n 1 | awk '{print $5}' | sed 's/%//')
+  if [ "${ldap_space}" -gt 98 ]; then
+    stop_now=1
+  fi
+  if [ -d /var/lib/postgresql/ ]; then
+    psql_space=$(df /var/lib/postgresql/ | tail -n 1 | awk '{print $5}' | sed 's/%//')
+    if [ "${psql_space}" -gt 98 ]; then
+      stop_now=1
+    fi
+  fi
+  if [ "${stop_now}" = 1 ]; then
+    service rudder stop
+    echo "FATAL: No space left on device" | logger -s
+    echo "FATAL: Rudder has been stopped to prevent data corruption" | logger -s
+    exit 1
+  fi
+}
+
 
 # Ensure script is executed by root
 if [ ! $(whoami) = 'root' ];then echo "You must be root"; exit; fi
 
 # Launch each check with a certain order
+check_varspace
 check_and_fix_rudder_uuid
 check_and_fix_specific_rudder_agent_file /var/rudder/cfengine-community/policy_server.dat policy_server.dat "Please configure your Rudder server in this file." "optional"
 check_and_fix_cfengine_processes
@@ -263,3 +284,5 @@ then
   rm -rf ${CFE_DIR}/state/ncf-exclude-cache-*
   rm -f ${CFE_DIR}/inputs/rudder_promises_updated
 fi
+
+
