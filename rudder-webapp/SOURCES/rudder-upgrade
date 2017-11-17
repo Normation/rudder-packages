@@ -43,22 +43,6 @@ trap anomaly_handler ERR INT TERM
 # - All versions : upgrade system Techniques automatically and reload the Technique library
 # - All versions : Check that Rudder database is able to handle backslash
 # - All versions : Check for the PostgreSQL version (>= 8.4)
-# - 2.10.17      : Migration DB schema to correct the historization of rules
-# - 2.10.17      : Migration DB schema to add historization of global agent schedule
-# - 2.11.19      : Add index on fileformat for eventlog
-# - 2.11.23      : Add 'api compatibility' property
-# - 3.0.17       : Add index on eventType and executionTimeStamp on RudderSysEvents
-# - 3.1.10       : Add masterfiles in the server
-# - 3.2.0        : Add the properties to configuration authentication provider and master admin account
-# - 3.2.0        : Add the properties to configure Rudder roles
-# - 3.2.0        : Call rudderify to make sure local techniques are copied in each agent promises
-# - 3.1.14, 3.2.7: Disable 'javascript engine' feature on upgrade - keeping that in 4.0 to avoid behaviour changes
-# - 4.0.0        : Add new nodeConfigurations table and related indexes
-# - 4.0.0        : Add new archive table for nodeConfigurations and reportsexecution
-# - 4.1.0        : Add new compliance tables
-# - 4.1.0        : Add the property to configure relay api location
-# - 4.1.0        : Add property to define hooks ignore suffixes
-# - 4.1.0        : Migrate script properties to hooks
 ####################################################################################
 
 # Some paths
@@ -338,29 +322,7 @@ upgrade_ncf() {
     fi
   fi
 
-  if [ -f ${CONFIGURATION_REPOSITORY}/ncf/ncf.conf ]; then
-    STEP="Make sure that ncf uses the right logger bundles (_log_default and log_rudder)"
-
-    # 3.2.0 Rename _logger_default to _log_default
-    if grep -Eq "^loggers=.*_logger_default.*" ${CONFIGURATION_REPOSITORY}/ncf/ncf.conf; then
-      sed -i "s%^loggers=\(.*\)_logger_default\(.*\)$%loggers=\1_log_default\2%" ${CONFIGURATION_REPOSITORY}/ncf/ncf.conf
-    fi
-
-    # 3.2.0: Rename logger_rudder to log_rudder
-    if grep -Eq "^loggers=.*logger_rudder.*" ${CONFIGURATION_REPOSITORY}/ncf/ncf.conf; then
-      sed -i "s%^loggers=\(.*\)logger_rudder\(.*\)$%loggers=\1log_rudder\2%" ${CONFIGURATION_REPOSITORY}/ncf/ncf.conf
-    fi
-
-    # 3.2.0: Add log_rudder if it's not present
-    if ! grep -Eq "^loggers=.*log_rudder.*" ${CONFIGURATION_REPOSITORY}/ncf/ncf.conf; then
-      sed -i "s%^loggers=\(.*\)%loggers=\1,log_rudder%" ${CONFIGURATION_REPOSITORY}/ncf/ncf.conf
-    fi
-
-    #  2.11.18, 3.0.13, 3.1.6 and 3.2.0: Anticipate the copy from ${CONFIGURATION_REPOSITORY}/ncf to ${RUDDER_VAR}/ncf/local
-    cp -f ${CONFIGURATION_REPOSITORY}/ncf/ncf.conf ${RUDDER_VAR}/ncf/local/
-  fi
-
-  # 2.11.23, 3.1.12 and 3.2.5: Ensure techniques written from the Technique Editor are not world-readable
+  # Security check: Ensure techniques written from the Technique Editor are not world-readable
   if [ -x ${CONFIGURATION_REPOSITORY}/ncf/50_techniques ]; then
     chmod -R o-rwx ${CONFIGURATION_REPOSITORY}/ncf/50_techniques/
   fi
@@ -397,7 +359,7 @@ upgrade_ncf() {
 
 }
 
-# 3.2.0: Call rudderify on all local ncf techniques to make sure the promises will be properly generated
+# Call rudderify on all local ncf techniques to make sure the promises will be properly generated
 rudderify_techniques() {
   STEP="Call rudderify on all local ncf techniques (#7443)"
   if [ -d ${CONFIGURATION_REPOSITORY}/techniques ]; then
@@ -409,7 +371,7 @@ rudderify_techniques() {
 
 # Upgrade masterfiles
 upgrade_masterfiles() {
-  # - 3.1.10  Now we should have a masterfiles initialized from initial promises
+  # We should have a masterfiles initialized from initial promises
   STEP="Upgrade masterfiles from initial promises"
   if [ -d "${RUDDER_SHARE}/initial-promises/" ]
   then
@@ -424,181 +386,7 @@ upgrade_masterfiles() {
 
 # Upgrade the file rudder-web.properties
 upgrade_rudder_web_properties() {
-
-  # - 3.2.0 : Add properties to configure authentication plugins and master admin
-  # note: we can't use rudder.auth.admin.login (or .password) because it's commented
-  # out by default, so it would defeat the regex. 
-  # We also need to comment out rudder.auth.ldap.enable and use its value to decide 
-  # if we should use "ldap" of "file" for rudder.auth.type 
-
-  STEP="Add properties to configure authentication plugins and master admin"
-  if grep -iEq "^rudder.auth.ldap.enable\s*=\s*false" /opt/rudder/etc/rudder-web.properties; then
-    AUTH_PROVIDER="file"
-  else
-    AUTH_PROVIDER="ldap"
-  fi
-  # comment the line for rudder.auth.ldap.enable if not already commented
-  sed -i 's%^\(rudder\.auth\.ldap\.enable.*\)%#\1%' /opt/rudder/etc/rudder-web.properties
-  check_and_add_config_property rudder.auth.provider "
-
-###########################
-# Rudder Authentication    #############################################################
-###########################
-
-#
-# Rudder has a root admin account, with full rights on the
-# application, and whose authentication is independant from 
-# the authentication provider chosen (file, LDAP, etc). 
-# By default, the accound is disabled (either by letting the
-# the login or the password empty, or by commenting it). 
-#
-
-#rudder.auth.admin.login=rootadmin
-#rudder.auth.admin.password=secret
-
-#
-# By default, both authentication and authorization are handle in the rudder-users.xml
-# file. But you may want to rely on your existing entreprise Active Directory or LDAP
-# to take care of the authentication part. 
-# To choose the scheme to use, either use 'file' or 'ldap' for the rudder.auth.type
-# parameter. 
-# You can also use a comma separated list of authentication provider to use, 
-# like 'ldap, file' in which case each one will be tested in turned for authentication. 
-# 
-# When set to 'ldap', passwords in rudder-users.xml are ignored and the 
-# authentication is delegated to the LDAP server configured below. 
-# By convention, when LDAP authentication is enable, 'password' field in
-# rudder-users.xml are set to 'LDAP' 
-#
-# Comma separated list of authentication providers. Default provider are
-# 'file', 'ldap'. 
-#
-rudder.auth.provider=${AUTH_PROVIDER}
-  
-"
-
-  # - 3.2.0 : Add properties to define the role of servers
-  STEP="Add properties to define the new roles of servers"
-
-  check_and_add_config_property rudder.server-roles.relay-promises-only "
-#
-# Rudder roles definition
-#
-# Allow to define which hosts have the roles relay-promises-only, cfengine-mission-portal when
-# using a split architecture of Rudder
-# The file containing the roles will be generated in:
-# /var/rudder/configuration-repository/inputs/rudder-server-roles.conf
-#
-# The allowed values, for each parameter are
-# - autodetect (default): the roles are automatically detected based on inventories (based on the presence of files in /opt/rudder/etc/server-roles.d/)
-# - anything else (hostname, ip, or list of hostname or ip, seperated by commas): the
-#   content that will be used inside the role file
-# The hosts with the relay promises role
-rudder.server-roles.relay-promises-only=autodetect
-
-# The hosts with the cfengine mission portal role
-rudder.server-roles.cfengine-mission-portal=autodetect
-
-"
-
-  # - 4.1.0 : Add property to configure relay api location
-  STEP="Add property to configure relay api location"
-
-  check_and_add_config_property rudder.server.relay.api "
-#
-# Location of the relay api used by rudder webapp
-# It's the base url of relay api, Rudder will manage to call the correct url from that base
-#
-rudder.server.relay.api=https://localhost/rudder/relay-api
-
-"
-
-  # - 4.1.0 : Add property to define hooks ignore suffixes
-  STEP="Add property to define the list of suffixes to ignore hooks"
-
-  check_and_add_config_property rudder.hooks.ignore-suffixes "
-####################
-# Server side Hooks #############################################################
-####################
-
-# This property contains the comma separated list of suffixes that will be checked 
-# before running a hook under /opt/rudder/etc/hooks.d. 
-# If an executable file has one of the following suffixes, it
-# will be IGNORED and the corresponding hook skipped. Non executable files are 
-# always ignored, with or without any of these suffixes. 
-# 
-# Spaces are trimmed. Case is not relevant (both .disabled and .DISABLED will be ignored)
-
-rudder.hooks.ignore-suffixes= .swp, ~, .bak, \
- .cfnew   , .cfsaved  , .cfedited, .cfdisabled, .cfmoved,\
- .dpkg-old, .dpkg-dist, .dpkg-new, .dpkg-tmp,\
- .disable , .disabled , _disable , _disabled,\
- .ucf-old , .ucf-dist , .ucf-new ,\
- .rpmnew  , .rpmsave  , .rpmorig
-
-"
-
-  # - 4.1.0 : Migrate script properties to hooks
-  RUDDER_WEB_PROPERTIES="/opt/rudder/etc/rudder-web.properties"
-
-  # Replace checkpromises with a hook
-  HOOK_NAME="/opt/rudder/etc/hooks.d/policy-generation-node-ready/10-cf-promise-check"
-  MIGRATED_HOOK_NAME="/opt/rudder/etc/hooks.d/policy-generation-node-ready/20-migrated-posthook"
-  CURRENT_CHECKPROMISES=$(sed -n '/^rudder.community.checkpromises.command/s/rudder.community.checkpromises.command=//p' "${RUDDER_WEB_PROPERTIES}")
-  [ "${CURRENT_CHECKPROMISES}" = "" ] && CURRENT_CHECKPROMISES=$(sed -n '/^rudder.nova.checkpromises.command/s/rudder.nova.checkpromises.command=//p' "${RUDDER_WEB_PROPERTIES}")
-  if [ "${CURRENT_CHECKPROMISES}" = "/bin/true" ]
-  then
-    # if /bin/true, just remove the hook
-    mv "${HOOK_NAME}" "${HOOK_NAME}.disabled"
-  elif [ "${CURRENT_CHECKPROMISES}" = "/var/rudder/cfengine-community/bin/cf-promises" ] || [ -z "${CURRENT_CHECKPROMISES}"  ] || [ -f "${HOOK_NAME}.disabled" ]
-  then
-    # if default value, do nothing
-    true
-  else
-    # if anything else present, put it in a hook replacing the distributed one
-    mv "${HOOK_NAME}" "${HOOK_NAME}.disabled"
-    cat > "${MIGRATED_HOOK_NAME}" << EOF
-#!/bin/sh
-
-# This file has been created by Rudder postinstall from your pre 4.1 rudder-web.properties file
-# The matching property has been commented out
-${CURRENT_CHECKPROMISES} -f "\${RUDDER_NEXT_POLICIES_DIRECTORY}/promises.cf" 
-EOF
-    chmod +x "${MIGRATED_HOOK_NAME}"
-    echo "INFO: A non default checkpromises command has been found in your rudder-web.properties file"
-    echo "INFO: It has been converted into a hook in ${MIGRATED_HOOK_NAME} You may want to take a look"
-  fi
-  sed -i 's/^rudder.community.checkpromises.command/#rudder.community.checkpromises.command/' "${RUDDER_WEB_PROPERTIES}"
-  sed -i 's/^rudder.nova.checkpromises.command/#rudder.community.checkpromises.command/' "${RUDDER_WEB_PROPERTIES}"
-
-  # Replace reload server command with a hook
-  HOOK_NAME="/opt/rudder/etc/hooks.d/policy-generation-finished/50-reload-policy-file-server"
-  MIGRATED_HOOK_NAME="/opt/rudder/etc/hooks.d/policy-generation-finished/60-migrated-posthook"
-  CURRENT_SERVER_COMMAND=$(sed -n '/^rudder.cfengine.reload.server.command/s/rudder.cfengine.reload.server.command=//p' "${RUDDER_WEB_PROPERTIES}")
-  if [ "${CURRENT_SERVER_COMMAND}" = "/opt/rudder/bin/rudder-reload-cf-serverd" ]
-  then
-    # if default value, do nothing
-    true
-  elif [ -z "${CURRENT_SERVER_COMMAND}" ] || [ -f "${HOOK_NAME}.disabled" ]
-  then
-    # already migrated
-    true
-  else
-    # if anything else present, put it in a hook replacing the distributed one
-    mv "${HOOK_NAME}" "${HOOK_NAME}.disabled"
-    cat > "${MIGRATED_HOOK_NAME}" << EOF
-#!/bin/sh
-
-# This file has been created by Rudder postinstall from your pre 4.1 rudder-web.properties file
-# The matching property has been commented out
-${CURRENT_SERVER_COMMAND} 
-EOF
-    chmod +x "${MIGRATED_HOOK_NAME}"
-    echo "INFO: A non default reload server command has been found in your rudder-web.properties file"
-    echo "INFO: It has been converted into a hook in ${MIGRATED_HOOK_NAME} You may want to take a look"
-  fi
-  sed -i 's/^rudder.cfengine.reload.server.command/#rudder.cfengine.reload.server.command/' "${RUDDER_WEB_PROPERTIES}"
-
+  :
 }
 
 ################################################################################
@@ -624,59 +412,6 @@ upgrade_database() {
     echo " Done"
     echo -n "INFO: Rudder application will now restart..."
     ${JETTY_INIT} restart >/dev/null 2>&1 || echo "WARNING: Jetty failed to start, maybe there is not enough RAM or swap on the machine. Skipping..."
-    echo " Done"
-  fi
-
-  # - 2.10.17, 2.11.14, 3.0.9 and 3.1.2 : Migration DB schema to correct the historization of rules
-  RES=$(${PSQL} -t -d ${SQL_DATABASE} -c "select count(*) from information_schema.columns where table_name='rulesgroupjoin' and column_name = 'targetserialisation';")
-  if [ $RES -eq 0 ]; then
-    ${PSQL} -d ${SQL_DATABASE} -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.10-2.10-historization-of-groups-in-rules.sql > /dev/null
-  fi
-
-  RES=$(${PSQL} -t -d ${SQL_DATABASE} -c "select count(*) from information_schema.tables where table_name='globalschedule';")
-  if [ $RES -eq 0 ]; then
-    ${PSQL} -d ${SQL_DATABASE} -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.10-2.10-historization-of-agent-schedule.sql > /dev/null
-  fi
-
-  # - 2.11.19, 3.0.14, 3.1.8 and 3.2.1 : Migration DB schema to modify indexes on eventlog to improve upgrade speed
-  STEP="Migration DB schema to modify indexes on eventlog to improve upgrade speed"
-
-  RES=$(${PSQL} -t -d ${SQL_DATABASE} -c "select count(oid) from pg_class where lower(relname) = 'eventlog_fileformat_idx'")
-  if [ $RES -eq 0 ]; then
-    echo -n "INFO: Updating the PostgreSQL indexes, this may take several minutes..."
-    ${PSQL} -d ${SQL_DATABASE} -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-2.11-2.11-index-eventlog.sql > /dev/null
-    echo " Done"
-  fi
-
-  # - 3.0.17, 3.1.11 and 3.2.4 : Migration DB schema to add an indexes on eventType and executionTimeStamp on table RudderSysEvents
-  RES=$(${PSQL} -t -d ${SQL_DATABASE} -c "select count(oid) from pg_class where lower(relname) = 'changes_executiontimestamp_idx'")
-  if [ $RES -eq 0 ]; then
-    echo -n "INFO: Updating the PostgreSQL indexes, this may take several minutes..."
-    ${PSQL} -d ${SQL_DATABASE} -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-3.0-3.0-add-index-changes-executiontimestamp.sql > /dev/null
-    echo " Done"
-  fi
-
-  # - 3.1.x and 3.2.x to 4.0.0: Migration DB schema to add table "nodeConfiguration" and related indexes 
-  RES=$(${PSQL} -t -d ${SQL_DATABASE} -c "select count(*) from information_schema.columns where lower(table_name) = 'nodeconfigurations'")
-  if [ $RES -eq 0 ]; then
-    echo -n "INFO: Adding new 'nodeConfigurations' table and updating indexes, this may take several seconds..."
-    ${PSQL} -d ${SQL_DATABASE} -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-3.2.x-4.0-add-nodeconfigurations.sql > /dev/null
-    echo " Done"
-  fi
-
-  # - 3.1.x and 3.2.x to 4.0.0: Migration DB schema to add archive table "archivedNodeConfigurations" and "ArchivedReportsExecution" 
-  RES=$(${PSQL} -t -d ${SQL_DATABASE} -c "select count(*) from information_schema.columns where lower(table_name) = 'archivednodeconfigurations'")
-  if [ $RES -eq 0 ]; then
-    echo -n "INFO: Adding new 'archivedNodeConfigurations' and 'ArchivedReportsExecution' tables"
-    ${PSQL} -d ${SQL_DATABASE} -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-3.2.x-4.0-add-archived-tables.sql > /dev/null
-    echo " Done"
-  fi
-
-  # - 4.0.x to 4.1.0: add compliance table
-  RES=$(${PSQL} -t -d ${SQL_DATABASE} -c "select count(*) from information_schema.columns where lower(table_name) = 'nodecompliance'")
-  if [ $RES -eq 0 ]; then
-    echo -n "INFO: Adding new 'compliances' table"
-    ${PSQL} -d ${SQL_DATABASE} -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-4.0.x-4.1-add-compliance-table.sql > /dev/null
     echo " Done"
   fi
 
@@ -715,26 +450,6 @@ upgrade_inventory() {
   LDAP_EXISTS=$(${LDAPSEARCH} -b "cn=rudder-configuration" -s base dn 2>/dev/null | grep -c "dn: cn=rudder-configuration" || true)
 
   if [ ${LDAP_EXISTS} -ne 0 ]; then
-
-    # - 2.11.23, 3.1.12 and 3.2.5 : Add LDAP entry for 'api_compatibility_mode' property, and set 'true' as value, different from default value (false) on a fresh 3.1
-    STEP="Add LDAP entry for 'api_compatibility_mode' property"
-
-    LDAP_TEST_SYSLOG_PROPERTY=$(${LDAPSEARCH} -b "propertyName=api_compatibility_mode,ou=Application Properties,cn=rudder-configuration" -s base dn 2> /dev/null | grep -c "dn: propertyName=api_compatibility_mode" || true)
-    if [ ${LDAP_TEST_SYSLOG_PROPERTY} -eq 0 ]; then
-      echo -n "INFO: Adding 'api_compatibility_mode' property..."
-      ${LDAPADD} -f ${RUDDER_UPGRADE_TOOLS}/ldapMigration-2.11-2.11-add-api-compatibility-mode.ldif >/dev/null 2>&1
-      echo " Done."
-    fi
-
-    # - 3.1.14, 3.2.7 : Disable 'javascript engine' feature on upgrade
-    STEP="Disable 'javascript script engine' feature"
-
-    LDAP_TEST_SYSLOG_PROPERTY=$(${LDAPSEARCH} -b "propertyName=rudder_featureSwitch_directiveScriptEngine,ou=Application Properties,cn=rudder-configuration" -s base dn 2> /dev/null | grep -c "dn: propertyName=rudder_featureSwitch_directiveScriptEngine" || true)
-    if [ ${LDAP_TEST_SYSLOG_PROPERTY} -eq 0 ]; then
-      echo -n "INFO: Disabling 'javascript script engine' feature..."
-      ${LDAPADD} -f ${RUDDER_UPGRADE_TOOLS}/ldapMigration-3.1.x-3.1.14-3.2.7-disable-js-directive.ldif
-      echo " Done."
-    fi
 
   fi
 
