@@ -228,9 +228,11 @@ fi
 
 check_varspace() {
   # check max space available for databases and stop if there is a risk
-  ldap_space=$(df /var/rudder/ | tail -n 1 | awk '{print $5}' | sed 's/%//')
-  if [ "${ldap_space}" -gt 98 ]; then
-    stop_now=1
+  if [ -d /var/rudder/ldap/ ]; then
+    ldap_space=$(df /var/rudder/ | tail -n 1 | awk '{print $5}' | sed 's/%//')
+    if [ "${ldap_space}" -gt 98 ]; then
+      stop_now=1
+    fi
   fi
   if [ -d /var/lib/postgresql/ ]; then
     psql_space=$(df /var/lib/postgresql/ | tail -n 1 | awk '{print $5}' | sed 's/%//')
