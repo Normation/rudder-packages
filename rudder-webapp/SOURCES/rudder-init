@@ -419,10 +419,10 @@ if [ -f /var/rudder/configuration-repository/ncf/ncf.conf ]; then
 fi
 
 ## Then, restart jetty
-${JETTY_INIT} restart >> "${TMP_LOG}" 2>&1 || echo "WARNING: Jetty failed to start, maybe there is not enough RAM or swap on the machine. Skipping..."
+${JETTY_INIT} restart 2>&1 | tee "${TMP_LOG}"
 
 ## And finally, rudder-agent
-service rudder-agent restart >> "${TMP_LOG}" 2>&1
+service rudder-agent restart 2>&1 | tee "${TMP_LOG}"
 
 echo " done."
 
