@@ -351,6 +351,10 @@ then
 %endif
   CFRUDDER_FIRST_INSTALL=1
 fi
+# mandatory with systemd wrapper for old init
+%if 0%{?suse_version} && 0%{?suse_version} >= 1315
+systemctl daemon-reload
+%endif
 
 %if "%{?rhel}" == "3"
 # Update and reload ld.so configuration if needed, RHEL/CentOS 3 style.

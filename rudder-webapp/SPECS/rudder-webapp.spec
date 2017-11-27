@@ -313,6 +313,10 @@ chkconfig --add %{apache} 2&> /dev/null
 %if 0%{?rhel} && 0%{?rhel} == 6
 chkconfig %{apache} on
 %endif
+# mandatory with systemd wrapper for old init
+%if 0%{?suse_version} && 0%{?suse_version} >= 1315
+systemctl daemon-reload
+%endif
 %if 0%{?rhel} && 0%{?rhel} >= 7
 systemctl enable %{apache}.service
 %endif

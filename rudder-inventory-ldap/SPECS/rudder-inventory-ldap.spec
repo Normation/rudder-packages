@@ -217,6 +217,11 @@ fi
 echo -n "INFO: Setting rudder-slapd as a boot service..."
 chkconfig --add rudder-slapd >/dev/null 2>&1
 
+# mandatory with systemd wrapper for old init
+%if 0%{?suse_version} && 0%{?suse_version} >= 1315
+systemctl daemon-reload
+%endif
+
 %if 0%{?rhel} && 0%{?rhel} >= 6
 chkconfig rudder-slapd on
 %endif
