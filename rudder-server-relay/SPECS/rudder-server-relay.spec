@@ -308,6 +308,11 @@ chkconfig --add %{apache} 2&> /dev/null
 chkconfig %{apache} on
 %endif
 echo " Done"
+# mandatory with systemd wrapper for old init
+%if 0%{?suse_version} && 0%{?suse_version} >= 1315
+systemctl daemon-reload
+%endif
+
 
 echo -n "INFO: Stopping Apache HTTPd..."
 %if 0%{?rhel} < 7
