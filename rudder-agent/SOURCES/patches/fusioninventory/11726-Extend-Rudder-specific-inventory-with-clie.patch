@@ -1,0 +1,140 @@
+From ff4f8028c82341fff8ac0aeac60d1e2cb43eed2a Mon Sep 17 00:00:00 2001
+From: Nicolas Charles <nicolas.charles@normation.com>
+Date: Tue, 14 Nov 2017 14:51:26 +0100
+Subject: [PATCH 1/1] Fixes #403: Extend Rudder specific inventory with client
+ side data
+
+---
+ lib/FusionInventory/Agent/Inventory.pm             |  2 +-
+ .../Agent/Task/Inventory/Generic/Rudder.pm         | 82 ++++++++++++++++++++++
+ 2 files changed, 83 insertions(+), 1 deletion(-)
+
+diff --git a/lib/FusionInventory/Agent/Inventory.pm b/lib/FusionInventory/Agent/Inventory.pm
+index 7467a30..08a7fa6 100644
+--- a/lib/FusionInventory/Agent/Inventory.pm
++++ b/lib/FusionInventory/Agent/Inventory.pm
+@@ -77,7 +77,7 @@ my %fields = (
+                              CMD/ ],
+     REGISTRY         => [ qw/NAME REGVALUE HIVE/ ],
+     REMOTE_MGMT      => [ qw/ID TYPE/ ],
+-    RUDDER           => [ qw/AGENT UUID HOSTNAME SERVER_ROLES AGENT_CAPABILITIES/ ],
++    RUDDER           => [ qw/AGENT UUID HOSTNAME SERVER_ROLES AGENT_CAPABILITIES CUSTOM_PROPERTIES/ ],
+     SLOTS            => [ qw/DESCRIPTION DESIGNATION NAME STATUS/ ],
+     SOFTWARES        => [ qw/COMMENTS FILESIZE FOLDER FROM HELPLINK INSTALLDATE
+                             NAME NO_REMOVE RELEASE_TYPE PUBLISHER
+diff --git a/lib/FusionInventory/Agent/Task/Inventory/Generic/Rudder.pm b/lib/FusionInventory/Agent/Task/Inventory/Generic/Rudder.pm
+index b2fd04d..41e1dea 100644
+--- a/lib/FusionInventory/Agent/Task/Inventory/Generic/Rudder.pm
++++ b/lib/FusionInventory/Agent/Task/Inventory/Generic/Rudder.pm
+@@ -6,6 +6,9 @@ use warnings;
+ use English qw(-no_match_vars);
+ 
+ use FusionInventory::Agent::Tools;
++use UNIVERSAL::require;
++use File::stat;
++
+ 
+ sub isEnabled {
+     return -r getUuidFile();
+@@ -42,12 +45,15 @@ sub doInventory {
+     # Get agent capabilities
+     my @agentCapabilities = _listAgentCapabilities();
+ 
++    my $customProperties = _getCustomProperties(logger => $logger);
++
+     my $rudder = {
+         HOSTNAME => $hostname,
+         UUID => $Uuid,
+         AGENT => \@agents,
+         SERVER_ROLES => { SERVER_ROLE => \@serverRoles },
+         AGENT_CAPABILITIES => { AGENT_CAPABILITY => \@agentCapabilities },
++        CUSTOM_PROPERTIES => $customProperties,
+     };
+ 
+     $inventory->addEntry(
+@@ -55,6 +61,82 @@ sub doInventory {
+     );
+ }
+ 
++sub _getCustomProperties {
++    my (%params) = @_;
++    my $logger   = $params{logger};
++
++    my $custom_properties_dir = ($OSNAME eq 'MSWin32') ? 'C:\Program Files\Rudder\hooks.d' : '/var/rudder/hooks.d';
++    my $custom_properties;
++    if (-d "$custom_properties_dir") {
++        my @custom_properties_list = ();
++        my @ordered_script_list = ();
++        opendir(DIR, $custom_properties_dir);
++        # List each file in the custom_properties directory, each files being a script
++        @ordered_script_list = sort readdir(DIR);
++        closedir(DIR);
++        while (my $file = shift @ordered_script_list) {
++            my $script_file = $custom_properties_dir . "/" . $file;
++            if (-f $script_file) {
++                next if ($file =~ m/^\./);
++                # Ignore non-executable file, or folders
++                next unless -x $script_file;
++
++                # Check that the file is not world writable on non Windows system
++                if ($OSNAME eq 'MSWin32') {
++                  # TODO
++                } else {
++                  # Check that the file is owned by current user (or root), and not world writable
++                  my $stats = stat($script_file);
++                  my $owner = $stats->uid;
++                  my $currentUser = $<;
++
++                  # file must be owned by root or current user
++                  if (($owner != 0) && ($owner != $currentUser)) {
++                      $logger->error("Skipping script $script_file as it is not owned by root nor current user (owner is $owner)") if $logger;
++                      next;
++                  }
++
++                  my $retMode = $stats->mode;
++                  $retMode = $retMode & 0777;
++                  if (($retMode & 002) || ($retMode & 020)) {
++                      $logger->error("Skipping script $script_file as it is world or group writable") if $logger;
++                      next;
++                  }
++                }
++
++                $logger->debug2("executing $script_file") if $logger;
++                my $properties = qx($script_file);
++                my $exit_code = $? >> 8;
++                if ($exit_code > 0) {
++                    $logger->error("Script $script_file failed to run properly, with exit code $exit_code") if $logger;
++                    next;
++                }
++
++                # check that it is valid JSON
++                eval {
++                    my $package = "JSON::PP";
++                    $package->require();
++                    if ($EVAL_ERROR) {
++                        print STDERR
++                            "Failed to load JSON module: ($EVAL_ERROR)\n";
++                        next;
++                    }
++                    my $coder = JSON::PP->new;
++                    my $propertiesData = $coder->decode($properties);
++                    push @custom_properties_list, $coder->encode($propertiesData);
++                };
++                if ($@) {
++                    $logger->error("Script $script_file didn't return valid JSON entry, error is:$@") if $logger;
++                }
++            }
++            
++        }
++        $custom_properties = "[". join(",", @custom_properties_list) . "]";
++   }
++   return $custom_properties;
++}
++
++
+ sub _listServerRoles {
+     my $server_roles_dir = ($OSNAME eq 'MSWin32') ? 'C:\Program Files\Rudder\etc\server-roles.d' : '/opt/rudder/etc/server-roles.d';
+     my @server_roles;
+-- 
+2.7.4
+
