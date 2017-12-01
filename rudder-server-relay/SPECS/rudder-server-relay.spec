@@ -240,6 +240,7 @@ install -m 644 %{SOURCE13} %{buildroot}%{rudderdir}/etc/rudder-apache-relay-ssl.
 install -m 644 %{SOURCE6} %{buildroot}/etc/sysconfig/rudder-relay-apache
 install -m 644 %{SOURCE9} %{buildroot}/etc/cron.d/rudder-relay
 install -m 644 %{SOURCE10} %{buildroot}/etc/sudoers.d/rudder-relay
+install -m 644 %{SOURCE14} %{buildroot}%{rudderdir}/etc/ssl/openssl.cnf
 
 # Copy stub rudder-networks*.conf
 cp %{SOURCE2} %{buildroot}%{rudderdir}/etc/
@@ -382,7 +383,7 @@ fi
 # Generate certificates if needed
 if [ ! -f /opt/rudder/etc/ssl/rudder.crt ] || [ ! -f /opt/rudder/etc/ssl/rudder.key ]; then
   echo -n "INFO: No usable SSL certificate detected for Rudder HTTP/S support, generating one automatically..."
-  openssl req -new -x509 -newkey rsa:2048 -subj "/C=FR/ST=France/L=Paris/CN=$(hostname --fqdn)/emailAddress=root@$(hostname --fqdn)/" -keyout /opt/rudder/etc/ssl/rudder.key -out /opt/rudder/etc/ssl/rudder.crt -days 1460 -nodes -sha256 >/dev/null 2>&1
+  SUBJALTNAME=DNS:$(hostname --fqdn) openssl req -new -x509 -newkey rsa:2048 -subj "/C=FR/ST=France/L=Paris/CN=$(hostname --fqdn)/emailAddress=root@$(hostname --fqdn)/" -keyout /opt/  rudder/etc/ssl/rudder.key -out /opt/rudder/etc/ssl/rudder.crt -days 1460 -nodes -sha256 -config /opt/rudder/etc/ssl/openssl.cnf -extensions server_cert >/dev/null 2>&1
   chgrp %{apache_group} /opt/rudder/etc/ssl/rudder.key && chmod 640 /opt/rudder/etc/ssl/rudder.key
   echo " Done"
 fi
