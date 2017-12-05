@@ -15,7 +15,7 @@ index 15880ec..cbf4500 100644
 -Package: rudder-agent
 +Package: rudder-agent-thin
  Architecture: any
--Depends: ${shlibs:Depends}, ${misc:Depends}, uuid-runtime, dmidecode, cron, net-tools, openssl
+-Depends: ${shlibs:Depends}, ${misc:Depends}, uuid-runtime, dmidecode, cron, curl, net-tools, openssl
 -# The dependencies below are defined in order to use rudder-agent
 -# for the server. This will add capabilities to send inventories
 -# from the server itself.
