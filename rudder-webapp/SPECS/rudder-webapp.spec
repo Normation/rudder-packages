@@ -359,10 +359,10 @@ if ! getent group rudder-policy-reader > /dev/null; then
   echo -n "INFO: Creating group rudder-policy-reader..."
   groupadd --system rudder-policy-reader
 %if 0%{?suse_version}
-  usermod -a -G rudder-policy-reader wwwrun
+  usermod -%{usermod_opt} rudder-policy-reader wwwrun
 %endif
 %if 0%{?rhel}
-  usermod -a -G rudder-policy-reader apache
+  usermod -%{usermod_opt} rudder-policy-reader apache
 %endif
   echo " Done"
 fi

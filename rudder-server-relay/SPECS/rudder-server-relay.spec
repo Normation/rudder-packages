@@ -44,6 +44,12 @@
 %define apache_group            www
 %define htpasswd_cmd            htpasswd2
 %define apache_vhost_dir        %{apache}/vhosts.d
+# Reference for suse_version : https://en.opensuse.org/openSUSE:Build_Service_cross_distribution_howto
+%if 0%{?suse_version} >= 1200
+%define usermod_opt             aG
+%else
+%define usermod_opt             A
+%endif
 %endif
 %if 0%{?rhel} || 0%{?fedora}
 %define apache                  httpd
@@ -51,11 +57,11 @@
 %define apache_group            apache
 %define htpasswd_cmd            htpasswd
 %define apache_vhost_dir        %{apache}/conf.d
+%define usermod_opt             aG
 %endif
 
 # avoid error during byte compilation of pyc since they are removed anyway
 %define _python_bytecompile_errors_terminate_build 0
-
 
 #=================================================
 # Header
@@ -269,10 +275,10 @@ if ! getent group rudder-policy-reader > /dev/null; then
   echo -n "INFO: Creating group rudder-policy-reader..."
   groupadd --system rudder-policy-reader
 %if 0%{?suse_version}
-  usermod -a -G rudder-policy-reader wwwrun
+  usermod -%{usermod_opt} rudder-policy-reader wwwrun
 %endif
 %if 0%{?rhel}
-  usermod -a -G rudder-policy-reader apache
+  usermod -%{usermod_opt} rudder-policy-reader apache
 %endif
   echo " Done"
 fi
