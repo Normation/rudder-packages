@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# This script create a minimalist cpan mirror in a given directory
+# The mirror will contain the provided modules + their dependencies (recursively)
+# For Rudder, use a directory per major version.
+
+# Usage: ./mirror <destination_directory> [<Module::Name> ...]
+DIR="$1"
+shift
+
+# Use cpanm to download all dependencies from cpan
+cpanm --quiet -L /tmp/empty --self-contained --scandeps --save-dists "$DIR" "$@"
+
+# Download 3 index files mandatory for cpanm to work without connection to cpan.org
+mkdir -p "$DIR/authors"
+wget https://www.cpan.org/authors/01mailrc.txt.gz -O "$DIR/authors/01mailrc.txt.gz"
+mkdir -p "$DIR/modules"
+wget https://www.cpan.org/modules/02packages.details.txt.gz -O "$DIR/modules/02packages.details.txt.gz"
+wget https://www.cpan.org/modules/03modlist.data.gz -O "$DIR//modules/03modlist.data.gz"
+
