@@ -192,6 +192,9 @@ cp %{_sourcedir}/rsyslog/rudder-slapd.conf %{buildroot}/etc/rsyslog.d/rudder-sla
 # Only do this on package upgrade
 if [ $1 -gt 1 ]
 then
+        # We need it to be able to open big mdb memory-mapped databases
+        ulimit -v unlimited
+
 	# When upgrading OpenLDAP, we may need to dump the database
 	# so that it can be restored from LDIF
 	TIMESTAMP=`date +%%Y%%m%%d%%H%%M%%S`
