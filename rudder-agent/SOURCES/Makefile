@@ -37,7 +37,7 @@ PCRE_SHA1 = 3ab418d0026c2a4e693ec783bd60660debc32b8f
 CPANMINUS_RELEASE = 1.7036
 CPANMINUS_SHA1 = a12043498ab54d9abdc58d1ebb4988da3bd515db
 #CPAN_URL = https://www.cpan.org
-CPAN_URL = https://www.normation.com/tarbal/cpan/$(RUDDER_MAJOR_VERSION)
+CPAN_URL = https://www.normation.com/tarball/cpan/$(RUDDER_MAJOR_VERSION)
 
 # Defauth PATHs
 RUDDER_DIR = /opt/rudder
