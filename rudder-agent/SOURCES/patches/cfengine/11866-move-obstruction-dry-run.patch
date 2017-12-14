@@ -1,0 +1,118 @@
+From 07108a202de46a9dd95e113ff2409272b57d2074 Mon Sep 17 00:00:00 2001
+From: Alexis Mousset <alexis.mousset@normation.com>
+Date: Wed, 13 Dec 2017 11:20:40 +0100
+Subject: [PATCH] CFE-2740: Do not move obstructions in warn policy mode
+
+Changelog: Title
+---
+ cf-agent/files_links.c                             | 17 ++++++--
+ .../move_obstruction_respects_warn_only.cf         | 51 ++++++++++++++++++++++
+ 2 files changed, 65 insertions(+), 3 deletions(-)
+ create mode 100644 tests/acceptance/10_files/move_obstruction_respects_warn_only.cf
+
+diff --git a/cf-agent/files_links.c b/cf-agent/files_links.c
+index 23a5579cec..6a73f8b641 100644
+--- a/cf-agent/files_links.c
++++ b/cf-agent/files_links.c
+@@ -112,6 +112,11 @@ PromiseResult VerifyLink(EvalContext *ctx, char *destination, const char *source
+ 
+     if (readlink(destination, linkbuf, CF_BUFSIZE - 1) == -1)
+     {
++        if (!EnforcePromise(attr.transaction.action))
++        {
++            Log(LOG_LEVEL_WARNING, "Link '%s' should be created", destination);
++            return PROMISE_RESULT_WARN;
++        }
+ 
+         if (!MakeParentDirectory2(destination, attr.move_obstructions, EnforcePromise(attr.transaction.action)))
+         {
+@@ -155,7 +160,7 @@ PromiseResult VerifyLink(EvalContext *ctx, char *destination, const char *source
+         {
+             if (attr.move_obstructions)
+             {
+-                if (!DONTDO)
++                if (EnforcePromise(attr.transaction.action))
+                 {
+                     cfPS(ctx, LOG_LEVEL_INFO, PROMISE_RESULT_CHANGE, pp, attr, "Overriding incorrect link '%s'", destination);
+                     PromiseResult result = PROMISE_RESULT_CHANGE;
+@@ -172,8 +177,8 @@ PromiseResult VerifyLink(EvalContext *ctx, char *destination, const char *source
+                 }
+                 else
+                 {
+-                    Log(LOG_LEVEL_ERR, "Must remove incorrect link '%s'", destination);
+-                    return PROMISE_RESULT_NOOP;
++                    Log(LOG_LEVEL_WARNING, "Must remove incorrect link '%s'", destination);
++                    return PROMISE_RESULT_WARN;
+                 }
+             }
+             else
+@@ -397,6 +402,12 @@ PromiseResult VerifyHardLink(EvalContext *ctx, char *destination, const char *so
+ 
+     Log(LOG_LEVEL_INFO, "'%s' does not appear to be a hard link to '%s'", destination, to);
+ 
++    if (!EnforcePromise(attr.transaction.action))
++    {
++        Log(LOG_LEVEL_WARNING, "Hard link '%s' -> '%s' should be created", destination, to);
++        return PROMISE_RESULT_WARN;
++    }
++
+     PromiseResult result = PROMISE_RESULT_NOOP;
+     if (!MoveObstruction(ctx, destination, attr, pp, &result))
+     {
+diff --git a/tests/acceptance/10_files/move_obstruction_respects_warn_only.cf b/tests/acceptance/10_files/move_obstruction_respects_warn_only.cf
+new file mode 100644
+index 0000000000..6c44b1a413
+--- /dev/null
++++ b/tests/acceptance/10_files/move_obstruction_respects_warn_only.cf
+@@ -0,0 +1,51 @@
++#######################################################
++
++body common control
++{
++      inputs => { "../default.cf.sub" };
++      bundlesequence  => { default("$(this.promise_filename)") };
++      version => "1.0";
++}
++
++#######################################################
++
++bundle agent init
++{
++  vars:
++    "target" string => "$(G.testfile)";
++
++   files:
++    "$(target)/."
++      create => "true";
++}
++
++body link_from ln_s(x)
++{
++      link_type => "symlink";
++      source => "$(x)";
++      when_no_source => "force";
++}
++
++
++bundle agent test
++{
++  files:
++    "$(init.target)"
++      move_obstructions => "true",
++      link_from => ln_s("/tmp"),
++      action => warn_only;
++}
++
++#######################################################
++
++bundle agent check
++{
++  classes:
++    "ok" expression => isdir("$(init.target)");
++
++  reports:
++    ok::
++      "$(this.promise_filename) Pass";
++    !ok::
++      "$(this.promise_filename) FAIL";
++}
