@@ -1,0 +1,13 @@
+diff --git a/libutils/logging.c b/libutils/logging.c
+index ee488ed9b..a829de4a0 100644
+--- a/libutils/logging.c
++++ b/libutils/logging.c
+@@ -154,7 +154,7 @@ bool LoggingFormatTimestamp(char dest[64], size_t n, struct tm *timestamp)
+ 
+ static void LogToConsole(const char *msg, LogLevel level, bool color)
+ {
+-    FILE *output_file = stdout; // Messages should ALL go to stdout else they are disordered
++    FILE *output_file = (level <= LOG_LEVEL_WARNING) ? stderr : stdout;
+     struct tm now;
+     time_t now_seconds = time(NULL);
+     localtime_r(&now_seconds, &now);
