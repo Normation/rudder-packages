@@ -131,11 +131,6 @@ Requires: kernel-utils
 Requires: dmidecode
 %endif
 
-# rhel needs a package for completion to work
-%if 0%{?rhel}
-Recommends: bash-completion
-%endif
-
 # LMDB handling (builtin or OS-provided)
 
 ## 1 - RHEL: No LMDB yet
