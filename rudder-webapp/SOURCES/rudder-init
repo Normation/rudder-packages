@@ -69,6 +69,11 @@ INITREP=/var/rudder/cfengine-community/inputs
 # File containing the policy server IP
 POLICY_SERVER_FILE="${RUDDER_VAR}/cfengine-community/policy_server.dat"
 
+# Check if there is already a /var/cfengine/inputs to manage
+# CFENGINE_INSTALLED = 0 means it is installed
+[ -f "/var/cfengine/inputs/promises.cf" ]
+CFENGINE_INSTALLED=$?
+
 JETTY_INIT="service rudder-jetty"
 
 # Get how many access credentials we got for LDAP and SQL in /opt/rudder/etc/rudder-web.properties
@@ -197,8 +202,12 @@ function generate_promises_at_temporary_location() {
 
 # Reset the policy server hostname
 function reset_policy_server() {
-  echo "127.0.0.1" > /var/cfengine/policy_server.dat
   echo "127.0.0.1" > /var/rudder/cfengine-community/policy_server.dat
+  # edit cfengine file only if it's installed
+  if [ $CFENGINE_INSTALLED -eq 0 ]
+  then
+    echo "127.0.0.1" > /var/cfengine/policy_server.dat
+  fi
 }
 
 function add_allowed_networks() {
@@ -321,7 +330,7 @@ done
 generate_promises_at_temporary_location "${NET2}"
 
 # 3: compare the generated promises with what is on the FS
-mkdir -p ${INITREP} /var/cfengine/inputs
+mkdir -p ${INITREP}
 diff -Naur ${INITREP} ${TMP_DIR}/community > /dev/null
 DIFFERENT_PROMISES=$?
 
@@ -338,17 +347,23 @@ echo
 # Leave the user a chance to stop only if there is a user
 tty >/dev/null && Pause
 
+# Replace CFEngine promises only if it's installed
+if [ $CFENGINE_INSTALLED -eq 0 ]
+then
+  echo -n "Configuring and installing initial CFEngine promises..."
+  rm -rf /var/cfengine/inputs/*
+  cp -r $TMP_DIR/community/* /var/cfengine/inputs/
+  echo " Done."
+fi
+
 # Configure initial promises
-echo -n "Configuring and installing initial CFEngine promises..."
+echo -n "Configuring and installing initial Rudder policies..."
 
 # Preserve rudder-server-roles.conf
 mv ${RUDDER_ROLES_FILE} ${TMP_DIR}/
 
 rm -rf /var/rudder/cfengine-community/inputs/*
-rm -rf /var/cfengine/inputs/*
-
 cp -r $TMP_DIR/community/* /var/rudder/cfengine-community/inputs/
-cp -r $TMP_DIR/community/* /var/cfengine/inputs/
 
 # Restore rudder-server-roles.conf
 mv ${TMP_DIR}/$(basename ${RUDDER_ROLES_FILE}) ${RUDDER_ROLES_FILE}
