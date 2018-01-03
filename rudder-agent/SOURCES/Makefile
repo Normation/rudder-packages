@@ -468,10 +468,11 @@ install-perl: build-perl
 	touch build-perl # because perl-$(PERL_VERSION) is touched by make install
 
 CPANM:=$(CURDIR)/perl-$(PERL_VERSION)/App-cpanminus/bin/cpanm
-MODULE_INSTALL:=MAKEFLAGS= $(PERL) $(CPANM) $(CPAN_OPT) -L $(INSTALL_DIR) --from $(CPAN_URL)
+# --notest because tests add new Test:: dependencies that cannot be installed properly
+MODULE_INSTALL:=MAKEFLAGS= $(PERL) $(CPANM) $(CPAN_OPT) -L $(INSTALL_DIR) --from $(CPAN_URL) --notest
 # List from README / Makefile.PL in fusion-inventory-agent
 # -> requires + inventory and network recommends
-FUSION_MODULES = File::Which LWP::UserAgent Net::IP Text::Template UNIVERSAL::require XML::TreePP Parse::EDID Net::CUPS DateTime DateTime::TimeZone DateTime::TimeZone::Local::Unix DateTime::TimeZone::Local::Win32 Net::SNMP Net::NBName Thread::Queue
+FUSION_MODULES = File::Which LWP::UserAgent Net::IP Text::Template UNIVERSAL::require XML::TreePP Parse::EDID DateTime DateTime::TimeZone DateTime::TimeZone::Local::Unix DateTime::TimeZone::Local::Win32 Net::SNMP Net::NBName Thread::Queue
 # update sources at normation.com with the command: ./mirror $VAR_CPAN $FUSION_MODULES
 
 fusion-modules: $(FUSION_DEPS)
