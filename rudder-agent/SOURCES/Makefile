@@ -472,8 +472,8 @@ CPANM:=$(CURDIR)/perl-$(PERL_VERSION)/App-cpanminus/bin/cpanm
 MODULE_INSTALL:=MAKEFLAGS= $(PERL) $(CPANM) $(CPAN_OPT) -L $(INSTALL_DIR) --from $(CPAN_URL) --notest
 # List from README / Makefile.PL in fusion-inventory-agent
 # -> requires + inventory and network recommends
-FUSION_MODULES = File::Which LWP::UserAgent Net::IP Text::Template UNIVERSAL::require XML::TreePP Parse::EDID DateTime DateTime::TimeZone DateTime::TimeZone::Local::Unix DateTime::TimeZone::Local::Win32 Net::SNMP Net::NBName Thread::Queue
-# update sources at normation.com with the command: ./mirror $VAR_CPAN $FUSION_MODULES
+FUSION_MODULES = File::Which LWP::UserAgent Net::IP Text::Template UNIVERSAL::require XML::TreePP Parse::EDID DateTime DateTime::TimeZone DateTime::TimeZone::Local::Unix Net::SNMP Net::NBName Thread::Queue
+# update sources at normation.com with the command: ./mirror $VAR_CPAN $FUSION_MODULES Local::Win32
 
 fusion-modules: $(FUSION_DEPS)
 	mkdir -p $(INSTALL_DIR)/lib/perl5
