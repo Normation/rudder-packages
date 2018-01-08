@@ -247,17 +247,8 @@ install -m 644 %{SOURCE2} %{buildroot}%{rudderdir}/share/webapps/
 # Install upgrade tools and migration scripts
 
 ## SQL
-cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.10-2.10-historization-of-groups-in-rules.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
-cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.10-2.10-historization-of-agent-schedule.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
-cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-2.11-2.11-index-eventlog.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
-cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-3.0-3.0-add-index-changes-executiontimestamp.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
-cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-3.2.x-4.0-add-nodeconfigurations.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
-cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-3.2.x-4.0-add-archived-tables.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
-cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-4.0.x-4.1-add-compliance-table.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
-
 ## LDAP
-cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ldapMigration-2.11-2.11-add-api-compatibility-mode.ldif %{buildroot}%{rudderdir}/share/upgrade-tools/
-cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ldapMigration-3.1.x-3.1.14-3.2.7-disable-js-directive.ldif %{buildroot}%{rudderdir}/share/upgrade-tools/
+## No scripts for now
 
 cp %{SOURCE5} %{buildroot}%{rudderdir}/bin/
 
