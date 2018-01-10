@@ -155,7 +155,7 @@ mkdir -p %{buildroot}%{rudderlogdir}/ldap
 mkdir -p %{buildroot}/var/rudder/ldap/openldap-data
 mkdir -p %{buildroot}/var/rudder/run
 
-cd ../../openldap-source && make install DESTDIR=%{buildroot}
+cd openldap-source && make install DESTDIR=%{buildroot}
 
 # Init script
 mkdir -p %{buildroot}/etc/init.d
