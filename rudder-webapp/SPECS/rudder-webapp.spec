@@ -210,7 +210,7 @@ mkdir -p %{buildroot}/etc/sysconfig/
 mkdir -p %{buildroot}/usr/share/doc/rudder
 
 # Emulate installation of file rudder.xml in order to be owned by package
-touch %{buildroot}%{rudderdir}/share/webapp/rudder.xml
+touch %{buildroot}%{rudderdir}/share/webapps/rudder.xml
 
 # Install helper scripts
 cp %{SOURCE10} %{buildroot}%{rudderdir}/bin/
