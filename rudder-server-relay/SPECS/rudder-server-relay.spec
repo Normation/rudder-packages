@@ -89,6 +89,7 @@ Source10: rudder-relay.sudo
 Source11: rudder-relay.fc
 Source12: rudder-relay.te
 Source13: rudder-apache-relay-ssl.conf
+Source14: openssl.cnf
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
