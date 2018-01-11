@@ -1,0 +1,62 @@
+#!/bin/sh
+set -e
+
+PACKAGE_NAME="rudder-server-root"
+LOG_FILE="/var/log/rudder/install/${PACKAGE_NAME}.log"
+RUDDER_DIR="/opt/rudder/"
+
+CFRUDDER_FIRST_INSTALL="$1"
+if [ -z "$1" ]
+then
+  echo "Usage: $0 <CFRUDDER_FIRST_INSTALL>"
+  echo " This should only be called from a package postinstall command"
+  exit 1
+fi
+
+echo "`date` - Starting rudder-server-root post installation script" >> ${LOG_FILE}
+
+# Enable at first install
+if [ ${CFRUDDER_FIRST_INSTALL} -eq 1 ]
+then
+  if type chkconfig > /dev/null
+  then
+    chkconfig --add rudder-server
+    chkconfig rudder-server on
+  fi
+
+  if type update-rc.d > /dev/null
+  then
+    update-rc.d rudder-server enable
+  fi
+else
+# Upgrand and upgrade flag is here
+  if [ -f /var/rudder/tmp/migration-rudder-service-enabled ]
+  then
+    if type chkconfig > /dev/null
+    then
+      chkconfig --add rudder-server
+      chkconfig rudder-server on
+    fi
+
+    if type update-rc.d > /dev/null
+    then
+      update-rc.d rudder-server enable
+    fi
+  fi
+fi
+
+# This package is only installed by the root server
+# then we can set UUID to 'root' serenly
+echo 'root' > ${RUDDER_DIR}/etc/uuid.hive
+
+# We need it to be able to open big mdb memory-mapped databases
+ulimit -v unlimited
+
+# Check if Rudder LDAP has already been initialize previously
+LDAPCHK=`/opt/rudder/sbin/slapcat  | grep "^dn: " | wc -l`
+if [ $LDAPCHK -eq 0 ]; then
+  echo "************************************************************"
+  echo "Rudder is now installed but not configured."
+  echo "Please run /opt/rudder/bin/rudder-init"
+  echo "************************************************************"
+fi

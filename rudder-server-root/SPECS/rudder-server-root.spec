@@ -47,7 +47,6 @@ URL: http://www.rudder-project.org
 Group: Applications/System
 
 Source1: rudder-sources
-Source8: rudder-server-root
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
@@ -74,37 +73,36 @@ run a Rudder root server on a machine.
 # Installation
 #=================================================
 %install
-rm -rf %{buildroot}
-# Directories
-mkdir -p %{buildroot}%{rudderdir}/etc/
-mkdir -p %{buildroot}%{rudderdir}/etc/server-roles.d/
 
-install -m 644 %{SOURCE8} %{buildroot}/opt/rudder/etc/server-roles.d/
+cd %{_sourcedir}
+
+make install DESTDIR=%{buildroot}
 
 %pre
 #=================================================
 # Pre Installation
 #=================================================
 
+CFRUDDER_FIRST_INSTALL=0
+if [ $1 -eq 1 ];then
+then
+  CFRUDDER_FIRST_INSTALL=1
+fi
+
+/opt/rudder/share/package-scripts/rudder-agent-preinst "${CFRUDDER_FIRST_INSTALL}"
+
 %post
 #=================================================
 # Post Installation
 #=================================================
-# This package is only installed by the root server
-# then we can set UUID to 'root' serenly
-echo 'root' > %{rudderdir}/etc/uuid.hive
 
-# We need it to be able to open big mdb memory-mapped databases
-ulimit -v unlimited
-
-# Check if Rudder LDAP has already been initialize previously
-LDAPCHK=`/opt/rudder/sbin/slapcat  | grep "^dn: " | wc -l`
-if [ $LDAPCHK -eq 0 ]; then
-  echo "************************************************************"
-  echo "Rudder is now installed but not configured."
-  echo "Please run /opt/rudder/bin/rudder-init"
-  echo "************************************************************"
+CFRUDDER_FIRST_INSTALL=0
+if [ $1 -eq 1 ];then
+then
+  CFRUDDER_FIRST_INSTALL=1
 fi
+
+/opt/rudder/share/package-scripts/rudder-agent-postinst "${CFRUDDER_FIRST_INSTALL}"
 
 %postun
 #=================================================
@@ -136,7 +134,5 @@ rm -rf %{buildroot}
 # Changelog
 #=================================================
 %changelog
-* Wed Aug 31 2011 - Nicolas Perron <nicolas.perron@normation.com> 2.3-beta1-1
-- Add inputs folder for cfengine nova
-* Tue Aug 02 2011 - Nicolas Perron <nicolas.perron@normation.com> 2.3-alpha4-1
-- Initial package
++* Wed Nov  22 2017 - Rudder Team <rudder-dev@rudder-project.org> %{version}
++- See https://www.rudder-project.org/site/documentation/user-manual/ for changelogs
