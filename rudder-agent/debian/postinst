@@ -27,9 +27,12 @@ case "$1" in
 
     # Is this the first installation?
     CFRUDDER_FIRST_INSTALL=0
-    if [ ! -x /var/rudder/cfengine-community/bin/cf-execd ]; then CFRUDDER_FIRST_INSTALL=1; fi
+    CFRUDDER_USE_SYSTEMD=0
 
-    /opt/rudder/share/package-scripts/rudder-agent-postinst "${CFRUDDER_FIRST_INSTALL}"
+    if [ ! -x /var/rudder/cfengine-community/bin/cf-execd ]; then CFRUDDER_FIRST_INSTALL=1; fi
+    if type systemctl > /dev/null ; then CFRUDDER_USE_SYSTEMD=1; fi
+
+    /opt/rudder/share/package-scripts/rudder-agent-postinst "${CFRUDDER_FIRST_INSTALL}" "deb" "${CFRUDDER_USE_SYSTEMD}"
     ;;
 
   abort-upgrade|abort-remove|abort-deconfigure)

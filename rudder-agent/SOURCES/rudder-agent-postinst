@@ -2,19 +2,118 @@
 set -e
 
 CFRUDDER_FIRST_INSTALL="$1"
+CFRUDDER_OS="$2"
+CFRUDDER_USE_SYSTEMD="$3"
+
 CFE_DIR="/var/rudder/cfengine-community"
 RUDDER_CMD="/opt/rudder/bin/rudder"
 LOG_FILE="/var/log/rudder/install/rudder-agent.log"
 
-if [ -z "$1" ]
+if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ]
 then
-  echo "Usage: $0 <CFRUDDER_FIRST_INSTALL>"
+  echo "Usage: $0 <CFRUDDER_FIRST_INSTALL> <CFRUDDER_OS> <CFRUDDER_USE_SYSTEMD>"
   echo " This should only be called from a package postinstall command"
-  echo " You may want to run 'rudder agent factory-reset' instead"
   exit 1
 fi
 
 echo "`date` - Starting rudder-agent post installation script" >> ${LOG_FILE}
+
+# Do this at first install
+if [ ${CFRUDDER_FIRST_INSTALL} -eq 1 ]
+then
+  # Set rudder-agent as service
+  if [ ${CFRUDDER_OS} = "aix" ]
+  then
+    /usr/bin/mkssys -s rudder-agent -p "${CFE_DIR}/bin/cf-execd" -a "-F" -u root -S -n15 -f9 -R
+    /usr/sbin/mkitab "rudder-agent:23456789:once:/usr/bin/startsrc -s rudder-agent"
+    # No need to tell init to re-read /etc/inittab, it does it automatically every 60 seconds
+  elif [ ${CFRUDDER_OS} != "deb" ]
+    # Deb packaging handles service activation
+  then
+    if [ "${CFRUDDER_USE_SYSTEMD}" = "true" ] 
+    then
+      /bin/systemctl daemon-reload
+      /bin/systemctl enable rudder-agent cf-execd cf-serverd
+    else
+      chkconfig --add rudder-agent
+      chkconfig rudder-agent on
+    fi
+  fi
+fi
+
+if [ -f /var/rudder/tmp/migration-rudder-service-rename ]
+then
+  # Rename only happens on non-systemd systems
+  if type chkconfig > /dev/null
+  then
+    chkconfig --add rudder-agent
+  fi
+ 
+  if [ -f /var/rudder/tmp/migration-rudder-service-enabled ]
+  then
+    if type chkconfig > /dev/null
+    then
+      chkconfig --add rudder-agent
+      chkconfig rudder-agent on
+    fi
+
+    if type update-rc.d > /dev/null
+    then
+      update-rc.d rudder-agent enable
+    fi
+  fi
+fi
+
+if [ -f /var/rudder/tmp/migration-rudder-service-systemd ]
+then
+  # We are making the migration from sysv to systemd
+  if type chkconfig > /dev/null
+  then
+    chkconfig --del rudder-agent
+  fi
+
+  if type update-rc.d > /dev/null
+  then
+    update-rc.d rudder-agent remove
+  fi
+
+  rm -f /etc/init.d/rudder-agent
+  rm -f /etc/default/rudder-agent
+  /bin/systemctl daemon-reload
+
+  if [ -f /var/rudder/tmp/migration-rudder-service-enabled ]
+  then
+    /bin/systemctl enable rudder-agent cf-execd
+
+    if [ -f /var/rudder/tmp/migration-rudder-cf-serverd-disabled ]
+    then
+      # Keep cf-serverd disabled
+      /bin/true
+    else
+      /bin/systemctl enable cf-serverd
+    fi
+  fi
+fi
+
+# Delete all flag files
+rm -f /var/rudder/tmp/migration-rudder-service-rename
+rm -f /var/rudder/tmp/migration-rudder-service-systemd
+rm -f /var/rudder/tmp/migration-rudder-service-enabled
+rm -f /var/rudder/tmp/migration-rudder-cf-serverd-disabled
+
+# Remove the rudder service
+if [ -f /etc/init.d/rudder ]
+then
+  if type chkconfig > /dev/null
+  then
+    chkconfig --del rudder || true
+  fi
+  if type update-rc.d > /dev/null
+  then
+    update-rc.d rudder remove
+  fi
+  rm -f /etc/init.d/rudder
+fi
 
 # Reload the linker cache (to acknowledge LMDB's presence if needed)
 if [ -f /etc/ld.so.conf.d/rudder.conf ]; then

@@ -166,13 +166,22 @@ install: build $(INSTALL_DEPS) install-cfengine initial-promises initial-ncf rud
 	mkdir -p $(DESTDIR)/usr/bin
 	mkdir -p $(DESTDIR)/etc/cron.d
 
+	# Systemd files
+ifeq (true,$(USE_SYSTEMD))
+	mkdir -p $(DESTDIR)/lib/systemd/system
+	$(INSTALL) -m 644 systemd/rudder-agent.service $(DESTDIR)/lib/systemd/system/rudder-agent.service
+	$(INSTALL) -m 644 systemd/cf-execd.service $(DESTDIR)/lib/systemd/system/cf-execd.service
+	$(INSTALL) -m 644 systemd/cf-serverd.service $(DESTDIR)/lib/systemd/system/cf-serverd.service
+endif
+
 	# Init files
+ifneq (true,$(USE_SYSTEMD))
 ifneq (true,$(NO_INIT))
 	mkdir -p $(DESTDIR)/etc/init.d
 	mkdir -p $(DESTDIR)/etc/default
 	$(INSTALL) -m 755 rudder-agent.init $(DESTDIR)/etc/init.d/rudder-agent
-	$(INSTALL) -m 755 rudder.init $(DESTDIR)/etc/init.d/rudder
 	$(INSTALL) -m 644 rudder-agent.default $(DESTDIR)/etc/default/rudder-agent
+endif
 endif
 
 	# cron files

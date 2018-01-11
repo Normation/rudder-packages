@@ -54,7 +54,6 @@ clean:
 	dh_testdir
 	dh_testroot
 	cd SOURCES && $(MAKE) clean $(MAKE_OPTIONS)
-	rm -f debian/rudder.init
 	dh_clean
 
 install: build
@@ -63,7 +62,7 @@ install: build
 	dh_installdirs
 	cd SOURCES && $(MAKE) install $(MAKE_OPTIONS) DESTDIR=$(CURDIR)/debian/tmp
 	# let this file be managed by dh_installinit
-	mv $(CURDIR)/debian/tmp/etc/init.d/rudder debian/rudder.init
+	mv $(CURDIR)/debian/tmp/etc/init.d/rudder-agent debian/rudder-agent.init
 
 # Build architecture-independent files here.
 binary-indep: install
@@ -83,7 +82,7 @@ binary-arch: install
 #	dh_installmime
 #	dh_python
 	# Init script and configuration files
-	dh_installinit --name=rudder --no-start -R # restart after upgrade (instead of stop, upgrade, start)
+	dh_installinit --no-start -R # restart after upgrade (instead of stop, upgrade, start)
 #	dh_installinfo
 	dh_installman
 	dh_link

@@ -48,6 +48,9 @@
 # Same goes for the use of the local PCRE install vs. a bundled one
 %define use_system_pcre true
 
+# Default to using systemd for service management
+%define use_systemd true
+
 # Perl and fusion
 %if "%{real_name}" == "rudder-agent"
 %define use_system_fusion false
@@ -242,9 +245,6 @@ Requires: pcre
 %endif
 
 %if "%{real_name}" == "rudder-agent"
-# Replaces rudder-cfengine-community since 2.4.0~beta3
-Provides: rudder-cfengine-community
-Obsoletes: rudder-cfengine-community
 
 # Use our own dependency generator
 %global _use_internal_dependency_generator 0
@@ -297,11 +297,29 @@ cd %{_sourcedir}
 %define no_ldso true
 %endif
 
+#### Use systemd everywhere except on: AIX, RHEL<7, SLES<12, Fedora<15
+%if "%{?_os}" == "aix"
+%define use_systemd false
+%endif
+
+%if 0%{?rhel} && 0%{?rhel} < 7
+%define use_systemd false
+%endif
+
+%if 0%{?suse_version} && 0%{?suse_version} < 1315
+%define use_systemd false
+%endif
+
+%if 0%{?fedora} && 0%{?fedora} < 15
+%define use_systemd false
+%endif
+####
+
 %if 0%{?rhel} && 0%{?rhel} == 3
 %define no_ldso true
 %endif
 
-make install DESTDIR=%{buildroot} USE_SYSTEM_OPENSSL=%{use_system_openssl} USE_SYSTEM_LMDB=%{use_system_lmdb} USE_SYSTEM_PCRE=%{use_system_pcre} NO_INIT=%{no_init} NO_CRON=%{no_cron} NO_LD=%{no_ld} NO_PROFILE=%{no_profile} USE_SYSTEM_FUSION=%{use_system_fusion} USE_SYSTEM_PERL=%{use_system_perl} NO_LDSO=%{no_ldso} USE_HTTPS=%{use_https}
+make install DESTDIR=%{buildroot} USE_SYSTEM_OPENSSL=%{use_system_openssl} USE_SYSTEM_LMDB=%{use_system_lmdb} USE_SYSTEM_PCRE=%{use_system_pcre} USE_SYSTEMD=%{use_systemd} NO_INIT=%{no_init} NO_CRON=%{no_cron} NO_LD=%{no_ld} NO_PROFILE=%{no_profile} USE_SYSTEM_FUSION=%{use_system_fusion} USE_SYSTEM_PERL=%{use_system_perl} NO_LDSO=%{no_ldso} USE_HTTPS=%{use_https}
 
 # Build a list of files to include in this package for use in the %files section below
 find %{buildroot} -type f -o -type l | sed "s,%{buildroot},," | sed "s,\.py$,\.py*," | grep -v "%{rudderdir}/etc/uuid.hive" | grep -v "/etc/bash_completion.d" | grep -v "%{ruddervardir}/cfengine-community/ppkeys" > %{_builddir}/file.list.%{name}
@@ -311,54 +329,26 @@ find %{buildroot} -type f -o -type l | sed "s,%{buildroot},," | sed "s,\.py$,\.p
 # Pre Installation
 #=================================================
 
-# Do this only during upgrade process
-if [ $1 -eq 2 ];then
-%if "%{?_os}" != "aix"
-  # Keep a backup copy of Rudder agent init and cron files to prevent http://www.rudder-project.org/redmine/issues/3995
-  for i in init.d default cron.d; do
-    if [ -f /etc/${i}/rudder-agent ]; then
-      mkdir -p /var/backups/rudder
-      if [ "${i}" = "init.d" ]; then mode=755; else mode=644; fi
-      %{install_command} -m ${mode} /etc/${i}/rudder-agent /var/backups/rudder/rudder-agent.$(basename ${i} .d)-$(date +%Y%m%d) && echo "INFO: A back up copy of /etc/${i}/rudder-agent has been created in /var/backups/rudder"
-    fi
-  done
-%else
-  echo "INFO: No init script / cron script backup necessary on AIX builds yet. Skipping..."
-%endif
+CFRUDDER_FIRST_INSTALL=0
+if [ $1 -eq 1 ];then
+then
+  CFRUDDER_FIRST_INSTALL=1
 fi
+
+/opt/rudder/share/package-scripts/rudder-agent-preinst "${CFRUDDER_FIRST_INSTALL}" "%{?_os}" "%{use_systemd}"
 
 %post
 #=================================================
 # Post Installation
 #=================================================
 
-# Do this at first install
 CFRUDDER_FIRST_INSTALL=0
+
 if [ $1 -eq 1 ]
 then
-  # Set rudder-agent as service
-%if "%{?_os}" == "aix"
-  /usr/bin/mkssys -s rudder-agent -p %{ruddervardir}/cfengine-community/bin/cf-execd -a "-F" -u root -S -n15 -f9 -R
-  /usr/sbin/mkitab "rudder-agent:23456789:once:/usr/bin/startsrc -s rudder-agent"
-  # No need to tell init to re-read /etc/inittab, it does it automatically every 60 seconds
-%else
-  RUDDER_AGENT_INIT_ENABLED=$(LANG=C chkconfig --list 2>/dev/null | grep -Ec "rudder-agent.*on")
-
-  if [ "${RUDDER_AGENT_INIT_ENABLED}" -ne 0 ]
-  then
-    chkconfig --del rudder-agent
-  fi
-  chkconfig --add rudder
-%endif
-%if 0%{?rhel} && 0%{?rhel} >= 6
-  if [ "${RUDDER_AGENT_INIT_ENABLED}" -ne 0 ]
-  then
-    chkconfig rudder-agent off
-  fi
-  chkconfig rudder on
-%endif
   CFRUDDER_FIRST_INSTALL=1
 fi
+
 # mandatory with systemd wrapper for old init
 %if 0%{?suse_version} && 0%{?suse_version} >= 1315
 systemctl daemon-reload
@@ -372,7 +362,7 @@ if ! grep -q "/opt/rudder/lib" /etc/ld.so.conf; then
 fi
 %endif
 
-/opt/rudder/share/package-scripts/rudder-agent-postinst "${CFRUDDER_FIRST_INSTALL}"
+/opt/rudder/share/package-scripts/rudder-agent-postinst "${CFRUDDER_FIRST_INSTALL}" "%{?_os}" "%{use_systemd}"
 
 %preun
 #=================================================
@@ -498,22 +488,5 @@ rm -f %{_builddir}/file.list.%{name}
 # Changelog
 #=================================================
 %changelog
-%if "%{real_name}" == "rudder-agent"
-* Wed Apr  27 2011 - Matthieu CERDA <matthieu.cerda@normation.com> 2.2-beta1-2
-- The packages now builds correctly on both x86 and x86_64 archs, and on EL4/CentOS 4.
-* Tue Mar  1 2011 - Jonathan CLARKE <jonathan.clarke@normation.com> 2.2-beta1-1
-- Release 2.2.beta1
-* Fri Feb 25 2011 - Jonathan CLARKE <jonathan.clarke@normation.com> 2.2-beta0-4
-- Fix bug in postinstall script - stop daemons before replacing them!
-* Fri Feb 25 2011 - Jonathan CLARKE <jonathan.clarke@normation.com> 2.2-beta0-3
-- Fix bug to get initial promises in RPM, using the right git branch
-* Fri Feb 25 2011 - Jonathan CLARKE <jonathan.clarke@normation.com> 2.2-beta0-2
-- Fix bug to get initial promises in RPM
-* Fri Feb 25 2011 - Jonathan CLARKE <jonathan.clarke@normation.com> 2.2-beta0-1
-- Initial package
-%else
-* Fri May  30 2014 - Matthieu CERDA <matthieu.cerda@normation.com> 2.11-beta1
-- Initial package, using rudder-agent as a base
-- Removed fusion-inventory code
-- Removed legacy code
-%endif
+* Wed Nov  22 2017 - Rudder Team <rudder-dev@rudder-project.org> %{version}
+- See https://www.rudder-project.org/site/documentation/user-manual/ for changelogs
