@@ -134,11 +134,14 @@ Requires: kernel-utils
 Requires: dmidecode
 %endif
 
-# https fails on old distro because they don't support modern certificates (namely rhel3 and sles10)
+# https fails on old distro because they don't support modern certificates (namely rhel3, aix5, sles10 and sles11)
 %if 0%{?rhel} && 0%{?rhel} < 4
 %define use_https false
 %endif
-%if 0%{?suse_version} && 0%{?suse_version} < 1100
+%if 0%{?suse_version} && 0%{?suse_version} < 1200
+%define use_https false
+%endif
+%if "%{?_os}" == "aix"
 %define use_https false
 %endif
 
