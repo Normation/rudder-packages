@@ -480,7 +480,9 @@ rm -f %{_builddir}/file.list.%{name}
 # no init no cron and no profile with aix
 %config /etc/cron.d/rudder-agent
 %config /etc/profile.d/rudder-agent.sh
+%if "${use_systemd}" == "false"
 %config(noreplace) /etc/default/rudder-agent
+%endif
 %endif
 %config /etc/bash_completion.d/rudder.sh
 
