@@ -170,8 +170,8 @@ install: build $(INSTALL_DEPS) install-cfengine initial-promises initial-ncf rud
 ifeq (true,$(USE_SYSTEMD))
 	mkdir -p $(DESTDIR)/lib/systemd/system
 	$(INSTALL) -m 644 systemd/rudder-agent.service $(DESTDIR)/lib/systemd/system/rudder-agent.service
-	$(INSTALL) -m 644 systemd/cf-execd.service $(DESTDIR)/lib/systemd/system/cf-execd.service
-	$(INSTALL) -m 644 systemd/cf-serverd.service $(DESTDIR)/lib/systemd/system/cf-serverd.service
+	$(INSTALL) -m 644 systemd/rudder-cf-execd.service $(DESTDIR)/lib/systemd/system/rudder-cf-execd.service
+	$(INSTALL) -m 644 systemd/rudder-cf-serverd.service $(DESTDIR)/lib/systemd/system/rudder-cf-serverd.service
 endif
 
 	# Init files

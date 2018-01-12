@@ -33,7 +33,7 @@ then
     if [ "${CFRUDDER_USE_SYSTEMD}" = "true" ] 
     then
       /bin/systemctl daemon-reload
-      /bin/systemctl enable rudder-agent cf-execd cf-serverd
+      /bin/systemctl enable rudder-agent rudder-cf-execd rudder-cf-serverd
     else
       chkconfig --add rudder-agent
       chkconfig rudder-agent on
@@ -83,14 +83,14 @@ then
 
   if [ -f /var/rudder/tmp/migration-rudder-service-enabled ]
   then
-    /bin/systemctl enable rudder-agent cf-execd
+    /bin/systemctl enable rudder-agent rudder-cf-execd
 
     if [ -f /var/rudder/tmp/migration-rudder-cf-serverd-disabled ]
     then
       # Keep cf-serverd disabled
       /bin/true
     else
-      /bin/systemctl enable cf-serverd
+      /bin/systemctl enable rudder-cf-serverd
     fi
   fi
 fi
