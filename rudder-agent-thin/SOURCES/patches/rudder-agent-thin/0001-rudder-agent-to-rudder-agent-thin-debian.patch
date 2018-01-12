@@ -1,5 +1,5 @@
-diff --git a/control b/control
-index 15880ec..cbf4500 100644
+diff --git a/rudder-agent/debian/control b/rudder-agent/debian/control
+index 7b326dc9..ce7f4047 100644
 --- a/control
 +++ b/control
 @@ -1,4 +1,4 @@
@@ -8,7 +8,7 @@ index 15880ec..cbf4500 100644
  Section: admin
  Priority: extra
  Maintainer: Rudder packaging team <rudder-packaging@rudder-project.org>
-@@ -6,19 +6,13 @@ Build-Depends: debhelper (>= 7), libssl-dev, bison, gcc, flex, autoconf, automak
+@@ -6,14 +6,14 @@ Build-Depends: debhelper (>= 7), libssl-dev, bison, gcc, flex, autoconf, automak
  Standards-Version: 3.8.0
  Homepage: http://www.rudder-project.org
  
@@ -16,22 +16,13 @@ index 15880ec..cbf4500 100644
 +Package: rudder-agent-thin
  Architecture: any
 -Depends: ${shlibs:Depends}, ${misc:Depends}, uuid-runtime, dmidecode, cron, curl, net-tools, openssl
--# The dependencies below are defined in order to use rudder-agent
--# for the server. This will add capabilities to send inventories
--# from the server itself.
--Provides: rudder-cfengine-community, rudder-agent
--Conflicts: rudder-cfengine-community, rudder-agent-thin
--Replaces: rudder-cfengine-community, rudder-server-root (<< 2.4.0~beta2)
--Breaks: rudder-server-root (<< 2.4.0~beta2)
--Description: Configuration management and audit tool - agent
-+Depends: ${shlibs:Depends}, ${misc:Depends}, uuid-runtime, dmidecode, cron, net-tools, openssl, fusioninventory-agent
-+Provides: rudder-agent
++Depends: ${shlibs:Depends}, ${misc:Depends}, uuid-runtime, dmidecode, cron, curl, net-tools, openssl, fusioninventory-agent
+ # The dependencies below are defined in order to use rudder-agent
+ # for the server. This will add capabilities to send inventories
+ # from the server itself.
+ Provides: rudder-agent
+-Conflicts: rudder-agent-thin
 +Conflicts: rudder-agent
-+Description: Configuration management and audit tool
+ Description: Configuration management and audit tool - agent
   Rudder is an open source configuration management and audit solution.
   .
-  This package contains the agent that must be installed on all nodes to be
-- managed by Rudder. It is based on two main components: CFEngine Community 3 and
-- FusionInventory.
-+ managed by Rudder. It is based on CFEngine Community.
--
