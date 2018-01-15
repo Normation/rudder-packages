@@ -61,3 +61,6 @@ then
   sed -i 's/^\([ \t]*suffix[ \t]\+"cn=rudder-configuration".*\)/\1\nmaxsize '${MDBSIZE}'/' /opt/rudder/etc/openldap/slapd.conf
 fi
 
+# Remove reference to hdb backend
+sed -i "/moduleload.*back_hdb.la/d" /opt/rudder/etc/openldap/slapd.conf
+

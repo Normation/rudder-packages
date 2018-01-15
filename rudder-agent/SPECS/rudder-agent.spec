@@ -333,7 +333,7 @@ find %{buildroot} -type f -o -type l | sed "s,%{buildroot},," | sed "s,\.py$,\.p
 #=================================================
 
 CFRUDDER_FIRST_INSTALL=0
-if [ $1 -eq 1 ];then
+if [ $1 -eq 1 ]
 then
   CFRUDDER_FIRST_INSTALL=1
 fi

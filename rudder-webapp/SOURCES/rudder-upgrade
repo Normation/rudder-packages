@@ -450,7 +450,7 @@ upgrade_inventory() {
   LDAP_EXISTS=$(${LDAPSEARCH} -b "cn=rudder-configuration" -s base dn 2>/dev/null | grep -c "dn: cn=rudder-configuration" || true)
 
   if [ ${LDAP_EXISTS} -ne 0 ]; then
-
+    true
   fi
 
 }
