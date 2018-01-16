@@ -332,13 +332,66 @@ find %{buildroot} -type f -o -type l | sed "s,%{buildroot},," | sed "s,\.py$,\.p
 # Pre Installation
 #=================================================
 
-CFRUDDER_FIRST_INSTALL=0
-if [ $1 -eq 1 ]
-then
-  CFRUDDER_FIRST_INSTALL=1
-fi
+CFRUDDER_FIRST_INSTALL=$1
 
-/opt/rudder/share/package-scripts/rudder-agent-preinst "${CFRUDDER_FIRST_INSTALL}" "%{?_os}" "%{use_systemd}"
+LOG_FILE="/var/log/rudder/install/rudder-agent.log"
+
+echo "`date` - Starting rudder-agent pre installation script" >> ${LOG_FILE}
+
+# Restart daemons if we stopped them, otherwise not
+if [ ${CFRUDDER_FIRST_INSTALL} -ne 1 ]
+then
+  # Part of the package now, but create it anyway in case
+  # of upgrade from a very old version
+  mkdir -p /var/rudder/tmp
+
+%if "${use_systemd}" == "true"
+    if [ -f /etc/init.d/rudder-agent ]
+    then
+      # we are migrating from sysv to systemd
+      touch /var/rudder/tmp/migration-rudder-service-systemd
+
+      if type chkconfig > /dev/null
+      then
+        # If old rudder-agent service is here and enabled
+        if chkconfig --list rudder-agent 2>&1 | grep -q -e 3:on -e B:on
+        then
+          touch /var/rudder/tmp/migration-rudder-service-enabled
+        fi
+
+        # If old rudder service is here and enabled
+        if chkconfig --list rudder 2>&1 | grep -q -e 3:on -e B:on
+        then
+          touch /var/rudder/tmp/migration-rudder-service-enabled
+        fi
+      fi
+
+      # Test if cf-serverd is disabled
+      if [ -f /etc/default/rudder-agent ]
+      then
+        if grep -q '^CFENGINE_COMMUNITY_RUN_1="0"' /etc/default/rudder-agent
+        then
+          touch /var/rudder/tmp/migration-rudder-cf-serverd-disabled
+        fi
+      fi
+    fi
+%else
+    if [ -f /etc/init.d/rudder ]
+    then
+      # We are migrating from a pre-4.3 to 4.3
+      touch /var/rudder/tmp/migration-rudder-service-rename
+
+      # If old rudder service is here and enabled
+      if type chkconfig > /dev/null
+      then 
+        if chkconfig --list rudder 2>&1 | grep -q -e 3:on -e B:on
+        then
+          touch /var/rudder/tmp/migration-rudder-service-enabled
+        fi
+      fi
+    fi
+%endif
+fi
 
 %post
 #=================================================
