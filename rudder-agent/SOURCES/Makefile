@@ -209,7 +209,6 @@ ifneq (true,$(NO_LDSO))
 endif
 
 	mkdir -p $(INSTALL_DIR)/share/package-scripts
-	$(INSTALL) -m 755 rudder-agent-preinst $(INSTALL_DIR)/share/package-scripts/
 	$(INSTALL) -m 755 rudder-agent-postinst $(INSTALL_DIR)/share/package-scripts/
 	$(INSTALL) -m 755 check-rudder-agent $(INSTALL_DIR)/bin/
 	$(INSTALL) -m 755 vzps.py $(INSTALL_DIR)/bin/
