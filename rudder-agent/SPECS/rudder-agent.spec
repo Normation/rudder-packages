@@ -334,8 +334,10 @@ find %{buildroot} -type f -o -type l | sed "s,%{buildroot},," | sed "s,\.py$,\.p
 
 CFRUDDER_FIRST_INSTALL=$1
 
-LOG_FILE="/var/log/rudder/install/rudder-agent.log"
+LOG_DIR="/var/log/rudder/install/"
+LOG_FILE="${LOG_DIR}/rudder-agent.log"
 
+mkdir -p "${LOG_DIR}"
 echo "`date` - Starting rudder-agent pre installation script" >> ${LOG_FILE}
 
 # Restart daemons if we stopped them, otherwise not
