@@ -15,12 +15,11 @@ REAL_NAME=rudder-agent
 USE_SYSTEM_OPENSSL=true
 USE_SYSTEM_LMDB=false
 USE_SYSTEM_PCRE=true
+USE_SYSTEM_PERL=true
 
 ifeq (rudder-agent,$(REAL_NAME))
-USE_SYSTEM_PERL=false
 USE_SYSTEM_FUSION=false
 else
-USE_SYSTEM_PERL=true
 USE_SYSTEM_FUSION=true
 endif
 

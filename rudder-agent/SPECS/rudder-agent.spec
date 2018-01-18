@@ -54,7 +54,12 @@
 # Perl and fusion
 %if "%{real_name}" == "rudder-agent"
 %define use_system_fusion false
+# no system perl on aix
+%if "%{?_os}" == "aix"
 %define use_system_perl false
+%else
+%define use_system_perl true
+%endif
 %else
 %define use_system_fusion true
 %define use_system_perl true
@@ -99,6 +104,10 @@ Conflicts: rudder-agent
 
 %if "%{use_system_fusion}" == "true"
 Requires: fusioninventory-agent fusioninventory-agent-task-inventory
+%endif
+
+%if "%{use_system_perl}" == "true"
+Requires: perl
 %endif
 
 ## For Linux
