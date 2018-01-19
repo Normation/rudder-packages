@@ -54,11 +54,14 @@
 # Perl and fusion
 %if "%{real_name}" == "rudder-agent"
 %define use_system_fusion false
+%define use_system_perl true
 # no system perl on aix
 %if "%{?_os}" == "aix"
 %define use_system_perl false
-%else
-%define use_system_perl true
+%endif
+# no system perl on rhel3
+%if 0%{?rhel} && 0%{?rhel} < 4
+%define use_system_perl false
 %endif
 %else
 %define use_system_fusion true

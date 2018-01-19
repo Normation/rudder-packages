@@ -488,7 +488,8 @@ MODULE_INSTALL:=MAKEFLAGS= $(PERL) $(CPANM) $(CPAN_OPT) -L $(INSTALL_DIR) --from
 # List from README / Makefile.PL in fusion-inventory-agent
 # -> requires + inventory and network recommends
 FUSION_MODULES = File::Which LWP::UserAgent Net::IP Text::Template UNIVERSAL::require XML::TreePP Parse::EDID DateTime DateTime::TimeZone DateTime::TimeZone::Local::Unix Net::SNMP Net::NBName Thread::Queue
-# update sources at normation.com with the command: ./mirror $VAR_CPAN $FUSION_MODULES Local::Win32
+# update sources at normation.com with the command: ./mirror $VAR_CPAN $FUSION_MODULES 
+# update core dependencies (for old perl versions) at normation.com with the command: ./mirror $VAR_CPAN Local::Win32 ExtUtils::MakeMaker parent IO::Compress::Bzip2 HTTP::Lite version CPAN::Meta::YAML CPAN::Meta::Requirements File::Temp Perl::OSType ExtUtils::Install threads::shared Module::Install URI::Escape ExtUtils::CBuilder Pod::Man ExtUtils::ParseXS TAP::Harness threads ExtUtils::Manifest
 
 fusion-modules: $(FUSION_DEPS)
 	mkdir -p $(INSTALL_DIR)/lib/perl5
@@ -507,6 +508,8 @@ ifeq ($(INSTALL),ginstall)
 	$(SED) 's/\([^g]\)install -m/\1ginstall -m/' fusioninventory-agent/Makefile.PL > fusioninventory-agent/Makefile.PL.new
 	mv fusioninventory-agent/Makefile.PL.new fusioninventory-agent/Makefile.PL
 endif
+	# install installer dependencies on the system
+	MODULE_INSTALL:=MAKEFLAGS= $(PERL) $(CPANM) $(CPAN_OPT) --from $(CPAN_URL) --notest Module::Install ExtUtils::Manifest
 	cd fusioninventory-agent && PERL_MM_USE_DEFAULT=1 $(PERL) Makefile.PL --default PREFIX=$(RUDDER_DIR)
 	cd fusioninventory-agent && $(MAKE) install DESTDIR=$(DESTDIR)
 	# bug in fusion installer that doesn't set the right owner to some files
