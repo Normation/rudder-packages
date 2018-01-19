@@ -41,6 +41,14 @@ then
   fi
 fi
 
+# Summary of the flags usage:
+# /var/rudder/tmp/migration-rudder-service-rename: rename rudder init script to rudder-server
+# /var/rudder/tmp/migration-rudder-service-systemd: move rudder-agent from init to systemd
+# /var/rudder/tmp/migration-rudder-service-enabled: rudder service was enabled
+# /var/rudder/tmp/migration-rudder-service-enabled-server: rudder service was enabled (but managed by rudder-server-root postinst)
+# /var/rudder/tmp/migration-rudder-cf-serverd-disabled: cf-serverd was disabled in /etc/default/rudder-agent
+
+
 if [ -f /var/rudder/tmp/migration-rudder-service-rename ]
 then
   # Rename only happens on non-systemd systems
@@ -95,12 +103,6 @@ then
   fi
 fi
 
-# Delete all flag files
-rm -f /var/rudder/tmp/migration-rudder-service-rename
-rm -f /var/rudder/tmp/migration-rudder-service-systemd
-rm -f /var/rudder/tmp/migration-rudder-service-enabled
-rm -f /var/rudder/tmp/migration-rudder-cf-serverd-disabled
-
 # Remove the rudder service
 if [ -f /etc/init.d/rudder ]
 then
@@ -114,6 +116,13 @@ then
   fi
   rm -f /etc/init.d/rudder
 fi
+
+# Delete all flag files
+rm -f /var/rudder/tmp/migration-rudder-service-rename
+rm -f /var/rudder/tmp/migration-rudder-service-systemd
+rm -f /var/rudder/tmp/migration-rudder-service-enabled
+rm -f /var/rudder/tmp/migration-rudder-cf-serverd-disabled
+
 
 # Reload the linker cache (to acknowledge LMDB's presence if needed)
 if [ -f /etc/ld.so.conf.d/rudder.conf ]; then

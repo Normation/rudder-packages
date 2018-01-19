@@ -16,6 +16,7 @@ USE_SYSTEM_OPENSSL=true
 USE_SYSTEM_LMDB=false
 USE_SYSTEM_PCRE=true
 USE_SYSTEM_PERL=true
+USE_SYSTEMD=true
 
 ifeq (rudder-agent,$(REAL_NAME))
 USE_SYSTEM_FUSION=false
@@ -27,21 +28,33 @@ endif
 OS_CODENAME := $(shell lsb_release -s -c)
 ifeq (lucid,$(OS_CODENAME))
 USE_SYSTEM_OPENSSL=false
+USE_SYSTEMD=false
 endif
 ifeq (quantal,$(OS_CODENAME))
 USE_SYSTEM_OPENSSL=false
+USE_SYSTEMD=false
 endif
 ifeq (precise,$(OS_CODENAME))
 USE_SYSTEM_OPENSSL=false
+USE_SYSTEMD=false
+endif
+ifeq (trusty,$(OS_CODENAME))
+USE_SYSTEMD=false
 endif
 ifeq (lenny,$(OS_CODENAME))
 USE_SYSTEM_OPENSSL=false
+USE_SYSTEMD=false
 endif
 ifeq (squeeze,$(OS_CODENAME))
 USE_SYSTEM_OPENSSL=false
+USE_SYSTEMD=false
+endif
+ifeq (wheezy,$(OS_CODENAME))
+USE_SYSTEM_OPENSSL=false
+USE_SYSTEMD=false
 endif
 
-MAKE_OPTIONS=USE_SYSTEM_OPENSSL=$(USE_SYSTEM_OPENSSL) USE_SYSTEM_LMDB=$(USE_SYSTEM_LMDB) USE_SYSTEM_PCRE=$(USE_SYSTEM_PCRE) USE_SYSTEM_FUSION=$(USE_SYSTEM_FUSION) USE_SYSTEM_PERL=$(USE_SYSTEM_PERL)
+MAKE_OPTIONS=USE_SYSTEM_OPENSSL=$(USE_SYSTEM_OPENSSL) USE_SYSTEM_LMDB=$(USE_SYSTEM_LMDB) USE_SYSTEM_PCRE=$(USE_SYSTEM_PCRE) USE_SYSTEM_FUSION=$(USE_SYSTEM_FUSION) USE_SYSTEM_PERL=$(USE_SYSTEM_PERL) USE_SYSTEMD=$(USE_SYSTEMD)
 
 configure:
 
@@ -61,7 +74,9 @@ install: build
 	dh_installdirs
 	cd SOURCES && $(MAKE) install $(MAKE_OPTIONS) DESTDIR=$(CURDIR)/debian/tmp
 	# let this file be managed by dh_installinit
-	mv $(CURDIR)/debian/tmp/etc/init.d/rudder-agent debian/rudder-agent.init
+ifneq (true,$(USE_SYSTEMD))
+	mv $(CURDIR)/debian/tmp/etc/init.d/rudder-agent.init debian/rudder-agent.init
+endif
 
 # Build architecture-independent files here.
 binary-indep: install

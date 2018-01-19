@@ -14,29 +14,24 @@ configure-stamp:
 	dh_testdir
 	# Add here commands to configure the package.
 
-build: build-stamp
-
-build-stamp: configure-stamp
+build:
 	dh_testdir
-
-	touch $@
+	cd SOURCES && $(MAKE) build $(MAKE_OPTIONS)
 
 clean:
 	dh_testdir
 	dh_testroot
-	rm -f build-stamp configure-stamp
-
-	# Add here commands to clean up after the build process.
-
+	cd SOURCES && $(MAKE) clean $(MAKE_OPTIONS)
 	dh_clean
 
 install: build
 	dh_testdir
 	dh_testroot
-	dh_prep
 	dh_installdirs
+	cd SOURCES && $(MAKE) install $(MAKE_OPTIONS) DESTDIR=$(CURDIR)/debian/tmp
+	# let this file be managed by dh_installinit
+	mv $(CURDIR)/debian/tmp/etc/init.d/rudder-agent debian/rudder-agent.init
 
-	# Add here commands to install the package into debian/normation-openldap.
 
 # Build architecture-independent files here.
 binary-indep: install
@@ -49,7 +44,8 @@ binary-arch: install
 	dh_installchangelogs
 #	dh_installdocs
 #	dh_installexamples
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-server-root /opt/rudder/etc/server-roles.d/
+	# Init script and configuration files
+	dh_installinit --name=rudder-server --no-start -R # restart after upgrade (instead of stop, upgrade, start)
 #	dh_installmenu
 #	dh_installdebconf
 #	dh_installlogrotate

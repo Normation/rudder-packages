@@ -60,11 +60,13 @@ then
       if test /etc/rc`/sbin/runlevel | cut -d' ' -f2`.d/S??rudder-agent
       then
         touch /var/rudder/tmp/migration-rudder-service-enabled
+        touch /var/rudder/tmp/migration-rudder-service-enabled-server
       fi
 
       if test /etc/rc`/sbin/runlevel | cut -d' ' -f2`.d/S??rudder
       then
         touch /var/rudder/tmp/migration-rudder-service-enabled
+        touch /var/rudder/tmp/migration-rudder-service-enabled-server
       fi
 
       # Test if cf-serverd is disabled
@@ -86,6 +88,7 @@ then
       if test /etc/rc`/sbin/runlevel | cut -d' ' -f2`.d/S??rudder
       then
         touch /var/rudder/tmp/migration-rudder-service-enabled
+        touch /var/rudder/tmp/migration-rudder-service-enabled-server
       fi
     fi
   fi

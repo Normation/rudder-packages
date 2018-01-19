@@ -47,7 +47,6 @@ URL: http://www.rudder-project.org
 Group: Applications/System
 
 Source1: rudder-sources
-Source8: rudder-server-root
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
@@ -74,37 +73,48 @@ run a Rudder root server on a machine.
 # Installation
 #=================================================
 %install
-rm -rf %{buildroot}
-# Directories
-mkdir -p %{buildroot}%{rudderdir}/etc/
-mkdir -p %{buildroot}%{rudderdir}/etc/server-roles.d/
 
-install -m 644 %{SOURCE8} %{buildroot}/opt/rudder/etc/server-roles.d/
+cd %{_sourcedir}
+
+make install DESTDIR=%{buildroot}
 
 %pre
 #=================================================
 # Pre Installation
 #=================================================
 
+CFRUDDER_FIRST_INSTALL=$1
+LOG_FILE="/var/log/rudder/install/%{name}.log"
+
+echo "`date` - Starting %{name} pre installation script" >> ${LOG_FILE}
+
+## WARNING: This script is a copy of a part of the rudder-agent preinst
+
+if [ ${CFRUDDER_FIRST_INSTALL} -ne 1 ]
+then
+  mkdir -p /var/rudder/tmp
+
+  if [ -f /etc/init.d/rudder ]
+  then
+    # If old rudder service is here and enabled
+    if type chkconfig > /dev/null
+    then 
+      if chkconfig --list rudder 2>&1 | grep -q -e 3:on -e B:on
+      then
+        touch /var/rudder/tmp/migration-rudder-service-enabled-server
+      fi
+    fi
+  fi
+fi
+
 %post
 #=================================================
 # Post Installation
 #=================================================
-# This package is only installed by the root server
-# then we can set UUID to 'root' serenly
-echo 'root' > %{rudderdir}/etc/uuid.hive
 
-# We need it to be able to open big mdb memory-mapped databases
-ulimit -v unlimited
+CFRUDDER_FIRST_INSTALL=$1
 
-# Check if Rudder LDAP has already been initialize previously
-LDAPCHK=`/opt/rudder/sbin/slapcat  | grep "^dn: " | wc -l`
-if [ $LDAPCHK -eq 0 ]; then
-  echo "************************************************************"
-  echo "Rudder is now installed but not configured."
-  echo "Please run /opt/rudder/bin/rudder-init"
-  echo "************************************************************"
-fi
+/opt/rudder/share/package-scripts/rudder-agent-postinst "${CFRUDDER_FIRST_INSTALL}"
 
 %postun
 #=================================================
@@ -136,7 +146,5 @@ rm -rf %{buildroot}
 # Changelog
 #=================================================
 %changelog
-* Wed Aug 31 2011 - Nicolas Perron <nicolas.perron@normation.com> 2.3-beta1-1
-- Add inputs folder for cfengine nova
-* Tue Aug 02 2011 - Nicolas Perron <nicolas.perron@normation.com> 2.3-alpha4-1
-- Initial package
++* Wed Nov  22 2017 - Rudder Team <rudder-dev@rudder-project.org> %{version}
++- See https://www.rudder-project.org/site/documentation/user-manual/ for changelogs

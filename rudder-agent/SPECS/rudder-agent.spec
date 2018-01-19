@@ -371,12 +371,14 @@ then
         if chkconfig --list rudder-agent 2>&1 | grep -q -e 3:on -e B:on
         then
           touch /var/rudder/tmp/migration-rudder-service-enabled
+          touch /var/rudder/tmp/migration-rudder-service-enabled-server
         fi
 
         # If old rudder service is here and enabled
         if chkconfig --list rudder 2>&1 | grep -q -e 3:on -e B:on
         then
           touch /var/rudder/tmp/migration-rudder-service-enabled
+          touch /var/rudder/tmp/migration-rudder-service-enabled-server
         fi
       fi
 
@@ -401,6 +403,7 @@ then
         if chkconfig --list rudder 2>&1 | grep -q -e 3:on -e B:on
         then
           touch /var/rudder/tmp/migration-rudder-service-enabled
+          touch /var/rudder/tmp/migration-rudder-service-enabled-server
         fi
       fi
     fi
