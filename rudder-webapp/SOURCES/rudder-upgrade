@@ -43,7 +43,8 @@ trap anomaly_handler ERR INT TERM
 # - All versions : upgrade system Techniques automatically and reload the Technique library
 # - All versions : Check that Rudder database is able to handle backslash
 # - All versions : Check for the PostgreSQL version (>= 8.4)
-# - All, 4.2.0+  : Commit new hooks
+# - All versions : Commit ncf hooks
+# - All versions : Create ncf technique update flag and restart at the end of the script
 # - 2.10.17      : Migration DB schema to correct the historization of rules
 # - 2.10.17      : Migration DB schema to add historization of global agent schedule
 # - 2.11.19      : Add index on fileformat for eventlog
@@ -405,7 +406,7 @@ upgrade_ncf() {
   cd ${CURRENT}
 
 
-  # all, started from 4.2.0: Commit new hooks
+  # All Versions, Commit ncf hooks
   CURRENT="$(pwd)"
   cd ${CONFIGURATION_REPOSITORY}/ncf
   for hook_file in 10_commit.sh 50_rudderify.sh; do
@@ -417,6 +418,8 @@ upgrade_ncf() {
   done
   cd ${CURRENT}
 
+  # All Versions: Touch ncf_update_flag_file jetty will be restarted at the end of the script 
+  touch /opt/rudder/etc/force_ncf_technique_update
 }
 
 # 3.2.0: Call rudderify on all local ncf techniques to make sure the promises will be properly generated
@@ -643,9 +646,6 @@ upgrade_database() {
   if [ ${CHECK_BACKSLASH} -ne 1 ]; then
     echo -n "INFO: Rudder database is not backslash compliant, fixing..."
     ${PSQL} -t -d ${SQL_DATABASE} -c "alter database rudder set standard_conforming_strings=true;" >/dev/null 2>&1
-    echo " Done"
-    echo -n "INFO: Rudder application will now restart..."
-    ${JETTY_INIT} restart >/dev/null 2>&1 || echo "WARNING: Jetty failed to start, maybe there is not enough RAM or swap on the machine. Skipping..."
     echo " Done"
   fi
 
