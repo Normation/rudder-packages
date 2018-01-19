@@ -117,7 +117,6 @@ binary-arch: install
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-web /opt/rudder/etc/server-roles.d/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ post.write_technique.10_commit.sh /var/rudder/configuration-repository/ncf/ncf-hooks.d/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ post.write_technique.50_rudderify.sh /var/rudder/configuration-repository/ncf/ncf-hooks.d/
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ post.write_technique.90_reload.sh /var/rudder/configuration-repository/ncf/ncf-hooks.d/
 
 	# Install upgrade tools and migration scripts
 

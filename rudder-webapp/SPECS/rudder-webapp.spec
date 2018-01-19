@@ -103,7 +103,6 @@ Source25: rudder-apache-webapp-common.conf
 Source26: rudder-apache-webapp-ssl.conf
 Source27: rudder-apache-webapp-nossl.conf
 Source28: rudder-webapp.fc
-Source29: post.write_technique.90_reload.sh
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
@@ -257,7 +256,6 @@ cp %{SOURCE13} %{buildroot}%{rudderdir}/etc/
 
 install -m 755 %{SOURCE15} %{buildroot}%{ruddervardir}/configuration-repository/ncf/ncf-hooks.d/
 install -m 755 %{SOURCE16} %{buildroot}%{ruddervardir}/configuration-repository/ncf/ncf-hooks.d/
-install -m 755 %{SOURCE29} %{buildroot}%{ruddervardir}/configuration-repository/ncf/ncf-hooks.d/
 
 # Add rudder-metrics-reporting
 cp %{SOURCE17} %{buildroot}%{rudderdir}/bin/
