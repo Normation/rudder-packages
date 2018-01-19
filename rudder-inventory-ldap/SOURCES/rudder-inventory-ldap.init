@@ -400,9 +400,6 @@ start_slapd() {
     message "info" "[INFO] file descriptor limit not modified (require root privileges)"
   fi
 
-  # Configure MDB parameters
-  /opt/rudder/bin/rudder-slapd-configure
-
   # Parameters
   if [ "$SLAPD_CONF_DIR" ]
   then
@@ -733,6 +730,9 @@ display_status() {
 configtest() {
   # Start message
   message "info" "[INFO] Launching OpenLDAP configuration test..."
+
+  # Configure MDB parameters and backends
+  /opt/rudder/bin/rudder-slapd-configure
 
   SLAPTEST_PARAMS="-u"  
 
