@@ -97,10 +97,11 @@ endif
 
 	$(INSTALL) -m 644 rudder-server-root $(INSTALL_DIR)/etc/server-roles.d/
 
+clean: localclean
 localclean:
 	rm -rf ./rudder-sources
 
 veryclean:
 	rm -f ./rudder-sources.tar.bz2
 
-.PHONY: localclean localdepends veryclean
+.PHONY: clean localclean localdepends veryclean
