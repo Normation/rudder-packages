@@ -75,7 +75,7 @@ install: build
 	cd SOURCES && $(MAKE) install $(MAKE_OPTIONS) DESTDIR=$(CURDIR)/debian/tmp
 	# let this file be managed by dh_installinit
 ifneq (true,$(USE_SYSTEMD))
-	mv $(CURDIR)/debian/tmp/etc/init.d/rudder-agent.init debian/rudder-agent.init
+	mv $(CURDIR)/debian/tmp/etc/init.d/rudder-agent debian/rudder-agent.init
 endif
 
 # Build architecture-independent files here.
