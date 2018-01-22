@@ -122,10 +122,17 @@ Requires: perl
 BuildRequires: pam-devel
 %endif
 
-## Requirement for cpanminus
+## Requirement for cpanminus and fusion
 # rh 6,7
 %if 0%{?rhel} && 0%{?rhel} >= 6
-BuildRequires: perl-ExtUtils-MakeMaker
+Requires: perl-IPC-Cmd
+BuildRequires: perl-IPC-Cmd
+%endif
+
+# rhel perl core is too minimal, we try to not add too much here
+%if 0%{?rhel} && 0%{?rhel} >= 7
+Requires: perl-Digest 
+BuildRequires: perl-Digest
 %endif
 
 ## For EL and Fedora
