@@ -141,6 +141,7 @@ rm -rf %{buildroot}
 %files
 %defattr(-, root, root, 0755)
 %{rudderdir}/etc/
+/etc/init.d/rudder-server
 
 #=================================================
 # Changelog
