@@ -512,7 +512,7 @@ ifeq (true,$(USE_SYSTEM_PERL))
 	# install installer dependencies on the system
 	MAKEFLAGS= $(PERL) $(CPANM) $(CPAN_OPT) --from $(CPAN_URL) --notest Module::Install
 endif
-	cd fusioninventory-agent && PERL_MM_USE_DEFAULT=1 $(PERL) Makefile.PL --default PREFIX=$(RUDDER_DIR)
+	cd fusioninventory-agent && PERL_MM_USE_DEFAULT=1 $(PERL) -I. Makefile.PL --default PREFIX=$(RUDDER_DIR)
 	cd fusioninventory-agent && $(MAKE) install DESTDIR=$(DESTDIR)
 	# bug in fusion installer that doesn't set the right owner to some files
 	chown root $(DESTDIR)/opt/rudder/share/fusioninventory

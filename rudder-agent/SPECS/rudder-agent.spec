@@ -59,8 +59,12 @@
 %if "%{?_os}" == "aix"
 %define use_system_perl false
 %endif
-# no system perl on rhel3
-%if 0%{?rhel} && 0%{?rhel} < 4
+# system perl too old on rhel3 and rhel5
+%if 0%{?rhel} && 0%{?rhel} <= 5
+%define use_system_perl false
+%endif
+# system perl too old on sles 10
+%if 0%{?suse_version} && 0%{?suse_version} < 1100
 %define use_system_perl false
 %endif
 %else
@@ -116,6 +120,12 @@ Requires: perl
 ## For Linux
 %if "%{?_os}" != "aix"
 BuildRequires: pam-devel
+%endif
+
+## Requirement for cpanminus
+# rh 6,7
+%if 0%{?rhel} && 0%{?rhel} >= 6
+BuildRequires: perl-ExtUtils-MakeMaker
 %endif
 
 ## For EL and Fedora
