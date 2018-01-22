@@ -17,6 +17,8 @@ set -e
 case "$1" in
     install|upgrade)
 
+        service rudder-jetty stop
+
         # Prepare the migration of /etc/default/rudder-jetty
         if [ -f /opt/rudder/etc/rudder-jetty.conf ]; then
           if [ $(head -n 1 /opt/rudder/etc/rudder-jetty.conf | grep -c 'WARNING') -eq 0 ]; then

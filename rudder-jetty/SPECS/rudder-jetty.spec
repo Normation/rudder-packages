@@ -158,6 +158,8 @@ install -m 644 %{SOURCE4} %{buildroot}/opt/rudder/etc/server-roles.d/
 # Pre Installation
 #=================================================
 
+service rudder-jetty stop
+
 # Prepare the migration of /etc/default/rudder-jetty
 if [ -e /opt/rudder/etc/rudder-jetty.conf ]
 then
