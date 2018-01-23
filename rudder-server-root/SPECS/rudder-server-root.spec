@@ -114,7 +114,7 @@ fi
 
 CFRUDDER_FIRST_INSTALL=$1
 
-/opt/rudder/share/package-scripts/rudder-agent-postinst "${CFRUDDER_FIRST_INSTALL}"
+/opt/rudder/share/package-scripts/rudder-server-root-postinst "${CFRUDDER_FIRST_INSTALL}"
 
 %postun
 #=================================================
