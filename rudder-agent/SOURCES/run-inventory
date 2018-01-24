@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# This script runs FusionInventory, using either a Rudder provided instance
+# This script runs FusionInventory, using either a Rudder provided instance (with built in Perl or provided one), 
 # or a system provided one if the first one is not usable.
 #
 # It also sources from /etc/profile beforehand, too fetch environment
@@ -24,9 +24,16 @@ OLDEST_SUPPORTED_FUSINV_VERSION_UNDOTTED=`echo ${OLDEST_SUPPORTED_FUSINV_VERSION
 if [ -x /opt/rudder/bin/perl ]; then
 
   # Rudder's perl installation is present, use it.
-  echo "[info] FusionInventory instance: builtin"
+  echo "[info] Perl and FusionInventory instances: builtin"
 
   /opt/rudder/bin/perl -I /opt/rudder/lib/perl5 /opt/rudder/bin/fusioninventory-agent --config=none --no-task=Deploy "$@"
+
+elif [ -x /opt/rudder/bin/fusioninventory-agent ] && command -v perl >/dev/null 2>&1; then
+
+  # System's perl installation, with builtin FusionInventory
+  echo "[info] FusionInventory instance: builtin - Perl instance: system"
+  perl -I /opt/rudder/lib/perl5 /opt/rudder/bin/fusioninventory-agent --config=none --no-task=Deploy "$@"
+
 
 elif command -v fusioninventory-agent >/dev/null 2>&1; then
 
