@@ -92,10 +92,14 @@ ifneq (true,$(NO_INIT)) # By default install init script
 endif
 
 	# Directories
-	mkdir -p $(INSTALL_DIR)/etc/
 	mkdir -p $(INSTALL_DIR)/etc/server-roles.d/
 
 	$(INSTALL) -m 644 rudder-server-root $(INSTALL_DIR)/etc/server-roles.d/
+
+	# Add postinst script
+	mkdir -p $(INSTALL_DIR)/share/package-scripts/
+	$(INSTALL) -m 755 rudder-server-root-postinst $(INSTALL_DIR)/share/package-scripts/
+
 
 clean: localclean
 localclean:
