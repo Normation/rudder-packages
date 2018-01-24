@@ -18,13 +18,13 @@ echo "`date` - Starting rudder-server-root post installation script" >> ${LOG_FI
 # Enable at first install
 if [ ${CFRUDDER_FIRST_INSTALL} -eq 1 ]
 then
-  if type chkconfig > /dev/null
+  if type chkconfig > /dev/null 2>&1
   then
     chkconfig --add rudder-server
     chkconfig rudder-server on
   fi
 
-  if type update-rc.d > /dev/null
+  if type update-rc.d > /dev/null 2>&1
   then
     update-rc.d rudder-server enable
   fi
@@ -32,13 +32,13 @@ else
 # Upgrade flag is here
   if [ -f /var/rudder/tmp/migration-rudder-service-enabled-server ]
   then
-    if type chkconfig > /dev/null
+    if type chkconfig > /dev/null 2>&1
     then
       chkconfig --add rudder-server
       chkconfig rudder-server on
     fi
 
-    if type update-rc.d > /dev/null
+    if type update-rc.d > /dev/null 2>&1
     then
       update-rc.d rudder-server enable
     fi

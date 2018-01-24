@@ -52,20 +52,20 @@ fi
 if [ -f /var/rudder/tmp/migration-rudder-service-rename ]
 then
   # Rename only happens on non-systemd systems
-  if type chkconfig > /dev/null
+  if type chkconfig > /dev/null 2>&1
   then
     chkconfig --add rudder-agent
   fi
  
   if [ -f /var/rudder/tmp/migration-rudder-service-enabled ]
   then
-    if type chkconfig > /dev/null
+    if type chkconfig > /dev/null 2>&1
     then
       chkconfig --add rudder-agent
       chkconfig rudder-agent on
     fi
 
-    if type update-rc.d > /dev/null
+    if type update-rc.d > /dev/null 2>&1
     then
       update-rc.d rudder-agent enable
     fi
@@ -75,12 +75,12 @@ fi
 if [ -f /var/rudder/tmp/migration-rudder-service-systemd ]
 then
   # We are making the migration from sysv to systemd
-  if type chkconfig > /dev/null
+  if type chkconfig > /dev/null 2>&1
   then
     chkconfig --del rudder-agent
   fi
 
-  if type update-rc.d > /dev/null
+  if type update-rc.d > /dev/null 2>&1
   then
     update-rc.d rudder-agent remove
   fi
@@ -106,11 +106,11 @@ fi
 # Remove the rudder service
 if [ -f /etc/init.d/rudder ]
 then
-  if type chkconfig > /dev/null
+  if type chkconfig > /dev/null 2>&1
   then
     chkconfig --del rudder || true
   fi
-  if type update-rc.d > /dev/null
+  if type update-rc.d > /dev/null 2>&1
   then
     update-rc.d rudder remove
   fi
