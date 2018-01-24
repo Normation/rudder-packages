@@ -114,7 +114,7 @@ fi
 
 CFRUDDER_FIRST_INSTALL=$1
 
-/opt/rudder/share/package-scripts/rudder-server-root-postinst "${CFRUDDER_FIRST_INSTALL}"
+%{rudderdir}/share/package-scripts/rudder-server-root-postinst "${CFRUDDER_FIRST_INSTALL}"
 
 %postun
 #=================================================
@@ -141,6 +141,7 @@ rm -rf %{buildroot}
 %files
 %defattr(-, root, root, 0755)
 %{rudderdir}/etc/
+%{rudderdir}/share/package-scripts/rudder-server-root-postinst
 /etc/init.d/rudder-server
 
 #=================================================
