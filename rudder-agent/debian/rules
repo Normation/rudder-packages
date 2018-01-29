@@ -76,6 +76,8 @@ install: build
 	# let this file be managed by dh_installinit
 ifneq (true,$(USE_SYSTEMD))
 	mv $(CURDIR)/debian/tmp/etc/init.d/rudder-agent debian/rudder-agent.init
+else
+	mv $(CURDIR)/debian/tmp/lib/systemd/system/*.service debian/
 endif
 
 # Build architecture-independent files here.
@@ -96,7 +98,13 @@ binary-arch: install
 #	dh_installmime
 #	dh_python
 	# Init script and configuration files
+ifneq (true,$(USE_SYSTEMD))
 	dh_installinit --no-start -R # restart after upgrade (instead of stop, upgrade, start)
+else
+	dh_installsystemd --no-start
+	dh_installsystemd --no-start rudder-cf-execd.service
+	dh_installsystemd --no-start rudder-cf-serverd.service
+endif
 #	dh_installinfo
 	dh_installman
 	dh_link
