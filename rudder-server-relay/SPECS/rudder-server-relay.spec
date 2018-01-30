@@ -419,7 +419,7 @@ if [ $1 -eq 1 ]; then
       echo "INFO: Now run on your root server:                                                             "
       echo "INFO:   '/opt/rudder/bin/rudder-node-to-relay ${uuid}"
       echo "INFO: Please look at the documentation for details (Section 'Relay servers')           "
-      echo "*******************************************************************i*********************"
+      echo "*****************************************************************************************"
     fi
   else # if for some reason there is no uuid here
     echo ""
