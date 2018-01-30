@@ -29,6 +29,7 @@ OS_CODENAME := $(shell lsb_release -s -c)
 ifeq (lucid,$(OS_CODENAME))
 USE_SYSTEM_OPENSSL=false
 USE_SYSTEMD=false
+USE_SYSTEM_PERL=false
 endif
 ifeq (quantal,$(OS_CODENAME))
 USE_SYSTEM_OPENSSL=false
@@ -44,6 +45,7 @@ endif
 ifeq (lenny,$(OS_CODENAME))
 USE_SYSTEM_OPENSSL=false
 USE_SYSTEMD=false
+USE_SYSTEM_PERL=false
 endif
 ifeq (squeeze,$(OS_CODENAME))
 USE_SYSTEM_OPENSSL=false

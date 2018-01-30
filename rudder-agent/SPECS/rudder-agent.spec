@@ -63,8 +63,8 @@
 %if 0%{?rhel} && 0%{?rhel} <= 5
 %define use_system_perl false
 %endif
-# system perl too old on sles 10
-%if 0%{?suse_version} && 0%{?suse_version} < 1100
+# system perl too old on sles 10 and 11
+%if 0%{?suse_version} && 0%{?suse_version} < 1200
 %define use_system_perl false
 %endif
 %else
