@@ -27,17 +27,14 @@ then
     /usr/bin/mkssys -s rudder-agent -p "${CFE_DIR}/bin/cf-execd" -a "-F" -u root -S -n15 -f9 -R
     /usr/sbin/mkitab "rudder-agent:23456789:once:/usr/bin/startsrc -s rudder-agent"
     # No need to tell init to re-read /etc/inittab, it does it automatically every 60 seconds
-  elif [ ${CFRUDDER_OS} != "deb" ]
-    # Deb packaging handles service activation
+  elif [ ${CFRUDDER_OS} != "deb" ] && [ "${CFRUDDER_USE_SYSTEMD}" != "true" ]
   then
-    if [ "${CFRUDDER_USE_SYSTEMD}" = "true" ] 
-    then
-      /bin/systemctl daemon-reload
-      /bin/systemctl enable rudder-agent rudder-cf-execd rudder-cf-serverd
-    else
-      chkconfig --add rudder-agent
-      chkconfig rudder-agent on
-    fi
+    chkconfig --add rudder-agent
+    chkconfig rudder-agent on
+  elif [ "${CFRUDDER_USE_SYSTEMD}" = "true" ]
+  then
+    /bin/systemctl daemon-reload
+    /bin/systemctl enable rudder-agent rudder-cf-execd rudder-cf-serverd
   fi
 fi
 
