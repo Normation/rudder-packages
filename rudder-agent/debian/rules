@@ -98,11 +98,11 @@ binary-arch: install
 #	dh_installmime
 #	dh_python
 	# Init script and configuration files
-	ifeq (true,$(USE_SYSTEMD))
-		dh_install lib
-	else
-		dh_installinit --no-start -R # restart after upgrade (instead of stop, upgrade, start)
-	endif
+ifeq (true,$(USE_SYSTEMD))
+	dh_install lib
+else
+	dh_installinit --no-start -R # restart after upgrade (instead of stop, upgrade, start)
+endif
 #	dh_installinfo
 	dh_installman
 	dh_link
