@@ -45,7 +45,12 @@ def put_file(target_uuid, source_uuid, file_id):
     return format_error(e, API_DEBUGINFO)
 
 
-@app.route('/shared-files/<string:target_uuid>/<string:source_uuid>/<string:file_id>', methods=['HEAD'])
+# mod_wsgi rewrites HEAD request to GET in some cases (don't know exactly when, but it depends on apache output filter, and breaks centos7 and not ubuntu 16)
+# Broken with wod_wsgi 3.2 and 3.4, works with mod_wsgi 4.3.0
+# GET requests here a rewritten HEAD, Real GET is never used on the shared-files api
+# Some explanation: http://blog.dscpl.com.au/2009/10/wsgi-issues-with-http-head-requests.html
+# Some workaround: https://github.com/GrahamDumpleton/mod_wsgi/issues/2
+@app.route('/shared-files/<string:target_uuid>/<string:source_uuid>/<string:file_id>', methods=['HEAD','GET'])
 def head_file(target_uuid, source_uuid, file_id):
   try:
     nodes = get_nodes_list(NODESLIST_FILE)
