@@ -125,5 +125,5 @@ rm -rf %{buildroot}
 # Changelog
 #=================================================
 %changelog
-* Thu Dec 05 2013 - Matthieu CERDA <matthieu.cerda@normation.com> 0.2013120500-1
-- Initial release
+* Wed Nov  22 2017 - Rudder Team <rudder-dev@rudder-project.org> %{version}
+- See https://www.rudder-project.org/site/documentation/user-manual/ for changelogs

@@ -127,5 +127,5 @@ rm -rf %{buildroot}
 # Changelog
 #=================================================
 %changelog
-* Wed Feb 22 2012 - Matthieu Cerda <matthieu.cerda@normation.com> 2.4.0-alpha6-1
-- Initial package (this package used to be rudder-policy-templates)
+* Wed Nov  22 2017 - Rudder Team <rudder-dev@rudder-project.org> %{version}
+- See https://www.rudder-project.org/site/documentation/user-manual/ for changelogs

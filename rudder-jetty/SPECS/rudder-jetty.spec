@@ -261,7 +261,5 @@ rm -rf %{buildroot}
 # Changelog
 #=================================================
 %changelog
-* Wed Aug 31 2011 - Nicolas PERRON <nicolas.perron@normation.com> 2.3-beta-1
-- Remove service start from postinst
-* Wed Jul 27 2011 - Matthieu CERDA <matthieu.cerda@normation.com> 2.3-alpha4-1
-- Initial package
+* Wed Nov  22 2017 - Rudder Team <rudder-dev@rudder-project.org> %{version}
+- See https://www.rudder-project.org/site/documentation/user-manual/ for changelogs
