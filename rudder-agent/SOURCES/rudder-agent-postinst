@@ -134,6 +134,9 @@ if [ ! -f /opt/rudder/etc/disable-agent ]; then
   ${RUDDER_CMD} agent disable
 fi
 
+# Make sure the configuration is available in a standard place
+ln -sf "${CFE_DIR}/policy_server.dat" "/opt/rudder/etc/policy_server.dat"
+
 # Make sure the daemons are stopped (if the daemon exists)
 [ -x "${CFE_DIR}/bin/cf-execd" ] && ${RUDDER_CMD} agent stop || true
 
