@@ -1,5 +1,5 @@
-rudder-techniques (2.4.0-0) squeeze; urgency=low
+rudder-techniques (2.3.0~alpha~git-0) lenny; urgency=low
 
-  * Initial release (this package used to be rudder-policy-templates)
+  * See https://www.rudder-project.org/site/documentation/user-manual/ for changelogs
 
- -- Jonathan CLARKE <jonathan.clarke@normation.com>  Wed, 22 Feb 2012 13:19:26 +0100
+ -- Rudder Team <rudder-dev@rudder-project.org>  Wed, 22 Nov 2017 11:47:27 +0000

@@ -1,5 +1,5 @@
-rudder-server-relay (0.1-0) stable; urgency=low
+rudder-server-relay (2.3.0~alpha~git-0) lenny; urgency=low
 
-  * Initial release
+  * See https://www.rudder-project.org/site/documentation/user-manual/ for changelogs
 
- -- Matthieu CERDA <matthieu.cerda@normation.com>  Thu, 30 Oct 2014 17:01:22 +0100
+ -- Rudder Team <rudder-dev@rudder-project.org>  Wed, 22 Nov 2017 11:47:27 +0000

@@ -244,5 +244,5 @@ rm -rf %{buildroot}
 # Changelog
 #=================================================
 %changelog
-* Mon Aug 01 2011 - Nicolas Perron <nicolas.perron@normation.com> 2.3-alpha4-1
-- Initial package
+* Wed Nov  22 2017 - Rudder Team <rudder-dev@rudder-project.org> %{version}
+- See https://www.rudder-project.org/site/documentation/user-manual/ for changelogs
