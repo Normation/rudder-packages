@@ -126,11 +126,11 @@ rm -f /var/rudder/tmp/migration-rudder-service-systemd
 rm -f /var/rudder/tmp/migration-rudder-service-enabled
 rm -f /var/rudder/tmp/migration-rudder-cf-serverd-disabled
 
-
-# Reload the linker cache (to acknowledge LMDB's presence if needed)
-if [ -f /etc/ld.so.conf.d/rudder.conf ]; then
-  echo "Found /etc/ld.so.conf.d/rudder.conf, running ldconfig" >> ${LOG_FILE}
-  ldconfig -v >> ${LOG_FILE} 2>&1
+# remove ldso.conf if it was installed by a previous version (starting from 4.3)
+if [ -e /etc/ld.so.conf.d/rudder.conf ]
+then
+  rm /etc/ld.so.conf.d/rudder.conf
+  ldconfig
 fi
 
 # Set a "lock" to avoid CFEngine being restarted during the upgrade process

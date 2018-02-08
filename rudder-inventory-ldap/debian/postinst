@@ -19,33 +19,35 @@ set -e
 
 
 case "$1" in
-    configure)
-		echo -n "INFO: Restarting syslogd..."
-		service rsyslog restart >/dev/null 2>&1
-		echo " Done"
+  configure)
+    echo -n "INFO: Restarting syslogd..."
+    service rsyslog restart >/dev/null 2>&1
+    echo " Done"
 
-		# Reload the linker cache (to acknowledge BerkeleyDB's presence if needed)
-		if [ -e /etc/ld.so.conf.d/rudder-inventory-ldap.conf ]; then
-			ldconfig
-		fi
+    # remove old ldso.conf if it was installed by a previous version (starting from 4.3)
+    if [ -e /etc/ld.so.conf.d/rudder-inventory-ldap.conf ]
+    then
+      rm /etc/ld.so.conf.d/rudder-inventory-ldap.conf
+      ldconfig
+    fi
 
-                # Reload systemd when it is available so that it creates sysv-init shims
-                # This is necessary to make the service command work, and will be obsolete when we create systemd units
-                [ -x /bin/systemctl ] && /bin/systemctl daemon-reload
+    # Reload systemd when it is available so that it creates sysv-init shims
+    # This is necessary to make the service command work, and will be obsolete when we create systemd units
+    [ -x /bin/systemctl ] && /bin/systemctl daemon-reload
 
-		# Restart rudder-slapd to take schema changes into account
-		echo -n "INFO: Restarting rudder-slapd..."
-		service rudder-slapd restart >/dev/null
-		echo " Done"
-    ;;
+    # Restart rudder-slapd to take schema changes into account
+    echo -n "INFO: Restarting rudder-slapd..."
+    service rudder-slapd restart >/dev/null
+    echo " Done"
+  ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
-    ;;
+  ;;
 
-    *)
-        echo "postinst called with unknown argument \`$1'" >&2
-        exit 1
-    ;;
+  *)
+    echo "postinst called with unknown argument \`$1'" >&2
+    exit 1
+  ;;
 esac
 
 # dh_installdeb will replace this with shell code automatically

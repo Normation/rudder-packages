@@ -68,9 +68,6 @@ Source5: rudder.schema
 Source6: DB_CONFIG
 Source7: rudder-inventory-ldap
 Source8: rudder-ldap
-# This file will contain path of /opt/rudder/lib for ld which will
-# find there all necessary libraries for BerkeleyDB.
-Source9: rudder-inventory-ldap.conf
 Source10: rudder-slapd.conf
 Source11: rudder-slapd-configure
 
@@ -148,9 +145,7 @@ make %{?_smp_mflags}
 %install
 rm -rf %{buildroot}
 
-mkdir -p %{buildroot}/etc/ld.so.conf.d
 mkdir -p %{buildroot}/opt/rudder/
-mkdir -p %{buildroot}/etc/ld.so.conf.d
 mkdir -p %{buildroot}/opt/rudder/etc/server-roles.d/
 mkdir -p %{buildroot}%{rudderlogdir}/ldap
 mkdir -p %{buildroot}/var/rudder/ldap/openldap-data
@@ -172,10 +167,6 @@ install -m 644 %{SOURCE6} %{buildroot}/var/rudder/ldap/openldap-data/
 
 install -m 644 %{SOURCE7} %{buildroot}/opt/rudder/etc/server-roles.d/
 install -m 644 %{SOURCE8} %{buildroot}/opt/rudder/etc/server-roles.d/
-
-# Install /etc/ld.so.conf.d/rudder.conf in order to use libraries
-# contained in /opt/rudder/lib like BerkeleyDB
-install -m 644 %{SOURCE9} %{buildroot}/etc/ld.so.conf.d/rudder-inventory-ldap.conf
 
 # Install mdb configuration file
 install -m 755 %{SOURCE11} %{buildroot}/opt/rudder/bin/rudder-slapd-configure
@@ -213,9 +204,10 @@ fi
 # Post Installation
 #=================================================
 
-# Reload the linker cache (to acknowledge BerkeleyDB's presence if needed)
-if [ -f /etc/ld.so.conf.d/rudder-inventory-ldap.conf ]; then
-        ldconfig
+if [ -e /etc/ld.so.conf.d/rudder-inventory-ldap.conf ]
+then
+  rm /etc/ld.so.conf.d/rudder-inventory-ldap.conf
+  ldconfig
 fi
 
 echo -n "INFO: Setting rudder-slapd as a boot service..."
@@ -286,7 +278,6 @@ rm -rf %{buildroot}
 %config(noreplace) /etc/default/rudder-slapd
 /opt/rudder/etc/rudder-slapd.conf
 %config(noreplace) /opt/rudder/etc/openldap/slapd.conf
-%config(noreplace) /etc/ld.so.conf.d/rudder-inventory-ldap.conf
 
 #=================================================
 # Changelog
