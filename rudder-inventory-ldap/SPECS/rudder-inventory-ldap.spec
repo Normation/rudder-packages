@@ -100,6 +100,9 @@ BuildRequires: openssl-devel libtool-ltdl-devel
 BuildRequires: openssl-devel libtool-ltdl-devel
 %endif
 
+%{?filter_provides_in .*\.so$}
+%{?filter_setup}
+
 %description
 Rudder is an open source configuration management and audit solution.
 
