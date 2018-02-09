@@ -509,6 +509,11 @@ stop_slapd() {
     return 1
   else
     PID=`cat $SLAPD_PID_FILE`
+    if [ ! -f /proc/$PID ]
+    then
+      message "info" "[INFO] can't read PID file, to stop rudder-slapd try: $0 forcestop"
+      return 1
+    fi
     kill -INT $PID
 
     # Waiting loop
