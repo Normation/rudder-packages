@@ -463,7 +463,10 @@ chmod -R u+rwX,g+rwX %{ruddervardir}/configuration-repository/techniques
 find %{ruddervardir}/configuration-repository/.git %{ruddervardir}/configuration-repository/ncf %{ruddervardir}/configuration-repository/techniques -type d -exec chmod g+s "{}" \;
 
 ## Add execution permission for ncf-api on pre/post-hooks
-chmod -R 2750 %{ruddervardir}/configuration-repository/ncf/ncf-hooks.d/
+chmod -R 2750 %{ruddervardir}/configuration-repository/ncf/ncf-hooks.d
+cd %{ruddervardir}/configuration-repository/ncf/
+git add ncf-hooks.d
+git commit --allow-empty --message "Add ncf hooks to repository"
 
 if [ -f /tmp/rudder-plugins-upgrade ]
 then
