@@ -100,7 +100,11 @@ BuildRequires: openssl-devel libtool-ltdl-devel
 BuildRequires: openssl-devel libtool-ltdl-devel
 %endif
 
+# rpm automatically adds requires and provides on libs and bins it finds.
+# provides conflicts with system tools
+# and requiring what you are providing is just nuts
 %{?filter_provides_in .*\.so$}
+%{?filter_requires_in .*\.so$}
 %{?filter_setup}
 
 %description
