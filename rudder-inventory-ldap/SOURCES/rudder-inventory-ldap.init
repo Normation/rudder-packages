@@ -505,13 +505,16 @@ stop_slapd() {
   # Presence of PID file
   if [ ! -r $SLAPD_PID_FILE ]
   then
-    message "info" "[INFO] can't read PID file, to stop rudder-slapd try: $0 forcestop"
+    message "info" "[INFO] can't read slapd PID file ($SLAPD_PID_FILE), to stop rudder-slapd try: $0 forcestop"
     return 1
   else
     PID=`cat $SLAPD_PID_FILE`
-    if [ ! -f /proc/$PID ]
+    if [ -z "$PID" ]
     then
-      message "info" "[INFO] can't read PID file, to stop rudder-slapd try: $0 forcestop"
+      message "info" "[INFO] slapd PID file ($SLAPD_PID_FILE) is empty, to stop rudder-slapd try: $0 forcestop"
+    elif [ ! -d /proc/$PID ]
+    then
+      message "info" "[INFO] can't read slapd process directory (/proc/${PID}), to stop rudder-slapd try: $0 forcestop"
       return 1
     fi
     kill -INT $PID
