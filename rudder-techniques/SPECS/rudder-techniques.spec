@@ -55,12 +55,6 @@ BuildArch: noarch
 # Add Requires here - order is important
 Requires: ncf = %{real_epoch}:%{real_version}
 
-# The following lines allow this package (rudder-techniques) to 
-# replace the older rudder-policy-templates package.
-# See http://wiki.mandriva.com/en/Development/Howto/RPM_Advanced#Renaming_a_package
-Provides: rudder-policy-templates
-Obsoletes: rudder-policy-templates
-
 # Use our own dependency generator
 %global _use_internal_dependency_generator 0
 %global __find_requires_orig %{__find_requires}
