@@ -193,7 +193,7 @@ message() {
   # $1: syslog level
   # $2: message
 
-  if [ $OS = "Linux" ]
+  if [ $OS = "Linux" ] && [ "$1" = "alert" ]
   then
     logger -p "local4.$1" -s -t $PROG_NAME -i "$2"
   else
