@@ -84,19 +84,13 @@ Requires: rsyslog openssl
 #Specific requirements
 
 # Reference for suse_version : https://en.opensuse.org/openSUSE:Build_Service_cross_distribution_howto
-%if 0%{?suse_version} && 0%{?suse_version} < 1100
-BuildRequires: openssl-devel
-%endif
-
-%if 0%{?suse_version} && 0%{?suse_version} >= 1100
+%if 0%{?suse_version}
+Requires: libltdl7
 BuildRequires: libopenssl-devel
 %endif
 
-%if 0%{?rhel} && 0%{?rhel} < 7
-BuildRequires: openssl-devel libtool-ltdl-devel
-%endif
-
-%if 0%{?rhel} && 0%{?rhel} >= 7
+%if 0%{?rhel}
+Requires: libtool-ltdl
 BuildRequires: openssl-devel libtool-ltdl-devel
 %endif
 
