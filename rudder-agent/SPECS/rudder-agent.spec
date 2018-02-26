@@ -452,7 +452,7 @@ if ! grep -q "/opt/rudder/lib" /etc/ld.so.conf; then
 fi
 %endif
 
-/opt/rudder/share/package-scripts/rudder-agent-postinst "${CFRUDDER_FIRST_INSTALL}" "%{?_os}" "%{use_systemd}"
+/opt/rudder/share/package-scripts/rudder-agent-postinst "${CFRUDDER_FIRST_INSTALL}" "%{?_os}" "%{use_systemd}" ""
 
 %preun
 #=================================================

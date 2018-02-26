@@ -18,6 +18,12 @@ fi
 
 echo "`date` - Starting rudder-agent post installation script" >> ${LOG_FILE}
 
+# setup the policy server if we are asked to
+if [ -n "$4" ]
+then
+  echo "$4" > /var/rudder/cfengine-community/policy_server.dat
+fi
+
 # Do this at first install
 if [ ${CFRUDDER_FIRST_INSTALL} -eq 1 ]
 then

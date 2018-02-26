@@ -93,7 +93,7 @@ binary-arch: install
 	dh_installexamples
 	dh_install
 #	dh_installmenu
-#	dh_installdebconf
+	dh_installdebconf
 #	dh_installlogrotate
 #	dh_installmime
 #	dh_python
