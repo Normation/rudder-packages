@@ -562,10 +562,6 @@ rm -f %{_builddir}/file.list.%{name}
 %dir %{rudderlogdir}/install
 %dir %{rudderlogdir}/agent-check
 
-%if 0%{?rhel} != 3 && "%{?_os}" != "aix"
-%config /etc/ld.so.conf.d/rudder.conf
-%endif
-
 %if "%{?_os}" != "aix"
 # no init no cron and no profile with aix
 %config /etc/cron.d/rudder-agent
