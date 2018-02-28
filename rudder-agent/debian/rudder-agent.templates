@@ -2,7 +2,7 @@ Template: rudder-agent/policy-server
 Type: string
 Default: 
 Description: Rudder server name or IP
-The fully qualified domain name of your Rudder server, its IP, or any
-name that can resolve into the server address.
-.
-If left empty, no server will be configured.
+ The fully qualified domain name of your Rudder server, its IP, or any
+ name that can resolve into the server address.
+ .
+ If left empty, no server will be configured.
