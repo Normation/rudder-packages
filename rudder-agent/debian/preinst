@@ -50,7 +50,7 @@ then
   # of upgrade from a very old version
   mkdir -p /var/rudder/tmp
 
-  if [ "${CFRUDDER_USE_SYSTEMD}" = "true" ]
+  if [ ${CFRUDDER_USE_SYSTEMD} -eq 1 ]
   then
     if [ -f /etc/init.d/rudder-agent ]
     then

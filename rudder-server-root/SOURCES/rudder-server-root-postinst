@@ -26,7 +26,7 @@ then
 
   if type update-rc.d > /dev/null 2>&1
   then
-    update-rc.d rudder-server enable
+    update-rc.d rudder-server defaults
   fi
 else
 # Upgrade flag is here
@@ -40,7 +40,7 @@ else
 
     if type update-rc.d > /dev/null 2>&1
     then
-      update-rc.d rudder-server enable
+      update-rc.d rudder-server defaults
     fi
   fi
 fi
