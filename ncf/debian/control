@@ -9,7 +9,6 @@ Homepage: http://www.ncf.io
 Package: ncf
 Architecture: all
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Suggests: cfengine3 (>=3.5.0), cfengine-community (>=3.5.0), rudder-agent (>=2.8.0)
 Description: ncf - CFEngine framework
  ncf is a CFEngine framework aimed at helping newcomers on CFEngine
  to be more quickly operationnal and old timers to spend less time
