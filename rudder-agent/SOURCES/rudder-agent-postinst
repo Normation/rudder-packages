@@ -25,7 +25,7 @@ then
 fi
 
 # Do this at first install
-if [ ${CFRUDDER_FIRST_INSTALL} -eq 1 ]
+if [ "${CFRUDDER_FIRST_INSTALL}" = "true" ]
 then
   # Set rudder-agent as service
   if [ ${CFRUDDER_OS} = "aix" ]
@@ -33,11 +33,11 @@ then
     /usr/bin/mkssys -s rudder-agent -p "${CFE_DIR}/bin/cf-execd" -a "-F" -u root -S -n15 -f9 -R
     /usr/sbin/mkitab "rudder-agent:23456789:once:/usr/bin/startsrc -s rudder-agent"
     # No need to tell init to re-read /etc/inittab, it does it automatically every 60 seconds
-  elif [ ${CFRUDDER_OS} != "deb" ] && [ ${CFRUDDER_USE_SYSTEMD} -ne 1 ]
+  elif [ ${CFRUDDER_OS} != "deb" ] && [ "${CFRUDDER_USE_SYSTEMD}" != "true" ]
   then
     chkconfig --add rudder-agent
     chkconfig rudder-agent on
-  elif [ ${CFRUDDER_USE_SYSTEMD} -eq 1 ]
+  elif [ "${CFRUDDER_USE_SYSTEMD}" = "true" ]
   then
     /bin/systemctl daemon-reload
     /bin/systemctl enable rudder-agent rudder-cf-execd rudder-cf-serverd
@@ -213,7 +213,7 @@ fi
 touch /opt/rudder/etc/agent-capabilities
 
 # Restart daemons if we stopped them, otherwise not
-if [ ${CFRUDDER_FIRST_INSTALL} -ne 1 ]
+if [ "${CFRUDDER_FIRST_INSTALL}" != "true" ]
 then
   # Check if agent is disabled
   if [ ! -f /opt/rudder/etc/disable-agent ]
@@ -241,7 +241,7 @@ then
 fi
 
 # Add a default agent cron at first install
-if [ ${CFRUDDER_FIRST_INSTALL} -eq 1 ]
+if [ "${CFRUDDER_FIRST_INSTALL}" = "true" ]
 then
   if [ `uname -s` != 'AIX' ]
   then
@@ -251,7 +251,7 @@ then
 fi
 
 # Try to send an inventory after upgrade to see the new agent version on the server
-if [ ${CFRUDDER_FIRST_INSTALL} -ne 1 ]
+if [ "${CFRUDDER_FIRST_INSTALL}" != "true" ]
 then
   echo "INFO: Scheduling an inventory during next run..."
   touch /opt/rudder/etc/force_inventory
@@ -259,7 +259,7 @@ fi
 
 # Try to remove POSIX ACL if present, only during the first install
 # http://www.rudder-project.org/redmine/issues/8065
-if [ ${CFRUDDER_FIRST_INSTALL} -eq 1 ]
+if [ "${CFRUDDER_FIRST_INSTALL}" = "true" ]
 then
   if type setfacl >> ${LOG_FILE} 2>&1; then
     setfacl -R -k /var/rudder/

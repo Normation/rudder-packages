@@ -432,11 +432,11 @@ fi
 # Post Installation
 #=================================================
 
-CFRUDDER_FIRST_INSTALL=0
+CFRUDDER_FIRST_INSTALL="false"
 
 if [ $1 -eq 1 ]
 then
-  CFRUDDER_FIRST_INSTALL=1
+  CFRUDDER_FIRST_INSTALL="true"
 fi
 
 # mandatory with systemd wrapper for old init
