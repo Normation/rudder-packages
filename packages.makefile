@@ -76,11 +76,6 @@ buildpackage-rpm-common-prep-aix:
 	# Dependencies on AIX are currently not managed automatically but installed manually
 	:
 
-buildpackage-rpm-common-fix-old-epoch:
-	# We used to use the epoch field of RPM spec files to manage version comparaisons
-	# But we stopped doing this on the day with timestamp 1366900520
-	sed -i "s@^%define real_epoch.*@%define real_epoch 1398866025@" SPECS/*.spec
-
 buildpackage-rpm-build-plainrpm:
 	mkdir -p $(PWD)/tmp
 	cp -f /root/.rpmmacros-orig /$(HOME)/.rpmmacros
@@ -93,9 +88,9 @@ buildpackage-rpm-build-rpmbuild:
 	rpmbuild --define "_topdir $(PWD)" --define "real_version $(RUDDER_VERSION_RPM)" -ba SPECS/*.spec
 
 buildpackage-rpm-aix:  localdepends buildpackage-rpm-common-prep buildpackage-rpm-common-prep-aix  buildpackage-rpm-build-plainrpm
-buildpackage-rpm-suse: localdepends buildpackage-rpm-common-prep buildpackage-rpm-common-prep-suse buildpackage-rpm-common-fix-old-epoch buildpackage-rpm-build-rpmbuild
-buildpackage-rpm-rhel: localdepends buildpackage-rpm-common-prep buildpackage-rpm-common-prep-rhel buildpackage-rpm-common-fix-old-epoch buildpackage-rpm-build-rpmbuild
-buildpackage-rpm-fedora: localdepends buildpackage-rpm-common-prep buildpackage-rpm-common-prep-fedora buildpackage-rpm-common-fix-old-epoch buildpackage-rpm-build-rpmbuild
+buildpackage-rpm-suse: localdepends buildpackage-rpm-common-prep buildpackage-rpm-common-prep-suse buildpackage-rpm-build-rpmbuild
+buildpackage-rpm-rhel: localdepends buildpackage-rpm-common-prep buildpackage-rpm-common-prep-rhel buildpackage-rpm-build-rpmbuild
+buildpackage-rpm-fedora: localdepends buildpackage-rpm-common-prep buildpackage-rpm-common-prep-fedora buildpackage-rpm-build-rpmbuild
 
 clean: localclean
 localclean:

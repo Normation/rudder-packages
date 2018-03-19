@@ -28,7 +28,7 @@
 # Variables
 #=================================================
 %define real_name        ncf
-%define real_epoch       0
+%define real_epoch       1398866025
 
 %define installdir       /usr/share
 %define bindir           /usr/bin
