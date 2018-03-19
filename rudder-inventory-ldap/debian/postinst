@@ -27,7 +27,7 @@ case "$1" in
     # remove old ldso.conf if it was installed by a previous version (starting from 4.3)
     if [ -e /etc/ld.so.conf.d/rudder-inventory-ldap.conf ]
     then
-      rm /etc/ld.so.conf.d/rudder-inventory-ldap.conf
+      rm -f /etc/ld.so.conf.d/rudder-inventory-ldap.conf
       ldconfig
     fi
 
