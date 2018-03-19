@@ -281,9 +281,9 @@ Requires: pcre
 # Use our own dependency generator
 %global _use_internal_dependency_generator 0
 %global __find_requires_orig %{__find_requires}
-%define __find_requires %{_sourcedir}/filter-reqs.pl %{use_system_lmdb} %{__find_requires_orig}
+%define __find_requires %{_sourcedir}/filter-reqs.pl %{use_system_lmdb} %{use_system_perl} %{__find_requires_orig}
 %global __find_provides_orig %{__find_provides}
-%define __find_provides %{_sourcedir}/filter-reqs.pl %{use_system_lmdb} %{__find_provides_orig}
+%define __find_provides %{_sourcedir}/filter-reqs.pl %{use_system_lmdb} %{use_system_perl} %{__find_provides_orig}
 %endif
 
 %description

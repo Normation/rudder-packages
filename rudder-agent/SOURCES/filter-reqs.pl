@@ -6,7 +6,8 @@ use IPC::Open2;
 # - 1) the string "true" or "false" to tell us whether to *not* exclude LMDB from list of requires (ie, if argument == false, then exclude it)
 # - 2) The command and it's arguments to run to auto-detect requirements (original RPM behaviour)
 my $dont_exclude_tc = $ARGV[0];
-my @command = @ARGV[1 .. $#ARGV];
+my $system_perl = $ARGV[1];
+my @command = @ARGV[2 .. $#ARGV];
 
 # This will run the original find-requires script
 # and then remove requirements we don't want
@@ -16,6 +17,7 @@ close(OUT);
 my $list = join('', <IN>);
 
 # Apply our exclude filters
+$list =~ s/perl//mg if($system_perl eq "true");
 $list =~ s/^perl\(.*?$//mg;
 $list =~ s/^perl .*?$//mg;
 $list =~ s/^\/opt\/rudder\/bin\/perl.*?$//mg;
