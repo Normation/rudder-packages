@@ -17,7 +17,7 @@ close(OUT);
 my $list = join('', <IN>);
 
 # Apply our exclude filters
-$list =~ s/perl//mg if($system_perl eq "true");
+$list =~ s/^.*perl.*$//mg if($system_perl eq "true");
 $list =~ s/^perl\(.*?$//mg;
 $list =~ s/^perl .*?$//mg;
 $list =~ s/^\/opt\/rudder\/bin\/perl.*?$//mg;
