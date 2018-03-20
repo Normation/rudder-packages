@@ -359,14 +359,22 @@ fi
 # Configure initial promises
 echo -n "Configuring and installing initial Rudder policies..."
 
-# Preserve rudder-server-roles.conf
-mv ${RUDDER_ROLES_FILE} ${TMP_DIR}/
+roles_present="false"
+if [ -f "${RUDDER_ROLES_FILE}" ]
+then
+  roles_present="true"
+  # Preserve rudder-server-roles.conf
+  mv ${RUDDER_ROLES_FILE} ${TMP_DIR}/
+fi
 
 rm -rf /var/rudder/cfengine-community/inputs/*
 cp -r $TMP_DIR/community/* /var/rudder/cfengine-community/inputs/
 
-# Restore rudder-server-roles.conf
-mv ${TMP_DIR}/$(basename ${RUDDER_ROLES_FILE}) ${RUDDER_ROLES_FILE}
+if [ "${roles_present}" = "true" ]
+then
+  # Restore rudder-server-roles.conf
+  mv ${TMP_DIR}/$(basename ${RUDDER_ROLES_FILE}) ${RUDDER_ROLES_FILE}
+fi
 
 reset_policy_server
 
