@@ -28,7 +28,7 @@
 # Variables
 #=================================================
 %define real_name        rudder-server-root
-%define real_epoch       0
+%define real_epoch       1398866025
 %define rudderdir        /opt/rudder
 %define ruddervardir     /var/rudder
 %define rudderlogdir     /var/log/rudder
