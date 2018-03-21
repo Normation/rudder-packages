@@ -124,10 +124,9 @@ Requires: perl
 BuildRequires: pam-devel
 %endif
 
-## Requirement for cpanminus and fusion
+## Requirement for cpanminus
 # rh 6,7
 %if 0%{?rhel} && 0%{?rhel} >= 6
-Requires: perl-IPC-Cmd
 BuildRequires: perl-IPC-Cmd
 %endif
 
