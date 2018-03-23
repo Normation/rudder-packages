@@ -1,0 +1,29 @@
+diff --git a/libpromises/generic_agent.c b/libpromises/generic_agent.c
+index 4f34b8a70..e15c51315 100644
+--- a/libpromises/generic_agent.c
++++ b/libpromises/generic_agent.c
+@@ -149,22 +149,10 @@ Policy *SelectAndLoadPolicy(GenericAgentConfig *config, EvalContext *ctx, bool v
+     {
+         policy = LoadPolicy(ctx, config);
+     }
+-    else if (config->tty_interactive)
+-    {
+-        Log(LOG_LEVEL_ERR,
+-               "Failsafe condition triggered. Interactive session detected, skipping failsafe.cf execution.");
+-    }
+     else
+     {
+-        Log(LOG_LEVEL_ERR, "CFEngine was not able to get confirmation of promises from cf-promises, so going to failsafe");
+-        EvalContextClassPutHard(ctx, "failsafe_fallback", "attribute_name=Errors,source=agent");
+-
+-        if (CheckAndGenerateFailsafe(GetInputDir(), "failsafe.cf"))
+-        {
+-            GenericAgentConfigSetInputFile(config, GetInputDir(), "failsafe.cf");
+-            Log(LOG_LEVEL_ERR, "CFEngine failsafe.cf: %s %s", config->input_dir, config->input_file);
+-            policy = LoadPolicy(ctx, config);
+-        }
++        Log(LOG_LEVEL_VERBOSE,
++               "Error reading policy, and failafe reloading is disabled.");
+     }
+     return policy;
+ }
