@@ -38,6 +38,12 @@ CPANMINUS_RELEASE = 1.7036
 CPANMINUS_SHA1 = a12043498ab54d9abdc58d1ebb4988da3bd515db
 #CPAN_URL = https://www.cpan.org
 CPAN_URL = $(HTTPS)://www.normation.com/tarball/cpan/$(RUDDER_MAJOR_VERSION)
+CURL_VERSION = 7.58.0
+CURL_SHA1 = 089f17884d672aca7a661a65d847135f2f0ccbbf
+YAML_VERSION = 0.1.7
+YAML_SHA1 = 3590cbf092ef4c71bc0a9b404c00a626b1e04dee 
+XML_VERSION = 2.9.7
+XML_SHA1 = ab3325e6cdda50ab2382fdfe0bdb6f7d1b9224a6
 
 # Defauth PATHs
 RUDDER_DIR = /opt/rudder
@@ -126,6 +132,24 @@ endif
 ifneq (true,$(USE_SYSTEM_FUSION))
 INSTALL_DEPS := $(INSTALL_DEPS) install-fusion
 endif
+# default: embed curl
+ifneq (true,$(USE_SYSTEM_CURL))
+BUILD_DEPS := $(BUILD_DEPS) build-curl
+INSTALL_DEPS := $(INSTALL_DEPS) install-curl
+CURL_ARG := --with-libcurl=$(CURDIR)/build-curl/opt/rudder
+endif
+# default: embed libyaml
+ifneq (true,$(USE_SYSTEM_YAML))
+BUILD_DEPS := $(BUILD_DEPS) build-yaml
+INSTALL_DEPS := $(INSTALL_DEPS) install-yaml
+YAML_ARG := --with-libyaml=$(CURDIR)/build-yaml/opt/rudder
+endif
+# default: embed libxml2
+ifneq (true,$(USE_SYSTEM_XML))
+BUILD_DEPS := $(BUILD_DEPS) build-xml
+INSTALL_DEPS := $(INSTALL_DEPS) install-xml
+XML_ARG := --with-libcurl=$(CURDIR)/build-xml/opt/rudder
+endif
 
 # Hack needed because openssl is not guessing correctly the architecture on solaris 32bits
 ifeq (i386-pc-solaris2.10,$(shell ./config.guess))
@@ -141,7 +165,7 @@ endif
 
 # download dependencies
 depend: localdepends
-localdepends: initial-promises initial-ncf rudder-agent-utilities perl-$(PERL_VERSION) fusioninventory-agent cfengine-source openssl-source lmdb-source pcre-source rudder-agent.cron ./rudder.8.gz
+localdepends: initial-promises initial-ncf rudder-agent-utilities perl-$(PERL_VERSION) fusioninventory-agent cfengine-source openssl-source lmdb-source pcre-source curl-source xml-source yaml-source rudder-agent.cron ./rudder.8.gz
 
 # build binaries
 build: build-cfengine
@@ -237,7 +261,7 @@ endif
 clean: localclean
 localclean:
 	rm -rf $(DESTDIR)
-	rm -rf build-ssl build-lmdb build-cfengine build-perl fusion-modules build-cfengine-stamp
+	rm -rf build-ssl build-lmdb build-cfengine build-perl fusion-modules build-cfengine-stamp build-curl build-yaml and build-xml
 	rm -rf rudder-sources
 	rm -f ./rudder.8.gz
 	[ -d cfengine-source ] && cd cfengine-source && $(MAKE) clean 2>/dev/null || true
@@ -303,6 +327,39 @@ ifeq ($(shell ../../build-caching get ./pcre-source/ --force-config name=pcre-sr
 	gunzip < $(TMP_DIR)/pcre.tgz | $(TAR) xf -
 	mv ./pcre-$(PCRE_RELEASE) ./pcre-source
 	../../build-caching put ./pcre-source/ --force-config name=pcre-src version=$(PCRE_RELEASE)
+	rm -rf $(TMP_DIR)
+endif
+
+curl-source:
+ifeq ($(shell ../../build-caching get ./curl-source/ --force-config name=curl-src version=$(CURL_RELEASE) >/dev/null 2>&1 || echo KO), KO)
+	$(eval TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX))
+	# Original URL: https://curl.haxx.se/download/curl-7.58.0.tar.gz
+	$(GET) $(TMP_DIR)/curl.tgz $(HTTPS)://www.normation.com/tarball/curl/curl-$(CURL_RELEASE).tar.gz $(CURL_SHA1)
+	gunzip < $(TMP_DIR)/curl.tgz | $(TAR) xf -
+	mv ./curl-$(CURL_RELEASE) ./curl-source
+	../../build-caching put ./curl-source/ --force-config name=curl-src version=$(CURL_RELEASE)
+	rm -rf $(TMP_DIR)
+endif
+
+yaml-source:
+ifeq ($(shell ../../build-caching get ./yaml-source/ --force-config name=yaml-src version=$(YAML_RELEASE) >/dev/null 2>&1 || echo KO), KO)
+	$(eval TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX))
+	# Original URL: http://pyyaml.org/download/libyaml/yaml-0.1.7.tar.gz
+	$(GET) $(TMP_DIR)/yaml.tgz $(HTTPS)://www.normation.com/tarball/yaml/yaml-$(YAML_RELEASE).tar.gz $(YAML_SHA1)
+	gunzip < $(TMP_DIR)/yaml.tgz | $(TAR) xf -
+	mv ./yaml-$(YAML_RELEASE) ./yaml-source
+	../../build-caching put ./yaml-source/ --force-config name=yaml-src version=$(YAML_RELEASE)
+	rm -rf $(TMP_DIR)
+endif
+
+xml-source:
+ifeq ($(shell ../../build-caching get ./xml-source/ --force-config name=xml-src version=$(XML_RELEASE) >/dev/null 2>&1 || echo KO), KO)
+	$(eval TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX))
+	# Original URL: ftp://xmlsoft.org/libxml2/libxml2-2.9.7.tar.gz
+	$(GET) $(TMP_DIR)/libxml2.tgz $(HTTPS)://www.normation.com/tarball/xml/libxml2-$(XML_RELEASE).tar.gz $(XML_SHA1)
+	gunzip < $(TMP_DIR)/libxml2.tgz | $(TAR) xf -
+	mv ./libxml2-$(XML_RELEASE) ./xml-source
+	../../build-caching put ./xml-source/ --force-config name=xml-src version=$(XML_RELEASE)
 	rm -rf $(TMP_DIR)
 endif
 
@@ -417,13 +474,31 @@ build-pcre: pcre-source
 	# install to a temporary location is needed to build cfengine
 	cd pcre-source && $(MAKE) install DESTDIR=$(CURDIR)/build-pcre
 
+build-curl: curl-source
+	cd curl-source && ./configure --prefix=$(RUDDER_DIR) $(OPENSSL_ARG)
+	cd curl-source && $(MAKE)
+	# install to a temporary location is needed to build cfengine
+	cd curl-source && $(MAKE) install DESTDIR=$(CURDIR)/build-curl
+
+build-yaml: yaml-source
+	cd yaml-source && ./configure --prefix=$(RUDDER_DIR)
+	cd yaml-source && $(MAKE)
+	# install to a temporary location is needed to build cfengine
+	cd yaml-source && $(MAKE) install DESTDIR=$(CURDIR)/build-yaml
+
+build-xml: xml-source
+	cd xml-source && ./configure --prefix=$(RUDDER_DIR)
+	cd xml-source && $(MAKE)
+	# install to a temporary location is needed to build cfengine
+	cd xml-source && $(MAKE) install DESTDIR=$(CURDIR)/build-xml
+
 build-cfengine: get-flags $(BUILD_DEPS) cfengine-source build-cfengine-stamp
 build-cfengine-stamp:
 	# If there is no configure, bootstrap with autogen.sh first
 	cd cfengine-source && [ -x ./configure ] || NO_CONFIGURE=1 ./autogen.sh
 	# remove temporary rpath added by configure to build options
 	cd cfengine-source && $(SED) 's/[A-Z]*_LDFLAGS="$[A-Z]*_LDFLAGS -R$with_[a-z]*\/lib"/true/' configure > configure.new && mv configure.new configure && chmod +x configure
-	cd cfengine-source && ./configure --prefix=$(RUDDER_DIR) --with-workdir=/var/rudder/cfengine-community --enable-static=yes --enable-shared=no --without-postgresql $(LMDB_ARG) $(OPENSSL_ARG) $(PCRE_ARG) CFLAGS="$(BUILD_CFLAGS) $(SECURE_CFLAGS)" LDFLAGS="-Wl,-R/opt/rudder/lib $(BUILD_LDFLAGS) $(SECURE_LDFLAGS)"
+	cd cfengine-source && ./configure --prefix=$(RUDDER_DIR) --with-workdir=/var/rudder/cfengine-community --enable-static=yes --enable-shared=no --without-postgresql $(LMDB_ARG) $(OPENSSL_ARG) $(PCRE_ARG) $(CURL_ARG) $(YAML_ARG) $(XML_ARG) CFLAGS="$(BUILD_CFLAGS) $(SECURE_CFLAGS)" LDFLAGS="-Wl,-R/opt/rudder/lib $(BUILD_LDFLAGS) $(SECURE_LDFLAGS)"
 	cd cfengine-source && $(MAKE)
 	touch $@
 
@@ -462,6 +537,10 @@ install-lmdb: build-lmdb
 install-pcre: build-pcre
 	mkdir -p $(DESTDIR)
 	$(CP_A) $(CURDIR)/build-pcre/* $(DESTDIR)
+
+install-curl: build-curl
+	mkdir -p $(DESTDIR)
+	$(CP_A) $(CURDIR)/build-curl/* $(DESTDIR)
 
 install-cfengine: build-cfengine $(INSTALL_DEPS)
 	cd cfengine-source && $(MAKE) install DESTDIR=$(DESTDIR) STRIP=""
