@@ -148,7 +148,7 @@ endif
 ifneq (true,$(USE_SYSTEM_XML))
 BUILD_DEPS := $(BUILD_DEPS) build-xml
 INSTALL_DEPS := $(INSTALL_DEPS) install-xml
-XML_ARG := --with-libcurl=$(CURDIR)/build-xml/opt/rudder
+XML_ARG := --with-libxml2=$(CURDIR)/build-xml/opt/rudder
 endif
 
 # Hack needed because openssl is not guessing correctly the architecture on solaris 32bits
