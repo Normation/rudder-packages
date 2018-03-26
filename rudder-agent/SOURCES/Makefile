@@ -30,7 +30,7 @@ LMDB_RELEASE = 0.9.21
 LMDB_SHA1 = 54d10ee9afaba8db75c8c73832da10b0a47e5807
 OPENSSL_RELEASE = 1.0.2n
 OPENSSL_SHA1 = 0ca2957869206de193603eca6d89f532f61680b1
-PERL_VERSION = 5.22.0
+PERL_RELEASE = 5.22.0
 PERL_SHA1 = e4c9e40d18efa7368e77343e0fd3339ca87e34f8
 PCRE_RELEASE = 8.38
 PCRE_SHA1 = 3ab418d0026c2a4e693ec783bd60660debc32b8f
@@ -38,11 +38,11 @@ CPANMINUS_RELEASE = 1.7036
 CPANMINUS_SHA1 = a12043498ab54d9abdc58d1ebb4988da3bd515db
 #CPAN_URL = https://www.cpan.org
 CPAN_URL = $(HTTPS)://www.normation.com/tarball/cpan/$(RUDDER_MAJOR_VERSION)
-CURL_VERSION = 7.58.0
+CURL_RELEASE = 7.58.0
 CURL_SHA1 = 089f17884d672aca7a661a65d847135f2f0ccbbf
-YAML_VERSION = 0.1.7
+YAML_RELEASE = 0.1.7
 YAML_SHA1 = 3590cbf092ef4c71bc0a9b404c00a626b1e04dee 
-XML_VERSION = 2.9.7
+XML_RELEASE = 2.9.7
 XML_SHA1 = ab3325e6cdda50ab2382fdfe0bdb6f7d1b9224a6
 
 # Defauth PATHs
@@ -165,7 +165,7 @@ endif
 
 # download dependencies
 depend: localdepends
-localdepends: initial-promises initial-ncf rudder-agent-utilities perl-$(PERL_VERSION) fusioninventory-agent cfengine-source openssl-source lmdb-source pcre-source curl-source xml-source yaml-source rudder-agent.cron ./rudder.8.gz
+localdepends: initial-promises initial-ncf rudder-agent-utilities perl-$(PERL_RELEASE) fusioninventory-agent cfengine-source openssl-source lmdb-source pcre-source curl-source xml-source yaml-source rudder-agent.cron ./rudder.8.gz
 
 # build binaries
 build: build-cfengine
@@ -267,7 +267,7 @@ localclean:
 	[ -d cfengine-source ] && cd cfengine-source && $(MAKE) clean 2>/dev/null || true
 	[ -d lmdb-source ] && cd lmdb-source && $(MAKE) clean 2>/dev/null || true
 	[ -d openssl-source ] && cd openssl-source && $(MAKE) clean 2>/dev/null || true
-	[ -d perl-$(PERL_VERSION) ] && cd perl-$(PERL_VERSION) && $(MAKE) distclean 2>/dev/null || true
+	[ -d perl-$(PERL_RELEASE) ] && cd perl-$(PERL_RELEASE) && $(MAKE) distclean 2>/dev/null || true
 
 # standard name is mrproper
 mrproper: veryclean
@@ -275,7 +275,7 @@ veryclean:
 	rm -f rudder-agent.cron
 	rm -f ./rudder-sources.tar.bz2
 	rm -rf initial-promises initial-ncf rudder-agent-utilities fusioninventory-agent
-	rm -rf cfengine-source lmdb-source openssl-source perl-$(PERL_VERSION)
+	rm -rf cfengine-source lmdb-source openssl-source perl-$(PERL_RELEASE)
 
 ##########################################
 # Dependencies separated into components #
@@ -415,30 +415,30 @@ endif
 
 # WARNING: Increment perl_source when changing one of the URLs (perl or cpanminus)
 perl_source=002
-perl-source: perl-$(PERL_VERSION)
-perl-$(PERL_VERSION):
-ifeq ($(shell ../../build-caching get ./perl-$(PERL_VERSION)/ --force-config name=perl-source versions=$(perl_source) >/dev/null 2>&1 || echo KO), KO)
+perl-source: perl-$(PERL_RELEASE)
+perl-$(PERL_RELEASE):
+ifeq ($(shell ../../build-caching get ./perl-$(PERL_RELEASE)/ --force-config name=perl-source versions=$(perl_source) >/dev/null 2>&1 || echo KO), KO)
 	$(eval TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX))
 	# Original URL: http://www.cpan.org/src/5.0/perl-5.22.0.tar.gz
-	$(GET) $(TMP_DIR)/perl.tar.gz $(HTTPS)://www.normation.com/tarball/perl/perl-$(PERL_VERSION).tar.gz $(PERL_SHA1)
+	$(GET) $(TMP_DIR)/perl.tar.gz $(HTTPS)://www.normation.com/tarball/perl/perl-$(PERL_RELEASE).tar.gz $(PERL_SHA1)
 	gunzip < $(TMP_DIR)/perl.tar.gz | $(TAR) xf -
 	# Original URL: http://www.cpan.org/modules/by-module/App/App-cpanminus-1.7036.tar.gz
-	$(GET) ./perl-$(PERL_VERSION)/App-cpanminus.tar.gz $(HTTPS)://www.normation.com/tarball/cpan/App-cpanminus-$(CPANMINUS_RELEASE).tar.gz $(CPANMINUS_SHA1)
-	cd perl-$(PERL_VERSION) && gunzip < App-cpanminus.tar.gz | $(TAR) xf -
-	mv ./perl-$(PERL_VERSION)/App-cpanminus-$(CPANMINUS_RELEASE) ./perl-$(PERL_VERSION)/App-cpanminus
+	$(GET) ./perl-$(PERL_RELEASE)/App-cpanminus.tar.gz $(HTTPS)://www.normation.com/tarball/cpan/App-cpanminus-$(CPANMINUS_RELEASE).tar.gz $(CPANMINUS_SHA1)
+	cd perl-$(PERL_RELEASE) && gunzip < App-cpanminus.tar.gz | $(TAR) xf -
+	mv ./perl-$(PERL_RELEASE)/App-cpanminus-$(CPANMINUS_RELEASE) ./perl-$(PERL_RELEASE)/App-cpanminus
 	# cpanminus+curl have a bug on rhel3+64bits, this is the workaround, see http://www.rudder-project.org/redmine/issues/8533
-	sed -i -e "s/'-#',//" ./perl-$(PERL_VERSION)/App-cpanminus/bin/cpanm
-	../../build-caching put ./perl-$(PERL_VERSION)/ --force-config name=perl-source versions=$(perl_source)
+	sed -i -e "s/'-#',//" ./perl-$(PERL_RELEASE)/App-cpanminus/bin/cpanm
+	../../build-caching put ./perl-$(PERL_RELEASE)/ --force-config name=perl-source versions=$(perl_source)
 	rm -rf $(TMP_DIR)
 endif
 
-cpan-source: perl-$(PERL_VERSION)/App-cpanminus
-perl-$(PERL_VERSION)/App-cpanminus:
-	mkdir -p ./perl-$(PERL_VERSION)
+cpan-source: perl-$(PERL_RELEASE)/App-cpanminus
+perl-$(PERL_RELEASE)/App-cpanminus:
+	mkdir -p ./perl-$(PERL_RELEASE)
 	$(eval TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX))
 	$(GET) $(TMP_DIR)/App-cpanminus.tar.gz $(HTTPS)://www.normation.com/tarball/cpan/App-cpanminus-$(CPANMINUS_RELEASE).tar.gz $(CPANMINUS_SHA1)
-	cd perl-$(PERL_VERSION) && gunzip < $(TMP_DIR)/App-cpanminus.tar.gz | $(TAR) xf -
-	mv ./perl-$(PERL_VERSION)/App-cpanminus-$(CPANMINUS_RELEASE) ./perl-$(PERL_VERSION)/App-cpanminus
+	cd perl-$(PERL_RELEASE) && gunzip < $(TMP_DIR)/App-cpanminus.tar.gz | $(TAR) xf -
+	mv ./perl-$(PERL_RELEASE)/App-cpanminus-$(CPANMINUS_RELEASE) ./perl-$(PERL_RELEASE)/App-cpanminus
 	rm -rf $(TMP_DIR)
 
 rudder-agent.cron: rudder-sources
@@ -515,10 +515,10 @@ get-flags:
 	$(eval SECURE_CFLAGS:=$(if $(HAVE_PROTECTION),$(TRY_CFLAGS)))
 	$(eval SECURE_LDFLAGS:=$(if $(HAVE_PROTECTION),$(TRY_LDFLAGS)))
 
-build-perl: perl-$(PERL_VERSION)
-	cd perl-$(PERL_VERSION) && $(MAKE) distclean 2>/dev/null || true # Or this can fail on an already used source
-	cd perl-$(PERL_VERSION) && ./Configure -Dnoextensions=ODBM_File -Duserelocatableinc -Dusethreads -des -Dcc="gcc" -Dinstallprefix=$(RUDDER_DIR) -Dsiteprefix=$(RUDDER_DIR) -Dprefix=$(RUDDER_DIR)
-	cd perl-$(PERL_VERSION) && $(MAKE)
+build-perl: perl-$(PERL_RELEASE)
+	cd perl-$(PERL_RELEASE) && $(MAKE) distclean 2>/dev/null || true # Or this can fail on an already used source
+	cd perl-$(PERL_RELEASE) && ./Configure -Dnoextensions=ODBM_File -Duserelocatableinc -Dusethreads -des -Dcc="gcc" -Dinstallprefix=$(RUDDER_DIR) -Dsiteprefix=$(RUDDER_DIR) -Dprefix=$(RUDDER_DIR)
+	cd perl-$(PERL_RELEASE) && $(MAKE)
 	touch $@
 
 #####################################
@@ -550,10 +550,10 @@ install-cfengine: build-cfengine $(INSTALL_DEPS)
 	done
 
 install-perl: build-perl
-	cd perl-$(PERL_VERSION) && $(MAKE) install DESTDIR=$(DESTDIR)
-	touch build-perl # because perl-$(PERL_VERSION) is touched by make install
+	cd perl-$(PERL_RELEASE) && $(MAKE) install DESTDIR=$(DESTDIR)
+	touch build-perl # because perl-$(PERL_RELEASE) is touched by make install
 
-CPANM:=$(CURDIR)/perl-$(PERL_VERSION)/App-cpanminus/bin/cpanm
+CPANM:=$(CURDIR)/perl-$(PERL_RELEASE)/App-cpanminus/bin/cpanm
 # --notest because tests add new Test:: dependencies that cannot be installed properly
 MODULE_INSTALL:=MAKEFLAGS= $(PERL) $(CPANM) $(CPAN_OPT) -L $(INSTALL_DIR) --from $(CPAN_URL) --notest
 # List from README / Makefile.PL in fusion-inventory-agent
