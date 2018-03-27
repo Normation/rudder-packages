@@ -39,8 +39,8 @@
 
 # use_system_lmdb checks if to build CFEngine we will need to build LMDB or if
 # a package already exists on the system.
-# Default value is true in order to handle cases which are not caught below.
-%define use_system_lmdb true
+# Default value is false sine no rpm based target provides it
+%define use_system_lmdb false
 
 # Same goes for the use of the local OpenSSL install vs. a bundled one
 %define use_system_openssl true
@@ -51,28 +51,53 @@
 # Same goes for the use of the local Curl install vs. a bundled one
 %define use_system_curl true
 
+# Same goes for the use of the local libyaml install vs. a bundled one
+%define use_system_yaml true
+
+# Same goes for the use of the local libxml2 install vs. a bundled one
+%define use_system_xml true
+
+# Same goes for the use of the local perl install vs. a bundled one
+%define use_system_perl true
+
 # Default to using systemd for service management
 %define use_systemd true
 
-# Perl and fusion
 %if "%{real_name}" == "rudder-agent"
+# default different on agent thin and agent
 %define use_system_fusion false
-%define use_system_perl true
-# no system perl on aix
-%if "%{?_os}" == "aix"
-%define use_system_perl false
-%endif
-# system perl too old on rhel3 and rhel5
-%if 0%{?rhel} && 0%{?rhel} <= 5
-%define use_system_perl false
-%endif
-# system perl too old on sles 10 and 11
-%if 0%{?suse_version} && 0%{?suse_version} < 1200
-%define use_system_perl false
-%endif
 %else
 %define use_system_fusion true
-%define use_system_perl true
+%endif
+
+# 1- AIX
+%if "%{?_os}" == "aix"
+# no system anything on aix
+%define use_system_perl false
+%define use_system_openssl false
+%define use_system_pcre false
+%define use_system_curl false
+%define use_system_yaml false
+%define use_system_xml false
+%endif
+
+# 2 - RHEL
+%if 0%{?rhel} && 0%{?rhel} == 3
+# no PCRE on RHEL3
+%define use_system_pcre false
+%endif
+%if 0%{?rhel} && 0%{?rhel} <= 5
+# system perl too old on rhel3 and rhel5
+%define use_system_perl false
+%define use_system_openssl false
+%endif
+
+# 3 - SUSE
+# Reference for suse_version : https://en.opensuse.org/openSUSE:Build_Service_cross_distribution_howto
+%if 0%{?suse_version} && 0%{?suse_version} < 1200
+# system perl and openssl too old on sles 10 and 11
+%define use_system_perl false
+%define use_system_openssl false
 %endif
 
 #=================================================
@@ -96,15 +121,14 @@ Source2: filter-reqs.pl
 # FusionInventory. We handle that with the perl standalone installation already.
 AutoReq: 0
 AutoProv: 0
+%else
+Requires: perl
 %endif
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 # Generic requirements
 BuildRequires: gcc bison flex autoconf automake libtool
-%if "%{?_os}" != "aix"
-Requires: curl
-%endif
 Provides: rudder-agent
 %if "%{real_name}" == "rudder-agent"
 Conflicts: rudder-agent-thin
@@ -116,10 +140,6 @@ Conflicts: rudder-agent
 
 %if "%{use_system_fusion}" == "true"
 Requires: fusioninventory-agent fusioninventory-agent-task-inventory
-%endif
-
-%if "%{use_system_perl}" == "true"
-Requires: perl
 %endif
 
 ## For Linux
@@ -178,93 +198,40 @@ Requires: dmidecode
 %define use_https false
 %endif
 
-# LMDB handling (builtin or OS-provided)
-
-## 1 - RHEL: No LMDB yet
-%if 0%{?rhel}
-%define use_system_lmdb false
-%endif
-
-## 2 - Fedora: No LMDB yet
-%if 0%{?fedora}
-%define use_system_lmdb false
-%endif
-
-## 3 - SLES: No LMDB yet
 # Reference for suse_version : https://en.opensuse.org/openSUSE:Build_Service_cross_distribution_howto
 %if 0%{?suse_version} && 0%{?suse_version} < 1140
 Requires: pmtools
-%define use_system_lmdb false
 %endif
 
 %if 0%{?suse_version} && 0%{?suse_version} >= 1140
 Requires: dmidecode
-%define use_system_lmdb false
 %endif
 
-## 4 - AIX: No LMDB yet
-%if "%{?_os}" == "aix"
-%define use_system_lmdb false
+## YAML dependencies
+%if "%{use_system_yaml}" == "true"
+BuildRequires: libyaml-devel
+Requires: libyaml
 %endif
 
-# OpenSSL handling (builtin or OS-provided)
-#
-# We build and use a bundled version of OpenSSL
-# on OSes which are not maintained anymore as part
-# of their "main" support phase.
-#
-# See. http://www.rudder-project.org/redmine/issues/5147
-
-## 1 - RHEL: Bundled for pre-el5 oses
-##
-### Pre el5 have reached the end of production phase,
-### and are thus in Extended Life phase.
-### See. https://access.redhat.com/support/policy/updates/errata/
-##
-%if 0%{?rhel} && 0%{?rhel} < 5
-%define use_system_openssl false
+## XML dependencies
+%if "%{use_system_xml}" == "true"
+BuildRequires: libxml2-devel
+Requires: libxml2
 %endif
 
-## 2 - Fedora: Use the system one
-##
-### We work with Fedora 18 onwards, it
-### comes with OpenSSL 1.0.1e, which is
-### recent enough.
-##
-
-## 3 - SLES: Bundled for pre-sles11 oses
-##
-### SLES 11 OSes come with OpenSSL 0.9.8h which is recent enough.
-##
-# Reference for suse_version : https://en.opensuse.org/openSUSE:Build_Service_cross_distribution_howto
-%if 0%{?suse_version} && 0%{?suse_version} < 1200
-%define use_system_openssl false
+## CURL dependencies
+%if "%{use_system_curl}" == "true"
+BuildRequires: curl-devel
+Requires: curl
 %endif
 
-## 4 - AIX: Bundled
-##
-### We do not want to rely on external
-### implementations of OpenSSL on AIX to
-### reduce dependencies on the base system.
-##
-%if "%{?_os}" == "aix"
-%define use_system_openssl false
-%endif
-
-## 5 - Resulting dependencies
+## Openssl dependencies
 %if "%{use_system_openssl}" == "true"
 BuildRequires: openssl-devel
 Requires: openssl
 %endif
 
-# PCRE handling (builtin or OS-provided)
-
-# 1 - RHEL3: Only RHEL3 needs a specific pcre
-%if 0%{?rhel} && 0%{?rhel} == 3
-%define use_system_pcre false
-%endif
-
-## 2 - Resulting dependencies
+## PRE dependencies
 %if "%{use_system_pcre}" == "true"
 BuildRequires: pcre-devel
 Requires: pcre

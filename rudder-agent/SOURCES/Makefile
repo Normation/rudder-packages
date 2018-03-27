@@ -132,23 +132,29 @@ endif
 ifneq (true,$(USE_SYSTEM_FUSION))
 INSTALL_DEPS := $(INSTALL_DEPS) install-fusion
 endif
-# default: embed curl
+# default: do not embed curl
 ifneq (true,$(USE_SYSTEM_CURL))
 BUILD_DEPS := $(BUILD_DEPS) build-curl
 INSTALL_DEPS := $(INSTALL_DEPS) install-curl
 CURL_ARG := --with-libcurl=$(CURDIR)/build-curl/opt/rudder
+else
+CURL_ARG := --with-libcurl
 endif
-# default: embed libyaml
+# default: do not embed libyaml
 ifneq (true,$(USE_SYSTEM_YAML))
 BUILD_DEPS := $(BUILD_DEPS) build-yaml
 INSTALL_DEPS := $(INSTALL_DEPS) install-yaml
 YAML_ARG := --with-libyaml=$(CURDIR)/build-yaml/opt/rudder
+else
+YAML_ARG := --with-libyaml
 endif
-# default: embed libxml2
+# default: do not embed libxml2
 ifneq (true,$(USE_SYSTEM_XML))
 BUILD_DEPS := $(BUILD_DEPS) build-xml
 INSTALL_DEPS := $(INSTALL_DEPS) install-xml
 XML_ARG := --with-libxml2=$(CURDIR)/build-xml/opt/rudder
+else
+XML_ARG := --with-libxml2
 endif
 
 # Hack needed because openssl is not guessing correctly the architecture on solaris 32bits
@@ -454,11 +460,12 @@ rudder-agent.cron: rudder-sources
 # TODO generalize install in build-* to allow caching
 build-ssl: openssl-source
 	cd openssl-source && $(SSL_CONFIGURE) -fPIC --prefix=$(RUDDER_DIR) --openssldir=$(RUDDER_DIR)/openssl shared no-idea no-rc5 no-ssl3 no-dtls no-psk no-srp no-engine 
+	cd openssl-source && $(MAKE) depend
 	cd openssl-source && $(MAKE)
 	slibclean >/dev/null 2>&1 || true
 	# install to a temporary location is needed to build cfengine
 	cd openssl-source && $(MAKE) install INSTALL_PREFIX=$(CURDIR)/build-ssl
-	cd $(CURDIR)//build-ssl/$(RUDDER_DIR) && rm -rf bin/c_rehash lib/libssl.a lib/libcrypto.a lib/pkgconfig/openssl.pc ssl/misc/CA.pl ssl/misc/tsget ssl/openssl.cnf.dist
+	cd $(CURDIR)/build-ssl/$(RUDDER_DIR) && rm -rf bin/c_rehash lib/libssl.a lib/libcrypto.a lib/pkgconfig/openssl.pc ssl/misc/CA.pl ssl/misc/tsget ssl/openssl.cnf.dist
 
 build-lmdb: lmdb-source
 	cd lmdb-source/libraries/liblmdb && $(MAKE)
