@@ -492,11 +492,11 @@ build-yaml: yaml-source
 	cd $(CURDIR)/build-yaml/$(RUDDER_DIR) && rm -rf lib/*.a lib/*.la libexec
 
 build-xml: xml-source
-	cd xml-source && ./configure --prefix=$(RUDDER_DIR) --without-xpath --without-c14n --without-catalog --without-debug --without-docbook --without-ftp --without-http --without-html --without-iconv --without-python --enable-shared --disable-static
+	cd xml-source && ./configure --prefix=$(RUDDER_DIR) --with-xpath --with-c14n --without-catalog --without-debug --without-docbook --without-ftp --without-http --without-html --without-iconv --without-python --enable-shared --disable-static
 	cd xml-source && $(MAKE)
 	# install to a temporary location is needed to build cfengine
 	cd xml-source && $(MAKE) install DESTDIR=$(CURDIR)/build-xml
-	cd $(CURDIR)/build-xml/$(RUDDER_DIR) && rm -rf bin/xmlcatalog bin/xmllint lib/libxml2.a lib/libxml2.la lib/xml2Conf.sh lib/cmake share
+	cd $(CURDIR)/build-xml/$(RUDDER_DIR) && rm -rf bin/xmlcatalog bin/xmllint lib/libxml2.a lib/libxml2.la lib/xml2Conf.sh lib/cmake share bin/xml2-config
 
 build-cfengine: get-flags $(BUILD_DEPS) cfengine-source build-cfengine-stamp
 build-cfengine-stamp:
