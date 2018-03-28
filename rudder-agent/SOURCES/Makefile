@@ -475,7 +475,6 @@ build-lmdb: lmdb-source
 	cd build-lmdb/opt/rudder && mkdir -p bin lib include man/man1
 	# install to a temporary location is needed to build cfengine
 	cd lmdb-source/libraries/liblmdb && $(MAKE) install prefix=$(RUDDER_DIR) DESTDIR=$(CURDIR)/build-lmdb
-	cd $(CURDIR)/build-lmdb/$(RUDDER_DIR) && rm -rf lib/liblmdb.la
 
 build-pcre: pcre-source
 	cd pcre-source && ./configure --disable-cpp --enable-utf8 --enable-unicode-properties --disable-cpp --prefix=$(RUDDER_DIR)
@@ -510,7 +509,9 @@ build-cfengine-stamp:
 	# If there is no configure, bootstrap with autogen.sh first
 	cd cfengine-source && [ -x ./configure ] || NO_CONFIGURE=1 ./autogen.sh
 	# remove temporary rpath added by configure to build options
-	cd cfengine-source && $(SED) 's/[A-Z]*_LDFLAGS="$[A-Z]*_LDFLAGS -R$with_[a-z]*\/lib"/true/' configure > configure.new && mv configure.new configure && chmod +x configure
+	cd cfengine-source && $(SED) 's/[A-Z]*_LDFLAGS="$$[A-Z]*_LDFLAGS -R$$with_[a-z]*\/lib"/true/' configure > configure.new && mv configure.new configure && chmod +x configure
+	# build system bug when libxml is enabled
+	cd cfengine-source && $(SED) 's/$$(AM_V_CCLD)$$(xml_c14nize_LINK)/$$(AM_V_CCLD)$$(LINK)/' tests/acceptance/Makefile.in > tests/acceptance/Makefile.in.new && mv tests/acceptance/Makefile.in.new tests/acceptance/Makefile.in
 	cd cfengine-source && ./configure --prefix=$(RUDDER_DIR) --with-workdir=/var/rudder/cfengine-community --enable-static=yes --enable-shared=no --without-postgresql $(LMDB_ARG) $(OPENSSL_ARG) $(PCRE_ARG) $(CURL_ARG) $(YAML_ARG) $(XML_ARG) CFLAGS="$(BUILD_CFLAGS) $(SECURE_CFLAGS)" LDFLAGS="-Wl,-R/opt/rudder/lib $(BUILD_LDFLAGS) $(SECURE_LDFLAGS)"
 	cd cfengine-source && $(MAKE)
 	touch $@
