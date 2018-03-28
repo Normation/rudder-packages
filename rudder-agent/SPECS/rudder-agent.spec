@@ -188,6 +188,7 @@ Requires: dmidecode
 %endif
 
 # https fails on old distro because they don't support modern certificates (namely rhel3, aix5, sles10 and sles11)
+%define use_https true
 %if 0%{?rhel} && 0%{?rhel} < 4
 %define use_https false
 %endif
