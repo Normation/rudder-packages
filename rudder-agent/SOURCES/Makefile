@@ -462,7 +462,8 @@ BUILD_FLAGS=CFLAGS="$(BUILD_CFLAGS) $(SECURE_CFLAGS)" LDFLAGS="-Wl,-R/opt/rudder
 
 # TODO generalize install in build-* to allow caching
 build-ssl: openssl-source
-	cd openssl-source && $(SSL_CONFIGURE) -fPIC --prefix=$(RUDDER_DIR) --openssldir=$(RUDDER_DIR)/openssl shared no-idea no-rc5 no-ssl3 no-dtls no-psk no-srp no-engine 
+	# openssl doesn't support CFLAGS (it overrides its own) so we must pass them in batch to configure
+	cd openssl-source && $(SSL_CONFIGURE) -fPIC $(BUILD_CFLAGS) $(SECURE_CFLAGS) -Wl,-R/opt/rudder/lib $(BUILD_LDFLAGS) $(SECURE_LDFLAGS) --prefix=$(RUDDER_DIR) --openssldir=$(RUDDER_DIR)/openssl shared no-idea no-rc5 no-ssl3 no-dtls no-psk no-srp no-engine 
 	cd openssl-source && $(MAKE) depend $(BUILD_FLAGS)
 	cd openssl-source && $(MAKE) $(BUILD_FLAGS)
 	slibclean >/dev/null 2>&1 || true
