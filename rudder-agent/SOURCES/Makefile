@@ -471,7 +471,8 @@ build-ssl: openssl-source
 	cd $(CURDIR)/build-ssl/$(RUDDER_DIR) && rm -rf bin/c_rehash lib/libssl.a lib/libcrypto.a lib/pkgconfig/openssl.pc ssl/misc/CA.pl ssl/misc/tsget ssl/openssl.cnf.dist
 
 build-lmdb: lmdb-source
-	cd lmdb-source/libraries/liblmdb && $(MAKE) $(BUILD_FLAGS)
+	# lmdb doesn't support CFLAGS (it overrides its own) so we pass XCFLAGS instead, that is appended to the oroginal ones
+	cd lmdb-source/libraries/liblmdb && $(MAKE) XCFLAGS="$(BUILD_CFLAGS) $(SECURE_CFLAGS)" LDFLAGS="-Wl,-R/opt/rudder/lib $(BUILD_LDFLAGS) $(SECURE_LDFLAGS)"
 	# need a temporary install for cfengine
 	mkdir -p build-lmdb/opt/rudder
 	# LMDB's Makefile does not know how to create destination files, do it ourselves
