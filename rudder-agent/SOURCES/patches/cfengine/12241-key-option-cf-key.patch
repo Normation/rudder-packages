@@ -1,0 +1,103 @@
+diff --git a/cf-key/cf-key-functions.c b/cf-key/cf-key-functions.c
+index d1e695c87..84e1fd772 100644
+--- a/cf-key/cf-key-functions.c
++++ b/cf-key/cf-key-functions.c
+@@ -314,7 +314,7 @@ int RemoveKeys(const char *input, bool must_be_coherent)
+     return -1;
+ }
+ 
+-void KeepKeyPromises(const char *public_key_file, const char *private_key_file)
++void KeepKeyPromises(const char *public_key_file, const char *private_key_file, const int key_size)
+ {
+ #ifdef OPENSSL_NO_DEPRECATED
+     RSA *pair = RSA_new();
+@@ -347,9 +347,9 @@ void KeepKeyPromises(const char *public_key_file, const char *private_key_file)
+ #ifdef OPENSSL_NO_DEPRECATED
+     BN_set_word(rsa_bignum, RSA_F4);
+ 
+-    if (!RSA_generate_key_ex(pair, 2048, rsa_bignum, NULL))
++    if (!RSA_generate_key_ex(pair, key_size, rsa_bignum, NULL))
+ #else
+-    pair = RSA_generate_key(2048, 65537, NULL, NULL);
++    pair = RSA_generate_key(key_size, 65537, NULL, NULL);
+ 
+     if (pair == NULL)
+ #endif
+diff --git a/cf-key/cf-key-functions.h b/cf-key/cf-key-functions.h
+index 59b33a56c..1aa23da71 100644
+--- a/cf-key/cf-key-functions.h
++++ b/cf-key/cf-key-functions.h
+@@ -51,7 +51,7 @@ bool ShowHost(const char *hostkey, const char *address,
+               bool incoming, const KeyHostSeen *quality, void *ctx);
+ void ShowLastSeenHosts();
+ int RemoveKeys(const char *input, bool must_be_coherent);
+-void KeepKeyPromises(const char *public_key_file, const char *private_key_file);
++void KeepKeyPromises(const char *public_key_file, const char *private_key_file, const int key_size);
+ int ForceKeyRemoval(const char *key);
+ int ForceIpAddressRemoval(const char *ip);
+ 
+diff --git a/cf-key/cf-key.c b/cf-key/cf-key.c
+index 8e6438377..79654a23e 100644
+--- a/cf-key/cf-key.c
++++ b/cf-key/cf-key.c
+@@ -37,6 +37,7 @@
+ #include <known_dirs.h>
+ #include <man.h>
+ #include <signals.h>
++#include <string_lib.h>
+ 
+ #include <cf-key-functions.h>
+ 
+@@ -49,6 +50,7 @@ const char *remove_keys_host = NULL;                            /* GLOBAL_A */
+ static char *print_digest_arg = NULL;                           /* GLOBAL_A */
+ static char *trust_key_arg = NULL;                              /* GLOBAL_A */
+ static char *KEY_PATH = NULL;                                   /* GLOBAL_A */
++static int KEY_SIZE = 2048;                                     /* GLOBAL_A */
+ bool LOOKUP_HOSTS = true;                                       /* GLOBAL_A */
+ 
+ static GenericAgentConfig *CheckOpts(int argc, char **argv);
+@@ -71,6 +73,7 @@ static const struct option OPTIONS[] =
+     {"verbose", no_argument, 0, 'v'},
+     {"version", no_argument, 0, 'V'},
+     {"output-file", required_argument, 0, 'f'},
++    {"key-type", required_argument, 0, 'T'},
+     {"show-hosts", no_argument, 0, 's'},
+     {"remove-keys", required_argument, 0, 'r'},
+     {"force-removal", no_argument, 0, 'x'},
+@@ -90,6 +93,7 @@ static const char *const HINTS[] =
+     "Output verbose information about the behaviour of the agent",
+     "Output the version of the software",
+     "Specify an alternative input file than the default. This option is overridden by FILE if supplied as argument.",
++    "Specify a RSA key size in bits, the default value is 2048.",
+     "Show lastseen hostnames and IP addresses",
+     "Remove keys for specified hostname/IP",
+     "Force removal of keys (USE AT YOUR OWN RISK)",
+@@ -217,7 +221,7 @@ int main(int argc, char *argv[])
+         private_key_file = PrivateKeyFile(GetWorkDir());
+     }
+ 
+-    KeepKeyPromises(public_key_file, private_key_file);
++    KeepKeyPromises(public_key_file, private_key_file, KEY_SIZE);
+ 
+     free(public_key_file);
+     free(private_key_file);
+@@ -236,7 +240,7 @@ static GenericAgentConfig *CheckOpts(int argc, char **argv)
+     int c;
+     GenericAgentConfig *config = GenericAgentConfigNewDefault(AGENT_TYPE_KEYGEN, GetTTYInteractive());
+ 
+-    while ((c = getopt_long(argc, argv, "dvf:VMp:sr:xt:hl:C::n",
++    while ((c = getopt_long(argc, argv, "dvf:T:VMp:sr:xt:hl:C::n",
+                             OPTIONS, NULL))
+            != -1)
+     {
+@@ -245,7 +249,9 @@ static GenericAgentConfig *CheckOpts(int argc, char **argv)
+         case 'f':
+             KEY_PATH = optarg;
+             break;
+-
++        case 'T':
++            KEY_SIZE = StringToLongExitOnError(optarg);
++            break;
+         case 'd':
+             LogSetGlobalLevel(LOG_LEVEL_DEBUG);
+             break;
