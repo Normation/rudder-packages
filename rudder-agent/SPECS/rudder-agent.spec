@@ -98,6 +98,8 @@
 # system perl and openssl too old on sles 10 and 11
 %define use_system_perl false
 %define use_system_openssl false
+# no yaml on sles 10 and 11
+%define use_system_yaml false
 %endif
 
 #=================================================

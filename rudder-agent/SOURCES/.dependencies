@@ -1,5 +1,5 @@
 SLES10:gcc bison flex autoconf automake libtool pcre-devel zlib-devel pam-devel libyaml-devel libxml2-devel curl-devel
-SLES11:gcc openssl-devel bison flex autoconf automake libtool pcre-devel zlib-devel libbz2-devel pam-devel libyaml-devel libxml2-devel curl-devel
+SLES11:gcc openssl-devel bison flex autoconf automake libtool pcre-devel zlib-devel libbz2-devel pam-devel libxml2-devel libcurl-devel
 SLES12:gcc openssl-devel bison flex autoconf automake libtool pcre-devel zlib-devel libbz2-devel pam-devel libyaml-devel libxml2-devel curl-devel
 RHEL3:gcc bison flex autoconf automake libtool pcre-devel make byacc zlib-devel bzip2-devel kernel-utils pam-devel libyaml-devel libxml2-devel curl-devel
 RHEL4:gcc bison flex autoconf automake libtool pcre-devel make byacc zlib-devel bzip2-devel kernel-utils pam-devel libyaml-devel libxml2-devel curl-devel
