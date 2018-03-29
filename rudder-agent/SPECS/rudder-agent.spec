@@ -367,7 +367,7 @@ then
   # of upgrade from a very old version
   mkdir -p /var/rudder/tmp
 
-%if "${use_systemd}" == "true"
+%if "%{use_systemd}" == "true"
     if [ -f /etc/init.d/rudder-agent ]
     then
       # we are migrating from sysv to systemd
@@ -376,14 +376,14 @@ then
       if type chkconfig > /dev/null
       then
         # If old rudder-agent service is here and enabled
-        if chkconfig --list rudder-agent 2>&1 | grep -q -e 3:on -e B:on
+        if LANG=C chkconfig --list rudder-agent 2>&1 | grep -q -e 3:on -e B:on
         then
           touch /var/rudder/tmp/migration-rudder-service-enabled
           touch /var/rudder/tmp/migration-rudder-service-enabled-server
         fi
 
         # If old rudder service is here and enabled
-        if chkconfig --list rudder 2>&1 | grep -q -e 3:on -e B:on
+        if LANG=C chkconfig --list rudder 2>&1 | grep -q -e 3:on -e B:on
         then
           touch /var/rudder/tmp/migration-rudder-service-enabled
           touch /var/rudder/tmp/migration-rudder-service-enabled-server
@@ -408,7 +408,7 @@ then
       # If old rudder service is here and enabled
       if type chkconfig > /dev/null
       then 
-        if chkconfig --list rudder 2>&1 | grep -q -e 3:on -e B:on
+        if LANG=C chkconfig --list rudder 2>&1 | grep -q -e 3:on -e B:on
         then
           touch /var/rudder/tmp/migration-rudder-service-enabled
           touch /var/rudder/tmp/migration-rudder-service-enabled-server
