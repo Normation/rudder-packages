@@ -32,17 +32,20 @@ endif
 OS_CODENAME := $(shell lsb_release -s -c)
 ifeq (lucid,$(OS_CODENAME))
 USE_SYSTEM_OPENSSL=false
+USE_SYSTEM_CURL=false
 USE_SYSTEMD=false
 USE_SYSTEM_PERL=false
 USE_PIE=false
 endif
 ifeq (precise,$(OS_CODENAME))
 USE_SYSTEM_OPENSSL=false
+USE_SYSTEM_CURL=false
 USE_SYSTEMD=false
 USE_PIE=false
 endif
 ifeq (quantal,$(OS_CODENAME))
 USE_SYSTEM_OPENSSL=false
+USE_SYSTEM_CURL=false
 USE_SYSTEMD=false
 USE_PIE=false
 endif
@@ -51,17 +54,22 @@ USE_SYSTEMD=false
 endif
 ifeq (lenny,$(OS_CODENAME))
 USE_SYSTEM_OPENSSL=false
+USE_SYSTEM_CURL=false
 USE_SYSTEMD=false
 USE_SYSTEM_PERL=false
+USE_SYSTEM_YAML=false
+USE_SYSTEM_XML=false
 USE_PIE=false
 endif
 ifeq (squeeze,$(OS_CODENAME))
 USE_SYSTEM_OPENSSL=false
+USE_SYSTEM_CURL=false
 USE_SYSTEMD=false
 USE_PIE=false
 endif
 ifeq (wheezy,$(OS_CODENAME))
 USE_SYSTEM_OPENSSL=false
+USE_SYSTEM_CURL=false
 USE_SYSTEMD=false
 USE_PIE=false
 endif

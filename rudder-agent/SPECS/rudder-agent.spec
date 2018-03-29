@@ -94,7 +94,10 @@
 # system perl too old on rhel3 and rhel5
 %define use_system_perl false
 %define use_system_openssl false
+%define use_system_curl false
 %define use_system_yaml false
+#libxml too old
+%define use_system_xml false
 %endif
 %if 0%{?rhel} && 0%{?rhel} <= 6
 # PIE and PIC incompatible on old gcc
@@ -107,8 +110,11 @@
 # system perl and openssl too old on sles 10 and 11
 %define use_system_perl false
 %define use_system_openssl false
+%define use_system_curl false
 # no yaml on sles 10 and 11
 %define use_system_yaml false
+#libxml too old
+%define use_system_xml false
 # PIE and PIC incompatible on old gcc
 %define use_pie false
 %endif

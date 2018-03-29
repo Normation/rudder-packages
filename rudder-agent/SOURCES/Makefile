@@ -180,7 +180,7 @@ depend: localdepends
 localdepends: initial-promises initial-ncf rudder-agent-utilities perl-$(PERL_RELEASE) fusioninventory-agent cfengine-source openssl-source lmdb-source pcre-source curl-source xml-source yaml-source rudder-agent.cron ./rudder.8.gz
 
 # build binaries
-build: build-cfengine
+build: get-flags build-cfengine
 
 # install to DESTDIR
 install: build $(INSTALL_DEPS) install-cfengine initial-promises initial-ncf rudder-agent-utilities rudder-agent.cron
@@ -515,7 +515,7 @@ build-xml: xml-source
 	cd xml-source && $(MAKE) install DESTDIR=$(CURDIR)/build-xml
 	cd $(CURDIR)/build-xml/$(RUDDER_DIR) && rm -rf bin/xmlcatalog bin/xmllint lib/libxml2.a lib/libxml2.la lib/xml2Conf.sh lib/cmake share bin/xml2-config
 
-build-cfengine: get-flags $(BUILD_DEPS) cfengine-source build-cfengine-stamp
+build-cfengine: $(BUILD_DEPS) cfengine-source build-cfengine-stamp
 build-cfengine-stamp:
 	# If there is no configure, bootstrap with autogen.sh first
 	cd cfengine-source && [ -x ./configure ] || NO_CONFIGURE=1 ./autogen.sh
