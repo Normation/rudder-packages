@@ -47,6 +47,9 @@
 # Same goes for the use of the local libxml2 install vs. a bundled one
 %define use_system_xml true
 
+# Same goes for the use of the local zlib install vs. a bundled one
+%define use_system_zlib true
+
 # Same goes for the use of the local perl install vs. a bundled one
 %define use_system_perl true
 
@@ -70,6 +73,7 @@
 %define use_system_openssl false
 %define use_system_pcre false
 %define use_system_curl false
+%define use_system_zlib false
 %define use_system_yaml false
 %define use_system_xml false
 %define use_pie false
@@ -79,6 +83,7 @@
 %if 0%{?rhel} && 0%{?rhel} == 3
 # no PCRE on RHEL3
 %define use_system_pcre false
+%define use_system_zlib false
 %endif
 %if 0%{?rhel} && 0%{?rhel} <= 5
 # system perl too old on rhel3 and rhel5
