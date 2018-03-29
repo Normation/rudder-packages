@@ -110,7 +110,7 @@ else
 HTTPS:=https
 endif
 # default: do not embed zlib
-ifneq (true,$(USE_SYSTEM_ZLIB))
+ifeq (false,$(USE_SYSTEM_ZLIB))
 BUILD_DEPS := $(BUILD_DEPS) build-zlib
 INSTALL_DEPS := $(INSTALL_DEPS) install-zlib
 ZLIB_ARG := --with-zlib=$(CURDIR)/build-zlib/opt/rudder
@@ -149,7 +149,7 @@ ifneq (true,$(USE_SYSTEM_FUSION))
 INSTALL_DEPS := $(INSTALL_DEPS) install-fusion
 endif
 # default: do not embed curl
-ifneq (true,$(USE_SYSTEM_CURL))
+ifeq (false,$(USE_SYSTEM_CURL))
 BUILD_DEPS := $(BUILD_DEPS) build-curl
 INSTALL_DEPS := $(INSTALL_DEPS) install-curl
 CURL_ARG := --with-libcurl=$(CURDIR)/build-curl/opt/rudder
@@ -157,7 +157,7 @@ else
 CURL_ARG := --with-libcurl
 endif
 # default: do not embed libyaml
-ifneq (true,$(USE_SYSTEM_YAML))
+ifeq (false,$(USE_SYSTEM_YAML))
 BUILD_DEPS := $(BUILD_DEPS) build-yaml
 INSTALL_DEPS := $(INSTALL_DEPS) install-yaml
 YAML_ARG := --with-libyaml=$(CURDIR)/build-yaml/opt/rudder
@@ -165,7 +165,7 @@ else
 YAML_ARG := --with-libyaml
 endif
 # default: do not embed libxml2
-ifneq (true,$(USE_SYSTEM_XML))
+ifeq (false,$(USE_SYSTEM_XML))
 BUILD_DEPS := $(BUILD_DEPS) build-xml
 INSTALL_DEPS := $(INSTALL_DEPS) install-xml
 XML_ARG := --with-libxml2=$(CURDIR)/build-xml/opt/rudder
