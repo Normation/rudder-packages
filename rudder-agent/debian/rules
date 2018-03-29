@@ -148,7 +148,7 @@ endif
 	# LD_LIBRARY_PATH necessary to avoid libcrypto detection problems on old OSes like Ubuntu 10.04
 	# Please see http://www.rudder-project.org/redmine/issues/6337 for details
 	LD_LIBRARY_PATH="$(CURDIR)/debian/tmp/opt/rudder/lib:$${LD_LIBRARY_PATH}" dh_shlibdeps -- --ignore-missing-info
-	dh_gencontrol -- -Vrudder:deps=$(DEPS)
+	dh_gencontrol -- "-Vrudder:deps=$(DEPS)"
 	dh_md5sums
 	dh_builddeb
 
