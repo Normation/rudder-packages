@@ -211,7 +211,7 @@ install: build $(INSTALL_DEPS) install-cfengine initial-promises initial-ncf rud
 	mkdir -p $(DESTDIR)/var/log/rudder/agent-check
 	mkdir -p $(DESTDIR)/usr/bin
 	mkdir -p $(DESTDIR)/etc/cron.d
-	cd $(DESTDIR) && rm -rf lib/*.a lib/*.la 
+	cd $(INSTALL_DIR) && rm -rf include lib/*.a lib/*.la 
 
 	# Systemd files
 ifeq (true,$(USE_SYSTEMD))
@@ -578,7 +578,7 @@ build-perl: perl-$(PERL_RELEASE)
 install-ssl: build-ssl
 	mkdir -p $(DESTDIR)
 	$(CP_A) $(CURDIR)/build-ssl/* $(DESTDIR)
-	cd $(DESTDIR) && rm -rf bin/c_rehash lib/pkgconfig/openssl.pc ssl/misc/CA.pl ssl/misc/tsget ssl/openssl.cnf.dist
+	cd $(INSTALL_DIR) && rm -rf bin/c_rehash lib/pkgconfig/openssl.pc ssl/misc/CA.pl ssl/misc/tsget ssl/openssl.cnf.dist
 
 install-lmdb: build-lmdb
 	mkdir -p $(DESTDIR)
@@ -587,7 +587,7 @@ install-lmdb: build-lmdb
 install-pcre: build-pcre
 	mkdir -p $(DESTDIR)
 	$(CP_A) $(CURDIR)/build-pcre/* $(DESTDIR)
-	cd $(DESTDIR) && rm -rf bin/pcregrep bin/pcretest
+	cd $(INSTALL_DIR) && rm -rf bin/pcregrep bin/pcretest
 
 install-zlib: build-zlib
 	mkdir -p $(DESTDIR)
@@ -604,7 +604,7 @@ install-yaml: build-yaml
 install-xml: build-xml
 	mkdir -p $(DESTDIR)
 	$(CP_A) $(CURDIR)/build-xml/* $(DESTDIR)
-	cd $(DESTDIR) && rm -rf bin/xmlcatalog bin/xmllint lib/xml2Conf.sh lib/cmake 
+	cd $(INSTALL_DIR) && rm -rf bin/xmlcatalog bin/xmllint lib/xml2Conf.sh lib/cmake 
 
 install-cfengine: build-cfengine $(INSTALL_DEPS)
 	cd cfengine-source && $(MAKE) install DESTDIR=$(DESTDIR) STRIP=""
@@ -612,7 +612,7 @@ install-cfengine: build-cfengine $(INSTALL_DEPS)
 	cd cfengine-source && for binary in cf-agent cf-promises cf-key cf-execd cf-serverd cf-monitord cf-runagent; do \
 		LD_LIBRARY_PATH="$(INSTALL_DIR)/lib" $${binary}/$${binary} -M | gzip > $(INSTALL_DIR)/share/man/man8/$${binary}.8.gz; \
 	done
-	cd $(DESTDIR) && rm -rf share/doc/cfengine
+	cd $(INSTALL_DIR) && rm -rf share/doc/cfengine
 
 install-perl: build-perl
 	cd perl-$(PERL_RELEASE) && $(MAKE) install DESTDIR=$(DESTDIR)
