@@ -94,6 +94,7 @@
 # system perl too old on rhel3 and rhel5
 %define use_system_perl false
 %define use_system_openssl false
+%define use_system_yaml false
 %endif
 %if 0%{?rhel} && 0%{?rhel} <= 6
 # PIE and PIC incompatible on old gcc
