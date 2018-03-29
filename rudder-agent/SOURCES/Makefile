@@ -50,8 +50,14 @@ RUDDER_DIR = /opt/rudder
 DESTDIR = $(CURDIR)/target
 INSTALL_DIR = $(DESTDIR)$(RUDDER_DIR)
 
+# default build with pie if possible
+ifeq (false,$(USE_PIE))
+TRY_LDFLAGS=-Wl,-z,relro -Wl,-z,now
+TRY_CFLAGS=-fstack-protector
+else
 TRY_LDFLAGS=-pie -Wl,-z,relro -Wl,-z,now
 TRY_CFLAGS=-fPIE -fstack-protector
+endif
 
 # GENERIC_GET: do not remove this line
 # This is a generic get code that is common to many of our Makefiles.

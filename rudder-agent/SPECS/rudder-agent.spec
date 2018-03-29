@@ -63,6 +63,9 @@
 # Default to using systemd for service management
 %define use_systemd true
 
+# Default to use PIE code if possible
+%define use_pie true
+
 %if "%{real_name}" == "rudder-agent"
 # default different on agent thin and agent
 %define use_system_fusion false
@@ -79,6 +82,7 @@
 %define use_system_curl false
 %define use_system_yaml false
 %define use_system_xml false
+%define use_pie false
 %endif
 
 # 2 - RHEL
@@ -91,6 +95,10 @@
 %define use_system_perl false
 %define use_system_openssl false
 %endif
+%if 0%{?rhel} && 0%{?rhel} <= 6
+# PIE and PIC incompatible on old gcc
+%define use_pie false
+%endif
 
 # 3 - SUSE
 # Reference for suse_version : https://en.opensuse.org/openSUSE:Build_Service_cross_distribution_howto
@@ -100,6 +108,8 @@
 %define use_system_openssl false
 # no yaml on sles 10 and 11
 %define use_system_yaml false
+# PIE and PIC incompatible on old gcc
+%define use_pie false
 %endif
 
 #=================================================
@@ -283,7 +293,7 @@ cd %{_sourcedir}
 export CFLAGS="${RPM_OPT_FLAGS}"
 export CXXFLAGS="${RPM_OPT_FLAGS}"
 
-make %{?_smp_mflags} USE_SYSTEM_OPENSSL=%{use_system_openssl} USE_SYSTEM_LMDB=%{use_system_lmdb} USE_SYSTEM_PCRE=%{use_system_pcre} USE_SYSTEM_FUSION=%{use_system_fusion} USE_SYSTEM_PERL=%{use_system_perl} USE_HTTPS=%{use_https} USE_SYSTEM_CURL=%{use_system_curl}
+make %{?_smp_mflags} USE_SYSTEM_OPENSSL=%{use_system_openssl} USE_SYSTEM_LMDB=%{use_system_lmdb} USE_SYSTEM_PCRE=%{use_system_pcre} USE_SYSTEM_FUSION=%{use_system_fusion} USE_SYSTEM_PERL=%{use_system_perl} USE_HTTPS=%{use_https} USE_SYSTEM_CURL=%{use_system_curl} USE_SYSTEM_YAML=%{use_system_yaml} USE_SYSTEM_XML=%{use_system_xml} USE_PIE=%{use_pie}
 
 # there was a slibclean here on aix
 # TODO, check that it is not necessary anymore since we no more do a make install
@@ -325,7 +335,7 @@ cd %{_sourcedir}
 %define no_ldso true
 %endif
 
-make install DESTDIR=%{buildroot} USE_SYSTEM_OPENSSL=%{use_system_openssl} USE_SYSTEM_LMDB=%{use_system_lmdb} USE_SYSTEM_PCRE=%{use_system_pcre} USE_SYSTEM_CURL=%{use_system_curl} USE_SYSTEMD=%{use_systemd} NO_INIT=%{no_init} NO_CRON=%{no_cron} NO_LD=%{no_ld} NO_PROFILE=%{no_profile} USE_SYSTEM_FUSION=%{use_system_fusion} USE_SYSTEM_PERL=%{use_system_perl} NO_LDSO=%{no_ldso} USE_HTTPS=%{use_https}
+make install DESTDIR=%{buildroot} USE_SYSTEM_OPENSSL=%{use_system_openssl} USE_SYSTEM_LMDB=%{use_system_lmdb} USE_SYSTEM_PCRE=%{use_system_pcre} USE_SYSTEM_CURL=%{use_system_curl} USE_SYSTEMD=%{use_systemd} NO_INIT=%{no_init} NO_CRON=%{no_cron} NO_LD=%{no_ld} NO_PROFILE=%{no_profile} USE_SYSTEM_FUSION=%{use_system_fusion} USE_SYSTEM_PERL=%{use_system_perl} NO_LDSO=%{no_ldso} USE_HTTPS=%{use_https}  USE_SYSTEM_YAML=%{use_system_yaml} USE_SYSTEM_XML=%{use_system_xml} USE_PIE=%{use_pie}
 
 # Build a list of files to include in this package for use in the %files section below
 find %{buildroot} -type f -o -type l | sed "s,%{buildroot},," | sed "s,\.py$,\.py*," | grep -v "%{rudderdir}/etc/uuid.hive" | grep -v "/etc/bash_completion.d" | grep -v "%{ruddervardir}/cfengine-community/ppkeys" > %{_builddir}/file.list.%{name}
