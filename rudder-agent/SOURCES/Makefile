@@ -258,7 +258,7 @@ endif
 	$(INSTALL) -m 755 rudder-agent-utilities/bin/rudder $(INSTALL_DIR)/bin/
 	$(INSTALL) -m 755 rudder-agent-utilities/share/commands/* $(INSTALL_DIR)/share/commands/
 	$(INSTALL) -m 755 rudder-agent-utilities/share/lib/* $(INSTALL_DIR)/share/lib/
-	$(INSTALL) -m 755 rudder-agent-utilities/agent-capabilities $(INSTALL_DIR)/etc/
+	$(INSTALL) -m 644 rudder-agent-utilities/agent-capabilities $(INSTALL_DIR)/etc/
 
 	# Install /etc/bash_completion.d/rudder.sh in order to autocomplete rudder commands
 	mkdir -p $(DESTDIR)/etc/bash_completion.d
