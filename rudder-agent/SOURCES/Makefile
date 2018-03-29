@@ -122,6 +122,7 @@ ifeq (false,$(USE_SYSTEM_OPENSSL))
 BUILD_DEPS := $(BUILD_DEPS) build-ssl
 INSTALL_DEPS := $(INSTALL_DEPS) install-ssl
 OPENSSL_ARG := --with-openssl=$(CURDIR)/build-ssl/opt/rudder
+ALT_OPENSSL_ARG := --with-ssl=$(CURDIR)/build-ssl/opt/rudder
 endif
 # default: build lmdb
 ifneq (true,$(USE_SYSTEM_LMDB))
@@ -520,7 +521,8 @@ build-zlib: zlib-source
 	cd zlib-source && $(MAKE) install DESTDIR=$(CURDIR)/build-zlib
 
 build-curl: curl-source
-	cd curl-source && $(BUILD_FLAGS) ./configure --prefix=$(RUDDER_DIR) $(OPENSSL_ARG) $(ZLIB_ARG) --disable-ldap --disable-ldaps --without-axtls --without-cyassl --without-darwinssl --without-egd-socket --without-gnutls --without-gssapi --without-libmetalink --without-librtmp --without-nss --without-polarssl --without-winidn --without-winssl --disable-are
+	# idk why, curl doesn't provides -lssl to the binary
+	cd curl-source && $(BUILD_FLAGS) LDFLAGS="$$LDFLAGS -lssl -lcrypto" ./configure --prefix=$(RUDDER_DIR) $(ALT_OPENSSL_ARG) $(ZLIB_ARG) --disable-rtsp --enable-ipv6
 	cd curl-source && $(MAKE)
 	# install to a temporary location is needed to build cfengine
 	cd curl-source && $(MAKE) install DESTDIR=$(CURDIR)/build-curl
@@ -578,7 +580,7 @@ build-perl: perl-$(PERL_RELEASE)
 install-ssl: build-ssl
 	mkdir -p $(DESTDIR)
 	$(CP_A) $(CURDIR)/build-ssl/* $(DESTDIR)
-	cd $(INSTALL_DIR) && rm -rf bin/c_rehash lib/pkgconfig/openssl.pc ssl/misc/CA.pl ssl/misc/tsget ssl/openssl.cnf.dist
+	cd $(INSTALL_DIR) && rm -rf bin/c_rehash lib/pkgconfig/openssl.pc ssl/misc/CA.pl ssl/misc/tsget ssl/openssl.cnf.dist openssl/man
 
 install-lmdb: build-lmdb
 	mkdir -p $(DESTDIR)
