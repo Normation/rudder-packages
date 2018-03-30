@@ -47,6 +47,7 @@ trap anomaly_handler ERR INT TERM
 # - All versions : Create ncf technique update flag and restart at the end of the script
 # - 4.2.0        : Rename hooks to have a better ordering of hooks
 # - 4.2.4, 4.3.0 : Remove 90-reload hook since logic was integrated to Rudder in #11749
+# - 4.3          : Update ncf Techniques to the new format
 ####################################################################################
 
 # Some paths
@@ -379,6 +380,8 @@ upgrade_ncf() {
     fi
   done
   cd ${CURRENT}
+  # 4.3: Force rewrite of ncf techniques
+  /usr/share/ncf/ncf write_all_techniques /var/rudder/configuration-repository/ncf
 
   # All Versions: Touch ncf_update_flag_file jetty will be restarted at the end of the script 
   touch /opt/rudder/etc/force_ncf_technique_update
