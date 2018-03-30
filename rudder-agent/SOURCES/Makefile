@@ -394,6 +394,8 @@ ifeq ($(shell ../../build-caching get ./xml-source/ --force-config name=xml-src 
 	$(GET) $(TMP_DIR)/libxml2.tgz $(HTTPS)://www.normation.com/tarball/xml/libxml2-$(XML_RELEASE).tar.gz $(XML_SHA1)
 	gunzip < $(TMP_DIR)/libxml2.tgz | $(TAR) xf -
 	mv ./libxml2-$(XML_RELEASE) ./xml-source
+	# patch libxml source to work with very old gcc 
+	cd ./xml-source && $(SED) 's/#ifdef __GNUC__/#if __GNUC__ > 3/' ./timsort.h > ./timsort.h.new && mv ./timsort.h.new ./timsort.h
 	../../build-caching put ./xml-source/ --force-config name=xml-src version=$(XML_RELEASE)
 	rm -rf $(TMP_DIR)
 endif
@@ -491,6 +493,8 @@ rudder-agent.cron: rudder-sources
 
 # build flags should be used everywhere
 BUILD_FLAGS=CFLAGS="$(BUILD_CFLAGS) $(SECURE_CFLAGS)" LDFLAGS="-Wl,-R/opt/rudder/lib $(BUILD_LDFLAGS) $(SECURE_LDFLAGS)"
+# mandatory for libs (A) that are included by other libs (B) called by other code (C). Define the var for A libs and use it in C builds.
+LDLIB=LD_LIBRARY_PATH="$(CURDIR)/build-ssl/opt/rudder/lib:$(CURDIR)/build-zlib/opt/rudder/lib:$(CURDIR)/build-curl/opt/rudder/lib"
 
 build-ssl: openssl-source
 	# openssl doesn't support CFLAGS (it overrides its own) so we must pass them in batch to configure
@@ -524,8 +528,8 @@ build-zlib: zlib-source
 	cd zlib-source && $(MAKE) install DESTDIR=$(CURDIR)/build-zlib
 
 build-curl: curl-source
-	# idk why, curl doesn't provides -lssl to the binary
-	cd curl-source && $(BUILD_FLAGS) LDFLAGS="$$LDFLAGS -lssl -lcrypto" ./configure --prefix=$(RUDDER_DIR) $(ALT_OPENSSL_ARG) $(ZLIB_ARG) --disable-rtsp --enable-ipv6
+	# idk why, curl doesn't provides -lssl to the binary on rhel3
+	cd curl-source && $(BUILD_FLAGS) LIBS="-lssl -lcrypto" ./configure --prefix=$(RUDDER_DIR) $(ALT_OPENSSL_ARG) $(ZLIB_ARG) --disable-rtsp --enable-ipv6 --without-librtmp --without-ldap-lib
 	cd curl-source && $(MAKE)
 	# install to a temporary location is needed to build cfengine
 	cd curl-source && $(MAKE) install DESTDIR=$(CURDIR)/build-curl
@@ -553,7 +557,7 @@ build-cfengine-stamp:
 	cd cfengine-source && $(SED) 's/$$(AM_V_CCLD)$$(xml_c14nize_LINK)/$$(AM_V_CCLD)$$(LINK)/' tests/acceptance/Makefile.in > tests/acceptance/Makefile.in.new && mv tests/acceptance/Makefile.in.new tests/acceptance/Makefile.in
 	# build system bug when libyaml is enabled
 	cd cfengine-source && $(SED) 's/AM_CPPFLAGS = .*/AM_CPPFLAGS = $$(PCRE_CPPFLAGS) $$(OPENSSL_CPPFLAGS) $$(LIBYAML_CPPFLAGS)/' libutils/Makefile.in > libutils/Makefile.in.new && mv libutils/Makefile.in.new libutils/Makefile.in
-	cd cfengine-source && ./configure --prefix=$(RUDDER_DIR) --with-workdir=/var/rudder/cfengine-community --enable-static=yes --enable-shared=no --without-postgresql $(LMDB_ARG) $(OPENSSL_ARG) $(PCRE_ARG) $(CURL_ARG) $(YAML_ARG) $(XML_ARG) $(BUILD_FLAGS)
+	cd cfengine-source && $(LDLIB) $(BUILD_FLAGS) ./configure --prefix=$(RUDDER_DIR) --with-workdir=/var/rudder/cfengine-community --enable-static=yes --enable-shared=no --without-postgresql $(LMDB_ARG) $(OPENSSL_ARG) $(PCRE_ARG) $(CURL_ARG) $(YAML_ARG) $(XML_ARG)
 	cd cfengine-source && $(MAKE)
 	touch $@
 
