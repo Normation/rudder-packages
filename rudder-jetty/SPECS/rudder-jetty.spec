@@ -81,7 +81,7 @@ BuildArch: noarch
 # in RPM yet...
 
 %if 0%{?rhel} && 0%{?rhel} > 6
-Requires: jre >= 1.8
+Requires: jre-headless >= 1.8
 %endif
 
 %if 0%{?rhel} && 0%{?rhel} == 6
