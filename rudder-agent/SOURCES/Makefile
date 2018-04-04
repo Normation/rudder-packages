@@ -494,7 +494,7 @@ rudder-agent.cron: rudder-sources
 # build flags should be used everywhere
 BUILD_FLAGS=CFLAGS="$(BUILD_CFLAGS) $(SECURE_CFLAGS)" LDFLAGS="-Wl,-R/opt/rudder/lib $(BUILD_LDFLAGS) $(SECURE_LDFLAGS)"
 # mandatory for libs (A) that are included by other libs (B) called by other code (C). Define the var for A libs and use it in C builds.
-LDLIB=LD_LIBRARY_PATH="$(CURDIR)/build-ssl/opt/rudder/lib:$(CURDIR)/build-zlib/opt/rudder/lib:$(CURDIR)/build-curl/opt/rudder/lib"
+LDLIB=LD_LIBRARY_PATH="/opt/freeware/lib:/usr/lib:/lib:$(CURDIR)/build-ssl/opt/rudder/lib:$(CURDIR)/build-zlib/opt/rudder/lib:$(CURDIR)/build-curl/opt/rudder/lib"
 
 build-ssl: openssl-source
 	# openssl doesn't support CFLAGS (it overrides its own) so we must pass them in batch to configure
