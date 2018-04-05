@@ -345,9 +345,16 @@ fi
 
 %if 0%{?suse_version}
 # Add required includes in the apache2 configuration
-if ! grep -qE "^. /etc/sysconfig/rudder-relay-apache$" /etc/sysconfig/apache2; then
+nextline=$(grep -A1 -E "^. /etc/sysconfig/rudder-relay-apache$" /etc/sysconfig/apache2 | tail -n1)
+if [ "${nextline}" = "" ]; then
+  # No include currently
   echo -e '# This sources the modules/defines needed by Rudder\n. /etc/sysconfig/rudder-relay-apache' >> /etc/sysconfig/apache2
+  echo -e '# This line is necessary for fillup not to remove any lines above. See #11153\nAPACHE_RUDDER_RELAY_CUSTOMIZED="true"' >> /etc/sysconfig/apache2
+elif [ "${nextline}" != "# This line is necessary for fillup not to remove any lines above. See #11153" ]; then
+  # Old include without comment
+  sed -i 's|. /etc/sysconfig/rudder-relay-apache|. /etc/sysconfig/rudder-relay-apache\n# This line is necessary for fillup not to remove any lines above. See #11153\nAPACHE_RUDDER_RELAY_CUSTOMIZED="true"|' /etc/sysconfig/apache2
 fi
+
 
 # Remove old includes in the SLES apache2 configuration
 if [ -f /etc/sysconfig/apache2 ]; then
