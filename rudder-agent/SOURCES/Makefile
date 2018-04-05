@@ -495,7 +495,7 @@ BUILD_FLAGS=CFLAGS="$(BUILD_CFLAGS) $(SECURE_CFLAGS)" LDFLAGS="-Wl,-R$(RUDDER_DI
 
 build-ssl: openssl-source
 	# openssl doesn't support CFLAGS (it overrides its own) so we must pass them in batch to configure
-	cd openssl-source && $(SSL_CONFIGURE) -fPIC $(BUILD_CFLAGS) $(SECURE_CFLAGS) -Wl,-R$(RUDDER_DIR)/lib $(BUILD_LDFLAGS) $(SECURE_LDFLAGS) --prefix=$(RUDDER_DIR) --openssldir=$(RUDDER_DIR)/openssl shared no-idea no-rc5 no-ssl3 no-dtls no-psk no-srp no-engine 
+	cd openssl-source && RELEASE="" $(SSL_CONFIGURE) -fPIC $(BUILD_CFLAGS) $(SECURE_CFLAGS) -Wl,-R$(RUDDER_DIR)/lib $(BUILD_LDFLAGS) $(SECURE_LDFLAGS) --prefix=$(RUDDER_DIR) --openssldir=$(RUDDER_DIR)/openssl shared no-idea no-rc5 no-ssl3 no-dtls no-psk no-srp no-engine
 	cd openssl-source && $(MAKE) depend
 	cd openssl-source && $(MAKE)
 	slibclean >/dev/null 2>&1 || true
@@ -525,8 +525,8 @@ build-zlib: zlib-source
 	cd zlib-source && $(MAKE) install DESTDIR=$(CURDIR)/build-zlib
 
 build-curl: curl-source
-	# idk why, curl doesn't provides -lssl to the binary on rhel3
-	cd curl-source && ./configure --prefix=$(RUDDER_DIR) --with-ssl $(ZLIB_ARG) --disable-rtsp --enable-ipv6 --without-librtmp --without-ldap-lib $(BUILD_FLAGS) PKG_CONFIG_PATH="$(CURDIR)/build-ssl$(RUDDER_DIR)/lib/pkgconfig"
+	# idk why, curl doesn't provides -lssl to the binary on rhel3 nor -L
+	cd curl-source && ./configure --prefix=$(RUDDER_DIR) --with-ssl $(ZLIB_ARG) --disable-rtsp --enable-ipv6 --without-librtmp --without-ldap-lib CFLAGS="$(BUILD_CFLAGS) $(SECURE_CFLAGS)" LDFLAGS="-Wl,-R$(RUDDER_DIR)/lib $(BUILD_LDFLAGS) $(SECURE_LDFLAGS) -L$(CURDIR)/build-ssl$(RUDDER_DIR)/lib" PKG_CONFIG_PATH="$(CURDIR)/build-ssl$(RUDDER_DIR)/lib/pkgconfig"
 	cd curl-source && $(MAKE)
 	# install to a temporary location is needed to build cfengine
 	cd curl-source && $(MAKE) install DESTDIR=$(CURDIR)/build-curl
