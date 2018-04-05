@@ -195,7 +195,9 @@ echo " Done."
 if [ ! -f ${CFE_DIR}/ppkeys/localhost.priv ]
 then
   echo -n "INFO: Creating keys for CFEngine agent..."
-  ${CFE_DIR}/bin/cf-key >> ${LOG_FILE} 2>&1
+  # Replacement of ${CFE_DIR}/bin/cf-key >> ${LOG_FILE} 2>&1
+  openssl genrsa -des3 -out ${CFE_DIR}/ppkeys/localhost.priv -passout "pass:Cfengine passphrase" 4096 >> ${LOG_FILE} 2>&1
+  openssl rsa -in ${CFE_DIR}/ppkeys/localhost.priv -passin "pass:Cfengine passphrase" -RSAPublicKey_out -out ${CFE_DIR}/ppkeys/localhost.pub >> ${LOG_FILE} 2>&1
   echo " Done."
 fi
 
