@@ -8,6 +8,8 @@
 
 	<Set name="extraClasspath"></Set>
 
+        <Set name="tempDirectory">/var/rudder/tmp/jetty/jetty-rudder.war.dir</Set>
+
 	<!-- We need to change the jetty SessionPath so we can share the cookie between Rudder, ncf and ncf-builder so they can authenticate using session cookie.
 	     Using / make the cookie shared on all those 3 applications.
 	 -->
