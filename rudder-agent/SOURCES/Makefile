@@ -432,6 +432,7 @@ rudder-agent-utilities: rudder-sources
 	echo yaml >> ./rudder-agent-utilities/agent-capabilities
 	echo xml >> ./rudder-agent-utilities/agent-capabilities
 	echo curl >> ./rudder-agent-utilities/agent-capabilities
+	echo acl >> ./rudder-agent-utilities/agent-capabilities
 
 fusioninventory-agent:
 ifeq ($(shell ../../build-caching get ./fusioninventory-agent/ --force-config name=fusioninventory-agent version=$(FUSION_RELEASE) >/dev/null 2>&1 || echo KO), KO)
