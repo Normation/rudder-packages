@@ -15,8 +15,8 @@ index 7b326dc9..ce7f4047 100644
 -Package: rudder-agent
 +Package: rudder-agent-thin
  Architecture: any
--Depends: ${shlibs:Depends}, ${misc:Depends}, uuid-runtime, dmidecode, cron, net-tools ${rudder:deps}
-+Depends: ${shlibs:Depends}, ${misc:Depends}, uuid-runtime, dmidecode, cron, net-tools, fusioninventory-agent ${rudder:deps}
+-Depends: ${shlibs:Depends}, ${misc:Depends}, uuid-runtime, dmidecode, cron, net-tools, libacl1 ${rudder:deps}
++Depends: ${shlibs:Depends}, ${misc:Depends}, uuid-runtime, dmidecode, cron, net-tools, libacl1, fusioninventory-agent ${rudder:deps}
  # The dependencies below are defined in order to use rudder-agent
  # for the server. This will add capabilities to send inventories
  # from the server itself.
