@@ -28,6 +28,7 @@ endif
 
 # add openssl to old distributions
 OS_CODENAME := $(shell lsb_release -s -c)
+# Ubuntu 10.04
 ifeq (lucid,$(OS_CODENAME))
 USE_SYSTEM_OPENSSL=false
 USE_SYSTEM_CURL=false
@@ -35,21 +36,25 @@ USE_SYSTEMD=false
 USE_SYSTEM_PERL=false
 USE_PIE=false
 endif
+# Ubuntu 12.04
 ifeq (precise,$(OS_CODENAME))
 USE_SYSTEM_OPENSSL=false
 USE_SYSTEM_CURL=false
 USE_SYSTEMD=false
 USE_PIE=false
 endif
+# Ubuntu 12.10
 ifeq (quantal,$(OS_CODENAME))
 USE_SYSTEM_OPENSSL=false
 USE_SYSTEM_CURL=false
 USE_SYSTEMD=false
 USE_PIE=false
 endif
+# Ubuntu 14.04
 ifeq (trusty,$(OS_CODENAME))
 USE_SYSTEMD=false
 endif
+# Debian 5
 ifeq (lenny,$(OS_CODENAME))
 USE_SYSTEM_OPENSSL=false
 USE_SYSTEM_CURL=false
@@ -59,12 +64,14 @@ USE_SYSTEM_YAML=false
 USE_SYSTEM_XML=false
 USE_PIE=false
 endif
+# Debian 6
 ifeq (squeeze,$(OS_CODENAME))
 USE_SYSTEM_OPENSSL=false
 USE_SYSTEM_CURL=false
 USE_SYSTEMD=false
 USE_PIE=false
 endif
+# Debian 7
 ifeq (wheezy,$(OS_CODENAME))
 USE_SYSTEM_OPENSSL=false
 USE_SYSTEM_CURL=false

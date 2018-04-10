@@ -222,6 +222,12 @@ Requires: pmtools
 Requires: dmidecode
 %endif
 
+## ACL dependencies
+%if "%{?_os}" != "aix"
+BuildRequires: libacl-devel
+Requires: libacl
+%endif
+
 ## YAML dependencies
 %if "%{use_system_yaml}" == "true"
 BuildRequires: libyaml-devel

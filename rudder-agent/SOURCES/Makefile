@@ -525,7 +525,10 @@ build-zlib: zlib-source
 	cd zlib-source && $(MAKE) install DESTDIR=$(CURDIR)/build-zlib
 
 build-curl: curl-source
-	# curl needs the temporary path for openssl
+	# pkcconfig give openssl build configuration, but it point to final installation path (/opt/rudder)
+	# since we need the temporary path it during build we need to add -I and -L
+	# since we also need to link it is during cfengine build we add -R (--rpath)
+	# we may want to remove rpath using patchelf at the end, but this is mostly cosmetic
 	cd curl-source && ./configure --prefix=$(RUDDER_DIR) --with-ssl $(ZLIB_ARG) --disable-rtsp --enable-ipv6 --without-librtmp --without-ldap-lib CFLAGS="$(BUILD_CFLAGS) $(SECURE_CFLAGS) -I$(CURDIR)/build-ssl$(RUDDER_DIR)/include" LDFLAGS="-Wl,-R$(RUDDER_DIR)/lib $(BUILD_LDFLAGS) $(SECURE_LDFLAGS) -Wl,-R$(CURDIR)/build-ssl$(RUDDER_DIR)/lib -L$(CURDIR)/build-ssl$(RUDDER_DIR)/lib" PKG_CONFIG_PATH="$(CURDIR)/build-ssl$(RUDDER_DIR)/lib/pkgconfig"
 	cd curl-source && $(MAKE)
 	# install to a temporary location is needed to build cfengine
@@ -554,7 +557,7 @@ build-cfengine-stamp:
 	cd cfengine-source && $(SED) 's/$$(AM_V_CCLD)$$(xml_c14nize_LINK)/$$(AM_V_CCLD)$$(LINK)/' tests/acceptance/Makefile.in > tests/acceptance/Makefile.in.new && mv tests/acceptance/Makefile.in.new tests/acceptance/Makefile.in
 	# build system bug when libyaml is enabled
 	cd cfengine-source && $(SED) 's/AM_CPPFLAGS = .*/AM_CPPFLAGS = $$(PCRE_CPPFLAGS) $$(OPENSSL_CPPFLAGS) $$(LIBYAML_CPPFLAGS)/' libutils/Makefile.in > libutils/Makefile.in.new && mv libutils/Makefile.in.new libutils/Makefile.in
-	cd cfengine-source && ./configure --prefix=$(RUDDER_DIR) --with-workdir=/var/rudder/cfengine-community --enable-static=yes --enable-shared=no --without-postgresql $(LMDB_ARG) $(OPENSSL_ARG) $(PCRE_ARG) $(CURL_ARG) $(YAML_ARG) $(XML_ARG) $(BUILD_FLAGS)
+	cd cfengine-source && ./configure --prefix=$(RUDDER_DIR) --with-workdir=/var/rudder/cfengine-community --enable-static=yes --enable-shared=no --without-postgresql --with-libacl $(LMDB_ARG) $(OPENSSL_ARG) $(PCRE_ARG) $(CURL_ARG) $(YAML_ARG) $(XML_ARG) $(BUILD_FLAGS)
 	cd cfengine-source && $(MAKE)
 	touch $@
 

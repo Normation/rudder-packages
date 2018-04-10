@@ -2,13 +2,13 @@ Source: rudder-agent
 Section: admin
 Priority: extra
 Maintainer: Rudder packaging team <rudder-packaging@rudder-project.org>
-Build-Depends: debhelper (>= 7), libssl-dev, bison, gcc, flex, autoconf, automake, libtool, libpcre3-dev, libpam0g-dev, ca-certificates, perl, lsb-release, libyaml-dev, libxml2-dev, libcurl-ssl-dev | libcurl4-openssl-dev
+Build-Depends: debhelper (>= 7), libssl-dev, bison, gcc, flex, autoconf, automake, libtool, libpcre3-dev, libpam0g-dev, ca-certificates, perl, lsb-release, libyaml-dev, libxml2-dev, libcurl-ssl-dev | libcurl4-openssl-dev, libacl1-dev
 Standards-Version: 3.8.0
 Homepage: http://www.rudder-project.org
 
 Package: rudder-agent
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, uuid-runtime, dmidecode, cron, net-tools ${rudder:deps}
+Depends: ${shlibs:Depends}, ${misc:Depends}, uuid-runtime, dmidecode, cron, net-tools, libacl1 ${rudder:deps}
 # The dependencies below are defined in order to use rudder-agent
 # for the server. This will add capabilities to send inventories
 # from the server itself.
