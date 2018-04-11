@@ -172,6 +172,10 @@ XML_ARG := --with-libxml2=$(CURDIR)/build-xml$(RUDDER_DIR)
 else
 XML_ARG := --with-libxml2
 endif
+# default use ACLs
+ifneq (false,$(USE_ACL))
+ACL_ARG := --with-libacl
+endif
 
 # Hack needed because openssl is not guessing correctly the architecture on solaris 32bits
 ifeq (i386-pc-solaris2.10,$(shell ./config.guess))
@@ -432,7 +436,9 @@ rudder-agent-utilities: rudder-sources
 	echo yaml >> ./rudder-agent-utilities/agent-capabilities
 	echo xml >> ./rudder-agent-utilities/agent-capabilities
 	echo curl >> ./rudder-agent-utilities/agent-capabilities
+ifneq (false,$(USE_ACL))
 	echo acl >> ./rudder-agent-utilities/agent-capabilities
+endif
 
 fusioninventory-agent:
 ifeq ($(shell ../../build-caching get ./fusioninventory-agent/ --force-config name=fusioninventory-agent version=$(FUSION_RELEASE) >/dev/null 2>&1 || echo KO), KO)
@@ -558,7 +564,7 @@ build-cfengine-stamp:
 	cd cfengine-source && $(SED) 's/$$(AM_V_CCLD)$$(xml_c14nize_LINK)/$$(AM_V_CCLD)$$(LINK)/' tests/acceptance/Makefile.in > tests/acceptance/Makefile.in.new && mv tests/acceptance/Makefile.in.new tests/acceptance/Makefile.in
 	# build system bug when libyaml is enabled
 	cd cfengine-source && $(SED) 's/AM_CPPFLAGS = .*/AM_CPPFLAGS = $$(PCRE_CPPFLAGS) $$(OPENSSL_CPPFLAGS) $$(LIBYAML_CPPFLAGS)/' libutils/Makefile.in > libutils/Makefile.in.new && mv libutils/Makefile.in.new libutils/Makefile.in
-	cd cfengine-source && ./configure --prefix=$(RUDDER_DIR) --with-workdir=/var/rudder/cfengine-community --enable-static=yes --enable-shared=no --without-postgresql --with-libacl $(LMDB_ARG) $(OPENSSL_ARG) $(PCRE_ARG) $(CURL_ARG) $(YAML_ARG) $(XML_ARG) $(BUILD_FLAGS)
+	cd cfengine-source && ./configure --prefix=$(RUDDER_DIR) --with-workdir=/var/rudder/cfengine-community --enable-static=yes --enable-shared=no --without-postgresql $(ACL_ARG) $(LMDB_ARG) $(OPENSSL_ARG) $(PCRE_ARG) $(CURL_ARG) $(YAML_ARG) $(XML_ARG) $(BUILD_FLAGS)
 	cd cfengine-source && $(MAKE)
 	touch $@
 
