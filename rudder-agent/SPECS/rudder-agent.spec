@@ -311,7 +311,7 @@ export CXXFLAGS="${RPM_OPT_FLAGS}"
 
 # libattr libtool file is looked for in /lib64 but put in /usr/lib64 on rhel3
 %if 0%{?rhel} && 0%{?rhel} < 4
-cp /usr/lib64/libattr.a /usr/lib64/libattr.la /lib64
+cp /usr/lib64/libattr.a /usr/lib64/libattr.la /lib64 || cp /usr/lib/libattr.a /usr/lib/libattr.la /lib
 %endif
 
 make %{?_smp_mflags} USE_SYSTEM_OPENSSL=%{use_system_openssl} USE_SYSTEM_LMDB=%{use_system_lmdb} USE_SYSTEM_PCRE=%{use_system_pcre} USE_SYSTEM_FUSION=%{use_system_fusion} USE_SYSTEM_PERL=%{use_system_perl} USE_HTTPS=%{use_https} USE_SYSTEM_ZLIB=%{use_system_zlib} USE_SYSTEM_CURL=%{use_system_curl} USE_SYSTEM_YAML=%{use_system_yaml} USE_SYSTEM_XML=%{use_system_xml} USE_PIE=%{use_pie} USE_ACL=%{use_acl}
