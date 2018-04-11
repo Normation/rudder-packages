@@ -4,14 +4,14 @@
 Rudder package manager
 
 Usage:
-    rudder-pkg install-file <package.rpkg>
+    rudder-pkg install-file <package.rpkg>...
     rudder-pkg list
-    rudder-pkg remove <package>
+    rudder-pkg remove <package>...
     rudder-pkg rudder-postupgrade
     rudder-pkg plugin save-status
     rudder-pkg plugin restore-status
-    rudder-pkg plugin enable <plugin>
-    rudder-pkg plugin disable <plugin>
+    rudder-pkg plugin enable <plugin>...
+    rudder-pkg plugin disable <plugin>...
 
 Options:
 
@@ -49,7 +49,14 @@ import docopt
 import sys
 from subprocess import Popen,PIPE
 
-RUDDER_VERSION="4.2"
+p = Popen("rudder agent version", shell=True, stdout=PIPE)
+line = p.communicate()[0]
+m = re.match(r'Rudder agent (\d+\.\d+)\..*', line)
+if m:
+  RUDDER_VERSION=m.group(1)
+else:
+  print("Cannot retrieve major version, ABORTING !")
+  exit(1)
 DB = { "plugins": { } }
 DB_DIRECTORY = '/var/rudder/packages'
 # Contains the installed package database
@@ -236,21 +243,23 @@ def install(metadata, package_file, exist):
 
 ## Package commands
 
-def install_file(package_file):
-  metadata = rpkg_metadata(package_file)
-  exist = package_check(metadata)
-  if exist:
-    print("The package is already installed, I will upgrade it.")
-  script_dir = extract_scripts(metadata, package_file)
-  run_script("preinst", script_dir, exist)
-  install(metadata, package_file, exist)
-  run_script("postinst", script_dir, exist)
-  # As dependencies are only displayed messages for now, wait until the end to make them visible.
-  # This should be moved before actual installation once implemented.
-  install_dependencies(metadata)
-  if metadata['type'] == 'plugin' and 'jar-files' in metadata:
-    for j in metadata['jar-files']:
-      jar_status(j, True)
+def install_file(package_files):
+  for package_file in package_files:
+    print("Installing " + package_file)
+    metadata = rpkg_metadata(package_file)
+    exist = package_check(metadata)
+    if exist:
+      print("The package is already installed, I will upgrade it.")
+    script_dir = extract_scripts(metadata, package_file)
+    run_script("preinst", script_dir, exist)
+    install(metadata, package_file, exist)
+    run_script("postinst", script_dir, exist)
+    # As dependencies are only displayed messages for now, wait until the end to make them visible.
+    # This should be moved before actual installation once implemented.
+    install_dependencies(metadata)
+    if metadata['type'] == 'plugin' and 'jar-files' in metadata:
+      for j in metadata['jar-files']:
+        jar_status(j, True)
 
 
 def package_list():
@@ -258,20 +267,22 @@ def package_list():
     print(p + "\t" + DB["plugins"][p]["version"])
 
 
-def remove(package_name):
-  if package_name not in DB["plugins"]:
-    fail("This package is not installed. Aborting!", 2)
-  script_dir = DB_DIRECTORY + "/" + package_name
-  metadata = DB["plugins"][package_name]
-  if metadata['type'] == 'plugin' and 'jar-files' in metadata:
-    for j in metadata['jar-files']:
-      jar_status(j, False)
-  run_script("prerm", script_dir, None)
-  remove_files(metadata)
-  run_script("postrm", script_dir, None)
-  shutil.rmtree(script_dir)
-  del DB["plugins"][package_name]
-  db_save()
+def remove(package_names):
+  for package_name in package_names:
+    print("Removing " + package_name)
+    if package_name not in DB["plugins"]:
+      fail("This package is not installed. Aborting!", 2)
+    script_dir = DB_DIRECTORY + "/" + package_name
+    metadata = DB["plugins"][package_name]
+    if metadata['type'] == 'plugin' and 'jar-files' in metadata:
+      for j in metadata['jar-files']:
+        jar_status(j, False)
+    run_script("prerm", script_dir, None)
+    remove_files(metadata)
+    run_script("postrm", script_dir, None)
+    shutil.rmtree(script_dir)
+    del DB["plugins"][package_name]
+    db_save()
 
 
 def check_compatibility():
@@ -326,12 +337,17 @@ def rudder_postupgrade():
     run_script("postinst", script_dir, True)
 
 
-def plugin_status(plugin, status):
-  if plugin not in DB["plugins"]:
-    fail("Unknown plugin " + plugin)
-  metadata = DB["plugins"][plugin]
-  for j in metadata['jar-files']:
-    jar_status(j, status)
+def plugin_status(plugins, status):
+  for plugin in plugins:
+    if status:
+      print("Enabling " + plugin)
+    else:
+      print("Disabling " + plugin)
+    if plugin not in DB["plugins"]:
+      fail("Unknown plugin " + plugin)
+    metadata = DB["plugins"][plugin]
+    for j in metadata['jar-files']:
+      jar_status(j, status)
 
 
 ## MAIN
