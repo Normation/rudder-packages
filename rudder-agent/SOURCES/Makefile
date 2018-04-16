@@ -50,7 +50,6 @@ ZLIB_SHA1 = e6d119755acdf9104d7ba236b1242696940ed6dd
 # Defauth PATHs
 RUDDER_DIR = /opt/rudder
 DESTDIR = $(CURDIR)/target
-INSTALL_DIR = $(DESTDIR)$(RUDDER_DIR)
 
 # default build with pie if possible
 ifeq (false,$(USE_PIE))
@@ -139,7 +138,7 @@ endif
 ifneq (true,$(USE_SYSTEM_PERL))
 BUILD_DEPS := $(BUILD_DEPS) build-perl
 FUSION_DEPS := install-perl
-PERL:=$(INSTALL_DIR)/bin/perl
+PERL:=$(DESTDIR)/opt/rudder/bin/perl
 else
 FUSION_DEPS := cpan-source
 PERL := perl
@@ -199,10 +198,10 @@ build: get-flags build-cfengine
 # install to DESTDIR
 install: build $(INSTALL_DEPS) install-cfengine initial-promises initial-ncf rudder-agent-utilities rudder-agent.cron
 	# Directories
-	mkdir -p $(INSTALL_DIR)/etc
-	mkdir -p $(INSTALL_DIR)/bin
-	mkdir -p $(INSTALL_DIR)/share/commands
-	mkdir -p $(INSTALL_DIR)/share/lib
+	mkdir -p $(DESTDIR)/opt/rudder/etc
+	mkdir -p $(DESTDIR)/opt/rudder/bin
+	mkdir -p $(DESTDIR)/opt/rudder/share/commands
+	mkdir -p $(DESTDIR)/opt/rudder/share/lib
 	mkdir -p $(DESTDIR)/var/rudder/cfengine-community/bin
 	mkdir -p $(DESTDIR)/var/rudder/cfengine-community/inputs
 	mkdir -p $(DESTDIR)/var/rudder/cfengine-community/ppkeys
@@ -215,7 +214,9 @@ install: build $(INSTALL_DEPS) install-cfengine initial-promises initial-ncf rud
 	mkdir -p $(DESTDIR)/var/log/rudder/agent-check
 	mkdir -p $(DESTDIR)/usr/bin
 	mkdir -p $(DESTDIR)/etc/cron.d
-	cd $(INSTALL_DIR) && rm -rf include lib/*.a lib/*.la 
+	cd $(DESTDIR)/opt/rudder && rm -rf include lib/*.a lib/*.la 
+	# 2Mb manuals of C functions 
+	find $(DESTDIR)/opt/rudder/share/man/man3 -name "*.3" -exec rm {} \;
 
 	# Systemd files
 ifeq (true,$(USE_SYSTEMD))
@@ -241,36 +242,36 @@ ifneq (true,$(NO_CRON))
 endif
 
 	# Wrapper script
-	$(INSTALL) -m 755 run-inventory $(INSTALL_DIR)/bin/
+	$(INSTALL) -m 755 run-inventory $(DESTDIR)/opt/rudder/bin/
 
 	# Signature script
-	$(INSTALL) -m 755 rudder-sign $(INSTALL_DIR)/bin/
-	$(INSTALL) -m 755 rudder-signature-check $(INSTALL_DIR)/bin/
-	$(INSTALL) -m 755 signature.sh $(INSTALL_DIR)/bin/ # for backwards compatibility, remove in the next major version after the next LTS after 3.1 is announced
+	$(INSTALL) -m 755 rudder-sign $(DESTDIR)/opt/rudder/bin/
+	$(INSTALL) -m 755 rudder-signature-check $(DESTDIR)/opt/rudder/bin/
+	$(INSTALL) -m 755 signature.sh $(DESTDIR)/opt/rudder/bin/ # for backwards compatibility, remove in the next major version after the next LTS after 3.1 is announced
 
 	# Install an empty uuid.hive file before generating an uuid
-	$(INSTALL) -m 644 uuid.hive $(INSTALL_DIR)/etc/
+	$(INSTALL) -m 644 uuid.hive $(DESTDIR)/opt/rudder/etc/
 
-	mkdir -p $(INSTALL_DIR)/share/package-scripts
-	$(INSTALL) -m 755 rudder-agent-postinst $(INSTALL_DIR)/share/package-scripts/
-	$(INSTALL) -m 755 check-rudder-agent $(INSTALL_DIR)/bin/
-	$(INSTALL) -m 755 vzps.py $(INSTALL_DIR)/bin/
-	$(INSTALL) -m 755 rudder-perl $(INSTALL_DIR)/bin/
-	$(INSTALL) -m 755 rudder-uuidgen $(INSTALL_DIR)/bin/
+	mkdir -p $(DESTDIR)/opt/rudder/share/package-scripts
+	$(INSTALL) -m 755 rudder-agent-postinst $(DESTDIR)/opt/rudder/share/package-scripts/
+	$(INSTALL) -m 755 check-rudder-agent $(DESTDIR)/opt/rudder/bin/
+	$(INSTALL) -m 755 vzps.py $(DESTDIR)/opt/rudder/bin/
+	$(INSTALL) -m 755 rudder-perl $(DESTDIR)/opt/rudder/bin/
+	$(INSTALL) -m 755 rudder-uuidgen $(DESTDIR)/opt/rudder/bin/
 
 	# Rudder agent utilities
-	$(INSTALL) -m 755 rudder-agent-utilities/bin/rudder $(INSTALL_DIR)/bin/
-	$(INSTALL) -m 755 rudder-agent-utilities/share/commands/* $(INSTALL_DIR)/share/commands/
-	$(INSTALL) -m 755 rudder-agent-utilities/share/lib/* $(INSTALL_DIR)/share/lib/
-	$(INSTALL) -m 644 rudder-agent-utilities/agent-capabilities $(INSTALL_DIR)/etc/
+	$(INSTALL) -m 755 rudder-agent-utilities/bin/rudder $(DESTDIR)/opt/rudder/bin/
+	$(INSTALL) -m 755 rudder-agent-utilities/share/commands/* $(DESTDIR)/opt/rudder/share/commands/
+	$(INSTALL) -m 755 rudder-agent-utilities/share/lib/* $(DESTDIR)/opt/rudder/share/lib/
+	$(INSTALL) -m 644 rudder-agent-utilities/agent-capabilities $(DESTDIR)/opt/rudder/etc/
 
 	# Install /etc/bash_completion.d/rudder.sh in order to autocomplete rudder commands
 	mkdir -p $(DESTDIR)/etc/bash_completion.d
 	$(INSTALL) -m 644 rudder-agent-utilities/etc/bash_completion.d/rudder.sh $(DESTDIR)/etc/bash_completion.d/
 
 	# Install rudder man page
-	mkdir -p $(INSTALL_DIR)/share/man/man8/
-	$(INSTALL) -m 644 rudder.8.gz $(INSTALL_DIR)/share/man/man8/
+	mkdir -p $(DESTDIR)/opt/rudder/share/man/man8/
+	$(INSTALL) -m 644 rudder.8.gz $(DESTDIR)/opt/rudder/share/man/man8/
 
 	# Create a symlink to make "rudder" available as part of the default PATH
 	ln -sf $(RUDDER_DIR)/bin/rudder $(DESTDIR)/usr/bin/rudder
@@ -281,13 +282,12 @@ ifneq (true,$(NO_PROFILE))
 	$(INSTALL) -m 644 rudder-agent.sh $(DESTDIR)/etc/profile.d/
 endif
 
-	cp -r initial-promises/ $(INSTALL_DIR)/share/
-	cp -r initial-ncf/ $(INSTALL_DIR)/share/
+	cp -r initial-promises/ $(DESTDIR)/opt/rudder/share/
+	cp -r initial-ncf/ $(DESTDIR)/opt/rudder/share/
 
 # clean 
 clean: localclean
 localclean:
-	rm -rf $(DESTDIR)
 	rm -rf build-ssl build-lmdb build-cfengine build-perl fusion-modules build-cfengine-stamp build-curl build-yaml and build-xml
 	rm -rf rudder-sources
 	rm -f ./rudder.8.gz
@@ -594,7 +594,7 @@ build-perl: perl-$(PERL_RELEASE)
 install-ssl: build-ssl
 	mkdir -p $(DESTDIR)
 	$(CP_A) $(CURDIR)/build-ssl/* $(DESTDIR)
-	cd $(INSTALL_DIR) && rm -rf bin/c_rehash lib/pkgconfig/openssl.pc ssl/misc/CA.pl ssl/misc/tsget ssl/openssl.cnf.dist openssl/man
+	cd $(DESTDIR)/opt/rudder && rm -rf bin/c_rehash lib/pkgconfig/openssl.pc ssl/misc/CA.pl ssl/misc/tsget ssl/openssl.cnf.dist openssl/man
 
 install-lmdb: build-lmdb
 	mkdir -p $(DESTDIR)
@@ -603,7 +603,7 @@ install-lmdb: build-lmdb
 install-pcre: build-pcre
 	mkdir -p $(DESTDIR)
 	$(CP_A) $(CURDIR)/build-pcre/* $(DESTDIR)
-	cd $(INSTALL_DIR) && rm -rf bin/pcregrep bin/pcretest
+	cd $(DESTDIR)/opt/rudder && rm -rf bin/pcregrep bin/pcretest
 
 install-zlib: build-zlib
 	mkdir -p $(DESTDIR)
@@ -620,23 +620,27 @@ install-yaml: build-yaml
 install-xml: build-xml
 	mkdir -p $(DESTDIR)
 	$(CP_A) $(CURDIR)/build-xml/* $(DESTDIR)
-	cd $(INSTALL_DIR) && rm -rf bin/xmlcatalog bin/xmllint lib/xml2Conf.sh lib/cmake 
+	cd $(DESTDIR)/opt/rudder && rm -rf bin/xmlcatalog bin/xmllint lib/xml2Conf.sh lib/cmake 
 
 install-cfengine: build-cfengine $(INSTALL_DEPS)
 	cd cfengine-source && $(MAKE) install DESTDIR=$(DESTDIR) STRIP=""
-	mkdir -p $(INSTALL_DIR)/share/man/man8
+	mkdir -p $(DESTDIR)/opt/rudder/share/man/man8
 	cd cfengine-source && for binary in cf-agent cf-promises cf-key cf-execd cf-serverd cf-monitord cf-runagent; do \
-		LD_LIBRARY_PATH="$(INSTALL_DIR)/lib" $${binary}/$${binary} -M | gzip > $(INSTALL_DIR)/share/man/man8/$${binary}.8.gz; \
+		LD_LIBRARY_PATH="$(DESTDIR)/opt/rudder/lib" $${binary}/$${binary} -M | gzip > $(DESTDIR)/opt/rudder/share/man/man8/$${binary}.8.gz; \
 	done
-	cd $(INSTALL_DIR) && rm -rf share/doc/cfengine
+	cd $(DESTDIR)/opt/rudder && rm -rf share/doc/cfengine
 
 install-perl: build-perl
 	cd perl-$(PERL_RELEASE) && $(MAKE) install DESTDIR=$(DESTDIR)
+	# 20Mb of perl manual, but we cannot remove $(DESTDIR) directly, so we currently just leave the package for very old distro fat
+	#rm -rf $(DESTDIR)/man
+	# 8Mb of perldoc
+	#rm -rf $(DESTDIR)/lib/perl5/5.22.0/pod
 	touch build-perl # because perl-$(PERL_RELEASE) is touched by make install
 
 CPANM:=$(CURDIR)/perl-$(PERL_RELEASE)/App-cpanminus/bin/cpanm
 # --notest because tests add new Test:: dependencies that cannot be installed properly
-MODULE_INSTALL:=MAKEFLAGS= $(PERL) $(CPANM) $(CPAN_OPT) -L $(INSTALL_DIR) --from $(CPAN_URL) --notest
+MODULE_INSTALL:=MAKEFLAGS= $(PERL) $(CPANM) $(CPAN_OPT) -L $(DESTDIR)/opt/rudder --from $(CPAN_URL) --notest
 # List from README / Makefile.PL in fusion-inventory-agent
 # -> requires + inventory and network recommends
 FUSION_MODULES = File::Which LWP::UserAgent Net::IP Text::Template UNIVERSAL::require XML::TreePP Parse::EDID DateTime DateTime::TimeZone DateTime::TimeZone::Local::Unix Net::SNMP Net::NBName Thread::Queue Data::Dumper
@@ -644,21 +648,23 @@ FUSION_MODULES = File::Which LWP::UserAgent Net::IP Text::Template UNIVERSAL::re
 # update core dependencies (for old perl versions) at normation.com with the command: ./mirror $VAR_CPAN Local::Win32 ExtUtils::MakeMaker parent IO::Compress::Bzip2 HTTP::Lite version CPAN::Meta::YAML CPAN::Meta::Requirements File::Temp Perl::OSType ExtUtils::Install threads::shared Module::Install URI::Escape ExtUtils::CBuilder Pod::Man ExtUtils::ParseXS TAP::Harness threads ExtUtils::Manifest Pod::Simple Module::Build Module::Implementation Test::Harness Module::CoreList File::Spec autodie Devel::PPPort Encode Pod::Escapes Class::C3 IPC::Cmd Digest::MD5 Locale::Maketext::Simple Module::Load Digest::base Params::Check Locale::Maketext::Simple 
 
 fusion-modules: $(FUSION_DEPS)
-	mkdir -p $(INSTALL_DIR)/lib/perl5
+	mkdir -p $(DESTDIR)/opt/rudder/lib/perl5
 ifeq (true,$(USE_SYSTEM_PERL))
 	# install installer dependencies on the system
 	MAKEFLAGS= $(PERL) $(CPANM) $(CPAN_OPT) --from $(CPAN_URL) --notest Module::CoreList
 endif
 	$(MODULE_INSTALL) $(FUSION_MODULES)
+	# remove perldoc (10Mb of timezone doc)
+	find $(DESTDIR)/opt/rudder/lib/perl5 -type f -name "*.pod" -exec rm {} \;
 	# Replace destdir by prefix in files generated by cpanm
-	find $(INSTALL_DIR)/lib/perl5 -type f -name "*.packlist" -o -name "*.pod" -exec sed -i "s,$(DESTDIR),,"  {} \;
-	find $(INSTALL_DIR)/bin -type f -exec sed -i "s,$(DESTDIR),,"  {} \;
+	find $(DESTDIR)/opt/rudder/lib/perl5 -type f -name "*.packlist" -exec sed -i "s,$(DESTDIR),,"  {} \;
+	find $(DESTDIR)/opt/rudder/bin -type f -exec sed -i "s,$(DESTDIR),,"  {} \;
 	touch $@
 
 install-fusion: fusioninventory-agent fusion-modules
 # Fusion installation
-	mkdir -p $(INSTALL_DIR)/share/fusion-utils
-	cp -r fusioninventory-agent/share/* $(INSTALL_DIR)/share/fusion-utils/
+	mkdir -p $(DESTDIR)/opt/rudder/share/fusion-utils
+	cp -r fusioninventory-agent/share/* $(DESTDIR)/opt/rudder/share/fusion-utils/
 ifeq ($(INSTALL),ginstall)
 	# fusion doesn't know how to make install without gnu tools in the path
 	$(SED) 's/\([^g]\)install -m/\1ginstall -m/' fusioninventory-agent/Makefile.PL > fusioninventory-agent/Makefile.PL.new
@@ -675,6 +681,6 @@ endif
 	chown root $(DESTDIR)/opt/rudder/share/fusioninventory/html
 	# fusion configuration file is never used, do not include it to avoid mistakes
 	rm -rf $(DESTDIR)/opt/rudder/etc/fusioninventory
-	cp -r fusioninventory-agent/lib/FusionInventory $(INSTALL_DIR)/lib/perl5/
+	cp -r fusioninventory-agent/lib/FusionInventory $(DESTDIR)/opt/rudder/lib/perl5/
 
 .PHONY: localclean localdepends veryclean depend build install clean mrproper install-ssl install-lmdb install-cfengine install-perl install-fusion get-flags
