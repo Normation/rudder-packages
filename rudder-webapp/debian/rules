@@ -52,12 +52,14 @@ java8:
 			echo "oracle-java8-installer	oracle-java8-installer/local	string	" | debconf-set-selections; \
 			apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --force-yes oracle-java8-installer || true; \
 			cd /var/lib/dpkg/info; \
-			sed -i 's|JAVA_VERSION=8u151|JAVA_VERSION=8u161|' oracle-java8-installer.*; \
-			sed -i 's|PARTNER_URL=http://download.oracle.com/otn-pub/java/jdk/8u151-b12/e758a0de34e24606bca991d704f6dcbf/|PARTNER_URL=http://download.oracle.com/otn-pub/java/jdk/8u161-b12/2f38c3b165be4555a1fa6e98c45e0808/|' oracle-java8-installer.*; \
-			sed -i 's|SHA256SUM_TGZ="8062f34f69dd1f1991bff517df52da606c53f5fa0d6677ceb46df30e93b53a70"|SHA256SUM_TGZ="cf69617a74cccb262f06f7948f38e1c004d2663801e7724e7a7a0dabeb48d7dc"|' oracle-java8-installer.*; \
-			sed -i 's|SHA256SUM_TGZ="c78200ce409367b296ec39be4427f020e2c585470c4eed01021feada576f027f"|SHA256SUM_TGZ="6dbc56a0e3310b69e91bb64db63a485bd7b6a8083f08e48047276380a0e2021e"|' oracle-java8-installer.*; \
-			sed -i 's|J_DIR=jdk1.8.0_151|J_DIR=jdk1.8.0_161|' oracle-java8-installer.*; \
-			sed -i 's|seq 1 150|seq 1 160|' oracle-java8-installer.*; \
+			sed -i 's|JAVA_VERSION=8u161|JAVA_VERSION=8u172|' oracle-java8-installer.*; \
+			sed -i 's|PARTNER_URL=http://download.oracle.com/otn-pub/java/jdk/8u161-b12/2f38c3b165be4555a1fa6e98c45e0808/|PARTNER_URL=http://download.oracle.com/otn-pub/java/jdk/8u172-b11/a58eab1ec242421181065cdc37240b08/|' oracle-java8-installer.*; \
+			# 32 bits
+			sed -i 's|SHA256SUM_TGZ="cf69617a74cccb262f06f7948f38e1c004d2663801e7724e7a7a0dabeb48d7dc"|SHA256SUM_TGZ="0a4310d31246924d5c3cd161b9da7f446acef373e6484452c80de8d8519f5a33"|' oracle-java8-installer.*; \
+			# 64 bits
+			sed -i 's|SHA256SUM_TGZ="6dbc56a0e3310b69e91bb64db63a485bd7b6a8083f08e48047276380a0e2021e"|SHA256SUM_TGZ="28a00b9400b6913563553e09e8024c286b506d8523334c93ddec6c9ec7e9d346"|' oracle-java8-installer.*; \
+			sed -i 's|J_DIR=jdk1.8.0_161|J_DIR=jdk1.8.0_172|' oracle-java8-installer.*; \
+			sed -i 's|seq 1 160|seq 1 171|' oracle-java8-installer.*; \
 			cd -; \
 			DEBIAN_FRONTEND=noninteractive apt-get install -y --force-yes oracle-java8-installer; \
 		fi \
