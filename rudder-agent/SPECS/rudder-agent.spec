@@ -239,11 +239,13 @@ BuildRequires: libattr-devel
 ## YAML dependencies
 %if "%{use_system_yaml}" == "true"
 BuildRequires: libyaml-devel
-%if 0%{?suse_version} && 0%{?suse_version} >= 1200
-Requires: libyaml-0-2
-%else
-Requires: libyaml
 %endif
+%if "%{use_system_yaml}" == "true" && 0%{?suse_version} && 0%{?suse_version} >= 1200
+Requires: libyaml-0-2
+%endif
+# no yaml on sles other than 12
+%if "%{use_system_yaml}" == "true" && 0%{?suse_version} == 0
+Requires: libyaml
 %endif
 
 ## XML dependencies
