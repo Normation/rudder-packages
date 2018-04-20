@@ -51,7 +51,7 @@ from subprocess import Popen,PIPE
 
 p = Popen("rudder agent version", shell=True, stdout=PIPE)
 line = p.communicate()[0]
-m = re.match(r'Rudder agent (\d+\.\d+)\..*', line)
+m = re.match(r'Rudder agent (\d+\.\d+)\..*', line.decode('utf-8'))
 if m:
   RUDDER_VERSION=m.group(1)
 else:
