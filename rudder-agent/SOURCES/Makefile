@@ -216,7 +216,7 @@ install: build $(INSTALL_DEPS) install-cfengine initial-promises initial-ncf rud
 	mkdir -p $(DESTDIR)/etc/cron.d
 	cd $(DESTDIR)/opt/rudder && rm -rf include lib/*.a lib/*.la 
 	# 2Mb manuals of C functions 
-	find $(DESTDIR)/opt/rudder/share/man/man3 -name "*.3" -exec rm {} \;
+	[ -d $(DESTDIR)/opt/rudder/share/man/man3 ] && find $(DESTDIR)/opt/rudder/share/man/man3 -name "*.3" -exec rm {} \;
 
 	# Systemd files
 ifeq (true,$(USE_SYSTEMD))
