@@ -4,7 +4,10 @@ from relay_api.remote_run import remote_run_generic
 from relay_api.common import *
 
 from flask import Flask, jsonify, request, abort, make_response
-from StringIO import StringIO
+try:
+  from StringIO import StringIO
+except ImportError:
+  from io import StringIO
 import traceback
 
 from pprint import pprint

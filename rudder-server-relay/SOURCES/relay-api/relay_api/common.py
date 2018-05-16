@@ -8,7 +8,7 @@ NODES=None
 # Format error as api output
 def format_error(exception, debug):
   message = "Internal error!\n"
-  message += "Cause: " + unicode(exception) + "\n"
+  message += "Cause: " + type(u'')(exception) + "\n"
   if debug:
     message += traceback.format_exc() + "\n"
   error = make_response(message)
