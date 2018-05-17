@@ -20,7 +20,7 @@ except:
   pass
 
 from pprint import pprint
-from Crypto.Hash import *
+from Crypto.Hash import SHA, SHA256, SHA512
 from Crypto.Signature import PKCS1_v1_5
 from Crypto.PublicKey import RSA
 
@@ -234,7 +234,7 @@ def shared_files_put(target_uuid, source_uuid, file_id, data_stream, nodes, my_u
 
   # write data & metadata
   try:
-    os.makedirs(path, 0750)
+    os.makedirs(path, 0o750)
   except:
     pass # makedirs fails if the directory exists
   fd = open(filename, 'w')
