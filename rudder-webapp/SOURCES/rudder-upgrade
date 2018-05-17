@@ -59,6 +59,8 @@ trap anomaly_handler ERR INT TERM
 # - 4.1.0        : Add the property to configure relay api location
 # - 4.1.0        : Add property to define hooks ignore suffixes
 # - 4.1.0        : Migrate script properties to hooks
+# - 4.1.12       : Create nodecompliancelevels table
+# - 4.1.12       : Add new property rudder.batch.reportscleaner.compliancelevels.delete.TTL
 ####################################################################################
 
 # Some paths
@@ -566,6 +568,27 @@ EOF
   fi
   sed -i 's/^rudder.cfengine.reload.server.command/#rudder.cfengine.reload.server.command/' "${RUDDER_WEB_PROPERTIES}"
 
+
+  # - 4.1.12 : Add property to define compliance level reports TTL
+  STEP="Add property to define TTL for compliance level reports"
+
+  check_and_add_config_property rudder.batch.reportscleaner.compliancelevels.delete.TTL "
+#
+# Automatic compliance levels cleaning.
+# This allows you to define the periode of time during which
+# compliance level data for nodes, by run, up to directive
+# granularity are kept.
+# The table grows at ~60kB / node / directive / day
+# (ie, for 100 nodes, with 15 rules having each of them 10 directives,
+# you need ~25GB for a month back of data).
+# There is no archive state for compliance levels.
+#
+rudder.batch.reportscleaner.compliancelevels.delete.TTL=15
+
+"
+
+
+
 }
 
 ################################################################################
@@ -644,6 +667,14 @@ upgrade_database() {
   if [ $RES -eq 0 ]; then
     echo -n "INFO: Adding new 'compliances' table"
     ${PSQL} -d ${SQL_DATABASE} -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-4.0.x-4.1-add-compliance-table.sql > /dev/null
+    echo " Done"
+  fi
+
+  # - 4.1.x to 4.1.12: add compliance table
+  RES=$(${PSQL} -t -d ${SQL_DATABASE} -c "select count(*) from information_schema.columns where lower(table_name) = 'nodecompliancelevels'")
+  if [ $RES -eq 0 ]; then
+    echo -n "INFO: Adding new 'compliance levels' table"
+    ${PSQL} -d ${SQL_DATABASE} -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-4.1.x-4.1.12-add-compliancelevel-table.sql > /dev/null
     echo " Done"
   fi
 
