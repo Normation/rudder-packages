@@ -247,6 +247,10 @@ fi
 # Enable mod_wsgi using a2enmod
 a2enmod wsgi >/dev/null 2>&1
 
+# Remove .pyc files to ensure we don't end up with outdated files
+rm -f %{installdir}/tools/ncf.pyc
+rm -f %{installdir}/tools/ncf_constraints.pyc
+
 echo -n "INFO: Restarting Apache HTTPd..."
 service apache2 restart >/dev/null 2>&1
 echo " Done"
