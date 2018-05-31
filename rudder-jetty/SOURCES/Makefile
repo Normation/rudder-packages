@@ -68,6 +68,9 @@ localdepends: ./jetty
 	cp ./rudder-jetty.default ../debian/rudder-jetty.default
 	chmod +x ../debian/rudder-jetty.init
 
+	# Restore the name for log file from version of Rudder before 4.3 (see https://www.rudder-project.org/redmine/issues/12607)
+	patch -p0 -s < patches/jetty/jetty-console-capture-restore-log-filename.patch
+
 	# Make sure there were no rejects
 	test `$(FIND) . -name \*.rej | wc -l` = 0
 
