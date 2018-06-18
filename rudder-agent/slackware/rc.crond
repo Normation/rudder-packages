@@ -1,0 +1,54 @@
+#!/bin/sh
+
+crond_start() {
+    
+  # Start crond (Dillon's crond): (from /etc/rc.d/rc.M)                                                                                                                                                                                                             
+  # If you want cron to actually log activity to /var/log/cron, then change
+  # -l notice to -l info to increase the logging level.
+  if [ -x /usr/sbin/crond ]; then
+    echo -n "Starting CRONd... "
+    /usr/sbin/crond -l notice
+    echo "done."
+  fi
+
+}
+
+crond_stop() {
+
+  echo -n "Stopping CRONd... "
+  crond_pid=$(pgrep '^crond$')
+  kill -15 $crond_pid
+  echo "done."
+
+}
+
+crond_status() {
+
+  crond_pid=$(pgrep '^crond$')
+  if [ -z $crond_pid ]; then
+    echo "CRONd is not running"
+  else
+    echo "CRONd is running (PID: $crond_pid)"
+  fi
+
+}
+
+case "$1" in
+  "start")
+    crond_start
+    ;;
+  "stop")
+    crond_stop
+    ;;
+  "status")
+    crond_status
+    ;;
+  "restart")
+    crond_stop
+    sleep 1
+    crond_start
+    ;;
+  *)
+    echo "$0 Usage: [start|stop|restart|status]"
+    ;;
+esac

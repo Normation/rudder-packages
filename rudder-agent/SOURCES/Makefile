@@ -41,7 +41,7 @@ CPAN_URL = $(HTTPS)://www.normation.com/tarball/cpan/$(RUDDER_MAJOR_VERSION)
 CURL_RELEASE = 7.58.0
 CURL_SHA1 = 089f17884d672aca7a661a65d847135f2f0ccbbf
 YAML_RELEASE = 0.1.7
-YAML_SHA1 = 3590cbf092ef4c71bc0a9b404c00a626b1e04dee 
+YAML_SHA1 = 3590cbf092ef4c71bc0a9b404c00a626b1e04dee
 XML_RELEASE = 2.9.7
 XML_SHA1 = ab3325e6cdda50ab2382fdfe0bdb6f7d1b9224a6
 ZLIB_RELEASE = 1.2.11
@@ -220,11 +220,14 @@ install: build $(INSTALL_DEPS) install-cfengine initial-promises initial-ncf rud
 	mkdir -p $(DESTDIR)/var/log/rudder/agent-check
 	mkdir -p $(DESTDIR)/usr/bin
 	mkdir -p $(DESTDIR)/etc/cron.d
-	cd $(DESTDIR)/opt/rudder && rm -rf include lib/*.a lib/*.la 
-	# 2Mb manuals of C functions 
+	cd $(DESTDIR)/opt/rudder && rm -rf include lib/*.a lib/*.la
+	# 2Mb manuals of C functions
 	find $(DESTDIR)/opt/rudder/share/man/man3 -name "*.3" -exec rm {} \; || true
+	# Compress man pages
+	find $(DESTDIR)/opt/rudder/share/man -type f ! -name '*.gz' -exec gzip -9 {} \;
+	for i in $( find $(DESTDIR)/opt/rudder/share/man -type l ) ; do ln -s $( readlink $i ).gz $i.gz ; rm $i ; done
 
-	# Systemd files
+# Systemd files
 ifeq (true,$(USE_SYSTEMD))
 	mkdir -p $(DESTDIR)/lib/systemd/system
 	$(INSTALL) -m 644 systemd/rudder-agent.service $(DESTDIR)/lib/systemd/system/rudder-agent.service
@@ -291,7 +294,11 @@ endif
 	cp -r initial-promises/ $(DESTDIR)/opt/rudder/share/
 	cp -r initial-ncf/ $(DESTDIR)/opt/rudder/share/
 
-# clean 
+	# Strip binaries
+	find $(DESTDIR) -print0 | xargs -0 file | grep -E "executable|shared object" \
+	  | cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null || true
+
+# clean
 clean: localclean
 localclean:
 	rm -rf build-ssl build-lmdb build-cfengine build-perl fusion-modules build-cfengine-stamp build-curl build-yaml and build-xml
@@ -403,7 +410,7 @@ ifeq ($(shell ../../build-caching get ./xml-source/ --force-config name=xml-src 
 	$(GET) $(TMP_DIR)/libxml2.tgz $(HTTPS)://www.normation.com/tarball/xml/libxml2-$(XML_RELEASE).tar.gz $(XML_SHA1)
 	gunzip < $(TMP_DIR)/libxml2.tgz | $(TAR) xf -
 	mv ./libxml2-$(XML_RELEASE) ./xml-source
-	# patch libxml source to work with very old gcc 
+	# patch libxml source to work with very old gcc
 	cd ./xml-source && $(SED) 's/#ifdef __GNUC__/#if __GNUC__ > 3/' ./timsort.h > ./timsort.h.new && mv ./timsort.h.new ./timsort.h
 	../../build-caching put ./xml-source/ --force-config name=xml-src version=$(XML_RELEASE)
 	rm -rf $(TMP_DIR)
@@ -532,7 +539,7 @@ build-pcre: pcre-source
 	cd pcre-source && $(MAKE) install DESTDIR=$(CURDIR)/build-pcre
 
 build-zlib: zlib-source
-	cd zlib-source && $(BUILD_FLAGS) ./configure --prefix=$(RUDDER_DIR) 
+	cd zlib-source && $(BUILD_FLAGS) ./configure --prefix=$(RUDDER_DIR)
 	cd zlib-source && $(MAKE)
 	# install to a temporary location is needed to build cfengine
 	cd zlib-source && $(MAKE) install DESTDIR=$(CURDIR)/build-zlib
@@ -583,7 +590,7 @@ get-flags:
 	echo "void main() {}" > "$${FLAG_TEST_FILE}.c" ;\
 	gcc $(TRY_CFLAGS) $(TRY_LDFLAGS) -o "$${FLAG_TEST_FILE}" "$${FLAG_TEST_FILE}.c" 2>/dev/null && echo "OK";\
 	rm -f "$${FLAG_TEST_FILE}" "$${FLAG_TEST_FILE}".c ))
-	
+
 	$(eval SECURE_CFLAGS:=$(if $(HAVE_PROTECTION),$(TRY_CFLAGS)))
 	$(eval SECURE_LDFLAGS:=$(if $(HAVE_PROTECTION),$(TRY_LDFLAGS)))
 
@@ -626,7 +633,7 @@ install-yaml: build-yaml
 install-xml: build-xml
 	mkdir -p $(DESTDIR)
 	$(CP_A) $(CURDIR)/build-xml/* $(DESTDIR)
-	cd $(DESTDIR)/opt/rudder && rm -rf bin/xmlcatalog bin/xmllint lib/xml2Conf.sh lib/cmake 
+	cd $(DESTDIR)/opt/rudder && rm -rf bin/xmlcatalog bin/xmllint lib/xml2Conf.sh lib/cmake
 
 install-cfengine: build-cfengine $(INSTALL_DEPS)
 	cd cfengine-source && $(MAKE) install DESTDIR=$(DESTDIR) STRIP=""
@@ -643,6 +650,12 @@ install-perl: build-perl
 	# 8Mb of perldoc
 	#rm -rf $(DESTDIR)/lib/perl5/5.22.0/pod
 	touch build-perl # because perl-$(PERL_RELEASE) is touched by make install
+	# Remove 'special' files
+	find $(DESTDIR) -name perllocal.pod \
+	  -o -name ".packlist" \
+	  -o -name "*.bs" \
+	  | xargs rm -f
+
 
 CPANM:=$(CURDIR)/perl-$(PERL_RELEASE)/App-cpanminus/bin/cpanm
 # --notest because tests add new Test:: dependencies that cannot be installed properly
@@ -650,8 +663,8 @@ MODULE_INSTALL:=MAKEFLAGS= $(PERL) $(CPANM) $(CPAN_OPT) -L $(DESTDIR)/opt/rudder
 # List from README / Makefile.PL in fusion-inventory-agent
 # -> requires + inventory and network recommends
 FUSION_MODULES = File::Which LWP::UserAgent Net::IP Text::Template UNIVERSAL::require XML::TreePP Parse::EDID DateTime DateTime::TimeZone DateTime::TimeZone::Local::Unix Net::SNMP Net::NBName Thread::Queue Data::Dumper
-# update sources at normation.com with the command: ./mirror $VAR_CPAN $FUSION_MODULES 
-# update core dependencies (for old perl versions) at normation.com with the command: ./mirror $VAR_CPAN Local::Win32 ExtUtils::MakeMaker parent IO::Compress::Bzip2 HTTP::Lite version CPAN::Meta::YAML CPAN::Meta::Requirements File::Temp Perl::OSType ExtUtils::Install threads::shared Module::Install URI::Escape ExtUtils::CBuilder Pod::Man ExtUtils::ParseXS TAP::Harness threads ExtUtils::Manifest Pod::Simple Module::Build Module::Implementation Test::Harness Module::CoreList File::Spec autodie Devel::PPPort Encode Pod::Escapes Class::C3 IPC::Cmd Digest::MD5 Locale::Maketext::Simple Module::Load Digest::base Params::Check Locale::Maketext::Simple 
+# update sources at normation.com with the command: ./mirror $VAR_CPAN $FUSION_MODULES
+# update core dependencies (for old perl versions) at normation.com with the command: ./mirror $VAR_CPAN Local::Win32 ExtUtils::MakeMaker parent IO::Compress::Bzip2 HTTP::Lite version CPAN::Meta::YAML CPAN::Meta::Requirements File::Temp Perl::OSType ExtUtils::Install threads::shared Module::Install URI::Escape ExtUtils::CBuilder Pod::Man ExtUtils::ParseXS TAP::Harness threads ExtUtils::Manifest Pod::Simple Module::Build Module::Implementation Test::Harness Module::CoreList File::Spec autodie Devel::PPPort Encode Pod::Escapes Class::C3 IPC::Cmd Digest::MD5 Locale::Maketext::Simple Module::Load Digest::base Params::Check Locale::Maketext::Simple
 
 fusion-modules: $(FUSION_DEPS)
 	mkdir -p $(DESTDIR)/opt/rudder/lib/perl5
