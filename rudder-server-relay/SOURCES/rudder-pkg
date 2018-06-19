@@ -47,6 +47,7 @@ import copy
 import re
 import docopt
 import sys
+import distutils.spawn
 from subprocess import Popen,PIPE
 
 p = Popen("rudder agent version", shell=True, stdout=PIPE)
@@ -159,19 +160,26 @@ def check_plugin_compatibility(metadata):
   return True
 
 
+
 def install_dependencies(metadata):
   # not supported yet
   has_depends = False
   depends_printed = False
   if "depends" in metadata:
     for system in metadata["depends"]:
-      has_depends = True
-      if not depends_printed:
-        print("This package depends on the following")
-        depends_printed = True
-      print("  on " + system + " : " + ", ".join(metadata["depends"][system]))
+      if system == "binary":
+        if distutils.spawn.find_executable(metadata["depends"][system]) is None:
+          print("The binary " + metadata["depends"][system] + " was not found on the system, you must install it before installing " + metadata['name'])
+          return False
+      else:
+        has_depends = True
+        if not depends_printed:
+          print("This package depends on the following")
+          depends_printed = True
+        print("  on " + system + " : " + ", ".join(metadata["depends"][system]))
     if has_depends:
       print("It is up to you to make sure those dependencies are installed")
+  return True
 
 
 def extract_scripts(metadata,package_file):
@@ -248,15 +256,16 @@ def install_file(package_files):
     print("Installing " + package_file)
     metadata = rpkg_metadata(package_file)
     exist = package_check(metadata)
+    # As dependencies are only displayed messages for now, wait until the end to make them visible.
+    # This should be moved before actual installation once implemented.
+    if not install_dependencies(metadata):
+      exit(1)
     if exist:
       print("The package is already installed, I will upgrade it.")
     script_dir = extract_scripts(metadata, package_file)
     run_script("preinst", script_dir, exist)
     install(metadata, package_file, exist)
     run_script("postinst", script_dir, exist)
-    # As dependencies are only displayed messages for now, wait until the end to make them visible.
-    # This should be moved before actual installation once implemented.
-    install_dependencies(metadata)
     if metadata['type'] == 'plugin' and 'jar-files' in metadata:
       for j in metadata['jar-files']:
         jar_status(j, True)
