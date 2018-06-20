@@ -147,10 +147,10 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 # Generic requirements
 BuildRequires: gcc bison flex autoconf automake libtool
-Provides: rudder-agent
 %if "%{real_name}" == "rudder-agent"
 Conflicts: rudder-agent-thin
 %else
+Provides: rudder-agent = %{real_epoch}:%{real_version}
 Conflicts: rudder-agent
 %endif
 
