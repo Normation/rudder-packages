@@ -650,6 +650,7 @@ install-perl: build-perl
 	# 8Mb of perldoc
 	#rm -rf $(DESTDIR)/lib/perl5/5.22.0/pod
 	touch build-perl # because perl-$(PERL_RELEASE) is touched by make install
+	find $(DESTDIR)/opt/rudder/man -name 'perl' -exec rm -rf {} \;
 	# Remove 'special' files
 	find $(DESTDIR) -name perllocal.pod \
 	  -o -name ".packlist" \
