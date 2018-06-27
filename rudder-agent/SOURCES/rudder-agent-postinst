@@ -39,7 +39,7 @@ then
     /usr/bin/mkssys -s rudder-agent -p "${CFE_DIR}/bin/cf-execd" -a "-F" -u root -S -n15 -f9 -R
     /usr/sbin/mkitab "rudder-agent:23456789:once:/usr/bin/startsrc -s rudder-agent"
     # No need to tell init to re-read /etc/inittab, it does it automatically every 60 seconds
-  elif [ ${CFRUDDER_OS} != "deb" ] && [ "${CFRUDDER_USE_SYSTEMD}" != "true" ]
+  elif [ ${CFRUDDER_OS} != "deb" ] && [ "${CFRUDDER_USE_SYSTEMD}" != "true" ] && [ ${CFRUDDER_OS} != "slack" ]
   then
     chkconfig --add rudder-agent
     chkconfig rudder-agent on
