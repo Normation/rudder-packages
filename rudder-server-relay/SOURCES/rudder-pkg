@@ -168,9 +168,10 @@ def install_dependencies(metadata):
   if "depends" in metadata:
     for system in metadata["depends"]:
       if system == "binary":
-        if distutils.spawn.find_executable(metadata["depends"][system]) is None:
-          print("The binary " + metadata["depends"][system] + " was not found on the system, you must install it before installing " + metadata['name'])
-          return False
+        for executable in metadata["depends"][system]:
+          if distutils.spawn.find_executable(executable) is None:
+            print("The binary " + executable + " was not found on the system, you must install it before installing " + metadata['name'])
+            return False
       else:
         has_depends = True
         if not depends_printed:
