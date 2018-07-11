@@ -426,13 +426,14 @@ upgrade_ncf() {
   # Handle the case where we have an existing local method and a common method with the same name
   # Display a warning and delete local method
   if [ -x ${CONFIGURATION_REPOSITORY}/ncf/30_generic_methods ]; then
+    CURRENT="$(pwd)"
     cd "${CONFIGURATION_REPOSITORY}/ncf/30_generic_methods/"
     commit_needed=0
-    for method in *.cf
-    do
+    for method in *.cf; do
       [ -f "${method}" ] || break
       if [ -f "${RUDDER_NCF_SOURCE_DIRECTORY}/tree/30_generic_methods/${method}" ]; then
-        if git rm "${method}"; then
+        if git ls-files --error-unmatch ${method} >/dev/null 2>&1; then
+          git rm "${method}" >/dev/null
           commit_needed=1
           echo "WARNING: The ${method} generic method was already present in local configuration, removing it."
         else
@@ -441,8 +442,11 @@ upgrade_ncf() {
         fi
       fi
     done
-    [ "${commit_needed}" = "1" ] && git commit --allow-empty -q -m "Remove duplicate local methods - automatically done by rudder-upgrade script"
+    [ ${commit_needed} -eq 1 ] && git commit --allow-empty -q -m "Remove duplicate local methods - automatically done by rudder-upgrade script"
+    cd ${CURRENT}
   fi
+
+
 }
 
 # 3.2.0: Call rudderify on all local ncf techniques to make sure the promises will be properly generated
