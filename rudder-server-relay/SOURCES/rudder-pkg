@@ -8,10 +8,13 @@ Usage:
     rudder-pkg list
     rudder-pkg remove <package>...
     rudder-pkg rudder-postupgrade
+    rudder-pkg check-compatibility
     rudder-pkg plugin save-status
     rudder-pkg plugin restore-status
     rudder-pkg plugin enable <plugin>...
+    rudder-pkg plugin enable-all
     rudder-pkg plugin disable <plugin>...
+    rudder-pkg plugin disable-all
 
 Options:
 
@@ -24,9 +27,15 @@ Commands:
 
     remove
         remove the given package from Rudder
-
+    
+    rudder-postupgrade
+        execute plugins post install scripts (needed after a Rudder upgrade) 
+    
     check-compatibility
         disable plugins that are not compatible with current Rudder version
+
+    plugin
+        commands on plugin status
 """
 
 # nice to have
@@ -346,6 +355,12 @@ def rudder_postupgrade():
     script_dir = DB_DIRECTORY + "/" + plugin
     run_script("postinst", script_dir, True)
 
+def plugin_disable_all():
+  plugin_status(DB["plugins"].keys(), False) 
+
+
+def plugin_enable_all():
+  plugin_status(DB["plugins"].keys(), True) 
 
 def plugin_status(plugins, status):
   for plugin in plugins:
@@ -374,6 +389,8 @@ if __name__ == "__main__":
     remove(args['<package>'])
   elif args['rudder-postupgrade']:
     rudder_postupgrade()
+  elif args['check-compatibility']:
+    check_compatibility()
   elif args['plugin']:
     if args['save-status']:
       plugin_save_status()
@@ -381,8 +398,12 @@ if __name__ == "__main__":
       plugin_restore_status()
     elif args['enable']:
       plugin_status(args['<plugin>'], True)
+    elif args['enable-all']:
+      plugin_enable_all()
     elif args['disable']:
       plugin_status(args['<plugin>'], False)
+    elif args['disable-all']:
+      plugin_disable_all()
 
   if jetty_needs_restart:
     shell("service rudder-jetty restart", "Restarting jetty")
