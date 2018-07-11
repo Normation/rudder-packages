@@ -742,6 +742,7 @@ upgrade_inventory() {
 # Check and upgrade plugins
 ################################################################################
 upgrade_plugins() {
+  /opt/rudder/bin/rudder-pkg check-compatibility
   /opt/rudder/bin/rudder-pkg rudder-postupgrade
 }
 
