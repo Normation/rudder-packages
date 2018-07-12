@@ -145,15 +145,6 @@ def package_check(metadata):
   name = metadata['name']
   if 'version' not in metadata:
     fail("Package version undefined")
-  # version check
-  match = re.match(r'(\d+\.\d+)-(\d+)\.(\d+)', metadata['version'])
-  if not match:
-    fail("Invalid package version " + metadata['version'])
-  rudder_version = match.group(1)
-  major_version = match.group(2)
-  minor_version = match.group(3)
-  if rudder_version != RUDDER_VERSION:
-    fail("Package not compatible with current Rudder version")
   # incompatibility check
   if metadata['type'] == 'plugin':
     if not check_plugin_compatibility(metadata):
@@ -163,6 +154,17 @@ def package_check(metadata):
 
 
 def check_plugin_compatibility(metadata):
+  # check that the given version is compatible with Rudder one
+  match = re.match(r'(\d+\.\d+)-(\d+)\.(\d+)', metadata['version'])
+  if not match:
+    fail("Invalid package version " + metadata['version'])
+  rudder_version = match.group(1)
+  major_version = match.group(2)
+  minor_version = match.group(3)
+  if rudder_version != RUDDER_VERSION:
+    print("Package '"+ metadata['name'] +"' is not compatible with current version of rudder")
+    return False
+  # check specific constraints
   full_name = metadata['name'] + '-' + metadata['version']
   if full_name in COMPATIBILITY_DB['incompatibles']:
     return False
