@@ -225,7 +225,7 @@ install: build $(INSTALL_DEPS) install-cfengine initial-promises initial-ncf rud
 	find $(DESTDIR)/opt/rudder/share/man/man3 -name "*.3" -exec rm {} \; || true
 	# Compress man pages
 	find $(DESTDIR)/opt/rudder/share/man -type f ! -name '*.gz' -exec gzip -9 {} \;
-	[ $(find $(DESTDIR)/opt/rudder/share/man -type l | wc -l ) -gt 0 ] && for i in $( find $(DESTDIR)/opt/rudder/share/man -type l ) ; do ln -s $( readlink $i ).gz $i.gz ; rm $i ; done || true
+	find $(DESTDIR)/opt/rudder/share/man -type l -exec sh -c 'ln -s $(readlink {}) {}.gz' \; -delete
 
 # Systemd files
 ifeq (true,$(USE_SYSTEMD))
