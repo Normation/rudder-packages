@@ -440,6 +440,7 @@ upgrade_ncf() {
           mv "${method}" "${method}.disabled"
           echo "WARNING: The ${method} generic method was already present in local configuration and not in local repo, disabling it (renamed to ${method}.disabled)."
         fi
+        rm -f ${RUDDER_VAR}/ncf/local/30_generic_methods/${method}
       fi
     done
     [ ${commit_needed} -eq 1 ] && git commit --allow-empty -q -m "Remove duplicate local methods - automatically done by rudder-upgrade script"
