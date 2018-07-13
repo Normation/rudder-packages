@@ -225,7 +225,10 @@ install: build $(INSTALL_DEPS) install-cfengine initial-promises initial-ncf rud
 	find $(DESTDIR)/opt/rudder/share/man/man3 -name "*.3" -exec rm {} \; || true
 	# Compress man pages
 	find $(DESTDIR)/opt/rudder/share/man -type f ! -name '*.gz' -exec gzip -9 {} \;
-	find $(DESTDIR)/opt/rudder/share/man -type l -exec sh -c 'ln -s $(readlink {}) {}.gz' \; -delete
+	# for all old links towards non-compress man page, create a new equivalent link towards the .gz and remove the old one.
+	# As readlink does not exists on AIX, we need to hack with ls -l and awk.
+	find $(DESTDIR)/opt/rudder/share/man -type l ! -name *.gz -exec sh -c 'ln -s -f $$(ls -al $$0 | awk -F"-> " "{print \$$2}").gz $$0.gz; rm $$0' {} \;
+
 
 # Systemd files
 ifeq (true,$(USE_SYSTEMD))
