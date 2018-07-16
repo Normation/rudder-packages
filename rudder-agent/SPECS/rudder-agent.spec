@@ -280,6 +280,7 @@ Requires: pcre
 %if "%{?_os}" == "aix"
 %define install_command        installbsd -c
 %define cp_a_command           cp -hpPr
+%define build_ldflags -Wl,-brtl
 %endif
 
 %if "%{real_name}" == "rudder-agent"
@@ -312,8 +313,8 @@ FusionInventory.
 cd %{_sourcedir}
 
 # Ensure an appropriate environment for the compiler
-export CFLAGS="${RPM_OPT_FLAGS}"
-export CXXFLAGS="${RPM_OPT_FLAGS}"
+export BUILD_CFLAGS="${RPM_OPT_FLAGS}"
+export BUILD_LDLAGS="%{build_ldflags}"
 
 # libattr libtool file is looked for in /lib64 but put in /usr/lib64 on rhel3
 %if 0%{?rhel} && 0%{?rhel} < 4
@@ -361,6 +362,8 @@ cd %{_sourcedir}
 %if 0%{?rhel} && 0%{?rhel} == 3
 %define no_ldso true
 %endif
+
+export BUILD_LDLAGS="%{build_ldflags}"
 
 make install DESTDIR=%{buildroot} USE_SYSTEM_OPENSSL=%{use_system_openssl} USE_SYSTEM_LMDB=%{use_system_lmdb} USE_SYSTEM_PCRE=%{use_system_pcre} USE_SYSTEM_ZLIB=%{use_system_zlib} USE_SYSTEM_CURL=%{use_system_curl} USE_SYSTEMD=%{use_systemd} NO_INIT=%{no_init} NO_CRON=%{no_cron} NO_LD=%{no_ld} NO_PROFILE=%{no_profile} USE_SYSTEM_FUSION=%{use_system_fusion} USE_SYSTEM_PERL=%{use_system_perl} NO_LDSO=%{no_ldso} USE_HTTPS=%{use_https}  USE_SYSTEM_YAML=%{use_system_yaml} USE_SYSTEM_XML=%{use_system_xml} USE_PIE=%{use_pie} USE_ACL=%{use_acl}
 
