@@ -90,7 +90,7 @@ buildpackage-rpm-build-plainrpm:
 	rpm -ba SPECS/*.spec
 
 buildpackage-rpm-build-rpmbuild:
-	rpmbuild --define "_topdir $(PWD)" --define "real_version $(RUDDER_VERSION_RPM)" -ba SPECS/*.spec
+	rpmbuild $(RPMBUILD_OPTS) --define "_topdir $(PWD)" --define "real_version $(RUDDER_VERSION_RPM)" -ba SPECS/*.spec
 
 buildpackage-rpm-aix:  localdepends buildpackage-rpm-common-prep buildpackage-rpm-common-prep-aix  buildpackage-rpm-build-plainrpm
 buildpackage-rpm-suse: localdepends buildpackage-rpm-common-prep buildpackage-rpm-common-prep-suse buildpackage-rpm-common-fix-old-epoch buildpackage-rpm-build-rpmbuild
