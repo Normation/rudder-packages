@@ -281,6 +281,8 @@ Requires: pcre
 %define install_command        installbsd -c
 %define cp_a_command           cp -hpPr
 %define build_ldflags -Wl,-brtl
+%else
+%define build_ldflags %{nil}
 %endif
 
 %if "%{real_name}" == "rudder-agent"
