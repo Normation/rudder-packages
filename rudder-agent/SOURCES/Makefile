@@ -514,7 +514,7 @@ rudder-agent.cron: rudder-sources
 ####################################
 
 # build flags should be used everywhere
-BUILD_FLAGS=CFLAGS="$(BUILD_CFLAGS) $(SECURE_CFLAGS)" LDFLAGS="-Wl,-R$(RUDDER_DIR)/lib $(BUILD_LDFLAGS) $(SECURE_LDFLAGS)"
+BUILD_FLAGS=CFLAGS="$(BUILD_CFLAGS) $(SECURE_CFLAGS)" LDFLAGS="$(BUILD_LDFLAGS) $(SECURE_LDFLAGS)"
 
 build-ssl: openssl-source
 	# openssl doesn't support CFLAGS (it overrides its own) so we must pass them in batch to configure
@@ -586,8 +586,6 @@ build-cfengine-stamp:
 
 # Test if compiler supports hardening flags
 get-flags:
-	$(eval BUILD_CFLAGS:=$(shell [ -x /usr/bin/dpkg-buildflags ] && /usr/bin/dpkg-buildflags --get CFLAGS ))
-	$(eval BUILD_LDFLAGS:=$(shell [ -x /usr/bin/dpkg-buildflags ] && /usr/bin/dpkg-buildflags --get LDFLAGS ))
 	$(eval HAVE_PROTECTION:=$(shell \
 	FLAG_TEST_FILE=`mktemp /tmp/hardening.XXXXXX` ;\
 	echo "void main() {}" > "$${FLAG_TEST_FILE}.c" ;\
