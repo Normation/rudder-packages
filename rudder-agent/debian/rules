@@ -12,6 +12,9 @@
 
 REAL_NAME=rudder-agent
 
+BUILD_CFLAGS=$(shell [ -x /usr/bin/dpkg-buildflags ] && /usr/bin/dpkg-buildflags --get CFLAGS )
+BUILD_LDFLAGS=$(shell [ -x /usr/bin/dpkg-buildflags ] && /usr/bin/dpkg-buildflags --get LDFLAGS ) -Wl,-R/opt/rudder/lib
+
 USE_SYSTEM_OPENSSL=true
 USE_SYSTEM_PERL=true
 USE_SYSTEM_CURL=true
@@ -102,7 +105,7 @@ configure:
 
 build:
 	dh_testdir
-	cd SOURCES && $(MAKE) build $(MAKE_OPTIONS)
+	cd SOURCES && $(MAKE) build $(MAKE_OPTIONS) BUILD_CFLAGS="$(BUILD_CFLAGS)" BUILD_LDFLAGS="$(BUILD_LDFLAGS)"
 
 clean:
 	dh_testdir
@@ -114,7 +117,7 @@ install: build
 	dh_testdir
 	dh_testroot
 	dh_installdirs
-	cd SOURCES && $(MAKE) install $(MAKE_OPTIONS) DESTDIR=$(CURDIR)/debian/tmp
+	cd SOURCES && $(MAKE) install $(MAKE_OPTIONS) BUILD_LDFLAGS="$(BUILD_LDFLAGS)" DESTDIR=$(CURDIR)/debian/tmp
 	# remove perl doc
 	rm -rf $(CURDIR)/debian/tmp/opt/rudder/man $(CURDIR)/debian/tmp/opt/rudder/lib/perl5/5.22.0/pod
 	# let this file be managed by dh_installinit
