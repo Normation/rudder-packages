@@ -1,11 +1,12 @@
 #!/bin/sh
 
-# Configure maxsize in /opt/rudder/etc/openldap/slapd.conf based on
+# Configure maxsize and sockbuf_max_incoming_auth in /opt/rudder/etc/openldap/slapd.conf based on
 # content of /etc/default/rudder-slapd, or auto-computed based on available memory
 
 # Script specific
 PROG_NAME='rudder-slapd'
 OS=`uname -s`   # To adapt message printing
+SLAPD_CONF_FILE=/opt/rudder/etc/openldap/slapd.conf
 
 
 #====================================================================
@@ -57,7 +58,18 @@ then
     # set cache size to the value provided
     MDBSIZE=${RUDDER_MDBSIZE}
   fi
-  sed -i '/^[ \t]*\(maxsize\|maxsize\)/d' /opt/rudder/etc/openldap/slapd.conf
-  sed -i 's/^\([ \t]*suffix[ \t]\+"cn=rudder-configuration".*\)/\1\nmaxsize '${MDBSIZE}'/' /opt/rudder/etc/openldap/slapd.conf
+  sed -i '/^[ \t]*maxsize/d' ${SLAPD_CONF_FILE}
+  sed -i 's/^\([ \t]*suffix[ \t]\+"cn=rudder-configuration".*\)/\1\nmaxsize '${MDBSIZE}'/' ${SLAPD_CONF_FILE}
 fi
+
+if [ "${RUDDER_MAX_INCOMING_AUTH}" != "" ]
+then
+    # Set value to the one in etc/default
+    MAX_INCOMING_AUTH=${RUDDER_MAX_INCOMING_AUTH}
+else
+    # 1000000000 as default max size fo incoming query
+    MAX_INCOMING_AUTH=1000000000
+fi
+sed -i '/^[ \t]*sockbuf_max_incoming_auth/d' ${SLAPD_CONF_FILE}
+sed -i 's/^\([ \t]*argsfile[ \t]\+\/.*\)/\1\nsockbuf_max_incoming_auth '${MAX_INCOMING_AUTH}'/' ${SLAPD_CONF_FILE}
 
