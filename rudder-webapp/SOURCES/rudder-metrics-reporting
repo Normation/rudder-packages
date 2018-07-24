@@ -54,6 +54,9 @@ import uuid
 def metrics():
   data = { }
 
+  # Define the versionning of the file
+  data['file_version'] = "2"
+
   # find uuid, or generate it
   data["uuid"] = get_uuid()
 
@@ -61,15 +64,15 @@ def metrics():
   # -----------------------
 
   # Number of expected reports (components*directives*nodes)
-  sql = "select sum(nbnodes* cardinality) from (select count(nodeid) as nbnodes, pkid, cardinality from expectedreports exp join expectedreportsnodes nodes on exp.nodejoinkey = nodes.nodejoinkey where enddate is null group by pkid, cardinality) as T;"
-  data["expected_report_count"] = psql(sql)
+  sql = "select sum(n.pending) + sum(n.success) + sum(n.repaired) + sum(n.error) + sum(n.missing) + sum(n.noanswer) + sum(n.notapplicable) + sum(n.compliant) + sum(n.auditnotapplicable) + sum(n.noncompliant) + sum(n.auditerror) + sum(n.badpolicymode) from nodecompliancelevels n inner join (select nodeid, max(runtimestamp) as maxtime from nodecompliancelevels group by nodeid) as t on t.nodeid = n.nodeid and t.maxtime = n.runtimestamp;"
+  data["last_report_count"] = psql(sql)
   
   # Number of rules
-  sql = "select count(distinct(ruleid)) from expectedreports where enddate is null;"
+  sql = "select count(ruleid) from rules where endtime is null;" 
   data["rule_count"] = psql(sql)
   
   # Number of directives
-  sql = "select count(distinct(directiveid)) from expectedreports where enddate is null;"
+  sql = "select count(directiveid) from directives where endtime is null;" 
   data["directive_count"] = psql(sql)
   
   # Number of nodes
@@ -142,6 +145,20 @@ def metrics():
   # Rudder version
   cmd="[ -x /usr/bin/dpkg ] && dpkg-query -W rudder-server-root || rpm -q rudder-server-root"
   data["package_version"] = command(["/bin/sh", "-c", cmd]).strip()
+
+  # List installed plugins
+  cmd="/opt/rudder/bin/rudder-pkg list"
+  data['rudder_pkg'] = command(["/bin/sh", "-c", cmd]).strip()
+
+  # Read rudder.json file
+  with open('/var/rudder/cfengine-community/inputs/rudder.json') as rudder_json_file:
+    rudder_json_data = json.load(rudder_json_file)
+
+  # report mode
+  data['rudder_report_mode'] = rudder_json_data.get('RUDDER_REPORT_MODE')
+
+  # Modified file ttl
+  data['rudder_modified_files_ttl'] = rudder_json_data.get('MODIFIED_FILES_TTL')
 
   return json.dumps(data, indent=2)
 
