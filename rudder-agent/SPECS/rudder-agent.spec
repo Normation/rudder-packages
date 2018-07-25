@@ -284,8 +284,10 @@ Requires: pcre
 # -L adds the library path to the produced executables
 # -static-libgcc is added because gcc is not provided on aix
 %define build_ldflags -static-libgcc -Wl,-brtl -Wl,-L%{rudderdir}/lib
+%define build_cflags -static-libgcc
 %else
 %define build_ldflags -Wl,-R%{rudderdir}/lib
+%define build_cflags %{nil}
 %endif
 
 %if "%{real_name}" == "rudder-agent"
@@ -322,7 +324,7 @@ cd %{_sourcedir}
 cp /usr/lib64/libattr.a /usr/lib64/libattr.la /lib64 || cp /usr/lib/libattr.a /usr/lib/libattr.la /lib
 %endif
 
-make %{?_smp_mflags} BUILD_CFLAGS="${RPM_OPT_FLAGS}" BUILD_LDFLAGS="%{build_ldflags}" USE_SYSTEM_OPENSSL=%{use_system_openssl} USE_SYSTEM_LMDB=%{use_system_lmdb} USE_SYSTEM_PCRE=%{use_system_pcre} USE_SYSTEM_FUSION=%{use_system_fusion} USE_SYSTEM_PERL=%{use_system_perl} USE_HTTPS=%{use_https} USE_SYSTEM_ZLIB=%{use_system_zlib} USE_SYSTEM_CURL=%{use_system_curl} USE_SYSTEM_YAML=%{use_system_yaml} USE_SYSTEM_XML=%{use_system_xml} USE_PIE=%{use_pie} USE_ACL=%{use_acl}
+make %{?_smp_mflags} BUILD_CFLAGS="${RPM_OPT_FLAGS} %{build_cflags}" BUILD_LDFLAGS="%{build_ldflags}" USE_SYSTEM_OPENSSL=%{use_system_openssl} USE_SYSTEM_LMDB=%{use_system_lmdb} USE_SYSTEM_PCRE=%{use_system_pcre} USE_SYSTEM_FUSION=%{use_system_fusion} USE_SYSTEM_PERL=%{use_system_perl} USE_HTTPS=%{use_https} USE_SYSTEM_ZLIB=%{use_system_zlib} USE_SYSTEM_CURL=%{use_system_curl} USE_SYSTEM_YAML=%{use_system_yaml} USE_SYSTEM_XML=%{use_system_xml} USE_PIE=%{use_pie} USE_ACL=%{use_acl}
 
 # there was a slibclean here on aix
 # TODO, check that it is not necessary anymore since we no more do a make install
