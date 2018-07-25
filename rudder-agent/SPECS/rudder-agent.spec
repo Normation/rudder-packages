@@ -377,7 +377,7 @@ find %{buildroot} -type f -o -type l | sed "s,%{buildroot},," | sed "s,\.py$,\.p
 
 # Aix doesn't have libgcc by default, embed it from our builder
 %if "%{?_os}" == "aix"
-cp /opt/freeware/lib/gcc/powerpc-ibm-aix5.3.0.0/4.8.2/libgcc* /opt/rudder/lib
+cp /opt/freeware/lib/gcc/powerpc-ibm-aix5.3.0.0/4.8.2/libgcc* %{buildroot}/opt/rudder/lib
 %endif
 
 %pre
