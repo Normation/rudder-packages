@@ -11,9 +11,12 @@ LOG_FILE="/var/log/rudder/install/rudder-agent.log"
 
 # Closing all parents fd which are inherited, otherwise it can lead to
 # a postint unable to terminate (revelant at least on debian 7)
-for fd in $(ls /proc/self/fd); do
-  [ "${fd}" -gt 2 ] && eval "exec $fd>&-"
-done
+if [ -d /proc/self/fd ]
+then
+  for fd in $(ls /proc/self/fd); do
+    [ "${fd}" -gt 2 ] && eval "exec $fd>&-"
+  done
+fi
 
 if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ]
 then
