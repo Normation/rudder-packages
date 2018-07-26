@@ -92,6 +92,9 @@ buildpackage-rpm-suse: localdepends buildpackage-rpm-common-prep buildpackage-rp
 buildpackage-rpm-rhel: localdepends buildpackage-rpm-common-prep buildpackage-rpm-common-prep-rhel buildpackage-rpm-build-rpmbuild
 buildpackage-rpm-fedora: localdepends buildpackage-rpm-common-prep buildpackage-rpm-common-prep-fedora buildpackage-rpm-build-rpmbuild
 
+buildpackage-slackware: localdepends
+	cd slackware && ./rudder-agent.SlackBuild
+
 clean: localclean
 localclean:
 	cd SOURCES && $(MAKE) localclean
