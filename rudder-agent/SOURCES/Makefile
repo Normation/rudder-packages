@@ -564,7 +564,7 @@ build-yaml: yaml-source
 	cd yaml-source && $(MAKE) install DESTDIR=$(CURDIR)/build-yaml
 
 build-xml: xml-source
-	cd xml-source && ./configure --prefix=$(RUDDER_DIR) --with-xpath --with-c14n --without-catalog --without-debug --without-docbook --without-ftp --without-http --without-html --without-iconv --without-python --enable-shared --disable-static $(BUILD_FLAGS)
+	cd xml-source && ./configure --prefix=$(RUDDER_DIR) $(ZLIB_ARG) --with-xpath --with-c14n --without-catalog --without-debug --without-docbook --without-ftp --without-http --without-html --without-iconv --without-python --enable-shared --disable-static $(BUILD_FLAGS)
 	cd xml-source && $(MAKE)
 	# install to a temporary location is needed to build cfengine
 	cd xml-source && $(MAKE) install DESTDIR=$(CURDIR)/build-xml
