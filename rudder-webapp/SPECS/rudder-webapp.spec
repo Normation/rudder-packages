@@ -264,7 +264,6 @@ cp %{SOURCE17} %{buildroot}%{rudderdir}/bin/
 cp %{SOURCE18} %{buildroot}%{rudderdir}/share/certificates/
 
 # Install documentation
-cp -rf %{_builddir}/rudder-doc/pdf %{buildroot}/usr/share/doc/rudder
 cp -rf %{_builddir}/rudder-doc/html %{buildroot}/usr/share/doc/rudder
 
 %if 0%{?rhel} || 0%{?fedora}
