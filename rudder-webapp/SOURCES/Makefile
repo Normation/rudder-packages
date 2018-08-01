@@ -65,7 +65,7 @@ localdepends: ./rudder-sources ./maven/bin/mvn ./rudder-users.xml ./rudder-doc .
 
 ./rudder-doc: /usr/bin/wget
 	# Get user manual from rudder-project.org and rename directory containing it to rudder-doc
-	$(WGET) https://docs.rudder.io/files/doc-${RUDDER_MAJOR_VERSION}.tar.gz
+	$(WGET) https://docs.rudder.io/archives/doc-${RUDDER_MAJOR_VERSION}.tar.gz
 	tar -xzf doc-${RUDDER_MAJOR_VERSION}.tar.gz
 	mkdir -p rudder-doc
 	mv doc-${RUDDER_MAJOR_VERSION} rudder-doc/html
