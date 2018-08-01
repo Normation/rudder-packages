@@ -568,7 +568,7 @@ build-xml: xml-source
 	cd xml-source && $(MAKE)
 	# install to a temporary location is needed to build cfengine
 	cd xml-source && $(MAKE) install DESTDIR=$(CURDIR)/build-xml
-	cd $(CURDIR)/build-xml$(RUDDER_DIR) && rm -rf share
+	cd $(CURDIR)/build-xml$(RUDDER_DIR) && rm -rf share bin/xml2-config
 
 build-cfengine: $(BUILD_DEPS) cfengine-source build-cfengine-stamp
 build-cfengine-stamp:
@@ -634,7 +634,7 @@ install-yaml: build-yaml
 install-xml: build-xml
 	mkdir -p $(DESTDIR)
 	$(CP_A) $(CURDIR)/build-xml/* $(DESTDIR)
-	cd $(DESTDIR)/opt/rudder && rm -rf bin/xmlcatalog bin/xmllint lib/xml2Conf.sh lib/cmake bin/xml2-config
+	cd $(DESTDIR)/opt/rudder && rm -rf bin/xmlcatalog bin/xmllint lib/xml2Conf.sh lib/cmake
 
 install-cfengine: build-cfengine $(INSTALL_DEPS)
 	cd cfengine-source && $(MAKE) install DESTDIR=$(DESTDIR) STRIP=""
