@@ -429,7 +429,7 @@ rudder-sources: rudder-sources.tar.bz2
 
 rudder.8.gz:
 	# Get man page from rudder-project.org
-	$(GET) rudder.8 $(HTTPS)://www.rudder-project.org/man/${RUDDER_MAJOR_VERSION}/rudder.8 ""
+	$(GET) rudder.8 $(HTTPS)://docs.rudder.io/man/${RUDDER_MAJOR_VERSION}/rudder.8 ""
 	gzip -f rudder.8
 
 initial-promises: ./rudder-sources
