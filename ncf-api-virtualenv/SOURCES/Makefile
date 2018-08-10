@@ -35,7 +35,7 @@ localdepends: ./rudder-sources ./virtualenv/virtualenv.py ./virtualenv-1.10.1/vi
 
 ./virtualenv.tgz: /usr/bin/wget
 	# Original URL: https://pypi.python.org/packages/source/v/virtualenv/virtualenv-12.0.7.tar.gz
-	$(WGET) -O virtualenv.tgz http://www.normation.com/tarball/virtualenv/virtualenv-$(VIRTUALENV_RELEASE).tar.gz
+	$(WGET) -O virtualenv.tgz http://repository.rudder.io/build-dependencies/virtualenv/virtualenv-$(VIRTUALENV_RELEASE).tar.gz
 
 ./virtualenv/virtualenv.py: ./virtualenv.tgz
 	tar -xzf ./virtualenv.tgz
@@ -43,7 +43,7 @@ localdepends: ./rudder-sources ./virtualenv/virtualenv.py ./virtualenv-1.10.1/vi
 
 ./virtualenv-1.10.1.tgz: /usr/bin/wget
 	# Original URL: https://pypi.python.org/packages/source/v/virtualenv/virtualenv-1.10.1.tar.gz
-	$(WGET) -O virtualenv-1.10.1.tgz http://www.normation.com/tarball/virtualenv/virtualenv-1.10.1.tar.gz
+	$(WGET) -O virtualenv-1.10.1.tgz http://repository.rudder.io/build-dependencies/virtualenv/virtualenv-1.10.1.tar.gz
 
 ./virtualenv-1.10.1/virtualenv.py: ./virtualenv-1.10.1.tgz
 	tar -xzf ./virtualenv-1.10.1.tgz

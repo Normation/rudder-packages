@@ -30,7 +30,7 @@ localdepends: ./jetty7
 ./jetty7: /usr/bin/wget
 	# Download and uncompress the Jetty distribution
 	# Original URL: http://repo1.maven.org/maven2/org/eclipse/jetty/jetty-distribution/$(JETTY_RELEASE).v$(DATE_RELEASE)/jetty-distribution-$(JETTY_RELEASE).v$(DATE_RELEASE).tar.gz
-	$(WGET) -O $(TMP_DIR)/jetty.tgz http://www.normation.com/tarball/jetty/jetty-distribution-$(JETTY_RELEASE).v$(DATE_RELEASE).tar.gz
+	$(WGET) -O $(TMP_DIR)/jetty.tgz http://repository.rudder.io/build-dependencies/jetty/jetty-distribution-$(JETTY_RELEASE).v$(DATE_RELEASE).tar.gz
 	tar xzf $(TMP_DIR)/jetty.tgz -C $(TMP_DIR)
 	mv $(TMP_DIR)/jetty-distribution-$(JETTY_RELEASE).v$(DATE_RELEASE) ./jetty7
 	rm -rf $(TMP_DIR)

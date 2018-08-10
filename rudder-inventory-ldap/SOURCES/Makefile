@@ -33,13 +33,13 @@ localdepends: ./berkeleydb-source ./openldap-source ./rudder.schema ./inventory.
 
 ./berkeleydb-source: /usr/bin/wget
 	# Original URL: http://download.oracle.com/berkeley-db/db-$(BERKELEYDB_RELEASE).tar.gz
-	$(WGET) -O ./berkeleydb.tgz http://www.normation.com/tarball/db-$(BERKELEYDB_RELEASE).tar.gz
+	$(WGET) -O ./berkeleydb.tgz http://repository.rudder.io/build-dependencies/db-$(BERKELEYDB_RELEASE).tar.gz
 	tar xzf ./berkeleydb.tgz -C .
 	mv ./db-$(BERKELEYDB_RELEASE) ./berkeleydb-source
 
 ./openldap-source: /usr/bin/wget
 	# Original URL: ftp://ftp.openldap.org/pub/OpenLDAP/openldap-release/openldap-$(OPENLDAP_RELEASE).tgz
-	$(WGET) -O ./openldap.tgz http://www.normation.com/tarball/openldap/openldap-$(OPENLDAP_RELEASE).tgz
+	$(WGET) -O ./openldap.tgz http://repository.rudder.io/build-dependencies/openldap/openldap-$(OPENLDAP_RELEASE).tgz
 	tar xzf ./openldap.tgz -C .
 	mv ./openldap-$(OPENLDAP_RELEASE) ./openldap-source
 	
