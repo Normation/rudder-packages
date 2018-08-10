@@ -43,7 +43,7 @@ localdepends: ./rudder-sources ./maven/bin/mvn ./rudder-users.xml ./rudder-doc .
 
 ./maven.tgz: /usr/bin/wget
 	# Original URL: http://apache.multidist.com/maven/binaries/apache-maven-$(MAVEN_RELEASE)-bin.tar.gz
-	$(WGET) -O ./maven.tgz.dl http://www.normation.com/tarball/apache-maven-$(MAVEN_RELEASE)-bin.tar.gz
+	$(WGET) -O ./maven.tgz.dl http://repository.rudder.io/build-dependencies/maven/apache-maven-$(MAVEN_RELEASE)-bin.tar.gz
 	mv ./maven.tgz.dl ./maven.tgz
 
 ./maven/bin/mvn: ./maven.tgz

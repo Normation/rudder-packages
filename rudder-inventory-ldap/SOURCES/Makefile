@@ -31,7 +31,7 @@ localdepends: ./openldap-source ./rudder.schema ./inventory.schema ../debian/rud
 
 ./openldap-source: /usr/bin/wget
 	# Original URL: ftp://ftp.openldap.org/pub/OpenLDAP/openldap-release/openldap-$(OPENLDAP_RELEASE).tgz
-	$(WGET) -O ./openldap.tgz http://www.normation.com/tarball/openldap/openldap-$(OPENLDAP_RELEASE).tgz
+	$(WGET) -O ./openldap.tgz http://repository.rudder.io/build-dependencies/openldap/openldap-$(OPENLDAP_RELEASE).tgz
 	tar xzf ./openldap.tgz -C .
 	mv ./openldap-$(OPENLDAP_RELEASE) ./openldap-source
 	

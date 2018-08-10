@@ -37,7 +37,7 @@ PCRE_SHA1 = 3ab418d0026c2a4e693ec783bd60660debc32b8f
 CPANMINUS_RELEASE = 1.7036
 CPANMINUS_SHA1 = a12043498ab54d9abdc58d1ebb4988da3bd515db
 #CPAN_URL = https://www.cpan.org
-CPAN_URL = $(HTTPS)://www.normation.com/tarball/cpan/$(RUDDER_MAJOR_VERSION)
+CPAN_URL = $(HTTPS)://repository.rudder.io/build-dependencies/cpan/$(RUDDER_MAJOR_VERSION)
 CURL_RELEASE = 7.58.0
 CURL_SHA1 = 089f17884d672aca7a661a65d847135f2f0ccbbf
 YAML_RELEASE = 0.1.7
@@ -328,7 +328,7 @@ cfengine-source:
 ifeq ($(shell ../../build-caching get ./cfengine-source/ --force-config name=cfengine-src version=$(CFENGINE_RELEASE) >/dev/null 2>&1 || echo KO), KO)
 	$(eval TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX))
 	# Original URL: https://cfengine-package-repos.s3.amazonaws.com/tarballs/cfengine-$(CFENGINE_RELEASE).tar.gz
-	$(GET) $(TMP_DIR)/cfengine.tgz $(HTTPS)://www.normation.com/tarball/cfengine/cfengine-$(CFENGINE_RELEASE).tar.gz $(CFENGINE_SHA1)
+	$(GET) $(TMP_DIR)/cfengine.tgz $(HTTPS)://repository.rudder.io/build-dependencies/cfengine/cfengine-$(CFENGINE_RELEASE).tar.gz $(CFENGINE_SHA1)
 	gunzip < $(TMP_DIR)/cfengine.tgz | $(TAR) xf -
 	mv ./cfengine-$(CFENGINE_RELEASE) ./cfengine-source
 	../../build-caching put ./cfengine-source/ --force-config name=cfengine-src version=$(CFENGINE_RELEASE)
@@ -344,7 +344,7 @@ openssl-source:
 ifeq ($(shell ../../build-caching get ./openssl-source/ --force-config name=openssl-src version=$(OPENSSL_RELEASE) >/dev/null 2>&1 || echo KO), KO)
 	$(eval TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX))
 	# Original URL: https://www.openssl.org/source/openssl-$(OPENSSL_RELEASE).tar.gz
-	$(GET) $(TMP_DIR)/openssl.tgz $(HTTPS)://www.normation.com/tarball/openssl/openssl-$(OPENSSL_RELEASE).tar.gz $(OPENSSL_SHA1)
+	$(GET) $(TMP_DIR)/openssl.tgz $(HTTPS)://repository.rudder.io/build-dependencies/openssl/openssl-$(OPENSSL_RELEASE).tar.gz $(OPENSSL_SHA1)
 	gunzip < $(TMP_DIR)/openssl.tgz | $(TAR) xf -
 	mv ./openssl-$(OPENSSL_RELEASE) ./openssl-source
 	../../build-caching put ./openssl-source/ --force-config name=openssl-src version=$(OPENSSL_RELEASE)
@@ -355,7 +355,7 @@ lmdb-source:
 ifeq ($(shell ../../build-caching get ./lmdb-source/ --force-config name=lmdb-src version=$(LMDB_RELEASE) >/dev/null 2>&1 || echo KO), KO)
 	$(eval TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX))
 	# Original URL: http://ftp.fr.debian.org/debian/pool/main/l/lmdb/lmdb_$(LMDB_RELEASE).orig.tar.xz
-	$(GET) $(TMP_DIR)/lmdb.tgz $(HTTPS)://www.normation.com/tarball/lmdb/lmdb-$(LMDB_RELEASE).tar.gz $(LMDB_SHA1)
+	$(GET) $(TMP_DIR)/lmdb.tgz $(HTTPS)://repository.rudder.io/build-dependencies/lmdb/lmdb-$(LMDB_RELEASE).tar.gz $(LMDB_SHA1)
 	gunzip < $(TMP_DIR)/lmdb.tgz | $(TAR) xf -
 	mv ./lmdb-LMDB_$(LMDB_RELEASE) ./lmdb-source
 	../../build-caching put ./lmdb-source/ --force-config name=lmdb-src version=$(LMDB_RELEASE)
@@ -366,7 +366,7 @@ pcre-source:
 ifeq ($(shell ../../build-caching get ./pcre-source/ --force-config name=pcre-src version=$(PCRE_RELEASE) >/dev/null 2>&1 || echo KO), KO)
 	$(eval TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX))
 	# Original URL: http://vorboss.dl.sourceforge.net/project/pcre/pcre/8.38/pcre-8.38.tar.gz
-	$(GET) $(TMP_DIR)/pcre.tgz $(HTTPS)://www.normation.com/tarball/pcre/pcre-$(PCRE_RELEASE).tar.gz $(PCRE_SHA1)
+	$(GET) $(TMP_DIR)/pcre.tgz $(HTTPS)://repository.rudder.io/build-dependencies/pcre/pcre-$(PCRE_RELEASE).tar.gz $(PCRE_SHA1)
 	gunzip < $(TMP_DIR)/pcre.tgz | $(TAR) xf -
 	mv ./pcre-$(PCRE_RELEASE) ./pcre-source
 	../../build-caching put ./pcre-source/ --force-config name=pcre-src version=$(PCRE_RELEASE)
@@ -377,7 +377,7 @@ zlib-source:
 ifeq ($(shell ../../build-caching get ./zlib-source/ --force-config name=zlib-src version=$(ZLIB_RELEASE) >/dev/null 2>&1 || echo KO), KO)
 	$(eval TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX))
 	# Original URL: http://zlib.net/zlib-$(ZLIB_RELEASE).tar.gz
-	$(GET) $(TMP_DIR)/zlib.tgz $(HTTPS)://www.normation.com/tarball/zlib/zlib-$(ZLIB_RELEASE).tar.gz $(ZLIB_SHA1)
+	$(GET) $(TMP_DIR)/zlib.tgz $(HTTPS)://repository.rudder.io/build-dependencies/zlib/zlib-$(ZLIB_RELEASE).tar.gz $(ZLIB_SHA1)
 	gunzip < $(TMP_DIR)/zlib.tgz | $(TAR) xf -
 	mv ./zlib-$(ZLIB_RELEASE) ./zlib-source
 	../../build-caching put ./zlib-source/ --force-config name=zlib-src version=$(ZLIB_RELEASE)
@@ -388,7 +388,7 @@ curl-source:
 ifeq ($(shell ../../build-caching get ./curl-source/ --force-config name=curl-src version=$(CURL_RELEASE) >/dev/null 2>&1 || echo KO), KO)
 	$(eval TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX))
 	# Original URL: https://curl.haxx.se/download/curl-7.58.0.tar.gz
-	$(GET) $(TMP_DIR)/curl.tgz $(HTTPS)://www.normation.com/tarball/curl/curl-$(CURL_RELEASE).tar.gz $(CURL_SHA1)
+	$(GET) $(TMP_DIR)/curl.tgz $(HTTPS)://repository.rudder.io/build-dependencies/curl/curl-$(CURL_RELEASE).tar.gz $(CURL_SHA1)
 	gunzip < $(TMP_DIR)/curl.tgz | $(TAR) xf -
 	mv ./curl-$(CURL_RELEASE) ./curl-source
 	../../build-caching put ./curl-source/ --force-config name=curl-src version=$(CURL_RELEASE)
@@ -399,7 +399,7 @@ yaml-source:
 ifeq ($(shell ../../build-caching get ./yaml-source/ --force-config name=yaml-src version=$(YAML_RELEASE) >/dev/null 2>&1 || echo KO), KO)
 	$(eval TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX))
 	# Original URL: http://pyyaml.org/download/libyaml/yaml-0.1.7.tar.gz
-	$(GET) $(TMP_DIR)/yaml.tgz $(HTTPS)://www.normation.com/tarball/yaml/yaml-$(YAML_RELEASE).tar.gz $(YAML_SHA1)
+	$(GET) $(TMP_DIR)/yaml.tgz $(HTTPS)://repository.rudder.io/build-dependencies/yaml/yaml-$(YAML_RELEASE).tar.gz $(YAML_SHA1)
 	gunzip < $(TMP_DIR)/yaml.tgz | $(TAR) xf -
 	mv ./yaml-$(YAML_RELEASE) ./yaml-source
 	../../build-caching put ./yaml-source/ --force-config name=yaml-src version=$(YAML_RELEASE)
@@ -410,7 +410,7 @@ xml-source:
 ifeq ($(shell ../../build-caching get ./xml-source/ --force-config name=xml-src version=$(XML_RELEASE) >/dev/null 2>&1 || echo KO), KO)
 	$(eval TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX))
 	# Original URL: ftp://xmlsoft.org/libxml2/libxml2-2.9.7.tar.gz
-	$(GET) $(TMP_DIR)/libxml2.tgz $(HTTPS)://www.normation.com/tarball/xml/libxml2-$(XML_RELEASE).tar.gz $(XML_SHA1)
+	$(GET) $(TMP_DIR)/libxml2.tgz $(HTTPS)://repository.rudder.io/build-dependencies/xml/libxml2-$(XML_RELEASE).tar.gz $(XML_SHA1)
 	gunzip < $(TMP_DIR)/libxml2.tgz | $(TAR) xf -
 	mv ./libxml2-$(XML_RELEASE) ./xml-source
 	# patch libxml source to work with very old gcc
@@ -460,7 +460,7 @@ fusioninventory-agent:
 ifeq ($(shell ../../build-caching get ./fusioninventory-agent/ --force-config name=fusioninventory-agent version=$(FUSION_RELEASE) >/dev/null 2>&1 || echo KO), KO)
 	$(eval TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX))
 	#Original URL: https://github.com/fusioninventory/fusioninventory-agent/releases/download/2.3.19/FusionInventory-Agent-$(FUSION_RELEASE).tar.gz
-	$(GET) $(TMP_DIR)/fusion.tgz $(HTTPS)://www.normation.com/tarball/fusioninventory/FusionInventory-Agent-$(FUSION_RELEASE).tar.gz $(FUSION_SHA1)
+	$(GET) $(TMP_DIR)/fusion.tgz $(HTTPS)://repository.rudder.io/build-dependencies/fusioninventory/FusionInventory-Agent-$(FUSION_RELEASE).tar.gz $(FUSION_SHA1)
 	gunzip < $(TMP_DIR)/fusion.tgz | $(TAR) xf -
 	mv ./FusionInventory-Agent-$(FUSION_RELEASE) ./fusioninventory-agent
 	../../build-caching put ./fusioninventory-agent/ --force-config name=fusioninventory-agent version=$(FUSION_RELEASE)
@@ -482,10 +482,10 @@ perl-$(PERL_RELEASE):
 ifeq ($(shell ../../build-caching get ./perl-$(PERL_RELEASE)/ --force-config name=perl-source versions=$(perl_source) >/dev/null 2>&1 || echo KO), KO)
 	$(eval TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX))
 	# Original URL: http://www.cpan.org/src/5.0/perl-5.22.0.tar.gz
-	$(GET) $(TMP_DIR)/perl.tar.gz $(HTTPS)://www.normation.com/tarball/perl/perl-$(PERL_RELEASE).tar.gz $(PERL_SHA1)
+	$(GET) $(TMP_DIR)/perl.tar.gz $(HTTPS)://repository.rudder.io/build-dependencies/perl/perl-$(PERL_RELEASE).tar.gz $(PERL_SHA1)
 	gunzip < $(TMP_DIR)/perl.tar.gz | $(TAR) xf -
 	# Original URL: http://www.cpan.org/modules/by-module/App/App-cpanminus-1.7036.tar.gz
-	$(GET) ./perl-$(PERL_RELEASE)/App-cpanminus.tar.gz $(HTTPS)://www.normation.com/tarball/cpan/App-cpanminus-$(CPANMINUS_RELEASE).tar.gz $(CPANMINUS_SHA1)
+	$(GET) ./perl-$(PERL_RELEASE)/App-cpanminus.tar.gz $(HTTPS)://repository.rudder.io/build-dependencies/cpan/App-cpanminus-$(CPANMINUS_RELEASE).tar.gz $(CPANMINUS_SHA1)
 	cd perl-$(PERL_RELEASE) && gunzip < App-cpanminus.tar.gz | $(TAR) xf -
 	mv ./perl-$(PERL_RELEASE)/App-cpanminus-$(CPANMINUS_RELEASE) ./perl-$(PERL_RELEASE)/App-cpanminus
 	# cpanminus+curl have a bug on rhel3+64bits, this is the workaround, see http://www.rudder-project.org/redmine/issues/8533
@@ -498,7 +498,7 @@ cpan-source: perl-$(PERL_RELEASE)/App-cpanminus
 perl-$(PERL_RELEASE)/App-cpanminus:
 	mkdir -p ./perl-$(PERL_RELEASE)
 	$(eval TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX))
-	$(GET) $(TMP_DIR)/App-cpanminus.tar.gz $(HTTPS)://www.normation.com/tarball/cpan/App-cpanminus-$(CPANMINUS_RELEASE).tar.gz $(CPANMINUS_SHA1)
+	$(GET) $(TMP_DIR)/App-cpanminus.tar.gz $(HTTPS)://repository.rudder.io/build-dependencies/cpan/App-cpanminus-$(CPANMINUS_RELEASE).tar.gz $(CPANMINUS_SHA1)
 	cd perl-$(PERL_RELEASE) && gunzip < $(TMP_DIR)/App-cpanminus.tar.gz | $(TAR) xf -
 	mv ./perl-$(PERL_RELEASE)/App-cpanminus-$(CPANMINUS_RELEASE) ./perl-$(PERL_RELEASE)/App-cpanminus
 	rm -rf $(TMP_DIR)

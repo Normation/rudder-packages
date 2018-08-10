@@ -41,7 +41,7 @@ localdepends: ./rudder-sources ./inventory-web.properties ./maven/bin/mvn ./endp
 
 ./maven.tgz: /usr/bin/wget
 	# Original URL: http://apache.multidist.com/maven/binaries/apache-maven-$(MAVEN_RELEASE)-bin.tar.gz
-	$(WGET) -O ./maven.tgz http://www.normation.com/tarball/apache-maven-$(MAVEN_RELEASE)-bin.tar.gz
+	$(WGET) -O ./maven.tgz http://repository.rudder.io/build-dependencies/maven/apache-maven-$(MAVEN_RELEASE)-bin.tar.gz
 
 ./maven/bin/mvn: ./maven.tgz
 	tar -xzf ./maven.tgz -C .
