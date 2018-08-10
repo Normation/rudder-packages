@@ -26,7 +26,7 @@ FIND := /usr/bin/find
 # this is the orginal URL for Jetty distribution
 JETTY_URL := "http://repo1.maven.org/maven2/org/eclipse/jetty/jetty-distribution/$(JETTY_RELEASE).v$(DATE_RELEASE)/jetty-distribution-$(JETTY_RELEASE).v$(DATE_RELEASE).tar.gz"
 # this is our "local" copy, used to make reproducible build whatever happen to original URL
-JETTY_NRM_URL := "http://www.normation.com/tarball/jetty/jetty-distribution-$(JETTY_RELEASE).v$(DATE_RELEASE).tar.gz"
+JETTY_NRM_URL := "http://repository.rudder.io/build-dependencies/jetty/jetty-distribution-$(JETTY_RELEASE).v$(DATE_RELEASE).tar.gz"
 
 
 localdepends: ./jetty
