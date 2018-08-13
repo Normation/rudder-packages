@@ -33,7 +33,7 @@ localdepends: ./berkeleydb-source ./openldap-source ./rudder.schema ./inventory.
 
 ./berkeleydb-source: /usr/bin/wget
 	# Original URL: http://download.oracle.com/berkeley-db/db-$(BERKELEYDB_RELEASE).tar.gz
-	$(WGET) -O ./berkeleydb.tgz http://repository.rudder.io/build-dependencies/db-$(BERKELEYDB_RELEASE).tar.gz
+	$(WGET) -O ./berkeleydb.tgz http://repository.rudder.io/build-dependencies/bdb/db-$(BERKELEYDB_RELEASE).tar.gz
 	tar xzf ./berkeleydb.tgz -C .
 	mv ./db-$(BERKELEYDB_RELEASE) ./berkeleydb-source
 
