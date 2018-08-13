@@ -28,7 +28,7 @@ SOURCES/rudder.war: java8
 	cd $(CURDIR)/SOURCES/rudder-sources/rudder-commons    && $(CURDIR)/SOURCES/maven/bin/mvn --batch-mode -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true install
 	cd $(CURDIR)/SOURCES/rudder-sources/scala-ldap        && $(CURDIR)/SOURCES/maven/bin/mvn --batch-mode -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true install
 	cd $(CURDIR)/SOURCES/rudder-sources/ldap-inventory    && $(CURDIR)/SOURCES/maven/bin/mvn --batch-mode -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true install
-	cd $(CURDIR)/SOURCES/rudder-sources/rudder            && $(CURDIR)/SOURCES/maven/bin/mvn --batch-mode -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true install package
+	cd $(CURDIR)/SOURCES/rudder-sources/rudder            && $(CURDIR)/SOURCES/maven/bin/mvn --batch-mode -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true -U install package
 	cp $(CURDIR)/SOURCES/rudder-sources/rudder/rudder-web/target/rudder-web*.war $(CURDIR)/SOURCES/rudder.war
 
 # dirty hack, don't do this, if your builder comes with java preinstalled you can remove this
