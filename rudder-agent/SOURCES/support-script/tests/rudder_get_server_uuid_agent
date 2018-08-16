@@ -1,0 +1,42 @@
+#!/bin/sh
+#
+# Rudder get server uuid test (agent)
+#
+
+# Declare your tests here (KEEP "${TESTS}")
+TESTS="${TESTS} rudder_get_server_uuid_agent"
+
+# Describe your tests here
+rudder_get_server_uuid_agent_description="Verify that the agent can access the server uuid"
+
+rudder_get_server_uuid_agent() {
+
+  # By default, this test is successful
+  RUDDER_GET_SERVER_UUID_AGENT='ok'
+
+  SERVER_HOST=`cat ${RUDDER_VAR}/cfengine-community/policy_server.dat 2>/dev/null`
+
+  # For both http and https
+  for i in http https
+  do
+
+    COMMAND_OUTPUT=`curl -s -k -x '' "${i}://${SERVER_HOST}/uuid" 2>&1`
+
+    # Test if the server uuid is reachable
+    if [ "${?}" -eq 0 ]
+    then
+      test_success "Downloading server uuid using ${i} succeeded" "Got uuid \"${COMMAND_OUTPUT}\""
+    elif [ "${i}" = "https" ]
+    then
+      test_warning "Downloading server uuid using ${i} failed" "Got uuid \"${COMMAND_OUTPUT}\""
+    else
+      test_failure "Downloading server uuid using ${i} failed" "Got uuid \"${COMMAND_OUTPUT}\""
+      RUDDER_GET_SERVER_UUID_AGENT='ko'
+    fi
+
+  done
+
+  # Finally, return 1 if the test has failed somewhere
+  [ "${RUDDER_GET_SERVER_UUID_AGENT}" = 'ko' ] && return 1
+
+}

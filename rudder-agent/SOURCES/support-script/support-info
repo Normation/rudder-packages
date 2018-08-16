@@ -1,0 +1,287 @@
+#!/bin/sh
+#
+# This script runs command to help diagnose a problem with Rudder or obtain a overall health status
+
+## VARIABLES
+############
+
+RUDDER_OPT=/opt/rudder
+RUDDER_VAR=/var/rudder
+COLLECT_DIR=support-info
+
+## LOADER
+#########
+
+LIB_DIRECTORY="`pwd`/lib"
+TEST_DIRECTORY="`pwd`/tests"
+OUTPUT_FILE="/tmp/${COLLECT_DIR}-$(hostname).tar.gz"
+
+# Source the lib elements if possible
+if [ -d "${LIB_DIRECTORY}" ]
+then
+  for i in ${LIB_DIRECTORY}/*;
+  do
+    [ -n "${VERBOSE}" ] && echo "Info: Sourcing lib ${i}"
+    . ${i}
+  done
+fi
+
+# Source tests elements if possible
+if [ -d "${TEST_DIRECTORY}" ]
+then
+  for i in ${TEST_DIRECTORY}/*;
+  do
+    [ -n "${VERBOSE}" ] && echo "Info: Sourcing test ${i}"
+    . ${i}
+  done
+fi
+
+## FUNCTIONS
+############
+
+component_list() {
+  echo "${TESTS}" | tr ' ' '\n' | sed 's/^\([A-Za-z]*\)_.*/\1/' | uniq
+}
+
+scenario_list() {
+  echo "${TESTS}" | tr ' ' '\n' | grep -E "^${1}_" | sed 's/\([A-Za-z]*\)_\([A-Za-z_]*\)/\2/' | uniq
+}
+
+usage() {
+  echo ""
+  echo "This is the rudder support info script."
+  echo ""
+  echo "Usage: ${0} [options] [component|all|help] [scenario|all|help]"
+  echo ""
+  echo "Options:"
+  echo ""
+  echo "* -h / --help: this help"
+  echo "* -v / --verbose: verbose output in test scenarios"
+  echo "* -u / --uuid: debug a specific agent UUID"
+  echo "* -t / --api-token: api token (used by UUID debug)"
+  echo "* -a / --agent-only: only run agent tests, even if running on a server"
+  echo "* -n / --no-collect: do not collect log files in a tarball at the end"
+  echo "* -s / --slow-tests: also run tests that can take a long time"
+  echo "* -l / --log_file: log file location (ex: /tmp/support-info.log"
+  echo ""
+  echo "Components:"
+  echo "* help: this help"
+  for component in `component_list`
+  do
+    echo "* ${component}: ${component} related scenarios"
+  done
+  echo ""
+  echo "Note: If no component is given, run all scenarios in all components."
+  echo ""
+}
+
+component_usage() {
+  component="$1"
+  echo ""
+  echo "Run scenarios on the ${component} component."
+  echo "If no scenario is given, or the scenario is 'all', run all scenarios."
+  echo ""
+  echo "Available scenarios:"
+  for scenario in `scenario_list ${component}`
+  do
+    eval "echo \"* ${scenario}: \$${component}_${scenario}_description\""
+  done
+  echo ""
+}
+
+## MAIN
+#######
+
+# Handle arguments (thanks getopt)
+OPTS=`getopt -o hvu:t:ansl: --long help,verbose,uuid:,api-token:,agent-only,no-collect,slow-tests,log-file: -n 'parse-options' -- "$@"`
+
+if [ $? != 0 ] ; then
+  usage
+  exit 1
+fi
+
+eval set -- "$OPTS"
+
+VERBOSE='0'
+UUID=''
+API_TOKEN=''
+AGENT_ONLY='0'
+NO_COLLECT='0'
+SLOW_TESTS='0'
+LOG_FILE='/tmp/support-info.log'
+
+while true; do
+  case "$1" in
+    -h | --help )       usage; exit 1; shift ;;
+    -v | --verbose )    VERBOSE='1'; shift ;;
+    -u | --uuid )       UUID="${2}"; shift; shift ;;
+    -t | --api-token )  API_TOKEN="${2}"; shift; shift ;;
+    -a | --agent-only ) AGENT_ONLY='1'; shift ;;
+    -n | --no-collect ) NO_COLLECT='1'; shift ;;
+    -s | --slow-tests ) SLOW_TESTS='1'; shift ;;
+    -l | --log-file )   LOG_FILE="${2}"; shift; shift ;;
+    -- ) shift; break ;;
+    * ) break ;;
+  esac
+done
+
+# The first parameter is the component
+component="${1}"
+scenario="${2}"
+
+# If we run on an agent, filter out server-only tests
+CURRENT_MACHINE_TYPE='server'
+
+# Validate the given UUID, if applicable
+if [ -n "${UUID}" ]
+then
+  if [ -z "${API_TOKEN}" ]
+  then
+    echo "ERROR: UUID debug requires a valid API token to be given"
+    exit 1
+  elif [ `cfengineutils_validate_uuid "${UUID}"` -ne 1 ]
+  then
+    echo "ERROR: This UUID is invalid"
+    echo "ERROR: Please enter a valid one, ex: 22afad2b-0385-4b5a-8ac2-d77850ee6bf3"
+    exit 1
+  fi
+else
+  # No UUID given, strip out uuid scenarios
+  TESTS=`echo "${TESTS}" | tr " " "\n" | grep -vE "^uuid_"`
+fi
+
+if [ ! -d "/opt/rudder/etc/server-roles.d" ] || [ "${AGENT_ONLY}" = '1' ]
+then
+  TESTS=`echo "${TESTS}" | tr " " "\n" | grep -E "_agent$"`
+  CURRENT_MACHINE_TYPE='agent'
+fi
+
+if [ "${component}" = "help" ]
+then
+  usage
+  exit 0
+fi
+
+# Test the validity of the "component" parameter
+if [ -n "${component}" ] && [ "${component}" != "all" ]
+then
+  for installed_component in `component_list`
+  do
+    if [ "${component}" = "${installed_component}" ]
+    then
+      component_ok="y"
+    fi
+  done
+else
+  run_all_components="y"
+  component_ok="y"
+fi
+
+if [ "${component_ok}" != "y" ]
+then
+  echo "Unknown component '${component}'"
+  echo ""
+  usage
+  exit 1
+fi
+
+if [ "${scenario}" = "help" ]
+then
+  component_usage "${component}"
+  exit 0
+fi
+
+# Test the validity of the "scenario" parameter
+if [ -n "${scenario}" ] && [ "${scenario}" != "any" ]
+then
+  if ! type "${component}_${scenario}" > /dev/null
+  then
+    echo "Test ${scenario} on ${component} not found"
+    echo ""
+    component_usage "${component}"
+    exit 3
+  fi
+else
+  run_all_scenarios="y"
+fi
+
+# Run the tests
+log "START" "----------------------------------------------------------------------"
+log "START" "Started at `date -R` on `hostname -f`"
+log "START" "Machine type: ${CURRENT_MACHINE_TYPE}"
+log "START" "----------------------------------------------------------------------"
+
+if [ -n "${UUID}" ]
+then
+
+  # Disable log collection
+  NO_COLLECT='1'
+
+  term_simple "Running tests against UUID ${UUID}..."
+  term_simple ""
+
+  # Run all UUID tests
+  for scenario in `scenario_list uuid`
+  do
+    "uuid_${scenario}"
+  done
+
+elif [ "${run_all_components}" = 'y' ]
+then
+
+  term_simple "Running all ${CURRENT_MACHINE_TYPE} scenarios..."
+
+  for component in `component_list`
+  do
+    term_simple ""
+    term_simple "${component} component:"
+    term_simple ""
+    for scenario in `scenario_list ${component}`
+    do
+      "${component}_${scenario}"
+    done
+  done
+
+elif [ "${run_all_scenarios}" = 'y' ]
+then
+
+  term_simple "Running all scenarios from component ${component}..."
+  term_simple ""
+
+  for scenario in `scenario_list ${component}`
+  do
+    "${component}_${scenario}"
+  done
+
+else
+
+  term_simple "Running the ${component} ${scenario} scenario..."
+  term_simple ""
+
+  "${component}_${scenario}"
+
+fi
+
+# Summarize successes, errors and skips
+term_simple ""
+term_simple "Success: ${GREEN}${SUCCESS_COUNT}${RESET}"
+term_simple "Failure: ${RED}${FAILURE_COUNT}${RESET}"
+term_simple "Skipped: ${MAGENTA}${SKIPPED_COUNT}${RESET}"
+log "RESULT" "Success: ${SUCCESS_COUNT}"
+log "RESULT" "Failure: ${FAILURE_COUNT}"
+log "RESULT" "Skipped: ${SKIPPED_COUNT}"
+
+# Collect useful system files for debugging purposes
+if [ "${NO_COLLECT}" != "1" ]
+then
+
+  collect_logs
+  collect_files "/tmp/${COLLECT_DIR}"
+  tar -C /tmp -zcf "${OUTPUT_FILE}" "${COLLECT_DIR}"
+  rm -rf "/tmp/${COLLECT_DIR}"
+
+  term_simple ""
+  term_simple "Debug information is available in ${OUTPUT_FILE}"
+fi
+
+[ "${FAILURE_COUNT}" -ne 0 ] && exit 1 || exit 0

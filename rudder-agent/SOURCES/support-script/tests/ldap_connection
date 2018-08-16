@@ -1,0 +1,80 @@
+#!/bin/sh
+#
+# LDAP connection test
+#
+
+# Declare your tests here (KEEP "${TESTS}")
+TESTS="${TESTS} ldap_connection"
+
+# Describe your tests here
+ldap_connection_description="Test the validity of the LDAP connection"
+
+ldap_connection() {
+
+  # By default, this test is successful
+  LDAP_CONNECTION='ok'
+
+  # Get all LDAP access credentials and parameters
+  LDAP_USER="$(grep -E '^ldap.authdn[ \t]*=' ${RUDDER_OPT}/etc/rudder-web.properties | cut -d "=" -f 2-)"
+  LDAP_PASSWORD="$(grep -E '^ldap.authpw[ \t]*=' ${RUDDER_OPT}/etc/rudder-web.properties | cut -d "=" -f 2-)"
+  LDAP_SERVER="$(grep -E '^ldap.host[ \t]*=' ${RUDDER_OPT}/etc/rudder-web.properties | cut -d '=' -f 2-)"
+  LDAP_PORT="$(grep -E '^ldap.port[ \t]*=' ${RUDDER_OPT}/etc/rudder-web.properties | cut -d '=' -f 2-)"
+
+  LDAP_BIND_ANONYMOUS="-H ldap://${LDAP_SERVER}:${LDAP_PORT}/ -x"
+  LDAP_BIND_RUDDER="${LDAP_BIND_ANONYMOUS} -D ${LDAP_USER} -w ${LDAP_PASSWORD}"
+
+  # Am I using a local or remote LDAP server ?
+  if [ "${LDAP_SERVER}" = "localhost" ] || echo "${LDAP_SERVER}" | grep -q "`hostname`"
+  then
+
+    # The server is local, test if the slapd process is active
+    SLAPD_COMMAND_LINE=`processutils_getcommand /opt/rudder/libexec/slapd | head -1`
+
+    if [ -z "${SLAPD_COMMAND_LINE}" ]
+    then
+      test_failure "LDAP server is local and slapd is dead" "no process matched"
+      LDAP_CONNECTION='ko'
+    else
+      test_success "LDAP server is local and slapd is alive" "detected command: ${SLAPD_COMMAND_LINE}"
+    fi
+
+  else
+
+    # The server is remote, try to ping it
+    COMMAND_OUTPUT=`ping -q -c 1 ${LDAP_SERVER} 2>&1`
+    if [ ${?} -eq 0 ];
+    then
+      test_success "LDAP server is remote, and a ping to \"${LDAP_SERVER}\" succeeded"
+    else
+      test_warning "LDAP server is remote, and a ping to \"${LDAP_SERVER}\" failed" "${COMMAND_OUTPUT}"
+    fi
+
+  fi
+
+  # Try to get the naming context
+  COMMAND_OUTPUT=`${RUDDER_OPT}/bin/ldapsearch ${LDAP_BIND_ANONYMOUS} -b "" -s base namingContexts -LLL 2>&1`
+
+  if [ ${?} -eq 0 ];
+  then
+    NAMING_CONTEXT=`echo ${COMMAND_OUTPUT} | sed 's%.*namingContexts: \(.*\)%\1%'`
+    test_success "LDAP connection (anonymous) succeeded" "namingContexts returned ${NAMING_CONTEXT}"
+  else
+    test_failure "LDAP connection (anonymous) failed" "command output: ${COMMAND_OUTPUT}"
+    LDAP_CONNECTION='ko'
+  fi
+
+  # Get the naming context logged in as rudder user
+  COMMAND_OUTPUT=`${RUDDER_OPT}/bin/ldapsearch ${LDAP_BIND_RUDDER} -b "" -s base namingContexts -LLL 2>&1`
+
+  if [ ${?} -eq 0 ];
+  then
+    test_success "LDAP connection (rudder user) succeeded" "namingContexts returned ${NAMING_CONTEXT}"
+  else
+    test_failure "LDAP connection (rudder user) failed" "command output: ${COMMAND_OUTPUT}"
+    LDAP_CONNECTION='ko'
+  fi
+
+  # Finally, return 1 if the test has failed somewhere
+  [ "${LDAP_CONNECTION}" = 'ko' ] && return 1
+
+}

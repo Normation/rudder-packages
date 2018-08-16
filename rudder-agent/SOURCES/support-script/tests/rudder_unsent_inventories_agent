@@ -1,0 +1,38 @@
+#!/bin/sh
+#
+# Rudder unsent inventories test (agent)
+#
+
+# Declare your tests here (KEEP "${TESTS}")
+TESTS="${TESTS} rudder_unsent_inventories_agent"
+
+# Describe your tests here
+rudder_unsent_inventories_agent_description="Verify that the agent has no unsent inventories"
+
+rudder_unsent_inventories_agent() {
+
+  # By default, this test is successful
+  RUDDER_UNSENT_INVENTORIES_AGENT='ok'
+
+  if [ "${CURRENT_MACHINE_TYPE}" = 'server' ]
+  then
+    UNSENT_INVENTORIES_DIR="${RUDDER_VAR}/inventories/failed"
+  else
+    UNSENT_INVENTORIES_DIR="${RUDDER_VAR}/inventories"
+  fi
+
+  COMMAND_OUTPUT=`ls -l "${UNSENT_INVENTORIES_DIR}" 2>&1 | wc -l`
+
+  # If there are unsent inventories, fail the test
+  if [ "${COMMAND_OUTPUT}" -gt 1 ]
+  then
+    test_failure "There are some unsent inventories"
+    RUDDER_UNSENT_INVENTORIES_AGENT='ko'
+  else
+    test_success "No unsent inventories detected"
+  fi
+
+  # Finally, return 1 if the test has failed somewhere
+  [ "${RUDDER_UNSENT_INVENTORIES_AGENT}" = 'ko' ] && return 1
+
+}

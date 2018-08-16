@@ -1,0 +1,40 @@
+#!/bin/sh
+#
+# Rudder processes test
+#
+
+# Declare your tests here (KEEP "${TESTS}")
+TESTS="${TESTS} rudder_processes"
+
+# Describe your tests here
+rudder_processes_description="Verify that all necessary Rudder processes are running"
+
+rudder_processes() {
+
+  # By default, this test is successful
+  RUDDER_PROCESSES='ok'
+
+  # Get apache process name
+  type httpd >/dev/null 2>/dev/null && APACHE_NAME="httpd" || APACHE_NAME="apache2"
+
+  # For each core Rudder component process
+  for i in slapd /opt/rudder/jetty7 postgres "${APACHE_NAME}"
+  do
+
+    PROCESS_COMMAND=`processutils_getcommand "${i}"`
+
+    # If the process is not running, fail the test
+    if [ -n "${PROCESS_COMMAND}" ]
+    then
+      test_success "The ${i} process is running" "Detected process ${PROCESS_COMMAND}"
+    else
+      test_failure "The ${i} process looks dead"
+      RUDDER_PROCESSES='ko'
+    fi
+
+  done
+
+  # Finally, return 1 if the test has failed somewhere
+  [ "${RUDDER_PROCESSES}" = 'ko' ] && return 1
+
+}

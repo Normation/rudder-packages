@@ -1,0 +1,49 @@
+#!/bin/sh
+#
+# LDAP structure test
+#
+
+# Declare your tests here (KEEP "${TESTS}")
+TESTS="${TESTS} ldap_structure"
+
+# Describe your tests here
+ldap_structure_description="Test the validity of the LDAP structure"
+
+ldap_structure() {
+
+  # By default, this test is successful
+  LDAP_STRUCTURE='ok'
+
+  # Run the ldap_connection test first if necessary
+  if [ -z "${LDAP_CONNECTION}" ]
+  then
+    test_info "Running LDAP connection test first"
+    test_info ""
+    ldap_connection
+  fi
+
+  # Skip if the connection test failed
+  if [ "${LDAP_CONNECTION}" != "ok" ]
+  then
+    test_skipped "LDAP connection test failed, aborting structure test"
+  else
+
+    # Get the amount of dns at the base of the LDAP structure as a logged in user
+    COMMAND_OUTPUT=`${RUDDER_OPT}/bin/ldapsearch ${LDAP_BIND_RUDDER} -b "${NAMING_CONTEXT}" -s one -LLL 2>&1`
+    BASE_DN_AMOUNT=`echo ${COMMAND_OUTPUT} |sed 's%\(\w*: \)%\n\1%g' | grep 'dn: ' | wc -l`
+
+    # There should be 4 dns
+    if [ ${BASE_DN_AMOUNT} -eq 4 ];
+    then
+      test_success "LDAP structure looks good" "There are ${BASE_DN_AMOUNT} dn(s) at the namingContext base"
+    else
+      test_failure "LDAP structure seems incorrect" "${COMMAND_OUTPUT}"
+      LDAP_STRUCTURE='ko'
+    fi
+
+  fi
+
+  # Finally, return 1 if the test has failed somewhere
+  [ "${LDAP_STRUCTURE}" = 'ko' ] && return 1
+
+}

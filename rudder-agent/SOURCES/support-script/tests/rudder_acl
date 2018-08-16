@@ -1,0 +1,38 @@
+#!/bin/sh
+#
+# Rudder ACL test
+#
+
+# Declare your tests here (KEEP "${TESTS}")
+TESTS="${TESTS} rudder_acl"
+
+# Describe your tests here
+rudder_acl_description="Verify that there is no filesystem ACL on the configuration-repository"
+
+rudder_acl() {
+
+  # By default, this test is successful
+  RUDDER_ACL='ok'
+
+  # Test if ACL utilities are installed
+  if type getfacl >/dev/null 2>&1
+  then
+
+    COMMAND_OUTPUT=`getfacl /var/rudder/configuration-repository/.git/objects 2>/dev/null | grep -c default`
+
+    # Test if default ACL are defined on the configuration-repository
+    if [ "${COMMAND_OUTPUT}" -ne 0 ]
+    then
+      test_warning "default ACLs detected on configuration-repository" "${COMMAND_OUTPUT} default ACLs active"
+    else
+      test_success "No default ACLs detected on configuration-repository"
+    fi
+
+  else
+    test_skipped "Will not test ACL on configuration-repository (getfacl absent)"
+  fi
+
+  # Finally, return 1 if the test has failed somewhere
+  [ "${RUDDER_ACL}" = 'ko' ] && return 1
+
+}

@@ -1,0 +1,14 @@
+#!/bin/sh
+
+# Default logging target
+
+[ -z "${LOG_FILE}" ] && LOG_FILE="/tmp/support-info-`date +%Y%m%d%H%M`.log"
+
+# Truncate the log file before use
+printf "" > "${LOG_FILE}"
+
+# File logging functions
+
+log() {
+  [ -n "${NO_LOG}" ] || echo "${1}: ${2}`output_details ${3}`" >> "${LOG_FILE}"
+}

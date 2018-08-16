@@ -1,0 +1,35 @@
+#!/bin/sh
+#
+# uuid inventory_date test
+#
+# This test requires a valid UUID to be given
+#
+
+# Declare your tests here (KEEP "${TESTS}")
+TESTS="${TESTS} uuid_inventory_date"
+
+# Describe your tests here
+uuid_inventory_date_description="Verify that the given uuid / node last inventory date is okay"
+
+uuid_inventory_date() {
+
+  # By default, this test is successful
+  UUID_INVENTORY_DATE='ok'
+
+  NODE_INVENTORY_DATE=`apiutils_call_api "${API_TOKEN}" "nodes/${UUID}?include=full" "lastInventoryDate" | cut -d " " -f 1`
+
+  DATE_TODAY=`date --date=today '+%Y-%m-%d'`
+  DATE_YESTERDAY=`date --date=yesterday '+%Y-%m-%d'`
+
+  if [ "${NODE_INVENTORY_DATE}" != "${DATE_TODAY}" ] && [ "${NODE_INVENTORY_DATE}" != "${DATE_YESTERDAY}" ]
+  then
+    test_failure "Node last inventory is too old" "Last inventory date is ${NODE_INVENTORY_DATE}"
+    UUID_INVENTORY_DATE='ko'
+  else
+    test_success "Node last inventory date is okay" "Last inventory date is ${NODE_INVENTORY_DATE}"
+  fi
+
+  # Finally, return 1 if the test has failed somewhere
+  [ "${UUID_INVENTORY_DATE}" = 'ko' ] && return 1
+
+}

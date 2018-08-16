@@ -1,0 +1,57 @@
+#!/bin/sh
+
+# Terminal ANSI colours and font styles
+
+## Colors configuration (enable colors only if stdout is a terminal)
+if [ -t 1 ] && [ -z "${NO_COLORS}" ]; then
+
+  # Escape sequence and resets
+  ESC_SEQ="\033["
+  RESET="${ESC_SEQ}0m"
+
+  # Foreground colours
+  BLACK="${ESC_SEQ}30;1m"
+  RED="${ESC_SEQ}31;1m"
+  GREEN="${ESC_SEQ}32;1m"
+  YELLOW="${ESC_SEQ}33;1m"
+  BLUE="${ESC_SEQ}34;1m"
+  MAGENTA="${ESC_SEQ}35;1m"
+  CYAN="${ESC_SEQ}36;1m"
+  WHITE="${ESC_SEQ}37;1m"
+  BR_BLACK="${ESC_SEQ}90;1m"
+  BR_RED="${ESC_SEQ}91;1m"
+  BR_GREEN="${ESC_SEQ}92;1m"
+  BR_YELLOW="${ESC_SEQ}93;1m"
+  BR_BLUE="${ESC_SEQ}94;1m"
+  BR_MAGENTA="${ESC_SEQ}95;1m"
+  BR_CYAN="${ESC_SEQ}96;1m"
+  BR_WHITE="${ESC_SEQ}97;1m"
+
+  # Background colours (optional)
+  BG_BLACK="40;1m"
+  BG_RED="41;1m"
+  BG_GREEN="42;1m"
+  BG_YELLOW="43;1m"
+  BG_BLUE="44;1m"
+  BG_MAGENTA="45;1m"
+  BG_CYAN="46;1m"
+  BG_WHITE="47;1m"
+
+  # Font styles
+  REGULAR="0m"
+  BOLD="1m"
+  BOLD_RESET="${ESC_SEQ}21m"
+  UNDERLINE="4m"
+  UNDERLINE_RESET="${ESC_SEQ}24m"
+fi
+
+PADDING=`printf %60s |tr " " "."`
+
+# Output functions
+term_simple() {
+  printf '%b\n' "${1}"
+}
+
+term_padded() {
+  printf "${2}${PADDING}" | head -c 70 ; printf " ${1}`output_details ${3}`\n"
+}

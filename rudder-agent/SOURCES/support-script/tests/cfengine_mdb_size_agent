@@ -1,0 +1,41 @@
+#!/bin/sh
+#
+# CFEngine LMDB size test (agent)
+#
+
+# Declare your tests here (KEEP "${TESTS}")
+TESTS="${TESTS} cfengine_lmdb_size_agent"
+
+# Describe your tests here
+cfengine_lmdb_size_agent_description="Verify that CFEngine LMDB databases have correct sizes"
+
+cfengine_lmdb_size_agent() {
+
+  # By default, this test is successful
+  CFENGINE_LMDB_SIZE_AGENT='ok'
+
+  for i in state/cf_state.lmdb state/cf_lock.lmdb performance.lmdb cf_lastseen.lmdb
+  do
+
+    if [ -e "${RUDDER_VAR}/cfengine-community/${i}" ]
+    then
+
+      LMDB_FILESIZE=`stat -c "%s" "${RUDDER_VAR}/cfengine-community/${i}" 2>/dev/null`
+
+      # If the LMDB database filesize exceeds 100000000 bytes
+      if [ "${LMDB_FILESIZE}" -gt 100000000 ]
+      then
+        test_failure "LMDB database ${i} is too big" "Database size is ${LMDB_FILESIZE} bytes"
+      else
+        test_success "LMDB database ${i} size is correct"
+      fi
+    else
+      test_skipped "LMDB database ${i} is absent"
+    fi
+
+  done
+
+  # Finally, return 1 if the test has failed somewhere
+  [ "${CFENGINE_LMDB_SIZE__AGENT}" = 'ko' ] && return 1
+
+}

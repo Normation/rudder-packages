@@ -1,0 +1,23 @@
+#!/bin/sh
+#
+# CFEngine cf-promises test (agent)
+#
+
+# Declare your tests here (KEEP "${TESTS}")
+TESTS="${TESTS} cfengine_cfpromises_agent"
+
+# Describe your tests here
+cfengine_cfpromises_agent_description="Verify that cf-promises validates the local agent available promises"
+
+cfengine_cfpromises_agent() {
+
+  # By default, this test is successful
+  CFENGINE_CFPROMISES_AGENT='ok'
+
+  # Validate the local promises set
+  cfengineutils_test_cfpromises "localhost" "${RUDDER_VAR}/cfengine-community/inputs/promises.cf"
+
+  # Finally, return 1 if the test has failed somewhere
+  [ "${CFENGINE_CFPROMISES_AGENT}" = 'ko' ] && return 1
+
+}

@@ -1,0 +1,50 @@
+#!/bin/sh
+
+cfengineutils_test_cfpromises() {
+  # First we need to make sure time is there
+  TIME_PRESENT=`which time`
+
+  if [ ${?} -eq 0 ]
+  then
+    # Time is present, we can benchmark the speed of the cf-promises  
+
+    # Hack to outsmart bash :
+    #   When it sees a command starting with time, it removes it, run it, then print the time.
+    #   It allows it to print time out of a pipe, but that is exactly what we don't want here.
+    #   Using a variable here just disable this detection.
+    TIMECMD=time
+    COMMAND_OUTPUT=`${TIMECMD} -p ${RUDDER_VAR}/cfengine-community/bin/cf-promises "${2}" 2>&1`
+
+    if [ "${?}" -ne 0 ]
+    then
+      test_failure "cf-promises on ${1} gave a non-zero return code" "${COMMAND_OUTPUT}"
+      CFENGINE_CFPROMISES='ko'
+    else
+
+      CFPROMISES_RUN_TIME=`echo "${COMMAND_OUTPUT}" | tail -3 | head -1 | awk '{print $2}' | cut -d '.' -f 1`
+
+      if [ "${CFPROMISES_RUN_TIME}" -gt 10 ]
+      then
+        test_warning "cf-promises on ${1} took more than 10s" "cfpromises took ${CFPROMISES_RUN_TIME}s to run, possible DNS problem ?"
+      else
+        test_success "cf-promises on ${1} ran successfully" "cfpromises took ${CFPROMISES_RUN_TIME}s to run"
+      fi
+    fi
+  else
+    test_skipped "Time is not installed on this system" "can measure cfpromises speed"
+    COMMAND_OUTPUT=`${RUDDER_VAR}/cfengine-community/bin/cf-promises "${2}" 2>&1`
+
+    if [ "${?}" -ne 0 ]
+    then
+      test_failure "cf-promises on ${1} gave a non-zero return code" "${COMMAND_OUTPUT}"
+      CFENGINE_CFPROMISES='ko'
+    else
+      test_success "cf-promises on ${1} ran successfully" "Unable to measure time (time is not installed)"
+    fi
+  fi
+
+}
+
+cfengineutils_validate_uuid() {
+  echo "${UUID}" | grep -Ec '[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}' 2>/dev/null
+}

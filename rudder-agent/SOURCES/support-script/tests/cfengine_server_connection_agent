@@ -1,0 +1,54 @@
+#!/bin/sh
+#
+# CFEngine server connection test (agent)
+#
+
+# Declare your tests here (KEEP "${TESTS}")
+TESTS="${TESTS} cfengine_server_connection_agent"
+
+# Describe your tests here
+cfengine_server_connection_agent_description="Verify that cfengine can connect to its policy server"
+
+cfengine_server_connection_agent() {
+
+  # By default, this test is successful
+  CFENGINE_SERVER_CONNECTION_AGENT='ok'
+
+  # Test if netcat is available
+  if type nc >/dev/null 2>&1
+  then
+    NETCAT="nc"
+  elif type netcat >/dev/null 2>&1
+  then
+    NETCAT="netcat"
+  else
+    test_skipped "Skipping server connectivity tests (no nc)"
+    return 0
+  fi
+
+  SERVER_HOST=`cat ${RUDDER_VAR}/cfengine-community/policy_server.dat 2>/dev/null`
+  PORTS="80 443 514 5309"
+
+  # CFEngine enterprise requires port 5308 also
+  [ -x /var/cfengine/bin/cf-agent ] && PORTS="${PORTS} 5308"
+
+  # Try to open every port in the list
+  for i in ${PORTS}
+  do
+
+    COMMAND_OUTPUT=`${NETCAT} -v -z "${SERVER_HOST}" "${i}" 2>&1`
+
+    if [ "${?}" -eq 0 ]
+    then
+      test_success "Connection to server on port ${i} successful"
+    else
+      test_warning "Connection to server on port ${i} failed" "Output: ${COMMAND_OUTPUT}"
+    fi
+
+  done
+
+
+  # Finally, return 1 if the test has failed somewhere
+  [ "${CFENGINE_SERVER_CONNECTION_AGENT}" = 'ko' ] && return 1
+
+}

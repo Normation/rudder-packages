@@ -1,0 +1,121 @@
+#!/bin/sh
+
+collect_logs_annex_header() {
+  log "ANNEX" "----------------------------------------------------------------------"
+  log "ANNEX" "${1}"
+  log "ANNEX" "----------------------------------------------------------------------"
+}
+
+# Collect useful debugging information
+collect_logs() {
+
+  # System info
+
+  ## df (for /, /var and /opt)
+  collect_logs_annex_header "system: df"
+  df -h|grep -E '(/|/var|/rudder|.*rudder.*|.*postgres.*|.*pgsql.*)$' >> "${LOG_FILE}" 2>&1
+
+  ## Date and timezone
+  collect_logs_annex_header "system: date and timezone"
+  [ -x /bin/timedatectl ] && /bin/timedatectl >> "${LOG_FILE}" 2>&1 || date -R >> "${LOG_FILE}" 2>&1
+
+  ## cfengine processes
+  collect_logs_annex_header "system: running cfengine processes"
+  processutils_getcommand cf-execd >> "${LOG_FILE}" 2>&1
+  processutils_getcommand cf-serverd >> "${LOG_FILE}" 2>&1
+  processutils_getcommand cf-agent >> "${LOG_FILE}" 2>&1
+
+  ## Java processes (Jetty)
+  processutils_getcommand java >> "${LOG_FILE}" 2>&1
+
+  ## OS, Java and Python version
+  collect_logs_annex_header "system: OS, Java and Python versions"
+
+  [ -e /etc/os-release ] && cat /etc/os-release >> "${LOG_FILE}" 2>&1 || cat /etc/issue >> "${LOG_FILE}" 2>&1
+  type java >/dev/null 2>&1 && echo "java: `java -version 2>&1`" >> "${LOG_FILE}" 2>&1
+  type python >/dev/null 2>&1 && echo "python: `python --version 2>&1`" >> "${LOG_FILE}" 2>&1
+
+  ## Package versions
+  collect_logs_annex_header "system: Installed rudder packages"
+  packageutils_query rudder >> "${LOG_FILE}" 2>&1
+  packageutils_query ncf >> "${LOG_FILE}" 2>&1
+
+  # Rudder agent info
+  collect_logs_annex_header "agent info command"
+  type rudder >/dev/null 2>&1 && rudder agent info >> "${LOG_FILE}" 2>&1
+
+  collect_logs_annex_header "agent library linking info"
+  ldd ${RUDDER_VAR}/cfengine-community/bin/cf-agent >> "${LOG_FILE}" 2>&1
+
+  collect_logs_annex_header "agent core info"
+  echo "policy_server.dat: `cat ${RUDDER_VAR}/cfengine-community/policy_server.dat  2>/dev/null`" >> "${LOG_FILE}" 2>&1
+  echo "rudder_promises_generated: `cat ${RUDDER_VAR}/cfengine-community/inputs/rudder_promises_generated 2>/dev/null`" >> "${LOG_FILE}" 2>&1
+
+  collect_logs_annex_header "active techniques"
+  find ${RUDDER_VAR}/cfengine-community/inputs -type d | sed "s%^${RUDDER_VAR}/cfengine-community/inputs/%%" | grep -E "[0-9]\.[0-9]$" >> "${LOG_FILE}" 2>&1
+
+  collect_logs_annex_header "agent output directory"
+  echo "There are `ls -l /var/rudder/cfengine-community/outputs/ | wc -l` files in the outputs directory" >> "${LOG_FILE}"
+  echo "The five biggest ones are:" >> "${LOG_FILE}"
+  du -ks /var/rudder/cfengine-community/outputs/* 2>/dev/null | sort -n | tail -5 >> "${LOG_FILE}" 2>&1
+
+  if [ -d "/opt/rudder/share/plugins" ]
+  then
+    collect_logs_annex_header "installed rudder plugins"
+    ls -l /opt/rudder/share/plugins >> "${LOG_FILE}" 2>&1
+  fi
+
+}
+
+collect_files() {
+
+  # Create the target directory
+  TARGET_DIRECTORY="${1}"
+  mkdir -p "${TARGET_DIRECTORY}"/
+
+  # Copy the test log
+  cp "${LOG_FILE}" "${TARGET_DIRECTORY}"
+
+  # Gather rudder specific information
+  mkdir -p "${TARGET_DIRECTORY}/rudder/"
+
+  ## full outputs file list
+  ls -hal /var/rudder/cfengine-community/outputs/ >> "${TARGET_DIRECTORY}/rudder/outputs.log" 2>/dev/null
+
+  # Backup cfengine logs
+  mkdir -p "${TARGET_DIRECTORY}/cfengine/"
+  cp "${RUDDER_VAR}/cfengine-community/outputs/previous" "${TARGET_DIRECTORY}/cfengine/" 2>/dev/null
+
+  # Backup syslog configuration
+  mkdir -p "${TARGET_DIRECTORY}/syslog/"
+  cp -r /etc/*syslog* "${TARGET_DIRECTORY}/syslog/" 2>/dev/null
+
+  # Server statistics
+  if [ "${CURRENT_MACHINE_TYPE}" = "server" ]
+  then
+
+    ## statistics script output
+    ${RUDDER_OPT}/bin/rudder-metrics-reporting -v > "${TARGET_DIRECTORY}/rudder/rudder-metrics-reporting.json" 2>/dev/null
+
+    ## Backup Rudder configuration
+    cp /etc/default/rudder-jetty "${TARGET_DIRECTORY}/rudder/" 2>/dev/null
+    cp ${RUDDER_OPT}/etc/logback.xml "${TARGET_DIRECTORY}/rudder/" 2>/dev/null
+    cp ${RUDDER_OPT}/etc/*.properties "${TARGET_DIRECTORY}/rudder/" 2>/dev/null
+    cp ${RUDDER_OPT}/etc/rudder-networks* "${TARGET_DIRECTORY}/rudder/" 2>/dev/null
+    cp ${RUDDER_VAR}/ncf/local/ncf.conf "${TARGET_DIRECTORY}/rudder/" 2>/dev/null
+
+    # Backup apache logs
+    mkdir -p "${TARGET_DIRECTORY}/apache/"
+    cp /var/log/rudder/apache2/*log /var/log/rudder/apache2/*log.1 "${TARGET_DIRECTORY}/apache/" 2>/dev/null
+
+    # Backup webapp logs
+    mkdir -p "${TARGET_DIRECTORY}/webapp/"
+    cp /var/log/rudder/webapp/$(ls -tr /var/log/rudder/webapp|tail -1) "${TARGET_DIRECTORY}/webapp/" 2>/dev/null
+
+    # Backup slapd logs
+    mkdir -p "${TARGET_DIRECTORY}/slapd/"
+    cp /var/log/rudder/ldap/slapd.log /var/log/rudder/ldap/slapd.log.1 "${TARGET_DIRECTORY}/slapd/" 2>/dev/null
+
+  fi
+
+}

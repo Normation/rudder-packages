@@ -1,0 +1,36 @@
+#!/bin/sh
+#
+# Generic test template
+#
+# Here is a paragraph that explains this test purpose
+#
+
+# Declare your tests here (KEEP "${TESTS}")
+#TESTS="${TESTS} skel_scenario"
+
+# Describe your tests here
+#skel_scenario_description="Verify that ..."
+
+skel_scenario() {
+
+  # By default, this test is successful
+  SKEL_SCENARIO='ok'
+
+  if [ "${CONDITION}" = "true" ]
+  then
+    # Test is successful
+    test_success "test succeeded" "verbose details"
+  elif [ "${CONDITION}" = "false" ]
+  then
+    # Test has failed, mark it as such
+    test_failure "test failed" "verbose details"
+    SKEL_SCENARIO='ko'
+  else
+    # Something unexpected happened, skip the test
+    test_skipped "test skipped" "verbose details"
+  fi
+
+  # Finally, return 1 if the test has failed somewhere
+  [ "${SKEL_SCENARIO}" = 'ko' ] && return 1
+
+}

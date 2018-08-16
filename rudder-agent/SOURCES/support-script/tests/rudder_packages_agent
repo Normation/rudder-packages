@@ -1,0 +1,71 @@
+#!/bin/sh
+#
+# Rudder packages test (agent)
+#
+
+# Declare your tests here (KEEP "${TESTS}")
+TESTS="${TESTS} rudder_packages_agent"
+
+# Describe your tests here
+rudder_packages_description="Verify that Rudder packages are installed properly"
+
+rudder_packages_agent() {
+
+  # By default, this test is successful
+  RUDDER_PACKAGES_AGENT='ok'
+
+  # For each known Rudder package
+  for i in rudder-agent rudder-agent-thin rudder-cfengine-community rudder-inventory-endpoint rudder-inventory-ldap rudder-jetty rudder-policy-templates rudder-reports rudder-server-root rudder-techniques rudder-webapp
+  do
+
+    PACKAGE_VERSION=`packageutils_query_version "${i}"`
+    PACKAGE_STATUS=`packageutils_query_package_status "${i}"`
+
+    [ -z "${TEST_VERSION}" ] && TEST_VERSION="${PACKAGE_VERSION}"
+
+    # If the version is different from any previously queried package version, fail the test
+    if [ -n "${PACKAGE_VERSION}" ]
+    then
+      if [ "${PACKAGE_STATUS}" != "ii" ]
+      then
+        test_failure "Package ${i} is not installed properly" "package ${i} has dpkg status \"${PACKAGE_STATUS}\""
+        RUDDER_PACKAGES_AGENT='ko'
+      else
+        if [ "${PACKAGE_VERSION}" != "${TEST_VERSION}" ]
+        then
+          test_failure "Package ${i} version is incoherent" "version ${PACKAGE_VERSION}, reference ${TEST_VERSION}"
+        else
+          test_success "Package ${i} status and version is coherent" "version ${PACKAGE_VERSION}, reference ${TEST_VERSION}"
+        fi
+      fi
+    fi
+
+  done
+
+  if [ "`packageutils_query_package_status rudder-server-root`" = "ii" ]
+  then
+
+    MISSING_PACKAGE=0
+
+    for i in rudder-agent rudder-inventory-endpoint rudder-inventory-ldap rudder-jetty rudder-reports rudder-techniques rudder-webapp
+    do
+
+      PACKAGE_STATUS=`packageutils_query_package_status "${i}"`
+
+      if [ "${PACKAGE_STATUS}" != "ii" ]
+      then
+        test_failure "Required server package ${i} is not installed" "package ${i} has dpkg status \"${PACKAGE_STATUS}\""
+        MISSING_PACKAGE=1
+        RUDDER_PACKAGES_AGENT='ko'
+      fi
+
+    done
+
+    [ "${MISSING_PACKAGE}" -eq 0 ] && test_success "All required server packages are installed"
+
+  fi
+
+  # Finally, return 1 if the test has failed somewhere
+  [ "${RUDDER_PACKAGES}" = 'ko' ] && return 1
+
+}

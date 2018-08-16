@@ -1,0 +1,39 @@
+#!/bin/sh
+
+SUCCESS_COUNT=0
+FAILURE_COUNT=0
+SKIPPED_COUNT=0
+
+# Utility function to call in case of a simple info
+test_info() {
+  term_simple "${1} ${2}"
+  log "INFO" "${1}" "${2}"
+}
+
+# Utility function to call when a test succeeded
+test_success() {
+  term_padded "${GREEN}OK${RESET}" "${1}" "${2}"
+  log "SUCCESS" "${1}" "${2}"
+  SUCCESS_COUNT=$((${SUCCESS_COUNT} +1))
+}
+
+# Utility function to call when a test succeeded
+test_warning() {
+  term_padded "${YELLOW}WARNING${RESET}" "${1}" "${2}"
+  log "WARNING" "${1}" "${2}"
+  FAILURE_COUNT=$((${FAILURE_COUNT} +1))
+}
+
+# Utility function to call when a test succeeded
+test_skipped() {
+  term_padded "${MAGENTA}SKIPPED${RESET}" "${1}" "${2}"
+  log "SKIPPED" "${1}" "${2}"
+  SKIPPED_COUNT=$((${SKIPPED_COUNT} +1))
+}
+
+# Utility function to call when a test failed
+test_failure() {
+  term_padded "${RED}ERROR${RESET}" "${1}" "${2}"
+  log "FAILURE" "${1}" "${2}"
+  FAILURE_COUNT=$((${FAILURE_COUNT} +1))
+}

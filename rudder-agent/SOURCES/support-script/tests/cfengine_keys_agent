@@ -1,0 +1,52 @@
+#!/bin/sh
+#
+# CFEngine keys test
+#
+
+# Declare your tests here (KEEP "${TESTS}")
+TESTS="${TESTS} cfengine_keys_agent"
+
+# Describe your tests here
+cfengine_keys_agent_description="Verify that the current cfengine key is usable"
+
+cfengine_keys_agent() {
+
+  # By default, this test is successful
+  CFENGINE_KEYS_AGENT='ok'
+
+  # Test if CFEngine keys are here
+  if [ -e "${RUDDER_VAR}/cfengine-community/ppkeys/localhost.pub" ] && [ -e "${RUDDER_VAR}/cfengine-community/ppkeys/localhost.priv" ]
+  then
+
+    # Test if we can execute the signature.sh script
+    if [ -e "${RUDDER_OPT}/bin/signature.sh" ]
+    then
+
+      # Try to sign a test file
+      TEST_FILE=`mktemp`
+      COMMAND_OUTPUT=`${RUDDER_OPT}/bin/signature.sh "${TEST_FILE}" && grep -qE "^digest=[a-z0-9]+$" "${TEST_FILE}.sign"`
+
+      if [ "${?}" -eq 0 ]
+      then
+        test_success "CFEngine keys present and usable" "Signed ${TEST_FILE} successfully"
+      else
+        test_failure "CFEngine keys present but signature test failed" "Failed to sign ${TEST_FILE}: `cat ${TEST_FILE}.sign`"
+        CFENGINE_KEYS_AGENT='ko'
+      fi
+
+      rm -f "${TEST_FILE}" "${TEST_FILE}.sign"
+
+    else
+      test_failure "Inventory signature utility is missing"
+      RUDDER_KEYS_AGENT='ko'
+    fi
+
+  else
+    test_failure "CFEngine keys are missing"
+    RUDDER_KEYS_AGENT='ko'
+  fi
+
+  # Finally, return 1 if the test has failed somewhere
+  [ "${SKEL_SCENARIO}" = 'ko' ] && return 1
+
+}

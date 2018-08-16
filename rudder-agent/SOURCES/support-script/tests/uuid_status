@@ -1,0 +1,36 @@
+#!/bin/sh
+#
+# uuid status test
+#
+# This test requires a valid UUID to be given
+#
+
+# Declare your tests here (KEEP "${TESTS}")
+TESTS="${TESTS} uuid_status"
+
+# Describe your tests here
+uuid_status_description="Verify that the given uuid / node status is 'accepted'"
+
+uuid_status() {
+
+  # By default, this test is successful
+  UUID_STATUS='ok'
+
+  NODE_STATUS=`apiutils_call_api "${API_TOKEN}" "nodes/${UUID}?include=minimal" "status"`
+
+  if [ -z "${NODE_STATUS}" ]
+  then
+    test_failure "Unable to get the host status" "No status returned by Rudder"
+    UUID_STATUS='ko'
+  elif [ "${NODE_STATUS}" != "accepted" ]
+  then
+    test_failure "Node status is not 'accepted'" "Node status: ${NODE_STATUS}"
+    UUID_STATUS='ko'
+  else
+    test_success "Node status is 'accepted'"
+  fi
+
+  # Finally, return 1 if the test has failed somewhere
+  [ "${UUID_STATUS}" = 'ko' ] && return 1
+
+}

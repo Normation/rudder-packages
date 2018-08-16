@@ -1,0 +1,8 @@
+#!/bin/sh
+
+# Common output formatting
+
+# Return a value like " (value)" if a string is given, and nothing if the argument is empty
+output_details() {
+  [ -n "${*}" ] && [ "${VERBOSE}" = "1" ] && printf " (${*})"
+}

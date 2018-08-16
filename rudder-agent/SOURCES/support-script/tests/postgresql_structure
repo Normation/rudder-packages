@@ -1,0 +1,37 @@
+#!/bin/sh
+#
+# PostgreSQL structure test
+#
+
+# Declare your tests here (KEEP "${TESTS}")
+TESTS="${TESTS} postgresql_structure"
+
+# Describe your tests here
+postgresql_structure_description="Test the validity of the PostgreSQL structure"
+
+postgresql_structure() {
+
+  # By default, this test is successful
+  POSTGRESQL_STRUCTURE='ok'
+
+  if [ -z "${POSTGRESQL_CONNECTION}" ] || [ "${POSTGRESQL_CONNECTION}" != "ok" ]
+  then
+    test_info "Running postgresql connection test first"
+    test_info ""
+    postgresql_connection || (test_failure "postgresql connection test failed, aborting structure test" ; POSTGRESQL_STRUCTURE='ko')
+  fi
+
+  COMMAND_OUTPUT=`${PSQL} -t -d rudder -c "SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public';" 2>&1`
+
+  # Test if there are at least 5 tables in the database
+  if [ ${COMMAND_OUTPUT} -gt 5 ]
+  then
+    test_success "PostgreSQL structure looks good" "${COMMAND_OUTPUT} tables in the 'rudder' database"
+  else
+    test_failure "PostgreSQL structure seems incorrect" "${COMMAND_OUTPUT} tables in the 'rudder' database"
+  fi
+
+  # Finally, return 1 if the test has failed somewhere
+  [ "${POSTGRESQL_STRUCTURE}" = 'ko' ] && return 1
+
+}

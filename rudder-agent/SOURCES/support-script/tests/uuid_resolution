@@ -1,0 +1,37 @@
+#!/bin/sh
+#
+# uuid resolution test
+#
+# This test requires a valid UUID to be given
+#
+
+# Declare your tests here (KEEP "${TESTS}")
+TESTS="${TESTS} uuid_resolution"
+
+# Describe your tests here
+uuid_resolution_description="Verify that the given uuid / node can be resolved"
+
+uuid_resolution() {
+
+  # By default, this test is successful
+  UUID_RESOLUTION='ok'
+
+  NODE_HOSTNAME=`apiutils_call_api "${API_TOKEN}" "nodes/${UUID}?include=minimal" "hostname"`
+  NODE_IP=`getent hosts "${NODE_HOSTNAME}" | awk '{ print $1; }'`
+
+  if [ -z "${NODE_HOSTNAME}" ]
+  then
+    test_failure "Node hostname resolution failed" "No hostname returned by Rudder"
+    UUID_RESOLUTION='ko'
+  elif [ -z "${NODE_IP}" ]
+  then
+    test_failure "Node hostname resolution succeeded" "Node ${NODE_HOSTNAME} resolved to nothing"
+    UUID_RESOLUTION='ko'
+  else
+    test_success "Node hostname resolution succeeded" "Node ${NODE_HOSTNAME} resolved to ${NODE_IP}"
+  fi
+
+  # Finally, return 1 if the test has failed somewhere
+  [ "${UUID_RESOLUTION}" = 'ko' ] && return 1
+
+}

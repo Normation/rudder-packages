@@ -1,0 +1,38 @@
+#!/bin/sh
+#
+# System df test
+#
+
+# Declare your tests here (KEEP "${TESTS}")
+TESTS="${TESTS} system_df"
+
+# Describe your tests here
+system_df_description="Verify important filesystems (/, /opt, /var) available free space"
+
+system_df() {
+
+  # By default, this test is successful
+  SYSTEM_DF='ok'
+
+  for i in / /opt /var '.*rudder.*' '.*postgres.*' '.*pgsql.*'
+  do
+
+    FILESYSTEM_PERCENTAGE=`df -P -h | grep -E "${i}$" | head -1 | awk '{ print $5 }' | tr -d '%'`
+
+    # If a filesystem goes beyond 92%, fail the test
+    if [ -z "${FILESYSTEM_PERCENTAGE}" ]
+    then
+      test_skipped "Filesystem ${i} does not exist"
+    elif [ "${FILESYSTEM_PERCENTAGE}" -gt 92 ]
+    then
+      test_failure "Filesystem ${i} does not have enough free space" "${FILESYSTEM_PERCENTAGE} percent used"
+      SYSTEM_DF='ko'
+    else
+      test_success "Filesystem ${i} has enough free space" "${FILESYSTEM_PERCENTAGE} percent used"
+    fi
+  done
+
+  # Finally, return 1 if the test has failed somewhere
+  [ "${SYSTEM_DF}" = 'ko' ] && return 1
+
+}

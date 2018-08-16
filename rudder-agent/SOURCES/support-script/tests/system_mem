@@ -1,0 +1,30 @@
+#!/bin/sh
+#
+# System mem test
+#
+
+# Declare your tests here (KEEP "${TESTS}")
+TESTS="${TESTS} system_mem"
+
+# Describe your tests here
+system_mem_description="Verify available free memory space"
+
+system_mem() {
+
+  # By default, this test is successful
+  SYSTEM_DF='ok'
+
+  FREE_MEMORY=`free -m | grep 'Mem:' | awk '{print $4+$6+$7}'`
+
+  # If the available memory goes under 500M, fail the test
+  if [ "${FREE_MEMORY}" -gt 500 ]
+  then
+      test_success "There is enough free memory" "${FREE_MEMORY} MB free"
+  else
+      test_failure "Not enough free memory" "${FREE_MEMORY} MB free"
+  fi
+
+  # Finally, return 1 if the test has failed somewhere
+  [ "${SYSTEM_DF}" = 'ko' ] && return 1
+
+}

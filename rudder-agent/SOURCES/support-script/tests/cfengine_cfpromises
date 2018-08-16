@@ -1,0 +1,31 @@
+#!/bin/sh
+#
+# CFEngine cf-promises test
+#
+
+# Declare your tests here (KEEP "${TESTS}")
+TESTS="${TESTS} cfengine_cfpromises"
+
+# Describe your tests here
+cfengine_cfpromises_description="Verifies that cf-promises runs successfully on all generated promises"
+
+cfengine_cfpromises() {
+
+  # By default, this test is successful
+  CFENGINE_CFPROMISES='ok'
+
+  # If the rudder share directory exists and we are allowed to run slow tests,
+  # run cf-promises on all generated promises
+  if [ -d "${RUDDER_VAR}/share" ] && [ "${SLOW_TESTS}" = "1" ]
+  then
+    for i in ${RUDDER_VAR}/share/*
+    do
+      NODE=`echo ${i} | cut -d "/" -f 5`
+      cfengineutils_test_cfpromises "${NODE}" "${RUDDER_VAR}/share/${NODE}/rules/cfengine-community/promises.cf"
+    done
+  fi
+
+  # Finally, return 1 if the test has failed somewhere
+  [ "${CFENGINE_CFPROMISES}" = 'ko' ] && return 1
+
+}

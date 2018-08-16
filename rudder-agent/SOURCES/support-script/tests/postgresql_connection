@@ -1,0 +1,69 @@
+#!/bin/sh
+#
+# PostgreSQL connection test
+#
+
+# Declare your tests here (KEEP "${TESTS}")
+TESTS="${TESTS} postgresql_connection"
+
+# Describe your tests here
+postgresql_connection_description="Test the validity of the PostgreSQL connection"
+
+postgresql_connection() {
+
+  # By default, this test is successful
+  POSTGRESQL_CONNECTION='ok'
+
+  # Get all PostgreSQL access credentials and parameters
+  SQL_SERVER="$(grep -E '^rudder.jdbc.url[ \t]*=' ${RUDDER_OPT}/etc/rudder-web.properties | cut -d '=' -f 2- | sed 's%^.*://\(.*\):\(.*\)/.*$%\1%')"
+  SQL_PORT="$(grep -E '^rudder.jdbc.url[ \t]*=' ${RUDDER_OPT}/etc/rudder-web.properties | cut -d '=' -f 2- | sed 's%^.*://\(.*\):\(.*\)/.*$%\2%')"
+  SQL_USER="$(grep -E '^rudder.jdbc.username[ \t]*=' ${RUDDER_OPT}/etc/rudder-web.properties | cut -d "=" -f 2-)"
+  SQL_PASSWORD="$(grep -E '^rudder.jdbc.password[ \t]*=' ${RUDDER_OPT}/etc/rudder-web.properties | cut -d "=" -f 2-)"
+
+  export PGPASSWORD="${SQL_PASSWORD}"
+
+  PSQL="psql -q -h ${SQL_SERVER} -p ${SQL_PORT} -U ${SQL_USER}"
+
+  # Am I using a local or remote PostgreSQL server ?
+  if [ "${SQL_SERVER}" = "localhost" ] || echo "${SQL_SERVER}" | grep -q "`hostname`"
+  then
+
+    # The server is local, test if the PostgreSQL process is active
+    POSTGRESQL_COMMAND_LINE=`processutils_getcommand postgres | head -1`
+
+    if [ -z "${POSTGRESQL_COMMAND_LINE}" ]
+    then
+      test_failure "PostgreSQL server is local and PostgreSQL is dead" "no process matched"
+      LDAP_CONNECTION='ko'
+    else
+      test_success "PostgreSQL server is local and PostgreSQL is alive" "detected command: ${POSTGRESQL_COMMAND_LINE}"
+    fi
+
+  else
+
+    # The server is remote, try to ping it
+    COMMAND_OUTPUT=`ping -q -c 1 ${SQL_SERVER} 2>&1`
+    if [ ${?} -eq 0 ];
+    then
+      test_success "PostgreSQL server is remote, and a ping to \"${SQL_SERVER}\" succeeded"
+    else
+      test_warning "PostgreSQL server is remote, and a ping to \"${SQL_SERVER}\" failed" "${COMMAND_OUTPUT}"
+    fi
+
+  fi
+
+  # Try to run a noop command on the server
+  COMMAND_OUTPUT=`${PSQL} -t -d rudder -c "SELECT NULL;" 2>&1`
+
+  if [ ${?} -eq 0 ]
+  then
+    test_success "PostgreSQL connection succeeded"
+  else
+    test_failure "PostgreSQL connection failed" "${COMMAND_OUTPUT}"
+    POSTGRESQL_CONNECTION='ko'
+  fi
+
+  # Finally, return 1 if the test has failed somewhere
+  [ "${SKEL_SCENARIO}" = 'ko' ] && return 1
+
+}

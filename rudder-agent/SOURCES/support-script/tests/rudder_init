@@ -1,0 +1,37 @@
+#!/bin/sh
+#
+# Rudder init test
+#
+
+# Declare your tests here (KEEP "${TESTS}")
+TESTS="${TESTS} rudder_init"
+
+# Describe your tests here
+rudder_init_description="Verify that Rudder has been initialized properly"
+
+rudder_init() {
+
+  # By default, this test is successful
+  RUDDER_INIT='ok'
+
+  # Run the ldap_structure test before
+  if [ -z "${LDAP_STRUCTURE}" ]
+  then
+    test_info "Running LDAP structure test first"
+    test_info ""
+    ldap_structure
+  fi
+
+  # If it failed, skip the test
+  if [ "${LDAP_STRUCTURE}" != "ok" ]
+  then
+    test_failure "LDAP structure test failed/skipped, considering rudder uninitialized"
+    RUDDER_INIT='ko'
+  else
+    test_success "LDAP structure test succeeded, considering rudder initialized"
+  fi
+
+  # Finally, return 1 if the test has failed somewhere
+  [ "${RUDDER_INIT}" = 'ko' ] && return 1
+
+}

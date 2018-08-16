@@ -1,0 +1,37 @@
+#!/bin/sh
+#
+# uuid generation test
+#
+# This test requires a valid UUID to be given
+#
+
+# Declare your tests here (KEEP "${TESTS}")
+TESTS="${TESTS} uuid_generation"
+
+# Describe your tests here
+uuid_generation_description="Verify that the given uuid / node has generated promises"
+
+uuid_generation() {
+
+  # By default, this test is successful
+  UUID_GENERATION='ok'
+
+  MATCH_AMOUNT=`find /var/rudder/share -iname "${UUID}" 2>/dev/null | wc -l`
+
+  if [ "${MATCH_AMOUNT}" -eq 0 ]
+  then
+    test_failure "No generated promises detected for this UUID" "There are ${MATCH_AMOUNT} matches for this UUID"
+    UUID_GENERATION='ko'
+  elif [ "${MATCH_AMOUNT}" -gt 1 ]
+  then
+    test_failure "There are more than 1 matching UUID in generated promises ?!" "There are ${MATCH_AMOUNT} matches for this UUID"
+    UUID_GENERATION='ko'
+  elif [ "${MATCH_AMOUNT}" -eq 1 ]
+  then
+    test_success "There are generated promises detected for this UUID" "There are ${MATCH_AMOUNT} matches for this UUID"
+  fi
+
+  # Finally, return 1 if the test has failed somewhere
+  [ "${UUID_GENERATION}" = 'ko' ] && return 1
+
+}

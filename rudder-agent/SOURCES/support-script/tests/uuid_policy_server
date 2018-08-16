@@ -1,0 +1,32 @@
+#!/bin/sh
+#
+# uuid policy_server test
+#
+# This test requires a valid UUID to be given
+#
+
+# Declare your tests here (KEEP "${TESTS}")
+TESTS="${TESTS} uuid_policy_server"
+
+# Describe your tests here
+uuid_policy_server_description="Verify that the given uuid / node policy_server is 'accepted'"
+
+uuid_policy_server() {
+
+  # By default, this test is successful
+  UUID_POLICY_SERVER='ok'
+
+  NODE_POLICY_SERVER=`apiutils_call_api "${API_TOKEN}" "nodes/${UUID}?include=full" "policyServerId"`
+
+  if [ -z "${NODE_POLICY_SERVER}" ]
+  then
+    test_failure "Unable to get the host policy server" "No policyServerId returned by Rudder"
+    UUID_POLICY_SERVER='ko'
+  else
+    test_success "Node policy server is ${NODE_POLICY_SERVER}"
+  fi
+
+  # Finally, return 1 if the test has failed somewhere
+  [ "${UUID_POLICY_SERVER}" = 'ko' ] && return 1
+
+}

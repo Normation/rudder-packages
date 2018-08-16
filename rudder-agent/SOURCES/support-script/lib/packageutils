@@ -1,0 +1,48 @@
+#!/bin/sh
+
+# Utilities to query package information on the machine
+
+# Query package info (version and such, depending on the used PM)
+packageutils_query() {
+
+  # RPM
+  if type rpm >/dev/null 2>&1
+  then
+    rpm -qa "${1}*" 2>/dev/null
+  # DPKG
+  elif type dpkg >/dev/null 2>&1
+  then
+    dpkg -l "${1}*" 2>/dev/null | tail -n +6
+  fi
+
+}
+
+packageutils_query_version() {
+
+  # RPM
+  if type rpm >/dev/null 2>&1
+  then
+    rpm -q --queryformat '%{version}\n' "${1}" 2>/dev/null | grep -E "^[0-9]"
+  # DPKG
+  elif type dpkg >/dev/null 2>&1
+  then
+    dpkg -l "${1}"  2>/dev/null | tail -n +6 | grep -E "^ii" | awk '{print $3}' 2>/dev/null
+  fi
+
+}
+
+packageutils_query_package_status() {
+
+  # RPM
+  if type rpm >/dev/null 2>&1
+  then
+    STATUS=`rpm -q --queryformat '%{version}\n' "${1}" 2>/dev/null | grep -E "^[0-9]"`
+    [ -n "${STATUS}" ] && echo "ii" || echo "un"
+  # DPKG
+  elif type dpkg >/dev/null 2>&1
+  then
+    STATUS=`dpkg -l "${1}" 2>/dev/null | tail -n +6 | awk '{print $1}' 2>/dev/null`
+    [ -n "${STATUS}" ] && echo "${STATUS}" || echo "un"
+fi
+
+}

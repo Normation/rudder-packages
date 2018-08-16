@@ -1,0 +1,32 @@
+#!/bin/sh
+#
+# Rudder webapplog test
+#
+
+# Declare your tests here (KEEP "${TESTS}")
+TESTS="${TESTS} rudder_webapplog"
+
+# Describe your tests here
+rudder_webapplog_description="Verify that the current jetty stdout log does not contain any ERROR"
+
+rudder_webapplog() {
+
+  # By default, this test is successful
+  RUDDER_WEBAPPLOG='ok'
+
+  CURRENT_DATE=`date +%Y_%m_%d`
+  COMMAND_OUTPUT=`grep 'ERROR' "/var/log/rudder/webapp/${CURRENT_DATE}.stderrout.log"`
+
+  # If an ERROR matches in the log, fail the test
+  if [ "${?}" -ne 0 ]
+  then
+    test_success "The Rudder webapp log contains no error"
+  else
+    test_failure "There are errors in the Rudder webapp logs" "Output: ${COMMAND_OUTPUT}"
+    RUDDER_WEBAPPLOG='ko'
+  fi
+
+  # Finally, return 1 if the test has failed somewhere
+  [ "${RUDDER_WEBAPPLOG}" = 'ko' ] && return 1
+
+}
