@@ -258,7 +258,7 @@ cd %{_sourcedir}
 export CFLAGS="${RPM_OPT_FLAGS}"
 export CXXFLAGS="${RPM_OPT_FLAGS}"
 
-make %{?_smp_mflags} USE_SYSTEM_OPENSSL=%{use_system_openssl} USE_SYSTEM_LMDB=%{use_system_lmdb} USE_SYSTEM_PCRE=%{use_system_pcre} USE_SYSTEM_FUSION=%{use_system_fusion} USE_SYSTEM_PERL=%{use_system_perl}
+make USE_SYSTEM_OPENSSL=%{use_system_openssl} USE_SYSTEM_LMDB=%{use_system_lmdb} USE_SYSTEM_PCRE=%{use_system_pcre} USE_SYSTEM_FUSION=%{use_system_fusion} USE_SYSTEM_PERL=%{use_system_perl}
 
 # there was a slibclean here on aix
 # TODO, check that it is not necessary anymore since we no more do a make install
