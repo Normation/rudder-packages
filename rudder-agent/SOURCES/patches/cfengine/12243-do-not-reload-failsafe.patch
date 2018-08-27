@@ -1,8 +1,8 @@
 diff --git a/libpromises/generic_agent.c b/libpromises/generic_agent.c
-index 4f34b8a70..e15c51315 100644
+index 37423da4d..18af97e04 100644
 --- a/libpromises/generic_agent.c
 +++ b/libpromises/generic_agent.c
-@@ -149,22 +149,10 @@ Policy *SelectAndLoadPolicy(GenericAgentConfig *config, EvalContext *ctx, bool v
+@@ -154,22 +154,10 @@ Policy *SelectAndLoadPolicy(GenericAgentConfig *config, EvalContext *ctx, bool v
      {
          policy = LoadPolicy(ctx, config);
      }
@@ -14,7 +14,7 @@ index 4f34b8a70..e15c51315 100644
      else
      {
 -        Log(LOG_LEVEL_ERR, "CFEngine was not able to get confirmation of promises from cf-promises, so going to failsafe");
--        EvalContextClassPutHard(ctx, "failsafe_fallback", "attribute_name=Errors,source=agent");
+-        EvalContextClassPutHard(ctx, "failsafe_fallback", "report,attribute_name=Errors,source=agent");
 -
 -        if (CheckAndGenerateFailsafe(GetInputDir(), "failsafe.cf"))
 -        {
