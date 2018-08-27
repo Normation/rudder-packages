@@ -1,0 +1,13 @@
+diff --git a/libutils/libcrypto-compat.c b/libutils/libcrypto-compat.c
+index bf39f574f..5d29b7cfb 100644
+--- a/libutils/libcrypto-compat.c
++++ b/libutils/libcrypto-compat.c
+@@ -14,7 +14,7 @@
+ #if OPENSSL_VERSION_NUMBER < 0x10100000L
+ 
+ #include <string.h>
+-#include <openssl/engine.h>
++//#include <openssl/engine.h>
+ #include <openssl/bn.h>                                         /* BN_* */
+ 
+ 
