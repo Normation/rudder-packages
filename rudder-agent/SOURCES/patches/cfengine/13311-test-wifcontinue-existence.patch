@@ -1,0 +1,20 @@
+diff --git a/libpromises/pipes_unix.c b/libpromises/pipes_unix.c
+index f58d7484c..63f773fda 100644
+--- a/libpromises/pipes_unix.c
++++ b/libpromises/pipes_unix.c
+@@ -786,7 +786,14 @@ static int cf_pwait(pid_t pid)
+             "Child PID %jd exited abnormally (%s)", (intmax_t) pid,
+             WIFSIGNALED(status) ? "signalled" : (
+                 WIFSTOPPED(status) ? "stopped" : (
+-                    WIFCONTINUED(status) ? "continued" : "unknown" )));
++#ifdef WIFCONTINUED
++                    WIFCONTINUED(status) ? "continued" : "unknown" 
++#else
++                    "unknown"
++#endif
++		)
++	    )
++	);
+         return -1;
+     }
+ 
