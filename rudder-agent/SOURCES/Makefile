@@ -67,7 +67,7 @@ endif
 # It is duplicated because it is the code that is used to manage dependency
 # to other repositories, hence allowing deduplication of other code.
 # Autodetect wget, curl or fetch usage and proxy configuration
-# Usage: $(GET) <destination_file> <url>
+# Usage: $(GET) <destination_file> <url> <hash>
 PROXY_ENV = $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY))
 # No accept encoding to prevent the webserver form altering the distributed file
 WGET = wget -q --header="accept-encoding:" -O
