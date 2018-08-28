@@ -24,10 +24,6 @@ case "$1" in
   # is the root server. Force the UUID.
   echo 'root' > /opt/rudder/etc/uuid.hive
 
-  echo -n "INFO: Restarting syslog..."
-  service rsyslog restart >/dev/null 2>&1
-  echo "Done"
-
   MODULES_TO_ENABLE="rewrite proxy_http headers ssl filter deflate"
 
   # This module is compiled in core in some distro (debian)
@@ -43,7 +39,7 @@ case "$1" in
   chmod 755 -R /opt/rudder/share/tools
 
   echo -n "INFO: Restarting Apache HTTPd..."
-  service apache2 restart >/dev/null 2>&1
+  systemctl restart apache2 >/dev/null
   echo " Done"
 
 	# Create and populate technique store
@@ -132,10 +128,6 @@ case "$1" in
   then
     /opt/rudder/bin/rudder-pkg plugin restore-status < /tmp/rudder-plugins-upgrade
   fi
-
-  # Reload systemd when it is available so that it creates sysv-init shims
-  # This is necessary to make the service command work, and will be obsolete when we create systemd units
-  [ -x /bin/systemctl ] && /bin/systemctl daemon-reload
 
   # Restart the webapp
   echo -n "INFO: Restarting Rudder webapp and inventory-endpoint..."

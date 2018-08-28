@@ -37,7 +37,6 @@
 %define apache_tools            apache2-utils
 %define apache_group            www
 %define htpasswd_cmd            htpasswd2
-%define syslogservicename       syslog
 %define apache_vhost_dir        %{apache}/vhosts.d
 %define ldap_clients            openldap2-client
 %endif
@@ -46,7 +45,6 @@
 %define apache_tools            httpd-tools
 %define apache_group            apache
 %define htpasswd_cmd            htpasswd
-%define syslogservicename       rsyslog
 %define apache_vhost_dir        %{apache}/conf.d
 %define ldap_clients            openldap-clients
 %endif
@@ -272,28 +270,9 @@ fi
 # is the root server. Force the UUID.
 echo 'root' > /opt/rudder/etc/uuid.hive
 
-echo -n "INFO: Setting Apache HTTPd as a boot service..."
-# mandatory with systemd wrapper for old init
-%if 0%{?suse_version}
-systemctl daemon-reload
-%endif
-%if 0%{?rhel}
-systemctl enable %{apache}.service
-%endif
-echo " Done"
-
-echo -n "INFO: Restarting syslog..."
-%if 0%{?rhel} < 7
-service %{syslogservicename} restart > /dev/null
-%endif
-%if 0%{?rhel} >= 7
-/bin/systemctl restart  rsyslog.service
-%endif
-echo " Done"
-
 echo -n "INFO: Stopping Apache HTTPd..."
 %if 0%{?rhel}
-/bin/systemctl stop %{apache}.service
+systemctl stop %{apache} >/dev/null
 %endif
 echo " Done"
 
@@ -382,7 +361,7 @@ fi
 
 echo -n "INFO: Starting Apache HTTPd..."
 %if 0%{?rhel}
-/bin/systemctl start %{apache}.service
+systemctl start %{apache} >/dev/null
 %endif
 echo " Done"
 

@@ -132,7 +132,7 @@ case "$1" in
       rm -f /opt/rudder/etc/rudder-apache-common.conf
 
       echo -n "INFO: Restarting Apache HTTPd..."
-      service apache2 restart >/dev/null 2>&1
+      systemctl restart apache2  >/dev/null
       echo " Done"
 
       echo "INFO: rudder-server-relay setup complete."

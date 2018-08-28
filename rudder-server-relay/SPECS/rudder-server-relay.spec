@@ -278,21 +278,14 @@ if ! grep -qE "^#includedir /etc/sudoers.d$" /etc/sudoers; then
 fi
 
 echo -n "INFO: Setting Apache HTTPd as a boot service..."
-chkconfig --add %{apache} 2&> /dev/null
 %if 0%{?rhel}
-chkconfig %{apache} on
+  systemctl enable %{apache} >/dev/null
 %endif
 echo " Done"
-# mandatory with systemd wrapper for old init
-%if 0%{?suse_version}
-systemctl daemon-reload
-%endif
-
 
 echo -n "INFO: Stopping Apache HTTPd..."
-%if 0%{?rhel}
-/bin/systemctl stop %{apache}.service && echo " Done"
-%endif
+systemctl stop %{apache} >dev/null
+echo " Done"
 
 %if 0%{?suse_version}
 # On SuSE, enable the required modules
@@ -386,9 +379,8 @@ done
 rm -f %{rudderdir}/etc/rudder-apache-common.conf
 
 echo -n "INFO: Starting Apache HTTPd..."
-%if 0%{?rhel}
-/bin/systemctl start  %{apache}.service && echo " Done"
-%endif
+systemctl start  %{apache} >/dev/null
+echo " Done"
 
 %if 0%{?rhel}
 # SELinux support

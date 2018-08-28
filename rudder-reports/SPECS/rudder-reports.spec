@@ -111,18 +111,10 @@ install -m 644 %{SOURCE3} %{buildroot}/opt/rudder/etc/server-roles.d/
 # Post Installation
 #=================================================
 
-if type systemctl >/dev/null 2>&1; then
-  POSTGRESQL_SERVICE_NAME=$(systemctl list-unit-files --type service | awk -F'.' '{print $1}' | grep -E "^postgresql[0-9]*$" | tail -n 1)
-fi
-if [ -z "${POSTGRESQL_SERVICE_NAME}" ] && type chkconfig >/dev/null 2>&1; then
-  POSTGRESQL_SERVICE_NAME=$(chkconfig 2>/dev/null | awk '{ print $1 }' | grep "postgresql" | tail -n 1)
-fi
-if [ -z "${POSTGRESQL_SERVICE_NAME}" ]; then
-  POSTGRESQL_SERVICE_NAME=$(ls -1 /etc/init.d | grep "postgresql" | tail -n 1)
-fi
+POSTGRESQL_SERVICE_NAME=$(systemctl list-unit-files --type service | awk -F'.' '{print $1}' | grep -E "^postgresql[0-9]*$" | tail -n 1)
 
 # Check if PostgreSQL is started
-/bin/systemctl status ${POSTGRESQL_SERVICE_NAME}.service
+systemctl status ${POSTGRESQL_SERVICE_NAME}
 
 if [ $? -ne 0 ]; then
 %if 0%{?rhel}
@@ -131,7 +123,7 @@ if [ $? -ne 0 ]; then
   service ${POSTGRESQL_SERVICE_NAME} initdb
   echo " Done"
 %endif
-  /bin/systemctl start ${POSTGRESQL_SERVICE_NAME}.service
+  systemctl start ${POSTGRESQL_SERVICE_NAME}
 fi
 
 PG_HBA_FILE=$(su - postgres -c "psql -t -P format=unaligned -c 'show hba_file';")
@@ -148,20 +140,15 @@ if [ -f ${PG_HBA_FILE} ]; then
     sed -i 1i"host    all             rudder          127.0.0.1/32            md5" ${PG_HBA_FILE}
 
     # Apply changes in PostgreSQL
-    /bin/systemctl reload ${POSTGRESQL_SERVICE_NAME}.service
+    systemctl reload ${POSTGRESQL_SERVICE_NAME}
   fi
 fi
 
 echo -n "INFO: Setting PostgreSQL as a boot service..."
-chkconfig --add ${POSTGRESQL_SERVICE_NAME} >/dev/null 2>&1
 %if 0%{?rhel}
-  chkconfig ${POSTGRESQL_SERVICE_NAME} on >/dev/null 2>&1
+  systemctl enable ${POSTGRESQL_SERVICE_NAME} >/dev/null 
 %endif
 echo " Done"
-# mandatory with systemd wrapper for old init
-%if 0%{?suse_version} && 0%{?suse_version} >= 1315
-systemctl daemon-reload
-%endif
 
 echo -n "INFO: Waiting for PostgreSQL to be up..."
 CPT=0

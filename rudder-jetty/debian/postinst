@@ -58,6 +58,8 @@ EOF
 
         fi
 
+        systemctl daemon-reload
+
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)

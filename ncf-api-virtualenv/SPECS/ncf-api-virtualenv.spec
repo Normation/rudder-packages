@@ -219,7 +219,7 @@ rm -f %{installdir}/tools/ncf.pyc
 rm -f %{installdir}/tools/ncf_constraints.pyc
 
 echo -n "INFO: Restarting Apache HTTPd..."
-service apache2 restart >/dev/null 2>&1
+systemctl restart apache2 >/dev/null
 echo " Done"
 %endif
 

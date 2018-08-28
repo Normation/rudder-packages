@@ -29,11 +29,11 @@ case "$1" in
 
     # Reload systemd when it is available so that it creates sysv-init shims
     # This is necessary to make the service command work, and will be obsolete when we create systemd units
-    [ -x /bin/systemctl ] && /bin/systemctl daemon-reload
+    systemctl daemon-reload
 
     # Restart rudder-slapd to take schema changes into account
     echo -n "INFO: Restarting rudder-slapd..."
-    service rudder-slapd restart >/dev/null
+    systemctl restart rudder-slapd >/dev/null
     echo " Done"
   ;;
 

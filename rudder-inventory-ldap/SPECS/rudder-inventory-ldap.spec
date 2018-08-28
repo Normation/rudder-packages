@@ -201,18 +201,14 @@ echo -n "INFO: Setting rudder-slapd as a boot service..."
 chkconfig --add rudder-slapd >/dev/null 2>&1
 
 # mandatory with systemd wrapper for old init
-%if 0%{?suse_version} && 0%{?suse_version} >= 1315
 systemctl daemon-reload
-%endif
 
-%if 0%{?rhel} && 0%{?rhel} >= 6
-chkconfig rudder-slapd on
-%endif
+systemctl enable rudder-slapd
 echo " Done"
 
 # Need to restart to take schema changes into account
 echo -n "INFO: Restarting rudder-slapd..."
-service rudder-slapd restart >/dev/null
+systemctl restart rudder-slapd >/dev/null
 echo " Done"
 
 %preun -n rudder-inventory-ldap
@@ -222,12 +218,7 @@ echo " Done"
 
 if [[ $1 -eq 0 ]]
 then
-%if 0%{?suse_version} < 1200
-  service rudder-slapd forcestop
-%endif
-%if 0%{?suse_version} >= 1200
-  service rudder-slapd stop
-%endif
+systemctl stop rudder-slapd
 fi
 
 #=================================================
