@@ -18,10 +18,32 @@
 
 .DEFAULT_GOAL := localdepends
 
-JETTY_RELEASE = 9.4.7
-DATE_RELEASE = 20170914
+JETTY_RELEASE = 9.4.11
+DATE_RELEASE = 20180605
+JETTY_SHA256 = c286e87f36d56ef40821c5acb99acf3f90873d39bdbc1851f482c556c2dca5ae
 TMP_DIR := $(shell mktemp -dq)
-WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget -q
+
+# GENERIC_GET: do not remove this line
+# This is a generic get code that is common to many of our Makefiles.
+# The tag is here to find them. Rudder agent has an even more generic one.
+# If you change this code, change all the places where you can find this tag too.
+# It is duplicated because it is the code that is used to manage dependency
+# to other repositories, hence allowing deduplication of other code.
+# Autodetect wget, curl or fetch usage and proxy configuration
+# Usage: $(GET) <destination_file> <url> <hash>
+PROXY_ENV = $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY))
+# No accept encoding to prevent the webserver form altering the distributed file
+WGET = wget -q --header="accept-encoding:" -O
+CURL = curl -s -L -o
+ifneq (,$(wildcard /usr/bin/curl))
+_GET = $(PROXY_ENV) $(CURL)
+else
+_GET = $(PROXY_ENV) $(WGET)
+endif
+# Pass an empty string to skip hash check
+GET=get() { $(_GET) "$$1.part" "$$2" && { openssl dgst -sha256 "$$1.part" | grep -q "$$3" || { echo "Wrong checksum, aborting"; exit 1; }; } && mv "$$1.part" "$$1"; }; get
+
+
 FIND := /usr/bin/find
 # this is the orginal URL for Jetty distribution
 JETTY_URL := "http://repo1.maven.org/maven2/org/eclipse/jetty/jetty-distribution/$(JETTY_RELEASE).v$(DATE_RELEASE)/jetty-distribution-$(JETTY_RELEASE).v$(DATE_RELEASE).tar.gz"
@@ -32,9 +54,9 @@ JETTY_NRM_URL := "http://repository.rudder.io/build-dependencies/jetty/jetty-dis
 localdepends: ./jetty
 	rm -rf $(TMP_DIR)
 
-./jetty: /usr/bin/wget
+./jetty:
 	# Download and uncompress the Jetty distribution
-	$(WGET) -O $(TMP_DIR)/jetty.tgz $(JETTY_NRM_URL) 
+	$(GET) $(TMP_DIR)/jetty.tgz $(JETTY_NRM_URL) $(CFENGINE_SHA256) 
 	tar xzf $(TMP_DIR)/jetty.tgz -C $(TMP_DIR)
 	mv $(TMP_DIR)/jetty-distribution-$(JETTY_RELEASE).v$(DATE_RELEASE) ./jetty
 	rm -rf $(TMP_DIR)
