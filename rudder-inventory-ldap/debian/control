@@ -8,7 +8,7 @@ Homepage: http://www.rudder-project.org
 
 Package: rudder-inventory-ldap
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, rsyslog
+Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: Configuration management and audit tool - OpenLDAP
  Rudder is an open source configuration management and audit solution.
  .

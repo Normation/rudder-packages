@@ -31,6 +31,7 @@
 
 %define maven_settings settings-external.xml
 
+# Reference for suse_version : https://en.opensuse.org/openSUSE:Build_Service_cross_distribution_howto
 %if 0%{?suse_version}
 %define apache                  apache2
 %define apache_tools            apache2-utils
@@ -39,24 +40,8 @@
 %define syslogservicename       syslog
 %define apache_vhost_dir        %{apache}/vhosts.d
 %define ldap_clients            openldap2-client
-# Reference for suse_version : https://en.opensuse.org/openSUSE:Build_Service_cross_distribution_howto
-%if 0%{?suse_version} >= 1200
-%define usermod_opt             aG
-%else
-%define usermod_opt             A
 %endif
-%endif
-%if 0%{?rhel} == 5 || 0%{?el5}
-%define apache                  httpd
-%define apache_tools            httpd-tools
-%define apache_group            apache
-%define htpasswd_cmd            htpasswd
-%define syslogservicename       syslog
-%define apache_vhost_dir        %{apache}/conf.d
-%define ldap_clients            openldap-clients
-%define usermod_opt             aG
-%endif
-%if 0%{?rhel} && 0%{?rhel} >= 6
+%if 0%{?rhel}
 %define apache                  httpd
 %define apache_tools            httpd-tools
 %define apache_group            apache
@@ -64,8 +49,8 @@
 %define syslogservicename       rsyslog
 %define apache_vhost_dir        %{apache}/conf.d
 %define ldap_clients            openldap-clients
-%define usermod_opt             aG
 %endif
+%define usermod_opt             aG
 
 #=================================================
 # Header
@@ -108,7 +93,7 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
 
 # Dependencies
-Requires: rudder-techniques = %{real_epoch}:%{real_version}, rudder-server-relay = %{real_epoch}:%{real_version}, ncf-api-virtualenv = %{real_epoch}:%{real_version}, %{apache}, %{apache_tools}, git-core, rsync, openssl, %{ldap_clients}
+Requires: rudder-techniques = %{real_epoch}:%{real_version}, rudder-server-relay = %{real_epoch}:%{real_version}, ncf-api-virtualenv = %{real_epoch}:%{real_version}, %{apache}, %{apache_tools}, git-core, rsync, openssl, rudder-jetty = %{real_epoch}:%{real_version}, %{ldap_clients}
 
 # We need the PostgreSQL client utilities so that we can run database checks and upgrades (rudder-upgrade, in particular)
 Requires: postgresql >= 8.4
@@ -119,24 +104,15 @@ Requires: postgresql >= 8.4
 ## Those jetty packages are virtual packages provided by our Jetty and the system one.
 ##
 
-## 1 - RHEL
-%if 0%{?rhel} && 0%{?rhel} == 6
-BuildRequires: java-1.8.0-openjdk-devel selinux-policy
-%endif
-
-%if 0%{?rhel} && 0%{?rhel} >= 7
-BuildRequires: java-1.8.0-openjdk-devel selinux-policy-devel
-%endif
-
+## RHEL
 %if 0%{?rhel}
-Requires: mod_ssl jetty-eclipse
+BuildRequires: java-1.8.0-openjdk-devel selinux-policy-devel
+Requires: mod_ssl
 %endif
 
-## 3 - SLES
-## No Jetty provided by SLES... Use our own.
+## SLES
 %if 0%{?suse_version}
 BuildRequires: jdk >= 1.8
-Requires: rudder-jetty = %{real_epoch}:%{real_version}
 %endif
 
 %description
@@ -162,7 +138,7 @@ cp -rf %{_sourcedir}/rudder-doc %{_builddir}
 #=================================================
 %build
 
-%if 0%{?rhel} || 0%{?fedora}
+%if 0%{?rhel}
 # Build SELinux policy package
 # Compiles rudder-webapp.te and rudder-webapp.fc into rudder-webapp.pp
 cd %{_builddir} && make -f /usr/share/selinux/devel/Makefile
@@ -266,7 +242,7 @@ cp %{SOURCE18} %{buildroot}%{rudderdir}/share/certificates/
 # Install documentation
 cp -rf %{_builddir}/rudder-doc/html %{buildroot}/usr/share/doc/rudder
 
-%if 0%{?rhel} || 0%{?fedora}
+%if 0%{?rhel}
 # Install SELinux policy
 install -m 644  %{_builddir}/rudder-webapp.pp %{buildroot}%{rudderdir}/share/selinux/
 %endif
@@ -297,17 +273,11 @@ fi
 echo 'root' > /opt/rudder/etc/uuid.hive
 
 echo -n "INFO: Setting Apache HTTPd as a boot service..."
-%if 0%{?rhel} && 0%{?rhel} < 7
-chkconfig --add %{apache} 2&> /dev/null
-%endif
-%if 0%{?rhel} && 0%{?rhel} == 6
-chkconfig %{apache} on
-%endif
 # mandatory with systemd wrapper for old init
-%if 0%{?suse_version} && 0%{?suse_version} >= 1315
+%if 0%{?suse_version}
 systemctl daemon-reload
 %endif
-%if 0%{?rhel} && 0%{?rhel} >= 7
+%if 0%{?rhel}
 systemctl enable %{apache}.service
 %endif
 echo " Done"
@@ -322,10 +292,7 @@ service %{syslogservicename} restart > /dev/null
 echo " Done"
 
 echo -n "INFO: Stopping Apache HTTPd..."
-%if 0%{?rhel} < 7
-service %{apache} stop >/dev/null 2>&1
-%endif
-%if 0%{?rhel} >= 7
+%if 0%{?rhel}
 /bin/systemctl stop %{apache}.service
 %endif
 echo " Done"
@@ -399,7 +366,7 @@ if [ ! -d /var/rudder/configuration-repository/techniques ]; then
         touch /opt/rudder/etc/force_technique_reload
 fi
 
-%if 0%{?rhel} || 0%{?fedora}
+%if 0%{?rhel}
 # SELinux support
 # Check "sestatus" presence, and if here tweak our installation to be
 # SELinux compliant
@@ -414,10 +381,7 @@ fi
 %endif
 
 echo -n "INFO: Starting Apache HTTPd..."
-%if 0%{?rhel} < 7
-service %{apache} start >/dev/null 2>&1
-%endif
-%if 0%{?rhel} >= 7
+%if 0%{?rhel}
 /bin/systemctl start %{apache}.service
 %endif
 echo " Done"
@@ -509,7 +473,7 @@ if [ $1 -eq 0 ]; then
 
 fi
 
-%if 0%{?rhel} || 0%{?fedora}
+%if 0%{?rhel}
   # Do it only during uninstallation
   if [ $1 -eq 0 ]; then
     if type sestatus >/dev/null 2>&1 && sestatus | grep -q "enabled"; then

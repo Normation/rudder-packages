@@ -1,2 +1,0 @@
-SLES11:krb5-devel postgresql-devel openssl-devel pcre-devel zlib-devel pkg-config autoconf automake flex glibc-devel libaio-devel aspell-ispell glibc-info autoconf automake gcc gcc-c++ gcc-info pkg-config gcc-locale libstdc++-devel gdbm-devel kernel-source bison
-SLES10:krb5-devel postgresql-devel openssl-devel pcre-devel zlib-devel pkg-config autoconf automake flex glibc-devel libaio-devel aspell-ispell glibc-info autoconf automake gcc gcc-c++ gcc-info pkg-config gcc-locale libstdc++-devel gdbm-devel kernel-source bison

@@ -34,11 +34,6 @@
 %define ruddervardir     /var/rudder
 %define rudderlogdir     /var/log/rudder
 
-%define jetty_release    9.4.7
-%define date_release     20170914
-
-%define _binaries_in_noarch_packages_terminate_build   0
-
 %if 0%{?suse_version}
 %define jetty_init_script jetty-sles.sh
 %else
@@ -80,27 +75,14 @@ BuildArch: noarch
 # Also, I would like to have something like %elif here, but not implemented
 # in RPM yet...
 
-%if 0%{?rhel} && 0%{?rhel} > 6
+%if 0%{?rhel}
 Requires: jre-headless >= 1.8
-%endif
-
-%if 0%{?rhel} && 0%{?rhel} == 6
-Requires: java-1.8.0-openjdk-headless
 %endif
 
 # Reference for sle_version : https://en.opensuse.org/openSUSE:Build_Service_cross_distribution_howto
 %if 0%{?sle_version} && 0%{?sle_version} >= 120100
 Requires: java-1_8_0-openjdk-headless
 %endif
-
-# We are providing Jetty, but the name of the provided element depends of the
-# OS flavour.
-
-%if 0%{?rhel} || 0%{?fedora}
-Provides: jetty-eclipse jetty-server
-%endif
-
-# No Jetty provided by SLES...
 
 %description
 Rudder is an open source configuration management and audit solution.

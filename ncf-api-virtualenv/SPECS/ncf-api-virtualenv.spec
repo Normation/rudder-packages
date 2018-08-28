@@ -86,35 +86,18 @@ BuildRequires: python
 Requires: python ncf
 
 
-## RHEL & Fedora
-%if 0%{?rhel} || 0%{?fedora}
-
+## RHEL
+%if 0%{?rhel}
 # We need mod_wsgi to use ncf builder
 Requires: httpd mod_wsgi shadow-utils
 
+BuildRequires: selinux-policy-devel
 %endif
 
 ## SLES
 %if 0%{?suse_version}
 Requires: apache2 apache2-mod_wsgi pwdutils
-%endif
-
-%if 0%{?suse_version} && 0%{?suse_version} >= 1200
 Requires: python-pyOpenSSL
-%endif
-
-## 1 - RHEL
-%if 0%{?rhel} && 0%{?rhel} == 6
-BuildRequires: selinux-policy
-%endif
-
-%if 0%{?rhel} && 0%{?rhel} >= 7
-BuildRequires: selinux-policy-devel
-%endif
-
-## 2 - Fedora
-%if 0%{?fedora}
-BuildRequires: selinux-policy-devel
 %endif
 
 %description
@@ -143,18 +126,7 @@ cp -f %{SOURCE4} %{_builddir}
 cd %{_sourcedir}
 
 # Build Virtualenv
-# Reference for suse_version : https://en.opensuse.org/openSUSE:Build_Service_cross_distribution_howto
-%if 0%{?suse_version} && 0%{?suse_version} < 1200
-# SLES specific exception, see http://www.rudder-project.org/redmine/issues/6365
-python virtualenv-1.10.1/virtualenv.py %{real_name}
-
-# Using a recent pip on SLES is not possible due to
-# bad interaction between pip and an old OpenSSL.
-# See http://stackoverflow.com/questions/17416938/pip-can-not-install-anything
-%{real_name}/bin/easy_install pip==1.2.1
-%else
 python virtualenv/virtualenv.py %{real_name}
-%endif
 
 # Get all requirements via pip
 %{real_name}/bin/pip install -r %{_sourcedir}/rudder-sources/ncf/api/requirements.txt
@@ -225,7 +197,7 @@ install -m 644  %{_builddir}/ncf-api-virtualenv.pp %{buildroot}%{installdir}/sha
 # Post Installation
 #=================================================
 
-%if 0%{?rhel} || 0%{?fedora}
+%if 0%{?rhel}
 # SELinux support
 # Check "sestatus" presence, and if here tweak our installation to be
 # SELinux compliant
@@ -236,11 +208,6 @@ if type sestatus >/dev/null 2>&1 && sestatus | grep -q "enabled"; then
   restorecon -RF /var/lib/ncf-api-venv/
   echo " Done"
 fi
-%endif
-
-%if 0%{?rhel} || 0%{?fedora}
-# EL-based systems enable the WSGI module for apache
-# automatically, nothing to do here :)
 %endif
 
 %if 0%{?suse_version}
@@ -271,7 +238,7 @@ if [ $1 -eq 0 ]; then
   fi
 fi
 
-%if 0%{?rhel} || 0%{?fedora}
+%if 0%{?rhel}
   # Do it only during uninstallation
   if [ $1 -eq 0 ]; then
     if type sestatus >/dev/null 2>&1 && sestatus | grep -q "enabled"; then

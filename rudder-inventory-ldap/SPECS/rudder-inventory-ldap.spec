@@ -35,18 +35,6 @@
 %define ruddervardir     /var/rudder
 %define rudderlogdir     /var/log/rudder
 
-%if 0%{?suse_version}
-%define syslogservicename syslog
-%endif
-
-%if 0%{?rhel} == 5 || 0%{?el5}
-%define syslogservicename syslog
-%endif
-
-%if 0%{?rhel} && 0%{?rhel} > 5
-%define syslogservicename rsyslog
-%endif
-
 #=================================================
 # Header
 #=================================================
@@ -221,14 +209,6 @@ systemctl daemon-reload
 chkconfig rudder-slapd on
 %endif
 echo " Done"
-
-echo -n "INFO: Reloading syslogd... "
-%if 0%{?rhel} < 7
-service %{syslogservicename} restart > /dev/null && echo " Done"
-%endif
-%if 0%{?rhel} >= 7
-/bin/systemctl restart  %{syslogservicename}.service && echo " Done"
-%endif
 
 # Need to restart to take schema changes into account
 echo -n "INFO: Restarting rudder-slapd..."
