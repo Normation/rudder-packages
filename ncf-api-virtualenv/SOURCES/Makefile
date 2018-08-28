@@ -20,14 +20,33 @@
 
 RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
 VIRTUALENV_RELEASE = 12.0.7
+VIRTUALENV_SHA256 = d681db1766cdc8aa1b37eb18252c264b775f971166c2bf658a9618c1f3d28741
 
-WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget -q
+# GENERIC_GET: do not remove this line
+# This is a generic get code that is common to many of our Makefiles.
+# The tag is here to find them. Rudder agent has an even more generic one.
+# If you change this code, change all the places where you can find this tag too.
+# It is duplicated because it is the code that is used to manage dependency
+# to other repositories, hence allowing deduplication of other code.
+# Autodetect wget, curl or fetch usage and proxy configuration
+# Usage: $(GET) <destination_file> <url> <hash>
+PROXY_ENV = $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY))
+# No accept encoding to prevent the webserver form altering the distributed file
+WGET = wget -q --header="accept-encoding:" -O
+CURL = curl -s -L -o
+ifneq (,$(wildcard /usr/bin/curl))
+_GET = $(PROXY_ENV) $(CURL)
+else
+_GET = $(PROXY_ENV) $(WGET)
+endif
+# Pass an empty string to skip hash check
+GET=get() { $(_GET) "$$1.part" "$$2" && { openssl dgst -sha256 "$$1.part" | grep -q "$$3" || { echo "Wrong checksum, aborting"; exit 1; }; } && mv "$$1.part" "$$1"; }; get
 
 localdepends: ./rudder-sources ./virtualenv/virtualenv.py
 	# N/A
 
 ./rudder-sources.tar.bz2:
-	$(WGET) -O rudder-sources.tar.bz2 https://www.rudder-project.org/archives/rudder-sources-${RUDDER_VERSION_TO_PACKAGE}.tar.bz2
+	$(GET) rudder-sources.tar.bz2 https://www.rudder-project.org/archives/rudder-sources-${RUDDER_VERSION_TO_PACKAGE}.tar.bz2 ""
 
 ./rudder-sources: ./rudder-sources.tar.bz2
 	tar -xjf rudder-sources.tar.bz2
@@ -35,7 +54,7 @@ localdepends: ./rudder-sources ./virtualenv/virtualenv.py
 
 ./virtualenv.tgz: /usr/bin/wget
 	# Original URL: https://pypi.python.org/packages/source/v/virtualenv/virtualenv-12.0.7.tar.gz
-	$(WGET) -O virtualenv.tgz http://repository.rudder.io/build-dependencies/virtualenv/virtualenv-$(VIRTUALENV_RELEASE).tar.gz
+	$(GET) virtualenv.tgz https://repository.rudder.io/build-dependencies/virtualenv/virtualenv-$(VIRTUALENV_RELEASE).tar.gz $(VIRTUALENV_SHA256)
 
 ./virtualenv/virtualenv.py: ./virtualenv.tgz
 	tar -xzf ./virtualenv.tgz

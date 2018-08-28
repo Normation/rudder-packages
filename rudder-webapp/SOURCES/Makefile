@@ -16,8 +16,8 @@
 #
 #####################################################################################
 
-MAVEN_RELEASE = 3.0.4
-WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget -q
+MAVEN_RELEASE = 3.5.4
+MAVEN_SHA256 = ce50b1c91364cb77efe3776f756a6d92b76d9038b0a0782f7d53acf1e997a14d
 
 MAVEN_PROXY := $(if $(PROXY), $(shell echo "$(PROXY)" |  perl -ne ' \
     if (m|(https?)://(?:([^:@]+)(?::([^@]+))?\@)?([^:/]+)(?::([0-9]+))?|) { \
@@ -36,6 +36,26 @@ MAVEN_PROXY := $(if $(PROXY), $(shell echo "$(PROXY)" |  perl -ne ' \
 RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
 RUDDER_MAJOR_VERSION := $(shell echo ${RUDDER_VERSION_TO_PACKAGE} | cut -d'.' -f 1-2)
 
+# GENERIC_GET: do not remove this line
+# This is a generic get code that is common to many of our Makefiles.
+# The tag is here to find them. Rudder agent has an even more generic one.
+# If you change this code, change all the places where you can find this tag too.
+# It is duplicated because it is the code that is used to manage dependency
+# to other repositories, hence allowing deduplication of other code.
+# Autodetect wget, curl or fetch usage and proxy configuration
+# Usage: $(GET) <destination_file> <url> <hash>
+PROXY_ENV = $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY))
+# No accept encoding to prevent the webserver form altering the distributed file
+WGET = wget -q --header="accept-encoding:" -O
+CURL = curl -s -L -o
+ifneq (,$(wildcard /usr/bin/curl))
+_GET = $(PROXY_ENV) $(CURL)
+else
+_GET = $(PROXY_ENV) $(WGET)
+endif
+# Pass an empty string to skip hash check
+GET=get() { $(_GET) "$$1.part" "$$2" && { openssl dgst -sha256 "$$1.part" | grep -q "$$3" || { echo "Wrong checksum, aborting"; exit 1; }; } && mv "$$1.part" "$$1"; }; get
+
 localdepends: ./rudder-sources ./maven/bin/mvn ./rudder-users.xml ./rudder-doc ./.gitignore ./rudder.war
 
 /usr/bin/wget:
@@ -43,7 +63,7 @@ localdepends: ./rudder-sources ./maven/bin/mvn ./rudder-users.xml ./rudder-doc .
 
 ./maven.tgz: /usr/bin/wget
 	# Original URL: http://apache.multidist.com/maven/binaries/apache-maven-$(MAVEN_RELEASE)-bin.tar.gz
-	$(WGET) -O ./maven.tgz.dl http://repository.rudder.io/build-dependencies/maven/apache-maven-$(MAVEN_RELEASE)-bin.tar.gz
+	$(GET) ./maven.tgz.dl https://repository.rudder.io/build-dependencies/maven/apache-maven-$(MAVEN_RELEASE)-bin.tar.gz $(MAVEN_SHA256)
 	mv ./maven.tgz.dl ./maven.tgz
 
 ./maven/bin/mvn: ./maven.tgz
@@ -56,7 +76,7 @@ localdepends: ./rudder-sources ./maven/bin/mvn ./rudder-users.xml ./rudder-doc .
 	./maven/bin/mvn -s settings-external.xml --batch-mode org.apache.maven.plugins:maven-dependency-plugin:3.0.0:copy -Dmaven.repo.local=./.m2/repository -Dartifact=com.normation.rudder:rudder-web:$$(sed -n '/<parent>/,/<.parent>/s/.*<version>\(.*\)<.version>.*/\1/p' ./rudder-sources/rudder/pom.xml):war -DoutputDirectory=. && mv rudder-web*.war rudder.war || true
 
 ./rudder-sources.tar.bz2:
-	$(WGET) -O rudder-sources.tar.bz2.dl https://www.rudder-project.org/archives/rudder-sources-${RUDDER_VERSION_TO_PACKAGE}.tar.bz2
+	$(GET) rudder-sources.tar.bz2.dl https://www.rudder-project.org/archives/rudder-sources-${RUDDER_VERSION_TO_PACKAGE}.tar.bz2 ""
 	mv ./rudder-sources.tar.bz2.dl ./rudder-sources.tar.bz2
 
 ./rudder-sources: ./rudder-sources.tar.bz2
@@ -65,7 +85,7 @@ localdepends: ./rudder-sources ./maven/bin/mvn ./rudder-users.xml ./rudder-doc .
 
 ./rudder-doc: /usr/bin/wget
 	# Get user manual from rudder-project.org and rename directory containing it to rudder-doc
-	$(WGET) https://docs.rudder.io/archives/doc-${RUDDER_MAJOR_VERSION}.tar.gz
+	$(GET) https://docs.rudder.io/archives/doc-${RUDDER_MAJOR_VERSION}.tar.gz ""
 	tar -xzf doc-${RUDDER_MAJOR_VERSION}.tar.gz
 	mkdir -p rudder-doc
 	mv doc-${RUDDER_MAJOR_VERSION} rudder-doc/html

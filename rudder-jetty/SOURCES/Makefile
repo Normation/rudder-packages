@@ -43,20 +43,18 @@ endif
 # Pass an empty string to skip hash check
 GET=get() { $(_GET) "$$1.part" "$$2" && { openssl dgst -sha256 "$$1.part" | grep -q "$$3" || { echo "Wrong checksum, aborting"; exit 1; }; } && mv "$$1.part" "$$1"; }; get
 
-
 FIND := /usr/bin/find
 # this is the orginal URL for Jetty distribution
 JETTY_URL := "http://repo1.maven.org/maven2/org/eclipse/jetty/jetty-distribution/$(JETTY_RELEASE).v$(DATE_RELEASE)/jetty-distribution-$(JETTY_RELEASE).v$(DATE_RELEASE).tar.gz"
 # this is our "local" copy, used to make reproducible build whatever happen to original URL
-JETTY_NRM_URL := "http://repository.rudder.io/build-dependencies/jetty/jetty-distribution-$(JETTY_RELEASE).v$(DATE_RELEASE).tar.gz"
-
+JETTY_NRM_URL := "https://repository.rudder.io/build-dependencies/jetty/jetty-distribution-$(JETTY_RELEASE).v$(DATE_RELEASE).tar.gz"
 
 localdepends: ./jetty
 	rm -rf $(TMP_DIR)
 
 ./jetty:
 	# Download and uncompress the Jetty distribution
-	$(GET) $(TMP_DIR)/jetty.tgz $(JETTY_NRM_URL) $(CFENGINE_SHA256) 
+	$(GET) $(TMP_DIR)/jetty.tgz $(JETTY_NRM_URL) $(JETTY_SHA256)
 	tar xzf $(TMP_DIR)/jetty.tgz -C $(TMP_DIR)
 	mv $(TMP_DIR)/jetty-distribution-$(JETTY_RELEASE).v$(DATE_RELEASE) ./jetty
 	rm -rf $(TMP_DIR)
