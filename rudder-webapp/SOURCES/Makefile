@@ -56,7 +56,7 @@ localdepends: ./rudder-sources ./maven/bin/mvn ./rudder-users.xml ./rudder-doc .
 	./maven/bin/mvn -s settings-external.xml --batch-mode org.apache.maven.plugins:maven-dependency-plugin:3.0.0:copy -Dmaven.repo.local=./.m2/repository -Dartifact=com.normation.rudder:rudder-web:$$(sed -n '/<parent>/,/<.parent>/s/.*<version>\(.*\)<.version>.*/\1/p' ./rudder-sources/rudder/pom.xml):war -DoutputDirectory=. && mv rudder-web*.war rudder.war || true
 
 ./rudder-sources.tar.bz2:
-	$(WGET) -O rudder-sources.tar.bz2.dl http://www.rudder-project.org/archives/rudder-sources-${RUDDER_VERSION_TO_PACKAGE}.tar.bz2
+	$(WGET) -O rudder-sources.tar.bz2.dl https://www.rudder-project.org/archives/rudder-sources-${RUDDER_VERSION_TO_PACKAGE}.tar.bz2
 	mv ./rudder-sources.tar.bz2.dl ./rudder-sources.tar.bz2
 
 ./rudder-sources: ./rudder-sources.tar.bz2

@@ -18,7 +18,8 @@
 
 .DEFAULT_GOAL := localdepends
 
-OPENLDAP_RELEASE = 2.4.45
+OPENLDAP_RELEASE = 2.4.46
+OPENLDAP_SHA1 = a9ae2273eb9bdd70090dafe0d018a3132606bef6
 
 RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
 
@@ -26,12 +27,43 @@ WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget -q
 PATCH := /usr/bin/patch
 FIND := /usr/bin/find
 
+# GENERIC_GET: do not remove this line
+# This is a generic get code that is common to many of our Makefiles.
+# The tag is here to find them.
+# If you change this code, change all the places where you can find this tag too.
+# It is duplicated because it is the code that is used to manage dependency
+# to other repositories, hence allowing deduplication of other code.
+# Autodetect wget, curl or fetch usage and proxy configuration
+# Usage: $(GET) <destination_file> <url>
+PROXY_ENV = $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY))
+# No accept encoding to prevent the webserver form altering the distributed file
+WGET = wget -q --header="accept-encoding:" -O
+CURL = curl -s -L -o
+FETCH = fetch -q -o
+ifneq (,$(wildcard /usr/bin/curl))
+_GET = $(PROXY_ENV) $(CURL)
+GET_OPT = --curl
+CPAN_OPT = --curl --no-wget
+else
+ifneq (,$(wildcard /usr/bin/fetch))
+_GET = $(PROXY_ENV) $(FETCH)
+else
+_GET = $(PROXY_ENV) $(WGET)
+GET_OPT = --wget
+CPAN_OPT = --wget
+endif
+endif
+# We are using sha1 as sha256 is not supported on RHEL3
+# Not using the sha1sum command as it is not available on AIX
+# Pass an empty string to skip hash check
+GET=get() { $(_GET) "$$1.part" "$$2" && { openssl dgst -sha1 "$$1.part" | grep "$$3" || { echo "Wrong checksum, aborting"; exit 1; }; } && mv "$$1.part" "$$1"; }; get
+
 localdepends: ./openldap-source ./rudder.schema ./inventory.schema ../debian/rudder-slapd.init ../debian/rudder-slapd.default
 	rm -rf ./openldap.tgz
 
 ./openldap-source: /usr/bin/wget
 	# Original URL: ftp://ftp.openldap.org/pub/OpenLDAP/openldap-release/openldap-$(OPENLDAP_RELEASE).tgz
-	$(WGET) -O ./openldap.tgz http://repository.rudder.io/build-dependencies/openldap/openldap-$(OPENLDAP_RELEASE).tgz
+	$(GET) ./openldap.tgz https://repository.rudder.io/build-dependencies/openldap/openldap-$(OPENLDAP_RELEASE).tgz $(OPENLDAP_SHA1)
 	tar xzf ./openldap.tgz -C .
 	mv ./openldap-$(OPENLDAP_RELEASE) ./openldap-source
 	
@@ -41,7 +73,7 @@ localdepends: ./openldap-source ./rudder.schema ./inventory.schema ../debian/rud
 	test `$(FIND) ./openldap-source -name \*.rej | wc -l` = 0
 
 ./rudder-sources.tar.bz2:
-	$(WGET) -O rudder-sources.tar.bz2 http://www.rudder-project.org/archives/rudder-sources-${RUDDER_VERSION_TO_PACKAGE}.tar.bz2
+	$(WGET) -O rudder-sources.tar.bz2 https://www.rudder-project.org/archives/rudder-sources-${RUDDER_VERSION_TO_PACKAGE}.tar.bz2
 
 ./rudder-sources: ./rudder-sources.tar.bz2
 	tar -xjf rudder-sources.tar.bz2

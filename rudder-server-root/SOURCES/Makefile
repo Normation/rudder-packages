@@ -28,13 +28,6 @@ INSTALL := $(shell type ginstall >/dev/null 2>&1 && echo ginstall || echo instal
 CP_A := cp -rp
 FIND := find
 
-# default: use https for urls
-ifeq (false,$(USE_HTTPS))
-HTTPS:=http
-else
-HTTPS:=https
-endif
-
 # GENERIC_GET: do not remove this line
 # This is a generic get code that is common to many of our Makefiles.
 # The tag is here to find them.
@@ -74,7 +67,7 @@ INSTALL_DIR = $(DESTDIR)$(RUDDER_DIR)
 localdepends: ./rudder-sources
 
 rudder-sources.tar.bz2:
-	$(GET) rudder-sources.tar.bz2 $(HTTPS)://www.rudder-project.org/archives/rudder-sources-$(RUDDER_VERSION_TO_PACKAGE).tar.bz2 ""
+	$(GET) rudder-sources.tar.bz2 https://www.rudder-project.org/archives/rudder-sources-$(RUDDER_VERSION_TO_PACKAGE).tar.bz2 ""
 
 rudder-sources: rudder-sources.tar.bz2
 	bunzip2 < rudder-sources.tar.bz2 | $(TAR) xf -
