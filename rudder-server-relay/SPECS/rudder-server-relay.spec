@@ -78,11 +78,9 @@ URL: http://www.rudder-project.org
 Group: Applications/System
 
 Source1: rudder-vhost.conf
-Source2: rudder-networks.conf
 Source3: rudder-networks-24.conf
 Source5: rudder-apache-relay-common.conf
 Source6: rudder-relay-apache
-Source7: rudder-networks-policy-server.conf
 Source8: rudder-networks-policy-server-24.conf
 Source9: rudder-relay.cron
 Source10: rudder-relay.sudo
@@ -217,9 +215,7 @@ install -m 644 %{SOURCE10} %{buildroot}/etc/sudoers.d/rudder-relay
 install -m 644 %{SOURCE14} %{buildroot}%{rudderdir}/etc/ssl/openssl.cnf
 
 # Copy stub rudder-networks*.conf
-cp %{SOURCE2} %{buildroot}%{rudderdir}/etc/
 cp %{SOURCE3} %{buildroot}%{rudderdir}/etc/
-cp %{SOURCE7} %{buildroot}%{rudderdir}/etc/
 cp %{SOURCE8} %{buildroot}%{rudderdir}/etc/
 
 %if 0%{?rhel}
@@ -466,9 +462,7 @@ rm -rf %{buildroot}
 %config(noreplace) /etc/%{apache_vhost_dir}/rudder.conf
 %config(noreplace) %{rudderdir}/etc/rudder-apache-relay-common.conf
 %config(noreplace) %{rudderdir}/etc/rudder-apache-relay-ssl.conf
-%config(noreplace) %{rudderdir}/etc/rudder-networks.conf
 %config(noreplace) %{rudderdir}/etc/rudder-networks-24.conf
-%config(noreplace) %{rudderdir}/etc/rudder-networks-policy-server.conf
 %config(noreplace) %{rudderdir}/etc/rudder-networks-policy-server-24.conf
 %config(noreplace) /etc/sysconfig/rudder-relay-apache
 %config /etc/cron.d/rudder-relay
