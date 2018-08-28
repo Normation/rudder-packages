@@ -22,7 +22,7 @@ RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
 VIRTUALENV_RELEASE = 12.0.7
 WGET := $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY)) /usr/bin/wget -q
 
-localdepends: ./rudder-sources ./relay-api/virtualenv/virtualenv.py ./relay-api/virtualenv-1.10.1/virtualenv.py
+localdepends: ./rudder-sources ./relay-api/virtualenv/virtualenv.py
 
 ./rudder-sources.tar.bz2:
 	$(WGET) -O rudder-sources.tar.bz2 https://www.rudder-project.org/archives/rudder-sources-${RUDDER_VERSION_TO_PACKAGE}.tar.bz2
@@ -38,14 +38,6 @@ localdepends: ./rudder-sources ./relay-api/virtualenv/virtualenv.py ./relay-api/
 ./relay-api/virtualenv/virtualenv.py: ./relay-api/virtualenv.tgz
 	cd relay-api && tar -xzf ./virtualenv.tgz
 	cd relay-api && mv ./virtualenv-$(VIRTUALENV_RELEASE)/ virtualenv/
-
-./relay-api/virtualenv-1.10.1.tgz: /usr/bin/wget
-	# Original URL: https://pypi.python.org/packages/source/v/virtualenv/virtualenv-1.10.1.tar.gz
-	cd relay-api && $(WGET) -O virtualenv-1.10.1.tgz http://repository.rudder.io/build-dependencies/virtualenv/virtualenv-1.10.1.tar.gz
-
-# This is needed for SLES11
-./relay-api/virtualenv-1.10.1/virtualenv.py: ./relay-api/virtualenv-1.10.1.tgz
-	cd relay-api && tar -xzf ./virtualenv-1.10.1.tgz
 
 localclean:
 	rm -rf ./rudder-sources

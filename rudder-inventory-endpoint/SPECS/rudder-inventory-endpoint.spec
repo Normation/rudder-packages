@@ -37,18 +37,6 @@
 
 %define maven_settings settings-external.xml
 
-%if 0%{?suse_version}
-%define syslogservicename syslog
-%endif
-
-%if 0%{?rhel} == 5 || 0%{?el5}
-%define syslogservicename syslog
-%endif
-
-%if 0%{?rhel} && 0%{?rhel} > 5
-%define syslogservicename rsyslog
-%endif
-
 #=================================================
 # Header
 #=================================================
@@ -72,7 +60,7 @@ BuildArch: noarch
 
 # Dependencies
 
-Requires: rudder-inventory-ldap = %{real_epoch}:%{real_version}
+Requires: rudder-inventory-ldap = %{real_epoch}:%{real_version}, rudder-jetty = %{real_epoch}:%{real_version},
 
 # OS-specific dependencies
 
@@ -80,20 +68,14 @@ Requires: rudder-inventory-ldap = %{real_epoch}:%{real_version}
 ## Those jetty packages are virtual packages provided by our Jetty and the system one.
 ##
 
-## 1 - RHEL
+## RHEL
 %if 0%{?rhel}
 BuildRequires: java-1.8.0-openjdk-devel
 %endif
 
-%if 0%{?rhel}
-Requires: jetty-eclipse
-%endif
-
-## 3 - SLES
-## No Jetty provided by SLES... Use our own.
+## SLES
 %if 0%{?suse_version}
 BuildRequires: jdk >= 1.8
-Requires: rudder-jetty = %{real_epoch}:%{real_version}
 %endif
 
 %description
@@ -164,14 +146,6 @@ install -m 644 %{SOURCE4} %{buildroot}%{rudderdir}/share/webapps/
 echo "INFO: Launching script to check if a migration is needed"
 %{rudderdir}/bin/rudder-inventory-endpoint-upgrade
 echo "INFO: End of migration script"
-
-echo -n "INFO: Restarting syslogd ..."
-%if 0%{?rhel} < 7
-service %{syslogservicename} restart > /dev/null && echo " Done"
-%endif
-%if 0%{?rhel} >= 7
-/bin/systemctl restart  %{syslogservicename}.service && echo " Done"
-%endif
 
 
 #=================================================

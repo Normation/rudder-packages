@@ -107,40 +107,17 @@ Requires: rudder-agent >= %{real_epoch}:%{real_version}, rsyslog, openssl, %{apa
 ## RHEL
 %if 0%{?rhel}
 Requires: mod_ssl
-%endif
-
-%if 0%{?rhel} && 0%{?rhel} == 6
-Requires: python-argparse
-%endif
-
-%if 0%{?suse_version} && 0%{?suse_version} < 1200
-Requires: python-argparse
-%endif
-
-## RHEL & Fedora
-%if 0%{?rhel} || 0%{?fedora}
 Requires: mod_wsgi shadow-utils crontabs
 %endif
 
 ## SLES
 %if 0%{?suse_version}
 Requires: apache2-mod_wsgi pwdutils cron
-%endif
-
-%if 0%{?suse_version} && 0%{?suse_version} >= 1200
 Requires: python-pyOpenSSL
 %endif
 
 ## SELinux
-%if 0%{?rhel} && 0%{?rhel} == 6
-BuildRequires: selinux-policy
-%endif
-
-%if 0%{?rhel} && 0%{?rhel} >= 7
-BuildRequires: selinux-policy-devel
-%endif
-
-%if 0%{?fedora}
+%if 0%{?rhel}
 BuildRequires: selinux-policy-devel
 %endif
 
@@ -172,17 +149,7 @@ cp -f %{SOURCE12} %{_builddir}
 cd %{_sourcedir}/relay-api
 
 # Build Virtualenv
-%if 0%{?suse_version} && 0%{?suse_version} < 1200
-# SLES specific exception, see http://www.rudder-project.org/redmine/issues/6365
-python virtualenv-1.10.1/virtualenv.py flask
-
-# Using a recent pip on SLES is not possible due to
-# bad interaction between pip and an old OpenSSL.
-# See http://stackoverflow.com/questions/17416938/pip-can-not-install-anything
-flask/bin/easy_install pip==1.2.1
-%else
 python virtualenv/virtualenv.py flask
-%endif
 
 # Get all requirements via pip
 flask/bin/pip install -r requirements.txt
@@ -199,7 +166,7 @@ else
   echo "WARNING: is defined"
 fi
 
-%if 0%{?rhel} && 0%{?rhel} >= 6 || 0%{?fedora}
+%if 0%{?rhel}
 # Build SELinux policy package
 # Compiles rudder-relay.te and rudder-relay.fc into rudder-relay.pp
 cd %{_builddir} && make -f /usr/share/selinux/devel/Makefile
@@ -255,7 +222,7 @@ cp %{SOURCE3} %{buildroot}%{rudderdir}/etc/
 cp %{SOURCE7} %{buildroot}%{rudderdir}/etc/
 cp %{SOURCE8} %{buildroot}%{rudderdir}/etc/
 
-%if 0%{?rhel} && 0%{?rhel} >= 6 || 0%{?fedora}
+%if 0%{?rhel}
 # Install SELinux policy
 install -m 644  %{_builddir}/rudder-relay.pp %{buildroot}%{rudderdir}/share/selinux/
 %endif
@@ -312,21 +279,18 @@ fi
 
 echo -n "INFO: Setting Apache HTTPd as a boot service..."
 chkconfig --add %{apache} 2&> /dev/null
-%if 0%{?rhel} && 0%{?rhel} >= 6
+%if 0%{?rhel}
 chkconfig %{apache} on
 %endif
 echo " Done"
 # mandatory with systemd wrapper for old init
-%if 0%{?suse_version} && 0%{?suse_version} >= 1315
+%if 0%{?suse_version}
 systemctl daemon-reload
 %endif
 
 
 echo -n "INFO: Stopping Apache HTTPd..."
-%if 0%{?rhel} < 7
-service %{apache} stop > /dev/null && echo " Done"
-%endif
-%if 0%{?rhel} >= 7
+%if 0%{?rhel}
 /bin/systemctl stop %{apache}.service && echo " Done"
 %endif
 
@@ -422,14 +386,11 @@ done
 rm -f %{rudderdir}/etc/rudder-apache-common.conf
 
 echo -n "INFO: Starting Apache HTTPd..."
-%if 0%{?rhel} < 7
-service %{apache} start > /dev/null && echo " Done"
-%endif
-%if 0%{?rhel} >= 7
+%if 0%{?rhel}
 /bin/systemctl start  %{apache}.service && echo " Done"
 %endif
 
-%if 0%{?rhel} && 0%{?rhel} >= 6 || 0%{?fedora}
+%if 0%{?rhel}
 # SELinux support
 # Check "sestatus" presence, and if here tweak our installation to be
 # SELinux compliant
@@ -480,7 +441,7 @@ fi
 # Post Uninstallation
 #=================================================
 
-%if 0%{?rhel} && 0%{?rhel} >= 6 || 0%{?fedora}
+%if 0%{?rhel}
   # Do it only during uninstallation
   if [ $1 -eq 0 ]; then
     if type sestatus >/dev/null 2>&1 && sestatus | grep -q "enabled"; then
@@ -529,14 +490,10 @@ rm -rf %{buildroot}
 %{rudderdir}/share/python/
 %{rudderdir}/bin/rudder-pkg
 
-# on sles11, .pyc and .pyo files are not generated, which fails with rpmbuild
-# Reference for suse_version : https://en.opensuse.org/openSUSE:Build_Service_cross_distribution_howto
-%if ! 0%{?suse_version} || 0%{?suse_version} >= 1200
 # Avoid having .pyo and .pyc files in our package
 # as they will always be regenerated
 %exclude %(find %{rudderdir}/share/ -type f -name '*.pyc')
 %exclude %(find %{rudderdir}/share/ -type f -name '*.pyo')
-%endif
 
 #=================================================
 # Changelog

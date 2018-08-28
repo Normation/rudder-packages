@@ -64,7 +64,7 @@ Requires: rsyslog >= 4
 Requires: %{suse_rsyslog_pgsql} >= 4
 %endif
 
-%if 0%{?rhel} && 0%{?rhel} >= 6
+%if 0%{?rhel}
 Requires: rsyslog-pgsql >= 4
 %endif
 
@@ -122,12 +122,7 @@ if [ -z "${POSTGRESQL_SERVICE_NAME}" ]; then
 fi
 
 # Check if PostgreSQL is started
-%if 0%{?rhel} < 7 || 0%{?suse_version} < 1200
-  service ${POSTGRESQL_SERVICE_NAME} status > /dev/null
-%endif
-%if 0%{?rhel} >= 7 || 0%{?suse_version} >= 1200
-  /bin/systemctl status ${POSTGRESQL_SERVICE_NAME}.service
-%endif
+/bin/systemctl status ${POSTGRESQL_SERVICE_NAME}.service
 
 if [ $? -ne 0 ]; then
 %if 0%{?rhel}
@@ -136,23 +131,10 @@ if [ $? -ne 0 ]; then
   service ${POSTGRESQL_SERVICE_NAME} initdb
   echo " Done"
 %endif
-%if 0%{?rhel} < 7 || 0%{?suse_version} < 1200
-  service ${POSTGRESQL_SERVICE_NAME} start
-%endif
-%if 0%{?rhel} >= 7 || 0%{?suse_version} >= 1200
   /bin/systemctl start ${POSTGRESQL_SERVICE_NAME}.service
-%endif
 fi
 
 PG_HBA_FILE=$(su - postgres -c "psql -t -P format=unaligned -c 'show hba_file';")
-%if 0%{?rhel} > 0 && 0%{?rhel} < 7
-if [ $? -ne 0 ]; then
-  # sometime postgresql fails to start on centos 6... see https://www.rudder-project.org/redmine/issues/10704
-  service ${POSTGRESQL_SERVICE_NAME} stop
-  service ${POSTGRESQL_SERVICE_NAME} start
-  PG_HBA_FILE=$(su - postgres -c "psql -t -P format=unaligned -c 'show hba_file';")
-fi
-%endif
 if [ $? -ne 0 ]; then
   echo "Postgresql failed to start! Halting"
   exit 1
@@ -165,19 +147,14 @@ if [ -f ${PG_HBA_FILE} ]; then
     sed -i 1i"host    all             rudder             ::1/128              md5" ${PG_HBA_FILE}
     sed -i 1i"host    all             rudder          127.0.0.1/32            md5" ${PG_HBA_FILE}
 
-# Apply changes in PostgreSQL
-%if 0%{?rhel} < 7 || 0%{?suse_version} < 1200
-    service ${POSTGRESQL_SERVICE_NAME} reload
-%endif
-%if 0%{?rhel} >= 7 || 0%{?suse_version} >= 1200
+    # Apply changes in PostgreSQL
     /bin/systemctl reload ${POSTGRESQL_SERVICE_NAME}.service
-%endif
   fi
 fi
 
 echo -n "INFO: Setting PostgreSQL as a boot service..."
 chkconfig --add ${POSTGRESQL_SERVICE_NAME} >/dev/null 2>&1
-%if 0%{?rhel} && 0%{?rhel} >= 6
+%if 0%{?rhel}
   chkconfig ${POSTGRESQL_SERVICE_NAME} on >/dev/null 2>&1
 %endif
 echo " Done"
