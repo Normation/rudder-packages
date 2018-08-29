@@ -417,6 +417,8 @@ ifeq ($(shell ../../build-caching get ./xml-source/ --force-config name=xml-src 
 	mv ./libxml2-$(XML_RELEASE) ./xml-source
 	# patch libxml source to work with very old gcc
 	cd ./xml-source && $(SED) 's/#ifdef __GNUC__/#if __GNUC__ > 3/' ./timsort.h > ./timsort.h.new && mv ./timsort.h.new ./timsort.h
+	cd ./xml-source && $(SED) 's/-Wextra//' configure > configure.new && mv configure.new configure
+	cd ./xml-source && $(SED) 's/-Wno-array-bounds//' configure > configure.new && mv configure.new configure
 	../../build-caching put ./xml-source/ --force-config name=xml-src version=$(XML_RELEASE)
 	rm -rf $(TMP_DIR)
 endif
