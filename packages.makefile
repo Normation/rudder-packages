@@ -93,7 +93,7 @@ buildpackage-rpm-rhel: localdepends buildpackage-rpm-common-prep buildpackage-rp
 buildpackage-rpm-fedora: localdepends buildpackage-rpm-common-prep buildpackage-rpm-common-prep-fedora buildpackage-rpm-build-rpmbuild
 
 buildpackage-slackware: localdepends
-	export TMP=$(pwd) && cd slackware && ./rudder-agent.SlackBuild
+	cd slackware && VERSION=$(RUDDER_VERSION_SLACKWARE) TMP=$(pwd) ./rudder-agent.SlackBuild
 
 clean: localclean
 localclean:
