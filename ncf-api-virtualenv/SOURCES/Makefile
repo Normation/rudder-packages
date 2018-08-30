@@ -19,8 +19,8 @@
 .DEFAULT_GOAL := localdepends
 
 RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
-VIRTUALENV_RELEASE = 12.0.7
-VIRTUALENV_SHA256 = d681db1766cdc8aa1b37eb18252c264b775f971166c2bf658a9618c1f3d28741
+VIRTUALENV_RELEASE = 16.0.0
+VIRTUALENV_SHA256 = ca07b4c0b54e14a91af9f34d0919790b016923d157afda5efdde55c96718f752
 
 # GENERIC_GET: do not remove this line
 # This is a generic get code that is common to many of our Makefiles.
