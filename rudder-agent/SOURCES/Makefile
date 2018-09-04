@@ -30,8 +30,8 @@ LMDB_RELEASE = 0.9.22
 LMDB_SHA1 = 5d62d4c7527f3474f60a0d87db2bfd539e6493eb
 OPENSSL_RELEASE = 1.0.2p
 OPENSSL_SHA1 = f34b5322e92415755c7d58bf5d0d5cf37666382c
-PERL_RELEASE = 5.22.0
-PERL_SHA1 = e4c9e40d18efa7368e77343e0fd3339ca87e34f8
+PERL_RELEASE = 5.22.4
+PERL_SHA1 = fd79af20e6454d1bb5e5e6ac4774a1e295d4d794
 PCRE_RELEASE = 8.38
 PCRE_SHA1 = 3ab418d0026c2a4e693ec783bd60660debc32b8f
 CPANMINUS_RELEASE = 1.7036
@@ -480,12 +480,12 @@ endif
 	$(FIND) ./fusioninventory-agent -name "USB.pm" -exec rm "{}" \;
 
 # WARNING: Increment perl_source when changing one of the URLs (perl or cpanminus)
-perl_source=002
+perl_source=003
 perl-source: perl-$(PERL_RELEASE)
 perl-$(PERL_RELEASE):
 ifeq ($(shell ../../build-caching get ./perl-$(PERL_RELEASE)/ --force-config name=perl-source versions=$(perl_source) >/dev/null 2>&1 || echo KO), KO)
 	$(eval TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX))
-	# Original URL: http://www.cpan.org/src/5.0/perl-5.22.0.tar.gz
+	# Original URL: http://www.cpan.org/src/5.0/perl-5.22.4.tar.gz
 	$(GET) $(TMP_DIR)/perl.tar.gz $(HTTPS)://repository.rudder.io/build-dependencies/perl/perl-$(PERL_RELEASE).tar.gz $(PERL_SHA1)
 	gunzip < $(TMP_DIR)/perl.tar.gz | $(TAR) xf -
 	# Original URL: http://www.cpan.org/modules/by-module/App/App-cpanminus-1.7036.tar.gz
