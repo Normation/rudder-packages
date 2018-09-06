@@ -103,6 +103,7 @@ Source25: rudder-apache-webapp-common.conf
 Source26: rudder-apache-webapp-ssl.conf
 Source27: rudder-apache-webapp-nossl.conf
 Source28: rudder-webapp.fc
+Source29: rudder-fix-repository-permissions
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
@@ -284,6 +285,9 @@ install -m 644  %{_builddir}/rudder-webapp.pp %{buildroot}%{rudderdir}/share/sel
 # Install rudder keys
 install -m 755 %{SOURCE22} %{buildroot}%{rudderdir}/bin/
 
+# Install rudder fix repository permissions script
+install -m 755 %{SOURCE29} %{buildroot}%{rudderdir}/bin/
+
 # Install gitignore file for our git repo
 install -m 644 %{SOURCE23} %{buildroot}%{ruddervardir}/configuration-repository/
 
@@ -456,18 +460,10 @@ echo "INFO: Launching script to check if a migration is needed"
 echo "INFO: End of migration script"
 
 # Adjust permissions on /var/rudder/configuration-repository
-chgrp -R %{config_repository_group} /var/rudder/configuration-repository
+/opt/rudder/bin/rudder-fix-repository-permissions
 
-## Add execution permission for ncf-api only on directories and files with user execution permission
-chmod -R u+rwX,g+rwX %{ruddervardir}/configuration-repository/.git
-chmod -R u+rwX,g+rwX %{ruddervardir}/configuration-repository/ncf
-chmod -R u+rwX,g+rwX %{ruddervardir}/configuration-repository/techniques
 
-## Add setgid to directories so that all files created here belong to the %{config_repository_group} group
-find %{ruddervardir}/configuration-repository/.git %{ruddervardir}/configuration-repository/ncf %{ruddervardir}/configuration-repository/techniques -type d -exec chmod g+s "{}" \;
-
-## Add execution permission for ncf-api on pre/post-hooks
-chmod -R 2750 %{ruddervardir}/configuration-repository/ncf/ncf-hooks.d
+## Add pre/post-hooks
 cd %{ruddervardir}/configuration-repository/ncf/
 git add ncf-hooks.d
 git commit --allow-empty --message "Add ncf hooks to repository"
