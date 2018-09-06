@@ -1,5 +1,5 @@
 #!/bin/sh
-# preinst script for normation-openldap-framework
+# preinst script for rudder-webapp
 #
 # see: dh_installdeb(1)
 
