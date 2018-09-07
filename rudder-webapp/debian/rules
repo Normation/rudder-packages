@@ -120,6 +120,9 @@ binary-arch: install
 	# Install rudder-keys
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-keys /opt/rudder/bin/
 
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-fix-repository-permissions /opt/rudder/bin/
+
+
 	# Install gitignore file for our git repo
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ .gitignore /var/rudder/configuration-repository/
 
