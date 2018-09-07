@@ -50,6 +50,7 @@ trap anomaly_handler ERR INT TERM
 # - 4.2.0        : Rename hooks to have a better ordering of hooks
 # - 4.2.4, 4.3.0 : Remove 90-reload hook since logic was integrated to Rudder in #11749
 # - 4.3          : Update ncf Techniques to the new format
+# - 5.0          : Automatically upgrade Techniques if autoupdate-technique-library is set
 ####################################################################################
 
 # Some paths
@@ -317,6 +318,13 @@ upgrade_system_techniques() {
   update_rudder_repository_from_system_directory /opt/rudder/share/techniques/system/server-roles/ techniques/system/server-roles/
 }
 
+# Upgrade techniques
+upgrade_techniques() {
+  STEP="Upgrade Techniques"
+
+  /opt/rudder/bin/rudder server upgrade-techniques  --autoupdate-technique-library
+}
+
 # Upgrade ncf from ncf package and check ncf.conf
 upgrade_ncf() {
   # All versions: Upgrade ncf
@@ -546,6 +554,7 @@ upgrade_plugins() {
 update_credentials
 set_git_branch
 upgrade_system_techniques
+upgrade_techniques
 upgrade_ncf
 rudderify_techniques
 upgrade_masterfiles

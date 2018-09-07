@@ -270,6 +270,13 @@ fi
 # Post Installation
 #=================================================
 
+RUDDER_FIRST_INSTALL="false"
+
+if [ $1 -eq 1 ]
+then
+  RUDDER_FIRST_INSTALL="true"
+fi
+
 # Currently, we assume that the server where the webapp is installed
 # is the root server. Force the UUID.
 echo 'root' > /opt/rudder/etc/uuid.hive
@@ -398,6 +405,11 @@ else
     git config core.sharedRepository group
   fi
 
+fi
+
+# If this is a first install, create the configuration file
+if [ "${RUDDER_FIRST_INSTALL}" = "true" ]; then
+  /opt/rudder/bin/rudder server upgrade-techniques --set-autoupdate-technique-library=true
 fi
 
 # Run any upgrades

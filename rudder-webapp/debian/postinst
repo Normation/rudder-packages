@@ -1,5 +1,5 @@
 #!/bin/sh
-# postinst script for rudder-inventory-ldap
+# postinst script for rudder-webapp
 #
 # see: dh_installdeb(1)
 
@@ -19,6 +19,14 @@ set -e
 
 case "$1" in
     configure)
+
+    # Is this the first installation?
+    RUDDER_FIRST_INSTALL="false"
+
+    # The parameter is the previous version, if empty it is a first install
+    if [ -z "$2" ]; then
+      RUDDER_FIRST_INSTALL="true"
+    fi
 
   # Currently, we assume that the server where the webapp is installed
   # is the root server. Force the UUID.
@@ -75,6 +83,11 @@ case "$1" in
     if ! git config core.sharedRepository >/dev/null 2>&1; then
       git config core.sharedRepository group
     fi
+  fi
+
+  # If this is a first install, create the configuration file
+  if [ "${RUDDER_FIRST_INSTALL}" = "true" ]; then
+    /opt/rudder/bin/rudder server upgrade-techniques --set-autoupdate-technique-library=true
   fi
 
   # Run any upgrades
