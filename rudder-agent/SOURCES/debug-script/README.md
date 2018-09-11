@@ -1,4 +1,4 @@
-support-info script
+debug-info script
 ===================
 
 This script enables the user to get detailed statistics about every Rudder component, to have a global overview of the current installation.
@@ -14,7 +14,7 @@ A helper function only purpose is to return useful values for tests or provide u
 
 A test is a file containing tests for a specific component.
 
-A Makefile is available at the project root to create a standalone script version (support-script-standalone), that does not need any of the lib / tests directories to run
+A Makefile is available at the project root to create a standalone script version (debug-script-standalone), that does not need any of the lib / tests directories to run
 (but can also use them to extend builtin tests if necessary, or override them). Just run make and you're all set :)
 
 Test structure
@@ -43,10 +43,10 @@ Usage
 -----
 
 ```
-root@rudder-agent:~# ./support-info  help
-This is the rudder support info script.
+root@rudder-agent:~# ./rudder-debug-info  help
+This is the rudder debug info script.
 
-Usage: ./support-info [help|all|component] [parameters ...]
+Usage: ./rudder-debug-info [help|all|component] [parameters ...]
 
 Components:
 * help: this help
@@ -55,12 +55,12 @@ Components:
 
 Note: If no component is given, run all scenarios in all components.
 
-root@rudder-agent:~# ./support-info rudder
+root@rudder-agent:~# ./rudder-debug-info rudder
 Running all scenarios from component rudder...
 
 Downloading server uuid using http succeeded.......................... OK
 (...)
-root@rudder-agent:~# ./support-info rudder unsent_inventories_agent
+root@rudder-agent:~# ./rudder-debug-info rudder unsent_inventories_agent
 Running the rudder unsent_inventories_agent scenario...
 
 No unsent inventories detected........................................ OK
@@ -71,7 +71,7 @@ Sample output
 -------------
 
 ```
-root@rudder-agent:~# ./support-info 
+root@rudder-agent:~# ./rudder-debug-info 
 Running all agent scenarios...
 
 cfengine component:

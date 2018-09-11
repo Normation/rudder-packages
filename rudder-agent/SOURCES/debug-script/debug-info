@@ -5,16 +5,18 @@
 ## VARIABLES
 ############
 
-RUDDER_OPT=/opt/rudder
-RUDDER_VAR=/var/rudder
-COLLECT_DIR=support-info
+RUN_DATE="$(date +%Y-%m-%d-%H%M%S)"
+RUDDER_OPT="/opt/rudder"
+RUDDER_VAR="/var/rudder"
+OUTPUT_DIR="/var/rudder/debug/info"
+COLLECT_DIR="collect-${RUN_DATE}"
 
 ## LOADER
 #########
 
 LIB_DIRECTORY="`pwd`/lib"
 TEST_DIRECTORY="`pwd`/tests"
-OUTPUT_FILE="/tmp/${COLLECT_DIR}-$(hostname).tar.gz"
+OUTPUT_FILE="${OUTPUT_DIR}/debug-info-$(hostname)-${RUN_DATE}.tar.gz"
 
 # Source the lib elements if possible
 if [ -d "${LIB_DIRECTORY}" ]
@@ -49,7 +51,7 @@ scenario_list() {
 
 usage() {
   echo ""
-  echo "This is the rudder support info script."
+  echo "This is the rudder debug info script."
   echo ""
   echo "Usage: ${0} [options] [component|all|help] [scenario|all|help]"
   echo ""
@@ -62,7 +64,7 @@ usage() {
   echo "* -a / --agent-only: only run agent tests, even if running on a server"
   echo "* -n / --no-collect: do not collect log files in a tarball at the end"
   echo "* -s / --slow-tests: also run tests that can take a long time"
-  echo "* -l / --log_file: log file location (ex: /tmp/support-info.log"
+  echo "* -l / --log_file: log file location (ex: /var/rudder/debug/info/rudder-debug-info.log"
   echo ""
   echo "Components:"
   echo "* help: this help"
@@ -108,7 +110,9 @@ API_TOKEN=''
 AGENT_ONLY='0'
 NO_COLLECT='0'
 SLOW_TESTS='0'
-LOG_FILE='/tmp/support-info.log'
+LOG_DIR="${OUTPUT_DIR}/log"
+mkdir -p ${LOG_DIR}
+LOG_FILE="${LOG_DIR}/rudder-debug-info-${RUN_DATE}.log"
 
 while true; do
   case "$1" in
@@ -275,10 +279,12 @@ log "RESULT" "Skipped: ${SKIPPED_COUNT}"
 if [ "${NO_COLLECT}" != "1" ]
 then
 
+  mkdir -p "${OUTPUT_DIR}/${COLLECT_DIR}"
   collect_logs
-  collect_files "/tmp/${COLLECT_DIR}"
-  tar -C /tmp -zcf "${OUTPUT_FILE}" "${COLLECT_DIR}"
-  rm -rf "/tmp/${COLLECT_DIR}"
+  collect_files "${OUTPUT_DIR}/${COLLECT_DIR}"
+  tar -C /var/rudder/debug/info -zcf "${OUTPUT_FILE}" "${COLLECT_DIR}"
+  ln -sf "${OUTPUT_FILE}" "${OUTPUT_DIR}/debug-info-latest.tar.gz"
+  rm -rf "${OUTPUT_DIR}/${COLLECT_DIR}"
 
   term_simple ""
   term_simple "Debug information is available in ${OUTPUT_FILE}"

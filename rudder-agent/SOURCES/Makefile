@@ -202,7 +202,7 @@ localdepends: initial-promises initial-ncf rudder-agent-utilities perl-$(PERL_RE
 build: get-flags build-cfengine
 
 # install to DESTDIR
-install: build $(INSTALL_DEPS) install-cfengine initial-promises initial-ncf rudder-agent-utilities rudder-agent.cron support-script/rudder-support-info
+install: build $(INSTALL_DEPS) install-cfengine initial-promises initial-ncf rudder-agent-utilities rudder-agent.cron debug-script/rudder-debug-info
 	# Directories
 	mkdir -p $(DESTDIR)/opt/rudder/etc
 	mkdir -p $(DESTDIR)/opt/rudder/bin
@@ -270,7 +270,7 @@ endif
 	$(INSTALL) -m 755 vzps.py $(DESTDIR)/opt/rudder/bin/
 	$(INSTALL) -m 755 rudder-perl $(DESTDIR)/opt/rudder/bin/
 	$(INSTALL) -m 755 rudder-uuidgen $(DESTDIR)/opt/rudder/bin/
-	$(INSTALL) -m 755 support-script/rudder-support-info $(DESTDIR)/opt/rudder/bin/
+	$(INSTALL) -m 755 debug-script/rudder-debug-info $(DESTDIR)/opt/rudder/bin/
 
 	# Rudder agent utilities
 	$(INSTALL) -m 755 rudder-agent-utilities/bin/rudder $(DESTDIR)/opt/rudder/bin/
@@ -312,7 +312,7 @@ localclean:
 	[ -d lmdb-source ] && cd lmdb-source && $(MAKE) clean 2>/dev/null || true
 	[ -d openssl-source ] && cd openssl-source && $(MAKE) clean 2>/dev/null || true
 	[ -d perl-$(PERL_RELEASE) ] && cd perl-$(PERL_RELEASE) && $(MAKE) distclean 2>/dev/null || true
-	cd support-script && $(MAKE) clean 2>/dev/null || true
+	cd debug-script && $(MAKE) clean 2>/dev/null || true
 
 # standard name is mrproper
 mrproper: veryclean
@@ -513,8 +513,8 @@ rudder-agent.cron: rudder-sources
 	$(SED) 's@\$${sys.workdir}@/var/rudder/cfengine-community@g' rudder-agent.cron | $(SED) 's@\$${g.rudder_base}@/opt/rudder@g' | $(SED) 's@\\&\\&@\&\&@g' | $(SED) 's@\\&1@\&1@g' > rudder-agent.cron.new
 	mv rudder-agent.cron.new rudder-agent.cron
 
-support-script/rudder-support-info:
-	cd support-script && ${MAKE}
+debug-script/rudder-debug-info:
+	cd debug-script && ${MAKE}
 
 ####################################
 # Builds separated into components #
