@@ -98,7 +98,7 @@ Requires: rudder-agent >= %{real_epoch}:%{real_version}, rsyslog, openssl, %{apa
 
 ## RHEL
 %if 0%{?rhel}
-Requires: mod_ssl
+Requires: mod_ssl, gnupg2
 %endif
 
 %if 0%{?rhel} && 0%{?rhel} == 6
@@ -116,7 +116,7 @@ Requires: mod_wsgi shadow-utils crontabs
 
 ## SLES
 %if 0%{?suse_version}
-Requires: apache2-mod_wsgi pwdutils cron
+Requires: apache2-mod_wsgi pwdutils cron gpg2
 %endif
 
 %if 0%{?suse_version} && 0%{?suse_version} >= 1200
