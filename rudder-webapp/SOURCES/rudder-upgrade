@@ -322,7 +322,7 @@ upgrade_system_techniques() {
 upgrade_techniques() {
   STEP="Upgrade Techniques"
 
-  /opt/rudder/bin/rudder server upgrade-techniques  --autoupdate-technique-library
+  /opt/rudder/bin/rudder server upgrade-techniques  --autoupdate-technique-library --during-upgrade
 }
 
 # Upgrade ncf from ncf package and check ncf.conf
