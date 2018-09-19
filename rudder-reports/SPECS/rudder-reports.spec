@@ -111,7 +111,7 @@ install -m 644 %{SOURCE3} %{buildroot}/opt/rudder/etc/server-roles.d/
 # Post Installation
 #=================================================
 
-POSTGRESQL_SERVICE_NAME=$(systemctl list-unit-files --type service | awk -F'.' '{print $1}' | grep -E "^postgresql[0-9]*$" | tail -n 1)
+POSTGRESQL_SERVICE_NAME=$(systemctl list-units --type service | awk -F'.' '{print $1}' |  sed 's/ *//g' | grep -E "^postgresql[0-9]*$" | tail -n 1)
 
 # Check if PostgreSQL is started
 systemctl status ${POSTGRESQL_SERVICE_NAME}

@@ -39,7 +39,7 @@ get_service_name()
 # If multiple versions (postgresql91/postgresql94), return the latest one
 # Arguments:
 ## Service name
-  SERVICE_NAME=$(systemctl list-unit-files --type service | awk -F'.' '{print $1}' | grep -E "^${1}[0-9]*$" | tail -n 1)
+  SERVICE_NAME=$(systemctl list-units --type service | awk -F'.' '{print $1}' |  sed 's/ *//g' | grep -E "^${1}[0-9]*$" | tail -n 1)
 
   # If we can not get the service name, fallback to the user-supplied name
   if [ -z "${SERVICE_NAME}" ]; then
