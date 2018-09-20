@@ -41,6 +41,16 @@ get_service_name()
 ## Service name
   SERVICE_NAME=$(systemctl list-units --type service | awk -F'.' '{print $1}' |  sed 's/ *//g' | grep -E "^${1}[0-9]*$" | tail -n 1)
 
+  # We need fallback for this, as it happens that during postinst, systemctl doesn't returns postgresql, but once install is finish it does.
+  # There probably is something astray in the detection of service by systemd here
+  # see #13527 and #13532
+  if [ -z "${SERVICE_NAME}" ] && type chkconfig >/dev/null 2>&1; then
+    SERVICE_NAME=$(chkconfig 2>/dev/null | awk '{ print $1 }' | grep "${1}" | tail -n 1)
+  fi
+  if [ -z "${SERVICE_NAME}" ]; then
+    SERVICE_NAME=$(ls -1 /etc/init.d | grep "${1}" | tail -n 1)
+  fi
+
   # If we can not get the service name, fallback to the user-supplied name
   if [ -z "${SERVICE_NAME}" ]; then
     SERVICE_NAME="${1}"
