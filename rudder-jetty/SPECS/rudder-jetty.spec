@@ -80,8 +80,12 @@ Requires: jre-headless >= 1.8
 %endif
 
 # Reference for sle_version : https://en.opensuse.org/openSUSE:Build_Service_cross_distribution_howto
-%if 0%{?sle_version} && 0%{?sle_version} >= 120100
+%if 0%{?sle_version} && 0%{?sle_version} >= 120100 && 0%{?sle_version} < 150000
 Requires: java-1_8_0-openjdk-headless
+%endif
+
+%if 0%{?sle_version} && 0%{?sle_version} >= 150000
+Requires: java-10-openjdk-headless
 %endif
 
 %description
