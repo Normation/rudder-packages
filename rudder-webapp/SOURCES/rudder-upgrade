@@ -42,7 +42,7 @@ trap anomaly_handler ERR INT TERM
 # - All versions : Check if access credentials in rudder-web.properties/inventory-web.properties match the ones from rudder-passwords.conf
 # - All versions : upgrade system Techniques automatically and reload the Technique library
 # - All versions : Check that Rudder database is able to handle backslash
-# - All versions : Check for the PostgreSQL version (>= 8.4)
+# - All versions : Check for the PostgreSQL version
 # - All versions : Commit ncf hooks
 # - All versions : Create ncf technique update flag and restart at the end of the script
 # - 4.2.6,4.3.2  : Create nodecompliancelevels table
@@ -502,25 +502,22 @@ upgrade_database() {
   # Now check the fileFormat in the eventlog
   upgrade_eventlog
 
-  # - All versions: Check for the PostgreSQL version (>= 8.4)
+  # - All versions: Check for the PostgreSQL version
   STEP="Check for the current PosgresSQL version"
 
-  # If installing on SLES11 and PostgreSQL 8.3 was used
+  # If coming from an old SLES11 install
   if [ -e /var/lib/pgsql/data/PG_VERSION ]; then
     CLUSTER_VERSION=$(cat /var/lib/pgsql/data/PG_VERSION | cut -d . -f 1-2)
-    if [ `ver ${CLUSTER_VERSION}` -lt `ver 8.4` ]; then
-      echo "ERROR: Your running PostgreSQL cluster, in version ${CLUSTER_VERSION}, is too old for Rudder 3.0+"
+    if [ `ver ${CLUSTER_VERSION}` -lt `ver 9.2` ]; then
+      echo "ERROR: Your running PostgreSQL cluster, in version ${CLUSTER_VERSION}, is too old for Rudder 5.0+"
       echo "ERROR: Please manually migrate your data to the newer PostgreSQL version installed with Rudder."
     fi
   fi
 
   RES=$(psql -V|head -1|cut -d " " -f 3|cut -d . -f 1-2)
-  if [ `ver ${RES}` -lt `ver 8.4` ]; then
-    echo "ERROR: Your PostgreSQL version, ${RES}, is too old and will fail to work properly with Rudder 3.0+."
-    echo "ERROR: Please upgrade to at least 8.4."
-  elif [ `ver ${RES}` -lt `ver 9.1` ]; then
-    echo "WARNING: Your PostgreSQL version, ${RES}, is getting old and will not offer optimal performance with Rudder 3.0+."
-    echo "WARNING: Please upgrade to at least 9.1."
+  if [ `ver ${RES}` -lt `ver 9.2` ]; then
+    echo "ERROR: Your PostgreSQL version, ${RES}, is too old and will fail to work properly with Rudder 5.0+."
+    echo "ERROR: Please upgrade to at least 9.2."
   fi
 }
 
