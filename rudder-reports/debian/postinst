@@ -22,6 +22,16 @@ case "$1" in
   configure)
     POSTGRESQL_SERVICE_NAME=$(systemctl list-units --type service | awk -F'.' '{print $1}' |  sed 's/ *//g' | grep -E "^postgresql[0-9]*$" | tail -n 1)
 
+    # We need fallback for this, as it happens that during postinst, systemctl doesn't returns postgresql, but once install is finish it does.
+    # There probably is something astray in the detection of service by systemd here
+    # see #13527 and #13532
+    if [ -z "${POSTGRESQL_SERVICE_NAME}" ] && type chkconfig >/dev/null 2>&1; then
+      POSTGRESQL_SERVICE_NAME=$(chkconfig 2>/dev/null | awk '{ print $1 }' | grep "postgresql" | tail -n 1)
+    fi
+    if [ -z "${POSTGRESQL_SERVICE_NAME}" ]; then
+      POSTGRESQL_SERVICE_NAME=$(ls -1 /etc/init.d | grep "postgresql" | tail -n 1)
+    fi
+
     #Check if PostgreSQL is started
     systemctl status ${POSTGRESQL_SERVICE_NAME} > /dev/null
 
