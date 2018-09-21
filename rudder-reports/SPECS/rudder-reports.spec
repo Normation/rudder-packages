@@ -56,7 +56,7 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
 
 
-Requires: postgresql-server >= 8.4
+Requires: postgresql-server >= 9.2
 Requires: rsyslog >= 4
 
 # Reference for suse_version : https://en.opensuse.org/openSUSE:Build_Service_cross_distribution_howto

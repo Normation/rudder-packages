@@ -95,7 +95,7 @@ BuildArch: noarch
 Requires: rudder-techniques = %{real_epoch}:%{real_version}, rudder-server-relay = %{real_epoch}:%{real_version}, ncf-api-virtualenv = %{real_epoch}:%{real_version}, %{apache}, %{apache_tools}, git-core, rsync, openssl, rudder-jetty = %{real_epoch}:%{real_version}, %{ldap_clients}
 
 # We need the PostgreSQL client utilities so that we can run database checks and upgrades (rudder-upgrade, in particular)
-Requires: postgresql >= 8.4
+Requires: postgresql >= 9.2
 
 # OS-specific dependencies
 
