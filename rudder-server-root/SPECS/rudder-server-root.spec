@@ -53,6 +53,10 @@ BuildArch: noarch
 
 Requires: rudder-jetty = %{real_epoch}:%{real_version}, rudder-webapp = %{real_epoch}:%{real_version}, rudder-inventory-endpoint = %{real_epoch}:%{real_version}, rudder-inventory-ldap = %{real_epoch}:%{real_version}, rudder-reports = %{real_epoch}:%{real_version}, rudder-agent = %{real_epoch}:%{real_version}, curl
 
+%if 0%{?sle_version} && 0%{?sle_version} >= 150000
+Requires: insserv-compat
+%endif
+
 %description
 Rudder is an open source configuration management and audit solution.
 

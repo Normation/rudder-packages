@@ -85,7 +85,7 @@ Requires: java-1_8_0-openjdk-headless
 %endif
 
 %if 0%{?sle_version} && 0%{?sle_version} >= 150000
-Requires: java-10-openjdk-headless
+Requires: java-10-openjdk-headless insserv-compat
 %endif
 
 %description

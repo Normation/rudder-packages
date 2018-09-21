@@ -74,6 +74,10 @@ Requires: libltdl7
 BuildRequires: libopenssl-devel
 %endif
 
+%if 0%{?sle_version} && 0%{?sle_version} >= 150000
+Requires: insserv-compat
+%endif
+
 %if 0%{?rhel}
 Requires: libtool-ltdl
 BuildRequires: openssl-devel libtool-ltdl-devel
