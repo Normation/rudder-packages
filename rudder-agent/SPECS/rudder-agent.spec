@@ -529,6 +529,16 @@ function pidof {
 
 # Do it only during uninstallation
 if [ $1 -eq 0 ]; then
+
+%if "%{use_systemd}" == "true"
+  systemctl stop rudder-agent
+  systemctl disable rudder-agent rudder-cf-execd rudder-cf-serverd
+  rm -f /lib/systemd/system/rudder-agent.service
+  rm -f /lib/systemd/system/rudder-cf-execd.service
+  rm -f /lib/systemd/system/rudder-cf-serverd.service
+  systemctl daemon-reload
+%endif
+
   # Make sure that CFEngine is not running anymore
   for component in cf-agent cf-serverd cf-execd cf-monitord; do
     if pid=`pidof ${component}`; then
