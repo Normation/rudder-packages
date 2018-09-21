@@ -28,6 +28,20 @@ case "$1" in
       fi
     done
 
+
+    CFRUDDER_USE_SYSTEMD="false"
+
+    if type systemctl > /dev/null ; then CFRUDDER_USE_SYSTEMD="true"; fi
+
+if [ CFRUDDER_USE_SYSTEMD="true" ]; then
+  systemctl stop rudder-agent
+  systemctl disable rudder-agent rudder-cf-execd rudder-cf-serverd
+  rm -f /lib/systemd/system/rudder-agent.service
+  rm -f /lib/systemd/system/rudder-cf-execd.service
+  rm -f /lib/systemd/system/rudder-cf-serverd.service
+  systemctl daemon-reload
+fi
+
     # Remove the cron script we create at installation to prevent mail
     # flooding, re-installation surprises, and general system garbage.
     rm -f /etc/cron.d/rudder-agent
