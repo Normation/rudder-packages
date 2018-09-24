@@ -111,16 +111,13 @@ install -m 644 %{SOURCE3} %{buildroot}/opt/rudder/etc/server-roles.d/
 # Post Installation
 #=================================================
 
-POSTGRESQL_SERVICE_NAME=$(systemctl list-units --type service | awk -F'.' '{print $1}' |  sed 's/ *//g' | grep -E "^postgresql[0-9]*$" | tail -n 1)
-
-# We need fallback for this, as it happens that during postinst, systemctl doesn't returns postgresql, but once install is finish it does.
-# There probably is something astray in the detection of service by systemd here
-# see #13527 and #13532
-if [ -z "${POSTGRESQL_SERVICE_NAME}" ] && type chkconfig >/dev/null 2>&1; then
+POSTGRESQL_SERVICE_NAME=$(systemctl list-unit-files --type service | awk -F'.' '{print $1}' | grep -E "^postgresql[0-9]*$" | tail -n 1)
+%if %{?suse_version} < 1500
   POSTGRESQL_SERVICE_NAME=$(chkconfig 2>/dev/null | awk '{ print $1 }' | grep "postgresql" | tail -n 1)
-fi
+%endif
+
 if [ -z "${POSTGRESQL_SERVICE_NAME}" ]; then
-  POSTGRESQL_SERVICE_NAME=$(ls -1 /etc/init.d | grep "postgresql" | tail -n 1)
+  POSTGRESQL_SERVICE_NAME="postgresql"
 fi
 
 # Check if PostgreSQL is started
