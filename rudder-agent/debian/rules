@@ -66,6 +66,11 @@ endif
 ifeq (trusty,$(OS_CODENAME))
 USE_SYSTEMD=false
 endif
+# Ubuntu 15.10
+ifeq (wily,$(OS_CODENAME))
+USE_SYSTEM_OPENSSL=false
+USE_SYSTEM_CURL=false
+endif
 # Debian 5
 ifeq (lenny,$(OS_CODENAME))
 USE_HTTPS=false
