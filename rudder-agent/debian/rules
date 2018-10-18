@@ -55,6 +55,13 @@ USE_SYSTEM_CURL=false
 USE_SYSTEMD=false
 USE_PIE=false
 endif
+# Ubuntu 13.04
+ifeq (raring,$(OS_CODENAME))
+USE_SYSTEM_OPENSSL=false
+USE_SYSTEM_CURL=false
+USE_SYSTEMD=false
+USE_PIE=false
+endif
 # Ubuntu 14.04
 ifeq (trusty,$(OS_CODENAME))
 USE_SYSTEMD=false
