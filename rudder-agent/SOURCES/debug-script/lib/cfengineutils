@@ -2,7 +2,7 @@
 
 cfengineutils_test_cfpromises() {
   # First we need to make sure time is there
-  TIME_PRESENT=`which time`
+  TIME_PRESENT=`which time > /dev/null 2>&1`
 
   if [ ${?} -eq 0 ]
   then
