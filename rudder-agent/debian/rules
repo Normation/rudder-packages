@@ -70,6 +70,7 @@ endif
 ifeq (wily,$(OS_CODENAME))
 USE_SYSTEM_OPENSSL=false
 USE_SYSTEM_CURL=false
+USE_PIE=false
 endif
 # Debian 5
 ifeq (lenny,$(OS_CODENAME))
