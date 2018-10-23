@@ -31,7 +31,7 @@ case "$1" in
 
     CFRUDDER_USE_SYSTEMD="false"
 
-    if type systemctl > /dev/null ; then CFRUDDER_USE_SYSTEMD="true"; fi
+    if type systemctl > /dev/null 2>&1; then CFRUDDER_USE_SYSTEMD="true"; fi
 
 if [ CFRUDDER_USE_SYSTEMD="true" ]; then
   systemctl stop rudder-agent
