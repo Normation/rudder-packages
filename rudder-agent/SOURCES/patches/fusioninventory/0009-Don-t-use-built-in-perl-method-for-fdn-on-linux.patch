@@ -14,7 +14,7 @@
  
 +    my $FQDN = hostfqdn();
 +    # Sometimes hostfqdn is empty so we replace it with hostname
-+    if ($FQDN eq "") {
++    if (!defined($FQDN) || $FQDN eq "") {
 +      my $command = $OSNAME eq 'linux' ? 'hostname --fqdn' : 'hostname';
 +      $FQDN = getFirstLine(
 +        command => $command
