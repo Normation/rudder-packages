@@ -12,17 +12,17 @@ in warn_only mode.
  2 files changed, 8 insertions(+), 4 deletions(-)
 
 diff --git a/cf-agent/verify_files.c b/cf-agent/verify_files.c
-index 84ea301d4..f44d8da82 100644
+index 4f7941999b..9ea866f7dc 100644
 --- a/cf-agent/verify_files.c
 +++ b/cf-agent/verify_files.c
-@@ -620,7 +620,9 @@ static PromiseResult RenderTemplateMustache(EvalContext *ctx, const Promise *pp,
+@@ -640,7 +640,9 @@ static PromiseResult RenderTemplateMustache(EvalContext *ctx, const Promise *pp,
          {
              if (a.transaction.action == cfa_warn || DONTDO)
              {
--                Log(LOG_LEVEL_WARNING, "Need to render '%s' from mustache template '%s' but policy is dry-run", pp->promiser, a.edit_template);
-+                cfPS(ctx, LOG_LEVEL_WARNING, PROMISE_RESULT_WARN, pp, a, 
+-                Log(LOG_LEVEL_WARNING, "Need to render '%s' from mustache template '%s' but policy is dry-run", pp->promiser, message);
++                cfPS(ctx, LOG_LEVEL_WARNING, PROMISE_RESULT_WARN, pp, &a, 
 +                     "Need to update rendering of '%s' from mustache template '%s' but policy is dry-run",
-+                     pp->promiser, a.edit_template);
++                     pp->promiser, message);
                  result = PromiseResultUpdate(result, PROMISE_RESULT_WARN);
              }
              else
