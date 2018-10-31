@@ -468,14 +468,6 @@ fi
 systemctl daemon-reload
 %endif
 
-%if "%{?rhel}" == "3"
-# Update and reload ld.so configuration if needed, RHEL/CentOS 3 style.
-if ! grep -q "/opt/rudder/lib" /etc/ld.so.conf; then
-  echo "/opt/rudder/lib" >> /etc/ld.so.conf
-  ldconfig
-fi
-%endif
-
 /opt/rudder/share/package-scripts/rudder-agent-postinst "${CFRUDDER_FIRST_INSTALL}" "%{?_os}" "%{use_systemd}" ""
 
 %preun
