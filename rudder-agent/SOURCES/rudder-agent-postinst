@@ -134,12 +134,18 @@ rm -f /var/rudder/tmp/migration-rudder-service-systemd
 rm -f /var/rudder/tmp/migration-rudder-service-enabled
 rm -f /var/rudder/tmp/migration-rudder-cf-serverd-disabled
 
-# ldso.conf should be removed already if it was installed by a previous version (starting from 4.3)
+# Remove ld.so.conf configuration
+if [ -f /etc/ld.so.conf.d/rudder.conf ]; then
+  rm -f /etc/ld.so.conf.d/rudder.conf
+fi
+if grep -q "/opt/rudder/lib" /etc/ld.so.conf; then
+  sed -i '/\/opt\/rudder\/lib/d' /etc/ld.so.conf
+fi
+
 # ldconfig only necessary when upgrading
 if [ "${CFRUDDER_FIRST_INSTALL}" != "true" ]; then
   ldconfig
 fi
-
 
 # Set a "lock" to avoid CFEngine being restarted during the upgrade process
 I_SET_THE_LOCK=0
