@@ -34,8 +34,8 @@ case "$1" in
     if type systemctl > /dev/null 2>&1; then CFRUDDER_USE_SYSTEMD="true"; fi
 
 if [ CFRUDDER_USE_SYSTEMD="true" ]; then
-  systemctl stop rudder-agent
-  systemctl disable rudder-agent rudder-cf-execd rudder-cf-serverd
+  systemctl stop rudder-agent || true
+  systemctl disable rudder-agent rudder-cf-execd rudder-cf-serverd || true
   rm -f /lib/systemd/system/rudder-agent.service
   rm -f /lib/systemd/system/rudder-cf-execd.service
   rm -f /lib/systemd/system/rudder-cf-serverd.service
