@@ -36,7 +36,7 @@ case "$1" in
 
     CFRUDDER_USE_SYSTEMD="false"
 
-    if type systemctl > /dev/null 2>&1; then CFRUDDER_USE_SYSTEMD="true"; fi
+    if grep -q systemd /proc/1/cmdline > /dev/null ; then CFRUDDER_USE_SYSTEMD="true"; fi
     db_get rudder-agent/policy-server && server="${RET}"
 
     /opt/rudder/share/package-scripts/rudder-agent-postinst "${CFRUDDER_FIRST_INSTALL}" "deb" "${CFRUDDER_USE_SYSTEMD}" "${server}"
