@@ -31,7 +31,7 @@ case "$1" in
 
     CFRUDDER_USE_SYSTEMD="false"
 
-    if grep -q systemd /proc/1/cmdline > /dev/null ; then CFRUDDER_USE_SYSTEMD="true"; fi
+    if readlink -f $(cut -f 1 -d "" < /proc/1/cmdline) | grep -qE "/systemd$" ; then CFRUDDER_USE_SYSTEMD="true"; fi
 
 if [ CFRUDDER_USE_SYSTEMD="true" ]; then
   systemctl stop rudder-agent || true
