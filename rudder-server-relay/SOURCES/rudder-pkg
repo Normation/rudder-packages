@@ -373,8 +373,9 @@ def plugin_status(plugins, status):
     if plugin not in DB["plugins"]:
       fail("Unknown plugin " + plugin)
     metadata = DB["plugins"][plugin]
-    for j in metadata['jar-files']:
-      jar_status(j, status)
+    if 'jar-files' in metadata:
+      for j in metadata['jar-files']:
+        jar_status(j, status)
 
 
 ## MAIN
