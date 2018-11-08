@@ -15,10 +15,11 @@ REAL_NAME=rudder-agent
 BUILD_CFLAGS=$(shell [ -x /usr/bin/dpkg-buildflags ] && /usr/bin/dpkg-buildflags --get CFLAGS )
 BUILD_LDFLAGS=$(shell [ -x /usr/bin/dpkg-buildflags ] && /usr/bin/dpkg-buildflags --get LDFLAGS ) -Wl,-R/opt/rudder/lib
 
+# Defaults (use our own openssl 1.1.1, and curl since it depends on it)
 USE_HTTPS=true
-USE_SYSTEM_OPENSSL=true
+USE_SYSTEM_OPENSSL=false
 USE_SYSTEM_PERL=true
-USE_SYSTEM_CURL=true
+USE_SYSTEM_CURL=false
 USE_SYSTEM_YAML=true
 USE_SYSTEM_XML=true
 USE_SYSTEMD=true
@@ -35,30 +36,22 @@ OS_CODENAME := $(shell lsb_release -s -c)
 # Ubuntu 10.04
 ifeq (lucid,$(OS_CODENAME))
 USE_HTTPS=false
-USE_SYSTEM_OPENSSL=false
-USE_SYSTEM_CURL=false
 USE_SYSTEMD=false
 USE_SYSTEM_PERL=false
 USE_PIE=false
 endif
 # Ubuntu 12.04
 ifeq (precise,$(OS_CODENAME))
-USE_SYSTEM_OPENSSL=false
-USE_SYSTEM_CURL=false
 USE_SYSTEMD=false
 USE_PIE=false
 endif
 # Ubuntu 12.10
 ifeq (quantal,$(OS_CODENAME))
-USE_SYSTEM_OPENSSL=false
-USE_SYSTEM_CURL=false
 USE_SYSTEMD=false
 USE_PIE=false
 endif
 # Ubuntu 13.04
 ifeq (raring,$(OS_CODENAME))
-USE_SYSTEM_OPENSSL=false
-USE_SYSTEM_CURL=false
 USE_SYSTEMD=false
 USE_PIE=false
 endif
@@ -68,15 +61,11 @@ USE_SYSTEMD=false
 endif
 # Ubuntu 15.10
 ifeq (wily,$(OS_CODENAME))
-USE_SYSTEM_OPENSSL=false
-USE_SYSTEM_CURL=false
 USE_PIE=false
 endif
 # Debian 5
 ifeq (lenny,$(OS_CODENAME))
 USE_HTTPS=false
-USE_SYSTEM_OPENSSL=false
-USE_SYSTEM_CURL=false
 USE_SYSTEMD=false
 USE_SYSTEM_PERL=false
 USE_SYSTEM_YAML=false
@@ -86,15 +75,11 @@ endif
 # Debian 6
 ifeq (squeeze,$(OS_CODENAME))
 USE_HTTPS=false
-USE_SYSTEM_OPENSSL=false
-USE_SYSTEM_CURL=false
 USE_SYSTEMD=false
 USE_PIE=false
 endif
 # Debian 7
 ifeq (wheezy,$(OS_CODENAME))
-USE_SYSTEM_OPENSSL=false
-USE_SYSTEM_CURL=false
 USE_SYSTEMD=false
 USE_PIE=false
 endif

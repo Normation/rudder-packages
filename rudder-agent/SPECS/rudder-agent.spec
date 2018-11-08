@@ -29,17 +29,17 @@
 
 # use_system_lmdb checks if to build CFEngine we will need to build LMDB or if
 # a package already exists on the system.
-# Default value is false sine no rpm based target provides it
+# Default value is false since no rpm based target provides it
 %define use_system_lmdb false
 
-# Same goes for the use of the local OpenSSL install vs. a bundled one
-%define use_system_openssl true
+# We want openssl 1.1.1 which is currently provided by noone
+%define use_system_openssl false
 
 # Same goes for the use of the local PCRE install vs. a bundled one
 %define use_system_pcre true
 
-# Same goes for the use of the local Curl install vs. a bundled one
-%define use_system_curl true
+# We need to build curl since we embed openssl
+%define use_system_curl false
 
 # Same goes for the use of the local libyaml install vs. a bundled one
 %define use_system_yaml true
@@ -73,9 +73,7 @@
 %if "%{?_os}" == "aix"
 # no system anything on aix
 %define use_system_perl false
-%define use_system_openssl false
 %define use_system_pcre false
-%define use_system_curl false
 %define use_system_zlib false
 %define use_system_yaml false
 %define use_system_xml false
@@ -92,8 +90,6 @@
 %if 0%{?rhel} && 0%{?rhel} <= 5
 # system perl too old on rhel3 and rhel5
 %define use_system_perl false
-%define use_system_openssl false
-%define use_system_curl false
 %define use_system_yaml false
 #libxml too old
 %define use_system_xml false
@@ -108,8 +104,6 @@
 %if 0%{?suse_version} && 0%{?suse_version} < 1200
 # system perl and openssl too old on sles 10 and 11
 %define use_system_perl false
-%define use_system_openssl false
-%define use_system_curl false
 # no yaml on sles 10 and 11
 %define use_system_yaml false
 #libxml too old
