@@ -51,13 +51,13 @@ ZLIB_SHA1 = e6d119755acdf9104d7ba236b1242696940ed6dd
 RUDDER_DIR = /opt/rudder
 DESTDIR = $(CURDIR)/target
 
+TRY_CFLAGS=-fstack-protector
+
 # default build with pie if possible
 ifeq (false,$(USE_PIE))
 TRY_LDFLAGS=-Wl,-z,relro -Wl,-z,now
-TRY_CFLAGS=-fstack-protector
 else
 TRY_LDFLAGS=-pie -Wl,-z,relro -Wl,-z,now
-TRY_CFLAGS=-fPIE -fstack-protector
 endif
 
 # GENERIC_GET: do not remove this line
