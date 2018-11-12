@@ -530,7 +530,7 @@ build-ssl: openssl-source
 	cd openssl-source && $(MAKE)
 	slibclean >/dev/null 2>&1 || true
 	# install to a temporary location is needed to build cfengine
-	cd openssl-source && $(MAKE) install INSTALL_PREFIX=$(CURDIR)/build-ssl
+	cd openssl-source && $(MAKE) install DESTDIR=$(CURDIR)/build-ssl
 
 build-lmdb: lmdb-source
 	# lmdb doesn't support CFLAGS (it overrides its own) so we pass XCFLAGS instead, that is appended to the oroginal ones
