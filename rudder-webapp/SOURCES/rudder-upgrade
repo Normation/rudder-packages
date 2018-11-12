@@ -355,6 +355,11 @@ upgrade_ncf() {
       sed -i "s%^loggers=\(.*\)%loggers=\1,log_rudder%" ${CONFIGURATION_REPOSITORY}/ncf/ncf.conf
     fi
 
+    current_path=$(pwd)
+    cd ${CONFIGURATION_REPOSITORY}
+    git add ncf/ncf.conf
+    git commit --allow-empty -m "Commit ncf.conf file with rudder-webapp package upgrade"
+    cd ${current_path}
     #  2.11.18, 3.0.13, 3.1.6 and 3.2.0: Anticipate the copy from ${CONFIGURATION_REPOSITORY}/ncf to ${RUDDER_VAR}/ncf/local
     cp -f ${CONFIGURATION_REPOSITORY}/ncf/ncf.conf ${RUDDER_VAR}/ncf/local/
   fi
