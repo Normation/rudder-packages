@@ -45,6 +45,7 @@ trap anomaly_handler ERR INT TERM
 # - All versions : Check for the PostgreSQL version (>= 8.4)
 # - All versions : Commit ncf hooks
 # - All versions : Create ncf technique update flag and restart at the end of the script
+# - 4.1.17       : Change LDAP attribute ipNetworkNumber -> networkSubnet
 # - 4.2.6,4.3.2  : Create nodecompliancelevels table
 # - 4.2.6,4.3.2  : Add new property rudder.batch.reportscleaner.compliancelevels.delete.TTL
 # - 4.2.0        : Rename hooks to have a better ordering of hooks
@@ -136,6 +137,7 @@ JETTY_INIT="service rudder-jetty"
 LDAPSEARCH="ldapsearch ${LDAP_PARAMETERS} -LLL"
 LDAPMODRDN="ldapmodrdn ${LDAP_PARAMETERS}"
 LDAPADD="ldapadd ${LDAP_PARAMETERS}"
+LDAPMODIFY="ldapmodify ${LDAP_PARAMETERS}"
 
 PSQL="psql -q -h ${SQL_SERVER} -p ${SQL_PORT} -U ${SQL_USER}"
 
@@ -536,7 +538,58 @@ upgrade_inventory() {
   LDAP_EXISTS=$(${LDAPSEARCH} -b "cn=rudder-configuration" -s base dn 2>/dev/null | grep -c "dn: cn=rudder-configuration" || true)
 
   if [ ${LDAP_EXISTS} -ne 0 ]; then
-    true
+    # - 4.1.17, 4.3.7, 5.0.3: ipNetworkNumber -> networkSubnet
+    STEP="Migrate LDAP attribute ipNetworkNumber in networkInterface"
+    # change:
+    #  dn: networkInterface=etho0,nodeId=0876521e-3c81-4775-85c7-5dd7f9d5d3da,ou=Nodes,ou=Accepted Inventories,ou=Inventories,cn=rudder-configuration
+    #  ipNetworkNumber: 192.268.1.1
+    #  ipNetworkNumber: ffff:::1
+    #
+    # into:
+    #  dn: networkInterface=lo,nodeId=0876521e-3c81-4775-85c7-5dd7f9d5d3da,ou=Nodes,ou=Accepted Inventories,ou=Inventories,cn=rudder-configuration
+    #  changetype: modify
+    #  delete: ipNetworkNumber
+    #  -
+    #  replace: networkSubnet
+    #  networkSubnet: 192.268.1.1
+    #  networkSubnet: ffff:::1
+    #  -
+    #
+    LDAP_TEST_MIGRATE_NETWORK=$(${LDAPSEARCH} -b "ou=Inventories,cn=rudder-configuration" -s sub '(&(objectClass=networkInterfaceLogicalElement)(ipNetworkNumber=*))' 1.1 2> /dev/null | grep -c "dn: networkInterface=" || true)
+    if [ ${LDAP_TEST_MIGRATE_NETWORK} -ne 0 ]; then
+      echo -n "INFO: migrate LDAP attribute ipNetworkNumber -> networkSubnet in networkInterface..."
+      MIGRATE_IPNET_FILE="/tmp/rudder-migrate-ipNetworkNumber-network.ldif"
+      ${LDAPSEARCH} -o ldif-wrap=no -b "ou=Inventories,cn=rudder-configuration" -s sub '(&(objectClass=networkInterfaceLogicalElement)(ipNetworkNumber=*))' 'ipNetworkNumber' 2> /dev/null > ${MIGRATE_IPNET_FILE}
+      sed -i -e "s/ipNetworkNumber/networkSubnet/" ${MIGRATE_IPNET_FILE}
+      sed -i -e "s/dn:\(.*\)$/dn:\1\nchangetype:modify\ndelete: ipNetworkNumber\n-\nreplace: networkSubnet/" ${MIGRATE_IPNET_FILE}
+      sed -i -e "s/^$/-\n/" ${MIGRATE_IPNET_FILE}
+      ${LDAPMODIFY} -f ${MIGRATE_IPNET_FILE}
+      echo " OK"
+    fi
+
+    STEP="Migrate LDAP attribute ipNetworkNumber in node group query"
+    # change:
+    #  dn: nodeGroupId=ede838d0-b064-4739-a03e-f6a7651dce7b,groupCategoryId=GroupRoot,ou=Rudder,cn=rudder-configuration
+    #  jsonNodeGroupQuery: {"select":"node","composition":"And","where":[{"objectType":"networkInterfaceLogicalElement","attribute":"ipNetworkNumber","comparator":"regex","value":"192.168.42.*"}]}
+    #
+    # into:
+    #  dn: nodeGroupId=ede838d0-b064-4739-a03e-f6a7651dce7b,groupCategoryId=GroupRoot,ou=Rudder,cn=rudder-configuration
+    #  changetype: modify
+    #  replace: jsonNodeGroupQuery
+    #  jsonNodeGroupQuery: {"select":"node","composition":"And","where":[{"objectType":"networkInterfaceLogicalElement","attribute":"networkSubnet","comparator":"regex","value":"192.168.42.*"}]}
+    #  -
+    #
+    LDAP_TEST_MIGRATE_GROUP=$(${LDAPSEARCH} -b "ou=Rudder,cn=rudder-configuration" -s sub '(&(objectClass=nodeGroup)(jsonNodeGroupQuery=*ipNetworkNumber*))' 1.1 2> /dev/null | grep -c "dn: nodeGroupId=" || true)
+    if [ ${LDAP_TEST_MIGRATE_GROUP} -ne 0 ]; then
+      echo -n "INFO: migrate LDAP attribute ipNetworkNumber -> networkSubnet in node groups..."
+      MIGRATE_IPNET_FILE="/tmp/rudder-migrate-ipNetworkNumber-group.ldif"
+      ${LDAPSEARCH} -o ldif-wrap=no -b "ou=Rudder,cn=rudder-configuration" -s sub '(&(objectClass=nodeGroup)(jsonNodeGroupQuery=*ipNetworkNumber*))' 'jsonNodeGroupQuery' 2> /dev/null > ${MIGRATE_IPNET_FILE}
+      sed -i -e "s/^$/-\n\n/" ${MIGRATE_IPNET_FILE}
+      sed -i -e "s/ipNetworkNumber/networkSubnet/" ${MIGRATE_IPNET_FILE}
+      sed -i -e "s/jsonNodeGroupQuery/changetype: modify\nreplace: jsonNodeGroupQuery\njsonNodeGroupQuery/" ${MIGRATE_IPNET_FILE}
+      ${LDAPMODIFY} -f ${MIGRATE_IPNET_FILE}
+      echo " OK"
+    fi
   fi
 
 }
