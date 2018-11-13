@@ -4,6 +4,7 @@ set -e
 CFRUDDER_FIRST_INSTALL="$1"
 CFRUDDER_OS="$2"
 CFRUDDER_USE_SYSTEMD="$3"
+CFRUDDER_SERVER="$4"
 
 CFE_DIR="/var/rudder/cfengine-community"
 RUDDER_CMD="/opt/rudder/bin/rudder"
@@ -28,9 +29,22 @@ fi
 echo "`date` - Starting rudder-agent post installation script" >> ${LOG_FILE}
 
 # setup the policy server if we are asked to
-if [ -n "$4" ]
+if [ "${CFRUDDER_SERVER}" = "" ]
 then
-  echo "$4" > /var/rudder/cfengine-community/policy_server.dat
+  # Detect if "rudder" is a valid hostname, if so, use it as the default server
+  if type getent > /dev/null 2>&1; then # glibc/linux
+    if getent hosts rudder > /dev/null; then
+      CFRUDDER_SERVER="rudder"
+    fi
+  elif type host > /dev/null 2>&1; then # aix
+    if host rudder > /dev/null; then
+      CFRUDDER_SERVER="rudder"
+    fi
+  fi
+fi
+if [ "${CFRUDDER_SERVER}" != "" ]
+then
+  echo "${CFRUDDER_SERVER}" > /var/rudder/cfengine-community/policy_server.dat
 fi
 
 # Do this at first install
