@@ -5,6 +5,7 @@ CFRUDDER_FIRST_INSTALL="$1"
 CFE_DIR="/var/rudder/cfengine-community"
 RUDDER_CMD="/opt/rudder/bin/rudder"
 LOG_FILE="/var/log/rudder/install/rudder-agent.log"
+CFRUDDER_SERVER=""
 
 # Closing all parents fd which are inherited, otherwise it can lead to
 # a postint unable to terminate (revelant at least on debian 7)
@@ -21,6 +22,25 @@ then
 fi
 
 echo "`date` - Starting rudder-agent post installation script" >> ${LOG_FILE}
+
+if [ "${CFRUDDER_SERVER}" = "" ]
+then
+  # Detect if "rudder" is a valid hostname, if so, use it as the default server
+  if type getent > /dev/null 2>&1; then # glibc/linux
+    if getent hosts rudder > /dev/null; then
+      CFRUDDER_SERVER="rudder"
+    fi
+  elif type host > /dev/null 2>&1; then # aix
+    if host rudder > /dev/null; then
+      CFRUDDER_SERVER="rudder"
+    fi
+  fi
+fi
+
+if [ "${CFRUDDER_SERVER}" != "" ]
+then
+  echo "${CFRUDDER_SERVER}" > /var/rudder/cfengine-community/policy_server.dat
+fi
 
 # Reload the linker cache (to acknowledge LMDB's presence if needed)
 if [ -f /etc/ld.so.conf.d/rudder.conf ]; then
