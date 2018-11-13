@@ -157,6 +157,7 @@ Requires: fusioninventory-agent fusioninventory-agent-task-inventory
 ## For Linux
 %if "%{?_os}" != "aix"
 BuildRequires: pam-devel
+Requires: syslog
 %endif
 
 ## Requirement for cpanminus
