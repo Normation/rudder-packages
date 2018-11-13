@@ -533,8 +533,9 @@ build-ssl: openssl-source
 	cd openssl-source && $(MAKE) install DESTDIR=$(CURDIR)/build-ssl
 
 build-lmdb: lmdb-source
-	# lmdb doesn't support CFLAGS (it overrides its own) so we pass XCFLAGS instead, that is appended to the oroginal ones
-	cd lmdb-source/libraries/liblmdb && $(MAKE) XCFLAGS="$(BUILD_CFLAGS) $(SECURE_CFLAGS)" LDFLAGS="-Wl,-R$(RUDDER_DIR)/lib $(BUILD_LDFLAGS) $(SECURE_LDFLAGS)"
+	# lmdb doesn't support CFLAGS (it overrides its own) so we pass XCFLAGS instead, that is appended to the original ones
+	# we need to add -fPIE to be able to build static lib (which we do not use)
+	cd lmdb-source/libraries/liblmdb && $(MAKE) XCFLAGS="$(BUILD_CFLAGS) $(SECURE_CFLAGS) -fPIE" LDFLAGS="-Wl,-R$(RUDDER_DIR)/lib $(BUILD_LDFLAGS) $(SECURE_LDFLAGS)"
 	# need a temporary install for cfengine
 	mkdir -p build-lmdb$(RUDDER_DIR)
 	# LMDB's Makefile does not know how to create destination files, do it ourselves
