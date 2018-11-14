@@ -55,8 +55,10 @@ TRY_CFLAGS=-fstack-protector
 
 # default build with pie if possible
 ifeq (false,$(USE_PIE))
+PIE_CFLAGS=
 TRY_LDFLAGS=-Wl,-z,relro -Wl,-z,now
 else
+PIE_CFLAGS=-fPIE
 TRY_LDFLAGS=-pie -Wl,-z,relro -Wl,-z,now
 endif
 
@@ -535,7 +537,7 @@ build-ssl: openssl-source
 build-lmdb: lmdb-source
 	# lmdb doesn't support CFLAGS (it overrides its own) so we pass XCFLAGS instead, that is appended to the original ones
 	# we need to add -fPIE to be able to build static lib (which we do not use)
-	cd lmdb-source/libraries/liblmdb && $(MAKE) XCFLAGS="$(BUILD_CFLAGS) $(SECURE_CFLAGS) -fPIE" LDFLAGS="-Wl,-R$(RUDDER_DIR)/lib $(BUILD_LDFLAGS) $(SECURE_LDFLAGS)"
+	cd lmdb-source/libraries/liblmdb && $(MAKE) XCFLAGS="$(BUILD_CFLAGS) $(SECURE_CFLAGS) $(PIE_CFLAGS)" LDFLAGS="-Wl,-R$(RUDDER_DIR)/lib $(BUILD_LDFLAGS) $(SECURE_LDFLAGS)"
 	# need a temporary install for cfengine
 	mkdir -p build-lmdb$(RUDDER_DIR)
 	# LMDB's Makefile does not know how to create destination files, do it ourselves
@@ -560,7 +562,7 @@ build-curl: curl-source
 	# since we need the temporary path it during build we need to add -I and -L
 	# since we also need to link it is during cfengine build we add -R (--rpath)
 	# we may want to remove rpath using patchelf at the end, but this is mostly cosmetic
-	cd curl-source && ./configure --prefix=$(RUDDER_DIR) --with-ssl $(ZLIB_ARG) --disable-rtsp --enable-ipv6 --without-librtmp --without-ldap-lib CFLAGS="$(BUILD_CFLAGS) $(SECURE_CFLAGS) -I$(CURDIR)/build-ssl$(RUDDER_DIR)/include" LDFLAGS="-Wl,-R$(RUDDER_DIR)/lib $(BUILD_LDFLAGS) $(SECURE_LDFLAGS) -Wl,-R$(CURDIR)/build-ssl$(RUDDER_DIR)/lib -L$(CURDIR)/build-ssl$(RUDDER_DIR)/lib" PKG_CONFIG_PATH="$(CURDIR)/build-ssl$(RUDDER_DIR)/lib/pkgconfig"
+	cd curl-source && ./configure --prefix=$(RUDDER_DIR) --with-ssl $(ZLIB_ARG) --disable-rtsp --enable-ipv6 --without-librtmp --without-ldap-lib CFLAGS="$(BUILD_CFLAGS) $(PIE_CFLAGS) $(SECURE_CFLAGS) -I$(CURDIR)/build-ssl$(RUDDER_DIR)/include" LDFLAGS="-Wl,-R$(RUDDER_DIR)/lib $(BUILD_LDFLAGS) $(SECURE_LDFLAGS) -Wl,-R$(CURDIR)/build-ssl$(RUDDER_DIR)/lib -L$(CURDIR)/build-ssl$(RUDDER_DIR)/lib" PKG_CONFIG_PATH="$(CURDIR)/build-ssl$(RUDDER_DIR)/lib/pkgconfig"
 	cd curl-source && $(MAKE)
 	# install to a temporary location is needed to build cfengine
 	cd curl-source && $(MAKE) install DESTDIR=$(CURDIR)/build-curl
