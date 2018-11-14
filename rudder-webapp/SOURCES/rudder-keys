@@ -45,6 +45,13 @@ else
   usage
 fi
 
+if [ ! -s "${PUBKEY}" ]
+then
+  echo "ERORR ${PUBKEY} file does not exist or is empty"
+  exit 2
+fi
+
+PUBKEY=$(readlink -f "${PUBKEY}")
 
 # Get how many access credentials we got for LDAP in /opt/rudder/etc/rudder-web.properties
 # (should have 2, user and password)
