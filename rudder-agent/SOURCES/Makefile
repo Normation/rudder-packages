@@ -426,7 +426,7 @@ ifeq ($(shell ../../build-caching get ./xml-source/ --force-config name=xml-src 
 endif
 
 rudder-sources.tar.bz2:
-	$(GET) rudder-sources.tar.bz2 $(HTTPS)://www.rudder-project.org/archives/rudder-sources-$(RUDDER_VERSION_TO_PACKAGE).tar.bz2 ""
+	$(GET) rudder-sources.tar.bz2 $(HTTPS)://repository.rudder.io/sources/$(RUDDER_VERSION_TO_PACKAGE)/rudder-sources-$(RUDDER_VERSION_TO_PACKAGE).tar.bz2 ""
 
 rudder-sources: rudder-sources.tar.bz2
 	bunzip2 < rudder-sources.tar.bz2 | $(TAR) xf -
