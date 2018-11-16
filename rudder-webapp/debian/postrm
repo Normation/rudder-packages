@@ -21,16 +21,6 @@ set -e
 
 case "$1" in
     purge)
-      # ignore errors during purge
-      set +e
-      userdel rudder || true
-      if getent group rudder > /dev/null; then
-        # Remove the configuration-repository group
-        echo -n "INFO: Removing group rudder..."
-        groupdel rudder
-        echo " Done"
-      fi
-      set -e
     ;;
     remove|upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
     ;;
