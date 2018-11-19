@@ -374,11 +374,13 @@ upgrade_ncf() {
   cd ${CURRENT}
 
   # All Versions, Commit ncf.conf file, even if it has not changed
-  current_path=$(pwd)
-  cd ${CONFIGURATION_REPOSITORY}
-  git add ncf/ncf.conf
-  git commit --allow-empty -m "Commit ncf.conf file with rudder-webapp package upgrade"
-  cd ${current_path}
+  if [ -f ${CONFIGURATION_REPOSITORY}/ncf/ncf.conf ]; then
+    current_path=$(pwd)
+    cd ${CONFIGURATION_REPOSITORY}
+    git add ncf/ncf.conf
+    git commit --allow-empty -m "Commit ncf.conf file with rudder-webapp package upgrade"
+    cd ${current_path}
+  fi
 
   # All Versions, Commit ncf hooks
   CURRENT="$(pwd)"
