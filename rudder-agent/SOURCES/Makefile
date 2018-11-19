@@ -31,9 +31,12 @@ LMDB_SHA1 = 5d62d4c7527f3474f60a0d87db2bfd539e6493eb
 # Default openssl version to use
 OPENSSL_RELEASE = 1.1.1
 OPENSSL_SHA1 = e4559f31dca37ce815e0c7135488b747745a056d
+# Variable INSTALL_PREFIX name has changed with openssl 1.1.0 https://www.openssl.org/news/cl110.txt
+OPENSSL_DESTDIR_VAR_NAME = DESTDIR
 # open ssl version to use on older systems
 OLD_OPENSSL_RELEASE = 1.0.2p
 OLD_OPENSSL_SHA1 = f34b5322e92415755c7d58bf5d0d5cf37666382c
+OLD_OPENSSL_DESTDIR_VAR_NAME = INSTALL_PREFIX
 PERL_RELEASE = 5.22.4
 PERL_SHA1 = fd79af20e6454d1bb5e5e6ac4774a1e295d4d794
 PCRE_RELEASE = 8.38
@@ -127,6 +130,7 @@ ifeq (false,$(USE_SYSTEM_OPENSSL))
 ifeq (true,$(BUILD_OLD_OPENSSL))
 OPENSSL_RELEASE = $(OLD_OPENSSL_RELEASE)
 OPENSSL_SHA1 = $(OLD_OPENSSL_SHA1)
+OPENSSL_DESTDIR_VAR_NAME = $(OLD_OPENSSL_DESTDIR_VAR_NAME)
 endif
 BUILD_DEPS := $(BUILD_DEPS) build-ssl
 INSTALL_DEPS := $(INSTALL_DEPS) install-ssl
@@ -540,7 +544,7 @@ build-ssl: openssl-source
 	cd openssl-source && $(MAKE)
 	slibclean >/dev/null 2>&1 || true
 	# install to a temporary location is needed to build cfengine
-	cd openssl-source && $(MAKE) install DESTDIR=$(CURDIR)/build-ssl
+	cd openssl-source && $(MAKE) install $(OPENSSL_DESTDIR_VAR_NAME)=$(CURDIR)/build-ssl
 
 build-lmdb: lmdb-source
 	# lmdb doesn't support CFLAGS (it overrides its own) so we pass XCFLAGS instead, that is appended to the original ones
