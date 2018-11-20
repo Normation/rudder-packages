@@ -230,6 +230,12 @@ echo " Done"
 
 # Do it only during uninstallation
 if [ $1 -eq 0 ]; then
+  # restart apache2 since it uses the user ncf
+%if 0%{?rhel}
+  systemctl restart httpd >/dev/null
+%else
+  systemctl restart apache2 >/dev/null
+%endif
   # Remove the package user
   if getent passwd %{user_name} >/dev/null; then
     echo -n "INFO: Removing the %{user_name} user..."

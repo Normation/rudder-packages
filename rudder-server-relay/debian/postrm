@@ -1,5 +1,4 @@
 #!/bin/sh
-# postrm script for rudder-agent
 #
 # see: dh_installdeb(1)
 
@@ -24,10 +23,20 @@ case "$1" in
 
           # Restart apache since it is still using this user
           systemctl restart apache2 > /dev/null
-          # Remove the package user
-          if getent passwd ncf-api-venv >/dev/null; then
-            echo -n "INFO: Removing the ncf-api-venv user..."
-            userdel ncf-api-venv >/dev/null 2>&1
+          # Remove package user and groups
+          if getent group rudder >/dev/null; then
+            echo -n "INFO: Removing the rudder group ..."
+            groupdel rudder >/dev/null 2>&1
+            echo " Done"
+          fi
+           if getent group rudder-policy-reader >/dev/null; then
+            echo -n "INFO: Removing the rudder-policy-reader group ..."
+            groupdel rudder-policy-reader >/dev/null 2>&1
+            echo " Done"
+          fi
+          if getent passwd rudder >/dev/null; then
+            echo -n "INFO: Removing the rudder user..."
+            userdel rudder >/dev/null 2>&1
             echo " Done"
           fi
 
