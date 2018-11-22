@@ -266,6 +266,10 @@ def install(metadata, package_file, exist):
 def install_file(package_files):
   for package_file in package_files:
     print("Installing " + package_file)
+    # First, check if file exists
+    if not os.path.isfile(package_file):
+      print("Error: Package file " + package_file + " does not exist")
+      exit(1)
     metadata = rpkg_metadata(package_file)
     exist = package_check(metadata)
     # As dependencies are only displayed messages for now, wait until the end to make them visible.
