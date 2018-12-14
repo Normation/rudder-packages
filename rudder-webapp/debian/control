@@ -2,13 +2,15 @@ Source: rudder-webapp
 Section: web
 Priority: extra
 Maintainer: Rudder packaging team <rudder-packaging@rudder-project.org>
-Build-Depends: debhelper (>= 7)
+Build-Depends: debhelper (>= 7), python
 Standards-Version: 3.8.0
 Homepage: http://www.rudder-project.org
 
 Package: rudder-webapp
 Architecture: all
-Depends: ${shlibs:Depends}, ${misc:Depends}, rudder-jetty, rudder-techniques (= ${binary:Version}), rudder-server-relay (= ${binary:Version}), apache2, apache2-utils, git-core, rsync, lsb-release, openssl, ldap-utils, postgresql-client (>=9.2), ncf-api-virtualenv (= ${binary:Version}), java8-runtime-headless | openjdk-8-jre-headless | oracle-java8-installer
+Depends: ${shlibs:Depends}, ${misc:Depends}, systemd, python, rudder-inventory-ldap (= ${binary:Version}, rudder-server-relay (= ${binary:Version}), apache2, apache2-utils, libapache2-mod-wsgi, git-core, rsync, lsb-release, openssl, ldap-utils, postgresql-client (>=9.2), java8-runtime-headless | openjdk-8-jre-headless | oracle-java8-installer
+Breaks: ncf, ncf-api-virtualenv, rudder-techniques, rudder-inventory-endpoint, rudder-jetty
+Replaces: ncf, ncf-api-virtualenv, rudder-techniques, rudder-inventory-endpoint, rudder-jetty
 Description: Configuration management and audit tool - webapp
  Rudder is an open source configuration management and audit solution.
  .

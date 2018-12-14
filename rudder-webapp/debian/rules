@@ -21,6 +21,14 @@ build: build-stamp
 
 build-stamp: configure-stamp SOURCES/rudder.war
 	dh_testdir
+	# Build Virtualenv
+	cd SOURCES && python virtualenv/virtualenv.py ncf-api-virtualenv
+
+	# Get all requirements via pip
+	cd SOURCES && ncf-api-virtualenv/bin/pip install -r rudder-sources/ncf/api/requirements.txt
+	# Clean up unwanted binaries
+	cd SOURCES && for i in easy_install python pip; do rm -f ncf-api-virtualenv/bin/$${i}*; done
+
 	touch $@
 
 SOURCES/rudder.war: java8
@@ -28,6 +36,8 @@ SOURCES/rudder.war: java8
 	cd $(CURDIR)/SOURCES/rudder-sources/rudder-commons    && $(CURDIR)/SOURCES/maven/bin/mvn --batch-mode -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true install
 	cd $(CURDIR)/SOURCES/rudder-sources/scala-ldap        && $(CURDIR)/SOURCES/maven/bin/mvn --batch-mode -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true install
 	cd $(CURDIR)/SOURCES/rudder-sources/ldap-inventory    && $(CURDIR)/SOURCES/maven/bin/mvn --batch-mode -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true install
+	cd $(CURDIR)/SOURCES/rudder-sources/ldap-inventory/inventory-provisioning-web && $(CURDIR)/SOURCES/maven/bin/mvn --batch-mode -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true install package
+	cp $(CURDIR)/SOURCES/rudder-sources/ldap-inventory/inventory-provisioning-web/target/inventory-provisioning-web*.war $(CURDIR)/SOURCES/endpoint.war
 	cd $(CURDIR)/SOURCES/rudder-sources/rudder            && $(CURDIR)/SOURCES/maven/bin/mvn --batch-mode -s $(CURDIR)/SOURCES/$(MAVEN_SETTINGS) -Dmaven.test.skip=true -U install package
 	cp $(CURDIR)/SOURCES/rudder-sources/rudder/rudder-web/target/rudder-web*.war $(CURDIR)/SOURCES/rudder.war
 
@@ -79,6 +89,8 @@ binary-arch: install
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-plugin /opt/rudder/bin/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-reload-cf-serverd /opt/rudder/bin/
 	dh_install --SOURCEDIR=SOURCES/ rudder-users.xml /opt/rudder/etc/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder-techniques/ techniques/ /opt/rudder/share/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder-techniques/ tools/ /opt/rudder/share/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/ldap/ bootstrap.ldif /opt/rudder/share/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/ldap/ init-policy-server.ldif /opt/rudder/share/
 	cp $(CURDIR)/SOURCES/rudder-sources/rudder/rudder-web/src/main/resources/configuration.properties.sample $(CURDIR)/BUILD/rudder-web.properties
@@ -99,8 +111,27 @@ binary-arch: install
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-web /opt/rudder/etc/server-roles.d/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ post.write_technique.10_commit.sh /var/rudder/configuration-repository/ncf/ncf-hooks.d/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ post.write_technique.50_rudderify.sh /var/rudder/configuration-repository/ncf/ncf-hooks.d/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/ ncf/ /usr/share/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ ncf-api-virtualenv/ /usr/share/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ ncf_api_flask_app.wsgi /usr/share/ncf-api-virtualenv/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ ncf-api-virtualenv.conf /etc/apache2/conf-available/
 
-	# Install upgrade tools and migration scripts
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ endpoint.war /opt/rudder/share/webapps/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ endpoint.xml /opt/rudder/share/webapps/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ inventory-web.properties /opt/rudder/etc/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-inventory-endpoint-upgrade /opt/rudder/bin/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-inventory-endpoint /opt/rudder/etc/server-roles.d/
+
+	cp -f $(CURDIR)/debian/rudder-jetty.default $(CURDIR)/BUILD/rudder-jetty
+	dh_install --SOURCEDIR=$(CURDIR)/BUILD/ rudder-jetty /etc/default/
+	cp -f $(CURDIR)/debian/rudder-jetty.init $(CURDIR)/BUILD/rudder-jetty
+	dh_install --SOURCEDIR=$(CURDIR)/BUILD/ rudder-jetty /etc/init.d/
+	dh_install --sourcedir=$(CURDIR)/SOURCES jetty /opt/rudder
+	dh_install --sourcedir=$(CURDIR)/SOURCES rudder-jetty-base /opt/rudder/etc
+	dh_install --sourcedir=$(CURDIR)/SOURCES rudder-jetty.conf /opt/rudder/etc
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-jetty /opt/rudder/etc/server-roles.d/
+
+# Install upgrade tools and migration scripts
 
 	## SQL
 

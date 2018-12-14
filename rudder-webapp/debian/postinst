@@ -20,123 +20,195 @@ set -e
 case "$1" in
     configure)
 
-    # Is this the first installation?
-    RUDDER_FIRST_INSTALL="false"
+      # Is this the first installation?
+      RUDDER_FIRST_INSTALL="false"
+  
+      # The parameter is the previous version, if empty it is a first install
+      if [ -z "$2" ]; then
+        RUDDER_FIRST_INSTALL="true"
+      fi
+  
+      # Currently, we assume that the server where the webapp is installed
+      # is the root server. Force the UUID.
+      echo 'root' > /opt/rudder/etc/uuid.hive
+ 
+      MODULES_TO_ENABLE="rewrite proxy_http headers ssl filter deflate"
 
-    # The parameter is the previous version, if empty it is a first install
-    if [ -z "$2" ]; then
-      RUDDER_FIRST_INSTALL="true"
-    fi
+      # This module is compiled in core in some distro (debian)
+      a2enmod version >/dev/null 2>&1 || true
 
-  # Currently, we assume that the server where the webapp is installed
-  # is the root server. Force the UUID.
-  echo 'root' > /opt/rudder/etc/uuid.hive
+      for enmod in ${MODULES_TO_ENABLE}
+      do
+        a2enmod ${enmod} >/dev/null 2>&1
+      done
 
-  MODULES_TO_ENABLE="rewrite proxy_http headers ssl filter deflate"
+      # Get the current apache version
+      APACHE_VERSION=$(apache2 -v|grep Apache|sed "s%^.*Apache/\([0-9].[0-9]\).*%\1%")
 
-  # This module is compiled in core in some distro (debian)
-  a2enmod version >/dev/null 2>&1 || true
+      # Create the package user
+      if ! getent passwd ncf-api-venv >/dev/null; then
+        echo -n "INFO: Creating the ncf-api-venv user..."
+        useradd -r -m -s /bin/false -d /var/lib/ncf-api-venv -c "ncf API,,," ncf-api-venv >/dev/null 2>&1
+        echo " Done"
+      fi
 
-  for enmod in ${MODULES_TO_ENABLE}
-  do
-    a2enmod ${enmod} >/dev/null 2>&1
-  done
+      # Ensure setting the shell to /bin/false in migrations
+      if ! getent passwd ncf-api-venv | cut -d: -f7 | grep -qE "^/bin/false$"; then
+        usermod -s /bin/false ncf-api-venv
+      fi
 
-  # Add perms on tools and inventories
-  chmod 751 /var/rudder/inventories
-  chmod 755 -R /opt/rudder/share/tools
+      # Enable mod_wsgi in apache
+      a2enmod wsgi >/dev/null 2>&1
 
-  echo -n "INFO: Restarting Apache HTTPd..."
-  systemctl restart apache2 >/dev/null
-  echo " Done"
+      # Enable the conf-available entry if running Apache 2.4
+      if [ ${APACHE_VERSION} = 2.4 ]
+      then
+          [ ! -e /etc/apache2/conf-available/ncf-api-virtualenv.conf ] || a2enconf ncf-api-virtualenv
+      fi
 
-	# Create and populate technique store
-	if [ ! -d /var/rudder/configuration-repository/shared-files ]; then mkdir -p /var/rudder/configuration-repository/shared-files; fi
-	if [ ! -d /var/rudder/configuration-repository/techniques ]; then
-		cp -a /opt/rudder/share/techniques /var/rudder/configuration-repository/
-		touch /opt/rudder/etc/force_technique_reload
-	fi
+      # Remove .pyc files to ensure we don't end up with outdated files
+      rm -f /usr/share/ncf/tools/ncf.pyc
+      rm -f /usr/share/ncf/tools/ncf_constraints.pyc
 
-  # Go into configuration-repository to manage git
-  cd /var/rudder/configuration-repository
-  # Initialize git repository if it is missing, so permissions can be set on it afterwards
-  if [ ! -d /var/rudder/configuration-repository/.git ]; then
+      # Add perms on tools and inventories
+      chmod 751 /var/rudder/inventories
+      chmod 755 -R /opt/rudder/share/tools
 
-    git init --shared=group
+      echo -n "INFO: Restarting Apache HTTPd..."
+      systemctl restart apache2 >/dev/null
+      echo " Done"
 
-    # Specify default git user name and email (git will refuse to commit without them)
-    git config user.name "root user (CLI)"
-    git config user.email "root@localhost"
+      # Create and populate technique store
+      if [ ! -d /var/rudder/configuration-repository/shared-files ]; then mkdir -p /var/rudder/configuration-repository/shared-files; fi
+      if [ ! -d /var/rudder/configuration-repository/techniques ]; then
+        cp -a /opt/rudder/share/techniques /var/rudder/configuration-repository/
+        touch /opt/rudder/etc/force_technique_reload
+      fi
 
-    git add .
-    git commit -q -m "initial commit"
-  else
+      # Go into configuration-repository to manage git
+      cd /var/rudder/configuration-repository
+      # Initialize git repository if it is missing, so permissions can be set on it afterwards
+      if [ ! -d /var/rudder/configuration-repository/.git ]; then
 
-    # This should have been set during repository initialization, but might need to be
-    # added if we are upgrading an existing repository
-    if [ $(git config --get-regexp "user.name|user.email"|wc -l) -ne 2 ]; then
-      git config user.name "root user (CLI)"
-      git config user.email "root@localhost"
-    fi
+        git init --shared=group
 
-    # Set shared repository value to group if not set
-    if ! git config core.sharedRepository >/dev/null 2>&1; then
-      git config core.sharedRepository group
-    fi
-  fi
+        # Specify default git user name and email (git will refuse to commit without them)
+        git config user.name "root user (CLI)"
+        git config user.email "root@localhost"
+ 
+        git add .
+        git commit -q -m "initial commit"
+      else
 
-  # If this is a first install, create the configuration file
-  if [ "${RUDDER_FIRST_INSTALL}" = "true" ]; then
-    /opt/rudder/bin/rudder server upgrade-techniques --set-autoupdate-technique-library=true
-  fi
+        # This should have been set during repository initialization, but might need to be
+        # added if we are upgrading an existing repository
+        if [ $(git config --get-regexp "user.name|user.email"|wc -l) -ne 2 ]; then
+          git config user.name "root user (CLI)"
+          git config user.email "root@localhost"
+        fi
+ 
+        # Set shared repository value to group if not set
+        if ! git config core.sharedRepository >/dev/null 2>&1; then
+          git config core.sharedRepository group
+        fi
+      fi
 
-  # Run any upgrades
-  echo "INFO: Launching script to check if a migration is needed"
-  /opt/rudder/bin/rudder-upgrade
-  echo "INFO: End of migration script"
+      # If this is a first install, create the configuration file
+      if [ "${RUDDER_FIRST_INSTALL}" = "true" ]; then
+        /opt/rudder/bin/rudder server upgrade-techniques --set-autoupdate-technique-library=true
+      fi
 
-  # Create the configuration-repository group if it does not exist
-  if ! getent group rudder > /dev/null; then
-    echo -n "INFO: Creating group rudder..."
-    groupadd --system rudder
-    echo " Done"
-  fi
+      # Run any upgrades
+      echo "INFO: Launching script to check if a migration is needed"
+      /opt/rudder/bin/rudder-upgrade
+      echo "INFO: End of migration script"
 
-  # Create the rudder-policy-reader group if it does not exist
-  if ! getent group rudder-policy-reader > /dev/null; then
-    echo -n "INFO: Creating group rudder-policy-reader..."
-    groupadd --system rudder-policy-reader
-    usermod -a -G rudder-policy-reader www-data
-    echo " Done"
-  fi
+      # Create the configuration-repository group if it does not exist
+      if ! getent group rudder > /dev/null; then
+        echo -n "INFO: Creating group rudder..."
+        groupadd --system rudder
+        echo " Done"
+      fi
 
-  # Add the ncf-api-venv user to this group
-  if ! getent group rudder | grep -q ncf-api-venv > /dev/null; then
-    echo -n "INFO: Adding ncf-api-venv to the rudder group..."
-    usermod -aG rudder ncf-api-venv
-    echo " Done"
-  fi
+      # Create the rudder-policy-reader group if it does not exist
+      if ! getent group rudder-policy-reader > /dev/null; then
+        echo -n "INFO: Creating group rudder-policy-reader..."
+        groupadd --system rudder-policy-reader
+        usermod -a -G rudder-policy-reader www-data
+        echo " Done"
+      fi
 
-  # Adjust permissions on /var/rudder/configuration-repository
-  /opt/rudder/bin/rudder-fix-repository-permissions
+      # Add the ncf-api-venv user to this group
+      if ! getent group rudder | grep -q ncf-api-venv > /dev/null; then
+        echo -n "INFO: Adding ncf-api-venv to the rudder group..."
+        usermod -aG rudder ncf-api-venv
+        echo " Done"
+      fi
 
-  ## Add pre/post-hooks
-  cd /var/rudder/configuration-repository/ncf/
-  git add ncf-hooks.d
-  git commit --allow-empty --message "Add ncf hooks to repository"
+      # Adjust permissions on /var/rudder/configuration-repository
+      /opt/rudder/bin/rudder-fix-repository-permissions
+
+      ## Add pre/post-hooks
+      cd /var/rudder/configuration-repository/ncf/
+      git add ncf-hooks.d
+      git commit --allow-empty --message "Add ncf hooks to repository"
 
   
-  RUDDER_WEB_PROPERTIES="/opt/rudder/etc/rudder-web.properties"
+      RUDDER_WEB_PROPERTIES="/opt/rudder/etc/rudder-web.properties"
 
-  if [ -f /tmp/rudder-plugins-upgrade ]
-  then
-    /opt/rudder/bin/rudder-pkg plugin restore-status < /tmp/rudder-plugins-upgrade
-  fi
+      if [ -f /tmp/rudder-plugins-upgrade ]
+      then
+        /opt/rudder/bin/rudder-pkg plugin restore-status < /tmp/rudder-plugins-upgrade
+      fi
 
-  # Restart the webapp
-  echo -n "INFO: Restarting Rudder webapp and inventory-endpoint..."
-  service rudder-jetty start >/dev/null 2>&1
-  echo " Done"
+      # Restart the webapp
+      echo -n "INFO: Restarting Rudder webapp and inventory-endpoint..."
+      service rudder-jetty start >/dev/null 2>&1
+      echo " Done"
+
+      # Run any upgrades
+      echo "INFO: Launching script to check if a migration is needed"
+      /opt/rudder/bin/rudder-inventory-endpoint-upgrade
+      echo "INFO: End of migration script"
+
+        # Migrate old /opt/rudder/etc/rudder-jetty.conf entries
+        if [ -e /opt/rudder/etc/rudder-jetty.conf.migrate ]
+        then
+            JAVA_XMX_MIGRATE=$(grep '^JAVA_XMX=' /opt/rudder/etc/rudder-jetty.conf.migrate|cut -d = -f 2-)
+            JAVA_MAXPERMSIZE_MIGRATE=$(grep '^JAVA_MAXPERMSIZE=' /opt/rudder/etc/rudder-jetty.conf.migrate|cut -d = -f 2-)
+
+            cat > /etc/default/rudder-jetty << EOF
+#
+# Jetty server configuration
+#
+
+# Memory settings
+#
+# The defaults should be enough for up to ~100 nodes
+#
+JAVA_XMX=${JAVA_XMX_MIGRATE}
+JAVA_MAXPERMSIZE=${JAVA_MAXPERMSIZE_MIGRATE}
+
+# Java VM arguments
+#
+#JAVA_OPTIONS=""
+
+# Java VM location
+#
+#JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+#JAVA=java
+
+# Source variables from /opt/rudder/etc/rudder-jetty.conf
+# Warning: removing this is likely to prevent Jetty from
+# starting correctly
+[ -f /opt/rudder/etc/rudder-jetty.conf ] && . /opt/rudder/etc/rudder-jetty.conf
+EOF
+
+            rm -f /opt/rudder/etc/rudder-jetty.conf.migrate
+
+        fi
+
+        systemctl daemon-reload
 
     ;;
 

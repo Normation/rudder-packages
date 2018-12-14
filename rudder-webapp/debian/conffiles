@@ -1,3 +1,5 @@
+/opt/rudder/etc/inventory-web.properties
+/opt/rudder/etc/rudder-jetty.conf
 /opt/rudder/etc/rudder-web.properties
 /opt/rudder/etc/rudder-users.xml
 /opt/rudder/etc/logback.xml

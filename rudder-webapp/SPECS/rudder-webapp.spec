@@ -26,6 +26,8 @@
 %define ruddervardir            /var/rudder
 %define rudderlogdir            /var/log/rudder
 %define sharedir                /usr/share
+%define bindir                  /usr/bin
+
 
 %define config_repository_group rudder
 
@@ -37,18 +39,23 @@
 %define apache_tools            apache2-utils
 %define apache_group            www
 %define htpasswd_cmd            htpasswd2
-%define apache_vhost_dir        %{apache}/vhosts.d
 %define ldap_clients            openldap2-client
+%define jetty_init_script       jetty-sles.sh
 %endif
 %if 0%{?rhel}
 %define apache                  httpd
 %define apache_tools            httpd-tools
 %define apache_group            apache
 %define htpasswd_cmd            htpasswd
-%define apache_vhost_dir        %{apache}/conf.d
 %define ldap_clients            openldap-clients
+%define jetty_init_script       jetty-rpm.sh
 %endif
+%define apache_vhost_dir        %{apache}/vhosts.d
 %define usermod_opt             aG
+
+# avoid error during byte compilation of pyc since they are removed anyway
+%define _python_bytecompile_errors_terminate_build 0
+
 
 #=================================================
 # Header
@@ -87,15 +94,50 @@ Source26: rudder-apache-webapp-ssl.conf
 Source27: rudder-apache-webapp-nossl.conf
 Source28: rudder-webapp.fc
 Source29: rudder-fix-repository-permissions
+Source31: ncf_api_flask_app.wsgi
+Source32: ncf-api-virtualenv.conf
+Source33: ncf-api-virtualenv.te
+Source34: ncf-api-virtualenv.fc
+Source35: inventory-web.properties
+Source36: rudder-inventory-endpoint-upgrade
+Source37: rudder-inventory-endpoint
+Source38: endpoint.xml
+Source39: rudder-jetty.default
+Source40: rudder-jetty.conf
+Source41: rudder-jetty
+
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
 
+# Disable dependency auto-generation, to prevent Python requirements
+# autodetection, which is not desired here.
+AutoReq: 0
+AutoProv: 0
+
+# Add Requires here - order is important
+BuildRequires: python
+Requires: python
+
+# Smooth upgrade
+Obsoletes: ncf, ncf-api-virtualenv, rudder-techniques
+# Prevent reinstalling old versions
+Conflicts: ncf, ncf-api-virtualenv, rudder-techniques
+
 # Dependencies
-Requires: rudder-techniques = %{real_epoch}:%{real_version}, rudder-server-relay = %{real_epoch}:%{real_version}, ncf-api-virtualenv = %{real_epoch}:%{real_version}, %{apache}, %{apache_tools}, git-core, rsync, openssl, rudder-jetty = %{real_epoch}:%{real_version}, %{ldap_clients}
+Requires: rudder-inventory-ldap = %{real_epoch}:%{real_version}, rudder-server-relay = %{real_epoch}:%{real_version}, %{apache}, %{apache_tools}, git-core, rsync, openssl, %{ldap_clients}
 
 # We need the PostgreSQL client utilities so that we can run database checks and upgrades (rudder-upgrade, in particular)
 Requires: postgresql >= 9.2
+
+# TODO obsolete / provides / conflicts
+
+# Use our own dependency generator to remove perl specific dependencies
+%global _use_internal_dependency_generator 0
+%global __find_requires_orig %{__find_requires}
+%define __find_requires %{_sourcedir}/filter-reqs.pl true %{__find_requires_orig}
+%global __find_provides_orig %{__find_provides}
+%define __find_provides %{_sourcedir}/filter-reqs.pl true %{__find_provides_orig}
 
 # OS-specific dependencies
 
@@ -106,12 +148,19 @@ Requires: postgresql >= 9.2
 ## RHEL
 %if 0%{?rhel}
 BuildRequires: java-1.8.0-openjdk-devel selinux-policy-devel
-Requires: mod_ssl
+# We need mod_wsgi to use ncf builder
+Requires: mod_ssl httpd mod_wsgi shadow-utils
+Requires: jre-headless >= 1.8
 %endif
 
 ## SLES
 %if 0%{?suse_version}
 BuildRequires: jdk >= 1.8
+Requires: apache2 apache2-mod_wsgi pwdutils python-pyOpenSSL
+%endif
+
+%if 0%{?sle_version} && 0%{?sle_version} >= 150000
+Requires: java-10-openjdk-headless insserv-compat
 %endif
 
 %description
@@ -131,6 +180,9 @@ cp -f %{SOURCE20} %{_builddir}
 cp -f %{SOURCE28} %{_builddir}
 cp -rf %{_sourcedir}/rudder-sources %{_builddir}
 cp -rf %{_sourcedir}/rudder-doc %{_builddir}
+cp -f %{SOURCE33} %{_builddir}
+cp -f %{SOURCE34} %{_builddir}
+
 
 #=================================================
 # Building
@@ -157,6 +209,30 @@ else
   mv %{_builddir}/rudder-sources/rudder/rudder-web/target/rudder-web*.war %{_builddir}/rudder.war
 fi
 
+# Build Virtualenv
+python virtualenv/virtualenv.py %{real_name}
+
+# Get all requirements via pip
+%{real_name}/bin/pip install -r %{_sourcedir}/rudder-sources/ncf/api/requirements.txt
+
+# Clean up unwanted binaries
+if [ "%{real_name}" != "" ]; then
+  for i in easy_install python pip; do
+      rm -f %{real_name}/bin/${i}*
+  done
+else
+  echo "WARNING: Skipping Virtualenv cleanup, as it"
+  echo "WARNING: would operate on /bin ..."
+  echo "WARNING: Please make sure the real_name macro"
+  echo "WARNING: is defined"
+fi
+
+%if 0%{?rhel} || 0%{?fedora}
+# Build SELinux policy package
+cd %{_builddir} && make -f /usr/share/selinux/devel/Makefile
+%endif
+
+
 #=================================================
 # Installation
 #=================================================
@@ -179,9 +255,18 @@ mkdir -p %{buildroot}%{ruddervardir}/inventories/received
 mkdir -p %{buildroot}%{ruddervardir}/inventories/failed
 mkdir -p %{buildroot}%{ruddervardir}/configuration-repository/ncf/ncf-hooks.d
 mkdir -p %{buildroot}%{rudderlogdir}/apache2/
+mkdir -p %{buildroot}%{rudderlogdir}/webapp
+mkdir -p %{buildroot}/var/rudder/run
 mkdir -p %{buildroot}/etc/%{apache_vhost_dir}/
 mkdir -p %{buildroot}/etc/sysconfig/
 mkdir -p %{buildroot}/usr/share/doc/rudder
+mkdir -p %{buildroot}%{sharedir}/
+mkdir -p %{buildroot}%{bindir}/
+mkdir -p %{buildroot}/usr/share/ncf-api-virtualenv/share/selinux/
+mkdir -p %{buildroot}%{apache_vhost_dir}/
+mkdir -p %{buildroot}/var/lib/ncf-api-venv/
+
+
 
 # Emulate installation of file rudder.xml in order to be owned by package
 touch %{buildroot}%{rudderdir}/share/webapps/rudder.xml
@@ -203,6 +288,13 @@ cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/ldap/boots
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/ldap/init-policy-server.ldif %{buildroot}%{rudderdir}/share/
 cp %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/configuration.properties.sample %{buildroot}%{rudderdir}/etc/rudder-web.properties
 cp %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/logback.xml %{buildroot}%{rudderdir}/etc/
+cp -r %{_sourcedir}/rudder-sources/rudder-techniques/techniques/ %{buildroot}%{rudderdir}/share/
+cp -r %{_sourcedir}/rudder-sources/rudder-techniques/tools/ %{buildroot}%{rudderdir}/share/
+
+cp -r %{_sourcedir}/rudder-sources/ncf/ %{buildroot}%{sharedir}/
+# Create a symlink to make ncf available as part of the
+# default PATH
+ln -sf %{sharedir}/ncf/ncf %{buildroot}%{bindir}/ncf
 
 cp %{_builddir}/rudder.war %{buildroot}%{rudderdir}/share/webapps/rudder.war
 
@@ -217,6 +309,16 @@ cp %{SOURCE24} %{buildroot}/etc/sysconfig/rudder-webapp-apache
 cp -r %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/hooks.d %{buildroot}%{rudderdir}/etc/
 
 install -m 644 %{SOURCE2} %{buildroot}%{rudderdir}/share/webapps/
+
+cp -r %{_sourcedir}/ncf-api-virtualenv/* %{buildroot}/usr/share/ncf-api-virtualenv/
+  
+install -m 644 %{SOURCE31} %{buildroot}/usr/share/ncf-api-virtualenv/
+install -m 644 %{SOURCE32} %{buildroot}%{apache_vhost_dir}/
+
+%if 0%{?rhel} || 0%{?fedora}
+  # Install SELinux policy
+  install -m 644  %{_builddir}/ncf-api-virtualenv.pp %{buildroot}/usr/share/ncf-api-virtualenv/share/selinux/
+%endif
 
 # Install upgrade tools and migration scripts
 
@@ -255,6 +357,30 @@ install -m 755 %{SOURCE29} %{buildroot}%{rudderdir}/bin/
 # Install gitignore file for our git repo
 install -m 644 %{SOURCE23} %{buildroot}%{ruddervardir}/configuration-repository/
 
+cp %{_builddir}/endpoint.war %{buildroot}/opt/rudder/share/webapps/endpoint.war
+cp %{SOURCE35} %{buildroot}/opt/rudder/etc/
+cp %{SOURCE36} %{buildroot}%{rudderdir}/bin/
+
+install -m 644 %{SOURCE37} %{buildroot}/opt/rudder/etc/server-roles.d/
+
+install -m 644 %{SOURCE3} %{buildroot}%{rudderdir}/share/webapps/
+
+cd %{_topdir}/SOURCES
+
+cp -a jetty %{buildroot}/opt/rudder
+cp -a rudder-jetty-base %{buildroot}/opt/rudder/etc
+
+# Init script
+mkdir -p %{buildroot}/etc/init.d
+mkdir -p %{buildroot}/etc/default
+install -m 755 jetty/bin/%{jetty_init_script} %{buildroot}/etc/init.d/rudder-jetty
+install -m 644 %{SOURCE2} %{buildroot}/etc/default/rudder-jetty
+install -m 644 %{SOURCE3} %{buildroot}/opt/rudder/etc/rudder-jetty.conf
+
+install -m 644 %{SOURCE4} %{buildroot}/opt/rudder/etc/server-roles.d/
+
+
+
 %pre -n rudder-webapp
 #=================================================
 # Pre Installation
@@ -264,6 +390,35 @@ if [ -x /opt/rudder/bin/rudder-pkg ]
 then
   /opt/rudder/bin/rudder-pkg plugin save-status > /tmp/rudder-plugins-upgrade
 fi
+
+# Create the package user
+if ! getent passwd ncf-api-venv >/dev/null; then
+  echo -n "INFO: Creating the ncf-api-venv user..."
+  useradd -r -s /bin/false -d /var/lib/ncf-api-venv -c "ncf API,,," ncf-api-venv >/dev/null 2>&1
+  echo " Done"
+fi
+
+# Ensure setting the shell to /bin/false in migrations
+if ! getent passwd  ncf-api-venv| cut -d: -f7 | grep -qE "^/bin/false$"; then
+  usermod -s /bin/false ncf-api-venv
+fi
+
+CFRUDDER_FIRST_INSTALL=$1
+
+if [ ${CFRUDDER_FIRST_INSTALL} -ne 1 ]
+then
+    service rudder-jetty stop
+fi
+
+# Prepare the migration of /etc/default/rudder-jetty
+if [ -e /opt/rudder/etc/rudder-jetty.conf ]
+then
+    if [ $(grep -c '# WARNING #' /opt/rudder/etc/rudder-jetty.conf) -eq 0 ]
+    then
+        cp /opt/rudder/etc/rudder-jetty.conf /opt/rudder/etc/rudder-jetty.conf.migrate
+    fi
+fi
+
 
 %post -n rudder-webapp
 #=================================================
@@ -370,6 +525,29 @@ if type sestatus >/dev/null 2>&1 && sestatus | grep -q "enabled"; then
 fi
 %endif
 
+%if 0%{?rhel}
+# SELinux support
+# Check "sestatus" presence, and if here tweak our installation to be
+# SELinux compliant
+if type sestatus >/dev/null 2>&1 && sestatus | grep -q "enabled"; then
+  echo -n "INFO: Applying ncf-api-virtualenv selinux policy..."
+  # Add/Update the ncf-api-virtualenv SELinux policy
+  semodule -i /usr/share/ncf-api-virtualenv/share/selinux/ncf-api-virtualenv.pp
+  restorecon -RF /var/lib/ncf-api-venv/
+  echo " Done"
+fi
+%endif
+
+%if 0%{?suse_version}
+# Enable mod_wsgi using a2enmod
+a2enmod wsgi >/dev/null 2>&1
+
+# Remove .pyc files to ensure we don't end up with outdated files
+rm -f /usr/share/ncf-api-virtualenv/tools/ncf.pyc
+rm -f /usr/share/ncf-api-virtualenv/tools/ncf_constraints.pyc
+
+%endif
+
 echo -n "INFO: Starting Apache HTTPd..."
 %if 0%{?rhel}
 systemctl start %{apache} >/dev/null
@@ -433,6 +611,59 @@ fi
 
 service rudder-jetty start
 
+# Run any upgrades
+echo "INFO: Launching script to check if a migration is needed"
+%{rudderdir}/bin/rudder-inventory-endpoint-upgrade
+echo "INFO: End of migration script"
+
+# Migrate old /opt/rudder/etc/rudder-jetty.conf entries
+if [ -e /opt/rudder/etc/rudder-jetty.conf.migrate ]
+then
+    JAVA_XMX_MIGRATE=$(grep '^JAVA_XMX=' /opt/rudder/etc/rudder-jetty.conf.migrate|cut -d = -f 2-)
+    JAVA_MAXPERMSIZE_MIGRATE=$(grep '^JAVA_MAXPERMSIZE=' /opt/rudder/etc/rudder-jetty.conf.migrate|cut -d = -f 2-)
+
+    cat > /etc/default/rudder-jetty << EOF
+#
+# Jetty server configuration
+#
+
+# Memory settings
+#
+# The defaults should be enough for up to ~100 nodes
+#
+JAVA_XMX=${JAVA_XMX_MIGRATE}
+JAVA_MAXPERMSIZE=${JAVA_MAXPERMSIZE_MIGRATE}
+
+# Java VM arguments
+#
+#JAVA_OPTIONS=""
+
+# Java VM location
+#
+#JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+#JAVA=java
+
+# Source variables from /opt/rudder/etc/rudder-jetty.conf
+# Warning: removing this is likely to prevent Jetty from
+# starting correctly
+[ -f /opt/rudder/etc/rudder-jetty.conf ] && . /opt/rudder/etc/rudder-jetty.conf
+EOF
+
+    rm -f /opt/rudder/etc/rudder-jetty.conf.migrate
+
+fi
+
+# Do this at first install
+if [ $1 -eq 1 ]
+then
+  # Set rudder-agent as service
+  chkconfig --del rudder-jetty
+  %if 0%{?rhel}
+  chkconfig rudder-jetty off
+  %endif
+fi
+
+
 %postun -n rudder-webapp
 #=================================================
 # Post Uninstallation
@@ -473,6 +704,49 @@ fi
   fi
 %endif
 
+# Do it only during uninstallation
+if [ $1 -eq 0 ]; then
+  # restart apache2 since it uses the user ncf
+%if 0%{?rhel}
+  systemctl restart httpd >/dev/null
+%else
+  systemctl restart apache2 >/dev/null
+%endif
+  # Remove the package user
+  if getent passwd ncf-api-venv >/dev/null; then
+    echo -n "INFO: Removing the ncf-api-venv user..."
+    userdel ncf-api-venv >/dev/null 2>&1
+    echo " Done"
+  fi
+fi
+
+%if 0%{?rhel}
+  # Do it only during uninstallation
+  if [ $1 -eq 0 ]; then
+    if type sestatus >/dev/null 2>&1 && sestatus | grep -q "enabled"; then
+      if semodule -l | grep -q ncf-api-virtualenv;  then
+        echo -n "INFO: Removing ncf-api-virtualenv selinux policy..."
+        # Remove the ncf-api-virtualenv SELinux policy
+        semodule -r ncf-api-virtualenv 2>/dev/null
+        restorecon -RF /var/lib/ncf-api-venv/
+        echo " Done"
+      fi
+    fi
+  fi
+%endif
+
+
+%preun -n rudder-jetty
+#=================================================
+# Pre Un-installation
+#=================================================
+
+if [[ $1 -eq 0 ]]
+then
+  service rudder-jetty stop
+fi
+
+
 #=================================================
 # Cleaning
 #=================================================
@@ -492,12 +766,22 @@ rm -rf %{buildroot}
 %config(noreplace) %{rudderdir}/etc/rudder-passwords.conf
 %attr(0600, root, root) %{rudderdir}/etc/rudder-passwords.conf
 
+/opt/rudder/jetty
+/opt/rudder/etc/rudder-jetty-base
+%{rudderlogdir}/webapp
+/var/rudder/run
+/etc/init.d/rudder-jetty
+%config(noreplace) /etc/default/rudder-jetty
+/opt/rudder/etc/rudder-jetty.conf
+
 %{rudderdir}/bin/
 %{rudderdir}/bin/rudder-node-to-relay
 %{rudderdir}/bin/rudder-init
 %{rudderdir}/bin/rudder-init.sh
 %{rudderdir}/bin/rudder-root-rename
 %{rudderdir}/bin/rudder-reload-cf-serverd
+%{rudderdir}/share/techniques/
+%{rudderdir}/share/tools/
 %{rudderdir}/share/webapps/
 %{rudderdir}/share/rudder-plugins/
 %{rudderdir}/share
@@ -512,6 +796,23 @@ rm -rf %{buildroot}
 %config %{rudderdir}/etc/rudder-apache-webapp-nossl.conf
 %config(noreplace) /etc/sysconfig/rudder-webapp-apache
 /usr/share/doc/rudder
+%{sharedir}/ncf/
+%config(noreplace) %{sharedir}/ncf/tree/ncf.conf
+%{bindir}/ncf
+/usr/share/ncf-api-virtualenv/
+%attr(- , ncf-api-venv,ncf-api-venv) /var/lib/ncf-api-venv/
+%{apache_vhost_dir}/ncf-api-virtualenv.conf
+
+%config(noreplace) /opt/rudder/etc/inventory-web.properties
+
+
+%if ! 0%{?suse_version}
+# Avoid having .pyo and .pyc files in our package
+# as they will always be regenerated
+%exclude %{sharedir}/ncf/tree/10_ncf_internals/modules/templates/*.pyc
+%exclude %{sharedir}/ncf/tree/10_ncf_internals/modules/templates/*.pyo
+%endif
+
 
 #=================================================
 # Changelog
