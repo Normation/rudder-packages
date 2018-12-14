@@ -65,12 +65,8 @@
 # Default to build with posix acl support
 %define use_acl true
 
-%if "%{real_name}" == "rudder-agent"
-# default different on agent thin and agent
+# Default to embed fusion
 %define use_system_fusion false
-%else
-%define use_system_fusion true
-%endif
 
 # 1- AIX
 %if "%{?_os}" == "aix"
@@ -144,12 +140,7 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 # Generic requirements
 BuildRequires: gcc bison flex autoconf automake libtool
-%if "%{real_name}" == "rudder-agent"
 Conflicts: rudder-agent-thin
-%else
-Provides: rudder-agent = %{real_epoch}:%{real_version}
-Conflicts: rudder-agent
-%endif
 
 # Specific requirements
 
@@ -288,15 +279,12 @@ Requires: pcre
 %define build_ldflags -Wl,-R%{rudderdir}/lib
 %endif
 
-%if "%{real_name}" == "rudder-agent"
-
 # Use our own dependency generator
 %global _use_internal_dependency_generator 0
 %global __find_requires_orig %{__find_requires}
 %define __find_requires %{_sourcedir}/filter-reqs.pl %{use_system_lmdb} %{use_system_perl} %{__find_requires_orig}
 %global __find_provides_orig %{__find_provides}
 %define __find_provides %{_sourcedir}/filter-reqs.pl %{use_system_lmdb} %{use_system_perl} %{__find_provides_orig}
-%endif
 
 %description
 Rudder is an open source configuration management and audit solution.
