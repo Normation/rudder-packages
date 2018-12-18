@@ -50,6 +50,7 @@ collect_logs() {
   collect_logs_annex_header "agent core info"
   echo "policy_server.dat: `cat ${RUDDER_VAR}/cfengine-community/policy_server.dat  2>/dev/null`" >> "${LOG_FILE}" 2>&1
   echo "rudder_promises_generated: `cat ${RUDDER_VAR}/cfengine-community/inputs/rudder_promises_generated 2>/dev/null`" >> "${LOG_FILE}" 2>&1
+  echo "rudder-promises-generated: `cat ${RUDDER_VAR}/cfengine-community/inputs/rudder-promises-generated 2>/dev/null`" >> "${LOG_FILE}" 2>&1
 
   collect_logs_annex_header "active techniques"
   find ${RUDDER_VAR}/cfengine-community/inputs -type d | sed "s%^${RUDDER_VAR}/cfengine-community/inputs/%%" | grep -E "[0-9]\.[0-9]$" >> "${LOG_FILE}" 2>&1
