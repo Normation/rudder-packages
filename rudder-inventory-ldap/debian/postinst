@@ -20,13 +20,6 @@ set -e
 
 case "$1" in
   configure)
-    # remove old ldso.conf if it was installed by a previous version (starting from 4.3)
-    if [ -e /etc/ld.so.conf.d/rudder-inventory-ldap.conf ]
-    then
-      rm -f /etc/ld.so.conf.d/rudder-inventory-ldap.conf
-      ldconfig
-    fi
-
     # Reload systemd when it is available so that it creates sysv-init shims
     # This is necessary to make the service command work, and will be obsolete when we create systemd units
     systemctl daemon-reload

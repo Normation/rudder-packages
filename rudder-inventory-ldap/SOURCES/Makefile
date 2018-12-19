@@ -16,15 +16,12 @@
 #
 #####################################################################################
 
-.DEFAULT_GOAL := localdepends
+.DEFAULT_GOAL := build
 
 OPENLDAP_RELEASE = 2.4.46
 OPENLDAP_SHA256 = 9a90dcb86b99ae790ccab93b7585a31fbcbeec8c94bf0f7ab0ca0a87ea0c4b2d
 
 RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
-
-PATCH := /usr/bin/patch
-FIND := /usr/bin/find
 
 # GENERIC_GET: do not remove this line
 # This is a generic get code that is common to many of our Makefiles.
@@ -46,51 +43,61 @@ endif
 # Pass an empty string to skip hash check
 GET=get() { $(_GET) "$$1.part" "$$2" && { openssl dgst -sha256 "$$1.part" | grep -q "$$3" || { echo "Wrong checksum, aborting"; exit 1; }; } && mv "$$1.part" "$$1"; }; get
 
-localdepends: ./openldap-source ./rudder.schema ./inventory.schema ../debian/rudder-slapd.init ../debian/rudder-slapd.default
-	rm -rf ./openldap.tgz
+localdepends: openldap-source
 
-./openldap-source: /usr/bin/wget
+openldap-source:
 	# Original URL: ftp://ftp.openldap.org/pub/OpenLDAP/openldap-release/openldap-$(OPENLDAP_RELEASE).tgz
 	$(GET) ./openldap.tgz https://repository.rudder.io/build-dependencies/openldap/openldap-$(OPENLDAP_RELEASE).tgz $(OPENLDAP_SHA256)
 	tar xzf ./openldap.tgz -C .
 	mv ./openldap-$(OPENLDAP_RELEASE) ./openldap-source
 	
 	# Apply patches
-	for PATCHNAME in patches/openldap/*.patch; do echo "Applying $$PATCHNAME..."; $(PATCH) -d ./openldap-source -p1 < $$PATCHNAME; done
+	for PATCHNAME in patches/openldap/*.patch; do echo "Applying $$PATCHNAME..."; patch -d ./openldap-source -p1 < $$PATCHNAME; done
 	# Make sure there were no rejects
-	test `$(FIND) ./openldap-source -name \*.rej | wc -l` = 0
+	test `find ./openldap-source -name \*.rej | wc -l` = 0
+	rm -rf ./openldap.tgz
 
-./rudder-sources.tar.bz2:
-	$(GET) rudder-sources.tar.bz2 https://www.rudder-project.org/archives/rudder-sources-${RUDDER_VERSION_TO_PACKAGE}.tar.bz2 ""
+rudder-sources.tar.bz2:
+	$(GET) rudder-sources.tar.bz2 http://repository.rudder.io/sources/$(RUDDER_VERSION_TO_PACKAGE)/rudder-sources-$(RUDDER_VERSION_TO_PACKAGE).tar.bz2 ""
 
-./rudder-sources: ./rudder-sources.tar.bz2
+rudder-sources: rudder-sources.tar.bz2
 	tar -xjf rudder-sources.tar.bz2
 	mv rudder-sources-*/ rudder-sources/
 
-./rudder.schema: ./rudder-sources
-	cp ./rudder-sources/rudder/rudder-core/src/main/resources/ldap/rudder.schema ./rudder.schema
+build: openldap-source rudder-sources
+	cd openldap-source && ./configure --prefix=/opt/rudder --libdir=/opt/rudder/lib/ldap --enable-dynamic --enable-debug --enable-modules --enable-monitor=mod --enable-dynlist=mod --enable-mdb=yes --enable-hdb=no --enable-bdb=no
+	cd openldap-source && make depend
+	cd openldap-source && make
+	touch $@
 
-./inventory.schema: ./rudder-sources
-	cp ./rudder-sources/ldap-inventory/inventory-repository/src/main/resources/ldap/inventory.schema ./inventory.schema
+# Install into DESTDIR
+install: build
+	cd openldap-source && make install DESTDIR=$(DESTDIR)
+	mkdir -p $(DESTDIR)/etc/init.d
+	mkdir -p $(DESTDIR)/etc/default
+	mkdir -p $(DESTDIR)/etc/rsyslog.d
+	mkdir -p $(DESTDIR)/opt/rudder/etc/server-roles.d/
+	mkdir -p $(DESTDIR)/var/log/rudder/ldap
+	mkdir -p $(DESTDIR)/var/rudder/ldap/openldap-data
+	mkdir -p $(DESTDIR)/var/rudder/run
+	install -m 755 rudder-inventory-ldap.init $(DESTDIR)/etc/init.d/rudder-slapd
+	install -m 644 rudder-inventory-ldap.default $(DESTDIR)/etc/default/rudder-slapd
+	install -m 644 rudder-slapd.conf $(DESTDIR)/opt/rudder/etc/rudder-slapd.conf
+	install -m 644 slapd.conf $(DESTDIR)/opt/rudder/etc/openldap/slapd.conf
+	install -m 644 rudder-sources/ldap-inventory/inventory-repository/src/main/resources/ldap/inventory.schema $(DESTDIR)/opt/rudder/etc/openldap/schema/
+	install -m 644 rudder-sources/rudder/rudder-core/src/main/resources/ldap/rudder.schema $(DESTDIR)/opt/rudder/etc/openldap/schema/
+	install -m 644 rudder-inventory-ldap $(DESTDIR)/opt/rudder/etc/server-roles.d/
+	install -m 644 rudder-ldap $(DESTDIR)/opt/rudder/etc/server-roles.d/
+	install -m 755 rudder-slapd-configure $(DESTDIR)/opt/rudder/bin/rudder-slapd-configure
+	install -m 644 rsyslog/rudder-slapd.conf $(DESTDIR)/etc/rsyslog.d/rudder-slapd.conf
 
-../debian/rudder-slapd.init:
-	cp ./rudder-inventory-ldap.init ../debian/rudder-slapd.init
-
-../debian/rudder-slapd.default:
-	cp ./rudder-inventory-ldap.default ../debian/rudder-slapd.default
-
-/usr/bin/wget:
-	sudo apt-get --assume-yes install wget
-
+clean: localclean
 localclean:
-	rm -rf ../debian/rudder-slapd.init
-	rm -rf ../debian/rudder-slapd.default
-	rm -rf ./rudder-sources
-	rm -rf ./openldap-source
-	rm -rf ./rudder.schema
-	rm -rf ./inventory.schema
+	rm -f build
+	rm -rf rudder-sources
+	rm -rf openldap-source
 
-veryclean:
+veryclean: clean
 	rm -f ./rudder-sources.tar.bz2
 
-.PHONY: localclean localdepends veryclean
+.PHONY: install clean localclean localdepends veryclean

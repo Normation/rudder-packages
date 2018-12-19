@@ -1,5 +1,0 @@
-opt/rudder
-var/rudder/run
-var/log/rudder/ldap
-var/rudder/ldap/backup
-var/rudder/ldap/openldap-data

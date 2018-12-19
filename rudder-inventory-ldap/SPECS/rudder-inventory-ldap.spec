@@ -31,10 +31,6 @@
 %define real_name        rudder-inventory-ldap
 %define real_epoch       1398866025
 
-%define rudderdir        /opt/rudder
-%define ruddervardir     /var/rudder
-%define rudderlogdir     /var/log/rudder
-
 #=================================================
 # Header
 #=================================================
@@ -47,17 +43,6 @@ License: OpenLDAP public license
 URL: http://www.rudder-project.org
 
 Group: Applications/System
-
-Source1: rudder-inventory-ldap.init
-Source2: rudder-inventory-ldap.default
-Source3: slapd.conf
-Source4: inventory.schema
-Source5: rudder.schema
-Source6: DB_CONFIG
-Source7: rudder-inventory-ldap
-Source8: rudder-ldap
-Source10: rudder-slapd.conf
-Source11: rudder-slapd-configure
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
@@ -104,32 +89,14 @@ rudder-agent package installed) and for configuration rules and parameters.
 
 
 #=================================================
-# Source preparation
-#=================================================
-%prep
-
-cp -rf %{_sourcedir}/openldap-source %{_builddir}
-
-#=================================================
 # Building
 #=================================================
 %build
 
 # Ensure an appropriate environment for the compiler
 export CFLAGS="$RPM_OPT_FLAGS"
-export CXXFLAGS="$RPM_OPT_FLAGS"
 
-# OpenLDAP
-cd openldap-source
-
-export LD_LIBRARY_PATH="/opt/rudder/lib"
-export CPPFLAGS="-I/opt/rudder/include"
-export LDFLAGS="-L/opt/rudder/lib"
-
-./configure --build=%{_target} --prefix=%{rudderdir} --libdir=%{rudderdir}/lib/ldap --enable-dynamic --enable-debug --enable-modules --enable-monitor=mod --enable-dynlist=mod --enable-mdb=yes --enable-hdb=no --enable-bdb=no
-
-make %{?_smp_mflags} depend
-make %{?_smp_mflags}
+make build
 
 #=================================================
 # Installation
@@ -137,36 +104,7 @@ make %{?_smp_mflags}
 %install
 rm -rf %{buildroot}
 
-mkdir -p %{buildroot}/opt/rudder/
-mkdir -p %{buildroot}/opt/rudder/etc/server-roles.d/
-mkdir -p %{buildroot}%{rudderlogdir}/ldap
-mkdir -p %{buildroot}/var/rudder/ldap/openldap-data
-mkdir -p %{buildroot}/var/rudder/run
-
-cd openldap-source && make install DESTDIR=%{buildroot}
-
-# Init script
-mkdir -p %{buildroot}/etc/init.d
-mkdir -p %{buildroot}/etc/default
-install -m 755 %{SOURCE1} %{buildroot}/etc/init.d/rudder-slapd
-install -m 644 %{SOURCE2} %{buildroot}/etc/default/rudder-slapd
-install -m 644 %{SOURCE10} %{buildroot}/opt/rudder/etc/rudder-slapd.conf
-
-install -m 644 %{SOURCE3} %{buildroot}/opt/rudder/etc/openldap/slapd.conf
-install -m 644 %{SOURCE4} %{buildroot}/opt/rudder/etc/openldap/schema/
-install -m 644 %{SOURCE5} %{buildroot}/opt/rudder/etc/openldap/schema/
-install -m 644 %{SOURCE6} %{buildroot}/var/rudder/ldap/openldap-data/
-
-install -m 644 %{SOURCE7} %{buildroot}/opt/rudder/etc/server-roles.d/
-install -m 644 %{SOURCE8} %{buildroot}/opt/rudder/etc/server-roles.d/
-
-# Install mdb configuration file
-install -m 755 %{SOURCE11} %{buildroot}/opt/rudder/bin/rudder-slapd-configure
-
-# Syslog configuration
-mkdir -p %{buildroot}/etc/rsyslog.d
-cp %{_sourcedir}/rsyslog/rudder-slapd.conf %{buildroot}/etc/rsyslog.d/rudder-slapd.conf
-
+make install DESTDIR=%{buildroot}
 
 %pre -n rudder-inventory-ldap
 #=================================================
@@ -175,20 +113,17 @@ cp %{_sourcedir}/rsyslog/rudder-slapd.conf %{buildroot}/etc/rsyslog.d/rudder-sla
 
 # Only do this on package upgrade
 if [ $1 -ne 1 ]
-then
-        # We need it to be able to open big mdb memory-mapped databases
-        ulimit -v unlimited
-
-	# When upgrading OpenLDAP, we may need to dump the database
-	# so that it can be restored from LDIF
-	TIMESTAMP=`date +%%Y%%m%%d%%H%%M%%S`
-	# Ensure backup folder exist
-	mkdir -p /var/rudder/ldap/backup/
-
-        # We need it to be able to open big mdb memory-mapped databases
-        ulimit -v unlimited
-
-	/opt/rudder/sbin/slapcat -b "cn=rudder-configuration" -l /var/rudder/ldap/backup/openldap-data-pre-upgrade-${TIMESTAMP}.ldif
+  then
+  # When upgrading OpenLDAP, we may need to dump the database
+  # so that it can be restored from LDIF
+  TIMESTAMP=`date +%%Y%%m%%d%%H%%M%%S`
+  # Ensure backup folder exist
+  mkdir -p /var/rudder/ldap/backup/
+  
+  # We need it to be able to open big mdb memory-mapped databases
+  ulimit -v unlimited
+  
+  /opt/rudder/sbin/slapcat -b "cn=rudder-configuration" -l /var/rudder/ldap/backup/openldap-data-pre-upgrade-${TIMESTAMP}.ldif
 fi
 
 %post -n rudder-inventory-ldap
@@ -236,10 +171,10 @@ rm -rf %{buildroot}
 #=================================================
 %files -n rudder-inventory-ldap
 %defattr(-, root, root, 0755)
-%{rudderlogdir}/ldap
 %config(noreplace) /etc/rsyslog.d/rudder-slapd.conf
-%config(noreplace) /var/rudder/ldap/openldap-data/DB_CONFIG
-/var/rudder/run
+%config(noreplace) /etc/default/rudder-slapd
+%config(noreplace) /opt/rudder/etc/openldap/slapd.conf
+/etc/init.d/rudder-slapd
 /opt/rudder/etc
 /opt/rudder/bin
 /opt/rudder/sbin
@@ -248,10 +183,9 @@ rm -rf %{buildroot}
 /opt/rudder/lib
 /opt/rudder/var
 /opt/rudder/libexec
-/etc/init.d/rudder-slapd
-%config(noreplace) /etc/default/rudder-slapd
 /opt/rudder/etc/rudder-slapd.conf
-%config(noreplace) /opt/rudder/etc/openldap/slapd.conf
+/var/log/rudder/ldap
+/var/rudder/run
 
 #=================================================
 # Changelog

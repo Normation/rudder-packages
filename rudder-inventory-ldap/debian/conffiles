@@ -1,4 +1,1 @@
 /opt/rudder/etc/openldap/slapd.conf
-/etc/rsyslog.d/rudder-slapd.conf
-/etc/default/rudder-slapd
-/var/rudder/ldap/openldap-data/DB_CONFIG

@@ -46,14 +46,8 @@ if [ "${RUDDER_MDBSIZE}" != "noauto" ]
 then
   if [ "${RUDDER_MDBSIZE}" = "auto" ] || [ "${RUDDER_MDBSIZE}" = "" ]
   then
-    if [ "$(getconf LONG_BIT)" -eq 64 ]
-    then
-      # 100GB as max DB size on 64bits should be enough
-      MDBSIZE=107374182400
-    else
-      # 2GB as max DB size on 32bits since virtual memory is 4GB minus 1G for the kernel minus some space for the sofware to run
-      MDBSIZE=2147483648
-    fi
+    # 100GB as max DB size on 64bits should be enough
+    MDBSIZE=107374182400
   else
     # set cache size to the value provided
     MDBSIZE=${RUDDER_MDBSIZE}

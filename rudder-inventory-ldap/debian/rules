@@ -1,106 +1,30 @@
 #!/usr/bin/make -f
 # -*- makefile -*-
-# Sample debian/rules that uses debhelper.
-# This file was originally written by Joey Hess and Craig Small.
-# As a special exception, when this file is copied by dh-make into a
-# dh-make output file, you may use that output file without restriction.
-# This special exception was added by Craig Small in version 0.37 of dh-make.
 
 # Uncomment this to turn on verbose mode.
 export DH_VERBOSE=1
+DPKG_EXPORT_BUILDFLAGS = 1
+include /usr/share/dpkg/buildflags.mk
 
-configure: configure-stamp
-configure-stamp:
+build:
 	dh_testdir
-	# Add here commands to configure the package.
-	cd SOURCES/openldap-source && \
-		LD_LIBRARY_PATH="$(CURDIR)/debian/tmp/opt/rudder/lib" \
-		CPPFLAGS="-I$(CURDIR)/debian/tmp/opt/rudder/include" \
-		CFLAGS="-I$(CURDIR)/debian/tmp/opt/rudder/include" \
-		LDFLAGS="-L$(CURDIR)/debian/tmp/opt/rudder/lib" \
-		./configure --prefix=/opt/rudder --libdir=/opt/rudder/lib/ldap --enable-dynamic --enable-debug --enable-modules --enable-monitor=mod --enable-dynlist=mod --enable-mdb=yes --enable-hdb=no --enable-bdb=no
-
-	touch configure-stamp
-
-build: build-stamp
-
-build-stamp: configure-stamp
-	dh_testdir
-
-	cd SOURCES/openldap-source && make depend
-	cd SOURCES/openldap-source && make
-
+	cd SOURCES && make build
 	touch $@
 
 clean:
 	dh_testdir
 	dh_testroot
-	rm -f build-stamp configure-stamp
-
-	# Add here commands to clean up after the build process.
-	if [ -f SOURCES/openldap-source/Makefile ] ; then \
-		cd SOURCES/openldap-source && make clean ; \
-	fi
-
+	rm -f build install
+	cd SOURCES && make clean
 	dh_clean 
 
 install: build
 	dh_testdir
 	dh_testroot
-	dh_installdirs
+	cd SOURCES && make install DESTDIR=$(CURDIR)/debian/rudder-inventory-ldap
+	touch $@
 
-	# Add here commands to install the package
-	cd SOURCES/openldap-source && make install DESTDIR=$(CURDIR)/debian/tmp
+# Default rule that guess what to do for missing targets
+%:
+	dh $@
 
-	# Remove the default config file, we will use our own
-	rm $(CURDIR)/debian/tmp/opt/rudder/etc/openldap/slapd.conf
-
-
-# Build architecture-independent files here.
-binary-indep: install
-# We have nothing to do by default.
-
-# Build architecture-dependent files here.
-binary-arch: install
-	dh_testdir
-	dh_testroot
-	dh_installchangelogs 
-	dh_installdocs
-	dh_installexamples
-	dh_install
-	# Init script and configuration files
-	cp -f $(CURDIR)/SOURCES/rudder-inventory-ldap.default $(CURDIR)/BUILD/rudder-slapd
-	dh_install --SOURCEDIR=$(CURDIR)/BUILD/ rudder-slapd /etc/default/
-	dh_install SOURCES/rudder-slapd.conf /opt/rudder/etc/
-	cp -f $(CURDIR)/SOURCES/rudder-inventory-ldap.init $(CURDIR)/BUILD/rudder-slapd
-	dh_install --SOURCEDIR=$(CURDIR)/BUILD/ rudder-slapd /etc/init.d/
-	dh_install SOURCES/rsyslog/rudder-slapd.conf /etc/rsyslog.d/
-	dh_install SOURCES/slapd.conf /opt/rudder/etc/openldap/
-	dh_install SOURCES/inventory.schema /opt/rudder/etc/openldap/schema/
-	dh_install SOURCES/rudder.schema /opt/rudder/etc/openldap/schema/
-	dh_install SOURCES/DB_CONFIG /var/rudder/ldap/openldap-data/
-	dh_install SOURCES/rudder-slapd-configure /opt/rudder/bin
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-inventory-ldap /opt/rudder/etc/server-roles.d/
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-ldap /opt/rudder/etc/server-roles.d/
-#	dh_installmenu
-#	dh_installdebconf
-#	dh_installlogrotate
-#	dh_installmime
-#	dh_python
-#	dh_installcron
-#	dh_installinfo
-	dh_installman
-	dh_link
-	dh_strip
-	dh_compress
-	dh_fixperms
-#	dh_perl
-#	dh_makeshlibs
-	dh_installdeb
-	dh_shlibdeps -- --ignore-missing-info
-	dh_gencontrol
-	dh_md5sums
-	dh_builddeb
-
-binary: binary-indep binary-arch
-.PHONY: build clean binary-indep binary-arch binary install configure

@@ -15,30 +15,30 @@ set -e
 
 
 case "$1" in
-    upgrade)
-		# When upgrading OpenLDAP, we may need to dump the database
-		# so that it can be restored from LDIF in case the new
-		# package uses a different version of BerkeleyDB (libdb)
-		TIMESTAMP=`date +%Y%m%d%H%M%S`
-		# Ensure backup folder exist
-		mkdir -p /var/rudder/ldap/backup/
+  upgrade)
+    # When upgrading OpenLDAP, we may need to dump the database
+    # so that it can be restored from LDIF in case the new
+    # package uses a different version of BerkeleyDB (libdb)
+    TIMESTAMP=`date +%Y%m%d%H%M%S`
+    # Ensure backup folder exist
+    mkdir -p /var/rudder/ldap/backup/
 
-		# We need it to be able to open big mdb memory-mapped databases
-                ulimit -v unlimited
+    # We need it to be able to open big mdb memory-mapped databases
+    ulimit -v unlimited
 
-		/opt/rudder/sbin/slapcat -b "cn=rudder-configuration" -l /var/rudder/ldap/backup/openldap-data-pre-upgrade-${TIMESTAMP}.ldif
+    /opt/rudder/sbin/slapcat -b "cn=rudder-configuration" -l /var/rudder/ldap/backup/openldap-data-pre-upgrade-${TIMESTAMP}.ldif
     ;;
 
-	install)
-	;;
+  install)
+  ;;
 
-	abort-upgrade)
-	;;
+  abort-upgrade)
+  ;;
 
-    *)
-        echo "preinst called with unknown argument \`$1'" >&2
-        exit 1
-    ;;
+  *)
+    echo "preinst called with unknown argument \`$1'" >&2
+    exit 1
+  ;;
 esac
 
 # dh_installdeb will replace this with shell code automatically
