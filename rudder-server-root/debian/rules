@@ -1,71 +1,28 @@
 #!/usr/bin/make -f
 # -*- makefile -*-
-# Sample debian/rules that uses debhelper.
-# This file was originally written by Joey Hess and Craig Small.
-# As a special exception, when this file is copied by dh-make into a
-# dh-make output file, you may use that output file without restriction.
-# This special exception was added by Craig Small in version 0.37 of dh-make.
 
 # Uncomment this to turn on verbose mode.
-#export DH_VERBOSE=1
-
-configure: configure-stamp
-configure-stamp:
-	dh_testdir
-	# Add here commands to configure the package.
+export DH_VERBOSE=1
 
 build:
 	dh_testdir
-	cd SOURCES && $(MAKE) build $(MAKE_OPTIONS)
+	cd SOURCES && make build
+	touch $@
 
 clean:
 	dh_testdir
 	dh_testroot
-	cd SOURCES && $(MAKE) clean $(MAKE_OPTIONS)
-	dh_clean
+	rm -f build install
+	cd SOURCES && make clean
+	dh_clean 
 
 install: build
 	dh_testdir
 	dh_testroot
-	dh_installdirs
-	cd SOURCES && $(MAKE) install $(MAKE_OPTIONS) DESTDIR=$(CURDIR)/debian/tmp
-	# let this file be managed by dh_installinit
-	mv $(CURDIR)/debian/tmp/etc/init.d/rudder-server debian/rudder-server.init
+	cd SOURCES && make install DESTDIR=$(CURDIR)/debian/rudder-server-root
+	touch $@
 
+# Default rule that guess what to do for missing targets
+%:
+	dh $@
 
-# Build architecture-independent files here.
-binary-indep: install
-# We have nothing to do by default.
-
-# Build architecture-dependent files here.
-binary-arch: install
-	dh_testdir
-	dh_testroot
-	dh_install
-	dh_installchangelogs
-#	dh_installdocs
-#	dh_installexamples
-	# Init script and configuration files
-	dh_installinit --name=rudder-server --no-start -R # restart after upgrade (instead of stop, upgrade, start)
-#	dh_installmenu
-#	dh_installdebconf
-#	dh_installlogrotate
-#	dh_installmime
-#	dh_python
-#	dh_installcron
-#	dh_installinfo
-	dh_installman
-	dh_link
-	dh_strip
-	dh_compress
-	dh_fixperms
-#	dh_perl
-#	dh_makeshlibs
-	dh_installdeb
-	dh_shlibdeps
-	dh_gencontrol
-	dh_md5sums
-	dh_builddeb
-
-binary: binary-indep binary-arch
-.PHONY: build clean binary-indep binary-arch binary install configure

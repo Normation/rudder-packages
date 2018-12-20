@@ -48,7 +48,7 @@ localdepends:
 
 build:
 
-install:
+install: build
 	mkdir -p $(DESTDIR)/etc/init.d/
 	mkdir -p $(INSTALL_DIR)/etc/server-roles.d/
 	mkdir -p $(INSTALL_DIR)/share/package-scripts/
@@ -62,4 +62,4 @@ localclean:
 distclean: veryclean
 veryclean: clean
 
-.PHONY: clean localclean localdepends veryclean
+.PHONY: clean localclean localdepends verycleana

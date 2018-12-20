@@ -18,8 +18,7 @@
 
 .DEFAULT_GOAL := build
 
-#RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
-RUDDER_VERSION_TO_PACKAGE = 5.0.1
+RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
 
 # GENERIC_GET: do not remove this line
 # This is a generic get code that is common to many of our Makefiles.
@@ -46,13 +45,14 @@ DESTDIR = $(CURDIR)/target
 localdepends:
 
 rudder-sources.tar.bz2:
-	$(GET) rudder-sources.tar.bz2 http://repository.rudder.io/sources/$(RUDDER_VERSION_TO_PACKAGE)/rudder-sources-$(RUDDER_VERSION_TO_PACKAGE).tar.bz2 ""
+	$(GET) rudder-sources.tar.bz2 https://repository.rudder.io/sources/$(RUDDER_VERSION_TO_PACKAGE)/rudder-sources-$(RUDDER_VERSION_TO_PACKAGE).tar.bz2 ""
 
 rudder-sources: rudder-sources.tar.bz2
 	tar -xjf rudder-sources.tar.bz2
 	mv rudder-sources-*/ rudder-sources/
 
 build: rudder-sources
+	touch $@
 
 # Install into DESTDIR
 install: build
