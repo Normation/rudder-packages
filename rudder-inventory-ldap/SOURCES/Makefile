@@ -73,16 +73,13 @@ build: openldap-source rudder-sources
 # Install into DESTDIR
 install: build
 	cd openldap-source && make install DESTDIR=$(DESTDIR)
-	mkdir -p $(DESTDIR)/etc/init.d
-	mkdir -p $(DESTDIR)/etc/default
 	mkdir -p $(DESTDIR)/etc/rsyslog.d
 	mkdir -p $(DESTDIR)/opt/rudder/etc/server-roles.d/
 	mkdir -p $(DESTDIR)/var/log/rudder/ldap
 	mkdir -p $(DESTDIR)/var/rudder/ldap/openldap-data
 	mkdir -p $(DESTDIR)/var/rudder/run
-	install -m 755 rudder-inventory-ldap.init $(DESTDIR)/etc/init.d/rudder-slapd
-	install -m 644 rudder-inventory-ldap.default $(DESTDIR)/etc/default/rudder-slapd
-	install -m 644 rudder-slapd.conf $(DESTDIR)/opt/rudder/etc/rudder-slapd.conf
+	mkdir -p $(DESTDIR)/usr/lib/systemd/system
+	mkdir -p $(DESTDIR)/opt/rudder/share/package-scripts/
 	install -m 644 slapd.conf $(DESTDIR)/opt/rudder/etc/openldap/slapd.conf
 	install -m 644 rudder-sources/ldap-inventory/inventory-repository/src/main/resources/ldap/inventory.schema $(DESTDIR)/opt/rudder/etc/openldap/schema/
 	install -m 644 rudder-sources/rudder/rudder-core/src/main/resources/ldap/rudder.schema $(DESTDIR)/opt/rudder/etc/openldap/schema/
@@ -90,6 +87,8 @@ install: build
 	install -m 644 rudder-ldap $(DESTDIR)/opt/rudder/etc/server-roles.d/
 	install -m 755 rudder-slapd-configure $(DESTDIR)/opt/rudder/bin/rudder-slapd-configure
 	install -m 644 rsyslog/rudder-slapd.conf $(DESTDIR)/etc/rsyslog.d/rudder-slapd.conf
+	install -m 644 rudder-slapd.service $(DESTDIR)/usr/lib/systemd/system/rudder-slapd.service
+	install -m 755 rudder-inventory-ldap-postinst $(DESTDIR)/opt/rudder/share/package-scripts/
 
 clean: localclean
 localclean:

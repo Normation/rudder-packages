@@ -59,10 +59,6 @@ Requires: libltdl7
 BuildRequires: libopenssl-devel
 %endif
 
-%if 0%{?sle_version} && 0%{?sle_version} >= 150000
-Requires: insserv-compat
-%endif
-
 %if 0%{?rhel}
 Requires: libtool-ltdl
 BuildRequires: openssl-devel libtool-ltdl-devel
@@ -124,6 +120,9 @@ if [ $1 -ne 1 ]
   ulimit -v unlimited
   
   /opt/rudder/sbin/slapcat -b "cn=rudder-configuration" -l /var/rudder/ldap/backup/openldap-data-pre-upgrade-${TIMESTAMP}.ldif
+
+  # Copy default file for migration
+  [ -f /etc/default/rudder-slapd ] && mkdir -p /var/rudder/tmp/ && cp /etc/default/rudder-slapd /var/rudder/tmp/default-rudder-slapd
 fi
 
 %post -n rudder-inventory-ldap
@@ -131,24 +130,9 @@ fi
 # Post Installation
 #=================================================
 
-# ldconfig only necessary when upgrading from 4.1 to >4.2
-if [[ $1 -gt 1 ]]; then 
-  ldconfig
-fi
+CFRUDDER_FIRST_INSTALL=$1
 
-echo -n "INFO: Setting rudder-slapd as a boot service..."
-chkconfig --add rudder-slapd >/dev/null 2>&1
-
-# mandatory with systemd wrapper for old init
-systemctl daemon-reload
-
-systemctl enable rudder-slapd
-echo " Done"
-
-# Need to restart to take schema changes into account
-echo -n "INFO: Restarting rudder-slapd..."
-systemctl restart rudder-slapd >/dev/null
-echo " Done"
+/opt/rudder/share/package-scripts/rudder-inventory-ldap-postinst "${CFRUDDER_FIRST_INSTALL}"
 
 %preun -n rudder-inventory-ldap
 #=================================================
@@ -158,6 +142,21 @@ echo " Done"
 if [[ $1 -eq 0 ]]
 then
 systemctl stop rudder-slapd
+fi
+
+%postun -n rudder-webapp
+#=================================================
+# Post Uninstallation
+#=================================================
+
+# Do it only during uninstallation
+if [ $1 -eq 0 ]; then
+  # Remove the package user
+  if getent passwd rudder-slapd >/dev/null; then
+    echo -n "INFO: Removing the rudder-slapd user..."
+    userdel rudder-slapd >/dev/null 2>&1
+    echo " Done"
+  fi
 fi
 
 #=================================================
@@ -171,10 +170,10 @@ rm -rf %{buildroot}
 #=================================================
 %files -n rudder-inventory-ldap
 %defattr(-, root, root, 0755)
+%attr(- , rudder-slapd,root, 0660) /opt/rudder/etc/openldap/slapd.conf
 %config(noreplace) /etc/rsyslog.d/rudder-slapd.conf
-%config(noreplace) /etc/default/rudder-slapd
 %config(noreplace) /opt/rudder/etc/openldap/slapd.conf
-/etc/init.d/rudder-slapd
+/usr/lib/systemd/system/rudder-slapd.service
 /opt/rudder/etc
 /opt/rudder/bin
 /opt/rudder/sbin
@@ -184,6 +183,7 @@ rm -rf %{buildroot}
 /opt/rudder/var
 /opt/rudder/libexec
 /opt/rudder/etc/rudder-slapd.conf
+/opt/rudder/share/package-scripts/
 /var/log/rudder/ldap
 /var/rudder/run
 

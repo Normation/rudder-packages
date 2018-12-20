@@ -20,14 +20,11 @@ set -e
 
 case "$1" in
   configure)
-    # Reload systemd when it is available so that it creates sysv-init shims
-    # This is necessary to make the service command work, and will be obsolete when we create systemd units
-    systemctl daemon-reload
-
-    # Restart rudder-slapd to take schema changes into account
-    echo -n "INFO: Restarting rudder-slapd..."
-    systemctl restart rudder-slapd >/dev/null
-    echo " Done"
+    # Is this the first installation?
+    CFRUDDER_FIRST_INSTALL=0
+    if [ -z "${$2}" ]; then CFRUDDER_FIRST_INSTALL=1; fi
+	  
+    /opt/rudder/share/package-scripts/rudder-inventory-ldap-postinst "${CFRUDDER_FIRST_INSTALL}"
   ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
