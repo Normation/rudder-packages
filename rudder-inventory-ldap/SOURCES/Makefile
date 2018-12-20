@@ -97,6 +97,7 @@ localclean:
 	rm -rf rudder-sources
 	rm -rf openldap-source
 
+distclean: veryclean
 veryclean: clean
 	rm -f ./rudder-sources.tar.bz2
 

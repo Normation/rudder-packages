@@ -106,10 +106,10 @@ rm -rf %{buildroot}
 
 make install DESTDIR=%{buildroot}
 
-%pre -n rudder-inventory-ldap
 #=================================================
 # Pre Installation
 #=================================================
+%pre -n rudder-inventory-ldap
 
 # Only do this on package upgrade
 if [ $1 -ne 1 ]
@@ -126,10 +126,10 @@ if [ $1 -ne 1 ]
   /opt/rudder/sbin/slapcat -b "cn=rudder-configuration" -l /var/rudder/ldap/backup/openldap-data-pre-upgrade-${TIMESTAMP}.ldif
 fi
 
-%post -n rudder-inventory-ldap
 #=================================================
 # Post Installation
 #=================================================
+%post -n rudder-inventory-ldap
 
 # ldconfig only necessary when upgrading from 4.1 to >4.2
 if [[ $1 -gt 1 ]]; then 
@@ -150,10 +150,10 @@ echo -n "INFO: Restarting rudder-slapd..."
 systemctl restart rudder-slapd >/dev/null
 echo " Done"
 
-%preun -n rudder-inventory-ldap
 #=================================================
 # Pre Un-installation
 #=================================================
+%preun -n rudder-inventory-ldap
 
 if [[ $1 -eq 0 ]]
 then

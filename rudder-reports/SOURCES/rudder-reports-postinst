@@ -1,0 +1,100 @@
+#!/bin/bash
+
+DB_NOT_INITIALIZED="$1"
+
+# Try with systemd
+POSTGRESQL_SERVICE_NAME=$(systemctl list-unit-files --type service | awk -F'.' '{print $1}' | grep -E "^postgresql[0-9]*$" | tail -n 1)
+
+# If nothing try with chkconfig (sles 12 only)
+if [ -z "${POSTGRESQL_SERVICE_NAME}" ] && ! type chkconfig >/dev/null 2>/dev/null ; then
+  POSTGRESQL_SERVICE_NAME=$(chkconfig 2>/dev/null | awk '{ print $1 }' | grep "postgresql" | tail -n 1)
+fi
+
+# If nothin try default name (should not happen)
+if [ -z "${POSTGRESQL_SERVICE_NAME}" ]; then
+  POSTGRESQL_SERVICE_NAME="postgresql"
+fi
+
+# Check if PostgreSQL is started
+systemctl status ${POSTGRESQL_SERVICE_NAME} > /dev/null
+
+# Start if necessary
+if [ $? -ne 0 ]
+then
+  if [ "${DB_NOT_INITIALIZED}" != "" ]; then
+    echo -n "INFO: Initializing PostgreSQL ..."
+    # rhel package doesn't initialize database
+    service ${POSTGRESQL_SERVICE_NAME} initdb
+    echo " Done"
+  fi
+  systemctl start ${POSTGRESQL_SERVICE_NAME} >/dev/null
+fi
+
+# TODO RPM only ??
+  PG_HBA_FILE=$(su - postgres -c "psql -t -P format=unaligned -c 'show hba_file';")
+  if [ $? -ne 0 ]; then
+    echo "Postgresql failed to start! Halting"
+    exit 1
+  fi
+  
+  #HACK: Give rights for login without unix account
+  if [ -f ${PG_HBA_FILE} ]; then
+    RUDDER_PG_DEFINED=`grep "rudder" ${PG_HBA_FILE} | wc -l`
+    if [ ${RUDDER_PG_DEFINED} -le 0 ]; then
+      sed -i 1i"host    all             rudder             ::1/128              md5" ${PG_HBA_FILE}
+      sed -i 1i"host    all             rudder          127.0.0.1/32            md5" ${PG_HBA_FILE}
+  
+      # Apply changes in PostgreSQL
+      # TODO just after a start ?
+      systemctl reload ${POSTGRESQL_SERVICE_NAME}
+    fi
+  fi
+# ODOT
+
+# RHEL doesn't autostart service
+if [ "${DB_NOT_INITIALIZED}" != "" ]; then
+  echo -n "INFO: Setting PostgreSQL as a boot service..."
+  systemctl enable ${POSTGRESQL_SERVICE_NAME} >/dev/null
+  echo " Done"
+fi
+
+
+echo -n "INFO: Waiting for PostgreSQL to be up..."
+CPT=0
+TIMEOUT=60
+while ! su - postgres -c "psql -q --output /dev/null -c \"SELECT COUNT(*) FROM pg_catalog.pg_authid\"" >/dev/null 2>&1
+do
+  echo -n "."
+  sleep 1
+  CPT=$((${CPT}+1))
+  if [ ${CPT} -eq ${TIMEOUT} ]
+  then
+    echo -e "\nERROR: Connection to PostgreSQL has not been established before timeout. Exiting"
+    exit 1
+  fi
+done
+echo " Done"
+
+DBNAME="rudder"
+USERNAME="rudder"
+CHK_PG_DB=$(su - postgres -c "psql -t -c \"select count(1) from pg_catalog.pg_database where datname = '${DBNAME}'\"")
+CHK_PG_USER=$(su - postgres -c "psql -t -c \"select count(1) from pg_user where usename = '${USERNAME}'\"")
+
+# Rudder user
+if [ ${CHK_PG_USER} -eq 0 ]
+then
+  echo -n "INFO: Creating Rudder PostgreSQL user..."
+  su - postgres -c "psql -q -c \"CREATE USER ${USERNAME} WITH PASSWORD 'Normation'\"" >/dev/null 2>&1
+  echo "Done"
+fi
+
+# Rudder database
+if [ ${CHK_PG_DB} -eq 0 ]
+then
+  echo -n "INFO: Creating Rudder PostgreSQL database..."
+  su - postgres -c "psql -q -c \"CREATE DATABASE ${DBNAME} WITH OWNER = ${USERNAME}\"" >/dev/null 2>&1
+  echo "localhost:5432:${DBNAME}:${USERNAME}:Normation" > /root/.pgpass
+  chmod 600 /root/.pgpass
+  psql -q -U rudder -h localhost -d rudder -f /opt/rudder/etc/postgresql/reportsSchema.sql  >/dev/null 2>&1
+  echo " Done"
+fi
