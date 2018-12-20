@@ -222,6 +222,7 @@ install -m 644 %{SOURCE2} %{buildroot}%{rudderdir}/share/webapps/
 
 ## SQL
 cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-4.1.x-4.1.12-add-compliancelevel-table.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
+cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-4.3.x-4.3.8-correct-indexes-on-compliancelevel.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
 
 ## LDAP
 ## No scripts for now

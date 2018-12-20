@@ -518,6 +518,13 @@ upgrade_database() {
     echo " Done"
   fi
 
+  # - * => 4.3.8  : fix indexes on nodecompliancelevels and drop table ArchivedReportsExecution
+  RES=$(${PSQL} -t -d ${SQL_DATABASE} -c "select count(*) from information_schema.columns where lower(table_name) = 'archivedreportsexecution'")
+  if [ $RES -ne 0 ]; then
+    echo -n "INFO: Adding new 'compliance levels' table"
+    ${PSQL} -d ${SQL_DATABASE} -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-4.3.x-4.3.8-correct-indexes-on-compliancelevel.sql > /dev/null
+    echo " Done"
+  fi
 
   # Now check the fileFormat in the eventlog
   upgrade_eventlog
