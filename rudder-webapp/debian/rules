@@ -136,6 +136,7 @@ binary-arch: install
 	## SQL
 
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ dbMigration-4.1.x-4.1.12-add-compliancelevel-table.sql /opt/rudder/share/upgrade-tools/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ dbMigration-4.3.x-4.3.8-correct-indexes-on-compliancelevel.sql /opt/rudder/share/upgrade-tools/
 
 	## LDAP
 	## no scripts for now
