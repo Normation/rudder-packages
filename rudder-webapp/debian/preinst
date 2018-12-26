@@ -16,6 +16,8 @@ set -e
 
 case "$1" in
     install)
+      mkdir -p /opt/rudder/etc
+      echo 'root' > /opt/rudder/etc/uuid.hive
     ;;
 
     upgrade)
