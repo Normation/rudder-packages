@@ -260,6 +260,9 @@ install -m 644 %{SOURCE23} %{buildroot}%{ruddervardir}/configuration-repository/
 #=================================================
 # Pre Installation
 #=================================================
+mkdir -p /opt/rudder/etc
+echo 'root' > /opt/rudder/etc/uuid.hive
+
 service rudder-jetty stop
 if [ -x /opt/rudder/bin/rudder-pkg ]
 then
