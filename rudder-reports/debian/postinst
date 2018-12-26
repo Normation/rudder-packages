@@ -20,62 +20,9 @@ set -e
 
 case "$1" in
   configure)
-
-    POSTGRESQL_SERVICE_NAME=$(systemctl list-unit-files --type service | awk -F'.' '{print $1}' | grep -E "^postgresql[0-9]*$" | tail -n 1)
-
-    if [ -z "${POSTGRESQL_SERVICE_NAME}" ]; then
-      POSTGRESQL_SERVICE_NAME="postgresql"
-    fi
-
-    #Check if PostgreSQL is started
-    systemctl status ${POSTGRESQL_SERVICE_NAME} > /dev/null
-
-    if [ $? -ne 0 ]
-    then
-      systemctl start ${POSTGRESQL_SERVICE_NAME} >/dev/null
-    fi
-
-    echo -n "INFO: Waiting for PostgreSQL to be up..."
-    CPT=0
-    TIMEOUT=60
-    while ! su - postgres -c "psql -q --output /dev/null -c \"SELECT COUNT(*) FROM pg_catalog.pg_authid\"" >/dev/null 2>&1
-    do
-      echo -n "."
-      sleep 1
-      CPT=$((${CPT}+1))
-      if [ ${CPT} -eq ${TIMEOUT} ]
-      then
-        echo -e "\nERROR: Connection to PostgreSQL has not been established before timeout. Exiting"
-        exit 1
-      fi
-    done
-    echo " Done"
-
-    DBNAME="rudder"
-    USERNAME="rudder"
-    CHK_PG_DB=$(su - postgres -c "psql -t -c \"select count(1) from pg_catalog.pg_database where datname = '${DBNAME}'\"")
-    CHK_PG_USER=$(su - postgres -c "psql -t -c \"select count(1) from pg_user where usename = '${USERNAME}'\"")
-
-    # Rudder user
-    if [ ${CHK_PG_USER} -eq 0 ]
-    then
-      echo -n "INFO: Creating Rudder PostgreSQL user..."
-      su - postgres -c "psql -q -c \"CREATE USER ${USERNAME} WITH PASSWORD 'Normation'\"" >/dev/null 2>&1
-      echo "Done"
-    fi
-
-    # Rudder database
-    if [ ${CHK_PG_DB} -eq 0 ]
-    then
-      echo -n "INFO: Creating Rudder PostgreSQL database..."
-      su - postgres -c "psql -q -c \"CREATE DATABASE ${DBNAME} WITH OWNER = ${USERNAME}\"" >/dev/null 2>&1
-      echo "localhost:5432:${DBNAME}:${USERNAME}:Normation" > /root/.pgpass
-      chmod 600 /root/.pgpass
-      psql -q -U rudder -h localhost -d rudder -f /opt/rudder/etc/postgresql/reportsSchema.sql  >/dev/null 2>&1
-      echo " Done"
-  fi
+    /opt/rudder/share/package-scripts/rudder-reports-postinst
   ;;
-  abort-upgrade|abort-remove|abort-deconfigure)
+  reconfigure|abort-upgrade|abort-remove|abort-deconfigure)
   ;;
   *)
     echo "postinst called with unknown argument \`$1'" >&2

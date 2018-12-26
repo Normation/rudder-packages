@@ -20,14 +20,6 @@
 
 RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
 
-# Autodetect presence of gnu tools
-TAR := $(shell type gtar >/dev/null 2>&1 && echo gtar || echo tar)
-PATCH := $(shell type gpatch >/dev/null 2>&1 && echo gpatch || echo patch)
-SED := $(shell type gsed >/dev/null 2>&1 && echo gsed || echo sed)
-INSTALL := $(shell type ginstall >/dev/null 2>&1 && echo ginstall || echo install)
-CP_A := cp -rp
-FIND := find
-
 # GENERIC_GET: do not remove this line
 # This is a generic get code that is common to many of our Makefiles.
 # The tag is here to find them. Rudder agent has an even more generic one.
@@ -49,45 +41,25 @@ endif
 GET=get() { $(_GET) "$$1.part" "$$2" && { openssl dgst -sha256 "$$1.part" | grep -q "$$3" || { echo "Wrong checksum, aborting"; exit 1; }; } && mv "$$1.part" "$$1"; }; get
 
 # Defauth PATHs
-RUDDER_DIR = /opt/rudder
 DESTDIR = $(CURDIR)/target
-INSTALL_DIR = $(DESTDIR)$(RUDDER_DIR)
+INSTALL_DIR = $(DESTDIR)/opt/rudder
 
-localdepends: ./rudder-sources
-
-rudder-sources.tar.bz2:
-	$(GET) rudder-sources.tar.bz2 https://www.rudder-project.org/archives/rudder-sources-$(RUDDER_VERSION_TO_PACKAGE).tar.bz2 ""
-
-rudder-sources: rudder-sources.tar.bz2
-	bunzip2 < rudder-sources.tar.bz2 | $(TAR) xf -
-	mv rudder-sources-$(RUDDER_VERSION_TO_PACKAGE)*/ rudder-sources/ # the '*' is needed for nightly release
-	touch rudder-sources # to make it younger than the bzip source file
+localdepends: 
 
 build:
-	true
 
-install:
-	# Init files
-ifneq (true,$(NO_INIT)) # By default install init script
+install: build
 	mkdir -p $(DESTDIR)/etc/init.d/
-	$(INSTALL) -m 755 rudder-server.init $(DESTDIR)/etc/init.d/rudder-server
-endif
-
-	# Directories
 	mkdir -p $(INSTALL_DIR)/etc/server-roles.d/
-
-	$(INSTALL) -m 644 rudder-server-root $(INSTALL_DIR)/etc/server-roles.d/
-
-	# Add postinst script
 	mkdir -p $(INSTALL_DIR)/share/package-scripts/
+	$(INSTALL) -m 755 rudder-server.init $(DESTDIR)/etc/init.d/rudder-server
+	$(INSTALL) -m 644 rudder-server-root $(INSTALL_DIR)/etc/server-roles.d/
 	$(INSTALL) -m 755 rudder-server-root-postinst $(INSTALL_DIR)/share/package-scripts/
-
 
 clean: localclean
 localclean:
-	rm -rf ./rudder-sources
 
-veryclean:
-	rm -f ./rudder-sources.tar.bz2
+distclean: veryclean
+veryclean: clean
 
-.PHONY: clean localclean localdepends veryclean
+.PHONY: clean localclean localdepends verycleana

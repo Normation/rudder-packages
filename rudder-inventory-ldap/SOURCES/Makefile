@@ -43,6 +43,8 @@ endif
 # Pass an empty string to skip hash check
 GET=get() { $(_GET) "$$1.part" "$$2" && { openssl dgst -sha256 "$$1.part" | grep -q "$$3" || { echo "Wrong checksum, aborting"; exit 1; }; } && mv "$$1.part" "$$1"; }; get
 
+DESTDIR = $(CURDIR)/target
+
 localdepends: openldap-source
 
 openldap-source:
@@ -96,6 +98,7 @@ localclean:
 	rm -rf rudder-sources
 	rm -rf openldap-source
 
+distclean: veryclean
 veryclean: clean
 	rm -f ./rudder-sources.tar.bz2
 

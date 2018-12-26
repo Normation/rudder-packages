@@ -29,9 +29,6 @@
 #=================================================
 %define real_name        rudder-server-root
 %define real_epoch       1398866025
-%define rudderdir        /opt/rudder
-%define ruddervardir     /var/rudder
-%define rudderlogdir     /var/log/rudder
 
 #=================================================
 # Header
@@ -51,7 +48,7 @@ Source1: rudder-sources
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
 
-Requires: rudder-jetty = %{real_epoch}:%{real_version}, rudder-webapp = %{real_epoch}:%{real_version}, rudder-inventory-endpoint = %{real_epoch}:%{real_version}, rudder-inventory-ldap = %{real_epoch}:%{real_version}, rudder-reports = %{real_epoch}:%{real_version}, rudder-agent = %{real_epoch}:%{real_version}, curl
+Requires: rudder-webapp = %{real_epoch}:%{real_version}, rudder-inventory-ldap = %{real_epoch}:%{real_version}, rudder-reports = %{real_epoch}:%{real_version}, rudder-agent = %{real_epoch}:%{real_version}, curl
 
 %if 0%{?sle_version} && 0%{?sle_version} >= 150000
 Requires: insserv-compat
@@ -118,7 +115,7 @@ fi
 
 CFRUDDER_FIRST_INSTALL=$1
 
-%{rudderdir}/share/package-scripts/rudder-server-root-postinst "${CFRUDDER_FIRST_INSTALL}"
+/opt/rudder/share/package-scripts/rudder-server-root-postinst "${CFRUDDER_FIRST_INSTALL}"
 
 %postun
 #=================================================
@@ -144,8 +141,8 @@ rm -rf %{buildroot}
 #=================================================
 %files
 %defattr(-, root, root, 0755)
-%{rudderdir}/etc/
-%{rudderdir}/share/package-scripts/rudder-server-root-postinst
+/opt/rudder/etc/
+/opt/rudder/share/package-scripts/rudder-server-root-postinst
 /etc/init.d/rudder-server
 
 #=================================================

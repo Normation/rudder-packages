@@ -21,12 +21,11 @@ set -e
 case "$1" in
     configure)
 
-		# Is this the first installation?
-		CFRUDDER_FIRST_INSTALL=0
-		if [ ! -x /var/rudder/cfengine-community/bin/cf-execd ]; then CFRUDDER_FIRST_INSTALL=1; fi
+      # Is this the first installation?
+      CFRUDDER_FIRST_INSTALL=0
+      if [ ! -x /var/rudder/cfengine-community/bin/cf-execd ]; then CFRUDDER_FIRST_INSTALL=1; fi
 
-		/opt/rudder/share/package-scripts/rudder-server-root-postinst "${CFRUDDER_FIRST_INSTALL}"
-
+      /opt/rudder/share/package-scripts/rudder-server-root-postinst "${CFRUDDER_FIRST_INSTALL}"
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)

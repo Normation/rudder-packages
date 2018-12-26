@@ -102,10 +102,10 @@ rm -rf %{buildroot}
 
 make install DESTDIR=%{buildroot}
 
-%pre -n rudder-inventory-ldap
 #=================================================
 # Pre Installation
 #=================================================
+%pre -n rudder-inventory-ldap
 
 # Only do this on package upgrade
 if [ $1 -ne 1 ]
@@ -125,19 +125,19 @@ if [ $1 -ne 1 ]
   [ -f /etc/default/rudder-slapd ] && mkdir -p /var/rudder/tmp/ && cp /etc/default/rudder-slapd /var/rudder/tmp/default-rudder-slapd
 fi
 
-%post -n rudder-inventory-ldap
 #=================================================
 # Post Installation
 #=================================================
+%post -n rudder-inventory-ldap
 
 CFRUDDER_FIRST_INSTALL=$1
 
 /opt/rudder/share/package-scripts/rudder-inventory-ldap-postinst "${CFRUDDER_FIRST_INSTALL}"
 
-%preun -n rudder-inventory-ldap
 #=================================================
 # Pre Un-installation
 #=================================================
+%preun -n rudder-inventory-ldap
 
 if [[ $1 -eq 0 ]]
 then
