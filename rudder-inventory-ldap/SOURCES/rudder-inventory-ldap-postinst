@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 set -e
 
 PACKAGE_NAME="rudder-inventory-ldap"

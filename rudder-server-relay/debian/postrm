@@ -19,36 +19,36 @@ set -e
 
 
 case "$1" in
-	purge)
+    purge)
 
-          # Restart apache since it is still using this user
-          systemctl restart apache2 > /dev/null
-          # Remove package user and groups
-          if getent group rudder >/dev/null; then
-            echo -n "INFO: Removing the rudder group ..."
-            groupdel rudder >/dev/null 2>&1
-            echo " Done"
-          fi
-           if getent group rudder-policy-reader >/dev/null; then
-            echo -n "INFO: Removing the rudder-policy-reader group ..."
-            groupdel rudder-policy-reader >/dev/null 2>&1
-            echo " Done"
-          fi
-          if getent passwd rudder >/dev/null; then
-            echo -n "INFO: Removing the rudder user..."
-            userdel rudder >/dev/null 2>&1
-            echo " Done"
-          fi
+        # Restart apache since it is still using this user
+        systemctl restart apache2 > /dev/null
+        # Remove package user and groups
+        if getent group rudder >/dev/null; then
+          echo -n "INFO: Removing the rudder group ..."
+          groupdel rudder >/dev/null 2>&1
+          echo " Done"
+        fi
+         if getent group rudder-policy-reader >/dev/null; then
+          echo -n "INFO: Removing the rudder-policy-reader group ..."
+          groupdel rudder-policy-reader >/dev/null 2>&1
+          echo " Done"
+        fi
+        if getent passwd rudder >/dev/null; then
+          echo -n "INFO: Removing the rudder user..."
+          userdel rudder >/dev/null 2>&1
+          echo " Done"
+        fi
 
-	;;
+    ;;
 
-	remove|upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
-	;;
+    remove|upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
+    ;;
 
-	*)
-		echo "postrm called with unknown argument \`$1'" >&2
-		exit 1
-	;;
+    *)
+        echo "postrm called with unknown argument \`$1'" >&2
+        exit 1
+    ;;
 esac
 
 # dh_installdeb will replace this with shell code automatically
