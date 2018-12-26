@@ -386,6 +386,9 @@ install -m 644 %{SOURCE4} %{buildroot}/opt/rudder/etc/server-roles.d/
 #=================================================
 # Pre Installation
 #=================================================
+mkdir -p /opt/rudder/etc
+echo 'root' > /opt/rudder/etc/uuid.hive
+
 service rudder-jetty stop
 if [ -x /opt/rudder/bin/rudder-pkg ]
 then
