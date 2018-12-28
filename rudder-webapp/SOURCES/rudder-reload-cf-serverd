@@ -1,14 +1,6 @@
 #!/bin/sh
 
-# Search for killall first
-if which killall >/dev/null 2>&1; then
-  killall -1 cf-serverd
-else # No killall, use kill/pidof instead
-  kill -1 $(pidof cf-serverd 2>/dev/null)
-fi
-
 # If reload failed, cf-serverd is stopped
 # Trying to restart
-if [ $? -ne 0 ]; then
-  service rudder-agent restart
-fi
+systemctl kill -s HUP --kill-who=main rudder-cf-serverd.service || systemctl restart rudder-agent
+
