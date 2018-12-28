@@ -372,9 +372,9 @@ cp -a jetty %{buildroot}/opt/rudder
 cp -a rudder-jetty-base %{buildroot}/opt/rudder/etc
 
 # Init script
-mkdir -p %{buildroot}/etc/init.d
+mkdir -p %{buildroot}/opt/rudder/bin
 mkdir -p %{buildroot}/etc/default
-install -m 755 jetty/bin/%{jetty_init_script} %{buildroot}/etc/init.d/rudder-jetty
+install -m 755 jetty/bin/%{jetty_init_script} %{buildroot}/opt/rudder/bin/rudder-jetty.sh
 install -m 644 %{SOURCE2} %{buildroot}/etc/default/rudder-jetty
 install -m 644 %{SOURCE3} %{buildroot}/opt/rudder/etc/rudder-jetty.conf
 
@@ -413,16 +413,6 @@ if [ ${CFRUDDER_FIRST_INSTALL} -ne 1 ]
 then
     service rudder-jetty stop
 fi
-
-# Prepare the migration of /etc/default/rudder-jetty
-if [ -e /opt/rudder/etc/rudder-jetty.conf ]
-then
-    if [ $(grep -c '# WARNING #' /opt/rudder/etc/rudder-jetty.conf) -eq 0 ]
-    then
-        cp /opt/rudder/etc/rudder-jetty.conf /opt/rudder/etc/rudder-jetty.conf.migrate
-    fi
-fi
-
 
 %post -n rudder-webapp
 #=================================================
@@ -613,60 +603,17 @@ then
   /opt/rudder/bin/rudder-pkg plugin restore-status < /tmp/rudder-plugins-upgrade
 fi
 
-service rudder-jetty start
+if [ "${RUDDER_FIRST_INSTALL}" = "true" ]; then
+  systemctl daemon-reload
+  systemctl enable rudder-jetty
+fi
+
+systemctl start rudder-jetty
 
 # Run any upgrades
 echo "INFO: Launching script to check if a migration is needed"
 %{rudderdir}/bin/rudder-inventory-endpoint-upgrade
 echo "INFO: End of migration script"
-
-# Migrate old /opt/rudder/etc/rudder-jetty.conf entries
-if [ -e /opt/rudder/etc/rudder-jetty.conf.migrate ]
-then
-    JAVA_XMX_MIGRATE=$(grep '^JAVA_XMX=' /opt/rudder/etc/rudder-jetty.conf.migrate|cut -d = -f 2-)
-    JAVA_MAXPERMSIZE_MIGRATE=$(grep '^JAVA_MAXPERMSIZE=' /opt/rudder/etc/rudder-jetty.conf.migrate|cut -d = -f 2-)
-
-    cat > /etc/default/rudder-jetty << EOF
-#
-# Jetty server configuration
-#
-
-# Memory settings
-#
-# The defaults should be enough for up to ~100 nodes
-#
-JAVA_XMX=${JAVA_XMX_MIGRATE}
-JAVA_MAXPERMSIZE=${JAVA_MAXPERMSIZE_MIGRATE}
-
-# Java VM arguments
-#
-#JAVA_OPTIONS=""
-
-# Java VM location
-#
-#JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
-#JAVA=java
-
-# Source variables from /opt/rudder/etc/rudder-jetty.conf
-# Warning: removing this is likely to prevent Jetty from
-# starting correctly
-[ -f /opt/rudder/etc/rudder-jetty.conf ] && . /opt/rudder/etc/rudder-jetty.conf
-EOF
-
-    rm -f /opt/rudder/etc/rudder-jetty.conf.migrate
-
-fi
-
-# Do this at first install
-if [ $1 -eq 1 ]
-then
-  # Set rudder-agent as service
-  chkconfig --del rudder-jetty
-  %if 0%{?rhel}
-  chkconfig rudder-jetty off
-  %endif
-fi
-
 
 %postun -n rudder-webapp
 #=================================================
@@ -747,7 +694,7 @@ fi
 
 if [[ $1 -eq 0 ]]
 then
-  service rudder-jetty stop
+  systemctl stop rudder-jetty
 fi
 
 
@@ -774,9 +721,10 @@ rm -rf %{buildroot}
 /opt/rudder/etc/rudder-jetty-base
 %{rudderlogdir}/webapp
 /var/rudder/run
-/etc/init.d/rudder-jetty
+/opt/rudder/bin/rudder-jetty.sh
 %config(noreplace) /etc/default/rudder-jetty
 /opt/rudder/etc/rudder-jetty.conf
+/usr/lib/systemd/system/
 
 %{rudderdir}/bin/
 %{rudderdir}/bin/rudder-node-to-relay

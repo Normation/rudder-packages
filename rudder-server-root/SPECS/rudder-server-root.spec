@@ -95,12 +95,12 @@ if [ ${CFRUDDER_FIRST_INSTALL} -ne 1 ]
 then
   mkdir -p /var/rudder/tmp
 
-  if [ -f /etc/init.d/rudder ]
+  if [ -f /etc/init.d/rudder-server ]
   then
     # If old rudder service is here and enabled
     if type chkconfig > /dev/null
     then 
-      if chkconfig --list rudder 2>&1 | grep -q -e 3:on -e B:on
+      if chkconfig --list rudder-server 2>&1 | grep -q -e 3:on -e B:on
       then
         touch /var/rudder/tmp/migration-rudder-service-enabled-server
       fi

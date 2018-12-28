@@ -1,0 +1,15 @@
+[Unit]
+Description=Jetty Web Application Server
+After=syslog.target network.target
+
+[Service]
+Type=forking
+
+ExecStart=/opt/rudder/bin/rudder-jetty.sh start
+ExecStop=/opt/rudder/bin/rudder-jetty.sh stop
+SuccessExitStatus=143
+
+[Install]
+RequiredBy=rudder-server.service
+WantedBy=multi-user.target
+

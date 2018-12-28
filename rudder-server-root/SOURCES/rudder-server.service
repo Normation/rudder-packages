@@ -1,10 +1,9 @@
 [Unit]
-Description=Rudder agent umbrella service
-Documentation=man:rudder(8)
+Description=Rudder server umbrella service
 Documentation=https://docs.rudder.io
 After=syslog.target
 # Dependencies register themselves with a WantedBy/RequiredBy
-# currently they are rudder-cf-serverd and rudder-cf-execd
+# currently they are rudder-slapd and rudder-jetty
 
 [Service]
 Type=oneshot
@@ -16,3 +15,4 @@ ExecReload=/bin/true
 
 [Install]
 WantedBy=multi-user.target
+

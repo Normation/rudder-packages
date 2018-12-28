@@ -124,8 +124,7 @@ binary-arch: install
 
 	cp -f $(CURDIR)/debian/rudder-jetty.default $(CURDIR)/BUILD/rudder-jetty
 	dh_install --SOURCEDIR=$(CURDIR)/BUILD/ rudder-jetty /etc/default/
-	cp -f $(CURDIR)/debian/rudder-jetty.init $(CURDIR)/BUILD/rudder-jetty
-	dh_install --SOURCEDIR=$(CURDIR)/BUILD/ rudder-jetty /etc/init.d/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/jetty/bin/ rudder-jetty.sh /opt/rudder/bin
 	dh_install --sourcedir=$(CURDIR)/SOURCES jetty /opt/rudder
 	dh_install --sourcedir=$(CURDIR)/SOURCES rudder-jetty-base /opt/rudder/etc
 	dh_install --sourcedir=$(CURDIR)/SOURCES rudder-jetty.conf /opt/rudder/etc

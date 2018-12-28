@@ -13,38 +13,15 @@ then
   exit 1
 fi
 
-echo "`date` - Starting rudder-server-root post installation script" >> ${LOG_FILE}
+echo "`date` - Starting ${PACKAGE_NAME} post installation script" >> ${LOG_FILE}
 
 systemctl daemon-reload
 
-# Enable at first install
-if [ ${CFRUDDER_FIRST_INSTALL} -eq 1 ]
+# Enable at first install or in migration
+if [ ${CFRUDDER_FIRST_INSTALL} -eq 1 ] || [ -f /var/rudder/tmp/migration-rudder-service-enabled-server ]
 then
-  if type chkconfig > /dev/null 2>&1
-  then
-    chkconfig --add rudder-server
-    chkconfig rudder-server on
-  fi
-
-  if type update-rc.d > /dev/null 2>&1
-  then
-    update-rc.d rudder-server defaults
-  fi
-else
-# Upgrade flag is here
-  if [ -f /var/rudder/tmp/migration-rudder-service-enabled-server ]
-  then
-    if type chkconfig > /dev/null 2>&1
-    then
-      chkconfig --add rudder-server
-      chkconfig rudder-server on
-    fi
-
-    if type update-rc.d > /dev/null 2>&1
-    then
-      update-rc.d rudder-server defaults
-    fi
-  fi
+  systemctl reload-daemon
+  systemctl enable rudder-server
 fi
 
 # Clean flag

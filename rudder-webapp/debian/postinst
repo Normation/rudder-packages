@@ -161,55 +161,20 @@ case "$1" in
         /opt/rudder/bin/rudder-pkg plugin restore-status < /tmp/rudder-plugins-upgrade
       fi
 
+      if [ "${RUDDER_FIRST_INSTALL}" = "true" ]; then
+        systemctl daemon-reload
+        systemctl enable rudder-jetty
+      fi
+
       # Restart the webapp
       echo -n "INFO: Restarting Rudder webapp and inventory-endpoint..."
-      service rudder-jetty start >/dev/null 2>&1
+      systemctl start rudder-jetty >/dev/null 2>&1
       echo " Done"
 
       # Run any upgrades
       echo "INFO: Launching script to check if a migration is needed"
       /opt/rudder/bin/rudder-inventory-endpoint-upgrade
       echo "INFO: End of migration script"
-
-        # Migrate old /opt/rudder/etc/rudder-jetty.conf entries
-        if [ -e /opt/rudder/etc/rudder-jetty.conf.migrate ]
-        then
-            JAVA_XMX_MIGRATE=$(grep '^JAVA_XMX=' /opt/rudder/etc/rudder-jetty.conf.migrate|cut -d = -f 2-)
-            JAVA_MAXPERMSIZE_MIGRATE=$(grep '^JAVA_MAXPERMSIZE=' /opt/rudder/etc/rudder-jetty.conf.migrate|cut -d = -f 2-)
-
-            cat > /etc/default/rudder-jetty << EOF
-#
-# Jetty server configuration
-#
-
-# Memory settings
-#
-# The defaults should be enough for up to ~100 nodes
-#
-JAVA_XMX=${JAVA_XMX_MIGRATE}
-JAVA_MAXPERMSIZE=${JAVA_MAXPERMSIZE_MIGRATE}
-
-# Java VM arguments
-#
-#JAVA_OPTIONS=""
-
-# Java VM location
-#
-#JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
-#JAVA=java
-
-# Source variables from /opt/rudder/etc/rudder-jetty.conf
-# Warning: removing this is likely to prevent Jetty from
-# starting correctly
-[ -f /opt/rudder/etc/rudder-jetty.conf ] && . /opt/rudder/etc/rudder-jetty.conf
-EOF
-
-            rm -f /opt/rudder/etc/rudder-jetty.conf.migrate
-
-        fi
-
-        systemctl daemon-reload
-
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)

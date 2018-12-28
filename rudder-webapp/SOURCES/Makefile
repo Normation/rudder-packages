@@ -90,16 +90,11 @@ localdepends: ./rudder-sources ./maven/bin/mvn ./rudder-users.xml ./rudder-doc .
 	patch -p0 -s < patches/jetty/jetty-init-umask.patch
 	patch -p0 -s < patches/jetty/jetty-init-stop-fix.patch
 	patch -p0 -s < patches/jetty/jetty-init-sizecheck.patch
-	patch -p0 -s < patches/jetty/jetty-init-use-rudder-jetty-defaults.patch
 	patch -p0 -s < patches/jetty/jetty-init-prevent-false-failed-starts.patch
 	patch -p0 -s < patches/jetty/jetty-init-redirect-stderrout.patch
 	patch -p0 -s < patches/jetty/jetty-init-stop-forcestop.patch
 
-	cp ./jetty/bin/jetty.sh ./jetty/bin/jetty-debian.sh
 	cp ./jetty/bin/jetty.sh ./jetty/bin/jetty-rpm.sh
-
-	patch -p0 -s < patches/jetty/jetty-init-lsb-fix-debian.patch
-	patch -p0 -s < patches/jetty/jetty-init-lsb-fix-rpm.patch
 	patch -p0 -s < patches/jetty/jetty-init-softokn-version-check.patch
 
 	cp ./jetty/bin/jetty-rpm.sh ./jetty/bin/jetty-sles.sh
@@ -107,9 +102,8 @@ localdepends: ./rudder-sources ./maven/bin/mvn ./rudder-users.xml ./rudder-doc .
 	patch -p0 -s < patches/jetty/jetty-init-ulimit.patch
 
 	# Provide jetty's init script to the debian package's standard location
-	cp ./jetty/bin/jetty-debian.sh ../debian/rudder-jetty.init
 	cp ./rudder-jetty.default ../debian/rudder-jetty.default
-	chmod +x ../debian/rudder-jetty.init
+	cp ./jetty/bin/jetty.sh ./jetty/bin/rudder-jetty.sh
 
 	# Restore the name for log file from version of Rudder before 4.3 (see https://www.rudder-project.org/redmine/issues/12607)
 	patch -p0 -s < patches/jetty/jetty-console-capture-restore-log-filename.patch

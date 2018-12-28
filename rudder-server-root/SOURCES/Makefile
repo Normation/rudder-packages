@@ -49,10 +49,10 @@ localdepends:
 build:
 
 install: build
-	mkdir -p $(DESTDIR)/etc/init.d/
+	mkdir -p $(DESTDIR)/usr/lib/systemd/system
 	mkdir -p $(INSTALL_DIR)/etc/server-roles.d/
 	mkdir -p $(INSTALL_DIR)/share/package-scripts/
-	$(INSTALL) -m 755 rudder-server.init $(DESTDIR)/etc/init.d/rudder-server
+	$(INSTALL) -m 644 rudder-server.service $(DESTDIR)/usr/lib/systemd/system/
 	$(INSTALL) -m 644 rudder-server-root $(INSTALL_DIR)/etc/server-roles.d/
 	$(INSTALL) -m 755 rudder-server-root-postinst $(INSTALL_DIR)/share/package-scripts/
 

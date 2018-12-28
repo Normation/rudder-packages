@@ -44,9 +44,9 @@ if [ ${CFRUDDER_FIRST_INSTALL} -ne 1 ]
 then
   mkdir -p /var/rudder/tmp
 
-  if [ -f /etc/init.d/rudder ]
+  if [ -f /etc/init.d/rudder-server ]
   then
-    if test /etc/rc`/sbin/runlevel | cut -d' ' -f2`.d/S??rudder
+    if test /etc/rc`/sbin/runlevel | cut -d' ' -f2`.d/S??rudder-server
     then
       touch /var/rudder/tmp/migration-rudder-service-enabled-server
     fi
