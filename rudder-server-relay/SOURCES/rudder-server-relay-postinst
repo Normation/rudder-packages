@@ -6,7 +6,6 @@ FIRST_INSTALL="$1"
 APACHE="$2"
 APACHE_USER="$3"
 APACHE_GROUP="$4"
-MODULES_TO_ENABLE="$5"
 
 echo -n "INFO: Stopping Apache HTTPd..."
 systemctl stop "${APACHE}" >dev/null

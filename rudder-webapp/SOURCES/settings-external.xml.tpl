@@ -8,12 +8,12 @@
       <repositories>
         <repository>
           <id>normation-releases</id>
-          <url>http://www.rudder-project.org/maven-releases/</url>
+          <url>https://repository.rudder.io/maven/releases/</url>
           <releases><enabled>true</enabled></releases>
         </repository>
         <repository>
           <id>normation-snapshots</id>
-          <url>http://www.rudder-project.org/maven-snapshots/</url>
+          <url>https://repository.rudder.io/maven/snapshots/</url>
           <snapshots><enabled>true</enabled></snapshots>
         </repository>
       </repositories>

@@ -111,6 +111,7 @@ cp -f rudder-relay.te %{_builddir}
 #=================================================
 %build
 
+cd %{_sourcedir}
 make build
 
 %if 0%{?rhel}
@@ -126,7 +127,7 @@ cd %{_builddir} && make -f /usr/share/selinux/devel/Makefile
 
 rm -rf %{buildroot}
 
-make install APACHE_VHOSTDIR=%{apache_vhost_dir}
+make install APACHE_VHOSTDIR=%{apache_vhost_dir} DESTDIR=%{buildroot}
 
 mkdir -p %{buildroot}/etc/sysconfig/
 install -m 644 rudder-relay-apache %{buildroot}/etc/sysconfig/rudder-relay-apache
@@ -180,7 +181,7 @@ if [ $FIRST_INSTALL -eq 1 ];  then
   echo 'DAVLockDB /tmp/davlock.db' > /etc/%{apache}/conf.d/dav_mod.conf
 fi
 
-/opt/rudder/share/package-scripts/rudder-server-relay-postinst "${FIRST_INSTALL}" "%{apache}" "%{apache_user}" "%{apache_group}" "${MODULES_TO_ENABLE}"
+/opt/rudder/share/package-scripts/rudder-server-relay-postinst "${FIRST_INSTALL}" "%{apache}" "%{apache_user}" "%{apache_group}"
 
 #=================================================
 # Post Uninstallation

@@ -33,7 +33,7 @@ case "$1" in
         FIRST_INSTALL=0
       fi
 
-      /opt/rudder/share/package-scripts/rudder-server-relay-postinst "${FIRST_INSTALL}" "apache2" "www-data" "www-data" "${MODULES_TO_ENABLE}"
+      /opt/rudder/share/package-scripts/rudder-server-relay-postinst "${FIRST_INSTALL}" "apache2" "www-data" "www-data"
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)

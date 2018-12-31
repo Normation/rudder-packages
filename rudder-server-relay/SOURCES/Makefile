@@ -80,7 +80,7 @@ endif
 # TODO replicate this on previous PR
 	touch $@
 
-# Install into destdir
+# Install into DESTDIR
 install: build
 	# Directories
 	mkdir -p $(DESTDIR)/etc/$(APACHE_VHOSTDIR)/
@@ -98,6 +98,7 @@ install: build
 	mkdir -p $(DESTDIR)/etc/sysconfig/
 	mkdir -p $(DESTDIR)/etc/cron.d/
 	mkdir -p $(DESTDIR)/etc/sudoers.d/
+	mkdir -p $(DESTDIR)/opt/rudder/share/package-scripts/
 	
 	# relay api
 	cp -r relay-api/flask $(DESTDIR)/opt/rudder/share/relay-api/
@@ -122,7 +123,7 @@ install: build
 	install -m 644 rudder-networks-24.conf $(DESTDIR)/opt/rudder/etc/
 	install -m 644 rudder-networks-policy-server-24.conf $(DESTDIR)/opt/rudder/etc/
 	
-	install -m 755 rudder-server-relay-postinst $(INSTALL_DIR)/share/package-scripts/
+	install -m 755 rudder-server-relay-postinst $(DESTDIR)/opt/rudder/share/package-scripts/
 	
 ifeq ($(SELINUX),true)
 	# Install SELinux policy

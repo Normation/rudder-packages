@@ -51,7 +51,6 @@
 %define jetty_init_script       jetty-rpm.sh
 %endif
 %define apache_vhost_dir        %{apache}/vhosts.d
-%define usermod_opt             aG
 
 # avoid error during byte compilation of pyc since they are removed anyway
 %define _python_bytecompile_errors_terminate_build 0
@@ -175,61 +174,18 @@ application server bundled in the rudder-jetty package.
 #=================================================
 %prep
 
-# Copy the required source files to the build directory
-cp -f %{SOURCE20} %{_builddir}
-cp -f %{SOURCE28} %{_builddir}
-cp -rf %{_sourcedir}/rudder-sources %{_builddir}
-cp -rf %{_sourcedir}/rudder-doc %{_builddir}
-cp -f %{SOURCE33} %{_builddir}
-cp -f %{SOURCE34} %{_builddir}
-
-
 #=================================================
 # Building
 #=================================================
 %build
 
+cd %{_sourcedir}
+make build
+
 %if 0%{?rhel}
 # Build SELinux policy package
 # Compiles rudder-webapp.te and rudder-webapp.fc into rudder-webapp.pp
-cd %{_builddir} && make -f /usr/share/selinux/devel/Makefile
-%endif
-
-# Build rudder-web war
-export MAVEN_OPTS=-Xmx512m
-if [ -f %{_sourcedir}/rudder.war ]
-then
-  cp %{_sourcedir}/rudder.war %{_builddir}/rudder.war
-else
-  cd %{_builddir}/rudder-sources/rudder-parent-pom && %{_sourcedir}/maven/bin/mvn --batch-mode -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
-  cd %{_builddir}/rudder-sources/rudder-commons    && %{_sourcedir}/maven/bin/mvn --batch-mode -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
-  cd %{_builddir}/rudder-sources/scala-ldap        && %{_sourcedir}/maven/bin/mvn --batch-mode -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
-  cd %{_builddir}/rudder-sources/ldap-inventory    && %{_sourcedir}/maven/bin/mvn --batch-mode -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true install
-  cd %{_builddir}/rudder-sources/rudder            && %{_sourcedir}/maven/bin/mvn --batch-mode -s %{_sourcedir}/%{maven_settings} -Dmaven.test.skip=true -U install package
-  mv %{_builddir}/rudder-sources/rudder/rudder-web/target/rudder-web*.war %{_builddir}/rudder.war
-fi
-
-# Build Virtualenv
-python virtualenv/virtualenv.py %{real_name}
-
-# Get all requirements via pip
-%{real_name}/bin/pip install -r %{_sourcedir}/rudder-sources/ncf/api/requirements.txt
-
-# Clean up unwanted binaries
-if [ "%{real_name}" != "" ]; then
-  for i in easy_install python pip; do
-      rm -f %{real_name}/bin/${i}*
-  done
-else
-  echo "WARNING: Skipping Virtualenv cleanup, as it"
-  echo "WARNING: would operate on /bin ..."
-  echo "WARNING: Please make sure the real_name macro"
-  echo "WARNING: is defined"
-fi
-
-%if 0%{?rhel} || 0%{?fedora}
-# Build SELinux policy package
-cd %{_builddir} && make -f /usr/share/selinux/devel/Makefile
+make -f /usr/share/selinux/devel/Makefile
 %endif
 
 
@@ -239,153 +195,26 @@ cd %{_builddir} && make -f /usr/share/selinux/devel/Makefile
 %install
 rm -rf %{buildroot}
 
-mkdir -p %{buildroot}%{rudderdir}/etc/
-mkdir -p %{buildroot}%{rudderdir}/etc/plugins/
-mkdir -p %{buildroot}%{rudderdir}/etc/server-roles.d/
-mkdir -p %{buildroot}%{rudderdir}/etc/hooks.d/
-mkdir -p %{buildroot}%{rudderdir}/bin/
-mkdir -p %{buildroot}%{rudderdir}/share/webapps/
-mkdir -p %{buildroot}%{rudderdir}/share/rudder-plugins/
-mkdir -p %{buildroot}%{rudderdir}/share/tools
-mkdir -p %{buildroot}%{rudderdir}/share/plugins/
-mkdir -p %{buildroot}%{rudderdir}/share/upgrade-tools/
-mkdir -p %{buildroot}%{rudderdir}/share/certificates/
-mkdir -p %{buildroot}%{rudderdir}/share/selinux/
-mkdir -p %{buildroot}%{ruddervardir}/inventories/received
-mkdir -p %{buildroot}%{ruddervardir}/inventories/failed
-mkdir -p %{buildroot}%{ruddervardir}/configuration-repository/ncf/ncf-hooks.d
-mkdir -p %{buildroot}%{rudderlogdir}/apache2/
-mkdir -p %{buildroot}%{rudderlogdir}/webapp
-mkdir -p %{buildroot}/var/rudder/run
-mkdir -p %{buildroot}/etc/%{apache_vhost_dir}/
-mkdir -p %{buildroot}/etc/sysconfig/
-mkdir -p %{buildroot}/usr/share/doc/rudder
-mkdir -p %{buildroot}%{sharedir}/
-mkdir -p %{buildroot}%{bindir}/
-mkdir -p %{buildroot}/usr/share/ncf-api-virtualenv/share/selinux/
-mkdir -p %{buildroot}%{apache_vhost_dir}/
-mkdir -p %{buildroot}/var/lib/ncf-api-venv/
-
-
-
-# Emulate installation of file rudder.xml in order to be owned by package
-touch %{buildroot}%{rudderdir}/share/webapps/rudder.xml
-
-# Install helper scripts
-cp %{SOURCE10} %{buildroot}%{rudderdir}/bin/
-
-# %{rudderdir}/bin/rudder-init.sh -> %{rudderdir}/bin/rudder-init
-ln -sf %{rudderdir}/bin/rudder-init %{buildroot}%{rudderdir}/bin/rudder-init.sh
-
-cp %{SOURCE11} %{buildroot}%{rudderdir}/bin/
-cp %{SOURCE12} %{buildroot}%{rudderdir}/bin/
-cp %{SOURCE14} %{buildroot}%{rudderdir}/bin/
-cp %{SOURCE17} %{buildroot}%{rudderdir}/bin/
-cp %{SOURCE19} %{buildroot}%{rudderdir}/bin/
-
-cp %{SOURCE1} %{buildroot}%{rudderdir}/etc/
-cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/ldap/bootstrap.ldif %{buildroot}%{rudderdir}/share/
-cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/ldap/init-policy-server.ldif %{buildroot}%{rudderdir}/share/
-cp %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/configuration.properties.sample %{buildroot}%{rudderdir}/etc/rudder-web.properties
-cp %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/logback.xml %{buildroot}%{rudderdir}/etc/
-cp -r %{_sourcedir}/rudder-sources/rudder-techniques/techniques/ %{buildroot}%{rudderdir}/share/
-cp -r %{_sourcedir}/rudder-sources/rudder-techniques/tools/ %{buildroot}%{rudderdir}/share/
-
-cp -r %{_sourcedir}/rudder-sources/ncf/ %{buildroot}%{sharedir}/
-# Create a symlink to make ncf available as part of the
-# default PATH
-ln -sf %{sharedir}/ncf/ncf %{buildroot}%{bindir}/ncf
-
-cp %{_builddir}/rudder.war %{buildroot}%{rudderdir}/share/webapps/rudder.war
-
-cp -rf %{_sourcedir}/rudder-sources/rudder/rudder-web/src/main/resources/load-page %{buildroot}%{rudderdir}/share/
-cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/test/resources/script/cfe-red-button.sh %{buildroot}%{rudderdir}/bin/
-cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/reportsInfo.xml %{buildroot}%{rudderdir}/etc/
-cp %{SOURCE25} %{buildroot}%{rudderdir}/etc/rudder-apache-webapp-common.conf
-cp %{SOURCE26} %{buildroot}%{rudderdir}/etc/rudder-apache-webapp-ssl.conf
-cp %{SOURCE27} %{buildroot}%{rudderdir}/etc/rudder-apache-webapp-nossl.conf
-cp %{SOURCE24} %{buildroot}/etc/sysconfig/rudder-webapp-apache
-
-cp -r %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/hooks.d %{buildroot}%{rudderdir}/etc/
-
-install -m 644 %{SOURCE2} %{buildroot}%{rudderdir}/share/webapps/
-
-cp -r %{_sourcedir}/ncf-api-virtualenv/* %{buildroot}/usr/share/ncf-api-virtualenv/
-  
-install -m 644 %{SOURCE31} %{buildroot}/usr/share/ncf-api-virtualenv/
-install -m 644 %{SOURCE32} %{buildroot}%{apache_vhost_dir}/
-
-%if 0%{?rhel} || 0%{?fedora}
-  # Install SELinux policy
-  install -m 644  %{_builddir}/ncf-api-virtualenv.pp %{buildroot}/usr/share/ncf-api-virtualenv/share/selinux/
-%endif
-
-# Install upgrade tools and migration scripts
-
-## SQL
-cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-4.1.x-4.1.12-add-compliancelevel-table.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
-cp %{_sourcedir}/rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-4.3.x-4.3.8-correct-indexes-on-compliancelevel.sql %{buildroot}%{rudderdir}/share/upgrade-tools/
-
-## LDAP
-## No scripts for now
-
-cp %{SOURCE5} %{buildroot}%{rudderdir}/bin/
-
-install -m 644 %{SOURCE7} %{buildroot}/opt/rudder/etc/server-roles.d/
-cp %{SOURCE13} %{buildroot}%{rudderdir}/etc/
-
-install -m 755 %{SOURCE15} %{buildroot}%{ruddervardir}/configuration-repository/ncf/ncf-hooks.d/
-install -m 755 %{SOURCE16} %{buildroot}%{ruddervardir}/configuration-repository/ncf/ncf-hooks.d/
-
-# Add rudder-metrics-reporting
-cp %{SOURCE17} %{buildroot}%{rudderdir}/bin/
-cp %{SOURCE18} %{buildroot}%{rudderdir}/share/certificates/
-
-# Install documentation
-cp -rf %{_builddir}/rudder-doc/html %{buildroot}/usr/share/doc/rudder
+cd %{_sourcedir}
+make install APACHE_VHOSTDIR=%{apache_vhost_dir} DESTDIR=%{buildroot}
 
 %if 0%{?rhel}
-# Install SELinux policy
-install -m 644  %{_builddir}/rudder-webapp.pp %{buildroot}%{rudderdir}/share/selinux/
+  # Install SELinux policy
+  install -m 644  ncf-api-virtualenv.pp %{buildroot}/usr/share/ncf-api-virtualenv/share/selinux/
+  install -m 644  rudder-webapp.pp %{buildroot}%{rudderdir}/share/selinux/
+  # Replace init script
+  cp jetty/bin/jetty-rpm.sh jetty/bin/jetty.sh
+%else
+  # Replace init script
+  cp jetty/bin/jetty-sles.sh jetty/bin/jetty.sh
 %endif
 
-# Install rudder keys
-install -m 755 %{SOURCE22} %{buildroot}%{rudderdir}/bin/
 
-# Install rudder fix repository permissions script
-install -m 755 %{SOURCE29} %{buildroot}%{rudderdir}/bin/
-
-# Install gitignore file for our git repo
-install -m 644 %{SOURCE23} %{buildroot}%{ruddervardir}/configuration-repository/
-
-cp %{_builddir}/endpoint.war %{buildroot}/opt/rudder/share/webapps/endpoint.war
-cp %{SOURCE35} %{buildroot}/opt/rudder/etc/
-cp %{SOURCE36} %{buildroot}%{rudderdir}/bin/
-
-install -m 644 %{SOURCE37} %{buildroot}/opt/rudder/etc/server-roles.d/
-
-install -m 644 %{SOURCE3} %{buildroot}%{rudderdir}/share/webapps/
-
-cd %{_topdir}/SOURCES
-
-cp -a jetty %{buildroot}/opt/rudder
-cp -a rudder-jetty-base %{buildroot}/opt/rudder/etc
-
-# Init script
-mkdir -p %{buildroot}/opt/rudder/bin
-mkdir -p %{buildroot}/etc/default
-install -m 755 jetty/bin/%{jetty_init_script} %{buildroot}/opt/rudder/bin/rudder-jetty.sh
-install -m 644 %{SOURCE2} %{buildroot}/etc/default/rudder-jetty
-install -m 644 %{SOURCE3} %{buildroot}/opt/rudder/etc/rudder-jetty.conf
-
-install -m 644 %{SOURCE4} %{buildroot}/opt/rudder/etc/server-roles.d/
-
-
-
-%pre -n rudder-webapp
 #=================================================
 # Pre Installation
 #=================================================
+%pre -n rudder-webapp
+
 mkdir -p /opt/rudder/etc
 echo 'root' > /opt/rudder/etc/uuid.hive
 
@@ -395,18 +224,6 @@ then
   /opt/rudder/bin/rudder-pkg plugin save-status > /tmp/rudder-plugins-upgrade
 fi
 
-# Create the package user
-if ! getent passwd ncf-api-venv >/dev/null; then
-  echo -n "INFO: Creating the ncf-api-venv user..."
-  useradd -r -s /bin/false -d /var/lib/ncf-api-venv -c "ncf API,,," ncf-api-venv >/dev/null 2>&1
-  echo " Done"
-fi
-
-# Ensure setting the shell to /bin/false in migrations
-if ! getent passwd  ncf-api-venv| cut -d: -f7 | grep -qE "^/bin/false$"; then
-  usermod -s /bin/false ncf-api-venv
-fi
-
 CFRUDDER_FIRST_INSTALL=$1
 
 if [ ${CFRUDDER_FIRST_INSTALL} -ne 1 ]
@@ -414,10 +231,10 @@ then
     service rudder-jetty stop
 fi
 
-%post -n rudder-webapp
 #=================================================
 # Post Installation
 #=================================================
+%post -n rudder-webapp
 
 RUDDER_FIRST_INSTALL="false"
 
@@ -426,62 +243,24 @@ then
   RUDDER_FIRST_INSTALL="true"
 fi
 
-# Currently, we assume that the server where the webapp is installed
-# is the root server. Force the UUID.
-echo 'root' > /opt/rudder/etc/uuid.hive
-
-echo -n "INFO: Stopping Apache HTTPd..."
-%if 0%{?rhel}
-systemctl stop %{apache} >/dev/null
-%endif
-echo " Done"
-
 # Do this ONLY at first install
 if [ $1 -eq 1 ]
 then
   echo 'DAVLockDB /tmp/davlock.db' > /etc/%{apache}/conf.d/dav_mod.conf
 fi
 
-# Create the configuration-repository group if it does not exist
-if ! getent group %{config_repository_group} > /dev/null; then
-  echo -n "INFO: Creating group %{config_repository_group}..."
-  groupadd --system %{config_repository_group}
-  echo " Done"
-fi
-
-# Create the rudder-policy-reader group
-if ! getent group rudder-policy-reader > /dev/null; then
-  echo -n "INFO: Creating group rudder-policy-reader..."
-  groupadd --system rudder-policy-reader
 %if 0%{?suse_version}
-  usermod -%{usermod_opt} rudder-policy-reader wwwrun
-%endif
-%if 0%{?rhel}
-  usermod -%{usermod_opt} rudder-policy-reader apache
-%endif
-  echo " Done"
-fi
+a2enmod rewrite dav dav_fs ssl version wsgi
 
-# Add the ncf-api-venv user to this group
-if ! getent group %{config_repository_group} | grep -q ncf-api-venv > /dev/null; then
-  echo -n "INFO: Adding ncf-api-venv to the %{config_repository_group} group..."
-  usermod -%{usermod_opt} %{config_repository_group} ncf-api-venv
-  echo " Done"
-fi
-
-# Add required includes in the SLES apache2 configuration
-%if 0%{?suse_version}
-nextline=$(grep -A1 -E "^. /etc/sysconfig/rudder-webapp-apache$" /etc/sysconfig/apache2 | tail -n1)
+# Add required includes in the apache2 configuration
+nextline=$(grep -A1 -E "^. /etc/sysconfig/rudder-relay-apache$" /etc/sysconfig/apache2 | tail -n1)
 if [ "${nextline}" = "" ]; then
   # No include currently
-  echo -e '# This sources the modules/defines needed by Rudder\n. /etc/sysconfig/rudder-webapp-apache' >> /etc/sysconfig/apache2
-  echo -e '# This line is necessary for fillup not to remove any lines above. See #11153\nAPACHE_RUDDER_WEBAPP_CUSTOMIZED="true"' >> /etc/sysconfig/apache2
-elif [ "${nextline}" != "# This line is necessary for fillup not to remove any lines above. See #11153" ]; then
-  # Old include without comment
-  sed -i 's|. /etc/sysconfig/rudder-webapp-apache|. /etc/sysconfig/rudder-webapp-apache\n# This line is necessary for fillup not to remove any lines above. See #11153\nAPACHE_RUDDER_WEBAPP_CUSTOMIZED="true"|' /etc/sysconfig/apache2
+  echo -e '# This sources the modules/defines needed by Rudder\n. /etc/sysconfig/rudder-relay-apache' >> /etc/sysconfig/apache2
+  echo -e '# This line is necessary for fillup not to remove any lines above. See #11153\nAPACHE_RUDDER_RELAY_CUSTOMIZED="true"' >> /etc/sysconfig/apache2
 fi
-
 %endif
+
 
 # Update /etc/sysconfig/apache2 in case an old module loading entry has already been created by Rudder
 if [ -f /etc/sysconfig/apache2 ] && grep -q 'APACHE_MODULES="${APACHE_MODULES} rewrite dav dav_fs proxy proxy_http' /etc/sysconfig/apache2
@@ -490,41 +269,19 @@ then
   sed -i 's%APACHE_MODULES="${APACHE_MODULES} rewrite dav dav_fs proxy proxy_http.*%# This sources the Rudder needed by Rudder\n. /etc/sysconfig/rudder-relay-apache%' /etc/sysconfig/apache2
 fi
 
-# Add perms on tools and inventories
-chmod 751 /var/rudder/inventories
-chmod 755 -R %{rudderdir}/share/tools
-chmod 655 -R %{rudderdir}/share/load-page
-
-# Create and populate technique store
-if [ ! -d /var/rudder/configuration-repository/shared-files ]; then
-  mkdir -p /var/rudder/configuration-repository/shared-files
-  touch /var/rudder/configuration-repository/shared-files/.placeholder
-fi
-if [ ! -d /var/rudder/configuration-repository/techniques ]; then
-	cp -a %{rudderdir}/share/techniques /var/rudder/configuration-repository/
-        touch /opt/rudder/etc/force_technique_reload
-fi
-
 %if 0%{?rhel}
 # SELinux support
 # Check "sestatus" presence, and if here tweak our installation to be
 # SELinux compliant
 if type sestatus >/dev/null 2>&1 && sestatus | grep -q "enabled"; then
+  echo -n "INFO: Applying selinux policy..."
   # Add/Update the rudder-webapp SELinux policy
   semodule -i /opt/rudder/share/selinux/rudder-webapp.pp
   # Ensure inventory directories context is set by resetting
   # their context to the contexts defined in SELinux configuration,
   # including the file contexts defined in the rudder-webapp module
   restorecon -RF /var/rudder/configuration-repository/techniques
-fi
-%endif
 
-%if 0%{?rhel}
-# SELinux support
-# Check "sestatus" presence, and if here tweak our installation to be
-# SELinux compliant
-if type sestatus >/dev/null 2>&1 && sestatus | grep -q "enabled"; then
-  echo -n "INFO: Applying ncf-api-virtualenv selinux policy..."
   # Add/Update the ncf-api-virtualenv SELinux policy
   semodule -i /usr/share/ncf-api-virtualenv/share/selinux/ncf-api-virtualenv.pp
   restorecon -RF /var/lib/ncf-api-venv/
@@ -532,93 +289,12 @@ if type sestatus >/dev/null 2>&1 && sestatus | grep -q "enabled"; then
 fi
 %endif
 
-%if 0%{?suse_version}
-# Enable mod_wsgi using a2enmod
-a2enmod wsgi >/dev/null 2>&1
+/opt/rudder/share/package-scripts/rudder-webapp-postinst "${FIRST_INSTALL}" "%{apache}" "%{apache_user}" "%{apache_group}"
 
-# Remove .pyc files to ensure we don't end up with outdated files
-rm -f /usr/share/ncf-api-virtualenv/tools/ncf.pyc
-rm -f /usr/share/ncf-api-virtualenv/tools/ncf_constraints.pyc
-
-%endif
-
-echo -n "INFO: Starting Apache HTTPd..."
-%if 0%{?rhel}
-systemctl start %{apache} >/dev/null
-%endif
-echo " Done"
-
-
-# Go into configuration-repository to manage git
-cd /var/rudder/configuration-repository
-
-# Initialize git repository if it is missing, so permissions can be set on it afterwards
-if [ ! -d /var/rudder/configuration-repository/.git ]; then
-
-  git init --shared=group
-
-  # Specify default git user name and email (git will refuse to commit without them)
-  git config user.name "root user (CLI)"
-  git config user.email "root@localhost"
-
-  git add .
-  git commit -q -m "initial commit"
-else
-
-  # This should have been set during repository initialization, but might need to be
-  # added if we are upgrading an existing repository
-  if [ $(git config --get-regexp "user.name|user.email"|wc -l) -ne 2 ]; then
-    git config user.name "root user (CLI)"
-    git config user.email "root@localhost"
-  fi
-
-  # Set shared repository value to group if not set
-  if ! git config core.sharedRepository >/dev/null 2>&1; then
-    git config core.sharedRepository group
-  fi
-
-fi
-
-# If this is a first install, create the configuration file
-if [ "${RUDDER_FIRST_INSTALL}" = "true" ]; then
-  /opt/rudder/bin/rudder server upgrade-techniques --set-autoupdate-technique-library=true
-fi
-
-# Run any upgrades
-echo "INFO: Launching script to check if a migration is needed"
-%{rudderdir}/bin/rudder-upgrade
-echo "INFO: End of migration script"
-
-# Adjust permissions on /var/rudder/configuration-repository
-/opt/rudder/bin/rudder-fix-repository-permissions
-
-
-## Add pre/post-hooks
-cd %{ruddervardir}/configuration-repository/ncf/
-git add ncf-hooks.d
-git commit --allow-empty --message "Add ncf hooks to repository"
-
-if [ -f /tmp/rudder-plugins-upgrade ]
-then
-  /opt/rudder/bin/rudder-pkg plugin restore-status < /tmp/rudder-plugins-upgrade
-fi
-
-if [ "${RUDDER_FIRST_INSTALL}" = "true" ]; then
-  systemctl daemon-reload
-  systemctl enable rudder-jetty
-fi
-
-systemctl start rudder-jetty
-
-# Run any upgrades
-echo "INFO: Launching script to check if a migration is needed"
-%{rudderdir}/bin/rudder-inventory-endpoint-upgrade
-echo "INFO: End of migration script"
-
-%postun -n rudder-webapp
 #=================================================
 # Post Uninstallation
 #=================================================
+%postun -n rudder-webapp
 
 # Do it only during uninstallation
 if [ $1 -eq 0 ]; then
@@ -647,9 +323,14 @@ fi
   if [ $1 -eq 0 ]; then
     if type sestatus >/dev/null 2>&1 && sestatus | grep -q "enabled"; then
       if semodule -l | grep -q rudder-webapp; then
+        echo -n "INFO: Removing selinux policy..."
+        # Remove the ncf-api-virtualenv SELinux policy
+        semodule -r ncf-api-virtualenv 2>/dev/null
+        restorecon -RF /var/lib/ncf-api-venv/
         # Remove the rudder-webapp SELinux policy
         semodule -r rudder-webapp
         restorecon -RF /var/rudder/configuration-repository/techniques
+        echo " Done"
       fi
     fi
   fi
@@ -658,11 +339,7 @@ fi
 # Do it only during uninstallation
 if [ $1 -eq 0 ]; then
   # restart apache2 since it uses the user ncf
-%if 0%{?rhel}
-  systemctl restart httpd >/dev/null
-%else
-  systemctl restart apache2 >/dev/null
-%endif
+  systemctl restart %{apache} >/dev/null
   # Remove the package user
   if getent passwd ncf-api-venv >/dev/null; then
     echo -n "INFO: Removing the ncf-api-venv user..."
@@ -671,26 +348,11 @@ if [ $1 -eq 0 ]; then
   fi
 fi
 
-%if 0%{?rhel}
-  # Do it only during uninstallation
-  if [ $1 -eq 0 ]; then
-    if type sestatus >/dev/null 2>&1 && sestatus | grep -q "enabled"; then
-      if semodule -l | grep -q ncf-api-virtualenv;  then
-        echo -n "INFO: Removing ncf-api-virtualenv selinux policy..."
-        # Remove the ncf-api-virtualenv SELinux policy
-        semodule -r ncf-api-virtualenv 2>/dev/null
-        restorecon -RF /var/lib/ncf-api-venv/
-        echo " Done"
-      fi
-    fi
-  fi
-%endif
 
-
-%preun -n rudder-jetty
 #=================================================
 # Pre Un-installation
 #=================================================
+%preun -n rudder-jetty
 
 if [[ $1 -eq 0 ]]
 then
