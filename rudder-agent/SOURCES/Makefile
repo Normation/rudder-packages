@@ -47,7 +47,7 @@ TRY_CFLAGS=-fPIE -fstack-protector
 # Usage: $(GET) <destination_file> <url>
 PROXY_ENV = $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY))
 WGET = wget -q -O
-CURL = curl -s -L -o
+CURL = curl -s --http1.1 -L -o
 FETCH = fetch -q -o
 ifneq (,$(wildcard /usr/bin/curl))
 _GET = $(PROXY_ENV) $(CURL)
