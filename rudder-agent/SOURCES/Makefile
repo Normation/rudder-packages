@@ -275,9 +275,6 @@ endif
 	$(INSTALL) -m 755 rudder-signature-check $(DESTDIR)/opt/rudder/bin/
 	$(INSTALL) -m 755 signature.sh $(DESTDIR)/opt/rudder/bin/ # for backwards compatibility, remove in the next major version after the next LTS after 3.1 is announced
 
-	# Install an empty uuid.hive file before generating an uuid
-	$(INSTALL) -m 644 uuid.hive $(DESTDIR)/opt/rudder/etc/
-
 	mkdir -p $(DESTDIR)/opt/rudder/share/package-scripts
 	$(INSTALL) -m 755 rudder-agent-postinst $(DESTDIR)/opt/rudder/share/package-scripts/
 	$(INSTALL) -m 755 check-rudder-agent $(DESTDIR)/opt/rudder/bin/
