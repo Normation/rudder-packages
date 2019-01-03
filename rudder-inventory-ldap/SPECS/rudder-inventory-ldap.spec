@@ -173,7 +173,6 @@ rm -rf %{buildroot}
 %files -n rudder-inventory-ldap
 %defattr(-, root, root, 0755)
 %attr(- , rudder-slapd,root, 0660) /opt/rudder/etc/openldap/slapd.conf
-%config(noreplace) /etc/rsyslog.d/rudder-slapd.conf
 %config(noreplace) /opt/rudder/etc/openldap/slapd.conf
 /usr/lib/systemd/system/rudder-slapd.service
 /opt/rudder/etc
@@ -184,7 +183,6 @@ rm -rf %{buildroot}
 /opt/rudder/lib
 /opt/rudder/var
 /opt/rudder/libexec
-/opt/rudder/etc/rudder-slapd.conf
 /opt/rudder/share/package-scripts/
 /var/log/rudder/ldap
 /var/rudder/run
