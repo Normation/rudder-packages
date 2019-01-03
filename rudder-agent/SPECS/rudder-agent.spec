@@ -447,12 +447,6 @@ rm -f %{_builddir}/file.list.%{name}
 %files -f %{_builddir}/file.list.%{name}
 %defattr(-, root, root, 0755)
 
-# The following file is declared to belong to this package but will not be installed
-# This is because it is populated during post-inst scriptlet
-# This is not reflected in debian packaging, because dpkg will never replace an
-# existing file declared in conffiles
-%ghost %{rudderdir}/etc/uuid.hive
-
 %attr(0700, -, -) %dir %{ruddervardir}/cfengine-community/ppkeys
 %dir %{ruddervardir}/cfengine-community/bin
 %dir %{ruddervardir}/cfengine-community/inputs
