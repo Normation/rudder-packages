@@ -144,10 +144,10 @@ then
 systemctl stop rudder-slapd
 fi
 
-%postun -n rudder-webapp
 #=================================================
 # Post Uninstallation
 #=================================================
+%postun -n rudder-inventory-ldap
 
 # Do it only during uninstallation
 if [ $1 -eq 0 ]; then
