@@ -6,23 +6,14 @@ export DH_VERBOSE=1
 DPKG_EXPORT_BUILDFLAGS = 1
 include /usr/share/dpkg/buildflags.mk
 
-build:
-	dh_testdir
-	cd SOURCES && make build
-	touch $@
+override_dh_auto_build:
+	dh_auto_build -- -C SOURCES
 
-clean:
-	dh_testdir
-	dh_testroot
-	rm -f build install
-	cd SOURCES && make clean
-	dh_clean 
+override_dh_auto_install:
+	dh_auto_install -- -C SOURCES
 
-install: build
-	dh_testdir
-	dh_testroot
-	cd SOURCES && make install DESTDIR=$(CURDIR)/debian/rudder-inventory-ldap
-	touch $@
+override_dh_auto_clean:
+	dh_auto_clean -- -C SOURCES
 
 # Default rule that guess what to do for missing targets
 %:

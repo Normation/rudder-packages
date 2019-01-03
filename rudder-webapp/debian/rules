@@ -4,19 +4,6 @@
 # Uncomment this to turn on verbose mode.
 export DH_VERBOSE=1
 
-build: java8
-	dh_testdir
-	# Build Virtualenv
-	cd SOURCES && make build
-	touch $@
-
-clean:
-	dh_testdir
-	dh_testroot
-	rm -f build install
-	cd SOURCES && make clean
-	dh_clean
-
 # dirty hack, don't do this, if your builder comes with java preinstalled you can remove this
 # TODO remove as soon as possible
 java8:
@@ -30,11 +17,19 @@ java8:
 		fi \
 	)
 
-install: build
-	dh_testdir
-	dh_testroot
-	cd SOURCES && make install DESTDIR=$(CURDIR)/debian/rudder-webapp
+build: java8
+	dh $@
+
+override_dh_auto_build:
+	dh_auto_build -- -C SOURCES
+
+override_dh_auto_install:
+	dh_auto_install -- -C SOURCES
+
+override_dh_auto_clean:
+	dh_auto_clean -- -C SOURCES
 
 # Default rule that guess what to do for missing targets
 %:
 	dh $@
+
