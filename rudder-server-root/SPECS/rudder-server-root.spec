@@ -61,11 +61,6 @@ This package is essentially a meta-package to install all components required to
 run a Rudder root server on a machine.
 
 #=================================================
-# Source preparation
-#=================================================
-%prep
-
-#=================================================
 # Building
 #=================================================
 %build

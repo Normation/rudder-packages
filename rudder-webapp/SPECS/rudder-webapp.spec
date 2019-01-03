@@ -170,11 +170,6 @@ Rudder. The webapp is automatically installed and started using the Jetty
 application server bundled in the rudder-jetty package.
 
 #=================================================
-# Source preparation
-#=================================================
-%prep
-
-#=================================================
 # Building
 #=================================================
 %build

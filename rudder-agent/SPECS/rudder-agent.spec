@@ -294,11 +294,6 @@ managed by Rudder. It is based on two main components: CFEngine Community 3 and
 FusionInventory.
 
 #=================================================
-# Source preparation
-#=================================================
-%prep
-
-#=================================================
 # Building
 #=================================================
 %build

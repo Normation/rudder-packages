@@ -94,9 +94,11 @@ This package is essentially a meta-package to install all components required to
 run a Rudder relay server on a machine.
 
 #=================================================
-# Source preparation
+# Building
 #=================================================
-%prep
+%build
+
+cd %{_sourcedir}
 
 %if 0%{?suse_version}
 # On SLES, change the Apache DocumentRoot to the OS default
@@ -106,12 +108,6 @@ sed -i "s%^DocumentRoot /var/www$%DocumentRoot /srv/www%" rudder-apache-relay-co
 cp -f rudder-relay.fc %{_builddir}
 cp -f rudder-relay.te %{_builddir}
 
-#=================================================
-# Building
-#=================================================
-%build
-
-cd %{_sourcedir}
 make build
 
 %if 0%{?rhel}
