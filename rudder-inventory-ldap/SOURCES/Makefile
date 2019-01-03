@@ -68,7 +68,7 @@ install: build
 	mkdir -p $(DESTDIR)/var/rudder/run
 	mkdir -p $(DESTDIR)/usr/lib/systemd/system
 	mkdir -p $(DESTDIR)/opt/rudder/share/package-scripts/
-	install -m 644 slapd.conf $(DESTDIR)/opt/rudder/etc/openldap/slapd.conf
+	install -m 640 slapd.conf $(DESTDIR)/opt/rudder/etc/openldap/slapd.conf
 	install -m 644 rudder-sources/ldap-inventory/inventory-repository/src/main/resources/ldap/inventory.schema $(DESTDIR)/opt/rudder/etc/openldap/schema/
 	install -m 644 rudder-sources/rudder/rudder-core/src/main/resources/ldap/rudder.schema $(DESTDIR)/opt/rudder/etc/openldap/schema/
 	install -m 644 rudder-inventory-ldap $(DESTDIR)/opt/rudder/etc/server-roles.d/
