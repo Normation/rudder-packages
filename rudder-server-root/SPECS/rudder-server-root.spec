@@ -77,6 +77,7 @@ run a Rudder root server on a machine.
 
 cd %{_sourcedir}
 
+cd %{_sourcedir}
 make install DESTDIR=%{buildroot}
 
 %pre

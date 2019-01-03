@@ -77,6 +77,7 @@ calculate compliance to given configuration rules.
 %install
 rm -rf %{buildroot}
 
+cd %{_sourcedir}
 make install DESTDIR=%{buildroot}
 
 

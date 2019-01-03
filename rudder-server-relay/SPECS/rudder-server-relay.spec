@@ -127,6 +127,7 @@ cd %{_builddir} && make -f /usr/share/selinux/devel/Makefile
 
 rm -rf %{buildroot}
 
+cd %{_sourcedir}
 make install APACHE_VHOSTDIR=%{apache_vhost_dir} DESTDIR=%{buildroot}
 
 mkdir -p %{buildroot}/etc/sysconfig/

@@ -92,6 +92,7 @@ rudder-agent package installed) and for configuration rules and parameters.
 # Ensure an appropriate environment for the compiler
 export CFLAGS="$RPM_OPT_FLAGS"
 
+cd %{_sourcedir}
 make build
 
 #=================================================
@@ -100,6 +101,7 @@ make build
 %install
 rm -rf %{buildroot}
 
+cd %{_sourcedir}
 make install DESTDIR=%{buildroot}
 
 #=================================================
