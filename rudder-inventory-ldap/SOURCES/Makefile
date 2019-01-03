@@ -73,7 +73,6 @@ install: build
 	install -m 644 rudder-sources/rudder/rudder-core/src/main/resources/ldap/rudder.schema $(DESTDIR)/opt/rudder/etc/openldap/schema/
 	install -m 644 rudder-inventory-ldap $(DESTDIR)/opt/rudder/etc/server-roles.d/
 	install -m 644 rudder-ldap $(DESTDIR)/opt/rudder/etc/server-roles.d/
-	install -m 755 rudder-slapd-configure $(DESTDIR)/opt/rudder/bin/rudder-slapd-configure
 	install -m 644 rsyslog/rudder-slapd.conf $(DESTDIR)/etc/rsyslog.d/rudder-slapd.conf
 	install -m 644 rudder-slapd.service $(DESTDIR)/usr/lib/systemd/system/rudder-slapd.service
 	install -m 755 rudder-inventory-ldap-postinst $(DESTDIR)/opt/rudder/share/package-scripts/
