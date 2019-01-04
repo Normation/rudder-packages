@@ -1,4 +1,4 @@
-Source: rudder-inventory-ldap
+Source: rudder-ldap
 Section: net
 Priority: extra
 Maintainer: Rudder packaging team <rudder-packaging@rudder-project.org>
@@ -6,9 +6,11 @@ Build-Depends: debhelper (>= 9), libltdl3-dev, libssl-dev, ca-certificates, curl
 Standards-Version: 3.8.0
 Homepage: http://www.rudder-project.org
 
-Package: rudder-inventory-ldap
+Package: rudder-ldap
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, systemd, rsyslog
+Breaks: rudder-inventory-ldap
+Replaces: rudder-inventory-ldap
 Description: Configuration management and audit tool - OpenLDAP
  Rudder is an open source configuration management and audit solution.
  .

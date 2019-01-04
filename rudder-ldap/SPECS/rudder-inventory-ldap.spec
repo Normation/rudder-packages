@@ -17,7 +17,7 @@
 #####################################################################################
 
 #=================================================
-# Specification file for rudder-inventory-ldap
+# Specification file for rudder-ldap
 #
 # Installs Rudder's OpenLDAP flavor and the
 # related files
@@ -28,7 +28,7 @@
 #=================================================
 # Variables
 #=================================================
-%define real_name        rudder-inventory-ldap
+%define real_name        rudder-ldap
 %define real_epoch       1398866025
 
 #=================================================
@@ -63,6 +63,11 @@ BuildRequires: libopenssl-devel
 Requires: libtool-ltdl
 BuildRequires: openssl-devel libtool-ltdl-devel
 %endif
+
+# Smooth upgrade
+Obsoletes: rudder-inventory-ldap
+# Prevent reinstalling old versions
+Conflicts: rudder-inventory-ldap
 
 # rpm automatically adds requires and provides on libs and bins it finds.
 # provides conflicts with system tools
@@ -107,7 +112,7 @@ make install DESTDIR=%{buildroot}
 #=================================================
 # Pre Installation
 #=================================================
-%pre -n rudder-inventory-ldap
+%pre -n rudder-ldap
 
 # Only do this on package upgrade
 if [ $1 -ne 1 ]
@@ -130,16 +135,16 @@ fi
 #=================================================
 # Post Installation
 #=================================================
-%post -n rudder-inventory-ldap
+%post -n rudder-ldap
 
 CFRUDDER_FIRST_INSTALL=$1
 
-/opt/rudder/share/package-scripts/rudder-inventory-ldap-postinst "${CFRUDDER_FIRST_INSTALL}"
+/opt/rudder/share/package-scripts/rudder-ldap-postinst "${CFRUDDER_FIRST_INSTALL}"
 
 #=================================================
 # Pre Un-installation
 #=================================================
-%preun -n rudder-inventory-ldap
+%preun -n rudder-ldap
 
 if [[ $1 -eq 0 ]]
 then
@@ -149,7 +154,7 @@ fi
 #=================================================
 # Post Uninstallation
 #=================================================
-%postun -n rudder-inventory-ldap
+%postun -n rudder-ldap
 
 # Do it only during uninstallation
 if [ $1 -eq 0 ]; then
@@ -170,7 +175,7 @@ rm -rf %{buildroot}
 #=================================================
 # Files
 #=================================================
-%files -n rudder-inventory-ldap
+%files -n rudder-ldap
 %defattr(-, root, root, 0755)
 %config(noreplace) /opt/rudder/etc/openldap/slapd.conf
 %config(noreplace) /etc/rsyslog.d/rudder-slapd.conf

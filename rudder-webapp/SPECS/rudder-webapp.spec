@@ -124,7 +124,7 @@ Obsoletes: ncf, ncf-api-virtualenv, rudder-techniques
 Conflicts: ncf, ncf-api-virtualenv, rudder-techniques
 
 # Dependencies
-Requires: rudder-inventory-ldap = %{real_epoch}:%{real_version}, rudder-server-relay = %{real_epoch}:%{real_version}, %{apache}, %{apache_tools}, git-core, rsync, openssl, %{ldap_clients}, curl
+Requires: rudder-ldap = %{real_epoch}:%{real_version}, rudder-server-relay = %{real_epoch}:%{real_version}, %{apache}, %{apache_tools}, git-core, rsync, openssl, %{ldap_clients}, curl
 
 # We need the PostgreSQL client utilities so that we can run database checks and upgrades (rudder-upgrade, in particular)
 Requires: postgresql >= 9.2

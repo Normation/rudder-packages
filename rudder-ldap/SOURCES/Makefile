@@ -75,7 +75,7 @@ install: build
 	install -m 644 rudder-ldap $(DESTDIR)/opt/rudder/etc/server-roles.d/
 	install -m 644 rsyslog/rudder-slapd.conf $(DESTDIR)/etc/rsyslog.d/rudder-slapd.conf
 	install -m 644 rudder-slapd.service $(DESTDIR)/usr/lib/systemd/system/rudder-slapd.service
-	install -m 755 rudder-inventory-ldap-postinst $(DESTDIR)/opt/rudder/share/package-scripts/
+	install -m 755 rudder-ldap-postinst $(DESTDIR)/opt/rudder/share/package-scripts/
 
 clean: localclean
 localclean:

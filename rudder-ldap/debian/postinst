@@ -1,5 +1,5 @@
 #!/bin/sh
-# postinst script for rudder-inventory-ldap
+# postinst script for rudder-ldap
 #
 # see: dh_installdeb(1)
 
@@ -24,7 +24,7 @@ case "$1" in
     CFRUDDER_FIRST_INSTALL=0
     if [ -z "${$2}" ]; then CFRUDDER_FIRST_INSTALL=1; fi
 	  
-    /opt/rudder/share/package-scripts/rudder-inventory-ldap-postinst "${CFRUDDER_FIRST_INSTALL}"
+    /opt/rudder/share/package-scripts/rudder-ldap-postinst "${CFRUDDER_FIRST_INSTALL}"
   ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)

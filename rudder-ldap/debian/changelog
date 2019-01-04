@@ -1,4 +1,4 @@
-rudder-inventory-ldap (2.3.0~alpha~git-0) lenny; urgency=low
+rudder-ldap (2.3.0~alpha~git-0) lenny; urgency=low
 
   * See https://www.rudder-project.org/site/documentation/user-manual/ for changelogs
 
