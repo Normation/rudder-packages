@@ -310,7 +310,7 @@ fi
 #=================================================
 # Pre Un-installation
 #=================================================
-%preun -n rudder-jetty
+%preun -n rudder-webapp
 
 if [[ $1 -eq 0 ]]
 then
