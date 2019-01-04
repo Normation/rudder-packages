@@ -43,8 +43,6 @@ URL: http://www.rudder-project.org
 
 Group: Applications/System
 
-Source1: rudder-sources
-
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
 
