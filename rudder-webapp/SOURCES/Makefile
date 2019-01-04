@@ -247,7 +247,6 @@ install: build
 	install -m 644 configuration-repository-gitignore $(DESTDIR)/var/rudder/configuration-repository/.gitignore
 	
 	install -m 644 endpoint.war $(DESTDIR)/opt/rudder/share/webapps/
-	install -m 644 inventory-web.properties $(DESTDIR)/opt/rudder/etc/
 	install -m 755 rudder-inventory-endpoint-upgrade $(DESTDIR)/opt/rudder/bin/
 	
 	install -m 644 rudder-inventory-endpoint $(DESTDIR)/opt/rudder/etc/server-roles.d/
@@ -278,7 +277,6 @@ localclean:
 	rm -rf settings-external.xml
 	rm -rf virtualenv/
 	rm -rf ncf-api-virtualenv
-	rm -rf inventory-web.properties
 	rm -rf jetty
 	rm -f .debian/rudder-jetty.init
 	rm -f .debian/rudder-jetty.default

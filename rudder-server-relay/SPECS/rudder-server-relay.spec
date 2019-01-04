@@ -253,7 +253,7 @@ rm -rf %{buildroot}
 /opt/rudder/share/relay-api/
 /opt/rudder/share/python/
 /opt/rudder/bin/rudder-pkg
-/opt/rudder/share/package-scripts/rudder-server-root-postinst
+/opt/rudder/share/package-scripts/rudder-server-relay-postinst
 
 # Avoid having .pyo and .pyc files in our package
 # as they will always be regenerated
