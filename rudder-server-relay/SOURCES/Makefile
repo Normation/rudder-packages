@@ -101,7 +101,7 @@ install: build
 	install -m 644 rudder-relay-apache $(DESTDIR)/etc/sysconfig/rudder-relay-apache
 	install -m 644 rudder-relay.cron $(DESTDIR)/etc/cron.d/rudder-relay
 	install -m 644 rudder-relay.sudo $(DESTDIR)/etc/sudoers.d/rudder-relay
-	install -m 644 rudder.conf $(DESTDIR)/etc/$(APACHE_VHOSTDIR)/rudder.conf
+	install -m 644 rudder-vhost.conf $(DESTDIR)/etc/$(APACHE_VHOSTDIR)/rudder.conf
 	
 	# Copy stub rudder-networks*.conf
 	install -m 644 rudder-networks-24.conf $(DESTDIR)/opt/rudder/etc/
