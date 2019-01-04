@@ -54,7 +54,7 @@ build:
 	# Get all requirements via pip
 	cd relay-api && flask/bin/pip install -r requirements.txt
 	# Clean up unwanted binaries
-	cd relay-api && for i in easy_install python pip; do rm flask/bin/${i}*; done
+	cd relay-api && for i in easy_install python pip; do rm -f flask/bin/$${i}*; done
 
 ifeq ($(SELINUX),true)
 	# Build SELinux policy package
