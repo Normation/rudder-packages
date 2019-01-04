@@ -194,6 +194,7 @@ install: build
 	install -m 644 rudder-sources/rudder/rudder-core/src/main/resources/ldap/bootstrap.ldif $(DESTDIR)/opt/rudder/share/
 	install -m 644 rudder-sources/rudder/rudder-core/src/main/resources/ldap/init-policy-server.ldif $(DESTDIR)/opt/rudder/share/
 	install -m 644 rudder-sources/rudder/rudder-web/src/main/resources/configuration.properties.sample $(DESTDIR)/opt/rudder/etc/rudder-web.properties
+	install -m 644 rudder-sources/ldap-inventory/inventory-provisioning-web/src/main/resources/configuration.properties.sample $(DESTDIR)/opt/rudder/etc/inventory-web.properties
 	install -m 644 rudder-sources/rudder/rudder-web/src/main/resources/logback.xml $(DESTDIR)/opt/rudder/etc/
 	cp -r rudder-sources/rudder-techniques/techniques/ $(DESTDIR)/opt/rudder/share/
 	

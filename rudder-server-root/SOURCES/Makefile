@@ -28,7 +28,6 @@ GET=get() { $(PROXY_ENV) curl -s -L -o "$$1.part" "$$2" && { openssl dgst -sha25
 
 # Defauth PATHs
 DESTDIR = $(CURDIR)/target
-INSTALL_DIR = $(DESTDIR)/opt/rudder
 
 localdepends: 
 
@@ -36,11 +35,11 @@ build:
 
 install: build
 	mkdir -p $(DESTDIR)/usr/lib/systemd/system
-	mkdir -p $(INSTALL_DIR)/etc/server-roles.d/
-	mkdir -p $(INSTALL_DIR)/share/package-scripts/
-	$(INSTALL) -m 644 rudder-server.service $(DESTDIR)/usr/lib/systemd/system/
-	$(INSTALL) -m 644 rudder-server-root $(INSTALL_DIR)/etc/server-roles.d/
-	$(INSTALL) -m 755 rudder-server-root-postinst $(INSTALL_DIR)/share/package-scripts/
+	mkdir -p $(DESTDIR)/opt/rudder/etc/server-roles.d/
+	mkdir -p $(DESTDIR)/opt/rudder/share/package-scripts/
+	install -m 644 rudder-server.service $(DESTDIR)/usr/lib/systemd/system/
+	install -m 644 rudder-server-root $(DESTDIR)/opt/rudder/etc/server-roles.d/
+	install -m 755 rudder-server-root-postinst $(DESTDIR)/opt/rudder/share/package-scripts/
 
 clean: localclean
 localclean:

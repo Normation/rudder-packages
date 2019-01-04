@@ -137,7 +137,7 @@ rm -rf %{buildroot}
 %defattr(-, root, root, 0755)
 /opt/rudder/etc/
 /opt/rudder/share/package-scripts/rudder-server-root-postinst
-/etc/init.d/rudder-server
+/usr/lib/systemd/system/rudder-server.service
 
 #=================================================
 # Changelog

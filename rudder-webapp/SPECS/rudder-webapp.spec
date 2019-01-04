@@ -69,43 +69,6 @@ URL: http://www.rudder-project.org
 
 Group: Applications/System
 
-Source1: rudder-users.xml
-Source2: rudder.xml
-Source5: rudder-upgrade
-Source7: rudder-webapp
-Source8: rudder-web
-Source10: rudder-init
-Source11: rudder-node-to-relay
-Source12: rudder-root-rename
-Source13: rudder-passwords.conf
-Source14: rudder-plugin
-Source15: post.write_technique.10_commit.sh
-Source16: post.write_technique.50_rudderify.sh
-Source17: rudder-metrics-reporting
-Source18: ca-bundle.crt
-Source19: rudder-reload-cf-serverd
-Source20: rudder-webapp.te
-Source22: rudder-keys
-Source23: .gitignore
-Source24: rudder-webapp-apache
-Source25: rudder-apache-webapp-common.conf
-Source26: rudder-apache-webapp-ssl.conf
-Source27: rudder-apache-webapp-nossl.conf
-Source28: rudder-webapp.fc
-Source29: rudder-fix-repository-permissions
-Source31: ncf_api_flask_app.wsgi
-Source32: ncf-api-virtualenv.conf
-Source33: ncf-api-virtualenv.te
-Source34: ncf-api-virtualenv.fc
-Source35: inventory-web.properties
-Source36: rudder-inventory-endpoint-upgrade
-Source37: rudder-inventory-endpoint
-Source38: endpoint.xml
-Source39: rudder-jetty.default
-Source40: rudder-jetty.conf
-Source41: rudder-jetty
-
-
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
 
