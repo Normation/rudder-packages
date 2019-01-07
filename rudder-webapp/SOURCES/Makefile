@@ -43,6 +43,7 @@ MAVEN_PROXY := $(if $(PROXY), $(shell echo "$(PROXY)" |  perl -ne ' \
 
 DESTDIR = $(CURDIR)/target
 APACHE_VHOSTDIR = apache2/sites-available
+JETTY_SCRIPT=jetty.sh
 
 # We are on an nrm builder
 ifeq (,$(wildcard /tmp/nrm_builder))
@@ -169,8 +170,8 @@ install: build
 	mkdir -p $(DESTDIR)/var/rudder/inventories/received
 	mkdir -p $(DESTDIR)/var/rudder/inventories/failed
 	mkdir -p $(DESTDIR)/var/rudder/configuration-repository/ncf/ncf-hooks.d
-	mkdir -p $(DESTDIR)/var/rudder/apache2/
-	mkdir -p $(DESTDIR)/var/rudder/webapp
+	mkdir -p $(DESTDIR)/var/log/rudder/apache2/
+	mkdir -p $(DESTDIR)/var/log/rudder/webapp
 	mkdir -p $(DESTDIR)/var/rudder/run
 	mkdir -p $(DESTDIR)/etc/$(APACHE_VHOSTDIR)/
 	mkdir -p $(DESTDIR)/etc/sysconfig/
@@ -258,12 +259,13 @@ install: build
 	cp -a rudder-jetty-base $(DESTDIR)/opt/rudder/etc
 	
 	# Init script
-	install -m 755 jetty/bin/jetty.sh $(DESTDIR)/opt/rudder/bin/
+	install -m 755 jetty/bin/$(JETTY_SCRIPT) $(DESTDIR)/opt/rudder/bin/rudder-jetty.sh
 	install -m 644 rudder-jetty.default $(DESTDIR)/etc/default/rudder-jetty
 	install -m 644 rudder-jetty.conf $(DESTDIR)/opt/rudder/etc/
 	install -m 644 rudder-jetty $(DESTDIR)/opt/rudder/etc/server-roles.d/
 
 	install -m 755 rudder-webapp-postinst $(DESTDIR)/opt/rudder/share/package-scripts/
+	install -m 644 rudder-jetty.service $(DESTDIR)/usr/lib/systemd/system/
 
 	touch $@
 

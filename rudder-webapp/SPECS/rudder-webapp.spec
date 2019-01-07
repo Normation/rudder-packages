@@ -22,13 +22,6 @@
 %define real_name               rudder-webapp
 %define real_epoch              1398866025
 
-%define rudderdir               /opt/rudder
-%define ruddervardir            /var/rudder
-%define rudderlogdir            /var/log/rudder
-%define sharedir                /usr/share
-%define bindir                  /usr/bin
-
-
 %define config_repository_group rudder
 
 %define maven_settings settings-external.xml
@@ -154,12 +147,12 @@ make -f /usr/share/selinux/devel/Makefile
 rm -rf %{buildroot}
 
 cd %{_sourcedir}
-make install APACHE_VHOSTDIR=%{apache_vhost_dir} DESTDIR=%{buildroot}
+make install APACHE_VHOSTDIR=%{apache_vhost_dir} DESTDIR=%{buildroot} JETTY_SCRIPT=%{jetty_init_script}
 
 %if 0%{?rhel}
   # Install SELinux policy
   install -m 644  ncf-api-virtualenv.pp %{buildroot}/usr/share/ncf-api-virtualenv/share/selinux/
-  install -m 644  rudder-webapp.pp %{buildroot}%{rudderdir}/share/selinux/
+  install -m 644  rudder-webapp.pp %{buildroot}/opt/rudder/share/selinux/
   # Replace init script
   cp jetty/bin/jetty-rpm.sh jetty/bin/jetty.sh
 %else
@@ -330,50 +323,47 @@ rm -rf %{buildroot}
 %files -n rudder-webapp
 %defattr(-, root, root, 0755)
 
-%{rudderdir}/etc/
-%config(noreplace) %{rudderdir}/etc/rudder-web.properties
-%config(noreplace) %{rudderdir}/etc/rudder-users.xml
-%config(noreplace) %{rudderdir}/etc/logback.xml
-%config(noreplace) %{rudderdir}/etc/rudder-passwords.conf
-%attr(0600, root, root) %{rudderdir}/etc/rudder-passwords.conf
-
-/opt/rudder/jetty
-/opt/rudder/etc/rudder-jetty-base
-%{rudderlogdir}/webapp
-/var/rudder/run
-/opt/rudder/bin/rudder-jetty.sh
+/opt/rudder/etc/
+%config(noreplace) /opt/rudder/etc/rudder-web.properties
+%config(noreplace) /opt/rudder/etc/rudder-users.xml
+%config(noreplace) /opt/rudder/etc/logback.xml
+%config(noreplace) /opt/rudder/etc/rudder-passwords.conf
 %config(noreplace) /etc/default/rudder-jetty
+%attr(0600, root, root) /opt/rudder/etc/rudder-passwords.conf
+/lib/systemd/system/
+/opt/rudder/jetty
 /opt/rudder/etc/rudder-jetty.conf
-/usr/lib/systemd/system/
-
-%{rudderdir}/bin/
-%{rudderdir}/bin/rudder-node-to-relay
-%{rudderdir}/bin/rudder-init
-%{rudderdir}/bin/rudder-init.sh
-%{rudderdir}/bin/rudder-root-rename
-%{rudderdir}/bin/rudder-reload-cf-serverd
-%{rudderdir}/share/techniques/
-%{rudderdir}/share/tools/
-%{rudderdir}/share/webapps/
-%{rudderdir}/share/rudder-plugins/
-%{rudderdir}/share
-%{ruddervardir}/inventories/received
-%{ruddervardir}/inventories/failed
-%{ruddervardir}/configuration-repository/.gitignore
-%{ruddervardir}/configuration-repository/ncf/ncf-hooks.d
-%{rudderlogdir}/apache2/
+/opt/rudder/etc/rudder-jetty-base
+/opt/rudder/bin/
+/opt/rudder/bin/rudder-jetty.sh
+/opt/rudder/bin/rudder-node-to-relay
+/opt/rudder/bin/rudder-init
+/opt/rudder/bin/rudder-root-rename
+/opt/rudder/bin/rudder-reload-cf-serverd
+/opt/rudder/share/techniques/
+/opt/rudder/share/tools/
+/opt/rudder/share/webapps/
+/opt/rudder/share/rudder-plugins/
+/opt/rudder/share
+/var/rudder/run
+/var/rudder/inventories/received
+/var/rudder/inventories/failed
+/var/rudder/configuration-repository/.gitignore
+/var/rudder/configuration-repository/ncf/ncf-hooks.d
+/var/log/rudder/apache2/
+/var/log/rudder/webapp/
 /etc/%{apache_vhost_dir}/
-%config %{rudderdir}/etc/rudder-apache-webapp-common.conf
-%config %{rudderdir}/etc/rudder-apache-webapp-ssl.conf
-%config %{rudderdir}/etc/rudder-apache-webapp-nossl.conf
+%config /opt/rudder/etc/rudder-apache-webapp-common.conf
+%config /opt/rudder/etc/rudder-apache-webapp-ssl.conf
+%config /opt/rudder/etc/rudder-apache-webapp-nossl.conf
 %config(noreplace) /etc/sysconfig/rudder-webapp-apache
+%config(noreplace) /usr/share/ncf/tree/ncf.conf
 /usr/share/doc/rudder
-%{sharedir}/ncf/
-%config(noreplace) %{sharedir}/ncf/tree/ncf.conf
-%{bindir}/ncf
+/usr/share/ncf/
+/usr/bin/ncf
 /usr/share/ncf-api-virtualenv/
 %attr(- , ncf-api-venv,ncf-api-venv) /var/lib/ncf-api-venv/
-%{apache_vhost_dir}/ncf-api-virtualenv.conf
+/etc/%{apache_vhost_dir}/ncf-api-virtualenv.conf
 
 %config(noreplace) /opt/rudder/etc/inventory-web.properties
 
@@ -381,8 +371,8 @@ rm -rf %{buildroot}
 %if ! 0%{?suse_version}
 # Avoid having .pyo and .pyc files in our package
 # as they will always be regenerated
-%exclude %{sharedir}/ncf/tree/10_ncf_internals/modules/templates/*.pyc
-%exclude %{sharedir}/ncf/tree/10_ncf_internals/modules/templates/*.pyo
+%exclude /usr/share/ncf/tree/10_ncf_internals/modules/templates/*.pyc
+%exclude /usr/share/ncf/tree/10_ncf_internals/modules/templates/*.pyo
 %endif
 
 
