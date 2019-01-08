@@ -39,7 +39,7 @@ FIND := find
 PROXY_ENV = $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY))
 # No accept encoding to prevent the webserver form altering the distributed file
 WGET = wget -q --header="accept-encoding:" -O
-CURL = curl -s -L -o
+CURL = curl -s --http1.1 -L -o
 ifneq (,$(wildcard /usr/bin/curl))
 _GET = $(PROXY_ENV) $(CURL)
 else
