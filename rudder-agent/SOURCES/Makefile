@@ -54,6 +54,8 @@ XML_SHA1 = ab3325e6cdda50ab2382fdfe0bdb6f7d1b9224a6
 ZLIB_RELEASE = 1.2.11
 ZLIB_SHA1 = e6d119755acdf9104d7ba236b1242696940ed6dd
 
+MAKE_J=-j3
+
 # Defauth PATHs
 RUDDER_DIR = /opt/rudder
 DESTDIR = $(CURDIR)/target
@@ -538,7 +540,7 @@ build-ssl: openssl-source
 	# openssl doesn't support CFLAGS (it overrides its own) so we must pass them in batch to configure
 	cd openssl-source && RELEASE="" $(SSL_CONFIGURE) -fPIC $(BUILD_CFLAGS) $(SECURE_CFLAGS) -Wl,-R$(RUDDER_DIR)/lib $(BUILD_LDFLAGS) $(SECURE_LDFLAGS) --prefix=$(RUDDER_DIR) --openssldir=$(RUDDER_DIR)/openssl shared no-idea no-rc5 no-ssl3 no-dtls no-psk no-srp no-engine
 	cd openssl-source && $(MAKE) depend
-	cd openssl-source && $(MAKE)
+	cd openssl-source && $(MAKE) $(MAKE_J)
 	slibclean >/dev/null 2>&1 || true
 	# install to a temporary location is needed to build cfengine
 	cd openssl-source && $(MAKE) install $(OPENSSL_DESTDIR_VAR_NAME)=$(CURDIR)/build-ssl
@@ -546,7 +548,7 @@ build-ssl: openssl-source
 build-lmdb: lmdb-source
 	# lmdb doesn't support CFLAGS (it overrides its own) so we pass XCFLAGS instead, that is appended to the original ones
 	# we need to add -fPIE to be able to build static lib (which we do not use)
-	cd lmdb-source/libraries/liblmdb && $(MAKE) XCFLAGS="$(BUILD_CFLAGS) $(SECURE_CFLAGS) $(PIE_CFLAGS)" LDFLAGS="-Wl,-R$(RUDDER_DIR)/lib $(BUILD_LDFLAGS) $(SECURE_LDFLAGS)"
+	cd lmdb-source/libraries/liblmdb && $(MAKE) $(MAKE_J) XCFLAGS="$(BUILD_CFLAGS) $(SECURE_CFLAGS) $(PIE_CFLAGS)" LDFLAGS="-Wl,-R$(RUDDER_DIR)/lib $(BUILD_LDFLAGS) $(SECURE_LDFLAGS)"
 	# need a temporary install for cfengine
 	mkdir -p build-lmdb$(RUDDER_DIR)
 	# LMDB's Makefile does not know how to create destination files, do it ourselves
@@ -556,13 +558,13 @@ build-lmdb: lmdb-source
 
 build-pcre: pcre-source
 	cd pcre-source && ./configure --disable-cpp --enable-utf8 --enable-unicode-properties --disable-cpp --prefix=$(RUDDER_DIR) $(BUILD_FLAGS)
-	cd pcre-source && $(MAKE)
+	cd pcre-source && $(MAKE) $(MAKE_J)
 	# install to a temporary location is needed to build cfengine
 	cd pcre-source && $(MAKE) install DESTDIR=$(CURDIR)/build-pcre
 
 build-zlib: zlib-source
 	cd zlib-source && $(BUILD_FLAGS) ./configure --prefix=$(RUDDER_DIR)
-	cd zlib-source && $(MAKE)
+	cd zlib-source && $(MAKE) $(MAKE_J)
 	# install to a temporary location is needed to build cfengine
 	cd zlib-source && $(MAKE) install DESTDIR=$(CURDIR)/build-zlib
 
@@ -572,19 +574,19 @@ build-curl: curl-source
 	# since we also need to link it is during cfengine build we add -R (--rpath)
 	# we may want to remove rpath using patchelf at the end, but this is mostly cosmetic
 	cd curl-source && ./configure --prefix=$(RUDDER_DIR) --with-ssl $(ZLIB_ARG) --disable-rtsp --enable-ipv6 --without-librtmp --without-ldap-lib CFLAGS="$(BUILD_CFLAGS) $(PIE_CFLAGS) $(SECURE_CFLAGS) -I$(CURDIR)/build-ssl$(RUDDER_DIR)/include" LDFLAGS="-Wl,-R$(RUDDER_DIR)/lib $(BUILD_LDFLAGS) $(SECURE_LDFLAGS) -Wl,-R$(CURDIR)/build-ssl$(RUDDER_DIR)/lib -L$(CURDIR)/build-ssl$(RUDDER_DIR)/lib" PKG_CONFIG_PATH="$(CURDIR)/build-ssl$(RUDDER_DIR)/lib/pkgconfig"
-	cd curl-source && $(MAKE)
+	cd curl-source && $(MAKE) $(MAKE_J)
 	# install to a temporary location is needed to build cfengine
 	cd curl-source && $(MAKE) install DESTDIR=$(CURDIR)/build-curl
 
 build-yaml: yaml-source
 	cd yaml-source && ./configure --prefix=$(RUDDER_DIR) --enable-gettext=no $(BUILD_FLAGS)
-	cd yaml-source && $(MAKE)
+	cd yaml-source && $(MAKE) $(MAKE_J)
 	# install to a temporary location is needed to build cfengine
 	cd yaml-source && $(MAKE) install DESTDIR=$(CURDIR)/build-yaml
 
 build-xml: xml-source
 	cd xml-source && ./configure --prefix=$(RUDDER_DIR) $(ZLIB_ARG) --with-xpath --with-c14n --without-catalog --without-debug --without-docbook --without-ftp --without-http --without-html --without-iconv --without-python --enable-shared --disable-static $(BUILD_FLAGS)
-	cd xml-source && $(MAKE)
+	cd xml-source && $(MAKE) $(MAKE_J)
 	# install to a temporary location is needed to build cfengine
 	cd xml-source && $(MAKE) install DESTDIR=$(CURDIR)/build-xml
 	cd $(CURDIR)/build-xml$(RUDDER_DIR) && rm -rf share bin/xml2-config
@@ -600,7 +602,7 @@ build-cfengine-stamp:
 	# build system bug when libyaml is enabled
 	cd cfengine-source && $(SED) 's/AM_CPPFLAGS = .*/AM_CPPFLAGS = $$(PCRE_CPPFLAGS) $$(OPENSSL_CPPFLAGS) $$(LIBYAML_CPPFLAGS)/' libutils/Makefile.in > libutils/Makefile.in.new && mv libutils/Makefile.in.new libutils/Makefile.in
 	cd cfengine-source && ./configure --prefix=$(RUDDER_DIR) --with-workdir=/var/rudder/cfengine-community --enable-static=yes --enable-shared=no --without-postgresql $(ACL_ARG) $(LMDB_ARG) $(OPENSSL_ARG) $(PCRE_ARG) $(CURL_ARG) $(YAML_ARG) $(XML_ARG) $(PAM_ARG) CFLAGS="$(BUILD_CFLAGS) $(PIE_CFLAGS) $(SECURE_CFLAGS)" LDFLAGS="$(BUILD_LDFLAGS) $(SECURE_LDFLAGS)"
-	cd cfengine-source && $(MAKE)
+	cd cfengine-source && $(MAKE) $(MAKE_J)
 	touch $@
 
 # Test if compiler supports hardening flags
@@ -617,7 +619,7 @@ get-flags:
 build-perl: perl-$(PERL_RELEASE)
 	cd perl-$(PERL_RELEASE) && $(MAKE) distclean 2>/dev/null || true # Or this can fail on an already used source
 	cd perl-$(PERL_RELEASE) && ./Configure -Dnoextensions=ODBM_File -Duserelocatableinc -Dusethreads -des -Dcc="gcc" -Dinstallprefix=$(RUDDER_DIR) -Dsiteprefix=$(RUDDER_DIR) -Dprefix=$(RUDDER_DIR)
-	cd perl-$(PERL_RELEASE) && $(MAKE)
+	cd perl-$(PERL_RELEASE) && $(MAKE) $(MAKE_J)
 	touch $@
 
 #####################################
