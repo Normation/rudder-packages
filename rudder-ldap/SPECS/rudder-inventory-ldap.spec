@@ -179,6 +179,7 @@ rm -rf %{buildroot}
 %defattr(-, root, root, 0755)
 %config(noreplace) /opt/rudder/etc/openldap/slapd.conf
 %config(noreplace) /etc/rsyslog.d/rudder-slapd.conf
+%attr(755, rudder-slapd, rudder-slapd, /var/rudder/ldap/openldap-data)
 /usr/lib/systemd/system/rudder-slapd.service
 /opt/rudder/etc
 /opt/rudder/bin

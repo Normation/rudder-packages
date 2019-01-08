@@ -42,9 +42,9 @@ fi
 if ! getent passwd rudder-slapd >/dev/null; then
   echo -n "INFO: Creating the rudder-slapd user..."
   useradd -r -s /bin/false -d /var/rudder/ldap -c "Rudder LDAP server,,," rudder-slapd >/dev/null 2>&1
-  chown rudder-slapd "${LDAP_CONF}"
-  chmod 660 "${LDAP_CONF}"
-  chown -R rudder-slapd /var/rudder/ldap/
+  chown root:rudder-slapd "${LDAP_CONF}"
+  chmod 640 "${LDAP_CONF}"
+  chown -R rudder-slapd:rudder-slapd /var/rudder/ldap/
   echo " Done"
 fi
 

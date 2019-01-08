@@ -28,8 +28,8 @@ echo -n "INFO: Stopping Apache HTTPd..."
 systemctl stop ${APACHE} >/dev/null
 echo " Done"
 
-# Enable the conf-available entry
-a2enconf ncf-api-virtualenv
+# Enable the conf-available entry if possible
+a2enconf ncf-api-virtualenv 2>/dev/null || true
 
 # Remove .pyc files to ensure we don't end up with outdated files
 rm -f /usr/share/ncf/tools/ncf.pyc
