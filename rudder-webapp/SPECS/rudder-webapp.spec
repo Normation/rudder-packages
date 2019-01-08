@@ -147,7 +147,7 @@ make -f /usr/share/selinux/devel/Makefile
 rm -rf %{buildroot}
 
 cd %{_sourcedir}
-make install APACHE_VHOSTDIR=%{apache_vhost_dir} DESTDIR=%{buildroot} JETTY_SCRIPT=%{jetty_init_script}
+make install APACHE_VHOSTDIR=%{apache_vhost_dir} DESTDIR=%{buildroot} JETTY_SCRIPT=%{jetty_init_script} APACHE_CONFDIR=%{apache_vhost_dir}
 
 %if 0%{?rhel}
   # Install SELinux policy

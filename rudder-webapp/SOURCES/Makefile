@@ -43,6 +43,7 @@ MAVEN_PROXY := $(if $(PROXY), $(shell echo "$(PROXY)" |  perl -ne ' \
 
 DESTDIR = $(CURDIR)/target
 APACHE_VHOSTDIR = apache2/sites-available
+APACHE_CONFDIR = apache2/conf-available
 JETTY_SCRIPT=jetty.sh
 
 # We are on an nrm builder
@@ -182,6 +183,7 @@ install: build
 	mkdir -p $(DESTDIR)/usr/share/ncf-api-virtualenv/share/selinux/
 	mkdir -p $(DESTDIR)/var/lib/ncf-api-venv/
 	mkdir -p $(DESTDIR)/opt/rudder/share/package-scripts/
+	mkdir -p $(DESTDIR)/usr/lib/systemd/system/
 
 	# Install helper scripts
 	install -m 755 rudder-init $(DESTDIR)/opt/rudder/bin/
@@ -216,7 +218,7 @@ install: build
 	cp -r ncf-api-virtualenv/* $(DESTDIR)/usr/share/ncf-api-virtualenv/
 	
 	install -m 644 ncf_api_flask_app.wsgi $(DESTDIR)/usr/share/ncf-api-virtualenv/
-	install -m 644 ncf-api-virtualenv.conf $(DESTDIR)/etc/$(APACHE_VHOSTDIR)/
+	install -m 644 ncf-api-virtualenv.conf $(DESTDIR)/etc/$(APACHE_CONFDIR)/
 	
 	# Install upgrade tools and migration scripts
 	

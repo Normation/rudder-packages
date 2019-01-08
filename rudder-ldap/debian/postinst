@@ -22,8 +22,7 @@ case "$1" in
   configure)
     # Is this the first installation?
     CFRUDDER_FIRST_INSTALL=0
-    if [ -z "${$2}" ]; then CFRUDDER_FIRST_INSTALL=1; fi
-	  
+    if [ -z "${2}" ]; then CFRUDDER_FIRST_INSTALL=1; fi
     /opt/rudder/share/package-scripts/rudder-ldap-postinst "${CFRUDDER_FIRST_INSTALL}"
   ;;
 

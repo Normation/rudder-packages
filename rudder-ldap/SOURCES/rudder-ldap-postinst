@@ -48,7 +48,7 @@ if ! getent passwd rudder-slapd >/dev/null; then
   echo " Done"
 fi
 
-if [ ${CFRUDDER_FIRST_INSTALL} -eq 1 ]
+if [ ${CFRUDDER_FIRST_INSTALL} -eq 1 ]; then
   echo -n "INFO: Setting rudder-slapd as a boot service..."
   systemctl daemon-reload
   systemctl enable rudder-slapd
