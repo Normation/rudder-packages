@@ -330,7 +330,7 @@ rm -rf %{buildroot}
 %config(noreplace) /opt/rudder/etc/rudder-passwords.conf
 %config(noreplace) /etc/default/rudder-jetty
 %attr(0600, root, root) /opt/rudder/etc/rudder-passwords.conf
-/lib/systemd/system/
+/usr/lib/systemd/system/
 /opt/rudder/jetty
 /opt/rudder/etc/rudder-jetty.conf
 /opt/rudder/etc/rudder-jetty-base
@@ -360,7 +360,6 @@ rm -rf %{buildroot}
 %config(noreplace) /usr/share/ncf/tree/ncf.conf
 /usr/share/doc/rudder
 /usr/share/ncf/
-/usr/bin/ncf
 /usr/share/ncf-api-virtualenv/
 %attr(- , ncf-api-venv,ncf-api-venv) /var/lib/ncf-api-venv/
 /etc/%{apache_vhost_dir}/ncf-api-virtualenv.conf

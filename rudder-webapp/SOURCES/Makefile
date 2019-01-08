@@ -175,6 +175,7 @@ install: build
 	mkdir -p $(DESTDIR)/var/log/rudder/webapp
 	mkdir -p $(DESTDIR)/var/rudder/run
 	mkdir -p $(DESTDIR)/etc/$(APACHE_VHOSTDIR)/
+	mkdir -p $(DESTDIR)/etc/$(APACHE_CONFDIR)/
 	mkdir -p $(DESTDIR)/etc/sysconfig/
 	mkdir -p $(DESTDIR)/etc/default
 	mkdir -p $(DESTDIR)/usr/share/doc/rudder
