@@ -20,7 +20,6 @@ systemctl daemon-reload
 # Enable at first install or in migration
 if [ ${CFRUDDER_FIRST_INSTALL} -eq 1 ] || [ -f /var/rudder/tmp/migration-rudder-service-enabled-server ]
 then
-  systemctl reload-daemon
   systemctl enable rudder-server
 fi
 

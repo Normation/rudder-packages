@@ -16,11 +16,8 @@ if [ -z "${POSTGRESQL_SERVICE_NAME}" ]; then
   POSTGRESQL_SERVICE_NAME="postgresql"
 fi
 
-# Check if PostgreSQL is started
-systemctl status ${POSTGRESQL_SERVICE_NAME} > /dev/null
-
 # Start if necessary
-if [ $? -ne 0 ]
+if ! systemctl status ${POSTGRESQL_SERVICE_NAME} > /dev/null
 then
   if [ "${DB_NOT_INITIALIZED}" != "" ]; then
     echo -n "INFO: Initializing PostgreSQL ..."
