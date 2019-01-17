@@ -61,7 +61,7 @@ PROXY_ENV = $(if $(PROXY), http_proxy=$(PROXY))
 # grep 'GET=' */SOURCES/Makefile to patch everywhere
 GET=get() { $(PROXY_ENV) curl -s -L -o "$$1.part" "$$2" && { openssl dgst -sha256 "$$1.part" | grep -q "$$3" || { echo "Wrong checksum, aborting"; exit 1; }; } && mv "$$1.part" "$$1"; }; get
 
-localdepends: rudder-sources rudder-doc rudder.war endpoint.war jetty
+localdepends: initial-promises initial-ncf rudder-sources rudder-doc rudder.war endpoint.war jetty
 	rm -rf $(TMP_DIR)
 
 jetty:
@@ -99,6 +99,15 @@ jetty:
 	# Make sure there were no rejects
 	test `find . -name \*.rej | wc -l` = 0
 
+initial-promises: ./rudder-sources
+	rm -rf ./initial-promises/
+	cp -r ./rudder-sources/rudder-techniques/initial-promises/node-server/ ./initial-promises
+
+initial-ncf: ./rudder-sources ./initial-promises
+	rm -rf ./initial-ncf
+	cp -r ./rudder-sources/ncf/tree ./initial-ncf
+	# retreive the rudder specific ncf.conf
+	cp ./initial-promises/distributePolicy/ncf/ncf.conf ./initial-ncf/
 
 maven/bin/mvn:
 	# Original URL: http://apache.multidist.com/maven/binaries/apache-maven-$(MAVEN_RELEASE)-bin.tar.gz
@@ -158,7 +167,7 @@ build: rudder-sources virtualenv/virtualenv.py rudder-doc jetty rudder.war endpo
 	touch $@
 
 # install into DESTDIR
-install: build
+install: build initial-promises initial-ncf
 	mkdir -p $(DESTDIR)/opt/rudder/etc/
 	mkdir -p $(DESTDIR)/opt/rudder/etc/plugins/
 	mkdir -p $(DESTDIR)/opt/rudder/etc/server-roles.d/
@@ -275,7 +284,10 @@ install: build
 	install -m 755 rudder-webapp-postinst $(DESTDIR)/opt/rudder/share/package-scripts/
 	install -m 644 rudder-jetty.service $(DESTDIR)/usr/lib/systemd/system/
 
-	touch $@
+	cp -r initial-promises/ $(DESTDIR)/opt/rudder/share/
+	cp -r initial-ncf/ $(DESTDIR)/opt/rudder/share/
+
+touch $@
 
 clean:
 	rm -rf rudder-users.xml
@@ -297,6 +309,7 @@ clean:
 distclean: clean
 	rm -rf maven.tgz
 	rm -f virtualenv.tgz
+	rm -rf initial-promises initial-ncf
 	rm -rf $(TMP_DIR)
 
 mrproper: distclean

@@ -219,13 +219,13 @@ endif
 
 # download dependencies
 depend: localdepends
-localdepends: initial-promises initial-ncf rudder-agent-utilities perl-$(PERL_RELEASE) fusioninventory-agent cfengine-source openssl-source lmdb-source pcre-source curl-source xml-source yaml-source zlib-source rudder-agent.cron ./rudder.8.gz
+localdepends: rudder-agent-utilities perl-$(PERL_RELEASE) fusioninventory-agent cfengine-source openssl-source lmdb-source pcre-source curl-source xml-source yaml-source zlib-source rudder-agent.cron ./rudder.8.gz
 
 # build binaries
 build: get-flags build-cfengine
 
 # install to DESTDIR
-install: build $(INSTALL_DEPS) install-cfengine initial-promises initial-ncf rudder-agent-utilities rudder-agent.cron debug-script/rudder-debug-info
+install: build $(INSTALL_DEPS) install-cfengine rudder-agent-utilities rudder-agent.cron debug-script/rudder-debug-info
 	# Directories
 	mkdir -p $(DESTDIR)/opt/rudder/etc
 	mkdir -p $(DESTDIR)/opt/rudder/bin
@@ -345,7 +345,8 @@ clean:
 # distclean should remove everything except rudder-sources.tar.bz2 since it can be brought by by external means
 distclean: clean
 	rm -f rudder-agent.cron
-	rm -rf initial-promises initial-ncf rudder-agent-utilities fusioninventory-agent
+	rm -rf rudder-agent-utilities fusioninventory-agent
+	rm -rf curl-source pcre-source xml-source yaml-source zlib-source
 	rm -rf cfengine-source lmdb-source openssl-source perl-$(PERL_RELEASE)
 
 # standard name is mrproper
@@ -465,14 +466,6 @@ rudder.8.gz:
 	# Get man page from rudder-project.org
 	$(GET) rudder.8 $(HTTPS)://docs.rudder.io/man/${RUDDER_MAJOR_VERSION}/rudder.8 ""
 	gzip -f rudder.8
-
-initial-promises: ./rudder-sources
-	rm -rf ./initial-promises/
-	cp -r ./rudder-sources/rudder-techniques/initial-promises/node-server/ ./initial-promises
-
-initial-ncf: ./rudder-sources ./initial-promises
-	rm -rf ./initial-ncf
-	cp -r ./rudder-sources/ncf/tree ./initial-ncf
 
 rudder-agent-utilities: rudder-sources
 	rm -rf ./rudder-agent-utilities/
