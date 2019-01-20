@@ -30,6 +30,7 @@ localdepends: ./rudder-sources
 ./rudder-sources: ./rudder-sources.tar.bz2
 	tar -xjf rudder-sources.tar.bz2
 	mv rudder-sources-*/ rudder-sources/
+	sed -i "s/version=dev/version=${RUDDER_VERSION_TO_PACKAGE}/" rudder-sources/ncf/builder/index.html
 
 localclean:
 	rm -rf ./rudder-sources
