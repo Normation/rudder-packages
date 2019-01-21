@@ -357,7 +357,6 @@ rm -rf %{buildroot}
 %config /opt/rudder/etc/rudder-apache-webapp-ssl.conf
 %config /opt/rudder/etc/rudder-apache-webapp-nossl.conf
 %config(noreplace) /etc/sysconfig/rudder-webapp-apache
-%config(noreplace) /usr/share/ncf/tree/ncf.conf
 /usr/share/doc/rudder
 /usr/share/ncf/
 /usr/share/ncf-api-virtualenv/

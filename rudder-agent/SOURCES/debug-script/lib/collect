@@ -103,7 +103,6 @@ collect_files() {
     cp ${RUDDER_OPT}/etc/logback.xml "${TARGET_DIRECTORY}/rudder/" 2>/dev/null
     cp ${RUDDER_OPT}/etc/*.properties "${TARGET_DIRECTORY}/rudder/" 2>/dev/null
     cp ${RUDDER_OPT}/etc/rudder-networks* "${TARGET_DIRECTORY}/rudder/" 2>/dev/null
-    cp ${RUDDER_VAR}/ncf/local/ncf.conf "${TARGET_DIRECTORY}/rudder/" 2>/dev/null
 
     # Backup apache logs
     mkdir -p "${TARGET_DIRECTORY}/apache/"

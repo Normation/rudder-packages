@@ -436,11 +436,6 @@ echo -n "Restarting services..."
 # Run all server-specific bundles (except propagatePromises, because they're aren't any yet)
 "${CF_AGENT}" -b propagatePromises,install_rsyslogd,root_component_check >> "$TMP_LOG" 2>&1
 
-# The previous run will create /var/rudder/configuration-repository/ncf/ncf.conf but it still needs copying to /var/rudder/ncf/local/ncf.conf
-if [ -f /var/rudder/configuration-repository/ncf/ncf.conf ]; then
-  cp -f /var/rudder/configuration-repository/ncf/ncf.conf /var/rudder/ncf/local/
-fi
-
 ## Then, restart jetty
 ${JETTY_INIT} restart 2>&1 | tee "${TMP_LOG}"
 

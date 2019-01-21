@@ -328,7 +328,7 @@ upgrade_techniques() {
   /opt/rudder/bin/rudder server upgrade-techniques  --autoupdate-technique-library --during-upgrade
 }
 
-# Upgrade ncf from ncf package and check ncf.conf
+# Upgrade ncf from ncf package
 upgrade_ncf() {
   # All versions: Upgrade ncf
   STEP="Upgrade ncf"
@@ -381,12 +381,12 @@ upgrade_ncf() {
   done
   cd ${CURRENT}
 
-  # All Versions, Commit ncf.conf file, even if it has not changed
+  # 5.1.0: Remove ncf.conf file
   if [ -f ${CONFIGURATION_REPOSITORY}/ncf/ncf.conf ]; then
     current_path=$(pwd)
     cd ${CONFIGURATION_REPOSITORY}
-    git add ncf/ncf.conf
-    git commit --allow-empty -m "Commit ncf.conf file with rudder-webapp package upgrade"
+    git rm -f ncf/ncf.conf
+    git commit --allow-empty -m "Remove ncf.conf from configuration repository"
     cd ${current_path}
   fi
 
