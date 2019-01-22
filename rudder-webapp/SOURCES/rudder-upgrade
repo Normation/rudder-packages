@@ -715,7 +715,7 @@ upgrade_database() {
 
   # - 4.1.18: Drop unused index nodeid_idx
   RES=$(${PSQL} -t -d ${SQL_DATABASE} -c "select count(oid) from pg_class where lower(relname) = 'nodeid_idx'")
-  if [ $RES -eq 0 ]; then
+  if [ $RES -ne 0 ]; then
     echo -n "INFO: Dropping index 'nodeid_idx'"
     ${PSQL} -d ${SQL_DATABASE} -c  "DROP INDEX nodeid_idx" > /dev/null
     echo " Done"
