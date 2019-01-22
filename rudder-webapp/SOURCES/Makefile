@@ -106,8 +106,6 @@ initial-promises: ./rudder-sources
 initial-ncf: ./rudder-sources ./initial-promises
 	rm -rf ./initial-ncf
 	cp -r ./rudder-sources/ncf/tree ./initial-ncf
-	# retreive the rudder specific ncf.conf
-	cp ./initial-promises/distributePolicy/ncf/ncf.conf ./initial-ncf/
 
 maven/bin/mvn:
 	# Original URL: http://apache.multidist.com/maven/binaries/apache-maven-$(MAVEN_RELEASE)-bin.tar.gz
@@ -287,7 +285,7 @@ install: build initial-promises initial-ncf
 	cp -r initial-promises/ $(DESTDIR)/opt/rudder/share/
 	cp -r initial-ncf/ $(DESTDIR)/opt/rudder/share/
 
-touch $@
+	touch $@
 
 clean:
 	rm -rf rudder-users.xml

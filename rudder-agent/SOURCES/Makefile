@@ -319,9 +319,6 @@ ifneq (aix,$(OS_FAMILY))
 	$(INSTALL) -m 644 rudder-agent.sh $(DESTDIR)/etc/profile.d/
 endif
 
-	cp -r initial-promises/ $(DESTDIR)/opt/rudder/share/
-	cp -r initial-ncf/ $(DESTDIR)/opt/rudder/share/
-
 # Strip binaries
 ifeq (aix,$(OS_FAMILY))
 	cp /opt/freeware/lib/gcc/powerpc-ibm-aix5.3.0.0/4.8.2/libgcc* $(DESTDIR)/opt/rudder/lib/
