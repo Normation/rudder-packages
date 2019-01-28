@@ -86,12 +86,21 @@ EOF
 
 elif [ "${ACTION}" = "change-key" ]
 then
+  # extract and excape key public key (double escape because it will be used in a perl regex replacement
+  pub_key_content=$(perl -pe 's/\n/\\\\n/g' "${PUBKEY}" | perl -pe 's|/|\\/|g')
+  # extract agentName attribute from ldap into a file
+  current_agentname_file=$(ldapsearch ${LDAP_PARAMETERS} -tt -b "${ACCEPTED_NODES_BASE}" "nodeId=${UUID}" agentName | grep agentName: | perl -pe 's|agentName:< file://(.*)|$1|')
+  # extract securityToken value from agentName in JSON and replace public key (again escaped for next use)
+  new_token=$(perl -pe 's/.*"securityToken":\{(.*?)\}.*/$1/' "${current_agentname_file}" | perl -pe 's/(.*)"value":".*?"(.*)/$1"value":"'"${pub_key_content}"'"$2/' | perl -pe 's|([/\\])|\\$1|g')
+  # put securityToken value back into JSON
+  perl -i -pe 's/(.*"securityToken":\{).*?(\}.*)/$1'"${new_token}"'$2/' "${current_agentname_file}"
+  # Put the new json value into ldap attribute agentName
   ldapmodify ${LDAP_PARAMETERS} <<EOF
 dn: nodeId=${UUID},${ACCEPTED_NODES_BASE}
 changetype: modify
-replace: publicKey
-publicKey:< file://${PUBKEY}
+replace: agentName
+agentName:< file://${current_agentname_file}
 
 EOF
-
+  rm "${current_agentname_file}"
 fi
