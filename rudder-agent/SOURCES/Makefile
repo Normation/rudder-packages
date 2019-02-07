@@ -230,6 +230,7 @@ install: build $(INSTALL_DEPS) install-cfengine initial-promises initial-ncf rud
 	chmod 700 $(DESTDIR)/var/rudder/cfengine-community/ppkeys
 	mkdir -p $(DESTDIR)/var/rudder/tmp
 	mkdir -p $(DESTDIR)/var/rudder/tools
+	mkdir -p $(DESTDIR)/var/rudder/inventories
 	mkdir -p $(DESTDIR)/var/rudder/ncf/local
 	mkdir -p $(DESTDIR)/var/rudder/ncf/common
 	mkdir -p $(DESTDIR)/var/log/rudder/install
