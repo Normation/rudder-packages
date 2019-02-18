@@ -37,7 +37,7 @@ case "$1" in
     CFRUDDER_USE_SYSTEMD="false"
 
     if readlink -f $(cut -f 1 -d "" < /proc/1/cmdline) | grep -qE "/systemd$" ; then CFRUDDER_USE_SYSTEMD="true"; fi
-    db_get rudder-agent/policy-server && server="${RET}"
+    [ ! -f /var/rudder/cfengine-community/policy_server.dat ] && db_get rudder-agent/policy-server && server="${RET}"
 
     /opt/rudder/share/package-scripts/rudder-agent-postinst "${CFRUDDER_FIRST_INSTALL}" "deb" "${CFRUDDER_USE_SYSTEMD}" "${server}"
     ;;
