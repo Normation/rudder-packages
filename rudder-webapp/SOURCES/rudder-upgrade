@@ -54,6 +54,7 @@ trap anomaly_handler ERR INT TERM
 # - 4.3          : Update ncf Techniques to the new format
 # - 4.3.7        : Drop tables expectedreports and expectesreportsnodes on upgrade
 # - 5.0          : Automatically upgrade Techniques if autoupdate-technique-library is set
+# - 5.0.7: Tune autovacuum on a table basis
 ####################################################################################
 
 # Some paths
@@ -533,6 +534,14 @@ upgrade_database() {
   if [ $RES -ne 0 ]; then
     echo -n "INFO: Dropping index 'nodeid_idx'"
     ${PSQL} -d ${SQL_DATABASE} -c  "DROP INDEX nodeid_idx" > /dev/null
+    echo " Done"
+  fi
+
+  # - 5.0.7: Tune autovacuum on a table basis
+  RES=$(${PSQL} -t -d ${SQL_DATABASE} -c "select reloptions from pg_class where relname='ruddersysevents'" | grep -c "autovacuum")
+  if [ $RES -eq 0 ]; then
+    echo -n "INFO: Adapting autovacuum configuration on a table basis"
+    ${PSQL} -d ${SQL_DATABASE} -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-5.0.x-5.0.7-tune-autovacuum_on_table_basis.sql > /dev/null
     echo " Done"
   fi
 
