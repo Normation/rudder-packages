@@ -28,8 +28,8 @@ fi
 
 echo "`date` - Starting rudder-agent post installation script" >> ${LOG_FILE}
 
-# setup the policy server if we are asked to
-if [ "${CFRUDDER_SERVER}" = "" ]
+# if no conf and no server provided, try to use rudder
+if [ ! -f /var/rudder/cfengine-community/policy_server.dat ] && [ "${CFRUDDER_SERVER}" = "" ]
 then
   # Detect if "rudder" is a valid hostname, if so, use it as the default server
   if type getent > /dev/null 2>&1; then # glibc/linux
@@ -42,6 +42,8 @@ then
     fi
   fi
 fi
+
+# setup the policy server if we are asked to
 if [ "${CFRUDDER_SERVER}" != "" ]
 then
   echo "${CFRUDDER_SERVER}" > /var/rudder/cfengine-community/policy_server.dat
