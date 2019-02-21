@@ -10,7 +10,7 @@ PartOf=rudder-agent.service
 
 [Service]
 Type=simple
-ExecStart=/var/rudder/cfengine-community/bin/cf-serverd --info --no-fork
+ExecStart=/var/rudder/cfengine-community/bin/cf-serverd --no-fork
 ExecReload=/bin/kill -HUP $MAINPID
 Restart=always
 RestartSec=10
