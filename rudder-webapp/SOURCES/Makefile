@@ -112,18 +112,15 @@ maven/bin/mvn:
 rudder.war: maven/bin/mvn rudder-sources endpoint.war
 	maven/bin/mvn -s settings-external.xml --batch-mode org.apache.maven.plugins:maven-dependency-plugin:3.0.0:copy -Dmaven.repo.local=.m2/repository -Dartifact=com.normation.rudder:rudder-web:$$(sed -n '/<parent>/,/<.parent>/s/.*<version>\(.*\)<.version>.*/\1/p' rudder-sources/rudder/pom.xml):war -DoutputDirectory=. && mv rudder-web*.war rudder.war $(NEXUS_IGNORE)
 ifeq (false,$(NRM))
-	if [ ! -f rudder.war ]; then cd rudder-sources/rudder            && ../../maven/bin/mvn -s settings-external.xml --batch-mode -Dmaven.repo.local=.m2/repository -Dmaven.test.skip=true -U install; fi
+	if [ ! -f rudder.war ]; then cd rudder-sources/ && ../../maven/bin/mvn -s settings-external.xml --batch-mode -Dmaven.repo.local=.m2/repository -Dmaven.test.skip=true -U install; fi
 	if [ ! -f rudder.war ]; then mv rudder-sources/rudder/rudder-web/target/rudder-web*.war rudder.war; fi
 endif
 
 endpoint.war: maven/bin/mvn rudder-sources
 	maven/bin/mvn -s settings-external.xml --batch-mode org.apache.maven.plugins:maven-dependency-plugin:3.0.0:copy -Dmaven.repo.local=.m2/repository  -Dartifact=com.normation.inventory:inventory-provisioning-web:$$(sed -n '/<parent>/,/<.parent>/s/.*<version>\(.*\)<.version>.*/\1/p' rudder-sources/ldap-inventory/pom.xml):war -DoutputDirectory=. && mv inventory-provisioning-web*.war endpoint.war $(NEXUS_IGNORE)
 ifeq (false,$(NRM))
-	if [ ! -f endpoint.war ]; then cd rudder-sources/rudder-parent-pom && ../../maven/bin/mvn -s settings-external.xml --batch-mode -Dmaven.repo.local=.m2/repository -Dmaven.test.skip=true -U install; fi
-	if [ ! -f endpoint.war ]; then cd rudder-sources/rudder-commons    && ../../maven/bin/mvn -s settings-external.xml --batch-mode -Dmaven.repo.local=.m2/repository -Dmaven.test.skip=true -U install; fi
-	if [ ! -f endpoint.war ]; then cd rudder-sources/scala-ldap        && ../../maven/bin/mvn -s settings-external.xml --batch-mode -Dmaven.repo.local=.m2/repository -Dmaven.test.skip=true -U install; fi
-	if [ ! -f endpoint.war ]; then cd rudder-sources/ldap-inventory    && ../../maven/bin/mvn -s settings-external.xml --batch-mode -Dmaven.repo.local=.m2/repository -Dmaven.test.skip=true -U install; fi
-	if [ ! -f endpoint.war ]; then mv rudder-sources/rudder/rudder-web/target/inventory-provisioning-web*.war endpoint.war; fi
+	if [ ! -f endpoint.war ]; then cd rudder-sources/ && ../../maven/bin/mvn -s settings-external.xml --batch-mode -Dmaven.repo.local=.m2/repository -Dmaven.test.skip=true -U install; fi
+	if [ ! -f endpoint.war ]; then mv rudder-sources/ldap-inventory/inventory-provisioning-web/target/inventory-provisioning-web*.war endpoint.war; fi
 endif
 
 rudder-sources.tar.bz2:
