@@ -53,7 +53,7 @@ def get_my_nodes(nexthop, nodes):
       raise ValueError("ERROR unknown node: " + str(node))
     if nexthop[node] == node:
       result.append(node)
-    return result
+  return result
 
 def get_relay_nodes(nexthop, relay, nodes):
   """ Get all nodes behind the given relay from the given list """
