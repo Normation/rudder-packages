@@ -10,7 +10,8 @@ PartOf=rudder-agent.service
 
 [Service]
 Type=simple
-ExecStart=/var/rudder/cfengine-community/bin/cf-serverd --no-fork
+Environment=VERBOSITY_OPTION=--inform
+ExecStart=/var/rudder/cfengine-community/bin/cf-serverd --no-fork $VERBOSITY_OPTION
 ExecReload=/bin/kill -HUP $MAINPID
 Restart=always
 RestartSec=10
