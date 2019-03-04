@@ -148,7 +148,7 @@ def package_check(metadata):
   # incompatibility check
   if metadata['type'] == 'plugin':
     if not check_plugin_compatibility(metadata):
-      fail("Package incompatble with this Rudder version, please use a more recent one")
+      fail("Package incompatible with this Rudder version, please use a more recent one")
   # do not compare with exiting version to allow people to reinstall or downgrade
   return name in DB['plugins']
 
