@@ -129,6 +129,7 @@ binary-arch: install
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ dbMigration-3.2.x-4.0-add-archived-tables.sql /opt/rudder/share/upgrade-tools/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ dbMigration-4.0.x-4.1-add-compliance-table.sql /opt/rudder/share/upgrade-tools/
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ dbMigration-4.1.x-4.1.12-add-compliancelevel-table.sql /opt/rudder/share/upgrade-tools/
+	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ dbMigration-4.1.x-4.1.21-drop-rulesgroupjoin-constraint.sql /opt/rudder/share/upgrade-tools/
 
 	## LDAP
 	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ ldapMigration-2.11-2.11-add-api-compatibility-mode.ldif /opt/rudder/share/upgrade-tools/
