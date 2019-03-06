@@ -194,6 +194,7 @@ mkdir -p %{buildroot}/etc/cron.d/
 mkdir -p %{buildroot}/etc/sudoers.d/
 mkdir -p %{buildroot}%{rudderdir}/share/relay-api/
 mkdir -p %{buildroot}%{rudderdir}/share/python/
+mkdir -p %{buildroot}%{rudderdir}/share/python/rudder-pkg
 
 # relay api
 cp -r %{_sourcedir}/relay-api/flask %{buildroot}%{rudderdir}/share/relay-api/
@@ -203,7 +204,11 @@ install -m 755 %{_sourcedir}/relay-api/cleanup.sh %{buildroot}%{rudderdir}/share
 
 # rudder packaging
 install -m 755 %{_sourcedir}/rudder-pkg %{buildroot}%{rudderdir}/bin/
+install -m 755 %{_sourcedir}/rudder-pkg-files/makeIndex.sh %{buildroot}%{rudderdir}/bin/
+install -m 644 %{_sourcedir}/rudder-pkg-files/rudder-pkg.conf %{buildroot}%{rudderdir}%{etc}/rudder-pkg.conf
+install -m 444 %{_sourcedir}/rudder-pkg-files/rudder_apt_key.pub %{buildroot}%{ruddervardir}/rudder_apt_key.pub
 cp %{_sourcedir}/docopt.py %{buildroot}%{rudderdir}/share/python/
+cp %{_sourcedir}/rudder-pkg-files/*.py %{buildroot}%{rudderdir}/share/python/rudder-pkg
 
 # Others
 install -m 644 %{SOURCE1} %{buildroot}/etc/%{apache_vhost_dir}/rudder.conf
