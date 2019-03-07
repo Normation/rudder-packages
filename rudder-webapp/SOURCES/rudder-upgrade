@@ -47,6 +47,7 @@ trap anomaly_handler ERR INT TERM
 # - All versions : Create ncf technique update flag and restart at the end of the script
 # - 4.1.17       : Change LDAP attribute ipNetworkNumber -> networkSubnet
 # - 4.1.19, 4.3.9: Drop unused index nodeid_idx
+# - 4.1.21,4.3.10: Drop contraint rulesgroupjoin_pkey to replace it by an index
 # - 4.2.6,4.3.2  : Create nodecompliancelevels table
 # - 4.2.6,4.3.2  : Add new property rudder.batch.reportscleaner.compliancelevels.delete.TTL
 # - 4.2.0        : Rename hooks to have a better ordering of hooks
@@ -528,6 +529,13 @@ upgrade_database() {
     echo " Done"
   fi
 
+  # - 4.1.21: Drop constraint rulesgroupjoin_pkey
+  RES=$(${PSQL} -t -d ${SQL_DATABASE} -c "select count(*) from information_schema.constraint_column_usage where table_name = 'rulesgroupjoin'")
+  if [ $RES -ne 0 ]; then
+    echo -n "INFO: Dropping constraint 'rulesgroupjoin'"
+    ${PSQL} -d ${SQL_DATABASE} -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-4.1.x-4.1.21-drop-rulesgroupjoin-constraint.sql > /dev/null
+    echo " Done"
+  fi
   # Now check the fileFormat in the eventlog
   upgrade_eventlog
 
