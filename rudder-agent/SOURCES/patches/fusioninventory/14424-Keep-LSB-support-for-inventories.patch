@@ -1,0 +1,183 @@
+From efd10c59385cab43aac5387b4c93dce7ab095e3e Mon Sep 17 00:00:00 2001
+From: Nicolas Charles <nicolas.charles@normation.com>
+Date: Thu, 7 Mar 2019 15:01:36 +0100
+Subject: [PATCH] 14424 - Keep LSB support for inventories
+
+---
+ .../Agent/Task/Inventory/Linux/Distro/LSB.pm       | 46 ++++++++++++++++++++++
+ .../Agent/Task/Inventory/Linux/Distro/NonLSB.pm    | 31 +++++++++++++--
+ .../Agent/Task/Inventory/Linux/Distro/OSRelease.pm | 41 -------------------
+ 3 files changed, 73 insertions(+), 45 deletions(-)
+ create mode 100644 lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/LSB.pm
+ delete mode 100644 lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/OSRelease.pm
+
+diff --git a/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/LSB.pm b/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/LSB.pm
+new file mode 100644
+index 0000000..44d26ec
+--- /dev/null
++++ b/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/LSB.pm
+@@ -0,0 +1,46 @@
++package FusionInventory::Agent::Task::Inventory::Linux::Distro::LSB;
++
++use strict;
++use warnings;
++
++use FusionInventory::Agent::Tools;
++
++sub isEnabled {
++    return ! -r '/etc/SuSE-release' && ! -r '/etc/oracle-release' && canRun('lsb_release');
++}
++
++sub doInventory {
++    my (%params) = @_;
++
++    my $inventory = $params{inventory};
++    my $logger    = $params{logger};
++
++    my $handle = getFileHandle(
++        logger  => $logger,
++        command => 'lsb_release -a',
++    );
++
++    my ($name, $version, $description);
++    while (my $line = <$handle>) {
++        $name        = $1 if $line =~ /^Distributor ID:\s+(.+)/;
++        $version     = $1 if $line =~ /^Release:\s+(.+)/;
++        $description = $1 if $line =~ /^Description:\s+(.+)/;
++    }
++    close $handle;
++
++    # See: #1262
++    $description =~ s/^Enterprise Linux Enterprise Linux/Oracle Linux/;
++
++    $inventory->setHardware({
++        OSNAME => $description,
++    });
++
++    $inventory->setOperatingSystem({
++        NAME      => $name,
++        VERSION   => $version,
++        FULL_NAME => $description
++    });
++
++}
++
++1;
+diff --git a/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/NonLSB.pm b/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/NonLSB.pm
+index 96968f5..c0afcfe 100644
+--- a/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/NonLSB.pm
++++ b/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/NonLSB.pm
+@@ -3,11 +3,10 @@ package FusionInventory::Agent::Task::Inventory::Linux::Distro::NonLSB;
+ use strict;
+ use warnings;
+ 
+-use parent 'FusionInventory::Agent::Task::Inventory::Module';
+-
+ use English qw(-no_match_vars);
+ 
+ use FusionInventory::Agent::Tools;
++use List::Util qw(first);
+ 
+ # This array contains four items for each distribution:
+ # - release file
+@@ -55,6 +54,9 @@ my @distributions = (
+     # trustix-release contains something like "Trustix Secure Linux release 2.0 (Cloud)"
+     [ '/etc/trustix-release',   'Trustix',                    'release ([\d.]+)', '%s' ],
+ 
++    # Fallback to os-release when available
++    [ '/etc/os-release',        'Unknown Linux distribution', '([\d.]+)'        , '%s' ],
++
+     # Fallback
+     [ '/etc/issue',             'Unknown Linux distribution', '([\d.]+)'        , '%s' ],
+ 
+@@ -64,10 +66,10 @@ my @distributions = (
+ );
+ 
+ our $runMeIfTheseChecksFailed =
+-    ["FusionInventory::Agent::Task::Inventory::Linux::Distro::OSRelease"];
++    ["FusionInventory::Agent::Task::Inventory::Linux::Distro::LSB"];
+ 
+ sub isEnabled {
+-    return !(-r '/etc/os-release');
++    return -r '/etc/SuSE-release' || -r '/etc/oracle-release' || !canRun('lsb_release');
+ }
+ 
+ sub doInventory {
+@@ -112,6 +114,27 @@ sub _getDistroData {
+         }
+     }
+ 
++    # if this is a os-release fallback, we can extract knowledge there
++    if ($distribution->[0] eq '/etc/os-release') {
++        my $handle = getFileHandle(
++            file => '/etc/os-release',
++        );
++
++        my $version_id;
++        while (my $line = <$handle>) {
++            $name        = $1 if $line =~ /^NAME="?([^"]+)"?/;
++            $version     = $1 if $line =~ /^VERSION="?([^"]+)"?/;
++            $version_id  = $1 if $line =~ /^VERSION_ID="?([^"]+)"?/;
++            $release     = $1 if $line =~ /^PRETTY_NAME="?([^"]+)"?/;
++        }
++        close $handle;
++
++        if ($name =~ /SLES/) {
++            $name = 'SuSE';
++        }
++    }
++
++
+     my $data = {
+         NAME      => $name,
+         VERSION   => $version,
+diff --git a/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/OSRelease.pm b/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/OSRelease.pm
+deleted file mode 100644
+index 9b658a6..0000000
+--- a/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/OSRelease.pm
++++ /dev/null
+@@ -1,41 +0,0 @@
+-package FusionInventory::Agent::Task::Inventory::Linux::Distro::OSRelease;
+-
+-use strict;
+-use warnings;
+-
+-use parent 'FusionInventory::Agent::Task::Inventory::Module';
+-
+-use FusionInventory::Agent::Tools;
+-
+-sub isEnabled {
+-  return -r '/etc/os-release';
+-}
+-
+-sub doInventory {
+-    my (%params) = @_;
+-
+-    my $inventory = $params{inventory};
+-
+-    my $handle = getFileHandle(file => '/etc/os-release');
+-
+-    my ($name, $version, $description);
+-    while (my $line = <$handle>) {
+-        $name        = $1 if $line =~ /^NAME="?([^"]+)"?/;
+-        $version     = $1 if $line =~ /^VERSION="?([^"]+)"?/;
+-        $description = $1 if $line =~ /^PRETTY_NAME="?([^"]+)"?/;
+-    }
+-    close $handle;
+-
+-    $inventory->setHardware({
+-        OSNAME => $description,
+-    });
+-
+-    $inventory->setOperatingSystem({
+-        NAME      => $name,
+-        VERSION   => $version,
+-        FULL_NAME => $description
+-    });
+-
+-}
+-
+-1;
+-- 
+2.7.4
+

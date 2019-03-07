@@ -1,26 +1,47 @@
-diff -upr FusionInventory-Agent-2.3.19/Makefile.PL FusionInventory-Agent-2.3.19-new/Makefile.PL
---- FusionInventory-Agent-2.3.19/Makefile.PL	2017-02-17 19:46:15.000000000 +0100
-+++ FusionInventory-Agent-2.3.19-new/Makefile.PL	2017-02-21 13:45:17.743160028 +0100
-@@ -68,6 +68,9 @@ test_requires 'Parallel::ForkManager'
- recommends 'Parse::EDID'                     => '0';
- recommends 'Net::CUPS'                       => 0.60 if $OSNAME ne 'MSWin32';
- recommends 'DateTime'                        => '0';
+From f00689cac005773da5ae0bb21524c7e63d390d08 Mon Sep 17 00:00:00 2001
+From: Nicolas Charles <nicolas.charles@normation.com>
+Date: Thu, 7 Mar 2019 15:28:29 +0100
+Subject: [PATCH] 9763-fix-timezones-unix-win32
+
+---
+ Makefile.PL | 9 ++++++---
+ README.md   | 3 ++-
+ 2 files changed, 8 insertions(+), 4 deletions(-)
+
+diff --git a/Makefile.PL b/Makefile.PL
+index a4a9519..3d8339e 100644
+--- a/Makefile.PL
++++ b/Makefile.PL
+@@ -71,9 +71,12 @@ test_requires 'Test::NoWarnings'             => '0';
+ test_requires 'Test::MockObject'             => '0';
+ 
+ # Inventory
+-recommends 'DateTime'                        => '0';
+-recommends 'Net::CUPS'                       => 0.60 if $OSNAME ne 'MSWin32';
+-recommends 'Parse::EDID'                     => '0';
++recommends 'DateTime'                         => '0';
 +recommends 'DateTime::TimeZone'               => '0';
 +recommends 'DateTime::TimeZone::Local::Unix'  => '0' if $OSNAME ne 'MSWin32';
 +recommends 'DateTime::TimeZone::Local::Win32' => '0' if $OSNAME eq 'MSWin32';
++recommends 'Net::CUPS'                        => 0.60 if $OSNAME ne 'MSWin32';
++recommends 'Parse::EDID'                      => '0';
  
  # Deploy
  recommends 'Archive::Extract'             => '0';
-diff -upr FusionInventory-Agent-2.3.19/README FusionInventory-Agent-2.3.19-new/README
---- FusionInventory-Agent-2.3.19/README	2016-11-10 14:43:41.000000000 +0100
-+++ FusionInventory-Agent-2.3.19-new/README	2017-02-21 13:43:46.934255513 +0100
-@@ -40,7 +40,8 @@ Optional Perl modules:
+diff --git a/README.md b/README.md
+index 0b479c6..59b0323 100644
+--- a/README.md
++++ b/README.md
+@@ -44,7 +44,8 @@ Optional Perl modules:
  
  * Net::CUPS, for printers detection
  * Parse::EDID, for EDID data parsing
 -* DateTime, for reliable timezone name extraction
 +* DateTime, DateTime::TimeZone and DateTime::TimeZone::Local::{Win32,Unix}
-+  for reliable timezone name extraction 
++  for reliable timezone name extraction
  
  Optional programs:
  
+-- 
+2.7.4
+
