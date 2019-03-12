@@ -65,7 +65,8 @@ def shell(command, comment=None, keep_output=False, fail_exit=True, keep_error=F
     error = None
   if fail_exit and retcode != 0:
     logging.error("execution of '%s' failed"%(command))
-    fail(output + error, retcode)
+    logging.error(error)
+    fail(output, retcode)
   return (retcode, output, error)
 
 def fail(message, code=1):
@@ -94,8 +95,11 @@ def createPath(path):
            localCache = /tmp/rpkg
         => fileDst = /tmp/rpkg/./5.0/windows/release/SHA512SUMS
 """
-def download(completeUrl):
-    fileDst = FOLDER_PATH + "/" + completeUrl.replace(URL + "/", '')
+def download(completeUrl, dst=""):
+    if dst == "":
+        fileDst = FOLDER_PATH + "/" + completeUrl.replace(URL + "/", '')
+    else:
+        fileDst = dst
     fileDir = os.path.dirname(fileDst)
     createPath(fileDir)
     r = requests.get(completeUrl, auth=(USERNAME, PASSWORD), stream=True)
@@ -278,6 +282,23 @@ def install(metadata, package_file, exist):
   DB['plugins'][metadata['name']] = metadata
   db_save()
 
+def readConf():
+    # Repos specific variables
+    global REPO, URL, USERNAME, PASSWORD
+    logging.debug('Reading conf file %s'%(CONFIG_PATH))
+    try:
+        config = configparser.ConfigParser()
+        config.read(CONFIG_PATH)
+        REPO = config.sections()[0]
+        URL = config[REPO]['url']
+        USERNAME = config[REPO]['username']
+        PASSWORD = config[REPO]['password']
+        createPath(FOLDER_PATH)
+        createPath(GPG_HOME)
+    except Exception as e:
+        print("Could not read the conf file %s"%(CONFIG_PATH))
+        exit(1)
+
 ############# Variables ############# 
 """ Defining global variables."""
 
@@ -289,19 +310,6 @@ GPG_HOME = "/tmp/toto"
 GPG_RUDDER_KEY = "/var/rudder/rudder_apt_key.pub"
 GPG_RUDDER_KEY_FINGERPRINT = "7C16 9817 7904 212D D58C  B4D1 9322 C330 474A 19E8"
 
-# Repos specific variables
-try:
-    config = configparser.ConfigParser()
-    config.read(CONFIG_PATH)
-    REPO = config.sections()[0]
-    URL = config[REPO]['url']
-    USERNAME = config[REPO]['username']
-    PASSWORD = config[REPO]['password']
-    createPath(FOLDER_PATH)
-    createPath(GPG_HOME)
-except Exception as e:
-    print("Could not read the conf file %s"%(CONFIG_PATH))
-    exit(1)
 
 p = Popen("rudder agent version", shell=True, stdout=PIPE)
 line = p.communicate()[0]

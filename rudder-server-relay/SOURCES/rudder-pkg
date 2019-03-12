@@ -7,6 +7,7 @@ Usage:
     rudder-pkg [--debug] install-file <package.rpkg>...
     rudder-pkg [--debug] list
     rudder-pkg [--debug] update
+    rudder-pkg [--debug] licenses
     rudder-pkg [--debug] install <package> [--version=<version>] [--nightly]
     rudder-pkg [--debug] remove <package>...
     rudder-pkg [--debug] search <package>...
@@ -80,6 +81,8 @@ if __name__ == "__main__":
         rudderPkg.package_list()
     elif args['update']:
         rudderPkg.update()
+    elif args['licenses']:
+        rudderPkg.update_licenses()
     elif args['search']:
         rudderPkg.package_search(args['<package>'])
     elif args['install']:

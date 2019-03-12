@@ -4,7 +4,9 @@
 import sys
 import os
 import re
+import bs4
 import shutil
+import requests as requests
 import logging
 from tabulate import tabulate
 import plugin
@@ -51,6 +53,7 @@ def package_list():
     Given a short name, lookf for a the given packages availables for this plugin.
 """
 def package_search(name):
+    utils.readConf()
     pkgs = plugin.Plugin(name[0])
     pkgs.getAvailablePackages()
     toPrint = []
@@ -64,6 +67,7 @@ def package_search(name):
     the user explicitly asked for this version.
 """
 def package_install_specific_version(name, longVersion, mode="release"):
+    utils.readConf()
     pkgs = plugin.Plugin(name[0])
     pkgs.getAvailablePackages()
     if mode == "release":
@@ -78,6 +82,7 @@ def package_install_specific_version(name, longVersion, mode="release"):
     If no release mode is given, it will only look in the released rpkg.
 """
 def package_install_latest(name, mode="release"):
+    utils.readConf()
     pkgs = plugin.Plugin(name[0])
     pkgs.getAvailablePackages()
     if mode == "release":
@@ -169,9 +174,27 @@ def plugin_disable_all():
 def plugin_enable_all():
     plugin_status(utils.DB["plugins"].keys(), True)
 
+def update_licenses():
+    utils.readConf()
+    url = utils.URL + "/licenses/" + utils.REPO
+    r = requests.get(url, auth=(utils.USERNAME, utils.PASSWORD))
+    data = bs4.BeautifulSoup(r.text, "html.parser")
+    licensePattern = re.compile('<a href="(?P<file>[a-zA-Z\-_]+.license)">(?P=file)<\/a>')
+    keyPattern = re.compile('<a href="(?P<key>[a-zA-Z\-_]+.key)">(?P=key)<\/a>')
+    for l in data.find_all("a"):
+        licenseMatch = licensePattern.search(str(l))
+        keyMatch = keyPattern.search(str(l))
+        if licenseMatch is not None:
+            logging.info("downloading %s"%(licenseMatch.group('file')))
+            utils.download(url + "/" + licenseMatch.group('file'), "/opt/rudder/etc/plugins/licenses/" + licenseMatch.group('file'))
+        elif keyMatch is not None:
+            logging.info("downloading %s"%(keyMatch.group('key')))
+            utils.download(url + "/" + keyMatch.group('key'), "/opt/rudder/etc/plugins/licenses/" + keyMatch.group('key'))
+
 # TODO validate index sign if any?
 """ Download the index file on the repos """
 def update():
+    utils.readConf()
     logging.debug('Updating the index')
     utils.getRudderKey()
     # backup the current indexFile if it exists
