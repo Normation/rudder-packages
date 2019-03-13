@@ -160,7 +160,9 @@ fi
 
 # ldconfig only necessary when upgrading
 if [ "${CFRUDDER_FIRST_INSTALL}" != "true" ]; then
-  ldconfig
+  if type ldconfig > /dev/null 2>&1; then
+    ldconfig
+  fi
 fi
 
 # Set a "lock" to avoid CFEngine being restarted during the upgrade process
