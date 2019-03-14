@@ -43,14 +43,45 @@ def install_file(package_files):
 """
     List installed plugins.
 """
-def package_list():
+def package_list_installed():
     toPrint = []
     for p in utils.DB["plugins"].keys():
         toPrint.append([p, utils.DB["plugins"][p]["version"]])
     print(tabulate(toPrint, headers=['Plugin Name', 'Version'], tablefmt='orgtbl'))
 
 """
-    Given a short name, lookf for a the given packages availables for this plugin.
+    List available plugin names.
+"""
+def package_list_name():
+    pluginDict = utils.list_plugin_name()
+    toPrint = []
+    for p in pluginDict.keys():
+        toPrint.append([p, pluginDict[p][0], pluginDict[p][1]])
+    print(tabulate(toPrint, headers=['Plugin Name', 'Plugin Short Name', 'Description'], tablefmt='orgtbl'))
+
+"""
+    Given a name, a version, and a mode, print associated plugin metadata.
+    If no version is given it will take the latest version in the given mode.
+"""
+def package_show(name, version, mode):
+    utils.readConf()
+    pkgs = plugin.Plugin(name[0])
+    pkgs.getAvailablePackages()
+    if version != "":
+        if mode == "release":
+            rpkg = pkgs.getRpkgByLongVersion(version, mode)
+        else:
+            rpkg = pkgs.getRpkgByLongVersion(version, mode)
+    else:
+        if mode == "release":
+            rpkg = pkgs.getLatestCompatibleRelease()
+        else:
+            rpkg = pkgs.getLatestCompatibleNightly()
+
+    rpkg.show_metadata()
+
+"""
+    Given a name, lookf for a the given packages availables for this plugin.
 """
 def package_search(name):
     utils.readConf()

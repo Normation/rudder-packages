@@ -1,4 +1,4 @@
-import os, logging, re, json
+import os, logging, re, json, textwrap
 from pkg_resources import parse_version
 
 import rudderPkgUtils as utils
@@ -23,6 +23,7 @@ class Version:
             self.rudderVersion = match.group('rudderVersion')
             self.pluginShortVersion = match.group('pluginShortVersion')
             self.pluginLongVersion = pluginLongVersion
+
 
     def __str__(self):
         return self.mode + " => " + self.rudderVersion + "-" + self.pluginShortVersion + " | " + self.pluginLongVersion
@@ -64,53 +65,47 @@ class Rpkg:
         self.version = version
         self.metadata = metadata
 
-    def verifyAuth(self):
-        # Get rudder plugins gpg key
-        utils.getRudderKey()
-        # Download hash and sign files
-        (folder, leaf) = os.path.split(self.path)
-
-        shaSumUrl = folder + "/" + "SHA512SUMS"
-        shaSumDst   = utils.FOLDER_PATH + "/" + shaSumUrl
-        logging.info("downloading shasum file  %s"%(utils.URL + "/" + shaSumUrl))
-        utils.download(utils.URL + "/" + shaSumUrl)
-
-        signUrl   = folder + "/" + "SHA512SUMS.asc"
-        signDst   = utils.FOLDER_PATH + "/" + signUrl
-        logging.info("downloading shasum sign file  %s"%(utils.URL + "/" + signUrl))
-        utils.download(utils.URL + "/" + signUrl)
-
-        # Verify that signature is correct
-        gpgCommand = "/usr/bin/gpg --homedir " + utils.GPG_HOME + " --verify " + signDst + " " + shaSumDst
-        logging.debug("Executing %s"%(gpgCommand))
-        logging.info("verifying shasum file signature %s"%(gpgCommand))
-        utils.shell(gpgCommand, keep_output=False, fail_exit=True, keep_error=False)
-        logging.info("=> OK!\n")
-        return True
-
-    def verifyHash(self):
-        fileHash = []
-        (folder, leaf) = os.path.split(self.path)
-        shaSumPath = utils.FOLDER_PATH + "/" + folder + "/" + "SHA512SUMS"
-        lines = [line.rstrip('\n') for line in open(shaSumPath)]
-        pattern = re.compile(r'(?P<hash>[a-zA-Z0-9]+)[\s]+%s'%(leaf))
-        logging.info("verifying rpkg hash")
-        for line in lines:
-            match = pattern.search(line)
-            if match:
-                fileHash.append(match.group('hash'))
-        if len(fileHash) != 1:
-            logging.warning('Multiple hash found matching the package, this should not happend')
-        if utils.sha512(utils.FOLDER_PATH + "/" + self.path) in fileHash:
-            logging.info("=> OK!\n")
-            return True
-        utils.fail("hash could not be verified")
-
     def getMode(self):
         return self.version.mode
 
     def isCompatible(self):
         return utils.check_plugin_compatibility(self.metadata)
+
+    def show_metadata(self):
+        # Mandatory
+        print("Name: " + self.metadata['name'])
+        print("Short name: " + self.metadata['name'].replace("rudder-plugin-", ""))
+        print("Version: " + self.metadata['version'])
+
+        # Description
+        description = ""
+        if 'description' in self.metadata:
+            description = self.metadata['description']
+        print("Description:")
+        for line in textwrap.wrap(description, 80):
+            print("  " + line)
+
+        # Build info
+        print("Build-date: " + self.metadata['build-date'])
+        print("Build-commit: " + self.metadata['build-commit'])
+
+        # Dependencies info
+        if 'depends' in self.metadata:
+          for dependType in self.metadata['depends'].keys():
+              prefix = "Depends %s: "%(dependType)
+              suffix = ', '.join(str(x) for x in self.metadata['depends'][dependType])
+              print(prefix + suffix)
+
+        # Jar info
+        jar = ""
+        if 'jar-file' in self.metadata:
+            jar = ', '.join(str(x) for x in self.metadata['jar-files'])
+        print("Jar files: " + jar)
+
+        # Content info
+        print("Content:")
+        for iContent in self.metadata['content'].keys():
+            print("  %s: %s"%(iContent, self.metadata['content'][iContent]))
 
     def __eq__(self, other):
         if isinstance(other, Rpkg):

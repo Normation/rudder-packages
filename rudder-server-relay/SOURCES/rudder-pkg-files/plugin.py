@@ -1,4 +1,4 @@
-import json, logging
+import json, logging, re
 import rudderPkgUtils as utils
 import rpkg
 
@@ -9,6 +9,8 @@ import rpkg
 """
 class Plugin:
     def __init__(self, name):
+        if re.match(r'rudder-plugin-[0-9a-zA-Z]+', name):
+            name = name.replace("rudder-plugin-", "")
         self.name = name
         self.packagesInfo = set()
         self.releasePackagesInfo = set()
@@ -63,6 +65,7 @@ class Plugin:
                 compatibles.add(iRpkg)
         return compatibles
 
+
     """From a given version and release mode, return the corresponding Rpkg object."""
     def getRpkgByLongVersion(self, longVersion, mode):
         for iRpkg in self.packagesInfo :
@@ -72,16 +75,28 @@ class Plugin:
 
     """Return the latest released Rpkg object found compatible with current Rudder version."""
     def getLatestCompatibleRelease(self):
-        return max(self.getCompatibleRelease())
+        try:
+            return max(self.getCompatibleRelease())
+        except:
+            utils.fail("Could not find any compatible release for %s"%(self.name))
 
     """Return the latest nightly Rpkg object found compatible with current Rudder version."""
     def getLatestCompatibleNightly(self):
-        return max(self.getCompatibleNightly())
+        try:
+            return max(self.getCompatibleNightly())
+        except:
+            utils.fail("Could not find any compatible nightly for %s"%(self.name))
 
     """Return the latest release Rpkg object found compatible or not with current Rudder version."""
     def getLatestRelease(self):
-        return max(self.releasePackagesInfo)
+        try:
+            return max(self.releasePackagesInfo)
+        except:
+            utils.fail("Could not find any compatible release for %s"%(self.name))
 
     """Return the latest nightly Rpkg object found compatible or not with current Rudder version."""
     def getLatestNightly(self):
-        return max(self.nightlyPackagesInfo)
+        try:
+            return max(self.nightlyPackagesInfo)
+        except:
+            utils.fail("Could not find any compatible nightly for %s"%(self.name))

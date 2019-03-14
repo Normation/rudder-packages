@@ -5,8 +5,9 @@ Rudder package manager
 
 Usage:
     rudder-pkg [--debug] install-file <package.rpkg>...
-    rudder-pkg [--debug] list
+    rudder-pkg [--debug] list [--all]
     rudder-pkg [--debug] update
+    rudder-pkg [--debug] show <package> [--version=<version>] [--nightly]
     rudder-pkg [--debug] licenses
     rudder-pkg [--debug] install <package> [--version=<version>] [--nightly]
     rudder-pkg [--debug] remove <package>...
@@ -24,6 +25,7 @@ Options:
     --debug    Set logging level to debug
     --version <version>  Provide specific version
     --nightly  Force the command to execute on the nightlies instead of the released plugins
+    --all      List all plugin name available
 
 Commands:
     install-file
@@ -77,8 +79,19 @@ if __name__ == "__main__":
   
     if args['install-file']:
         rudderPkg.install_file(args['<package.rpkg>'])
+    if args['show']:
+        version = ""
+        mode = "release"
+        if args['--nightly']:
+            mode = "nightly"
+        if args['--version']:
+            version = args['--version']
+        rudderPkg.package_show(args['<package>'], version, mode)
     elif args['list']:
-        rudderPkg.package_list()
+        if args['--all']:
+            rudderPkg.package_list_name()
+        else:
+            rudderPkg.package_list_installed()
     elif args['update']:
         rudderPkg.update()
     elif args['licenses']:

@@ -112,19 +112,69 @@ def download(completeUrl, dst=""):
                    f.write(chunk)
                    f.flush()
        elif r.status_code == 401:
-           raise RuntimeError("Received a HTTP 401 Unauthorized error when trying to get %s. Please check your credentials in %s"%(completeUrl, CONFIG_PATH))
+           fail("Received a HTTP 401 Unauthorized error when trying to get %s. Please check your credentials in %s"%(completeUrl, CONFIG_PATH))
        elif r.status_code > 400:
-           raise RuntimeError("Received a HTTP %s error when trying to get %s"%(r.status_code, completeUrl))
+           fail("Received a HTTP %s error when trying to get %s"%(r.status_code, completeUrl))
     return fileDst
+
+"""
+   Verify Hash
+"""
+def verifyHash(targetPath, shaSumPath):
+    fileHash = []
+    (folder, leaf) = os.path.split(targetPath)
+    lines = [line.rstrip('\n') for line in open(shaSumPath)]
+    pattern = re.compile(r'(?P<hash>[a-zA-Z0-9]+)[\s]+%s'%(leaf))
+    logging.info("verifying file hash")
+    for line in lines:
+        match = pattern.search(line)
+        if match:
+            fileHash.append(match.group('hash'))
+    if len(fileHash) != 1:
+        logging.warning('Multiple hash found matching the package, this should not happend')
+    if sha512(targetPath) in fileHash:
+        logging.info("=> OK!\n")
+        return True
+    utils.fail("hash could not be verified")
+
+
+"""
+   From a complete url, try to download a file. The destination path will be determined by the complete url
+   after removing the prefix designing the repo url defined in the conf file.
+   Ex: completeUrl = http://download.rudder.io/plugins/./5.0/windows/release/SHA512SUMS
+           repoUrl = http://download.rudder.io/plugins
+           localCache = /tmp/rpkg
+        => fileDst = /tmp/rpkg/./5.0/windows/release/SHA512SUMS
+
+   If the verification or the download fails, it will exit with an error, otherwise, return the path
+   of the local rpkg path verified and downloaded.
+"""
+def download_and_verify(completeUrl, dst=""):
+    global GPG_HOME
+    # donwload the target file
+    logging.info("downloading rpkg file  %s"%(completeUrl))
+    targetPath = download(completeUrl, dst)
+    # download the attached SHASUM and SHASUM.asc
+    (baseUrl, leaf) = os.path.split(completeUrl)
+    logging.info("downloading shasum file  %s"%(baseUrl + "/SHA512SUMS"))
+    shaSumPath = download(baseUrl + "/SHA512SUMS", dst)
+    logging.info("downloading shasum sign file  %s"%(baseUrl + "/SHA512SUMS.asc"))
+    signPath = download(baseUrl + "/SHA512SUMS.asc", dst)
+    # verify authenticity
+    gpgCommand = "/usr/bin/gpg --homedir " + GPG_HOME + " --verify " + signPath + " " + shaSumPath
+    logging.debug("Executing %s"%(gpgCommand))
+    logging.info("verifying shasum file signature %s"%(gpgCommand))
+    shell(gpgCommand, keep_output=False, fail_exit=True, keep_error=False)
+    logging.info("=> OK!\n")
+    # verify hash
+    if verifyHash(targetPath, shaSumPath):
+        return targetPath
+    fail("Hash verification of %s failed"%(targetPath))
+    
 
 """Download the .rpkg file matching the given rpkg Object and verify its authenticity"""
 def downloadByRpkg(rpkg):
-    if rpkg.verifyAuth():
-        logging.info("downloading %s.rpkg"%(rpkg.longName))
-        dstPath = download(URL + "/" + rpkg.path)
-        rpkg.verifyHash()
-        return dstPath
-    fail("Hash authenticity could not be verified")
+    return download_and_verify(URL + "/" + rpkg.path)
 
 def package_check(metadata):
   if 'type' not in metadata or metadata['type'] != 'plugin':
@@ -298,6 +348,25 @@ def readConf():
     except Exception as e:
         print("Could not read the conf file %s"%(CONFIG_PATH))
         exit(1)
+
+def list_plugin_name():
+    global INDEX_PATH
+    try:
+        pluginName = {}
+        with open(INDEX_PATH) as f:
+            data = json.load(f)
+        for metadata in data:
+            if metadata['name'] not in pluginName.keys():
+                if "description" in metadata:
+                    description = metadata['description']
+                    if len(description) >= 80:
+                        description = description[0:76] + "..."
+                    pluginName[metadata['name']] = (metadata['name'].replace("rudder-plugin-", ""), description)
+                else:
+                    pluginName[metadata['name']] = (metadata['name'].replace("rudder-plugin-", ""), "")
+        return pluginName
+    except:
+        fail("Could not read the index file %s"%(INDEX_PATH))
 
 ############# Variables ############# 
 """ Defining global variables."""
