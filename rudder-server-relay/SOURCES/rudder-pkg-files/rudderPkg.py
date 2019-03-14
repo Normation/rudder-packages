@@ -10,6 +10,7 @@ import requests as requests
 import logging
 from tabulate import tabulate
 import plugin
+import rpkg
 import rudderPkgUtils as utils
 
 
@@ -45,9 +46,25 @@ def install_file(package_files):
 """
 def package_list_installed():
     toPrint = []
+    printLatest = os.path.isfile(utils.INDEX_PATH)
+
     for p in utils.DB["plugins"].keys():
-        toPrint.append([p, utils.DB["plugins"][p]["version"]])
-    print(tabulate(toPrint, headers=['Plugin Name', 'Version'], tablefmt='orgtbl'))
+        currentVersion = rpkg.Version(utils.DB["plugins"][p]["version"])
+        extra = ""
+        if printLatest:
+            pkgs = plugin.Plugin(p)
+            pkgs.getAvailablePackages()
+            latestVersion = pkgs.getLatestCompatibleRelease().version
+            if currentVersion < latestVersion:
+                extra = "version %s is available"%(latestVersion.pluginLongVersion)
+            toPrint.append([p, currentVersion.pluginLongVersion, latestVersion.pluginLongVersion + " " + extra])
+        else:
+            toPrint.append([p, currentVersion.pluginLongVersion])
+
+    if printLatest:
+        print(tabulate(toPrint, headers=['Plugin Name', 'Version', 'Latest release'], tablefmt='orgtbl'))
+    else:
+        print(tabulate(toPrint, headers=['Plugin Name', 'Version'], tablefmt='orgtbl'))
 
 """
     List available plugin names.
