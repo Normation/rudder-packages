@@ -317,13 +317,16 @@ endif
 	cp -r initial-promises/ $(DESTDIR)/opt/rudder/share/
 	cp -r initial-ncf/ $(DESTDIR)/opt/rudder/share/
 
-	# Strip binaries
-	find $(DESTDIR) -print0 | xargs -0 file | grep -E "executable|shared object" \
-	  | cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null || true
+# Strip binaries
+ifeq (aix,$(OS_FAMILY))
+	find $(DESTDIR) -type f | xargs file | grep -E "executable|shared object" | cut -f 1 -d : | xargs strip 2> /dev/null || true
+else
+	find $(DESTDIR) -type f -print0 | xargs -0 file | grep -E "executable|shared object" | cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null || true
+endif
 
 	# Aix doesn't have libgcc by default, embed it from the builder
 ifeq (aix,$(OS_FAMILY))
-	cp /opt/freeware/lib/gcc/powerpc-ibm-aix5.3.0.0/4.8.2/libgcc* %{buildroot}/opt/rudder/lib
+	cp /opt/freeware/lib/gcc/powerpc-ibm-aix5.3.0.0/4.8.2/libgcc* $(DESTDIR)/opt/rudder/lib
 endif
 
 # clean
