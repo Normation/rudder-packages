@@ -62,8 +62,12 @@
 # Default to use PIE code if possible
 %define use_pie true
 
-# Default to build with posix acl support
-%define use_acl true
+# OS family to build for
+%if "%{?_os}" == "aix"
+%define os_family aix
+%else
+%define os_family linux
+%endif
 
 %if "%{real_name}" == "rudder-agent"
 # default different on agent thin and agent
@@ -81,7 +85,6 @@
 %define use_system_yaml false
 %define use_system_xml false
 %define use_pie false
-%define use_acl false
 %endif
 
 # 2 - RHEL
@@ -322,7 +325,7 @@ cd %{_sourcedir}
 cp /usr/lib64/libattr.a /usr/lib64/libattr.la /lib64 || cp /usr/lib/libattr.a /usr/lib/libattr.la /lib
 %endif
 
-make BUILD_CFLAGS="${RPM_OPT_FLAGS}" BUILD_LDFLAGS="%{build_ldflags}" USE_SYSTEM_OPENSSL=%{use_system_openssl} BUILD_OLD_OPENSSL=%{build_old_openssl} USE_SYSTEM_LMDB=%{use_system_lmdb} USE_SYSTEM_PCRE=%{use_system_pcre} USE_SYSTEM_FUSION=%{use_system_fusion} USE_SYSTEM_PERL=%{use_system_perl} USE_HTTPS=%{use_https} USE_SYSTEM_ZLIB=%{use_system_zlib} USE_SYSTEM_CURL=%{use_system_curl} USE_SYSTEM_YAML=%{use_system_yaml} USE_SYSTEM_XML=%{use_system_xml} USE_PIE=%{use_pie} USE_ACL=%{use_acl}
+make BUILD_CFLAGS="${RPM_OPT_FLAGS}" BUILD_LDFLAGS="%{build_ldflags}" USE_SYSTEM_OPENSSL=%{use_system_openssl} BUILD_OLD_OPENSSL=%{build_old_openssl} USE_SYSTEM_LMDB=%{use_system_lmdb} USE_SYSTEM_PCRE=%{use_system_pcre} USE_SYSTEM_FUSION=%{use_system_fusion} USE_SYSTEM_PERL=%{use_system_perl} USE_HTTPS=%{use_https} USE_SYSTEM_ZLIB=%{use_system_zlib} USE_SYSTEM_CURL=%{use_system_curl} USE_SYSTEM_YAML=%{use_system_yaml} USE_SYSTEM_XML=%{use_system_xml} USE_PIE=%{use_pie} OS_FAMILY=%{os_family}
 
 # there was a slibclean here on aix
 # TODO, check that it is not necessary anymore since we no more do a make install
@@ -333,14 +336,6 @@ make BUILD_CFLAGS="${RPM_OPT_FLAGS}" BUILD_LDFLAGS="%{build_ldflags}" USE_SYSTEM
 %install
 
 cd %{_sourcedir}
-
-%if "%{?_os}" == "aix"
-%define no_init true
-%define no_cron true
-%define no_ld true
-%define no_profile true
-%define no_ldso true
-%endif
 
 #### Use systemd everywhere except on: AIX, RHEL<7, SLES<12, Fedora<15
 %if "%{?_os}" == "aix"
@@ -360,22 +355,13 @@ cd %{_sourcedir}
 %endif
 ####
 
-%if 0%{?rhel} && 0%{?rhel} == 3
-%define no_ldso true
-%endif
-
-make install DESTDIR=%{buildroot} BUILD_LDFLAGS="%{build_ldflags}" USE_SYSTEM_OPENSSL=%{use_system_openssl} BUILD_OLD_OPENSSL=%{build_old_openssl} USE_SYSTEM_LMDB=%{use_system_lmdb} USE_SYSTEM_PCRE=%{use_system_pcre} USE_SYSTEM_ZLIB=%{use_system_zlib} USE_SYSTEM_CURL=%{use_system_curl} USE_SYSTEMD=%{use_systemd} NO_INIT=%{no_init} NO_CRON=%{no_cron} NO_LD=%{no_ld} NO_PROFILE=%{no_profile} USE_SYSTEM_FUSION=%{use_system_fusion} USE_SYSTEM_PERL=%{use_system_perl} NO_LDSO=%{no_ldso} USE_HTTPS=%{use_https}  USE_SYSTEM_YAML=%{use_system_yaml} USE_SYSTEM_XML=%{use_system_xml} USE_PIE=%{use_pie} USE_ACL=%{use_acl}
+make install DESTDIR=%{buildroot} BUILD_LDFLAGS="%{build_ldflags}" USE_SYSTEM_OPENSSL=%{use_system_openssl} BUILD_OLD_OPENSSL=%{build_old_openssl} USE_SYSTEM_LMDB=%{use_system_lmdb} USE_SYSTEM_PCRE=%{use_system_pcre} USE_SYSTEM_ZLIB=%{use_system_zlib} USE_SYSTEM_CURL=%{use_system_curl} USE_SYSTEMD=%{use_systemd} USE_SYSTEM_FUSION=%{use_system_fusion} USE_SYSTEM_PERL=%{use_system_perl} USE_HTTPS=%{use_https}  USE_SYSTEM_YAML=%{use_system_yaml} USE_SYSTEM_XML=%{use_system_xml} USE_PIE=%{use_pie} OS_FAMILY=%{os_family}
 
 # remove perl doc
 rm -rf %{buildroot}/opt/rudder/man %{buildroot}/opt/rudder/lib/perl5/5.22.0/pod
 
 # strip binaries
 find %{buildroot}/opt/rudder/bin -type f | xargs file -i | grep -E "application/x-sharedlib|application/x-executable" | awk -F: '{print $1}' | xargs strip
-
-# Aix doesn't have libgcc by default, embed it from our builder
-%if "%{?_os}" == "aix"
-cp /opt/freeware/lib/gcc/powerpc-ibm-aix5.3.0.0/4.8.2/libgcc* %{buildroot}/opt/rudder/lib
-%endif
 
 # Build a list of files to include in this package for use in the %files section below
 find %{buildroot} -type f -o -type l | sed "s,%{buildroot},," | sed "s,\.py$,\.py*," | grep -v "%{rudderdir}/etc/uuid.hive" | grep -v "/etc/bash_completion.d" | grep -v "%{ruddervardir}/cfengine-community/ppkeys" > %{_builddir}/file.list.%{name}

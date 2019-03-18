@@ -54,11 +54,14 @@ XML_SHA1 = ab3325e6cdda50ab2382fdfe0bdb6f7d1b9224a6
 ZLIB_RELEASE = 1.2.11
 ZLIB_SHA1 = e6d119755acdf9104d7ba236b1242696940ed6dd
 
-# Defauth PATHs
+# Default PATHs
 RUDDER_DIR = /opt/rudder
 DESTDIR = $(CURDIR)/target
 
 TRY_CFLAGS=-fstack-protector
+
+# Default OS to build for
+OS_FAMILY=linux
 
 # default build with pie if possible
 ifeq (false,$(USE_PIE))
@@ -185,8 +188,9 @@ XML_ARG := --with-libxml2=$(CURDIR)/build-xml$(RUDDER_DIR)
 else
 XML_ARG := --with-libxml2
 endif
-# default use ACLs
-ifneq (false,$(USE_ACL))
+
+# AIX do not support posix acl
+ifneq (aix,$(OS_FAMILY))
 ACL_ARG := --with-libacl
 endif
 
@@ -235,7 +239,10 @@ install: build $(INSTALL_DEPS) install-cfengine initial-promises initial-ncf rud
 	mkdir -p $(DESTDIR)/var/log/rudder/agent-check
 	mkdir -p $(DESTDIR)/usr/bin
 	mkdir -p $(DESTDIR)/etc/cron.d
+# AIX needs .a files
+ifneq (aix,$(OS_FAMILY))
 	cd $(DESTDIR)/opt/rudder && rm -rf include lib/*.a lib/*.la
+endif
 	# 2Mb manuals of C functions
 	find $(DESTDIR)/opt/rudder/share/man/man3 -name "*.3" -exec rm {} \; || true
 	# Compress man pages
@@ -255,7 +262,7 @@ endif
 
 	# Init files
 ifneq (true,$(USE_SYSTEMD))
-ifneq (true,$(NO_INIT))
+ifneq (aix,$(OS_FAMILY))
 	mkdir -p $(DESTDIR)/etc/init.d
 	mkdir -p $(DESTDIR)/etc/default
 	$(INSTALL) -m 755 rudder-agent.init $(DESTDIR)/etc/init.d/rudder-agent
@@ -264,7 +271,7 @@ endif
 endif
 
 	# cron files
-ifneq (true,$(NO_CRON))
+ifneq (aix,$(OS_FAMILY))
 	$(INSTALL) -m 644 rudder-agent.cron $(DESTDIR)/etc/cron.d/rudder-agent
 endif
 
@@ -302,7 +309,7 @@ endif
 	ln -sf $(RUDDER_DIR)/bin/rudder $(DESTDIR)/usr/bin/rudder
 
 	# Install a profile script to make cf-* part of the PATH
-ifneq (true,$(NO_PROFILE))
+ifneq (aix,$(OS_FAMILY))
 	mkdir -p $(DESTDIR)/etc/profile.d
 	$(INSTALL) -m 644 rudder-agent.sh $(DESTDIR)/etc/profile.d/
 endif
@@ -313,6 +320,11 @@ endif
 	# Strip binaries
 	find $(DESTDIR) -print0 | xargs -0 file | grep -E "executable|shared object" \
 	  | cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null || true
+
+	# Aix doesn't have libgcc by default, embed it from the builder
+ifeq (aix,$(OS_FAMILY))
+	cp /opt/freeware/lib/gcc/powerpc-ibm-aix5.3.0.0/4.8.2/libgcc* %{buildroot}/opt/rudder/lib
+endif
 
 # clean
 clean: localclean
@@ -538,6 +550,10 @@ BUILD_FLAGS=CFLAGS="$(BUILD_CFLAGS) $(SECURE_CFLAGS)" LDFLAGS="$(BUILD_LDFLAGS) 
 build-ssl: openssl-source
 	# openssl doesn't support CFLAGS (it overrides its own) so we must pass them in batch to configure
 	cd openssl-source && RELEASE="" $(SSL_CONFIGURE) -fPIC $(BUILD_CFLAGS) $(SECURE_CFLAGS) -Wl,-R$(RUDDER_DIR)/lib $(BUILD_LDFLAGS) $(SECURE_LDFLAGS) --prefix=$(RUDDER_DIR) --openssldir=$(RUDDER_DIR)/openssl shared no-idea no-rc5 no-ssl3 no-dtls no-psk no-srp no-engine
+# we need aix libpath in ssl library
+ifeq (aix,$(OS_FAMILY))
+	sed '/link_a.aix:/,/link_app.aix:/s/-bnolibpath,//' Makefile.shared > Makefile.shared.tmp && mv Makefile.shared.tmp Makefile.shared
+endif
 	cd openssl-source && $(MAKE) depend
 	cd openssl-source && $(MAKE)
 	slibclean >/dev/null 2>&1 || true
