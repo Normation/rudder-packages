@@ -552,7 +552,7 @@ build-ssl: openssl-source
 	cd openssl-source && RELEASE="" $(SSL_CONFIGURE) -fPIC $(BUILD_CFLAGS) $(SECURE_CFLAGS) -Wl,-R$(RUDDER_DIR)/lib $(BUILD_LDFLAGS) $(SECURE_LDFLAGS) --prefix=$(RUDDER_DIR) --openssldir=$(RUDDER_DIR)/openssl shared no-idea no-rc5 no-ssl3 no-dtls no-psk no-srp no-engine
 # we need aix libpath in ssl library
 ifeq (aix,$(OS_FAMILY))
-	sed '/link_a.aix:/,/link_app.aix:/s/-bnolibpath,//' Makefile.shared > Makefile.shared.tmp && mv Makefile.shared.tmp Makefile.shared
+	cd openssl-source && sed '/link_a.aix:/,/link_app.aix:/s/-bnolibpath,//' Makefile.shared > Makefile.shared.tmp && mv Makefile.shared.tmp Makefile.shared
 endif
 	cd openssl-source && $(MAKE) depend
 	cd openssl-source && $(MAKE)
