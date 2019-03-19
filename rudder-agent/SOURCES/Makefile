@@ -192,6 +192,9 @@ endif
 # AIX do not support posix acl
 ifneq (aix,$(OS_FAMILY))
 ACL_ARG := --with-libacl
+SYSTEM_LDFLAGS := -Wl,-G -Wl,-L/opt/rudder/lib
+else
+SYSTEM_LDFLAGS := -Wl,-R/opt/rudder/lib
 endif
 
 # In case we do not want pam
@@ -549,11 +552,14 @@ debug-script/rudder-debug-info:
 ####################################
 
 # build flags should be used everywhere
-BUILD_FLAGS=CFLAGS="$(BUILD_CFLAGS) $(SECURE_CFLAGS)" LDFLAGS="$(BUILD_LDFLAGS) $(SECURE_LDFLAGS)"
+LDFLAGS=$(BUILD_LDFLAGS) $(SECURE_LDFLAGS) $(SYSTEM_LDFLAGS)
+CFLAGS=$(BUILD_CFLAGS) $(SECURE_CFLAGS)
+BUILD_FLAGS=CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)"
 
 build-ssl: openssl-source
 	# openssl doesn't support CFLAGS (it overrides its own) so we must pass them in batch to configure
-	cd openssl-source && RELEASE="" $(SSL_CONFIGURE) -fPIC $(BUILD_CFLAGS) $(SECURE_CFLAGS) -Wl,-R$(RUDDER_DIR)/lib $(BUILD_LDFLAGS) $(SECURE_LDFLAGS) --prefix=$(RUDDER_DIR) --openssldir=$(RUDDER_DIR)/openssl shared no-idea no-rc5 no-ssl3 no-dtls no-psk no-srp no-engine
+	# TODO shouldn't we put -fPIE here ?
+	cd openssl-source && RELEASE="" $(SSL_CONFIGURE) -fPIC $(CFLAGS) $(LDFLAGS) --prefix=$(RUDDER_DIR) --openssldir=$(RUDDER_DIR)/openssl shared no-idea no-rc5 no-ssl3 no-dtls no-psk no-srp no-engine
 # we need aix libpath in ssl library
 ifeq (aix,$(OS_FAMILY))
 	cd openssl-source && sed '/link_a.aix:/,/link_app.aix:/s/-bnolibpath,//' Makefile.shared > Makefile.shared.tmp && mv Makefile.shared.tmp Makefile.shared
@@ -567,7 +573,7 @@ endif
 build-lmdb: lmdb-source
 	# lmdb doesn't support CFLAGS (it overrides its own) so we pass XCFLAGS instead, that is appended to the original ones
 	# we need to add -fPIE to be able to build static lib (which we do not use)
-	cd lmdb-source/libraries/liblmdb && $(MAKE) XCFLAGS="$(BUILD_CFLAGS) $(SECURE_CFLAGS) $(PIE_CFLAGS)" LDFLAGS="-Wl,-R$(RUDDER_DIR)/lib $(BUILD_LDFLAGS) $(SECURE_LDFLAGS)"
+	cd lmdb-source/libraries/liblmdb && $(MAKE) XCFLAGS="$(CFLAGS) $(PIE_CFLAGS)" LDFLAGS="$(LDFLAGS)"
 	# need a temporary install for cfengine
 	mkdir -p build-lmdb$(RUDDER_DIR)
 	# LMDB's Makefile does not know how to create destination files, do it ourselves
@@ -589,10 +595,10 @@ build-zlib: zlib-source
 
 build-curl: curl-source
 	# pkcconfig give openssl build configuration, but it point to final installation path (/opt/rudder)
-	# since we need the temporary path it during build we need to add -I and -L
-	# since we also need to link it is during cfengine build we add -R (--rpath)
+	# since we need the temporary path during build we need to add -I and -L
+	# since we also need to link it during cfengine build we add -R (--rpath)
 	# we may want to remove rpath using patchelf at the end, but this is mostly cosmetic
-	cd curl-source && ./configure --prefix=$(RUDDER_DIR) --with-ssl $(ZLIB_ARG) --disable-rtsp --enable-ipv6 --without-librtmp --without-ldap-lib CFLAGS="$(BUILD_CFLAGS) $(PIE_CFLAGS) $(SECURE_CFLAGS) -I$(CURDIR)/build-ssl$(RUDDER_DIR)/include" LDFLAGS="-Wl,-R$(RUDDER_DIR)/lib $(BUILD_LDFLAGS) $(SECURE_LDFLAGS) -Wl,-R$(CURDIR)/build-ssl$(RUDDER_DIR)/lib -L$(CURDIR)/build-ssl$(RUDDER_DIR)/lib" PKG_CONFIG_PATH="$(CURDIR)/build-ssl$(RUDDER_DIR)/lib/pkgconfig"
+	cd curl-source && ./configure --prefix=$(RUDDER_DIR) --with-ssl $(ZLIB_ARG) --disable-rtsp --enable-ipv6 --without-librtmp --without-ldap-lib CPPFLAGS="-I$(CURDIR)/build-ssl$(RUDDER_DIR)/include" CFLAGS="$(CFLAGS) $(PIE_CFLAGS)" LDFLAGS="$(LDFLAGS) -Wl,-R$(CURDIR)/build-ssl$(RUDDER_DIR)/lib -L$(CURDIR)/build-ssl$(RUDDER_DIR)/lib" PKG_CONFIG_PATH="$(CURDIR)/build-ssl$(RUDDER_DIR)/lib/pkgconfig"
 	cd curl-source && $(MAKE)
 	# install to a temporary location is needed to build cfengine
 	cd curl-source && $(MAKE) install DESTDIR=$(CURDIR)/build-curl
@@ -620,7 +626,7 @@ build-cfengine-stamp:
 	cd cfengine-source && $(SED) 's/$$(AM_V_CCLD)$$(xml_c14nize_LINK)/$$(AM_V_CCLD)$$(LINK)/' tests/acceptance/Makefile.in > tests/acceptance/Makefile.in.new && mv tests/acceptance/Makefile.in.new tests/acceptance/Makefile.in
 	# build system bug when libyaml is enabled
 	cd cfengine-source && $(SED) 's/AM_CPPFLAGS = .*/AM_CPPFLAGS = $$(PCRE_CPPFLAGS) $$(OPENSSL_CPPFLAGS) $$(LIBYAML_CPPFLAGS)/' libutils/Makefile.in > libutils/Makefile.in.new && mv libutils/Makefile.in.new libutils/Makefile.in
-	cd cfengine-source && ./configure --prefix=$(RUDDER_DIR) --with-workdir=/var/rudder/cfengine-community --enable-static=yes --enable-shared=no --without-postgresql --without-mysql $(ACL_ARG) $(LMDB_ARG) $(OPENSSL_ARG) $(PCRE_ARG) $(CURL_ARG) $(YAML_ARG) $(XML_ARG) $(PAM_ARG) CFLAGS="$(BUILD_CFLAGS) $(PIE_CFLAGS) $(SECURE_CFLAGS)" LDFLAGS="$(BUILD_LDFLAGS) $(SECURE_LDFLAGS)"
+	cd cfengine-source && ./configure --prefix=$(RUDDER_DIR) --with-workdir=/var/rudder/cfengine-community --enable-static=yes --enable-shared=no --without-postgresql --without-mysql $(ACL_ARG) $(LMDB_ARG) $(OPENSSL_ARG) $(PCRE_ARG) $(CURL_ARG) $(YAML_ARG) $(XML_ARG) $(PAM_ARG) CFLAGS="$(CFLAGS) $(PIE_CFLAGS)" LDFLAGS="$(LDFLAGS)"
 	cd cfengine-source && $(MAKE)
 	touch $@
 

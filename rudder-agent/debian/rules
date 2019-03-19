@@ -13,7 +13,7 @@
 REAL_NAME=rudder-agent
 
 BUILD_CFLAGS=$(shell [ -x /usr/bin/dpkg-buildflags ] && /usr/bin/dpkg-buildflags --get CFLAGS )
-BUILD_LDFLAGS=$(shell [ -x /usr/bin/dpkg-buildflags ] && /usr/bin/dpkg-buildflags --get LDFLAGS ) -Wl,-R/opt/rudder/lib
+BUILD_LDFLAGS=$(shell [ -x /usr/bin/dpkg-buildflags ] && /usr/bin/dpkg-buildflags --get LDFLAGS )
 
 # Defaults (use our own openssl 1.1.1, and curl since it depends on it)
 USE_HTTPS=true
