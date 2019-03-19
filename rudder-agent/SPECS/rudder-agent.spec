@@ -276,8 +276,7 @@ Requires: pcre
 %define cp_a_command           cp -hpPr
 # -brtl forces libtool to use shared libraries
 # -L adds the library path to the produced executables
-# -static-libgcc is added because gcc is not provided on aix
-%define build_ldflags -Wl,-brtl -Wl,-L%{rudderdir}/lib
+%define build_ldflags -Wl,-G -Wl,-L%{rudderdir}/lib
 %else
 %define build_ldflags -Wl,-R%{rudderdir}/lib
 %endif
