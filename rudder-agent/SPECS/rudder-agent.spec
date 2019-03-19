@@ -266,21 +266,6 @@ BuildRequires: pcre-devel
 Requires: pcre
 %endif
 
-# Common commands
-
-%define install_command        install
-%define cp_a_command           cp -a
-
-%if "%{?_os}" == "aix"
-%define install_command        installbsd -c
-%define cp_a_command           cp -hpPr
-# -brtl forces libtool to use shared libraries
-# -L adds the library path to the produced executables
-%define build_ldflags -Wl,-G -Wl,-L%{rudderdir}/lib
-%else
-%define build_ldflags -Wl,-R%{rudderdir}/lib
-%endif
-
 # Use our own dependency generator
 %global _use_internal_dependency_generator 0
 %global __find_requires_orig %{__find_requires}
@@ -307,7 +292,7 @@ cd %{_sourcedir}
 cp /usr/lib64/libattr.a /usr/lib64/libattr.la /lib64 || cp /usr/lib/libattr.a /usr/lib/libattr.la /lib
 %endif
 
-make BUILD_CFLAGS="${RPM_OPT_FLAGS}" BUILD_LDFLAGS="%{build_ldflags}" USE_SYSTEM_OPENSSL=%{use_system_openssl} BUILD_OLD_OPENSSL=%{build_old_openssl} USE_SYSTEM_LMDB=%{use_system_lmdb} USE_SYSTEM_PCRE=%{use_system_pcre} USE_SYSTEM_FUSION=%{use_system_fusion} USE_SYSTEM_PERL=%{use_system_perl} USE_HTTPS=%{use_https} USE_SYSTEM_ZLIB=%{use_system_zlib} USE_SYSTEM_CURL=%{use_system_curl} USE_SYSTEM_YAML=%{use_system_yaml} USE_SYSTEM_XML=%{use_system_xml} USE_PIE=%{use_pie} OS_FAMILY=%{os_family}
+make BUILD_CFLAGS="${RPM_OPT_FLAGS}" USE_SYSTEM_OPENSSL=%{use_system_openssl} BUILD_OLD_OPENSSL=%{build_old_openssl} USE_SYSTEM_LMDB=%{use_system_lmdb} USE_SYSTEM_PCRE=%{use_system_pcre} USE_SYSTEM_FUSION=%{use_system_fusion} USE_SYSTEM_PERL=%{use_system_perl} USE_HTTPS=%{use_https} USE_SYSTEM_ZLIB=%{use_system_zlib} USE_SYSTEM_CURL=%{use_system_curl} USE_SYSTEM_YAML=%{use_system_yaml} USE_SYSTEM_XML=%{use_system_xml} USE_PIE=%{use_pie} OS_FAMILY=%{os_family}
 
 # there was a slibclean here on aix
 # TODO, check that it is not necessary anymore since we no more do a make install
@@ -337,7 +322,7 @@ cd %{_sourcedir}
 %endif
 ####
 
-make install DESTDIR=%{buildroot} BUILD_LDFLAGS="%{build_ldflags}" USE_SYSTEM_OPENSSL=%{use_system_openssl} BUILD_OLD_OPENSSL=%{build_old_openssl} USE_SYSTEM_LMDB=%{use_system_lmdb} USE_SYSTEM_PCRE=%{use_system_pcre} USE_SYSTEM_ZLIB=%{use_system_zlib} USE_SYSTEM_CURL=%{use_system_curl} USE_SYSTEMD=%{use_systemd} USE_SYSTEM_FUSION=%{use_system_fusion} USE_SYSTEM_PERL=%{use_system_perl} USE_HTTPS=%{use_https}  USE_SYSTEM_YAML=%{use_system_yaml} USE_SYSTEM_XML=%{use_system_xml} USE_PIE=%{use_pie} OS_FAMILY=%{os_family}
+make install DESTDIR=%{buildroot} USE_SYSTEM_OPENSSL=%{use_system_openssl} BUILD_OLD_OPENSSL=%{build_old_openssl} USE_SYSTEM_LMDB=%{use_system_lmdb} USE_SYSTEM_PCRE=%{use_system_pcre} USE_SYSTEM_ZLIB=%{use_system_zlib} USE_SYSTEM_CURL=%{use_system_curl} USE_SYSTEMD=%{use_systemd} USE_SYSTEM_FUSION=%{use_system_fusion} USE_SYSTEM_PERL=%{use_system_perl} USE_HTTPS=%{use_https}  USE_SYSTEM_YAML=%{use_system_yaml} USE_SYSTEM_XML=%{use_system_xml} USE_PIE=%{use_pie} OS_FAMILY=%{os_family}
 
 # remove perl doc
 rm -rf %{buildroot}/opt/rudder/man %{buildroot}/opt/rudder/lib/perl5/5.22.0/pod
@@ -469,7 +454,7 @@ fi
 # Keep a backup copy of CFEngine ppkeys
 if [ -d /var/rudder/cfengine-community/ppkeys/ ]; then
   mkdir -p /var/backups/rudder
-  %{cp_a_command} -f /var/rudder/cfengine-community/ppkeys/ /var/backups/rudder/ppkeys-$(date +%Y%m%d)
+  cp -f /var/rudder/cfengine-community/ppkeys/ /var/backups/rudder/ppkeys-$(date +%Y%m%d)
   echo "INFO: A back up copy of the /var/rudder/cfengine-community/ppkeys has been created in /var/backups/rudder"
 fi
 
