@@ -319,7 +319,8 @@ endif
 
 # Strip binaries
 ifeq (aix,$(OS_FAMILY))
-	find $(DESTDIR) -type f | xargs file | grep -E "executable|shared object" | cut -f 1 -d : | xargs strip 2> /dev/null || true
+#	find $(DESTDIR) -type f | xargs file | grep -E "executable|shared object" | cut -f 1 -d : | xargs strip 2> /dev/null || true
+	echo done
 else
 	find $(DESTDIR) -type f -print0 | xargs -0 file | grep -E "executable|shared object" | cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null || true
 endif
