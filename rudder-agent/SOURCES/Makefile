@@ -191,7 +191,7 @@ endif
 # AIX do not support posix acl
 # AIX does nor have the same form of rpath
 ifeq (aix,$(OS_FAMILY))
-SYSTEM_LDFLAGS := -Wl,-G -Wl,-L/opt/rudder/lib
+SYSTEM_LDFLAGS := -Wl,-L/opt/rudder/lib
 else
 ACL_ARG := --with-libacl
 SYSTEM_LDFLAGS := -Wl,-R/opt/rudder/lib
@@ -558,7 +558,7 @@ BUILD_FLAGS=CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)"
 
 build-ssl: openssl-source
 	# openssl doesn't support CFLAGS (it overrides its own) so we must pass them in batch to configure
-	# TODO shouldn't we put -fPIE here ?
+	# openssl doesn't work with pie
 	cd openssl-source && RELEASE="" $(SSL_CONFIGURE) -fPIC $(CFLAGS) $(LDFLAGS) --prefix=$(RUDDER_DIR) --openssldir=$(RUDDER_DIR)/openssl shared no-idea no-rc5 no-ssl3 no-dtls no-psk no-srp no-engine
 # we need aix libpath in ssl library
 ifeq (aix,$(OS_FAMILY))
