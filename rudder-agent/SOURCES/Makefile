@@ -191,7 +191,7 @@ endif
 # AIX do not support posix acl
 # AIX does nor have the same form of rpath
 ifeq (aix,$(OS_FAMILY))
-SYSTEM_LDFLAGS := -Wl,-bsvr4 -Wl,-L/opt/rudder/lib
+SYSTEM_LDFLAGS := -static-libgcc -Wl,-bsvr4 -Wl,-L/opt/rudder/lib
 else
 ACL_ARG := --with-libacl
 SYSTEM_LDFLAGS := -Wl,-R/opt/rudder/lib
@@ -326,11 +326,6 @@ ifeq (aix,$(OS_FAMILY))
 	echo done
 else
 	find $(DESTDIR) -type f -print0 | xargs -0 file | grep -E "executable|shared object" | cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null || true
-endif
-
-	# Aix doesn't have libgcc by default, embed it from the builder
-ifeq (aix,$(OS_FAMILY))
-	cp /opt/freeware/lib/gcc/powerpc-ibm-aix5.3.0.0/4.8.2/libgcc* $(DESTDIR)/opt/rudder/lib
 endif
 
 # clean
@@ -629,9 +624,19 @@ build-cfengine-stamp:
 	cd cfengine-source && ./configure --prefix=$(RUDDER_DIR) --with-workdir=/var/rudder/cfengine-community --enable-static=yes --enable-shared=no --without-postgresql --without-mysql $(ACL_ARG) $(LMDB_ARG) $(OPENSSL_ARG) $(PCRE_ARG) $(CURL_ARG) $(YAML_ARG) $(XML_ARG) $(PAM_ARG) CFLAGS="$(CFLAGS) $(PIE_CFLAGS)" LDFLAGS="$(LDFLAGS)"
 	cd cfengine-source && $(MAKE)
 	touch $@
+ifeq (aix,$(OS_FAMILY))
+	# be clean
+	slibclean
+endif
 
 # Test if compiler supports hardening flags
 get-flags:
+ifeq (aix,$(OS_FAMILY))
+	# AIX doesn't automatically unload libraries from memory (and a loaded library cannot be overwritten)
+	# some older versions may remain and prevent proper linking/installing
+	# This pace is the 'beginning' of the make so do it here
+	slibclean
+endif
 	$(eval HAVE_PROTECTION:=$(shell \
 	FLAG_TEST_FILE=`mktemp /tmp/hardening.XXXXXX` ;\
 	echo "void main() {}" > "$${FLAG_TEST_FILE}.c" ;\
