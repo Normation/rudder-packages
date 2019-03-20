@@ -192,10 +192,11 @@ XML_ARG := --with-libxml2
 endif
 
 # AIX do not support posix acl
-ifneq (aix,$(OS_FAMILY))
-ACL_ARG := --with-libacl
+# AIX does nor have the same form of rpath
+ifeq (aix,$(OS_FAMILY))
 SYSTEM_LDFLAGS := -Wl,-G -Wl,-L/opt/rudder/lib
 else
+ACL_ARG := --with-libacl
 SYSTEM_LDFLAGS := -Wl,-R/opt/rudder/lib
 endif
 
