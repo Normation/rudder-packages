@@ -193,7 +193,7 @@ endif
 # AIX do not support posix acl
 # AIX does nor have the same form of rpath
 ifeq (aix,$(OS_FAMILY))
-SYSTEM_LDFLAGS := -Wl,-L/opt/rudder/lib
+SYSTEM_LDFLAGS := -Wl,-bsvr4 -Wl,-L/opt/rudder/lib
 else
 ACL_ARG := --with-libacl
 SYSTEM_LDFLAGS := -Wl,-R/opt/rudder/lib
