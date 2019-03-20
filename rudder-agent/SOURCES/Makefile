@@ -58,12 +58,11 @@ ZLIB_SHA1 = e6d119755acdf9104d7ba236b1242696940ed6dd
 RUDDER_DIR = /opt/rudder
 DESTDIR = $(CURDIR)/target
 
-TRY_CFLAGS=-fstack-protector
-
 # Default OS to build for
 OS_FAMILY=linux
 
 # default build with pie if possible
+TRY_CFLAGS=-fstack-protector
 ifeq (false,$(USE_PIE))
 PIE_CFLAGS=
 TRY_LDFLAGS=-Wl,-z,relro -Wl,-z,now
@@ -599,7 +598,7 @@ build-curl: curl-source
 	# since we need the temporary path during build we need to add -I and -L
 	# since we also need to link it during cfengine build we add -R (--rpath)
 	# we may want to remove rpath using patchelf at the end, but this is mostly cosmetic
-	cd curl-source && ./configure --prefix=$(RUDDER_DIR) --with-ssl $(ZLIB_ARG) --disable-rtsp --enable-ipv6 --without-librtmp --without-ldap-lib CPPFLAGS="-I$(CURDIR)/build-ssl$(RUDDER_DIR)/include" CFLAGS="$(CFLAGS) $(PIE_CFLAGS)" LDFLAGS="$(LDFLAGS) -Wl,-R$(CURDIR)/build-ssl$(RUDDER_DIR)/lib -L$(CURDIR)/build-ssl$(RUDDER_DIR)/lib" PKG_CONFIG_PATH="$(CURDIR)/build-ssl$(RUDDER_DIR)/lib/pkgconfig"
+	cd curl-source && ./configure --prefix=$(RUDDER_DIR) --without-libpsl --with-ssl $(ZLIB_ARG) --disable-rtsp --enable-ipv6 --without-librtmp --without-ldap-lib CPPFLAGS="-I$(CURDIR)/build-ssl$(RUDDER_DIR)/include" CFLAGS="$(CFLAGS) $(PIE_CFLAGS)" LDFLAGS="$(LDFLAGS) -Wl,-R$(CURDIR)/build-ssl$(RUDDER_DIR)/lib -L$(CURDIR)/build-ssl$(RUDDER_DIR)/lib" PKG_CONFIG_PATH="$(CURDIR)/build-ssl$(RUDDER_DIR)/lib/pkgconfig"
 	cd curl-source && $(MAKE)
 	# install to a temporary location is needed to build cfengine
 	cd curl-source && $(MAKE) install DESTDIR=$(CURDIR)/build-curl
