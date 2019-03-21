@@ -154,7 +154,7 @@ rm -f /var/rudder/tmp/migration-rudder-cf-serverd-disabled
 if [ -f /etc/ld.so.conf.d/rudder.conf ]; then
   rm -f /etc/ld.so.conf.d/rudder.conf
 fi
-if grep -q "/opt/rudder/lib" /etc/ld.so.conf; then
+if [ -e /etc/ld.so.conf ] && grep -q "/opt/rudder/lib" /etc/ld.so.conf; then
   sed -i '/\/opt\/rudder\/lib/d' /etc/ld.so.conf
 fi
 
