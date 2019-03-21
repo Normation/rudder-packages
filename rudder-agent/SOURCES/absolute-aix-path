@@ -1,0 +1,49 @@
+#!/bin/bash
+
+set -e
+
+# relink all binaries from a given directory to use abslute library path for rudder embedded libraries
+dir="$1"
+if [ "${dir}" = "" ]
+then
+  echo "Usage $0 <rudder directory>"
+  exit 1
+fi
+
+# force ldd to load proper libraries
+export LIBPATH="${dir}/lib:/usr/lib:/lib"
+
+# point real /opt/rudder/lib to $dir
+if [ -e "/opt/ruder/lib" ]
+then
+  echo "Rudder must no be installed on this machine"
+  exit 1
+fi
+mkdir -p /opt/rudder
+ln -s "${dir}" /opt/rudder/lib
+
+# list unstripped binaries
+files=$(for i in ${dir}/bin/*; do file $i; done | grep "executable.*not stripped" | sed 's/:.*//')
+
+# list binaries wth rudder dependencies
+binaries=$(for f in ${files}
+do
+  if ldd "${f}" | grep ${dir}/lib > /dev/null
+  then
+    echo "${f}"
+  fi
+done)
+
+for f in ${binaries}
+do
+  echo $f
+  dest=$(mktemp)
+  # extract rudder dependencies with full path to final destination
+  path=$(ldd "${f}" | grep " ${dir}/lib" | sed 's/(.*//' | sort -u | sed "s|${dir}|/opt/rudder/|")
+  # extract other dependencies with library name
+  lib=$(ldd "${f}" | grep -e " /usr/lib/lib" -e " /lib/lib" | sed 's|.*/lib/lib\([^.]*\).*|-l\1|' | sort -u)
+  # relink with static paths and proper libpath (just in case)
+  ld -bipath -bsvr4 -blibpath:/opt/rudder/bin:/urs/lib:/lib ${lib} -o "${dest}" "${f}" ${path} && mv "${dest}" "${f}"
+done
+
+rm /opt/rudder/lib
