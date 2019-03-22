@@ -165,18 +165,18 @@ if [ "${CFRUDDER_FIRST_INSTALL}" != "true" ]; then
   fi
 fi
 
+# Make sure the configuration is available in a standard place
+ln -sf "${CFE_DIR}/policy_server.dat" "/opt/rudder/etc/policy_server.dat"
+
+# Make sure the daemons are stopped (if the daemon exists)
+[ -x "${CFE_DIR}/bin/cf-execd" ] && ${RUDDER_CMD} agent stop || true
+
 # Set a "lock" to avoid CFEngine being restarted during the upgrade process
 I_SET_THE_LOCK=0
 if [ ! -f /opt/rudder/etc/disable-agent ]; then
   I_SET_THE_LOCK=1
   ${RUDDER_CMD} agent disable
 fi
-
-# Make sure the configuration is available in a standard place
-ln -sf "${CFE_DIR}/policy_server.dat" "/opt/rudder/etc/policy_server.dat"
-
-# Make sure the daemons are stopped (if the daemon exists)
-[ -x "${CFE_DIR}/bin/cf-execd" ] && ${RUDDER_CMD} agent stop || true
 
 # On AIX, trigger slibclean to remove any unused library/binary object from memory
 # Will prevent "Text file busy" errors during the following copy
