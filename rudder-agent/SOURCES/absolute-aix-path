@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -xe
 
 # relink all binaries from a given directory to use abslute library path for rudder embedded libraries
 dir="$1"

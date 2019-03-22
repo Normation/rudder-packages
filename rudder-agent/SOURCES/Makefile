@@ -324,7 +324,7 @@ endif
 
 # Strip binaries
 ifeq (aix,$(OS_FAMILY))
-	./absolute-aix-path $(DESTDIR)
+	./absolute-aix-path $(DESTDIR)/opt/rudder
 	find $(DESTDIR) -type f | xargs file | grep -E "executable|shared object" | cut -f 1 -d : | xargs strip 2> /dev/null || true
 	echo done
 else
