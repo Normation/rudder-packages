@@ -16,8 +16,8 @@ then
   echo "Rudder must no be installed on this machine"
   exit 1
 fi
-mkdir -p /opt/rudder/lib
-ln -s "${dir}" /opt/rudder/lib
+mkdir -p /opt/rudder
+ln -s "${dir}/lib" /opt/rudder/lib
 
 # list unstripped binaries
 files=$(for i in ${dir}/bin/*; do file $i; done | grep "executable.*not stripped" | sed 's/:.*//')
