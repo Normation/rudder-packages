@@ -1,0 +1,168 @@
+From ff3f4fd55576cbd90394fffde5b303795308da3d Mon Sep 17 00:00:00 2001
+From: Vratislav Podzimek <vratislav.podzimek@northern.tech>
+Date: Thu, 21 Mar 2019 16:12:22 +0100
+Subject: [PATCH 1/2] Mark broken connections in the connection cache as such
+
+So that we don't have to query them over and over which is more
+expensive than just checking a status flag.
+
+Ticket: CFE-2678
+Changelog: None
+---
+ libcfnet/conn_cache.c | 9 +++++++++
+ libcfnet/conn_cache.h | 3 ++-
+ 2 files changed, 11 insertions(+), 1 deletion(-)
+
+diff --git a/libcfnet/conn_cache.c b/libcfnet/conn_cache.c
+index 67aef3b84a..69d78b9954 100644
+--- a/libcfnet/conn_cache.c
++++ b/libcfnet/conn_cache.c
+@@ -124,6 +124,12 @@ AgentConnection *ConnCache_FindIdleMarkBusy(const char *server,
+                     " connection to '%s' is marked as offline.",
+                     server);
+             }
++            else if (svp->status == CONNCACHE_STATUS_BROKEN)
++            {
++                Log(LOG_LEVEL_DEBUG,
++                    "FindIdle: connection to '%s' is marked as broken.",
++                    server);
++            }
+             else if (svp->conn->conn_info->sd >= 0)
+             {
+                 assert(svp->status == CONNCACHE_STATUS_IDLE);
+@@ -135,12 +141,14 @@ AgentConnection *ConnCache_FindIdleMarkBusy(const char *server,
+                 {
+                     Log(LOG_LEVEL_DEBUG, "FindIdle: found connection to '%s' but could not get socket status, skipping.",
+                         server);
++                    svp->status = CONNCACHE_STATUS_BROKEN;
+                     continue;
+                 }
+                 if (error != 0)
+                 {
+                     Log(LOG_LEVEL_DEBUG, "FindIdle: found connection to '%s' but connection is broken, skipping.",
+                         server);
++                    svp->status = CONNCACHE_STATUS_BROKEN;
+                     continue;
+                 }
+ 
+@@ -157,6 +165,7 @@ AgentConnection *ConnCache_FindIdleMarkBusy(const char *server,
+                 Log(LOG_LEVEL_VERBOSE, "FindIdle:"
+                     " connection to '%s' has invalid socket descriptor %d!",
+                     server, svp->conn->conn_info->sd);
++                svp->status = CONNCACHE_STATUS_BROKEN;
+             }
+         }
+     }
+diff --git a/libcfnet/conn_cache.h b/libcfnet/conn_cache.h
+index b76c7c522f..16247c3e9f 100644
+--- a/libcfnet/conn_cache.h
++++ b/libcfnet/conn_cache.h
+@@ -32,7 +32,8 @@ enum ConnCacheStatus
+ {
+     CONNCACHE_STATUS_IDLE = 0,
+     CONNCACHE_STATUS_BUSY,
+-    CONNCACHE_STATUS_OFFLINE
++    CONNCACHE_STATUS_OFFLINE,
++    CONNCACHE_STATUS_BROKEN,
+ };
+ 
+ 
+
+From 4dae5b25aab8d44ed7b16f95a56e8f6816c217ee Mon Sep 17 00:00:00 2001
+From: Vratislav Podzimek <vratislav.podzimek@northern.tech>
+Date: Thu, 21 Mar 2019 16:44:08 +0100
+Subject: [PATCH 2/2] Reorganize the checks of connection cache entries
+
+Checking flags is cheaper than comparing strings. And the code
+can also be more readable if we use our nice utility functions
+for comparing strings in safe ways.
+
+Ticket: CFE-2678
+Changelog: None
+---
+ libcfnet/conn_cache.c | 56 ++++++++++++++++++++++++-------------------
+ 1 file changed, 31 insertions(+), 25 deletions(-)
+
+diff --git a/libcfnet/conn_cache.c b/libcfnet/conn_cache.c
+index 69d78b9954..cf3ffd08b7 100644
+--- a/libcfnet/conn_cache.c
++++ b/libcfnet/conn_cache.c
+@@ -32,6 +32,7 @@
+ #include <mutex.h>                                     /* ThreadLock */
+ #include <communication.h>                             /* Hostname2IPString */
+ #include <misc_lib.h>                                  /* CF_ASSERT */
++#include <string_lib.h>                                /* StringSafeEqual */
+ 
+ 
+ /**
+@@ -88,6 +89,16 @@ void ConnCache_Destroy()
+     ThreadUnlock(&cft_conncache);
+ }
+ 
++static bool ConnCacheEntryMatchesConnection(ConnCache_entry *entry,
++                                            const char *server,
++                                            const char *port,
++                                            ConnectionFlags flags)
++{
++    return ConnectionFlagsEqual(&flags, &entry->conn->flags) &&
++           StringSafeEqual(port, entry->conn->this_port)     &&
++           StringSafeEqual(server, entry->conn->this_server);
++}
++
+ AgentConnection *ConnCache_FindIdleMarkBusy(const char *server,
+                                             const char *port,
+                                             ConnectionFlags flags)
+@@ -105,32 +116,27 @@ AgentConnection *ConnCache_FindIdleMarkBusy(const char *server,
+                   "FindIdle: NULL connection in ConnCache_entry!");
+ 
+ 
+-        if (strcmp(server,  svp->conn->this_server) == 0 &&
+-            ConnectionFlagsEqual(&flags, &svp->conn->flags) &&
+-            (port == svp->conn->this_port
+-             ||
+-             (port != NULL && svp->conn->this_port != NULL &&
+-              strcmp(port,    svp->conn->this_port) == 0)))
++        if (svp->status == CONNCACHE_STATUS_BUSY)
+         {
+-            if (svp->status == CONNCACHE_STATUS_BUSY)
+-            {
+-                Log(LOG_LEVEL_DEBUG, "FindIdle:"
+-                    " connection to '%s' seems to be busy.",
+-                    server);
+-            }
+-            else if (svp->status == CONNCACHE_STATUS_OFFLINE)
+-            {
+-                Log(LOG_LEVEL_DEBUG, "FindIdle:"
+-                    " connection to '%s' is marked as offline.",
+-                    server);
+-            }
+-            else if (svp->status == CONNCACHE_STATUS_BROKEN)
+-            {
+-                Log(LOG_LEVEL_DEBUG,
+-                    "FindIdle: connection to '%s' is marked as broken.",
+-                    server);
+-            }
+-            else if (svp->conn->conn_info->sd >= 0)
++            Log(LOG_LEVEL_DEBUG,
++                "FindIdle: connection %p seems to be busy.",
++                svp->conn);
++        }
++        else if (svp->status == CONNCACHE_STATUS_OFFLINE)
++        {
++            Log(LOG_LEVEL_DEBUG,
++                "FindIdle: connection %p is marked as offline.",
++                svp->conn);
++        }
++        else if (svp->status == CONNCACHE_STATUS_BROKEN)
++        {
++            Log(LOG_LEVEL_DEBUG,
++                "FindIdle: connection %p is marked as broken.",
++                svp->conn);
++        }
++        else if (ConnCacheEntryMatchesConnection(svp, server, port, flags))
++        {
++            if (svp->conn->conn_info->sd >= 0)
+             {
+                 assert(svp->status == CONNCACHE_STATUS_IDLE);
+ 
+
