@@ -184,6 +184,7 @@ mkdir -p %{buildroot}%{rudderdir}/bin/
 mkdir -p %{buildroot}%{rudderdir}/etc/
 mkdir -p %{buildroot}%{rudderdir}/etc/ssl/
 mkdir -p %{buildroot}%{rudderdir}/share/selinux/
+mkdir -p %{buildroot}%{rudderdir}/rudder-pkg
 mkdir -p %{buildroot}%{ruddervardir}/inventories/incoming
 mkdir -p %{buildroot}%{ruddervardir}/inventories/accepted-nodes-updates
 mkdir -p %{buildroot}%{ruddervardir}/shared-files
@@ -205,8 +206,8 @@ install -m 755 %{_sourcedir}/relay-api/cleanup.sh %{buildroot}%{rudderdir}/share
 # rudder packaging
 install -m 755 %{_sourcedir}/rudder-pkg %{buildroot}%{rudderdir}/bin/
 install -m 755 %{_sourcedir}/rudder-pkg-files/makeIndex.sh %{buildroot}%{rudderdir}/bin/
-install -m 644 %{_sourcedir}/rudder-pkg-files/rudder-pkg.conf %{buildroot}%{rudderdir}%{etc}/rudder-pkg.conf
-install -m 444 %{_sourcedir}/rudder-pkg-files/rudder_apt_key.pub %{buildroot}%{ruddervardir}/rudder_apt_key.pub
+install -m 644 %{_sourcedir}/rudder-pkg-files/rudder-pkg.conf %{buildroot}%{rudderdir}%{etc}/rudder-pkg/rudder-pkg.conf
+install -m 444 %{_sourcedir}/rudder-pkg-files/rudder_apt_key.pub %{buildroot}%{rudderdir}%{etc}/rudder-pkg/rudder_apt_key.pub
 cp %{_sourcedir}/docopt.py %{buildroot}%{rudderdir}/share/python/
 cp %{_sourcedir}/rudder-pkg-files/*.py %{buildroot}%{rudderdir}/share/python/rudder-pkg
 

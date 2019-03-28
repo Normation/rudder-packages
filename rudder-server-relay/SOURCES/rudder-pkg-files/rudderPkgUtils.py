@@ -372,11 +372,11 @@ def list_plugin_name():
 """ Defining global variables."""
 
 LOG_PATH = "/var/log/rudder/rudder-pkg.log"
-CONFIG_PATH = "/opt/rudder/etc/rudder-pkg.conf"
+CONFIG_PATH = "/opt/rudder/etc/rudder-pkg/rudder-pkg.conf"
 FOLDER_PATH = "/var/rudder/tmp/plugins"
 INDEX_PATH = FOLDER_PATH + "/rpkg.index"
-GPG_HOME = "/tmp/toto"
-GPG_RUDDER_KEY = "/var/rudder/rudder_apt_key.pub"
+GPG_HOME = "/opt/rudder/etc/rudder-pkg"
+GPG_RUDDER_KEY = "/opt/rudder/etc/rudder-pkg/rudder_apt_key.pub"
 GPG_RUDDER_KEY_FINGERPRINT = "7C16 9817 7904 212D D58C  B4D1 9322 C330 474A 19E8"
 
 
