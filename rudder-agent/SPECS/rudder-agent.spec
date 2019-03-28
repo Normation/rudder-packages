@@ -579,6 +579,7 @@ rm -f %{_builddir}/file.list.%{name}
 %dir %{ruddervardir}/tmp
 %dir %{ruddervardir}/ncf/common
 %dir %{ruddervardir}/ncf/local
+%dir %{ruddervardir}/inventories
 %dir %{ruddervardir}/tools
 %dir %{rudderlogdir}/install
 %dir %{rudderlogdir}/agent-check
