@@ -696,10 +696,10 @@ install-xml: build-xml
 install-cfengine: build-cfengine $(INSTALL_DEPS)
 	cd cfengine-source && $(MAKE) install DESTDIR=$(DESTDIR) STRIP=""
 	mkdir -p $(DESTDIR)/opt/rudder/share/man/man8
-	cd cfengine-source && for binary in cf-agent cf-promises cf-key cf-execd cf-serverd cf-net cf-runagent; do \
+	cd cfengine-source && for binary in cf-agent cf-promises cf-key cf-execd cf-serverd cf-monitord cf-net cf-runagent; do \
 		LD_LIBRARY_PATH="$(DESTDIR)/opt/rudder/lib" $${binary}/$${binary} -M | gzip > $(DESTDIR)/opt/rudder/share/man/man8/$${binary}.8.gz; \
 	done
-	cd $(DESTDIR)/opt/rudder && rm -rf share/doc/cfengine && rm bin/cf-monitord
+	cd $(DESTDIR)/opt/rudder && rm -rf share/doc/cfengine
 
 install-perl: build-perl
 	cd perl-$(PERL_RELEASE) && $(MAKE) install DESTDIR=$(DESTDIR)
