@@ -40,7 +40,7 @@ do
   # extract other dependencies with library name
   lib=$(LIBPATH="${dir}/lib:/usr/lib:/lib" ldd "${f}" | grep -e " /usr/lib/lib" -e " /lib/lib" | sed 's|.*/lib/lib\([^.]*\).*|-l\1|' | sort -u)
   # relink with static paths and proper libpath (just in case)
-  ld -bipath -bsvr4 -blibpath:/opt/rudder/bin:/urs/lib:/lib ${lib} -o "${dest}" "${f}" ${path} && mv "${dest}" "${f}"
+  ld -bipath -bsvr4 -blibpath:/opt/rudder/bin:/urs/lib:/lib "${f}" ${path} ${lib} -o "${dest}" && mv "${dest}" "${f}"
 done
 
 rm /opt/rudder/lib
