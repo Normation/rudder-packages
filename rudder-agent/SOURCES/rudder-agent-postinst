@@ -200,11 +200,10 @@ then
   RESTORE_SERVER_ROLES_BACKUP=1
 fi
 
-# Copy initial promises if there aren't any already or,
-# if the cf-promises validation fails, it means we have a broken set of promises (possibly a pre-2.8 set).
-# Reset the initial promises so the server is able to send the agent a new set of correct ones.
+# Copy initial promises if there aren't any policies already,or
+# if the cf-promises validation fails.
 RUDDER_UUID=`cat /opt/rudder/etc/uuid.hive 2>>${LOG_FILE} || true`
-if [ ! -f ${CFE_DIR}/inputs/promises.cf ] || ! ${CFE_DIR}/bin/cf-promises >> ${LOG_FILE} 2>&1 && [ "${RUDDER_UUID}" != "root" ]
+if [ ! -f ${CFE_DIR}/inputs/promises.cf ] || ! ${CFE_DIR}/bin/cf-promises >> ${LOG_FILE} 2>&1
 then
   mkdir -p ${CFE_DIR}/inputs
   rm -rf ${CFE_DIR}/inputs/* || true
