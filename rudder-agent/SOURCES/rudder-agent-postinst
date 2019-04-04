@@ -180,7 +180,7 @@ fi
 
 # On AIX, trigger slibclean to remove any unused library/binary object from memory
 # Will prevent "Text file busy" errors during the following copy
-if type slibclean >> ${LOG_FILE} 2>&1; then 
+if type slibclean > /dev/null 2>&1; then 
   slibclean
 fi
 
@@ -282,7 +282,7 @@ fi
 # http://www.rudder-project.org/redmine/issues/8065
 if [ "${CFRUDDER_FIRST_INSTALL}" = "true" ]
 then
-  if type setfacl >> ${LOG_FILE} 2>&1; then
+  if type setfacl > /dev/null 2>&1; then
     setfacl -R -k /var/rudder/
   fi
 fi
