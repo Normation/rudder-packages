@@ -36,7 +36,7 @@ case "$1" in
       echo "INFO:                                                                           "
       echo "********************************************************************************"
       #if the stops fails, it's probably because it was not started
-      service rudder-jetty stop || true
+      service rudder-jetty stop >&2 > /dev/null || true
 
       if [ -x /opt/rudder/bin/rudder-pkg ]
       then
