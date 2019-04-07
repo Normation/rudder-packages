@@ -265,7 +265,7 @@ install -m 644 %{SOURCE23} %{buildroot}%{ruddervardir}/configuration-repository/
 mkdir -p /opt/rudder/etc
 echo 'root' > /opt/rudder/etc/uuid.hive
 
-service rudder-jetty stop
+service rudder-jetty stop >&2 > /dev/null
 if [ -x /opt/rudder/bin/rudder-pkg ]
 then
   /opt/rudder/bin/rudder-pkg plugin save-status > /tmp/rudder-plugins-upgrade
