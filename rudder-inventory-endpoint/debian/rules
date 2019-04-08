@@ -42,7 +42,7 @@ java8:
 		[ $$dist = "wheezy" ] && dist="precise"; \
 		if [ $$dist = "xenial" ] || [ $$dist = "stretch" ] || [ $$dist = "bionic" ]; then \
 			DEBIAN_FRONTEND=noninteractive apt-get install -y  openjdk-8-jdk; \
-		else
+		else \
 			if [ $$dist = "jessie" ]; then \
 				dist=xenial \
 			fi \
