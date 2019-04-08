@@ -23,7 +23,7 @@ except:
 
 NEXTHOP = None
 REMOTE_RUN_COMMAND = "sudo /opt/rudder/bin/rudder remote run"
-LOCAL_RUN_COMMAND = "sudo /opt/rudder/bin/rudder agent run"
+LOCAL_RUN_COMMAND = "sudo /opt/rudder/bin/rudder agent run > /dev/null 2>&1"
 
 def get_next_hop(nodes, my_uuid):
   """ Build a dict of node_id => nexthop_id """
