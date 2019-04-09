@@ -167,6 +167,7 @@ then
   exit 1
 fi
 
+
 #====================================================================
 # Functions
 #====================================================================
@@ -178,6 +179,10 @@ start_daemons() {
     message "alert" "[ALERT] The ${RUDDER_DISABLE_AGENT_FLAG_FILE} flag file is present. The agent cannot be started."
     exit 3
   fi
+
+  # check uuid existence
+  rudder agent check -fqu
+
 
   # It's time to start the daemons
   for daemon in ${DAEMONS}; do
