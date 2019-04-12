@@ -179,5 +179,5 @@ then
 fi
 
 # launch rudder agent check script, it will generate an UUID on first install or repair it if needed
-nohup ${RUDDER_CMD} agent check >> ${LOG_FILE} 2>&1 &
+nohup ${RUDDER_CMD} agent check -f >> ${LOG_FILE} 2>&1 &
 
