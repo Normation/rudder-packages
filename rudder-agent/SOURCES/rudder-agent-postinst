@@ -289,9 +289,9 @@ fi
 # launch rudder agent check script, it will generate an UUID on first install or repair it if needed
 if command -v "setsid" >/dev/null 2>&1; then
   # detach from process group otherwise dpkg may wait forever
-  setsid ${RUDDER_CMD} agent check >> ${LOG_FILE} 2>&1
+  setsid ${RUDDER_CMD} agent check -f >> ${LOG_FILE} 2>&1
 else
-  nohup ${RUDDER_CMD} agent check >> ${LOG_FILE} 2>&1 &
+  nohup ${RUDDER_CMD} agent check -f >> ${LOG_FILE} 2>&1 &
 fi
 
 # force exit othewise the shell may be waiting for something
