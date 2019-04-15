@@ -18,7 +18,7 @@
 
 .DEFAULT_GOAL := localdepends
 
-RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
+RUDDER_VERSION_TO_PACKAGE =
 
 localdepends: ./rudder-sources
 

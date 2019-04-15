@@ -18,7 +18,7 @@
 
 .DEFAULT_GOAL := build
 
-RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
+RUDDER_VERSION_TO_PACKAGE =
 
 # Autodetect presence of gnu tools
 TAR := $(shell type gtar >/dev/null 2>&1 && echo gtar || echo tar)

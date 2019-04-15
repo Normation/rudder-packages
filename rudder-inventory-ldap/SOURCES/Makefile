@@ -21,7 +21,7 @@
 OPENLDAP_RELEASE = 2.4.46
 OPENLDAP_SHA256 = 9a90dcb86b99ae790ccab93b7585a31fbcbeec8c94bf0f7ab0ca0a87ea0c4b2d
 
-RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
+RUDDER_VERSION_TO_PACKAGE =
 
 PATCH := /usr/bin/patch
 FIND := /usr/bin/find
