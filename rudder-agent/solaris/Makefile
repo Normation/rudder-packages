@@ -21,7 +21,7 @@
 #     and gsed gmake ginstall gpatch wget or curl commands
 
 ARCH=i386
-RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
+RUDDER_VERSION_TO_PACKAGE =
 ROOTPATH = $(shell dirname $(CURDIR))
 SOURCES = $(ROOTPATH)/SOURCES
 BUILDROOT = $(ROOTPATH)/tmp

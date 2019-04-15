@@ -18,7 +18,7 @@
 
 .DEFAULT_GOAL := build
 
-RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
+RUDDER_VERSION_TO_PACKAGE =
 
 PROXY_ENV = $(if $(PROXY), http_proxy=$(PROXY))
 # Usage: $(GET) <destination_file> <url> <hash>
