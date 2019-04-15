@@ -68,6 +68,15 @@ collect_logs() {
 
 }
 
+hash_secret() {
+  REGEX="${1}"
+  FILENAME="${2}"
+
+  perl -MDigest::SHA=sha512_hex -pe "s/${REGEX}/\$1.sha512_hex\$2/e" "${FILENAME}" > "${FILENAME}.hashed"
+  mv "${FILENAME}.hashed" "${FILENAME}"
+  
+}
+
 collect_files() {
 
   # Create the target directory
@@ -104,6 +113,22 @@ collect_files() {
     cp ${RUDDER_OPT}/etc/*.properties "${TARGET_DIRECTORY}/rudder/" 2>/dev/null
     cp ${RUDDER_OPT}/etc/rudder-networks* "${TARGET_DIRECTORY}/rudder/" 2>/dev/null
     cp ${RUDDER_VAR}/ncf/local/ncf.conf "${TARGET_DIRECTORY}/rudder/" 2>/dev/null
+
+
+    # Hash the passwords
+    # This is ad-hoc, as most files/keys differ
+    hash_secret "^(ldap.authpw=)(.*)$" "${TARGET_DIRECTORY}/rudder/inventory-web.properties"
+
+    hash_secret "^(ldap.authpw=)(.*)$" "${TARGET_DIRECTORY}/rudder/rudder-web.properties"
+    hash_secret "^(rudder.jdbc.password=)(.*)$" "${TARGET_DIRECTORY}/rudder/rudder-web.properties"
+    hash_secret "^(rudder.webdav.password=)(.*)$" "${TARGET_DIRECTORY}/rudder/rudder-web.properties"
+    hash_secret "(.*rudder.auth.admin.password=)(.*)$" "${TARGET_DIRECTORY}/rudder/rudder-web.properties"
+    hash_secret "^(rudder.auth.ldap.connection.bind.password=)(.*)$" "${TARGET_DIRECTORY}/rudder/rudder-web.properties"
+
+    hash_secret "^(.*:ompgsql:.*,rudder,rudder,)(.*);RudderReportsFormat$" "${TARGET_DIRECTORY}/syslog/rsyslog.d/rudder.conf"
+    # add back the rest of line lost by previous line
+    sed -i '/^.*ompgsql:.*,rudder,rudder/ s/$/;RudderReportsFormat/' "${TARGET_DIRECTORY}/syslog/rsyslog.d/rudder.conf"
+
 
     # Backup apache logs
     mkdir -p "${TARGET_DIRECTORY}/apache/"
