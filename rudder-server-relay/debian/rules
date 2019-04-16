@@ -7,7 +7,7 @@ export DH_VERBOSE=1
 override_dh_auto_build:
 	tar -xjf SOURCES/rudder-sources.tar.bz2
 	mkdir BUILD
-    mv SOURCES/rudder-sources-*/* BUILD/
+	mv SOURCES/rudder-sources-*/* BUILD/
 	dh_auto_build -- -C BUILD/rudder/relay/sources/
 
 override_dh_auto_install:
