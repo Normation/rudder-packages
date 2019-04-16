@@ -1,4 +1,2 @@
 #!/bin/bash
 
-find ./rudder-server-relay/SOURCES/relay-api/relay_api -name '*.py' | xargs pylint -E --disable=C,R --persistent=n
-pylint -E --disable=C,R --persistent=n rudder-server-relay/SOURCES/rudder-pkg
