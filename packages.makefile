@@ -30,7 +30,6 @@ OSVERSION := $(shell . ../detect_os.sh && echo $${OSVERSION})
 BUILDREQUIRESSLES := $(shell grep -s "SLES${OSVERSION}:" SOURCES/.dependencies | cut -d ':' -f2)
 BUILDREQUIRESSLESSP := $(shell grep -s "SLES${OSVERSION}SP${OSSP}:" SOURCES/.dependencies | cut -d ':' -f2)
 BUILDREQUIRESRHEL := $(shell grep -s "RHEL${OSVERSION}" SOURCES/.dependencies | cut -d ':' -f2)
-BUILDREQUIRESFEDORA := $(shell grep -s "FEDORA${OSVERSION}" SOURCES/.dependencies | cut -d ':' -f2)
 
 JAVAREQUIRES := $(shell grep -s "JAVA" SOURCES/.dependencies | cut -d ':' -f2)
 
@@ -40,20 +39,6 @@ JDKPACKAGE := jdk1.8.0_101
 ifeq ($(ARCHI),x86_64)
 JDKURL := https://repository.rudder.io/build-dependencies/java/jdk-8u101-linux-x86_64.rpm
 endif
-
-
-
-.DEFAULT_GOAL := localbuild
-
-localbuild: localdepends buildpackage-debian
-
-localdepends: SOURCES/.stamp
-
-SOURCES/.stamp:
-	cd SOURCES && $(MAKE) localdepends
-	touch SOURCES/.stamp
-
-buildpackage-rpm-common-prep:
 
 buildpackage-rpm-common-prep-suse:
 	# Accept expired GPG Key for zypper on old SLES versions
@@ -68,9 +53,6 @@ buildpackage-rpm-common-prep-rhel:
 	# Add basic package to have macros for rpm and be able to know which part of .spec file concerns rhel 5
 	if [ "${OS}" = "RHEL" -a "${OSVERSION}" = "5" ];then yum -y install buildsys-macros;fi
 	if [ ! -z "${BUILDREQUIRESRHEL}" ];then yum -y install ${BUILDREQUIRESRHEL};fi
-
-buildpackage-rpm-common-prep-fedora:
-	if [ ! -z "${BUILDREQUIRESFEDORA}" ];then yum -y install ${BUILDREQUIRESFEDORA};fi
 
 buildpackage-rpm-common-prep-aix:
 	# Dependencies on AIX are currently not managed automatically but installed manually
@@ -87,20 +69,11 @@ buildpackage-rpm-build-plainrpm:
 buildpackage-rpm-build-rpmbuild:
 	rpmbuild --define "_topdir $(PWD)" --define "real_version $(RUDDER_VERSION_RPM)" -ba SPECS/*.spec
 
-buildpackage-rpm-aix:  localdepends buildpackage-rpm-common-prep buildpackage-rpm-common-prep-aix  buildpackage-rpm-build-plainrpm
-buildpackage-rpm-suse: localdepends buildpackage-rpm-common-prep buildpackage-rpm-common-prep-suse buildpackage-rpm-build-rpmbuild
-buildpackage-rpm-rhel: localdepends buildpackage-rpm-common-prep buildpackage-rpm-common-prep-rhel buildpackage-rpm-build-rpmbuild
-buildpackage-rpm-fedora: localdepends buildpackage-rpm-common-prep buildpackage-rpm-common-prep-fedora buildpackage-rpm-build-rpmbuild
+buildpackage-rpm-aix:    buildpackage-rpm-common-prep-aix  buildpackage-rpm-build-plainrpm
+buildpackage-rpm-suse:   buildpackage-rpm-common-prep-suse buildpackage-rpm-build-rpmbuild
+buildpackage-rpm-rhel:   buildpackage-rpm-common-prep-rhel buildpackage-rpm-build-rpmbuild
 
-buildpackage-slackware: localdepends
+buildpackage-slackware:
 	cd slackware && VERSION=$(RUDDER_VERSION_SLACKWARE) TMP=$(pwd) ./rudder-agent.SlackBuild
 
-clean: localclean
-localclean:
-	cd SOURCES && $(MAKE) localclean
-	rm -f SOURCES/.stamp
-
-veryclean:
-	cd SOURCES && $(MAKE) veryclean
-
-.PHONY: localclean localbuild localdepends veryclean buildpackage-rpm-suse buildpackage-rpm-rhel buildpackage-rpm-aix buildpackage-rpm-fedora
+.PHONY: buildpackage-rpm-suse buildpackage-rpm-rhel buildpackage-rpm-aix
