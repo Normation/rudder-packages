@@ -15,7 +15,7 @@ override_dh_auto_install:
 
 override_dh_auto_clean:
 # clean/distclean would destroy the make localdepends of package builder, cleanup this code before enabling
-#	dh_auto_clean -- -C rudder-sources/
+#	dh_auto_clean -- -C BUILD/rudder/relay/sources/
 
 # Default rule that guess what to do for missing targets
 %:
