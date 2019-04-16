@@ -1,5 +1,5 @@
 #####################################################################################
-# Copyright 2011-2014 Normation SAS
+# Copyright 2011-2019 Normation SAS
 #####################################################################################
 #
 # This program is free software: you can redistribute it and/or modify
@@ -16,18 +16,6 @@
 #
 #####################################################################################
 
-#=================================================
-# Specification file for rudder-server-relay
-#=================================================
-#
-# Sets up a machine to become a Rudder relay
-#
-#=================================================
-
-#=================================================
-# Variables
-#=================================================
-
 %define real_name               rudder-server-relay
 %define real_epoch              1398866025
 
@@ -37,6 +25,7 @@
 %define apache_group            www
 %define apache_user             wwwrun
 %define apache_vhost_dir        %{apache}/vhosts.d
+%define selinux                 false
 %endif
 %if 0%{?rhel}
 %define apache                  httpd
@@ -44,6 +33,7 @@
 %define apache_group            apache
 %define apache_user             apache
 %define apache_vhost_dir        %{apache}/conf.d
+%define selinux                 true
 %endif
 
 # avoid error during byte compilation of pyc since they are removed anyway
@@ -59,7 +49,8 @@ Version: %{real_version}
 Release: 1%{?dist}
 Epoch: %{real_epoch}
 License: GPLv3
-URL: http://www.rudder-project.org
+URL: https://www.rudder.io
+Source: rudder-sources.tar.bz2
 
 Group: Applications/System
 
@@ -75,11 +66,11 @@ AutoProv: 0
 ## General
 BuildRequires: python, python-devel
 Requires: rudder-agent >= %{real_epoch}:%{real_version}, rsyslog, openssl, %{apache}, %{apache_tools}, python, binutils, xz
-
 ## RHEL
 %if 0%{?rhel}
 Requires: mod_ssl mod_wsgi shadow-utils crontabs
 BuildRequires: selinux-policy-devel
+
 %endif
 
 ## SLES
@@ -94,45 +85,40 @@ This package is essentially a meta-package to install all components required to
 run a Rudder relay server on a machine.
 
 #=================================================
+# Source preparation
+#=================================================
+%prep
+%setup -c
+
+# We don't know the exact version
+cd rudder-sources-*/rudder/relay/sources/
+
+#=================================================
 # Building
 #=================================================
 %build
-
-cd %{_sourcedir}
+cd rudder-sources-*/rudder/relay/sources/
 
 %if 0%{?suse_version}
 # On SLES, change the Apache DocumentRoot to the OS default
 sed -i "s%^DocumentRoot /var/www$%DocumentRoot /srv/www%" rudder-apache-relay-common.conf
 %endif
 
-cp -f rudder-relay.fc %{_builddir}
-cp -f rudder-relay.te %{_builddir}
-
-make build
-
-%if 0%{?rhel}
-# Build SELinux policy package
-# Compiles rudder-relay.te and rudder-relay.fc into rudder-relay.pp
-cd %{_builddir} && make -f /usr/share/selinux/devel/Makefile
-%endif
+make build SELINUX=%{selinux}
 
 #=================================================
 # Installation
 #=================================================
 %install
+cd rudder-sources-*/rudder/relay/sources/
 
+# TODO remove
 rm -rf %{buildroot}
 
-cd %{_sourcedir}
-make install APACHE_VHOSTDIR=%{apache_vhost_dir} DESTDIR=%{buildroot}
+make install APACHE_VHOSTDIR=%{apache_vhost_dir} DESTDIR=%{buildroot} SELINUX=%{selinux}
 
 mkdir -p %{buildroot}/etc/sysconfig/
 install -m 644 rudder-relay-apache %{buildroot}/etc/sysconfig/rudder-relay-apache
-
-%if 0%{?rhel}
-# Install SELinux policy
-install -m 644  %{_builddir}/rudder-relay.pp %{buildroot}/opt/rudder/share/selinux/
-%endif
 
 #=================================================
 # Post Installation
@@ -264,5 +250,5 @@ rm -rf %{buildroot}
 # Changelog
 #=================================================
 %changelog
-* Wed Nov  22 2017 - Rudder Team <rudder-dev@rudder-project.org> %{version}
-- See https://www.rudder-project.org/site/documentation/user-manual/ for changelogs
+* Wed Nov  22 2017 - Rudder Team <dev@rudder.io> %{version}
+- See https://docs.rudder.io/changelogs/current/index.html for changelogs

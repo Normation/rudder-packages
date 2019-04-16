@@ -5,14 +5,17 @@
 export DH_VERBOSE=1
 
 override_dh_auto_build:
-	dh_auto_build -- -C SOURCES
+	tar -xjf SOURCES/rudder-sources.tar.bz2
+	mkdir BUILD
+    mv SOURCES/rudder-sources-*/* BUILD/
+	dh_auto_build -- -C BUILD/rudder/relay/sources/
 
 override_dh_auto_install:
-	dh_auto_install -- -C SOURCES
+	dh_auto_install -- -C BUILD/rudder/relay/sources/
 
 override_dh_auto_clean:
 # clean/distclean would destroy the make localdepends of package builder, cleanup this code before enabling
-#	dh_auto_clean -- -C SOURCES
+#	dh_auto_clean -- -C rudder-sources/
 
 # Default rule that guess what to do for missing targets
 %:
