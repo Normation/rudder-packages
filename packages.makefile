@@ -52,14 +52,6 @@ RUST_RELEASE = 1.34.0
 RUST_PACKAGE = rust-$(RUST_RELEASE)-x86_64-unknown-linux-gnu
 RUST_SHA256 = 170647ed41b497dc937a6b2556700210bc4be187b1735029ef9ccf52e2cb5ab8
 
-$(RUST_PACKAGE).tar.gz:
-	$(GET) $(RUST_PACKAGE).tar.gz https://repository.rudder.io/build-dependencies/rust/$(RUST_PACKAGE).tar.gz $(RUST_SHA256)
-
-/usr/local/bin/cargo: $(RUST_PACKAGE).tar.gz
-	rm -rf $(RUST_PACKAGE)
-	tar -xzf $(RUST_PACKAGE).tar.gz
-	cd $(RUST_PACKAGE) && ./install.sh --components=cargo,rustc,rust-std-x86_64-unknown-linux-gnu
-
 buildpackage-rpm-common-prep-suse:
 	# Accept expired GPG Key for zypper on old SLES versions
 	if [ "${OS}" = "SLES" -a "${OSVERSION}" = "10" ];then echo -e "y\ny" | zypper ref || true;fi
@@ -68,11 +60,23 @@ buildpackage-rpm-common-prep-suse:
 	# alternatives doesn't exist on sles11 but it is a rewrite of update-alternatives so this works
 	ln -s /usr/sbin/update-alternatives /usr/sbin/alternatives || true
 	if [ "$(JAVAREQUIRES)" = "jdk" ] && [ $$(rpm -qa $(JDKPACKAGE)|wc -l) -eq 0 ]; then wget -q -O /tmp/jdk.rpm $(JDKURL); rpm -ivh /tmp/jdk.rpm; fi
+	if [ "${OS}" = "SLES" -a \( "${OSVERSION}" = "12" -o "${OSVERSION}" = "15" \) ];then \
+	  $(GET) $(RUST_PACKAGE).tar.gz https://repository.rudder.io/build-dependencies/rust/$(RUST_PACKAGE).tar.gz $(RUST_SHA256) &&\
+	  rm -rf $(RUST_PACKAGE) &&\
+	  tar -xzf $(RUST_PACKAGE).tar.gz &&\
+	  cd $(RUST_PACKAGE) && ./install.sh --components=cargo,rustc,rust-std-x86_64-unknown-linux-gnu ;\
+	fi
 
-buildpackage-rpm-common-prep-rhel: /usr/local/bin/cargo
+buildpackage-rpm-common-prep-rhel:
 	# Add basic package to have macros for rpm and be able to know which part of .spec file concerns rhel 5
 	if [ "${OS}" = "RHEL" -a "${OSVERSION}" = "5" ];then yum -y install buildsys-macros;fi
 	if [ ! -z "${BUILDREQUIRESRHEL}" ];then yum -y install ${BUILDREQUIRESRHEL};fi
+	if [ "${OS}" = "RHEL" -a "${OSVERSION}" = "7" ];then \
+	  $(GET) $(RUST_PACKAGE).tar.gz https://repository.rudder.io/build-dependencies/rust/$(RUST_PACKAGE).tar.gz $(RUST_SHA256) &&\
+	  rm -rf $(RUST_PACKAGE) &&\
+	  tar -xzf $(RUST_PACKAGE).tar.gz &&\
+	  cd $(RUST_PACKAGE) && ./install.sh --components=cargo,rustc,rust-std-x86_64-unknown-linux-gnu ;\
+	fi
 
 buildpackage-rpm-common-prep-aix:
 	# Dependencies on AIX are currently not managed automatically but installed manually
