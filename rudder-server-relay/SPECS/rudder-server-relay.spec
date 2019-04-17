@@ -16,6 +16,9 @@
 #
 #####################################################################################
 
+# Disable totally debug info package
+%define debug_package %{nil}
+
 %define real_name               rudder-server-relay
 %define real_epoch              1398866025
 
