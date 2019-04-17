@@ -64,8 +64,8 @@ AutoReq: 0
 AutoProv: 0
 
 ## General
-BuildRequires: python, python-devel
-Requires: rudder-agent >= %{real_epoch}:%{real_version}, rsyslog, openssl, %{apache}, %{apache_tools}, python, binutils, xz
+BuildRequires: python, python-devel, pkgconfig, postgresql-devel, openssl-devel, zlib-devel, xz-devel, asciidoc
+Requires: rudder-agent >= %{real_epoch}:%{real_version}, rsyslog, openssl, %{apache}, %{apache_tools}, python, binutils, xz, zlib, postgresql-libs
 ## RHEL
 %if 0%{?rhel}
 Requires: mod_ssl mod_wsgi shadow-utils crontabs

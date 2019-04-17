@@ -2,13 +2,13 @@ Source: rudder-server-relay
 Section: web
 Priority: extra
 Maintainer: Rudder Team <dev@rudder.io>
-Build-Depends: debhelper (>= 9), python, libpython-dev | libpython2.7-dev | python2.7-dev, ca-certificates, curl
+Build-Depends: debhelper (>= 9), python, libpython-dev | libpython2.7-dev | python2.7-dev, ca-certificates, curl, pkg-config, libpq-dev, libssl-dev, zlib1g-dev, lzma-dev, asciidoc
 Standards-Version: 3.8.0
 Homepage: https://www.rudder.io
 
 Package: rudder-server-relay
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, python, rudder-agent (>= ${binary:Version}), apache2, apache2-utils, rsyslog, openssl, libapache2-mod-wsgi, cron, binutils, xz-utils, systemd
+Depends: ${shlibs:Depends}, ${misc:Depends}, python, rudder-agent (>= ${binary:Version}), apache2, apache2-utils, rsyslog, openssl, libapache2-mod-wsgi, cron, binutils, xz-utils, zlib1g, libpq, systemd
 Description: Configuration management and audit tool - Server relay package
  Rudder is an open source configuration management and audit solution.
  .
