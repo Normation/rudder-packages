@@ -237,7 +237,10 @@ rm -rf %{buildroot}
 /var/rudder/shared-files/
 /var/rudder/share/
 /var/log/rudder/apache2/
+/usr/lib/systemd/system/rudder-relayd.service
 /opt/rudder/etc/
+/opt/rudder/bin/rudder-relayd
+/opt/rudder/share/man/man1/rudder-relayd.1.gz
 /opt/rudder/share/selinux/
 /opt/rudder/share/relay-api/
 /opt/rudder/share/python/
