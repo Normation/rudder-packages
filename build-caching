@@ -5,7 +5,7 @@
 # vim: syntax=python
 if type python >/dev/null 2>&1
 then
-  if python -V | grep "Python 2\.[0-6]" >/dev/null
+  if python -V 2>&1 | grep "Python 2\.[0-6]" >/dev/null
   then
     exit 9
   fi
