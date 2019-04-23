@@ -68,7 +68,7 @@ AutoProv: 0
 
 ## General
 BuildRequires: python, python-devel, pkgconfig, postgresql-devel, openssl-devel, zlib-devel, xz-devel
-Requires: rudder-agent >= %{real_epoch}:%{real_version}, rsyslog, openssl, %{apache}, %{apache_tools}, python, binutils, xz, zlib, postgresql-libs
+Requires: rudder-agent >= %{real_epoch}:%{real_version}, rsyslog, openssl, %{apache}, %{apache_tools}, python, binutils, xz, zlib, postgresql
 ## RHEL
 %if 0%{?rhel}
 Requires: mod_ssl mod_wsgi shadow-utils crontabs
@@ -104,7 +104,7 @@ cd rudder-sources-*/rudder/relay/sources/
 
 %if 0%{?suse_version}
 # On SLES, change the Apache DocumentRoot to the OS default
-sed -i "s%^DocumentRoot /var/www$%DocumentRoot /srv/www%" rudder-apache-relay-common.conf
+sed -i "s%^DocumentRoot /var/www$%DocumentRoot /srv/www%" apache/rudder-apache-relay-common.conf
 %endif
 
 make build SELINUX=%{selinux}
@@ -121,7 +121,7 @@ rm -rf %{buildroot}
 make install APACHE_VHOSTDIR=%{apache_vhost_dir} DESTDIR=%{buildroot} SELINUX=%{selinux}
 
 mkdir -p %{buildroot}/etc/sysconfig/
-install -m 644 rudder-relay-apache %{buildroot}/etc/sysconfig/rudder-relay-apache
+install -m 644 apache/rudder-relay-apache %{buildroot}/etc/sysconfig/rudder-relay-apache
 
 #=================================================
 # Post Installation
