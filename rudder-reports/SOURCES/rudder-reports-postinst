@@ -4,7 +4,7 @@ set -e
 DB_NOT_INITIALIZED="$1"
 
 # Try with systemd
-POSTGRESQL_SERVICE_NAME=$(systemctl list-unit-files --type service | awk -F'.' '{print $1}' | grep -E "^postgresql[0-9]*$" | tail -n 1)
+POSTGRESQL_SERVICE_NAME=$(systemctl list-unit-files --type service | awk -F'.' '{print $1}' | grep -E "^postgresql-?[0-9]*$" | tail -n 1)
 
 # If nothing try with chkconfig (sles 12 only)
 if [ -z "${POSTGRESQL_SERVICE_NAME}" ] && ! type chkconfig >/dev/null 2>/dev/null ; then
@@ -21,8 +21,15 @@ if ! systemctl status ${POSTGRESQL_SERVICE_NAME} > /dev/null
 then
   if [ "${DB_NOT_INITIALIZED}" != "" ]; then
     echo -n "INFO: Initializing PostgreSQL ..."
+
+    # Detecting path of postgresql-setup
+    POSTGRESQL_SETUP=$(ls -1  /usr/pgsql-*/bin/postgresql*-setup | sort -V | tail -1)
+    if [ -z "${POSTGRESQL_SETUP}" ]; then
+      POSTGRESQL_SETUP="postgresql-setup"
+    fi
+
     # rhel package doesn't initialize database
-    service ${POSTGRESQL_SERVICE_NAME} initdb
+    ${POSTGRESQL_SETUP} initdb
     echo " Done"
   fi
   systemctl start ${POSTGRESQL_SERVICE_NAME} >/dev/null
