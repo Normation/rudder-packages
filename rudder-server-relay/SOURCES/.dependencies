@@ -1,3 +1,0 @@
-SLES12:python-devel pkgconfig postgresql-devel openssl-devel zlib-devel xz-devel
-SLES15:python-devel pkgconfig postgresql-devel openssl-devel zlib-devel xz-devel
-RHEL7:python-devel selinux-policy-devel pkgconfig postgresql-devel openssl-devel zlib-devel xz-devel
