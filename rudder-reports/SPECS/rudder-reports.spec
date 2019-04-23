@@ -111,7 +111,7 @@ install -m 644 %{SOURCE3} %{buildroot}/opt/rudder/etc/server-roles.d/
 # Post Installation
 #=================================================
 
-POSTGRESQL_SERVICE_NAME=$(systemctl list-unit-files --type service | awk -F'.' '{print $1}' | grep -E "^postgresql[0-9]*$" | tail -n 1)
+POSTGRESQL_SERVICE_NAME=$(systemctl list-unit-files --type service | awk -F'.' '{print $1}' | grep -E "^postgresql-?[0-9]*$" | tail -n 1)
 %if 0%{?suse_version} < 1500
   POSTGRESQL_SERVICE_NAME=$(chkconfig 2>/dev/null | awk '{ print $1 }' | grep "postgresql" | tail -n 1)
 %endif
@@ -125,12 +125,18 @@ systemctl status ${POSTGRESQL_SERVICE_NAME}
 
 if [ $? -ne 0 ]; then
 %if 0%{?rhel}
+  # Detecting path of postgresql-setup
+  POSTGRESQL_SETUP=$(ls -1  /usr/pgsql-*/bin/postgresql*-setup | sort -V | tail -1)
+  if [ -z "${POSTGRESQL_SETUP}" ]; then
+    POSTGRESQL_SETUP="postgresql-setup"
+  fi
+
   echo -n "INFO: Initializing PostgreSQL ..."
-  # rhel package doesn't initialize database
-  service ${POSTGRESQL_SERVICE_NAME} initdb
+  ${POSTGRESQL_SETUP} initdb
   echo " Done"
 %endif
-  systemctl start ${POSTGRESQL_SERVICE_NAME}
+
+  systemctl start ${POSTGRESQL_SERVICE_NAME} 
 fi
 
 PG_HBA_FILE=$(su - postgres -c "psql -t -P format=unaligned -c 'show hba_file';")
