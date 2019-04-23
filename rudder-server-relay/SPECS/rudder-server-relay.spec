@@ -121,7 +121,7 @@ rm -rf %{buildroot}
 make install APACHE_VHOSTDIR=%{apache_vhost_dir} DESTDIR=%{buildroot} SELINUX=%{selinux}
 
 mkdir -p %{buildroot}/etc/sysconfig/
-install -m 644 apache/rudder-relay-apache %{buildroot}/etc/sysconfig/rudder-relay-apache
+install -m 644 rudder-relay-apache %{buildroot}/etc/sysconfig/rudder-relay-apache
 
 #=================================================
 # Post Installation
