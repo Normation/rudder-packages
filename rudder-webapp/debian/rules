@@ -43,6 +43,7 @@ java8:
 		else \
 			if [ $$dist = "jessie" ]; then \
 				dist=xenial ; \
+				apt-key add debian/webupd8team.key; \
 			fi ; \
 			echo "deb http://ppa.launchpad.net/webupd8team/java/ubuntu $$dist main" > /etc/apt/sources.list.d/jdk.list ; \
 			echo "oracle-java8-installer	shared/present-oracle-license-v1-1	note	" | debconf-set-selections; \
