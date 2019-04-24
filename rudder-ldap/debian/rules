@@ -6,16 +6,6 @@ export DH_VERBOSE=1
 DPKG_EXPORT_BUILDFLAGS = 1
 include /usr/share/dpkg/buildflags.mk
 
-override_dh_auto_build:
-	dh_auto_build -- -C SOURCES
-
-override_dh_auto_install:
-	dh_auto_install -- -C SOURCES
-
-override_dh_auto_clean:
-# clean/distclean would destroy the make localdepends of package builder, cleanup this code before enabling
-#	dh_auto_clean -- -C SOURCES
-
 # Default rule that guess what to do for missing targets
 %:
 	dh $@
