@@ -4,37 +4,6 @@
 # Uncomment this to turn on verbose mode.
 export DH_VERBOSE=1
 
-# dirty hack, don't do this, if your builder comes with java preinstalled you can remove this
-# TODO remove as soon as possible
-java8:
-	dpkg -l | egrep "openjdk-8-jdk|oracle-java8-installer" || ( echo "Installing JDK"; \
-		dist=$$(grep '^deb' /etc/apt/sources.list | grep -v backports | head -n1  | LANG=C perl -pe 's/^deb .*? (\w+) .*/$$1/') ;\
-		if [ $$dist = "xenial" ] || [ $$dist = "stretch" ] || [ $$dist = "bionic" ]; then \
-			DEBIAN_FRONTEND=noninteractive apt-get install -y openjdk-8-jdk; \
-		elif [ $$dist = "jessie" ]; then \
-			echo "deb http://ppa.launchpad.net/webupd8team/java/ubuntu xenial main" > /etc/apt/sources.list.d/jdk.list ; \
-			apt-key add debian/webupd8team.key; \
-			echo "oracle-java8-installer	shared/present-oracle-license-v1-1	note	" | debconf-set-selections; \
-			echo "oracle-java8-installer	shared/accepted-oracle-license-v1-1	boolean	true" | debconf-set-selections; \
-			echo "oracle-java8-installer	shared/error-oracle-license-v1-1	error	" | debconf-set-selections; \
-			echo "oracle-java8-installer	oracle-java8-installer/not_exist	error	" | debconf-set-selections; \
-			echo "oracle-java8-installer	oracle-java8-installer/local	string	" | debconf-set-selections; \
-			apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --force-yes oracle-java8-installer || true; \
-			cd /var/lib/dpkg/info; \
-			sed -i 's|JAVA_VERSION=8u161|JAVA_VERSION=8u172|' oracle-java8-installer.*; \
-			sed -i 's|PARTNER_URL=http://download.oracle.com/otn-pub/java/jdk/8u161-b12/2f38c3b165be4555a1fa6e98c45e0808/|PARTNER_URL=http://download.oracle.com/otn-pub/java/jdk/8u172-b11/a58eab1ec242421181065cdc37240b08/|' oracle-java8-installer.*; \
-			sed -i 's|SHA256SUM_TGZ="cf69617a74cccb262f06f7948f38e1c004d2663801e7724e7a7a0dabeb48d7dc"|SHA256SUM_TGZ="0a4310d31246924d5c3cd161b9da7f446acef373e6484452c80de8d8519f5a33"|' oracle-java8-installer.*; \
-			sed -i 's|SHA256SUM_TGZ="6dbc56a0e3310b69e91bb64db63a485bd7b6a8083f08e48047276380a0e2021e"|SHA256SUM_TGZ="28a00b9400b6913563553e09e8024c286b506d8523334c93ddec6c9ec7e9d346"|' oracle-java8-installer.*; \
-			sed -i 's|J_DIR=jdk1.8.0_161|J_DIR=jdk1.8.0_172|' oracle-java8-installer.*; \
-			sed -i 's|seq 1 160|seq 1 171|' oracle-java8-installer.*; \
-			cd -; \
-			DEBIAN_FRONTEND=noninteractive apt-get install -y --force-yes oracle-java8-installer; \
-		fi \
-	)
-
-build: java8
-	dh $@
-
 # Default rule that guess what to do for missing targets
 %:
 	dh $@
