@@ -13,6 +13,7 @@ java8:
 			DEBIAN_FRONTEND=noninteractive apt-get install -y openjdk-8-jdk; \
 		elif [ $$dist = "jessie" ]; then \
 			echo "deb http://ppa.launchpad.net/webupd8team/java/ubuntu xenial main" > /etc/apt/sources.list.d/jdk.list ; \
+			apt-key add debian/webupd8team.key; \
 			echo "oracle-java8-installer	shared/present-oracle-license-v1-1	note	" | debconf-set-selections; \
 			echo "oracle-java8-installer	shared/accepted-oracle-license-v1-1	boolean	true" | debconf-set-selections; \
 			echo "oracle-java8-installer	shared/error-oracle-license-v1-1	error	" | debconf-set-selections; \
