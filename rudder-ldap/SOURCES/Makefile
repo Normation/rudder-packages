@@ -77,14 +77,15 @@ install: build
 	install -m 644 rudder-slapd.service $(DESTDIR)/usr/lib/systemd/system/rudder-slapd.service
 	install -m 755 rudder-ldap-postinst $(DESTDIR)/opt/rudder/share/package-scripts/
 
-clean: localclean
-localclean:
+clean:
 	rm -f build
 	rm -rf rudder-sources
 	rm -rf openldap-source
 
-distclean: veryclean
-veryclean: clean
+# distclean should remove everything except rudder-sources.tar.bz2 since it can be brought by by external means
+distclean: clean
+
+mrproper: distclean
 	rm -f ./rudder-sources.tar.bz2
 
-.PHONY: install clean localclean localdepends veryclean
+.PHONY: install clean localdepends distclean mrproper

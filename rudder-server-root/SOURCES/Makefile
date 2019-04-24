@@ -42,9 +42,8 @@ install: build
 	install -m 755 rudder-server-root-postinst $(DESTDIR)/opt/rudder/share/package-scripts/
 
 clean: localclean
-localclean:
 
-distclean: veryclean
-veryclean: clean
+# distclean should remove everything except rudder-sources.tar.bz2 since it can be brought by by external means
+distclean: clean
 
-.PHONY: clean localclean localdepends verycleana
+.PHONY: clean localdepends distclean

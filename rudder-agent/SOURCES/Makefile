@@ -332,9 +332,7 @@ else
 	find $(DESTDIR) -type f -print0 | xargs -0 file | grep -E "executable|shared object" | cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null || true
 endif
 
-# clean
-clean: localclean
-localclean:
+clean:
 	rm -rf build-ssl build-lmdb build-cfengine build-perl fusion-modules build-cfengine-stamp build-curl build-yaml and build-xml
 	rm -rf rudder-sources
 	rm -f ./rudder.8.gz
@@ -344,13 +342,15 @@ localclean:
 	[ -d perl-$(PERL_RELEASE) ] && cd perl-$(PERL_RELEASE) && $(MAKE) distclean 2>/dev/null || true
 	cd debug-script && $(MAKE) clean 2>/dev/null || true
 
-# standard name is mrproper
-mrproper: veryclean
-veryclean:
+# distclean should remove everything except rudder-sources.tar.bz2 since it can be brought by by external means
+distclean: clean
 	rm -f rudder-agent.cron
-	rm -f ./rudder-sources.tar.bz2
 	rm -rf initial-promises initial-ncf rudder-agent-utilities fusioninventory-agent
 	rm -rf cfengine-source lmdb-source openssl-source perl-$(PERL_RELEASE)
+
+# standard name is mrproper
+mrproper: distclean
+	rm -f rudder-sources.tar.bz2
 
 ##########################################
 # Dependencies separated into components #
@@ -757,4 +757,4 @@ endif
 	rm -rf $(DESTDIR)/opt/rudder/etc/fusioninventory
 	cp -r fusioninventory-agent/lib/FusionInventory $(DESTDIR)/opt/rudder/lib/perl5/
 
-.PHONY: localclean localdepends veryclean depend build install clean mrproper install-ssl install-lmdb install-cfengine install-perl install-fusion get-flags
+.PHONY: localdepends distclean depend build install clean mrproper install-ssl install-lmdb install-cfengine install-perl install-fusion get-flags

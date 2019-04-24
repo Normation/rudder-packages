@@ -278,7 +278,6 @@ install: build
 	touch $@
 
 clean: localclean
-localclean:
 	rm -rf rudder-users.xml
 	rm -rf maven/
 	rm -rf .m2/
@@ -294,11 +293,13 @@ localclean:
 	rm -rf $(TMP_DIR)
 	rm -f build install
 
-distclean: veryclean
-veryclean: clean
-	rm -f rudder-sources.tar.bz2
+# distclean should remove everything except rudder-sources.tar.bz2 since it can be brought by by external means
+distclean: clean
 	rm -rf maven.tgz
 	rm -f virtualenv.tgz
 	rm -rf $(TMP_DIR)
 
-.PHONY: clean localclean localdepends veryclean distclean
+mrproper: distclean
+	rm -f rudder-sources.tar.bz2
+
+.PHONY: clean localdepends distclean mrproper

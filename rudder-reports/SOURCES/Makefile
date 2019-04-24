@@ -50,12 +50,13 @@ install: build
 	install -m 644 rudder-db $(DESTDIR)/opt/rudder/etc/server-roles.d/
 	install -m 755 rudder-reports-postinst $(DESTDIR)/opt/rudder/share/package-scripts/
 
-clean: localclean
-localclean:
+clean:
 	rm -rf rudder-sources
 
-distclean: veryclean
-veryclean: clean
+distclean: clean
+
+# distclean should remove everything except rudder-sources.tar.bz2 since it can be brought by by external means
+mrproper: distclean
 	rm -f ./rudder-sources.tar.bz2
 
-.PHONY: build install clean localclean localdepends veryclean
+.PHONY: build install clean localdepends distclean mrproper
