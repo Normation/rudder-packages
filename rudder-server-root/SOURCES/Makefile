@@ -41,7 +41,7 @@ install: build
 	install -m 644 rudder-server-root $(DESTDIR)/opt/rudder/etc/server-roles.d/
 	install -m 755 rudder-server-root-postinst $(DESTDIR)/opt/rudder/share/package-scripts/
 
-clean: localclean
+clean:
 
 # distclean should remove everything except rudder-sources.tar.bz2 since it can be brought by by external means
 distclean: clean
