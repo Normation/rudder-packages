@@ -277,7 +277,7 @@ install: build
 
 	touch $@
 
-clean: localclean
+clean:
 	rm -rf rudder-users.xml
 	rm -rf maven/
 	rm -rf .m2/
