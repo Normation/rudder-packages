@@ -207,10 +207,8 @@ if [ ! -f ${CFE_DIR}/inputs/promises.cf ] || ! ${CFE_DIR}/bin/cf-promises >> ${L
 then
   mkdir -p ${CFE_DIR}/inputs
   rm -rf ${CFE_DIR}/inputs/* || true
-  cp -r /opt/rudder/share/initial-promises/* ${CFE_DIR}/inputs/
   mkdir -p /var/rudder/ncf/common
   rm -rf /var/rudder/ncf/common/*
-  cp -r /opt/rudder/share/initial-ncf/* /var/rudder/ncf/common/
 fi
 
 # Restore rudder-server-roles.conf if necessary
