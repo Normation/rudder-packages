@@ -92,7 +92,6 @@ make install DESTDIR=%{buildroot}
   /opt/rudder/share/package-scripts/rudder-reports-postinst
 %endif
 
-
 #=================================================
 # Cleaning
 #=================================================
