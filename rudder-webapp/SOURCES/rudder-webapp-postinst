@@ -49,6 +49,10 @@ if [ ! -d /var/rudder/configuration-repository/techniques ]; then
   touch /opt/rudder/etc/force_technique_reload
 fi
 
+if [ ! -d /var/rudder/ncf/common/10_ncf_internals ]; then
+  cp -a /usr/share/ncf/tree/* /var/rudder/ncf/common/
+fi
+
 # Go into configuration-repository to manage git
 cd /var/rudder/configuration-repository
 # Initialize git repository if it is missing, so permissions can be set on it afterwards
