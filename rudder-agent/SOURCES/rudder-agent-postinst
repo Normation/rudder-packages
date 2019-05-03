@@ -229,6 +229,18 @@ then
   echo " Done."
 fi
 
+# Create a cert if we don't have one yet
+if [ ! -f ${CFE_DIR}/ppkeys/localhost.cert ]
+then
+  if [ -x /opt/rudder/bin/openssl ]
+  then
+    OPENSSL="/opt/rudder/bin/openssl"
+  else
+    OPENSSL="openssl"
+  fi
+  ${OPENSSL} req -new -sha256 -key ${CFE_DIR}/ppkeys/localhost.priv -out ${CFE_DIR}/ppkeys/localhost.cert -passin "pass:Cfengine passphrase" -x509 -days 3650 -subj "/CN=$(hostname)"
+fi
+
 # Remove cfengine lock log file : http://www.rudder-project.org/redmine/issues/5488
 rm -f ${CFE_DIR}/cf3.*.runlog*
 
