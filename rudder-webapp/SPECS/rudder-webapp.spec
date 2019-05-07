@@ -106,6 +106,7 @@ BuildRequires: java-1.8.0-openjdk-devel selinux-policy-devel
 # We need mod_wsgi to use ncf builder
 Requires: mod_ssl httpd mod_wsgi shadow-utils
 Requires: jre-headless >= 1.8
+Requires: perl-Digest-SHA
 %endif
 
 ## SLES
