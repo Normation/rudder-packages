@@ -9,10 +9,6 @@
 #CFENGINE_COMMUNITY_RUN_1="1"
 #CFENGINE_COMMUNITY_PARAMS_1="--info"
 
-# cf-monitord(id 2): 0 to stop, 1 to start (default 0)
-#CFENGINE_COMMUNITY_RUN_2="0"
-#CFENGINE_COMMUNITY_PARAMS_2=""
-
 # Timeout before retrying a stop or a start (default 60s)
 #TIMEOUT="60"
 

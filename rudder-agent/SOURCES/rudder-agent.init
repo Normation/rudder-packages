@@ -55,10 +55,8 @@
 # Array indexes
 CFEXECD=0
 CFSERVERD=1
-CFMONITORD=2
 CFENGINE_COMMUNITY_NAME_0="cf-execd"
 CFENGINE_COMMUNITY_NAME_1="cf-serverd"
-CFENGINE_COMMUNITY_NAME_2="cf-monitord"
 
 #====================================================================
 # Default parameters (if /etc/default/{script_name} is not present)
@@ -77,16 +75,12 @@ init_commands
 CFENGINE_COMMUNITY_VAR_PATH="/var/rudder/cfengine-community"
 CFENGINE_COMMUNITY_RUN_0="1"
 CFENGINE_COMMUNITY_RUN_1="1"
-CFENGINE_COMMUNITY_RUN_2="0"
 CFENGINE_COMMUNITY_BIN_0="$CFENGINE_COMMUNITY_VAR_PATH/bin/cf-execd"
 CFENGINE_COMMUNITY_BIN_1="$CFENGINE_COMMUNITY_VAR_PATH/bin/cf-serverd"
-CFENGINE_COMMUNITY_BIN_2="$CFENGINE_COMMUNITY_VAR_PATH/bin/cf-monitord"
 CFENGINE_COMMUNITY_PARAMS_0=""
 CFENGINE_COMMUNITY_PARAMS_1="--info"
-CFENGINE_COMMUNITY_PARAMS_2=""
 CFENGINE_COMMUNITY_PID_FILE_0="$CFENGINE_COMMUNITY_VAR_PATH/cf-execd.pid"
 CFENGINE_COMMUNITY_PID_FILE_1="$CFENGINE_COMMUNITY_VAR_PATH/cf-serverd.pid"
-CFENGINE_COMMUNITY_PID_FILE_2="$CFENGINE_COMMUNITY_VAR_PATH/cf-monitord.pid"
 
 RUDDER_DISABLE_AGENT_FLAG_FILE=/opt/rudder/etc/disable-agent
 
@@ -130,7 +124,7 @@ fi
 
 # Which daemons are we running?
 DAEMONS=""
-for daemon in $CFSERVERD $CFMONITORD $CFEXECD; do
+for daemon in $CFSERVERD $CFEXECD; do
   if eval [ "\${CFENGINE_COMMUNITY_RUN_$daemon}" = "1" ]; then DAEMONS="${DAEMONS} $daemon"; fi
 done
 
