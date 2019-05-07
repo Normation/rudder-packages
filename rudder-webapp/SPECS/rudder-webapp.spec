@@ -107,6 +107,7 @@ Requires: postgresql >= 9.2
 %if 0%{?rhel}
 BuildRequires: java-1.8.0-openjdk-devel selinux-policy-devel
 Requires: mod_ssl
+Requires: perl-Digest-SHA
 %endif
 
 ## SLES
