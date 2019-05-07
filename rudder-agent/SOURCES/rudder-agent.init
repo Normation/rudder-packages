@@ -46,9 +46,6 @@
 # Author: Jonathan Clarke <jonathan.clarke@normation.com>
 #====================================================================
 
-# Source environment variables from /etc/profile
-. /etc/profile
-
 # source library from rudder-agent commands
 . /opt/rudder/share/lib/common.sh
 
