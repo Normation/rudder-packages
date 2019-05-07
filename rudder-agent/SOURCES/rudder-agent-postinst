@@ -69,18 +69,14 @@ then
   fi
 fi
 
+# Stop the service to make sure new binaries will be run (agent check will restart it)
+rudder agent stop
+
 # Make sure the configuration is available in a standard place
 ln -sf "${CFE_DIR}/policy_server.dat" "/opt/rudder/etc/policy_server.dat"
 
 # Make sure the daemons are stopped (if the daemon exists)
 [ -x "${CFE_DIR}/bin/cf-execd" ] && ${RUDDER_CMD} agent stop || true
-
-# Set a "lock" to avoid CFEngine being restarted during the upgrade process
-I_SET_THE_LOCK=0
-if [ ! -f /opt/rudder/etc/disable-agent ]; then
-  I_SET_THE_LOCK=1
-  ${RUDDER_CMD} agent disable
-fi
 
 # On AIX, trigger slibclean to remove any unused library/binary object from memory
 # Will prevent "Text file busy" errors during the following copy
@@ -91,85 +87,18 @@ fi
 # Copy CFEngine binaries (Changed location from sbin/ to bin/ in version 3.4)
 cp -r -f /opt/rudder/bin/cf-* ${CFE_DIR}/bin/
 cp -r -f /opt/rudder/bin/rpmvercmp ${CFE_DIR}/bin/
-NB_COPIED_BINARIES=`ls -1 ${CFE_DIR}/bin/ | wc -l`
-if [ ${NB_COPIED_BINARIES} -gt 0 ]; then
-  echo "CFEngine binaries copied to workdir" >> ${LOG_FILE}
-fi
-
-# Backup rudder-server-roles.conf
-if [ -f ${CFE_DIR}/inputs/rudder-server-roles.conf ]
-then
-  mkdir -p /var/backups/rudder
-  cp -r ${CFE_DIR}/inputs/rudder-server-roles.conf /var/backups/rudder/
-  RESTORE_SERVER_ROLES_BACKUP=1
-fi
-
-# Copy initial promises if there aren't any policies already,or
-# if the cf-promises validation fails.
-RUDDER_UUID=`cat /opt/rudder/etc/uuid.hive 2>>${LOG_FILE} || true`
-if [ ! -f ${CFE_DIR}/inputs/promises.cf ] || ! ${CFE_DIR}/bin/cf-promises >> ${LOG_FILE} 2>&1
-then
-  mkdir -p ${CFE_DIR}/inputs
-  rm -rf ${CFE_DIR}/inputs/* || true
-  mkdir -p /var/rudder/ncf/common
-  rm -rf /var/rudder/ncf/common/*
-fi
-
-# Restore rudder-server-roles.conf if necessary
-if [ "${RESTORE_SERVER_ROLES_BACKUP}" = "1" ]; then
-  cp -r /var/backups/rudder/rudder-server-roles.conf ${CFE_DIR}/inputs/rudder-server-roles.conf
-fi
-
-printf "INFO: Ensuring correct permissions on the keys directory..."
-# The chmod is a workaround for the limitations of rpm in rhel6 but it could be useful in other situations
-chmod 700 ${CFE_DIR}/ppkeys
-echo " Done."
-
-# Create a key if we don't have one yet
-if [ ! -f ${CFE_DIR}/ppkeys/localhost.priv ]
-then
-  printf "INFO: Creating keys for Rudder agent..."
-  ${CFE_DIR}/bin/cf-key -T 4096 >> ${LOG_FILE} 2>&1
-  echo " Done."
-fi
-
-# Remove cfengine lock log file : http://www.rudder-project.org/redmine/issues/5488
-rm -f ${CFE_DIR}/cf3.*.runlog*
-
-# Remove the lock on CFEngine
-if [ ${I_SET_THE_LOCK} -eq 1 ]; then
-  ${RUDDER_CMD} agent enable
-fi
 
 # Ensure the modification date of the capability file is correct
 # as it is used for cache invalidation in ncf lis-compatible-inputs
 touch /opt/rudder/etc/agent-capabilities
 
-# Restart daemons if we stopped them, otherwise not
-if [ "${CFRUDDER_FIRST_INSTALL}" != "true" ]
-then
-  # Check if agent is disabled
-  if [ ! -f /opt/rudder/etc/disable-agent ]
-  then
-    if [ -r ${CFE_DIR}/inputs/failsafe.cf -o -r ${CFE_DIR}/inputs/promises.cf ]
-    then
-      ${RUDDER_CMD} agent start || true
-    fi
-  else
-    echo "********************************************************************************"
-    echo "rudder-agent has been updated, but was not started as it is disabled."
-    echo "To enable and start Rudder agent:"
-    echo "# rudder agent enable -s"
-    echo "********************************************************************************"
-  fi
-elif [ "${RUDDER_UUID}" != "root" ]
+# agent is disabled
+if [ -f /opt/rudder/etc/disable-agent ]
 then
   echo "********************************************************************************"
-  echo "rudder-agent has been installed (not started). This host can be a Rudder node."
-  echo "To get started, configure your Rudder server's hostname and launch the agent:"
-  echo "# echo 'rudder.server' > ${CFE_DIR}/policy_server.dat"
-  echo "# rudder agent start"
-  echo "This node will then appear in the Rudder web interface under 'Accept new nodes'."
+  echo "rudder-agent has been updated, but was not started as it is disabled."
+  echo "To enable and start Rudder agent:"
+  echo "# rudder agent enable -s"
   echo "********************************************************************************"
 fi
 
@@ -190,6 +119,7 @@ then
 fi
 
 # launch rudder agent check script, it will generate an UUID on first install or repair it if needed
+# If properly configured, this will run "agent reset" which will run "agent update" which will bootstrap then update ncf with cf-agent
 if command -v "setsid" >/dev/null 2>&1; then
   # detach from process group otherwise dpkg may wait forever
   setsid ${RUDDER_CMD} agent check -f >> ${LOG_FILE} 2>&1
