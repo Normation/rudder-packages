@@ -150,10 +150,17 @@ fi
 if [ -f ${PG_HBA_FILE} ]; then
   RUDDER_PG_DEFINED=`grep "rudder" ${PG_HBA_FILE} | wc -l`
   if [ ${RUDDER_PG_DEFINED} -le 0 ]; then
-    echo "# Rudder specific access for PostgreSQL" >> ${PG_HBA_FILE}
-    echo "# =====================================" >> ${PG_HBA_FILE}
-    echo "host    all             rudder             ::1/128              md5" >> ${PG_HBA_FILE}
-    echo "host    all             rudder          127.0.0.1/32            md5" >> ${PG_HBA_FILE}
+    # we cannot put at the bottom the rules
+    # Check that the defining line for file is there
+    grep -q "^# TYPE" ${PG_HBA_FILE}
+    if [ $? -eq 0 ]; then
+      sed -i  '/^# TYPE.*/a # Rudder specific access for PostgreSQL' ${PG_HBA_FILE}
+    else
+      # Put it on top
+      sed -i 1i"# Rudder specific access for PostgreSQL" ${PG_HBA_FILE}
+    fi
+    sed -i  '/^# Rudder specific access for PostgreSQL/a host    all             rudder          127.0.0.1/32            md5' ${PG_HBA_FILE}
+    sed -i  '/^# Rudder specific access for PostgreSQL/a host    all             rudder             ::1/128              md5' ${PG_HBA_FILE}
 
     # Apply changes in PostgreSQL
     systemctl reload ${POSTGRESQL_SERVICE_NAME}
