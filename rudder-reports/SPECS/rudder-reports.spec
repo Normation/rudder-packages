@@ -127,7 +127,7 @@ systemctl status ${POSTGRESQL_SERVICE_NAME}
 if [ $? -ne 0 ]; then
 %if 0%{?rhel}
   # Detecting path of postgresql-setup
-  POSTGRESQL_SETUP=$(ls -1  /usr/pgsql-*/bin/postgresql*-setup | sort -V | tail -1)
+  POSTGRESQL_SETUP=$(ls -1  /usr/pgsql-*/bin/postgresql*-setup 2>/dev/null | sort -V | tail -1)
   if [ -z "${POSTGRESQL_SETUP}" ]; then
     POSTGRESQL_SETUP="postgresql-setup"
   fi
