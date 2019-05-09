@@ -228,6 +228,7 @@ build: get-flags build-cfengine
 install: build $(INSTALL_DEPS) install-cfengine rudder-agent-utilities rudder-agent.cron debug-script/rudder-debug-info
 	# Directories
 	mkdir -p $(DESTDIR)/opt/rudder/etc
+	mkdir -p $(DESTDIR)/opt/rudder/etc/ssl
 	mkdir -p $(DESTDIR)/opt/rudder/bin
 	mkdir -p $(DESTDIR)/opt/rudder/share/commands
 	mkdir -p $(DESTDIR)/opt/rudder/share/lib
@@ -282,6 +283,9 @@ endif
 
 	# Wrapper script
 	$(INSTALL) -m 755 run-inventory $(DESTDIR)/opt/rudder/bin/
+
+	# Openssl configuration
+	$(INSTALL) -m 640 openssl.cnf $(DESTDIR)/opt/rudder/etc/ssl/openssl-agent.cnf
 
 	# Signature script
 	$(INSTALL) -m 755 rudder-sign $(DESTDIR)/opt/rudder/bin/
