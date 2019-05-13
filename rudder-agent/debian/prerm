@@ -22,7 +22,7 @@ case "$1" in
     # Keep a backup copy of uuid.hive
     if [ -f /opt/rudder/etc/uuid.hive ]; then
       mkdir -p /var/backups/rudder
-      cp -f /opt/rudder/etc/uuid.hive /var/backups/rudder/uuid.hive-$(date +%Y%m%d
+      cp -f /opt/rudder/etc/uuid.hive /var/backups/rudder/uuid.hive-$(date +%Y%m%d)
       echo "INFO: A back up copy of the /opt/rudder/etc/uuid.hive has been created in /var/backups/rudder"
     fi
 

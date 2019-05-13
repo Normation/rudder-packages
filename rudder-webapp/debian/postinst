@@ -22,8 +22,6 @@ case "$1" in
 
       # Is this the first installation?
       RUDDER_FIRST_INSTALL="false"
-  
-      # The parameter is the previous version, if empty it is a first install
       if [ -z "$2" ]; then
         RUDDER_FIRST_INSTALL="true"
       fi

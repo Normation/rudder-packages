@@ -156,7 +156,7 @@ install -m 644 rudder-relay-apache %{buildroot}/etc/sysconfig/rudder-relay-apach
 #=================================================
 %post -n rudder-server-relay
 
-FIRST_INSTALL=$1
+CFRUDDER_FIRST_INSTALL=$1
 
 %if 0%{?rhel}
   echo -n "INFO: Setting Apache HTTPd as a boot service..."
@@ -191,11 +191,11 @@ if type sestatus >/dev/null 2>&1 && sestatus | grep -q "enabled"; then
 fi
 %endif
 
-if [ $FIRST_INSTALL -eq 1 ];  then
+if [ $CFRUDDER_FIRST_INSTALL -eq 1 ];  then
   echo 'DAVLockDB /tmp/davlock.db' > /etc/%{apache}/conf.d/dav_mod.conf
 fi
 
-/opt/rudder/share/package-scripts/rudder-server-relay-postinst "${FIRST_INSTALL}" "%{apache}" "%{apache_user}" "%{apache_group}"
+/opt/rudder/share/package-scripts/rudder-server-relay-postinst "${CFRUDDER_FIRST_INSTALL}" "%{apache}" "%{apache_user}" "%{apache_group}"
 
 #=================================================
 # Post Uninstallation

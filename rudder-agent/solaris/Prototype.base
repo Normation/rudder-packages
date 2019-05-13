@@ -1,5 +1,0 @@
-i pkginfo
-i postinstall
-i postremove
-i preremove
-i checkinstall

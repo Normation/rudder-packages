@@ -84,10 +84,6 @@ if type slibclean > /dev/null 2>&1; then
   slibclean
 fi
 
-# Copy CFEngine binaries (Changed location from sbin/ to bin/ in version 3.4)
-cp -r -f /opt/rudder/bin/cf-* ${CFE_DIR}/bin/
-cp -r -f /opt/rudder/bin/rpmvercmp ${CFE_DIR}/bin/
-
 # Ensure the modification date of the capability file is correct
 # as it is used for cache invalidation in ncf lis-compatible-inputs
 touch /opt/rudder/etc/agent-capabilities

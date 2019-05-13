@@ -27,13 +27,11 @@ case "$1" in
       # This module is compiled in core in some distro (debian)
       a2enmod version >/dev/null 2>&1 || true
 
-      if [ -z "${2}" ]; then
-        FIRST_INSTALL=1
-      else
-        FIRST_INSTALL=0
-      fi
+      # Is this the first installation?
+      CFRUDDER_FIRST_INSTALL=0
+      if [ -z "${2}" ]; then CFRUDDER_FIRST_INSTALL=1; fi
 
-      /opt/rudder/share/package-scripts/rudder-server-relay-postinst "${FIRST_INSTALL}" "apache2" "www-data" "www-data"
+      /opt/rudder/share/package-scripts/rudder-server-relay-postinst "${CFRUDDER_FIRST_INSTALL}" "apache2" "www-data" "www-data"
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)

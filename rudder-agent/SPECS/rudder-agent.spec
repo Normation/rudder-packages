@@ -465,7 +465,6 @@ rm -f %{_builddir}/file.list.%{name}
 %defattr(-, root, root, 0755)
 
 %attr(0700, -, -) %dir %{ruddervardir}/cfengine-community/ppkeys
-%dir %{ruddervardir}/cfengine-community/bin
 %dir %{ruddervardir}/cfengine-community/inputs
 %dir %{ruddervardir}/tmp
 %dir %{ruddervardir}/ncf/common
