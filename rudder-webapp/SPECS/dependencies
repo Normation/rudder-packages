@@ -1,2 +1,4 @@
-rhel-7:java-1.8.0-openjdk-devel selinux-policy-devel
+sles-12:python3-devel
+sles-15:python3-devel
+rhel-7:python3-devel java-1.8.0-openjdk-devel selinux-policy-devel
 java:jdk

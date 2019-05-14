@@ -67,8 +67,8 @@ AutoReq: 0
 AutoProv: 0
 
 ## General
-BuildRequires: python, python-devel, pkgconfig, postgresql-devel, openssl-devel, zlib-devel, xz-devel
-Requires: rudder-agent >= %{real_epoch}:%{real_version}, rsyslog, openssl, %{apache}, %{apache_tools}, python, binutils, xz, zlib, postgresql
+BuildRequires: python3, python3-devel, pkgconfig, postgresql-devel, openssl-devel, zlib-devel, xz-devel
+Requires: rudder-agent >= %{real_epoch}:%{real_version}, rsyslog, openssl, %{apache}, %{apache_tools}, python3, binutils, xz, zlib, postgresql
 ## RHEL
 %if 0%{?rhel}
 Requires: mod_ssl mod_wsgi shadow-utils crontabs
@@ -78,7 +78,7 @@ BuildRequires: selinux-policy-devel
 
 ## SLES
 %if 0%{?suse_version}
-Requires: apache2-mod_wsgi pwdutils cron python-pyOpenSSL
+Requires: apache2-mod_wsgi pwdutils cron
 %endif
 
 %description

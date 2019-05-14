@@ -71,8 +71,8 @@ AutoReq: 0
 AutoProv: 0
 
 # Add Requires here - order is important
-BuildRequires: python
-Requires: python
+BuildRequires: python3
+Requires: python3
 
 # Smooth upgrade
 Obsoletes: ncf, ncf-api-virtualenv, rudder-techniques
@@ -112,7 +112,7 @@ Requires: perl-Digest-SHA
 ## SLES
 %if 0%{?suse_version}
 BuildRequires: jdk >= 1.8
-Requires: apache2 apache2-mod_wsgi pwdutils python-pyOpenSSL
+Requires: apache2 apache2-mod_wsgi pwdutils
 %endif
 
 %if 0%{?sle_version} && 0%{?sle_version} >= 150000
