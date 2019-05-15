@@ -67,18 +67,37 @@ AutoReq: 0
 AutoProv: 0
 
 ## General
-BuildRequires: python3, python3-devel, pkgconfig, postgresql-devel, openssl-devel, zlib-devel
-Requires: rudder-agent >= %{real_epoch}:%{real_version}, rsyslog, openssl, %{apache}, %{apache_tools}, python3, binutils, xz, zlib, postgresql
+BuildRequires: pkgconfig, postgresql-devel, openssl-devel, zlib-devel
+Requires: rudder-agent >= %{real_epoch}:%{real_version}, rsyslog, openssl, %{apache}, %{apache_tools}, binutils, xz, zlib, postgresql
+
 ## RHEL
 %if 0%{?rhel}
-Requires: mod_ssl mod_wsgi shadow-utils crontabs
+Requires: mod_ssl shadow-utils crontabs
 BuildRequires: selinux-policy-devel
-
 %endif
 
 ## SLES
 %if 0%{?suse_version}
-Requires: apache2-mod_wsgi pwdutils cron
+Requires: pwdutils cron
+%endif
+
+## Python 3
+%if 0%{?rhel} && 0%{?rhel} == 7
+BuildRequires: python
+Requires: python, mod_wsgi
+%endif
+%if 0%{?rhel} && 0%{?rhel} == 8
+BuildRequires: python3
+Requires: python3, python3-mod_wsgi
+%endif
+# Doc for suse versioning https://en.opensuse.org/openSUSE:Packaging_for_Leap
+%if 0%{?suse_version} && 0%{?suse_version} < 1500
+BuildRequires: python
+Requires: python, apache2-mod_wsgi, python-pyOpenSSL
+%endif
+%if 0%{?suse_version} && 0%{?suse_version} >= 1500
+BuildRequires: python3
+Requires: python3, apache2-mod_wsgi-python3
 %endif
 
 %description
@@ -95,6 +114,11 @@ run a Rudder relay server on a machine.
 
 # We don't know the exact version
 cd rudder-sources-*/rudder/relay/sources/
+
+# rhel7 and sles12 don't have mod wsgi python 3 so we force python2 instead
+%if 0%{?rhel} == 7 || ( 0%{?suse_version} && 0%{?suse_version} < 1500 )
+find . -type f | xargs sed -i '1,1s|#!/usr/bin/python3|#!/usr/bin/python2|'
+%endif
 
 #=================================================
 # Building
