@@ -67,7 +67,7 @@ AutoReq: 0
 AutoProv: 0
 
 ## General
-BuildRequires: python3, python3-devel, pkgconfig, postgresql-devel, openssl-devel, zlib-devel, xz-devel
+BuildRequires: python3, python3-devel, pkgconfig, postgresql-devel, openssl-devel, zlib-devel
 Requires: rudder-agent >= %{real_epoch}:%{real_version}, rsyslog, openssl, %{apache}, %{apache_tools}, python3, binutils, xz, zlib, postgresql
 ## RHEL
 %if 0%{?rhel}
