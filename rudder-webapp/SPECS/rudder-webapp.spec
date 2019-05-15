@@ -70,10 +70,6 @@ BuildArch: noarch
 AutoReq: 0
 AutoProv: 0
 
-# Add Requires here - order is important
-BuildRequires: python3
-Requires: python3
-
 # Smooth upgrade
 Obsoletes: ncf, ncf-api-virtualenv, rudder-techniques
 # Prevent reinstalling old versions
@@ -96,15 +92,10 @@ Requires: postgresql >= 9.2
 
 # OS-specific dependencies
 
-##
-## Those jetty packages are virtual packages provided by our Jetty and the system one.
-##
-
 ## RHEL
 %if 0%{?rhel}
 BuildRequires: java-1.8.0-openjdk-devel selinux-policy-devel
-# We need mod_wsgi to use ncf builder
-Requires: mod_ssl httpd mod_wsgi shadow-utils
+Requires: mod_ssl httpd shadow-utils
 Requires: jre-headless >= 1.8
 Requires: perl-Digest-SHA
 %endif
@@ -112,12 +103,32 @@ Requires: perl-Digest-SHA
 ## SLES
 %if 0%{?suse_version}
 BuildRequires: jdk >= 1.8
-Requires: apache2 apache2-mod_wsgi pwdutils
+Requires: apache2 pwdutils
 %endif
 
 %if 0%{?sle_version} && 0%{?sle_version} >= 150000
-Requires: java-10-openjdk-headless insserv-compat
+Requires: jdk >= 1.8 insserv-compat
 %endif
+
+## Python 3
+%if 0%{?rhel} && 0%{?rhel} == 7
+BuildRequires: python
+Requires: python, mod_wsgi
+%endif
+%if 0%{?rhel} && 0%{?rhel} == 8
+BuildRequires: python3
+Requires: python3, python3-mod_wsgi
+%endif
+# Doc for suse versioning https://en.opensuse.org/openSUSE:Packaging_for_Leap
+%if 0%{?suse_version} && 0%{?suse_version} < 1500
+BuildRequires: python
+Requires: python, apache2-mod_wsgi, python-pyOpenSSL
+%endif
+%if 0%{?suse_version} && 0%{?suse_version} >= 1500
+BuildRequires: python3
+Requires: python3, apache2-mod_wsgi-python3
+%endif
+
 
 %description
 Rudder is an open source configuration management and audit solution.
@@ -125,6 +136,16 @@ Rudder is an open source configuration management and audit solution.
 This package contains the web application that is the main user interface to
 Rudder. The webapp is automatically installed and started using the Jetty
 application server bundled in the rudder-jetty package.
+
+#=================================================
+# Source preparation
+#=================================================
+%prep
+
+# rhel7 and sles12 don't have mod wsgi python 3 so we force python2 instead
+%if 0%{?rhel} == 7 || ( 0%{?suse_version} && 0%{?suse_version} < 1500 )
+find . -type f | xargs sed -i '1,1s|#!/usr/bin/python3|#!/usr/bin/python2|'
+%endif
 
 #=================================================
 # Building
