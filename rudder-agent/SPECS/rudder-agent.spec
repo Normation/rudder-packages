@@ -324,6 +324,11 @@ make install DESTDIR=%{buildroot} USE_SYSTEM_OPENSSL=%{use_system_openssl} BUILD
 # remove perl doc
 rm -rf %{buildroot}/opt/rudder/man %{buildroot}/opt/rudder/lib/perl5/5.22.0/pod
 
+# rhel8 do not have vzps
+%if 0%{?rhel} == 8
+rm -f %{buildroot}/opt/rudder/bin/vzps.py
+%endif
+
 # strip binaries
 find %{buildroot}/opt/rudder/bin -type f | xargs file -i | grep -E "application/x-sharedlib|application/x-executable" | awk -F: '{print $1}' | xargs strip
 
