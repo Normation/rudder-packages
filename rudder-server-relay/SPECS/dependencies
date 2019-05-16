@@ -1,5 +1,5 @@
 sles-12:python-devel pkgconfig postgresql-devel openssl-devel zlib-devel xz-devel
 sles-15:python3-devel pkgconfig postgresql-devel openssl-devel zlib-devel xz-devel
 rhel-7:python-devel selinux-policy-devel pkgconfig postgresql-devel openssl-devel zlib-devel xz-devel
-rhel-8:python-devel selinux-policy-devel pkgconfig postgresql-devel openssl-devel zlib-devel xz-devel
+rhel-8:python3-devel selinux-policy-devel pkgconfig postgresql-devel openssl-devel zlib-devel xz-devel
 rust:yes
