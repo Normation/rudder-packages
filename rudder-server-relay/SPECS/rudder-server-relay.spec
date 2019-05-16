@@ -142,7 +142,11 @@ cd rudder-sources-*/rudder/relay/sources/
 # TODO remove
 rm -rf %{buildroot}
 
+%if 0%{?rhel} == 7 || ( 0%{?suse_version} && 0%{?suse_version} < 1500 )
+make install APACHE_VHOSTDIR=%{apache_vhost_dir} DESTDIR=%{buildroot} SELINUX=%{selinux} PYTHON=python2
+%else
 make install APACHE_VHOSTDIR=%{apache_vhost_dir} DESTDIR=%{buildroot} SELINUX=%{selinux}
+%endif
 
 mkdir -p %{buildroot}/etc/sysconfig/
 install -m 644 rudder-relay-apache %{buildroot}/etc/sysconfig/rudder-relay-apache

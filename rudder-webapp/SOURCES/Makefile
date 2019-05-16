@@ -20,14 +20,15 @@
 
 RUDDER_VERSION_TO_PACKAGE = <put Rudder version or version-snapshot here>
 RUDDER_MAJOR_VERSION := $(shell echo ${RUDDER_VERSION_TO_PACKAGE} | cut -d'.' -f 1-2)
-VIRTUALENV_RELEASE = 16.0.0
-VIRTUALENV_SHA256 = ca07b4c0b54e14a91af9f34d0919790b016923d157afda5efdde55c96718f752
+VIRTUALENV_RELEASE = 16.5.0
+VIRTUALENV_SHA256 = 15ee248d13e4001a691d9583948ad3947bcb8a289775102e4c4aa98a8b7a6d73
 MAVEN_RELEASE = 3.5.4
 MAVEN_SHA256 = ce50b1c91364cb77efe3776f756a6d92b76d9038b0a0782f7d53acf1e997a14d
 JETTY_RELEASE = 9.4.11
 DATE_RELEASE = 20180605
 JETTY_SHA256 = c286e87f36d56ef40821c5acb99acf3f90873d39bdbc1851f482c556c2dca5ae
 TMP_DIR := $(shell mktemp -dq)
+PYTHON = python3
 
 MAVEN_PROXY := $(if $(PROXY), $(shell echo "$(PROXY)" |  perl -ne ' \
     if (m|(https?)://(?:([^:@]+)(?::([^@]+))?\@)?([^:/]+)(?::([0-9]+))?|) { \
@@ -159,7 +160,7 @@ virtualenv/virtualenv.py:
 	mv virtualenv-$(VIRTUALENV_RELEASE)/ virtualenv/
 
 build: rudder-sources virtualenv/virtualenv.py rudder-doc jetty rudder.war endpoint.war
-	python virtualenv/virtualenv.py ncf-api-virtualenv
+	$(PYTHON) virtualenv/virtualenv.py ncf-api-virtualenv
 	ncf-api-virtualenv/bin/pip install -r rudder-sources/ncf/api/requirements.txt
 	for i in easy_install python pip; do rm -f ncf-api-virtualenv/bin/$${i}*; done
 	touch $@

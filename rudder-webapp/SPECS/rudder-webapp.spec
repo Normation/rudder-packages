@@ -153,7 +153,11 @@ find . -type f | xargs sed -i '1,1s|#!/usr/bin/python3|#!/usr/bin/python2|'
 %build
 
 cd %{_sourcedir}
+%if 0%{?rhel} == 7 || ( 0%{?suse_version} && 0%{?suse_version} < 1500 )
+make build PYTHON=python2
+%else
 make build
+%endif
 
 %if 0%{?rhel}
 # Build SELinux policy package
