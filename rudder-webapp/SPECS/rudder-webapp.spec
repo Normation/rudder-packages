@@ -144,6 +144,7 @@ application server bundled in the rudder-jetty package.
 
 # rhel7 and sles12 don't have mod wsgi python 3 so we force python2 instead
 %if 0%{?rhel} == 7 || ( 0%{?suse_version} && 0%{?suse_version} < 1500 )
+cd %{_sourcedir}
 find . -type f | xargs sed -i '1,1s|#!/usr/bin/python3|#!/usr/bin/python2|'
 %endif
 
