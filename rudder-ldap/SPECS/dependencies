@@ -1,3 +1,4 @@
 sles-12:gcc libopenssl-devel
 sles-15:gcc libopenssl-devel
 rhel-7:gcc openssl-devel libtool-ltdl-devel
+rhel-8:gcc openssl-devel libtool-ltdl-devel

@@ -6,3 +6,4 @@ rhel-3:gcc bison flex autoconf automake libtool pcre-devel make byacc zlib-devel
 rhel-5:gcc openssl-devel bison flex autoconf automake libtool pcre-devel make byacc zlib-devel bzip2-devel pam-devel libxml2-devel curl-devel libacl-devel
 rhel-6:gcc openssl-devel bison flex autoconf automake libtool pcre-devel make byacc pam-devel perl-ExtUtils-MakeMaker perl-IPC-Cmd libyaml-devel libxml2-devel curl-devel libacl-devel
 rhel-7:gcc openssl-devel bison flex autoconf automake libtool pcre-devel make byacc pam-devel perl-ExtUtils-MakeMaker perl-Digest perl-IPC-Cmd libyaml-devel libxml2-devel curl-devel libacl-devel
+rhel-8:gcc openssl-devel bison flex autoconf automake libtool pcre-devel make byacc pam-devel perl-ExtUtils-MakeMaker perl-Digest perl-IPC-Cmd libyaml-devel libxml2-devel curl-devel libacl-devel
