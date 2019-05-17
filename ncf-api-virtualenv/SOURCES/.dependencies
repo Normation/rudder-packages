@@ -6,5 +6,6 @@ RHEL3:python
 RHEL5:python
 RHEL6:python selinux-policy
 RHEL7:python selinux-policy-devel
+RHEL8:python3 selinux-policy-devel
 FEDORA18:python selinux-policy-devel
 FEDORA20:python selinux-policy-devel

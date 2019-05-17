@@ -5,3 +5,4 @@ SLES15:gcc libopenssl-devel
 RHEL5:gcc openssl-devel libtool-ltdl-devel
 RHEL6:gcc openssl-devel libtool-ltdl-devel
 RHEL7:gcc openssl-devel libtool-ltdl-devel
+RHEL8:gcc openssl-devel libtool-ltdl-devel

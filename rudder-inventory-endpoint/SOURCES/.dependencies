@@ -1,3 +1,4 @@
 RHEL6:java-1.8.0-openjdk-devel
 RHEL7:java-1.8.0-openjdk-devel
+RHEL8:java-1.8.0-openjdk-devel
 JAVA:jdk
