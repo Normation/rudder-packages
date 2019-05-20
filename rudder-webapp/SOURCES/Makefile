@@ -214,8 +214,9 @@ install: build initial-promises initial-ncf
 	install -m 644 rudder-sources/rudder/rudder-web/src/main/resources/logback.xml $(DESTDIR)/opt/rudder/etc/
 	cp -r rudder-sources/rudder-techniques/techniques/ $(DESTDIR)/opt/rudder/share/
 	
-	cp -r rudder-sources/ncf/{api,builder,tools,tree} $(DESTDIR)/usr/share/
-	install -m 755 rudder-sources/ncf/ncf $(DESTDIR)/usr/share/
+	mkdir -p $(DESTDIR)/usr/share/ncf
+	cp -r rudder-sources/ncf/{api,builder,tools,tree} $(DESTDIR)/usr/share/ncf/
+	install -m 755 rudder-sources/ncf/ncf $(DESTDIR)/usr/share/ncf/
 	install -m 644 rudder.war $(DESTDIR)/opt/rudder/share/webapps/rudder.war
 	
 	cp -rf rudder-sources/rudder/rudder-web/src/main/resources/load-page $(DESTDIR)/opt/rudder/share/
