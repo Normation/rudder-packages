@@ -17,6 +17,7 @@
 #####################################################################################
 
 .DEFAULT_GOAL := build
+SHELL = /bin/bash
 
 RUDDER_VERSION_TO_PACKAGE =
 

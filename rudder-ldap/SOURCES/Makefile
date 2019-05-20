@@ -17,6 +17,7 @@
 #####################################################################################
 
 .DEFAULT_GOAL := build
+SHELL = /bin/bash
 
 OPENLDAP_RELEASE = 2.4.47
 OPENLDAP_SHA256 = f54c5877865233d9ada77c60c0f69b3e0bfd8b1b55889504c650047cc305520b
