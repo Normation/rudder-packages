@@ -36,7 +36,7 @@
 %define use_system_openssl false
 
 # Some older systems cannot build openssl 1.1.1, build an older version for them
-%define build_old_openssl false
+%define build_old_openssl true
 
 # Same goes for the use of the local PCRE install vs. a bundled one
 %define use_system_pcre true

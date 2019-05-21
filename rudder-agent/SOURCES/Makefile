@@ -19,7 +19,7 @@
 .DEFAULT_GOAL := build
 
 # Versions to use
-RUDDER_VERSION_TO_PACKAGE =
+RUDDER_VERSION_TO_PACKAGE = 5.0.12
 RUDDER_MAJOR_VERSION := $(shell echo ${RUDDER_VERSION_TO_PACKAGE} | cut -d'.' -f 1-2)
 
 CFENGINE_RELEASE = 3.12.2
@@ -82,7 +82,7 @@ endif
 PROXY_ENV = $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY))
 # No accept encoding to prevent the webserver form altering the distributed file
 WGET = wget -q --header="accept-encoding:" -O
-CURL = curl -s --http1.1 -L -o
+CURL = curl -s -L -o
 FETCH = fetch -q -o
 ifneq (,$(wildcard /usr/bin/curl))
 _GET = $(PROXY_ENV) $(CURL)
