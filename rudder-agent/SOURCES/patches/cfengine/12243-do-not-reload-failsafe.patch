@@ -1,8 +1,8 @@
 diff --git a/libpromises/generic_agent.c b/libpromises/generic_agent.c
-index 37423da4d..18af97e04 100644
+index e2da48bc8..1574e6827 100644
 --- a/libpromises/generic_agent.c
 +++ b/libpromises/generic_agent.c
-@@ -154,22 +154,10 @@ Policy *SelectAndLoadPolicy(GenericAgentConfig *config, EvalContext *ctx, bool v
+@@ -156,43 +156,9 @@ Policy *SelectAndLoadPolicy(GenericAgentConfig *config, EvalContext *ctx, bool v
      {
          policy = LoadPolicy(ctx, config);
      }
@@ -21,9 +21,29 @@ index 37423da4d..18af97e04 100644
 -            GenericAgentConfigSetInputFile(config, GetInputDir(), "failsafe.cf");
 -            Log(LOG_LEVEL_ERR, "CFEngine failsafe.cf: %s %s", config->input_dir, config->input_file);
 -            policy = LoadPolicy(ctx, config);
+-
+-            /* Doing failsafe, set the release_id to "failsafe" and also
+-             * overwrite the cfe_release_id file so that sub-agent executed as
+-             * part of failsafe can just pick it up and then rewrite it with the
+-             * actual value from masterfiles. */
+-            free(policy->release_id);
+-            policy->release_id = xstrdup("failsafe");
+-
+-            char filename[PATH_MAX];
+-            GetReleaseIdFile(GetInputDir(), filename, sizeof(filename));
+-            FILE *release_id_stream = safe_fopen(filename, "w");
+-            if (release_id_stream == NULL)
+-            {
+-                Log(LOG_LEVEL_ERR, "Failed to open the release_id file for writing during failsafe");
+-            }
+-            else
+-            {
+-                Writer *release_id_writer = FileWriter(release_id_stream);
+-                WriterWrite(release_id_writer, "{ releaseId: \"failsafe\" }\n");
+-                WriterClose(release_id_writer);
+-            }
 -        }
-+        Log(LOG_LEVEL_VERBOSE,
-+               "Error reading policy, and failafe reloading is disabled.");
++        Log(LOG_LEVEL_VERBOSE, "Error reading policy, and failafe reloading is disabled.");
      }
      return policy;
  }
