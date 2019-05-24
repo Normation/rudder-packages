@@ -63,7 +63,6 @@ URL: http://www.rudder-project.org
 Group: Applications/System
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
-BuildArch: noarch
 
 # Disable dependency auto-generation, to prevent Python requirements
 # autodetection, which is not desired here.
