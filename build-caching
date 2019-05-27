@@ -21,10 +21,10 @@ python - "$@" <<'EOF'
 Rudder cache management system
 
 Usage:
-    build-caching get <destination> [--force-config] [--from=<file>] [<key>=<value> ...]
-    build-caching put <source> [--force-config] [--move] [--from=<file>] [<key>=<value> ...]
-    build-caching show [--force-config] [--from=<file>] [<key>=<value> ...]
-    build-caching purge [--force-config] [--keep=<count>] [--from=<file>] [<key>=<value> ...]
+    build-caching get <destination> [--force-config] [--with-env] [--from=<file>] [<key>=<value> ...]
+    build-caching put <source> [--force-config] [--with-env]  [--move] [--from=<file>] [<key>=<value> ...]
+    build-caching show [--force-config] [--with-env] [--from=<file>] [<key>=<value> ...]
+    build-caching purge [--force-config] [--with-env] [--keep=<count>] [--from=<file>] [<key>=<value> ...]
 
 Options:
     --force-config    Force the configuration to define explicitly a cache path
@@ -34,6 +34,8 @@ Options:
 
     --from=<file>     Allow to pass key=values from a json file in addition to
                       command line parameters
+
+    --with-env        Automatically include OS/arch as a discriminating key/value
 
 Synopsys:
     This command manages a cache on the filesystem. This cache contains entries
@@ -81,6 +83,7 @@ Commands:
       <count> files.
 """
 
+from __future__ import print_function
 from pprint import pprint
 import re
 import json
@@ -88,18 +91,20 @@ import uuid
 import os
 import shutil
 import sys
+import hashlib
+import platform
 # manage non stdlib import
 try:
   import docopt # apt-get install python-docopt
 except:
   if len(sys.argv) > 1 and sys.argv[1] == "put":
     exit(0)
-  print("Missing dependency docopt, aborting cache management!")
+  print("Missing dependency docopt, aborting cache management!", file=sys.stderr)
   exit(9)
 
 DB = []
-CACHE_PATH = '~/.cache/rudder'
-DB_FILE = 'index.json'
+CACHE_PATH = '/srv/cache/build'
+DB_FILE = CACHE_PATH + '/index.json'
 CONFIG_FILE = "~/.build-caching"
 
 # Indexing methods
@@ -143,16 +148,27 @@ def parse_metadata(arguments):
   if arguments['--from'] is not None:
     filename = arguments['--from']
     if not os.path.isfile(filename):
-      print(filename + " doesn't exist")
+      print(filename + " doesn't exist", file=sys.stderr)
       exit(1)
     with open(filename) as fd:
       metadata = json.load(fd)
+  if arguments['--with-env']:
+    m = hashlib.md5()
+    for filename in ['/etc/os-release', '/etc/debian_version', '/etc/redhat-release', '/etc/SuSE-release', '/etc/slackware-version', '/etc/tunables/lastboot']:
+      if os.path.isfile(filename):
+        with open(filename, 'rb') as inputfile:
+          data = inputfile.read()
+          m.update(data)
+    metadata['env'] = m.hexdigest()
+    print("Environment summarised as " + m.hexdigest(), file=sys.stderr)
+    metadata['arch'] = platform.architecture()[0]
+    print("Architecture " + platform.architecture()[0], file=sys.stderr)
   for kv in arguments['<key>=<value>']:
     match = re.match(r'(^.*?)=(.*)', kv)
     if match:
       metadata[match.group(1)] = match.group(2)
     else:
-      print("Can't parse key=value " + kv)
+      print("Can't parse key=value " + kv, file=sys.stderr)
       exit(2)
   return metadata
 
@@ -181,7 +197,7 @@ def put(metadata, source, move):
   """ Put a source in the cache """
   path = get_directory_entry(metadata)
   if not sync(source, path, move):
-    print("Synchronization error, aborting!")
+    print("Synchronization error, aborting!", file=sys.stderr)
     shutil.rmtree(path)
     exit(3)
   metadata['path'] = path
@@ -196,10 +212,10 @@ def get(metadata, destination):
       entry=DB[i]
       break
   else:
-    print("No such entry in the cache")
+    print("No such entry in the cache", file=sys.stderr)
     exit(1)
   if not sync(entry['path'], destination):
-    print("Synchronization error, aborting!")
+    print("Synchronization error, aborting!", file=sys.stderr)
     exit(3)
 
 def show(metadata):
@@ -230,11 +246,11 @@ def purge(metadata, keep):
 if __name__ == "__main__":
   arguments = docopt.docopt(__doc__)
   config_file = os.path.expanduser(CONFIG_FILE)
-  if arguments['--force-config'] and not os.path.isfile(config_file):
+  if arguments['--force-config'] and not os.path.isfile(config_file) or not os.path.isdir(CACHE_PATH):
     if len(sys.argv) > 1 and sys.argv[1] == "put":
       exit(0)
     else:
-      print("Cache management without config file is disabled!")
+      print("Cache management without CACHE_PATH is disabled!", file=sys.stderr)
       exit(9)
   if os.path.isfile(config_file):
     with open(config_file) as fd:

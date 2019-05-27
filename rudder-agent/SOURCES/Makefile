@@ -109,7 +109,7 @@ SED := $(shell type gsed >/dev/null 2>&1 && echo gsed || echo sed)
 INSTALL := $(shell type ginstall >/dev/null 2>&1 && echo ginstall || echo install)
 
 # Use parameters to guess what should be packaged
-BUILD_DEPS := ./rudder.8.gz
+BUILD_DEPS :=
 INSTALL_DEPS := install-dependencies
 # default: use https for urls
 ifeq (false,$(USE_HTTPS))
@@ -208,7 +208,7 @@ endif
 
 # download dependencies
 depend: localdepends
-localdepends: initial-promises initial-ncf rudder-agent-utilities perl-$(PERL_RELEASE) fusioninventory-agent cfengine-source openssl-source lmdb-source pcre-source curl-source xml-source yaml-source zlib-source rudder-agent.cron ./rudder.8.gz
+localdepends: initial-promises initial-ncf rudder-agent-utilities perl-$(PERL_RELEASE) fusioninventory-agent cfengine-source openssl-source lmdb-source pcre-source curl-source xml-source yaml-source zlib-source rudder-agent.cron rudder.8.gz
 
 # build binaries
 build: get-flags build-cfengine
@@ -326,7 +326,7 @@ clean: localclean
 localclean:
 	rm -rf dependencies fusion-modules
 	rm -rf rudder-sources
-	rm -f ./rudder.8.gz
+	rm -f rudder.8.gz
 	[ -d cfengine-source ] && cd cfengine-source && $(MAKE) clean 2>/dev/null || true
 	[ -d lmdb-source ] && cd lmdb-source && $(MAKE) clean 2>/dev/null || true
 	[ -d openssl-source ] && cd openssl-source && $(MAKE) clean 2>/dev/null || true
@@ -572,7 +572,13 @@ build-xml: xml-source
 	cd xml-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
 	cd $(CURDIR)/dependencies$(RUDDER_DIR) && rm -rf share bin/xml2-config
 
-build-cfengine: $(BUILD_DEPS) cfengine-source build-cfengine-stamp
+# check cache content
+CFENGINE_DEPS=$(shell ../../build-caching get dependencies/ --with-env name=dependencies || echo $(BUILD_DEPS))
+dependencies: $(CFENGINE_DEPS)
+	# save into cache if we built it
+	[ "$(CFENGINE_DEPS)" != "" ] && ../../build-caching put dependencies/ --with-env name=dependencies
+
+build-cfengine: dependencies cfengine-source build-cfengine-stamp dependencies
 build-cfengine-stamp:
 	# If there is no configure, bootstrap with autogen.sh first
 	cd cfengine-source && [ -x ./configure ] || NO_CONFIGURE=1 ./autogen.sh
@@ -617,7 +623,7 @@ build-perl: perl-$(PERL_RELEASE)
 # Install separated into components #
 #####################################
 
-install-dependencies: $(BUILD_DEPS)
+install-dependencies: dependencies
 	mkdir -p $(DESTDIR)
 	cp -rp $(CURDIR)/dependencies/* $(DESTDIR)
 	# openssl useless parts
@@ -627,7 +633,7 @@ install-dependencies: $(BUILD_DEPS)
 	# libxml useless parts
 	cd $(DESTDIR)/opt/rudder && rm -rf bin/xmlcatalog bin/xmllint lib/xml2Conf.sh lib/cmake
 
-install-cfengine: build-cfengine $(INSTALL_DEPS)
+install-cfengine: build-cfengine $(INSTALL_DEPS) rudder.8.gz
 	cd cfengine-source && $(MAKE) install DESTDIR=$(DESTDIR) STRIP=""
 	mkdir -p $(DESTDIR)/opt/rudder/share/man/man8
 	cd cfengine-source && for binary in cf-agent cf-promises cf-key cf-execd cf-serverd cf-monitord cf-net cf-runagent; do \
