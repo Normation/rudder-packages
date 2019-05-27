@@ -109,8 +109,6 @@ TAR := $(shell type gtar >/dev/null 2>&1 && echo gtar || echo tar)
 PATCH := $(shell type gpatch >/dev/null 2>&1 && echo gpatch || echo patch)
 SED := $(shell type gsed >/dev/null 2>&1 && echo gsed || echo sed)
 INSTALL := $(shell type ginstall >/dev/null 2>&1 && echo ginstall || echo install)
-CP_A := cp -rp
-FIND := find
 
 # Use parameters to guess what should be packaged
 BUILD_DEPS := ./rudder.8.gz
@@ -359,89 +357,67 @@ mrproper: distclean
 ##########################################
 
 cfengine-source:
-ifeq ($(shell ../../build-caching get ./cfengine-source/ --force-config name=cfengine-src version=$(CFENGINE_RELEASE) >/dev/null 2>&1 || echo KO), KO)
 	$(eval TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX))
 	# Original URL: https://cfengine-package-repos.s3.amazonaws.com/tarballs/cfengine-$(CFENGINE_RELEASE).tar.gz
 	$(GET) $(TMP_DIR)/cfengine.tgz $(HTTPS)://repository.rudder.io/build-dependencies/cfengine/cfengine-$(CFENGINE_RELEASE).tar.gz $(CFENGINE_SHA1)
 	gunzip < $(TMP_DIR)/cfengine.tgz | $(TAR) xf -
 	mv ./cfengine-$(CFENGINE_RELEASE) ./cfengine-source
-	../../build-caching put ./cfengine-source/ --force-config name=cfengine-src version=$(CFENGINE_RELEASE)
 	rm -rf $(TMP_DIR)
-endif
 
 	# Apply patches
 	for PATCHNAME in patches/cfengine/*.patch; do echo "Applying $$PATCHNAME..."; $(PATCH) -d ./cfengine-source -p1 < $$PATCHNAME; echo ""; done
 	# Make sure there were no rejects
-	test `$(FIND) ./cfengine-source -name \*.rej | wc -l` = 0
+	test `find ./cfengine-source -name \*.rej | wc -l` = 0
 
 openssl-source:
-ifeq ($(shell ../../build-caching get ./openssl-source/ --force-config name=openssl-src version=$(OPENSSL_RELEASE) >/dev/null 2>&1 || echo KO), KO)
 	$(eval TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX))
 	# Original URL: https://www.openssl.org/source/openssl-$(OPENSSL_RELEASE).tar.gz
 	$(GET) $(TMP_DIR)/openssl.tgz $(HTTPS)://repository.rudder.io/build-dependencies/openssl/openssl-$(OPENSSL_RELEASE).tar.gz $(OPENSSL_SHA1)
 	gunzip < $(TMP_DIR)/openssl.tgz | $(TAR) xf -
 	mv ./openssl-$(OPENSSL_RELEASE) ./openssl-source
-	../../build-caching put ./openssl-source/ --force-config name=openssl-src version=$(OPENSSL_RELEASE)
 	rm -rf $(TMP_DIR)
-endif
 
 lmdb-source:
-ifeq ($(shell ../../build-caching get ./lmdb-source/ --force-config name=lmdb-src version=$(LMDB_RELEASE) >/dev/null 2>&1 || echo KO), KO)
 	$(eval TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX))
 	# Original URL: http://ftp.fr.debian.org/debian/pool/main/l/lmdb/lmdb_$(LMDB_RELEASE).orig.tar.xz
 	$(GET) $(TMP_DIR)/lmdb.tgz $(HTTPS)://repository.rudder.io/build-dependencies/lmdb/lmdb-$(LMDB_RELEASE).tar.gz $(LMDB_SHA1)
 	gunzip < $(TMP_DIR)/lmdb.tgz | $(TAR) xf -
 	mv ./lmdb-LMDB_$(LMDB_RELEASE) ./lmdb-source
-	../../build-caching put ./lmdb-source/ --force-config name=lmdb-src version=$(LMDB_RELEASE)
 	rm -rf $(TMP_DIR)
-endif
 
 pcre-source:
-ifeq ($(shell ../../build-caching get ./pcre-source/ --force-config name=pcre-src version=$(PCRE_RELEASE) >/dev/null 2>&1 || echo KO), KO)
 	$(eval TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX))
 	# Original URL: http://vorboss.dl.sourceforge.net/project/pcre/pcre/8.38/pcre-8.38.tar.gz
 	$(GET) $(TMP_DIR)/pcre.tgz $(HTTPS)://repository.rudder.io/build-dependencies/pcre/pcre-$(PCRE_RELEASE).tar.gz $(PCRE_SHA1)
 	gunzip < $(TMP_DIR)/pcre.tgz | $(TAR) xf -
 	mv ./pcre-$(PCRE_RELEASE) ./pcre-source
-	../../build-caching put ./pcre-source/ --force-config name=pcre-src version=$(PCRE_RELEASE)
 	rm -rf $(TMP_DIR)
-endif
 
 zlib-source:
-ifeq ($(shell ../../build-caching get ./zlib-source/ --force-config name=zlib-src version=$(ZLIB_RELEASE) >/dev/null 2>&1 || echo KO), KO)
 	$(eval TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX))
 	# Original URL: http://zlib.net/zlib-$(ZLIB_RELEASE).tar.gz
 	$(GET) $(TMP_DIR)/zlib.tgz $(HTTPS)://repository.rudder.io/build-dependencies/zlib/zlib-$(ZLIB_RELEASE).tar.gz $(ZLIB_SHA1)
 	gunzip < $(TMP_DIR)/zlib.tgz | $(TAR) xf -
 	mv ./zlib-$(ZLIB_RELEASE) ./zlib-source
-	../../build-caching put ./zlib-source/ --force-config name=zlib-src version=$(ZLIB_RELEASE)
 	rm -rf $(TMP_DIR)
-endif
 
 curl-source:
-ifeq ($(shell ../../build-caching get ./curl-source/ --force-config name=curl-src version=$(CURL_RELEASE) >/dev/null 2>&1 || echo KO), KO)
 	$(eval TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX))
 	# Original URL: https://curl.haxx.se/download/curl-7.58.0.tar.gz
 	$(GET) $(TMP_DIR)/curl.tgz $(HTTPS)://repository.rudder.io/build-dependencies/curl/curl-$(CURL_RELEASE).tar.gz $(CURL_SHA1)
 	gunzip < $(TMP_DIR)/curl.tgz | $(TAR) xf -
 	mv ./curl-$(CURL_RELEASE) ./curl-source
-	../../build-caching put ./curl-source/ --force-config name=curl-src version=$(CURL_RELEASE)
 	rm -rf $(TMP_DIR)
-endif
 
 yaml-source:
-ifeq ($(shell ../../build-caching get ./yaml-source/ --force-config name=yaml-src version=$(YAML_RELEASE) >/dev/null 2>&1 || echo KO), KO)
 	$(eval TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX))
 	# Original URL: http://pyyaml.org/download/libyaml/yaml-0.1.7.tar.gz
 	$(GET) $(TMP_DIR)/yaml.tgz $(HTTPS)://repository.rudder.io/build-dependencies/yaml/yaml-$(YAML_RELEASE).tar.gz $(YAML_SHA1)
 	gunzip < $(TMP_DIR)/yaml.tgz | $(TAR) xf -
 	mv ./yaml-$(YAML_RELEASE) ./yaml-source
-	../../build-caching put ./yaml-source/ --force-config name=yaml-src version=$(YAML_RELEASE)
 	rm -rf $(TMP_DIR)
-endif
 
 xml-source:
-ifeq ($(shell ../../build-caching get ./xml-source/ --force-config name=xml-src version=$(XML_RELEASE) >/dev/null 2>&1 || echo KO), KO)
 	$(eval TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX))
 	# Original URL: ftp://xmlsoft.org/libxml2/libxml2-2.9.7.tar.gz
 	$(GET) $(TMP_DIR)/libxml2.tgz $(HTTPS)://repository.rudder.io/build-dependencies/xml/libxml2-$(XML_RELEASE).tar.gz $(XML_SHA1)
@@ -451,9 +427,7 @@ ifeq ($(shell ../../build-caching get ./xml-source/ --force-config name=xml-src 
 	cd ./xml-source && $(SED) 's/#ifdef __GNUC__/#if __GNUC__ > 3/' ./timsort.h > ./timsort.h.new && mv ./timsort.h.new ./timsort.h
 	cd ./xml-source && $(SED) 's/-Wextra//' configure > configure.new && mv configure.new configure
 	cd ./xml-source && $(SED) 's/-Wno-array-bounds//' configure > configure.new && mv configure.new configure && chmod +x configure
-	../../build-caching put ./xml-source/ --force-config name=xml-src version=$(XML_RELEASE)
 	rm -rf $(TMP_DIR)
-endif
 
 rudder-sources.tar.bz2:
 	$(GET) rudder-sources.tar.bz2 $(HTTPS)://repository.rudder.io/sources/$(RUDDER_VERSION_TO_PACKAGE)/rudder-sources-$(RUDDER_VERSION_TO_PACKAGE).tar.bz2 ""
@@ -483,29 +457,25 @@ ifneq (false,$(USE_ACL))
 endif
 
 fusioninventory-agent:
-ifeq ($(shell ../../build-caching get ./fusioninventory-agent/ --force-config name=fusioninventory-agent version=$(FUSION_RELEASE) >/dev/null 2>&1 || echo KO), KO)
 	$(eval TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX))
 	#Original URL: https://github.com/fusioninventory/fusioninventory-agent/releases/download/2.3.19/FusionInventory-Agent-$(FUSION_RELEASE).tar.gz
 	$(GET) $(TMP_DIR)/fusion.tgz $(HTTPS)://repository.rudder.io/build-dependencies/fusioninventory/FusionInventory-Agent-$(FUSION_RELEASE).tar.gz $(FUSION_SHA1)
 	gunzip < $(TMP_DIR)/fusion.tgz | $(TAR) xf -
 	mv ./FusionInventory-Agent-$(FUSION_RELEASE) ./fusioninventory-agent
-	../../build-caching put ./fusioninventory-agent/ --force-config name=fusioninventory-agent version=$(FUSION_RELEASE)
 	rm -rf $(TMP_DIR)
-endif
 
 	# Apply patches
 	for PATCHNAME in patches/fusioninventory/*.patch; do echo "Applying $$PATCHNAME... on FusionInventory"; $(PATCH) -d ./fusioninventory-agent -p1 < $$PATCHNAME; done
 	# Make sure there were no rejects
-	test `$(FIND) ./fusioninventory-agent -name \*.rej | wc -l` = 0
+	test `find ./fusioninventory-agent -name \*.rej | wc -l` = 0
 
 	# Fix a lsusb invocation that crashes some SLES machines
-	$(FIND) ./fusioninventory-agent -name "USB.pm" -exec rm "{}" \;
+	find ./fusioninventory-agent -name "USB.pm" -exec rm "{}" \;
 
 # WARNING: Increment perl_source when changing one of the URLs (perl or cpanminus)
 perl_source=003
 perl-source: perl-$(PERL_RELEASE)
 perl-$(PERL_RELEASE):
-ifeq ($(shell ../../build-caching get ./perl-$(PERL_RELEASE)/ --force-config name=perl-source versions=$(perl_source) >/dev/null 2>&1 || echo KO), KO)
 	$(eval TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX))
 	# Original URL: http://www.cpan.org/src/5.0/perl-5.22.4.tar.gz
 	$(GET) $(TMP_DIR)/perl.tar.gz $(HTTPS)://repository.rudder.io/build-dependencies/perl/perl-$(PERL_RELEASE).tar.gz $(PERL_SHA1)
@@ -516,9 +486,7 @@ ifeq ($(shell ../../build-caching get ./perl-$(PERL_RELEASE)/ --force-config nam
 	mv ./perl-$(PERL_RELEASE)/App-cpanminus-$(CPANMINUS_RELEASE) ./perl-$(PERL_RELEASE)/App-cpanminus
 	# cpanminus+curl have a bug on rhel3+64bits, this is the workaround, see http://www.rudder-project.org/redmine/issues/8533
 	sed -i -e "s/'-#',//" ./perl-$(PERL_RELEASE)/App-cpanminus/bin/cpanm
-	../../build-caching put ./perl-$(PERL_RELEASE)/ --force-config name=perl-source versions=$(perl_source)
 	rm -rf $(TMP_DIR)
-endif
 
 cpan-source: perl-$(PERL_RELEASE)/App-cpanminus
 perl-$(PERL_RELEASE)/App-cpanminus:
@@ -654,33 +622,33 @@ build-perl: perl-$(PERL_RELEASE)
 
 install-ssl: build-ssl
 	mkdir -p $(DESTDIR)
-	$(CP_A) $(CURDIR)/build-ssl/* $(DESTDIR)
+	cp -rp $(CURDIR)/build-ssl/* $(DESTDIR)
 	cd $(DESTDIR)/opt/rudder && rm -rf bin/c_rehash lib/pkgconfig/openssl.pc ssl/misc/CA.pl ssl/misc/tsget ssl/openssl.cnf.dist openssl/man
 
 install-lmdb: build-lmdb
 	mkdir -p $(DESTDIR)
-	$(CP_A) $(CURDIR)/build-lmdb/* $(DESTDIR)
+	cp -rp $(CURDIR)/build-lmdb/* $(DESTDIR)
 
 install-pcre: build-pcre
 	mkdir -p $(DESTDIR)
-	$(CP_A) $(CURDIR)/build-pcre/* $(DESTDIR)
+	cp -rp $(CURDIR)/build-pcre/* $(DESTDIR)
 	cd $(DESTDIR)/opt/rudder && rm -rf bin/pcregrep bin/pcretest
 
 install-zlib: build-zlib
 	mkdir -p $(DESTDIR)
-	$(CP_A) $(CURDIR)/build-zlib/* $(DESTDIR)
+	cp -rp $(CURDIR)/build-zlib/* $(DESTDIR)
 
 install-curl: build-curl
 	mkdir -p $(DESTDIR)
-	$(CP_A) $(CURDIR)/build-curl/* $(DESTDIR)
+	cp -rp $(CURDIR)/build-curl/* $(DESTDIR)
 
 install-yaml: build-yaml
 	mkdir -p $(DESTDIR)
-	$(CP_A) $(CURDIR)/build-yaml/* $(DESTDIR)
+	cp -rp $(CURDIR)/build-yaml/* $(DESTDIR)
 
 install-xml: build-xml
 	mkdir -p $(DESTDIR)
-	$(CP_A) $(CURDIR)/build-xml/* $(DESTDIR)
+	cp -rp $(CURDIR)/build-xml/* $(DESTDIR)
 	cd $(DESTDIR)/opt/rudder && rm -rf bin/xmlcatalog bin/xmllint lib/xml2Conf.sh lib/cmake
 
 install-cfengine: build-cfengine $(INSTALL_DEPS)
