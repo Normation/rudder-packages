@@ -62,6 +62,11 @@
 # Default to use PIE code if possible
 %define use_pie true
 
+%if 0%{?rhel} == 8
+# https://pagure.io/packaging-committee/issue/738
+%define __brp_mangle_shebangs /usr/bin/true
+%endif
+
 # OS family to build for
 %if "%{?_os}" == "aix"
 %define os_family aix
