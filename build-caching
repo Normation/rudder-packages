@@ -6,10 +6,12 @@ if type python >/dev/null 2>&1
 then
   if python -V 2>&1 | grep "Python 2\.[0-6]" >/dev/null
   then
+    echo "Python to old" 1>&2
     [ "$1" = "put" ] && exit 0
     exit 9
   fi
 else
+  echo "No python" 1>&2
   [ "$1" = "put" ] && exit 0
   exit 9
 fi
@@ -97,9 +99,9 @@ import platform
 try:
   import docopt # apt-get install python-docopt
 except:
+  print("Missing dependency docopt, aborting cache management!", file=sys.stderr)
   if len(sys.argv) > 1 and sys.argv[1] == "put":
     exit(0)
-  print("Missing dependency docopt, aborting cache management!", file=sys.stderr)
   exit(9)
 
 DB = []
@@ -203,6 +205,7 @@ def put(metadata, source, move):
   metadata['path'] = path
   DB.append(metadata)
   db_save()
+  print("Cache saved", file=sys.stderr)
 
 def get(metadata, destination):
   """ Retrieve data from cache and put it into destination """
@@ -210,6 +213,7 @@ def get(metadata, destination):
   for i in range(len(DB)-1,-1,-1):
     if db_match(DB[i], metadata):
       entry=DB[i]
+      print("Cache restored", file=sys.stderr)
       break
   else:
     print("No such entry in the cache", file=sys.stderr)
@@ -247,10 +251,10 @@ if __name__ == "__main__":
   arguments = docopt.docopt(__doc__)
   config_file = os.path.expanduser(CONFIG_FILE)
   if arguments['--force-config'] and not os.path.isfile(config_file) or not os.path.isdir(CACHE_PATH):
+    print("Cache management without CACHE_PATH is disabled!", file=sys.stderr)
     if len(sys.argv) > 1 and sys.argv[1] == "put":
       exit(0)
     else:
-      print("Cache management without CACHE_PATH is disabled!", file=sys.stderr)
       exit(9)
   if os.path.isfile(config_file):
     with open(config_file) as fd:
@@ -275,5 +279,8 @@ if __name__ == "__main__":
     if arguments['--keep'] is not None:
       keep = arguments['--keep']
     purge(metadata, keep)
+  else:
+    print("Unknown arguments")
+    exit(9)
 
 EOF
