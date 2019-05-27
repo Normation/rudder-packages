@@ -112,7 +112,7 @@ INSTALL := $(shell type ginstall >/dev/null 2>&1 && echo ginstall || echo instal
 
 # Use parameters to guess what should be packaged
 BUILD_DEPS := ./rudder.8.gz
-INSTALL_DEPS :=
+INSTALL_DEPS := install-dependencies
 # default: use https for urls
 ifeq (false,$(USE_HTTPS))
 HTTPS:=http
@@ -122,8 +122,7 @@ endif
 # default: do not embed zlib
 ifeq (false,$(USE_SYSTEM_ZLIB))
 BUILD_DEPS := $(BUILD_DEPS) build-zlib
-INSTALL_DEPS := $(INSTALL_DEPS) install-zlib
-ZLIB_ARG := --with-zlib=$(CURDIR)/build-zlib$(RUDDER_DIR)
+ZLIB_ARG := --with-zlib=$(CURDIR)/dependencies$(RUDDER_DIR)
 else
 ZLIB_ARG := --with-zlib
 endif
@@ -135,20 +134,17 @@ OPENSSL_SHA1 = $(OLD_OPENSSL_SHA1)
 OPENSSL_DESTDIR_VAR_NAME = $(OLD_OPENSSL_DESTDIR_VAR_NAME)
 endif
 BUILD_DEPS := $(BUILD_DEPS) build-ssl
-INSTALL_DEPS := $(INSTALL_DEPS) install-ssl
-OPENSSL_ARG := --with-openssl=$(CURDIR)/build-ssl$(RUDDER_DIR)
+OPENSSL_ARG := --with-openssl=$(CURDIR)/dependencies$(RUDDER_DIR)
 endif
 # default: build lmdb
 ifneq (true,$(USE_SYSTEM_LMDB))
 BUILD_DEPS := $(BUILD_DEPS) build-lmdb
-INSTALL_DEPS := $(INSTALL_DEPS) install-lmdb
-LMDB_ARG := --with-lmdb=$(CURDIR)/build-lmdb$(RUDDER_DIR)
+LMDB_ARG := --with-lmdb=$(CURDIR)/dependencies$(RUDDER_DIR)
 endif
 # default: do not build pcre
 ifeq (false,$(USE_SYSTEM_PCRE))
 BUILD_DEPS := $(BUILD_DEPS) build-pcre
-INSTALL_DEPS := $(INSTALL_DEPS) install-pcre
-PCRE_ARG := --with-pcre=$(CURDIR)/build-pcre$(RUDDER_DIR)
+PCRE_ARG := --with-pcre=$(CURDIR)/dependencies$(RUDDER_DIR)
 endif
 # default: build perl
 ifneq (true,$(USE_SYSTEM_PERL))
@@ -166,24 +162,21 @@ endif
 # default: do not embed curl
 ifeq (false,$(USE_SYSTEM_CURL))
 BUILD_DEPS := $(BUILD_DEPS) build-curl
-INSTALL_DEPS := $(INSTALL_DEPS) install-curl
-CURL_ARG := --with-libcurl=$(CURDIR)/build-curl$(RUDDER_DIR)
+CURL_ARG := --with-libcurl=$(CURDIR)/dependencies$(RUDDER_DIR)
 else
 CURL_ARG := --with-libcurl
 endif
 # default: do not embed libyaml
 ifeq (false,$(USE_SYSTEM_YAML))
 BUILD_DEPS := $(BUILD_DEPS) build-yaml
-INSTALL_DEPS := $(INSTALL_DEPS) install-yaml
-YAML_ARG := --with-libyaml=$(CURDIR)/build-yaml$(RUDDER_DIR)
+YAML_ARG := --with-libyaml=$(CURDIR)/dependencies$(RUDDER_DIR)
 else
 YAML_ARG := --with-libyaml
 endif
 # default: do not embed libxml2
 ifeq (false,$(USE_SYSTEM_XML))
 BUILD_DEPS := $(BUILD_DEPS) build-xml
-INSTALL_DEPS := $(INSTALL_DEPS) install-xml
-XML_ARG := --with-libxml2=$(CURDIR)/build-xml$(RUDDER_DIR)
+XML_ARG := --with-libxml2=$(CURDIR)/dependencies$(RUDDER_DIR)
 else
 XML_ARG := --with-libxml2
 endif
@@ -332,7 +325,7 @@ else
 endif
 
 clean:
-	rm -rf build-ssl build-lmdb build-cfengine build-perl fusion-modules build-cfengine-stamp build-curl build-yaml and build-xml
+	rm -rf dependencies build-cfengine build-perl fusion-modules build-cfengine-stamp
 	rm -rf rudder-sources
 	rm -f ./rudder.8.gz
 	[ -d cfengine-source ] && cd cfengine-source && $(MAKE) clean 2>/dev/null || true
@@ -472,8 +465,6 @@ fusioninventory-agent:
 	# Fix a lsusb invocation that crashes some SLES machines
 	find ./fusioninventory-agent -name "USB.pm" -exec rm "{}" \;
 
-# WARNING: Increment perl_source when changing one of the URLs (perl or cpanminus)
-perl_source=003
 perl-source: perl-$(PERL_RELEASE)
 perl-$(PERL_RELEASE):
 	$(eval TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX))
@@ -527,53 +518,53 @@ endif
 	cd openssl-source && $(MAKE) $(MAKE_J)
 	slibclean >/dev/null 2>&1 || true
 	# install to a temporary location is needed to build cfengine
-	cd openssl-source && $(MAKE) install $(OPENSSL_DESTDIR_VAR_NAME)=$(CURDIR)/build-ssl
+	cd openssl-source && $(MAKE) install $(OPENSSL_DESTDIR_VAR_NAME)=$(CURDIR)/dependencies
 
 build-lmdb: lmdb-source
 	# lmdb doesn't support CFLAGS (it overrides its own) so we pass XCFLAGS instead, that is appended to the original ones
 	# we need to add -fPIE to be able to build static lib (which we do not use)
 	cd lmdb-source/libraries/liblmdb && $(MAKE) $(MAKE_J) XCFLAGS="$(CFLAGS) $(PIE_CFLAGS)" LDFLAGS="$(LDFLAGS)"
 	# need a temporary install for cfengine
-	mkdir -p build-lmdb$(RUDDER_DIR)
+	mkdir -p dependencies$(RUDDER_DIR)
 	# LMDB's Makefile does not know how to create destination files, do it ourselves
-	cd build-lmdb$(RUDDER_DIR) && mkdir -p bin lib include man/man1
+	cd dependencies$(RUDDER_DIR) && mkdir -p bin lib include man/man1
 	# install to a temporary location is needed to build cfengine
-	cd lmdb-source/libraries/liblmdb && $(MAKE) install prefix=$(RUDDER_DIR) DESTDIR=$(CURDIR)/build-lmdb
+	cd lmdb-source/libraries/liblmdb && $(MAKE) install prefix=$(RUDDER_DIR) DESTDIR=$(CURDIR)/dependencies
 
 build-pcre: pcre-source
 	cd pcre-source && ./configure --disable-cpp --enable-utf8 --enable-unicode-properties --disable-cpp --prefix=$(RUDDER_DIR) $(BUILD_FLAGS)
 	cd pcre-source && $(MAKE) $(MAKE_J)
 	# install to a temporary location is needed to build cfengine
-	cd pcre-source && $(MAKE) install DESTDIR=$(CURDIR)/build-pcre
+	cd pcre-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
 
 build-zlib: zlib-source
 	cd zlib-source && $(BUILD_FLAGS) ./configure --prefix=$(RUDDER_DIR)
 	cd zlib-source && $(MAKE) $(MAKE_J)
 	# install to a temporary location is needed to build cfengine
-	cd zlib-source && $(MAKE) install DESTDIR=$(CURDIR)/build-zlib
+	cd zlib-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
 
 build-curl: curl-source
 	# pkcconfig give openssl build configuration, but it point to final installation path (/opt/rudder)
 	# since we need the temporary path during build we need to add -I and -L
 	# since we also need to link it during cfengine build we add -R (--rpath)
 	# we may want to remove rpath using patchelf at the end, but this is mostly cosmetic
-	cd curl-source && ./configure --prefix=$(RUDDER_DIR) --without-libpsl --with-ssl $(ZLIB_ARG) --disable-rtsp --enable-ipv6 --without-librtmp --without-ldap-lib CPPFLAGS="-I$(CURDIR)/build-ssl$(RUDDER_DIR)/include" CFLAGS="$(CFLAGS) $(PIE_CFLAGS)" LDFLAGS="$(LDFLAGS) -Wl,-R$(CURDIR)/build-ssl$(RUDDER_DIR)/lib -L$(CURDIR)/build-ssl$(RUDDER_DIR)/lib -Wl,-R$(CURDIR)/build-zlib$(RUDDER_DIR)/lib" PKG_CONFIG_PATH="$(CURDIR)/build-ssl$(RUDDER_DIR)/lib/pkgconfig"
+	cd curl-source && ./configure --prefix=$(RUDDER_DIR) --without-libpsl --with-ssl $(ZLIB_ARG) --disable-rtsp --enable-ipv6 --without-librtmp --without-ldap-lib CPPFLAGS="-I$(CURDIR)/dependencies$(RUDDER_DIR)/include" CFLAGS="$(CFLAGS) $(PIE_CFLAGS)" LDFLAGS="$(LDFLAGS) -Wl,-R$(CURDIR)/dependencies$(RUDDER_DIR)/lib -L$(CURDIR)/dependencies$(RUDDER_DIR)/lib -Wl,-R$(CURDIR)/dependencies$(RUDDER_DIR)/lib" PKG_CONFIG_PATH="$(CURDIR)/dependencies$(RUDDER_DIR)/lib/pkgconfig"
 	cd curl-source && $(MAKE) $(MAKE_J)
 	# install to a temporary location is needed to build cfengine
-	cd curl-source && $(MAKE) install DESTDIR=$(CURDIR)/build-curl
+	cd curl-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
 
 build-yaml: yaml-source
 	cd yaml-source && ./configure --prefix=$(RUDDER_DIR) --enable-gettext=no $(BUILD_FLAGS)
 	cd yaml-source && $(MAKE) $(MAKE_J)
 	# install to a temporary location is needed to build cfengine
-	cd yaml-source && $(MAKE) install DESTDIR=$(CURDIR)/build-yaml
+	cd yaml-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
 
 build-xml: xml-source
 	cd xml-source && ./configure --prefix=$(RUDDER_DIR) $(ZLIB_ARG) --with-xpath --with-c14n --without-catalog --without-debug --without-docbook --without-ftp --without-http --without-html --without-iconv --without-python --enable-shared --disable-static $(BUILD_FLAGS)
 	cd xml-source && $(MAKE) $(MAKE_J)
 	# install to a temporary location is needed to build cfengine
-	cd xml-source && $(MAKE) install DESTDIR=$(CURDIR)/build-xml
-	cd $(CURDIR)/build-xml$(RUDDER_DIR) && rm -rf share bin/xml2-config
+	cd xml-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
+	cd $(CURDIR)/dependencies$(RUDDER_DIR) && rm -rf share bin/xml2-config
 
 build-cfengine: $(BUILD_DEPS) cfengine-source build-cfengine-stamp
 build-cfengine-stamp:
@@ -620,35 +611,14 @@ build-perl: perl-$(PERL_RELEASE)
 # Install separated into components #
 #####################################
 
-install-ssl: build-ssl
+install-dependencies: $(BUILD_DEPS)
 	mkdir -p $(DESTDIR)
-	cp -rp $(CURDIR)/build-ssl/* $(DESTDIR)
+	cp -rp $(CURDIR)/dependencies/* $(DESTDIR)
+	# openssl useless parts
 	cd $(DESTDIR)/opt/rudder && rm -rf bin/c_rehash lib/pkgconfig/openssl.pc ssl/misc/CA.pl ssl/misc/tsget ssl/openssl.cnf.dist openssl/man
-
-install-lmdb: build-lmdb
-	mkdir -p $(DESTDIR)
-	cp -rp $(CURDIR)/build-lmdb/* $(DESTDIR)
-
-install-pcre: build-pcre
-	mkdir -p $(DESTDIR)
-	cp -rp $(CURDIR)/build-pcre/* $(DESTDIR)
+	# pcre useless parts
 	cd $(DESTDIR)/opt/rudder && rm -rf bin/pcregrep bin/pcretest
-
-install-zlib: build-zlib
-	mkdir -p $(DESTDIR)
-	cp -rp $(CURDIR)/build-zlib/* $(DESTDIR)
-
-install-curl: build-curl
-	mkdir -p $(DESTDIR)
-	cp -rp $(CURDIR)/build-curl/* $(DESTDIR)
-
-install-yaml: build-yaml
-	mkdir -p $(DESTDIR)
-	cp -rp $(CURDIR)/build-yaml/* $(DESTDIR)
-
-install-xml: build-xml
-	mkdir -p $(DESTDIR)
-	cp -rp $(CURDIR)/build-xml/* $(DESTDIR)
+	# libxml useless parts
 	cd $(DESTDIR)/opt/rudder && rm -rf bin/xmlcatalog bin/xmllint lib/xml2Conf.sh lib/cmake
 
 install-cfengine: build-cfengine $(INSTALL_DEPS)
@@ -720,4 +690,4 @@ endif
 	rm -rf $(DESTDIR)/opt/rudder/etc/fusioninventory
 	cp -r fusioninventory-agent/lib/FusionInventory $(DESTDIR)/opt/rudder/lib/perl5/
 
-.PHONY: localdepends distclean depend build install clean mrproper install-ssl install-lmdb install-cfengine install-perl install-fusion get-flags
+.PHONY: localdepends distclean depend build install clean mrproper install-cfengine install-perl install-fusion get-flags
