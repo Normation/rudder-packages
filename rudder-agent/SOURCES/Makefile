@@ -567,7 +567,7 @@ build-xml: xml-source
 	cd $(CURDIR)/dependencies$(RUDDER_DIR) && rm -rf share bin/xml2-config
 
 # check cache content
-DEPS_CACHE_PARAMETERS = --with-env name=dependencies lmdb=LMDB_SHA1 openssl=OPENSSL_SHA1 old-openssl=OLD_OPENSSL_SHA1 pcre=PCRE_SHA1 curl=CURL_SHA1 yaml=YAML_SHA1 xml=XML_SHA1 zlib=ZLIB_SHA1
+DEPS_CACHE_PARAMETERS = --with-env name=dependencies lmdb=$(LMDB_SHA1) openssl=$(OPENSSL_SHA1) old-openssl=$(OLD_OPENSSL_SHA1) pcre=$(PCRE_SHA1) curl=$(CURL_SHA1) yaml=$(YAML_SHA1) xml=$(XML_SHA1) zlib=$(ZLIB_SHA1)
 CFENGINE_DEPS=$(shell ../../build-caching get dependencies/ $(DEPS_CACHE_PARAMETERS) || echo $(BUILD_DEPS))
 dependencies: $(CFENGINE_DEPS)
 	# save into cache if we built it
