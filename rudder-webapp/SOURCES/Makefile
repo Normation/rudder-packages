@@ -31,31 +31,10 @@ JETTY_SHA256 = c286e87f36d56ef40821c5acb99acf3f90873d39bdbc1851f482c556c2dca5ae
 TMP_DIR := $(shell mktemp -dq)
 PYTHON = python3
 
-MAVEN_PROXY := $(if $(PROXY), $(shell echo "$(PROXY)" |  perl -ne ' \
-    if (m|(https?)://(?:([^:@]+)(?::([^@]+))?\@)?([^:/]+)(?::([0-9]+))?|) { \
-        chomp; \
-        my $$proto = "<protocol>$$1</protocol>"; \
-        my $$user = defined($$2) ? "<username>$$2</username>" : ""; \
-        my $$pass = defined($$3) ? "<password><![CDATA[$$3]]></password>" : ""; \
-        my $$host = "<host>$$4</host>";  \
-        my $$id   = "<id>$$4</id>"; \
-        my $$port = defined($5) ? "<port>$$5</port>" : ""; \
-        print "<proxies> <proxy> <active>true</active> $$id $$proto $$user $$pass $$host $$port </proxy> </proxies>"; \
-    }'))
-
 DESTDIR = $(CURDIR)/target
 APACHE_VHOSTDIR = apache2/sites-available
 APACHE_CONFDIR = apache2/conf-available
 JETTY_SCRIPT=jetty.sh
-
-# We are on an nrm builder
-ifeq (,$(wildcard /tmp/nrm_builder))
-NRM := true
-else
-NRM := false
-NEXUS_IGNORE := || true
-endif
-
 
 PROXY_ENV = $(if $(PROXY), http_proxy=$(PROXY))
 # Usage: $(GET) <destination_file> <url> <hash>
@@ -109,31 +88,12 @@ initial-ncf: ./rudder-sources ./initial-promises
 	rm -rf ./initial-ncf
 	cp -r ./rudder-sources/ncf/tree ./initial-ncf
 
-maven/bin/mvn:
-	# Original URL: http://apache.multidist.com/maven/binaries/apache-maven-$(MAVEN_RELEASE)-bin.tar.gz
-	$(GET) maven.tgz.dl https://repository.rudder.io/build-dependencies/maven/apache-maven-$(MAVEN_RELEASE)-bin.tar.gz $(MAVEN_SHA256)
-	mv maven.tgz.dl maven.tgz
-	tar -xzf maven.tgz -C .
-	rm -rf maven
-	mv apache-maven-$(MAVEN_RELEASE) maven
-	sed 's|<!--PROXY-->|$(MAVEN_PROXY)|g' settings-external.xml.tpl > settings-external.xml
+rudder.war: rudder-sources endpoint.war
+	# Direct download the war 
+	./mvn-like rudder-sources/rudder/pom.xml com.normation.rudder rudder-web rudder.war
 
-rudder.war: maven/bin/mvn rudder-sources endpoint.war
-	maven/bin/mvn -s settings-external.xml --batch-mode org.apache.maven.plugins:maven-dependency-plugin:3.0.0:copy -Dmaven.repo.local=.m2/repository -Dartifact=com.normation.rudder:rudder-web:$$(sed -n '/<parent>/,/<.parent>/s/.*<version>\(.*\)<.version>.*/\1/p' rudder-sources/rudder/pom.xml):war -DoutputDirectory=. && mv rudder-web*.war rudder.war $(NEXUS_IGNORE)
-ifeq (false,$(NRM))
-	if [ ! -f rudder.war ]; then cd rudder-sources/rudder            && ../../maven/bin/mvn -s settings-external.xml --batch-mode -Dmaven.repo.local=.m2/repository -Dmaven.test.skip=true -U install; fi
-	if [ ! -f rudder.war ]; then mv rudder-sources/rudder/rudder-web/target/rudder-web*.war rudder.war; fi
-endif
-
-endpoint.war: maven/bin/mvn rudder-sources
-	maven/bin/mvn -s settings-external.xml --batch-mode org.apache.maven.plugins:maven-dependency-plugin:3.0.0:copy -Dmaven.repo.local=.m2/repository  -Dartifact=com.normation.inventory:inventory-provisioning-web:$$(sed -n '/<parent>/,/<.parent>/s/.*<version>\(.*\)<.version>.*/\1/p' rudder-sources/ldap-inventory/pom.xml):war -DoutputDirectory=. && mv inventory-provisioning-web*.war endpoint.war $(NEXUS_IGNORE)
-ifeq (false,$(NRM))
-	if [ ! -f endpoint.war ]; then cd rudder-sources/rudder-parent-pom && ../../maven/bin/mvn -s settings-external.xml --batch-mode -Dmaven.repo.local=.m2/repository -Dmaven.test.skip=true -U install; fi
-	if [ ! -f endpoint.war ]; then cd rudder-sources/rudder-commons    && ../../maven/bin/mvn -s settings-external.xml --batch-mode -Dmaven.repo.local=.m2/repository -Dmaven.test.skip=true -U install; fi
-	if [ ! -f endpoint.war ]; then cd rudder-sources/scala-ldap        && ../../maven/bin/mvn -s settings-external.xml --batch-mode -Dmaven.repo.local=.m2/repository -Dmaven.test.skip=true -U install; fi
-	if [ ! -f endpoint.war ]; then cd rudder-sources/ldap-inventory    && ../../maven/bin/mvn -s settings-external.xml --batch-mode -Dmaven.repo.local=.m2/repository -Dmaven.test.skip=true -U install; fi
-	if [ ! -f endpoint.war ]; then mv rudder-sources/rudder/rudder-web/target/inventory-provisioning-web*.war endpoint.war; fi
-endif
+endpoint.war: rudder-sources
+	./mvn-like rudder-sources/ldap-inventory/pom.xml com.normation.inventory inventory-provisioning-web endpoint.war
 
 rudder-sources.tar.bz2:
 	$(GET) rudder-sources.tar.bz2 https://www.rudder-project.org/archives/rudder-sources-${RUDDER_VERSION_TO_PACKAGE}.tar.bz2 ""

@@ -84,7 +84,7 @@ Requires: postgresql >= 9.2
 
 ## RHEL
 %if 0%{?rhel}
-BuildRequires: java-1.8.0-openjdk-devel selinux-policy-devel
+BuildRequires: selinux-policy-devel
 Requires: mod_ssl httpd shadow-utils
 Requires: jre-headless >= 1.8
 Requires: perl-Digest-SHA
@@ -92,7 +92,6 @@ Requires: perl-Digest-SHA
 
 ## SLES
 %if 0%{?suse_version}
-BuildRequires: jdk >= 1.8
 Requires: apache2 pwdutils
 %endif
 
