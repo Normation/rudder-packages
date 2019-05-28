@@ -87,12 +87,14 @@ Commands:
 
 from __future__ import print_function
 from pprint import pprint
+import sys
+sys.path.insert(0,"..")
+sys.path.insert(0,"../..")
 import re
 import json
 import uuid
 import os
 import shutil
-import sys
 import hashlib
 import platform
 # manage non stdlib import
