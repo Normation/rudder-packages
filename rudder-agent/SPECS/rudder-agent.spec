@@ -128,7 +128,6 @@ URL: http://www.rudder-project.org
 Group: Applications/System
 
 Source1: Makefile
-Source2: filter-reqs.pl
 
 AutoReq: 0
 AutoProv: 0
