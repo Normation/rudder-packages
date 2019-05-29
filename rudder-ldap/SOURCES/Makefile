@@ -53,7 +53,7 @@ rudder-sources: rudder-sources.tar.bz2
 	tar -xjf rudder-sources.tar.bz2
 	mv rudder-sources-*/ rudder-sources/
 
-PATCHES_SHA = $(shell find patches/ -type f | xargs | sha256sum)
+PATCHES_SHA = $(shell find patches/ -type f | xargs | sha256sum | awk '{print $1}')
 CACHE_PARAMETERS = --with-env name=openldap ldap=$(OPENLDAP_SHA256) patches=$(PATCHES_SHA)
 BUILD_LDAP = $(shell ../../build-caching get openldap-source/ $(CACHE_PARAMETERS) || echo build-ldap)
 build: $(BUILD_LDAP) rudder-sources
