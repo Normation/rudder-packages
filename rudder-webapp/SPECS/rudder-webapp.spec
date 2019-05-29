@@ -64,8 +64,6 @@ Group: Applications/System
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
-# Disable dependency auto-generation, to prevent Python requirements
-# autodetection, which is not desired here.
 AutoReq: 0
 AutoProv: 0
 
@@ -81,13 +79,6 @@ Requires: rudder-ldap = %{real_epoch}:%{real_version}, rudder-server-relay = %{r
 Requires: postgresql >= 9.2
 
 # TODO obsolete / provides / conflicts
-
-# Use our own dependency generator to remove perl specific dependencies
-%global _use_internal_dependency_generator 0
-%global __find_requires_orig %{__find_requires}
-%define __find_requires %{_sourcedir}/filter-reqs.pl true %{__find_requires_orig}
-%global __find_provides_orig %{__find_provides}
-%define __find_provides %{_sourcedir}/filter-reqs.pl true %{__find_provides_orig}
 
 # OS-specific dependencies
 

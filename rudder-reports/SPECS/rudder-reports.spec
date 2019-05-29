@@ -47,6 +47,9 @@ Group: Applications/System
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
 
+AutoReq: 0
+AutoProv: 0
+
 Requires: postgresql-server >= 9.2
 Requires: rsyslog >= 4
 

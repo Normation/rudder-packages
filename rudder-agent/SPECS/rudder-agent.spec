@@ -130,12 +130,10 @@ Group: Applications/System
 Source1: Makefile
 Source2: filter-reqs.pl
 
-%if "%{use_system_perl}" == "false"
-# Prevent dependency auto-generation, that tries to be helpful by detecting Perl dependencies from
-# FusionInventory. We handle that with the perl standalone installation already.
 AutoReq: 0
 AutoProv: 0
-%else
+
+%if "%{use_system_perl}" == "false"
 Requires: perl
 %endif
 
@@ -265,13 +263,6 @@ Requires: openssl
 BuildRequires: pcre-devel
 Requires: pcre
 %endif
-
-# Use our own dependency generator
-%global _use_internal_dependency_generator 0
-%global __find_requires_orig %{__find_requires}
-%define __find_requires %{_sourcedir}/filter-reqs.pl %{use_system_lmdb} %{use_system_perl} %{__find_requires_orig}
-%global __find_provides_orig %{__find_provides}
-%define __find_provides %{_sourcedir}/filter-reqs.pl %{use_system_lmdb} %{use_system_perl} %{__find_provides_orig}
 
 %description
 Rudder is an open source configuration management and audit solution.

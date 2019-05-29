@@ -46,6 +46,9 @@ Group: Applications/System
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
 
+AutoReq: 0
+AutoProv: 0
+
 Requires: rudder-webapp = %{real_epoch}:%{real_version}, rudder-reports = %{real_epoch}:%{real_version}, rudder-agent = %{real_epoch}:%{real_version}
 
 %if 0%{?sle_version} && 0%{?sle_version} >= 150000

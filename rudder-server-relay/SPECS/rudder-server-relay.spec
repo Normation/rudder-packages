@@ -61,8 +61,6 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 # Requirements
 
-# Disable dependency auto-generation, to prevent Python requirements
-# autodetection, which is not desired here.
 AutoReq: 0
 AutoProv: 0
 

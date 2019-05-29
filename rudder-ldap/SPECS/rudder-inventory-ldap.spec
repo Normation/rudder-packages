@@ -48,6 +48,9 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 #Generic requirements
 
+AutoReq: 0
+AutoProv: 0
+
 BuildRequires: gcc
 Requires: rsyslog openssl
 
@@ -68,13 +71,6 @@ BuildRequires: openssl-devel libtool-ltdl-devel
 Obsoletes: rudder-inventory-ldap
 # Prevent reinstalling old versions
 Conflicts: rudder-inventory-ldap
-
-# rpm automatically adds requires and provides on libs and bins it finds.
-# provides conflicts with system tools
-# and requiring what you are providing is just nuts
-%{?filter_provides_in .*\.so$}
-%{?filter_requires_in .*\.so$}
-%{?filter_setup}
 
 %description
 Rudder is an open source configuration management and audit solution.
