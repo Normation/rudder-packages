@@ -416,7 +416,7 @@ else
   echo "You should manually change the passwords for the WebDAV, PostgreSQL and OpenLDAP"
   echo "services now, and reflect these changes across all servers".
   echo "This cannot be done automatically currently."
-  echo "See http://www.rudder-project.org/rudder-doc-latest/rudder-doc.html#password-management"
+  echo "See https://docs.rudder.io/reference/current/administration/multi_server.html"
   echo
 fi
 

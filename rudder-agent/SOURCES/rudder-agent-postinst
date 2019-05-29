@@ -106,7 +106,7 @@ then
 fi
 
 # Try to remove POSIX ACL if present, only during the first install
-# http://www.rudder-project.org/redmine/issues/8065
+# https://issues.rudder.io/issues/8065
 if [ "${CFRUDDER_FIRST_INSTALL}" = "true" ]
 then
   if type setfacl > /dev/null 2>&1; then

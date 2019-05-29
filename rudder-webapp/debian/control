@@ -1,19 +1,18 @@
 Source: rudder-webapp
 Section: web
 Priority: extra
-Maintainer: Rudder packaging team <rudder-packaging@rudder-project.org>
-Build-Depends: debhelper (>= 9), python3-dev, ca-certificates, curl
+Maintainer: Rudder Team <dev@rudder.io>
+Build-Depends: debhelper (>= 9), libltdl3-dev, libssl-dev, python3-dev, ca-certificates, curl
 Standards-Version: 3.8.0
-Homepage: http://www.rudder-project.org
+Homepage: https://www.rudder.io
 
 Package: rudder-webapp
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, systemd, python3, rudder-ldap (= ${binary:Version}), rudder-server-relay (= ${binary:Version}), apache2, apache2-utils, libapache2-mod-wsgi-py3, git-core, rsync, lsb-release, openssl, ldap-utils, postgresql-client (>=9.2), java8-runtime-headless | openjdk-8-jre-headless | oracle-java8-installer, curl
-Breaks: ncf, ncf-api-virtualenv, rudder-techniques, rudder-inventory-endpoint, rudder-jetty
-Replaces: ncf, ncf-api-virtualenv, rudder-techniques, rudder-inventory-endpoint, rudder-jetty
+Depends: ${shlibs:Depends}, ${misc:Depends}, systemd, rsyslog, python3, rudder-server-relay (= ${binary:Version}), apache2, apache2-utils, libapache2-mod-wsgi-py3, git-core, rsync, lsb-release, openssl, ldap-utils, postgresql-client (>=9.2), java8-runtime-headless | openjdk-8-jre-headless | oracle-java8-installer, curl
+Breaks: ncf, ncf-api-virtualenv, rudder-techniques, rudder-inventory-endpoint, rudder-jetty, rudder-inventory-ldap, rudder-ldap
+Replaces: ncf, ncf-api-virtualenv, rudder-techniques, rudder-inventory-endpoint, rudder-jetty, rudder-inventory-ldap, rudder-ldap
 Description: Configuration management and audit tool - webapp
  Rudder is an open source configuration management and audit solution.
  .
  This package contains the web application that is the main user interface to
- Rudder. The webapp is automatically installed and started using the Jetty
- application server bundled in the rudder-jetty package.
+ Rudder.

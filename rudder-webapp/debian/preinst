@@ -21,6 +21,28 @@ case "$1" in
     ;;
 
     upgrade)
+      # When upgrading OpenLDAP, we may need to dump the database
+      # so that it can be restored from LDIF in case the new
+      # package uses a different version of BerkeleyDB (libdb)
+      TIMESTAMP=`date +%Y%m%d%H%M%S`
+      # Ensure backup folder exist
+      mkdir -p /var/rudder/ldap/backup/
+  
+      # We need it to be able to open big mdb memory-mapped databases
+      ulimit -v unlimited
+  
+      /opt/rudder/sbin/slapcat -b "cn=rudder-configuration" -l /var/rudder/ldap/backup/openldap-data-pre-upgrade-${TIMESTAMP}.ldif
+  
+      # Copy default file for migration
+      [ -f /etc/default/rudder-slapd ] && mkdir -p /var/rudder/tmp/ && cp /etc/default/rudder-slapd /var/rudder/tmp/default-rudder-slapd
+
+      #if the stops fails, it's probably because it was not started
+      service rudder-jetty stop >&2 > /dev/null || true
+
+      if [ -x /opt/rudder/bin/rudder-pkg ]
+      then
+        /opt/rudder/bin/rudder-pkg plugin save-status > /tmp/rudder-plugins-upgrade
+      fi
 
       echo "********************************************************************************"
       echo "INFO: dpkg may ask you if you want to replace rudder-web.properties or          "
@@ -35,13 +57,6 @@ case "$1" in
       echo "INFO: take care of this automatically.                                          "
       echo "INFO:                                                                           "
       echo "********************************************************************************"
-      #if the stops fails, it's probably because it was not started
-      service rudder-jetty stop >&2 > /dev/null || true
-
-      if [ -x /opt/rudder/bin/rudder-pkg ]
-      then
-        /opt/rudder/bin/rudder-pkg plugin save-status > /tmp/rudder-plugins-upgrade
-      fi
     ;;
 
     abort-upgrade)

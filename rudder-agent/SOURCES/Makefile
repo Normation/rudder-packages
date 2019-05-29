@@ -475,7 +475,7 @@ perl-$(PERL_RELEASE):
 	$(GET) ./perl-$(PERL_RELEASE)/App-cpanminus.tar.gz $(HTTPS)://repository.rudder.io/build-dependencies/cpan/App-cpanminus-$(CPANMINUS_RELEASE).tar.gz $(CPANMINUS_SHA1)
 	cd perl-$(PERL_RELEASE) && gunzip < App-cpanminus.tar.gz | $(TAR) xf -
 	mv ./perl-$(PERL_RELEASE)/App-cpanminus-$(CPANMINUS_RELEASE) ./perl-$(PERL_RELEASE)/App-cpanminus
-	# cpanminus+curl have a bug on rhel3+64bits, this is the workaround, see http://www.rudder-project.org/redmine/issues/8533
+	# cpanminus+curl have a bug on rhel3+64bits, this is the workaround, see https://issues.rudder.io/issues/8533
 	sed -i -e "s/'-#',//" ./perl-$(PERL_RELEASE)/App-cpanminus/bin/cpanm
 	rm -rf $(TMP_DIR)
 
