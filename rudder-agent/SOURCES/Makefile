@@ -567,7 +567,7 @@ build-xml: xml-source
 	cd $(CURDIR)/dependencies$(RUDDER_DIR) && rm -rf share bin/xml2-config
 
 # check cache content
-PATCHES_SHA = $(shell find patches/cfengine -type f | xargs | sha256sum | awk '{print $1}')
+PATCHES_SHA = $(shell find patches/cfengine -type f | xargs | sha256sum | awk '{print $$1}')
 DEPS_CACHE_PARAMETERS = --with-env name=dependencies lmdb=$(LMDB_SHA1) openssl=$(OPENSSL_SHA1) old-openssl=$(OLD_OPENSSL_SHA1) pcre=$(PCRE_SHA1) curl=$(CURL_SHA1) yaml=$(YAML_SHA1) xml=$(XML_SHA1) zlib=$(ZLIB_SHA1) cfengine=$(CFENGINE_SHA1) patches=$(PATCHES_SHA)
 CFENGINE_DEPS = $(shell ../../build-caching get dependencies/ $(DEPS_CACHE_PARAMETERS) || echo $(BUILD_DEPS))
 build-cfengine: $(CFENGINE_DEPS) cfengine-source build-cfengine-stamp
