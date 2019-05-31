@@ -572,7 +572,7 @@ DEPS_CACHE_PARAMETERS = --with-env name=dependencies lmdb=$(LMDB_SHA1) openssl=$
 CFENGINE_DEPS = $(shell ../../build-caching get dependencies/ $(DEPS_CACHE_PARAMETERS) || echo $(BUILD_DEPS))
 build-cfengine: $(CFENGINE_DEPS) cfengine-source build-cfengine-stamp
 	# save into cache if we built it
-	[ "$(CFENGINE_DEPS)" != "" ] && ../../build-caching put dependencies/ $(DEPS_CACHE_PARAMETERS)
+	if [ "$(CFENGINE_DEPS)" != "" ]; then ../../build-caching put dependencies/ $(DEPS_CACHE_PARAMETERS); fi
 
 build-cfengine-stamp:
 	# If there is no configure, bootstrap with autogen.sh first
@@ -679,7 +679,7 @@ FUSION_CACHE_PARAMETERS = --with-env name=fusion source=$(FUSION_SHA1) patches=$
 FUSION_INSTALL = $(shell ../../build-caching get $(DESTDIR)/ $(FUSION_CACHE_PARAMETERS) || echo install-fusion-real)
 install-fusion: $(FUSION_INSTALL)
 	# save into cache if we built it
-	[ "$(FUSION_INSTALL)" != "" ] && ../../build-caching put $(DESTDIR)/fusion $(FUSION_CACHE_PARAMETERS)
+	if [ "$(FUSION_INSTALL)" != "" ]; then ../../build-caching put $(DESTDIR)/fusion $(FUSION_CACHE_PARAMETERS); fi
 	cp -a $(DESTDIR)/fusion/* $(DESTDIR)/ && rm -rf $(DESTDIR)/fusion
 
 install-fusion-real: fusioninventory-agent fusion-modules
