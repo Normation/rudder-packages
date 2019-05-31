@@ -112,7 +112,7 @@ INSTALL := $(shell type ginstall >/dev/null 2>&1 && echo ginstall || echo instal
 
 # Use parameters to guess what should be packaged
 BUILD_DEPS :=
-INSTALL_DEPS := install-dependencies
+INSTALL_DEPS :=
 # default: use https for urls
 ifeq (false,$(USE_HTTPS))
 HTTPS:=http
@@ -567,13 +567,13 @@ build-xml: xml-source
 	cd $(CURDIR)/dependencies$(RUDDER_DIR) && rm -rf share bin/xml2-config
 
 # check cache content
-DEPS_CACHE_PARAMETERS = --with-env name=dependencies lmdb=$(LMDB_SHA1) openssl=$(OPENSSL_SHA1) old-openssl=$(OLD_OPENSSL_SHA1) pcre=$(PCRE_SHA1) curl=$(CURL_SHA1) yaml=$(YAML_SHA1) xml=$(XML_SHA1) zlib=$(ZLIB_SHA1)
+PATCHES_SHA = $(shell find patches/cfengine -type f | xargs | sha256sum | awk '{print $1}')
+DEPS_CACHE_PARAMETERS = --with-env name=dependencies lmdb=$(LMDB_SHA1) openssl=$(OPENSSL_SHA1) old-openssl=$(OLD_OPENSSL_SHA1) pcre=$(PCRE_SHA1) curl=$(CURL_SHA1) yaml=$(YAML_SHA1) xml=$(XML_SHA1) zlib=$(ZLIB_SHA1) cfengine=$(CFENGINE_SHA1) patches=$(PATCHES_SHA)
 CFENGINE_DEPS = $(shell ../../build-caching get dependencies/ $(DEPS_CACHE_PARAMETERS) || echo $(BUILD_DEPS))
-dependencies: $(CFENGINE_DEPS)
+build-cfengine: $(CFENGINE_DEPS) cfengine-source build-cfengine-stamp
 	# save into cache if we built it
 	[ "$(CFENGINE_DEPS)" != "" ] && ../../build-caching put dependencies/ $(DEPS_CACHE_PARAMETERS)
 
-build-cfengine: dependencies cfengine-source build-cfengine-stamp dependencies
 build-cfengine-stamp:
 	# If there is no configure, bootstrap with autogen.sh first
 	cd cfengine-source && [ -x ./configure ] || NO_CONFIGURE=1 ./autogen.sh
@@ -585,6 +585,7 @@ build-cfengine-stamp:
 	cd cfengine-source && $(SED) 's/AM_CPPFLAGS = .*/AM_CPPFLAGS = $$(PCRE_CPPFLAGS) $$(OPENSSL_CPPFLAGS) $$(LIBYAML_CPPFLAGS)/' libutils/Makefile.in > libutils/Makefile.in.new && mv libutils/Makefile.in.new libutils/Makefile.in
 	cd cfengine-source && ./configure --prefix=$(RUDDER_DIR) --with-workdir=/var/rudder/cfengine-community --enable-static=yes --enable-shared=no --without-postgresql --without-mysql $(ACL_ARG) $(LMDB_ARG) $(OPENSSL_ARG) $(PCRE_ARG) $(CURL_ARG) $(YAML_ARG) $(XML_ARG) $(PAM_ARG) CFLAGS="$(CFLAGS) $(PIE_CFLAGS)" LDFLAGS="$(LDFLAGS)"
 	cd cfengine-source && $(MAKE) $(MAKE_J)
+	cd cfengine-source && $(MAKE) $(MAKE_J) install DESTDIR=$(CURDIR)/dependencies
 	touch $@
 ifeq (aix,$(OS_FAMILY))
 	# be clean
@@ -618,7 +619,7 @@ build-perl: perl-$(PERL_RELEASE)
 # Install separated into components #
 #####################################
 
-install-dependencies: dependencies
+install-cfengine: build-cfengine $(INSTALL_DEPS) rudder.8.gz
 	mkdir -p $(DESTDIR)
 	cp -rp $(CURDIR)/dependencies/* $(DESTDIR)
 	# openssl useless parts
@@ -627,11 +628,9 @@ install-dependencies: dependencies
 	cd $(DESTDIR)/opt/rudder && rm -rf bin/pcregrep bin/pcretest
 	# libxml useless parts
 	cd $(DESTDIR)/opt/rudder && rm -rf bin/xmlcatalog bin/xmllint lib/xml2Conf.sh lib/cmake
-
-install-cfengine: build-cfengine $(INSTALL_DEPS) rudder.8.gz
-	cd cfengine-source && $(MAKE) install DESTDIR=$(DESTDIR) STRIP=""
+	# Install cfengine manpages
 	mkdir -p $(DESTDIR)/opt/rudder/share/man/man8
-	cd cfengine-source && for binary in cf-agent cf-promises cf-key cf-execd cf-serverd cf-net cf-runagent; do \
+	cd $(DESTDIR)/opt/rudder/bin && for binary in cf-agent cf-promises cf-key cf-execd cf-serverd cf-net cf-runagent; do \
 		LD_LIBRARY_PATH="$(DESTDIR)/opt/rudder/lib" $${binary}/$${binary} -M | gzip > $(DESTDIR)/opt/rudder/share/man/man8/$${binary}.8.gz; \
 	done
 	cd $(DESTDIR)/opt/rudder && rm -rf share/doc/cfengine
