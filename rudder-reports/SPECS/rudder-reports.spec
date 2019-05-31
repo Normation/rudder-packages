@@ -39,7 +39,7 @@ Version: %{real_version}
 Release: 1%{?dist}
 Epoch: %{real_epoch}
 License: GPLv3
-URL: http://www.rudder-project.org
+URL: https://www.rudder.io/
 
 Group: Applications/System
 
@@ -114,5 +114,6 @@ rm -rf %{buildroot}
 # Changelog
 #=================================================
 %changelog
-* Wed Nov  22 2017 - Rudder Team <rudder-dev@rudder-project.org> %{version}
-- See https://www.rudder-project.org/site/documentation/user-manual/ for changelogs
+* Wed Nov  22 2017 - Rudder Team <dev@rudder.io> %{version}
+- See https://docs.rudder.io/changelogs/current/index.html for changelogs
+

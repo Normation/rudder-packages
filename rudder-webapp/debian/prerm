@@ -19,10 +19,8 @@ set -e
 
 case "$1" in
     remove)
-      # Ensure OpenLDAP is stopped
-      printf "INFO: Stopping rudder-slapd..."
-      service rudder-slapd forcestop >/dev/null 2>&1 || true
-      echo " Done"
+      systemctl stop rudder-jetty
+      systemctl stop rudder-slapd
     ;;
 
     upgrade|deconfigure)

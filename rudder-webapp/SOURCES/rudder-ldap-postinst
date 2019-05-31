@@ -5,10 +5,10 @@ PACKAGE_NAME="rudder-ldap"
 LOG_FILE="/var/log/rudder/install/${PACKAGE_NAME}.log"
 LDAP_CONF="/opt/rudder/etc/openldap/slapd.conf"
 
-CFRUDDER_FIRST_INSTALL="$1"
+RUDDER_FIRST_INSTALL="$1"
 if [ -z "$1" ]
 then
-  echo "Usage: $0 <CFRUDDER_FIRST_INSTALL>"
+  echo "Usage: $0 <RUDDER_FIRST_INSTALL>"
   echo " This should only be called from a package postinstall command"
   exit 1
 fi
@@ -48,7 +48,7 @@ if ! getent passwd rudder-slapd >/dev/null; then
   echo " Done"
 fi
 
-if [ ${CFRUDDER_FIRST_INSTALL} -eq 1 ]; then
+if [ "${RUDDER_FIRST_INSTALL}" = "true" ]; then
   echo -n "INFO: Setting rudder-slapd as a boot service..."
   systemctl daemon-reload
   systemctl enable rudder-slapd

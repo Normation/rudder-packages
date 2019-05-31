@@ -1,10 +1,10 @@
 Source: rudder-agent
 Section: admin
 Priority: extra
-Maintainer: Rudder packaging team <rudder-packaging@rudder-project.org>
+Maintainer: Rudder Team <dev@rudder.io>
 Build-Depends: debhelper (>= 7), bison, gcc, flex, autoconf, automake, libtool, libpcre3-dev, libpam0g-dev, ca-certificates, perl, lsb-release, libyaml-dev, libxml2-dev, libacl1-dev, python, rsync
 Standards-Version: 3.8.0
-Homepage: http://www.rudder-project.org
+Homepage: https://www.rudder.io
 
 Package: rudder-agent
 Architecture: any

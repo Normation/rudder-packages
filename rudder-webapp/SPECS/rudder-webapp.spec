@@ -58,7 +58,7 @@ Version: %{real_version}
 Release: 1%{?dist}
 Epoch: %{real_epoch}
 License: GPLv3
-URL: http://www.rudder-project.org
+URL: https://www.rudder.io/
 
 Group: Applications/System
 
@@ -68,12 +68,15 @@ AutoReq: 0
 AutoProv: 0
 
 # Smooth upgrade
-Obsoletes: ncf, ncf-api-virtualenv, rudder-techniques
+Obsoletes: ncf, ncf-api-virtualenv, rudder-techniques, rudder-inventory-ldap, rudder-ldap
 # Prevent reinstalling old versions
-Conflicts: ncf, ncf-api-virtualenv, rudder-techniques
+Conflicts: ncf, ncf-api-virtualenv, rudder-techniques, rudder-inventory-ldap, rudder-ldap
+
+BuildRequires: gcc
+Requires: rsyslog
 
 # Dependencies
-Requires: rudder-ldap = %{real_epoch}:%{real_version}, rudder-server-relay = %{real_epoch}:%{real_version}, %{apache}, %{apache_tools}, git-core, rsync, openssl, %{ldap_clients}, curl
+Requires: rudder-server-relay = %{real_epoch}:%{real_version}, %{apache}, %{apache_tools}, git-core, rsync, openssl, %{ldap_clients}, curl
 
 # We need the PostgreSQL client utilities so that we can run database checks and upgrades (rudder-upgrade, in particular)
 Requires: postgresql >= 9.2
@@ -87,12 +90,14 @@ Requires: postgresql >= 9.2
 BuildRequires: selinux-policy-devel
 Requires: mod_ssl httpd shadow-utils
 Requires: jre-headless >= 1.8
-Requires: perl-Digest-SHA
+Requires: perl-Digest-SHA libtool-ltdl
+BuildRequires: openssl-devel libtool-ltdl-devel
 %endif
 
 ## SLES
 %if 0%{?suse_version}
-Requires: apache2 pwdutils
+Requires: apache2 pwdutils libltdl7
+BuildRequires: libopenssl-devel
 %endif
 
 %if 0%{?sle_version} && 0%{?sle_version} >= 150000
@@ -123,8 +128,7 @@ Requires: python3, apache2-mod_wsgi-python3
 Rudder is an open source configuration management and audit solution.
 
 This package contains the web application that is the main user interface to
-Rudder. The webapp is automatically installed and started using the Jetty
-application server bundled in the rudder-jetty package.
+Rudder.
 
 #=================================================
 # Source preparation
@@ -141,6 +145,9 @@ find . -type f | xargs sed -i '1,1s|#!/usr/bin/python3|#!/usr/bin/python2|'
 # Building
 #=================================================
 %build
+
+# Ensure an appropriate environment for the compiler
+export CFLAGS="$RPM_OPT_FLAGS"
 
 cd %{_sourcedir}
 %if 0%{?rhel} == 7 || ( 0%{?suse_version} && 0%{?suse_version} < 1500 )
@@ -190,6 +197,24 @@ make install APACHE_VHOSTDIR=%{apache_vhost_dir} DESTDIR=%{buildroot} JETTY_SCRI
 mkdir -p /opt/rudder/etc
 echo 'root' > /opt/rudder/etc/uuid.hive
 
+# Only do this on package upgrade
+if [ $1 -ne 1 ]
+  then
+  # When upgrading OpenLDAP, we may need to dump the database
+  # so that it can be restored from LDIF
+  TIMESTAMP=`date +%%Y%%m%%d%%H%%M%%S`
+  # Ensure backup folder exist
+  mkdir -p /var/rudder/ldap/backup/
+
+  # We need it to be able to open big mdb memory-mapped databases
+  ulimit -v unlimited
+
+  /opt/rudder/sbin/slapcat -b "cn=rudder-configuration" -l /var/rudder/ldap/backup/openldap-data-pre-upgrade-${TIMESTAMP}.ldif
+
+  # Copy default file for migration
+  [ -f /etc/default/rudder-slapd ] && mkdir -p /var/rudder/tmp/ && cp /etc/default/rudder-slapd /var/rudder/tmp/default-rudder-slapd
+fi
+
 service rudder-jetty stop >&2 > /dev/null
 if [ -x /opt/rudder/bin/rudder-pkg ]
 then
@@ -214,6 +239,8 @@ if [ $1 -eq 1 ]
 then
   RUDDER_FIRST_INSTALL="true"
 fi
+
+/opt/rudder/share/package-scripts/rudder-ldap-postinst "${RUDDER_FIRST_INSTALL}"
 
 # Do this ONLY at first install
 if [ $1 -eq 1 ]
@@ -288,6 +315,12 @@ if [ $1 -eq 0 ]; then
   fi
 %endif
 
+  # Remove the package user
+  if getent passwd rudder-slapd >/dev/null; then
+    echo -n "INFO: Removing the rudder-slapd user..."
+    userdel rudder-slapd >/dev/null 2>&1
+    echo " Done"
+  fi
 fi
 
 %if 0%{?rhel}
@@ -329,6 +362,7 @@ fi
 if [[ $1 -eq 0 ]]
 then
   systemctl stop rudder-jetty
+  systemctl stop rudder-slapd
 fi
 
 
@@ -345,32 +379,32 @@ rm -rf %{buildroot}
 %defattr(-, root, root, 0755)
 
 /opt/rudder/etc/
+%config(noreplace) /opt/rudder/etc/openldap/slapd.conf
+%config(noreplace) /etc/rsyslog.d/rudder-slapd.conf
 %config(noreplace) /opt/rudder/etc/rudder-web.properties
 %config(noreplace) /opt/rudder/etc/rudder-users.xml
 %config(noreplace) /opt/rudder/etc/logback.xml
 %config(noreplace) /opt/rudder/etc/rudder-passwords.conf
 %config(noreplace) /etc/default/rudder-jetty
 %attr(0600, root, root) /opt/rudder/etc/rudder-passwords.conf
+%attr(0755, rudder-slapd, rudder-slapd) /var/rudder/ldap/openldap-data
 /usr/lib/systemd/system/
 /opt/rudder/jetty
-/opt/rudder/etc/rudder-jetty.conf
-/opt/rudder/etc/rudder-jetty-base
-/opt/rudder/bin/
-/opt/rudder/bin/rudder-jetty.sh
-/opt/rudder/bin/rudder-node-to-relay
-/opt/rudder/bin/rudder-init
-/opt/rudder/bin/rudder-root-rename
-/opt/rudder/bin/rudder-reload-cf-serverd
-/opt/rudder/share/techniques/
-/opt/rudder/share/tools/
-/opt/rudder/share/webapps/
-/opt/rudder/share/rudder-plugins/
+/opt/rudder/etc
+/opt/rudder/bin
+/opt/rudder/sbin
 /opt/rudder/share
+/opt/rudder/share
+/opt/rudder/include
+/opt/rudder/lib
+/opt/rudder/var
+/opt/rudder/libexec
 /var/rudder/run
 /var/rudder/inventories/received
 /var/rudder/inventories/failed
 /var/rudder/configuration-repository/.gitignore
 /var/rudder/configuration-repository/ncf/ncf-hooks.d
+/var/log/rudder/ldap
 /var/log/rudder/apache2/
 /var/log/rudder/webapp/
 /etc/%{apache_vhost_dir}/
@@ -399,5 +433,5 @@ rm -rf %{buildroot}
 # Changelog
 #=================================================
 %changelog
-* Wed Nov  22 2017 - Rudder Team <rudder-dev@rudder-project.org> %{version}
-- See https://www.rudder-project.org/site/documentation/user-manual/ for changelogs
+* Wed Nov  22 2017 - Rudder Team <dev@rudder.io> %{version}
+- See https://docs.rudder.io/changelogs/current/index.html for changelogs

@@ -28,6 +28,8 @@ MAVEN_SHA256 = ce50b1c91364cb77efe3776f756a6d92b76d9038b0a0782f7d53acf1e997a14d
 JETTY_RELEASE = 9.4.11
 DATE_RELEASE = 20180605
 JETTY_SHA256 = c286e87f36d56ef40821c5acb99acf3f90873d39bdbc1851f482c556c2dca5ae
+OPENLDAP_RELEASE = 2.4.47
+OPENLDAP_SHA256 = f54c5877865233d9ada77c60c0f69b3e0bfd8b1b55889504c650047cc305520b
 TMP_DIR := $(shell mktemp -dq)
 PYTHON = python3
 
@@ -42,8 +44,20 @@ PROXY_ENV = $(if $(PROXY), http_proxy=$(PROXY))
 # grep 'GET=' */SOURCES/Makefile to patch everywhere
 GET=get() { $(PROXY_ENV) curl -s -L -o "$$1.part" "$$2" && { openssl dgst -sha256 "$$1.part" | grep -q "$$3" || { echo "Wrong checksum, aborting"; exit 1; }; } && mv "$$1.part" "$$1"; }; get
 
-localdepends: initial-promises initial-ncf rudder-sources rudder-doc rudder.war endpoint.war jetty
+localdepends: initial-promises initial-ncf rudder-sources rudder-doc rudder.war endpoint.war jetty openldap-source
 	rm -rf $(TMP_DIR)
+
+openldap-source:
+	# Original URL: ftp://ftp.openldap.org/pub/OpenLDAP/openldap-release/openldap-$(OPENLDAP_RELEASE).tgz
+	$(GET) ./openldap.tgz https://repository.rudder.io/build-dependencies/openldap/openldap-$(OPENLDAP_RELEASE).tgz $(OPENLDAP_SHA256)
+	tar xzf ./openldap.tgz -C .
+	mv ./openldap-$(OPENLDAP_RELEASE) ./openldap-source
+	
+	# Apply patches
+	for PATCHNAME in patches/openldap/*.patch; do echo "Applying $$PATCHNAME..."; patch -d ./openldap-source -p1 < $$PATCHNAME; done
+	# Make sure there were no rejects
+	test `find ./openldap-source -name \*.rej | wc -l` = 0
+	rm -rf ./openldap.tgz
 
 jetty:
 	# Original URL: http://repo1.maven.org/maven2/org/eclipse/jetty/jetty-distribution/$(JETTY_RELEASE).v$(DATE_RELEASE)/jetty-distribution-$(JETTY_RELEASE).v$(DATE_RELEASE).tar.gz
@@ -103,7 +117,7 @@ rudder-sources: rudder-sources.tar.bz2
 	mv rudder-sources-*/ rudder-sources/
 	# Remove tests folders we don't want to package
 	find rudder-sources/rudder-techniques -name "tests" -type d | xargs -r rm -r
-	# Set version in technique editor files so use correctly browser cache (See https://issues.rudder.io/issues/14194)
+	# Set version in technique editor files to use correctly browser cache (See https://issues.rudder.io/issues/14194)
 	sed -i "s/version=dev/version=${RUDDER_VERSION_TO_PACKAGE}/" rudder-sources/ncf/builder/index.html
 
 
@@ -120,10 +134,21 @@ virtualenv/virtualenv.py:
 	tar -xzf virtualenv.tgz
 	mv virtualenv-$(VIRTUALENV_RELEASE)/ virtualenv/
 
-build: rudder-sources virtualenv/virtualenv.py rudder-doc jetty rudder.war endpoint.war
+PATCHES_SHA = $(shell find patches/ -type f | xargs | sha256sum | awk '{print $1}')
+CACHE_PARAMETERS = --with-env name=openldap ldap=$(OPENLDAP_SHA256) patches=$(PATCHES_SHA)
+BUILD_LDAP = $(shell ../../build-caching get openldap-source/ $(CACHE_PARAMETERS) || echo build-ldap)
+build: $(BUILD_LDAP) rudder-sources virtualenv/virtualenv.py rudder-doc jetty rudder.war endpoint.war
+	# save ldap build into cache
+	[ "$(BUILD_LDAP)" != "" ] && ../../build-caching put openldap-source/ $(CACHE_PARAMETERS)
 	$(PYTHON) virtualenv/virtualenv.py ncf-api-virtualenv
 	ncf-api-virtualenv/bin/pip install -r rudder-sources/ncf/api/requirements.txt
 	for i in easy_install python pip; do rm -f ncf-api-virtualenv/bin/$${i}*; done
+	touch $@
+
+build-ldap: openldap-source
+	cd openldap-source && ./configure --prefix=/opt/rudder --libdir=/opt/rudder/lib/ldap --enable-dynamic --enable-debug --enable-modules --enable-monitor=mod --enable-dynlist=mod --enable-mdb=yes --enable-hdb=no --enable-bdb=no
+	cd openldap-source && make depend
+	cd openldap-source && make
 	touch $@
 
 # install into DESTDIR
@@ -140,23 +165,38 @@ install: build initial-promises initial-ncf
 	mkdir -p $(DESTDIR)/opt/rudder/share/upgrade-tools/
 	mkdir -p $(DESTDIR)/opt/rudder/share/certificates/
 	mkdir -p $(DESTDIR)/opt/rudder/share/selinux/
+	mkdir -p $(DESTDIR)/opt/rudder/share/package-scripts/
 	mkdir -p $(DESTDIR)/var/rudder/inventories/received
 	mkdir -p $(DESTDIR)/var/rudder/inventories/failed
 	mkdir -p $(DESTDIR)/var/rudder/configuration-repository/ncf/ncf-hooks.d
+	mkdir -p $(DESTDIR)/var/rudder/run
+	mkdir -p $(DESTDIR)/var/rudder/ldap/openldap-data
 	mkdir -p $(DESTDIR)/var/log/rudder/apache2/
 	mkdir -p $(DESTDIR)/var/log/rudder/webapp
+	mkdir -p $(DESTDIR)/var/log/rudder/ldap
 	mkdir -p $(DESTDIR)/var/rudder/run
 	mkdir -p $(DESTDIR)/etc/$(APACHE_VHOSTDIR)/
 	mkdir -p $(DESTDIR)/etc/$(APACHE_CONFDIR)/
 	mkdir -p $(DESTDIR)/etc/sysconfig/
+	mkdir -p $(DESTDIR)/etc/rsyslog.d
 	mkdir -p $(DESTDIR)/etc/default
 	mkdir -p $(DESTDIR)/usr/share/doc/rudder
 	mkdir -p $(DESTDIR)/usr/share/
 	mkdir -p $(DESTDIR)/usr/bin/
 	mkdir -p $(DESTDIR)/usr/share/ncf-api-virtualenv/share/selinux/
-	mkdir -p $(DESTDIR)/var/lib/ncf-api-venv/
-	mkdir -p $(DESTDIR)/opt/rudder/share/package-scripts/
 	mkdir -p $(DESTDIR)/usr/lib/systemd/system/
+	mkdir -p $(DESTDIR)/var/lib/ncf-api-venv/
+	cd openldap-source && make install DESTDIR=$(DESTDIR)
+
+	# Install openldap
+	install -m 640 slapd.conf $(DESTDIR)/opt/rudder/etc/openldap/slapd.conf
+	install -m 644 rudder-sources/ldap-inventory/inventory-repository/src/main/resources/ldap/inventory.schema $(DESTDIR)/opt/rudder/etc/openldap/schema/
+	install -m 644 rudder-sources/rudder/rudder-core/src/main/resources/ldap/rudder.schema $(DESTDIR)/opt/rudder/etc/openldap/schema/
+	install -m 644 rudder-inventory-ldap $(DESTDIR)/opt/rudder/etc/server-roles.d/
+	install -m 644 rudder-ldap $(DESTDIR)/opt/rudder/etc/server-roles.d/
+	install -m 644 rsyslog/rudder-slapd.conf $(DESTDIR)/etc/rsyslog.d/rudder-slapd.conf
+	install -m 644 rudder-slapd.service $(DESTDIR)/usr/lib/systemd/system/rudder-slapd.service
+	install -m 755 rudder-ldap-postinst $(DESTDIR)/opt/rudder/share/package-scripts/
 
 	# Install helper scripts
 	install -m 755 rudder-init $(DESTDIR)/opt/rudder/bin/
@@ -266,6 +306,7 @@ clean:
 	rm -f .debian/rudder-jetty.default
 	rm -rf $(TMP_DIR)
 	rm -f build install
+	rm -rf openldap-source
 
 # distclean should remove everything except rudder-sources.tar.bz2 since it can be brought by by external means
 distclean: clean
@@ -277,4 +318,4 @@ distclean: clean
 mrproper: distclean
 	rm -f rudder-sources.tar.bz2
 
-.PHONY: clean localdepends distclean mrproper
+.PHONY: install clean localdepends distclean mrproper

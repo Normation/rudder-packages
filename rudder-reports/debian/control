@@ -1,10 +1,10 @@
 Source: rudder-reports
 Section: misc
 Priority: extra
-Maintainer: Rudder packaging team <rudder-packaging@rudder-project.org>
+Maintainer: Rudder Team <dev@rudder.io>
 Build-Depends: debhelper (>= 9), ca-certificates, curl
 Standards-Version: 3.7.3
-Homepage: http://www.rudder-project.org
+Homepage: https://www.rudder.io
 
 Package: rudder-reports
 Architecture: all
