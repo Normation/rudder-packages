@@ -134,12 +134,12 @@ virtualenv/virtualenv.py:
 	tar -xzf virtualenv.tgz
 	mv virtualenv-$(VIRTUALENV_RELEASE)/ virtualenv/
 
-PATCHES_SHA = $(shell find patches/ -type f | xargs | sha256sum | awk '{print $1}')
+PATCHES_SHA = $(shell find patches/ -type f | xargs | sha256sum | awk '{print $$1}')
 CACHE_PARAMETERS = --with-env name=openldap ldap=$(OPENLDAP_SHA256) patches=$(PATCHES_SHA)
 BUILD_LDAP = $(shell ../../build-caching get openldap-source/ $(CACHE_PARAMETERS) || echo build-ldap)
 build: $(BUILD_LDAP) rudder-sources virtualenv/virtualenv.py rudder-doc jetty rudder.war endpoint.war
 	# save ldap build into cache
-	[ "$(BUILD_LDAP)" != "" ] && ../../build-caching put openldap-source/ $(CACHE_PARAMETERS)
+	if [ "$(BUILD_LDAP)" != "" ]; then ../../build-caching put openldap-source/ $(CACHE_PARAMETERS); fi
 	$(PYTHON) virtualenv/virtualenv.py ncf-api-virtualenv
 	ncf-api-virtualenv/bin/pip install -r rudder-sources/ncf/api/requirements.txt
 	for i in easy_install python pip; do rm -f ncf-api-virtualenv/bin/$${i}*; done
