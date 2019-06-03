@@ -49,7 +49,7 @@ binary-arch: install
 	dh_installchangelogs
 #	dh_installdocs
 #	dh_installexamples
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/ ncf/ /usr/share/
+	dh_install --sourcedir=$(CURDIR)/SOURCES/rudder-sources/ ncf/ /usr/share/
 
 #	dh_installmenu
 #	dh_installdebconf

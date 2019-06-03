@@ -70,18 +70,18 @@ binary-arch: install
 	dh_install
 	# Init script and configuration files
 	cp -f $(CURDIR)/SOURCES/rudder-inventory-ldap.default $(CURDIR)/BUILD/rudder-slapd
-	dh_install --SOURCEDIR=$(CURDIR)/BUILD/ rudder-slapd /etc/default/
+	dh_install --sourcedir=$(CURDIR)/BUILD/ rudder-slapd /etc/default/
 	dh_install SOURCES/rudder-slapd.conf /opt/rudder/etc/
 	cp -f $(CURDIR)/SOURCES/rudder-inventory-ldap.init $(CURDIR)/BUILD/rudder-slapd
-	dh_install --SOURCEDIR=$(CURDIR)/BUILD/ rudder-slapd /etc/init.d/
+	dh_install --sourcedir=$(CURDIR)/BUILD/ rudder-slapd /etc/init.d/
 	dh_install SOURCES/rsyslog/rudder-slapd.conf /etc/rsyslog.d/
 	dh_install SOURCES/slapd.conf /opt/rudder/etc/openldap/
 	dh_install SOURCES/inventory.schema /opt/rudder/etc/openldap/schema/
 	dh_install SOURCES/rudder.schema /opt/rudder/etc/openldap/schema/
 	dh_install SOURCES/DB_CONFIG /var/rudder/ldap/openldap-data/
 	dh_install SOURCES/rudder-slapd-configure /opt/rudder/bin
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-inventory-ldap /opt/rudder/etc/server-roles.d/
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-ldap /opt/rudder/etc/server-roles.d/
+	dh_install --sourcedir=$(CURDIR)/SOURCES/ rudder-inventory-ldap /opt/rudder/etc/server-roles.d/
+	dh_install --sourcedir=$(CURDIR)/SOURCES/ rudder-ldap /opt/rudder/etc/server-roles.d/
 #	dh_installmenu
 #	dh_installdebconf
 #	dh_installlogrotate

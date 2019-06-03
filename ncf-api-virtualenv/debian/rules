@@ -58,9 +58,9 @@ binary-arch: install
 	dh_installchangelogs
 #	dh_installdocs
 #	dh_installexamples
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ ncf-api-virtualenv/ /usr/share/
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ ncf_api_flask_app.wsgi /usr/share/ncf-api-virtualenv/
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ ncf-api-virtualenv.conf /etc/apache2/conf-available/
+	dh_install --sourcedir=$(CURDIR)/SOURCES/ ncf-api-virtualenv/ /usr/share/
+	dh_install --sourcedir=$(CURDIR)/SOURCES/ ncf_api_flask_app.wsgi /usr/share/ncf-api-virtualenv/
+	dh_install --sourcedir=$(CURDIR)/SOURCES/ ncf-api-virtualenv.conf /etc/apache2/conf-available/
 #	dh_installmenu
 #	dh_installdebconf
 #	dh_installlogrotate

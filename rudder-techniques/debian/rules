@@ -49,8 +49,8 @@ binary-arch: install
 	dh_installchangelogs
 #	dh_installdocs
 #	dh_installexamples
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder-techniques/ techniques/ /opt/rudder/share/
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/rudder-sources/rudder-techniques/ tools/  /opt/rudder/share/
+	dh_install --sourcedir=$(CURDIR)/SOURCES/rudder-sources/rudder-techniques/ techniques/ /opt/rudder/share/
+	dh_install --sourcedir=$(CURDIR)/SOURCES/rudder-sources/rudder-techniques/ tools/  /opt/rudder/share/
 
 #	dh_installmenu
 #	dh_installdebconf

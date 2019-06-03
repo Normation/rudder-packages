@@ -56,22 +56,22 @@ binary-arch: install
 #	dh_installdocs
 #	dh_installexamples
 	cp $(CURDIR)/SOURCES/rudder-vhost.conf $(CURDIR)/BUILD/rudder.conf
-	dh_install --SOURCEDIR=$(CURDIR)/BUILD/ rudder.conf /etc/apache2/sites-available/
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-apache-relay-common.conf /opt/rudder/etc/
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-apache-relay-ssl.conf /opt/rudder/etc/
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-networks-24.conf /opt/rudder/etc/
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-networks-policy-server-24.conf /opt/rudder/etc/
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ openssl.cnf /opt/rudder/etc/ssl/
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/relay-api relay_api/ /opt/rudder/share/relay-api/
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/relay-api flask/ /opt/rudder/share/relay-api/
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/relay-api apache/relay-api.wsgi /opt/rudder/share/relay-api/
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/relay-api cleanup.sh /opt/rudder/share/relay-api/
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ rudder-pkg /opt/rudder/bin/
-	dh_install --SOURCEDIR=$(CURDIR)/SOURCES/ docopt.py /opt/rudder/share/python/
+	dh_install --sourcedir=$(CURDIR)/BUILD/ rudder.conf /etc/apache2/sites-available/
+	dh_install --sourcedir=$(CURDIR)/SOURCES/ rudder-apache-relay-common.conf /opt/rudder/etc/
+	dh_install --sourcedir=$(CURDIR)/SOURCES/ rudder-apache-relay-ssl.conf /opt/rudder/etc/
+	dh_install --sourcedir=$(CURDIR)/SOURCES/ rudder-networks-24.conf /opt/rudder/etc/
+	dh_install --sourcedir=$(CURDIR)/SOURCES/ rudder-networks-policy-server-24.conf /opt/rudder/etc/
+	dh_install --sourcedir=$(CURDIR)/SOURCES/ openssl.cnf /opt/rudder/etc/ssl/
+	dh_install --sourcedir=$(CURDIR)/SOURCES/relay-api relay_api/ /opt/rudder/share/relay-api/
+	dh_install --sourcedir=$(CURDIR)/SOURCES/relay-api flask/ /opt/rudder/share/relay-api/
+	dh_install --sourcedir=$(CURDIR)/SOURCES/relay-api apache/relay-api.wsgi /opt/rudder/share/relay-api/
+	dh_install --sourcedir=$(CURDIR)/SOURCES/relay-api cleanup.sh /opt/rudder/share/relay-api/
+	dh_install --sourcedir=$(CURDIR)/SOURCES/ rudder-pkg /opt/rudder/bin/
+	dh_install --sourcedir=$(CURDIR)/SOURCES/ docopt.py /opt/rudder/share/python/
 	cp $(CURDIR)/SOURCES/rudder-relay.cron $(CURDIR)/BUILD/rudder-relay
-	dh_install --SOURCEDIR=$(CURDIR)/BUILD/ rudder-relay /etc/cron.d/
+	dh_install --sourcedir=$(CURDIR)/BUILD/ rudder-relay /etc/cron.d/
 	cp $(CURDIR)/SOURCES/rudder-relay.sudo $(CURDIR)/BUILD/rudder-relay
-	dh_install --SOURCEDIR=$(CURDIR)/BUILD/ rudder-relay /etc/sudoers.d/
+	dh_install --sourcedir=$(CURDIR)/BUILD/ rudder-relay /etc/sudoers.d/
 #	dh_installmenu
 #	dh_installdebconf
 #	dh_installlogrotate
