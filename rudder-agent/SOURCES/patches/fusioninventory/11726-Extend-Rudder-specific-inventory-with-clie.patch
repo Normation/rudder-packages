@@ -52,7 +52,7 @@ index b2fd04d..41e1dea 100644
      };
  
      $inventory->addEntry(
-@@ -55,6 +61,82 @@ sub doInventory {
+@@ -55,6 +61,87 @@ sub doInventory {
      );
  }
  
@@ -122,6 +122,11 @@ index b2fd04d..41e1dea 100644
 +                };
 +                if ($@) {
 +                    $logger->error("Script $script_file didn't return valid JSON entry, error is:$@") if $logger;
++                    my $filename = "/tmp/inventory-json-error-".time();
++                    open(my $fh, '>', $filename);
++                    print $fh $properties;
++                    close($fh);
++                    $logger->error("Invalid JSON data stored in $filename") if $logger;
 +                }
 +            }
 +            
