@@ -185,6 +185,7 @@ if type sestatus >/dev/null 2>&1 && sestatus | grep -q "enabled"; then
   # their context to the contexts defined in SELinux configuration,
   # including the file contexts defined in the rudder-relay module
   restorecon -R /var/rudder/inventories
+  restorecon -R /var/rudder/reports
   restorecon -R /var/log/rudder/apache2
 fi
 %endif
@@ -230,6 +231,7 @@ fi
         # Remove the rudder-relay SELinux policy
         semodule -r rudder-relay
         restorecon -RF /var/rudder/inventories
+        restorecon -RF /var/rudder/reports
         restorecon -RF /var/log/rudder/apache2
         restorecon -RF /opt/rudder/etc/uuid.hive
         restorecon -RF /var/rudder/configuration-repository/techniques
@@ -260,6 +262,7 @@ rm -rf %{buildroot}
 %attr(0440, root, root) %config /etc/sudoers.d/rudder-relay
 /var/rudder/inventories/incoming
 /var/rudder/inventories/accepted-nodes-updates
+/var/rudder/reports/incoming
 /var/rudder/shared-files/
 /var/rudder/share/
 /var/log/rudder/apache2/
