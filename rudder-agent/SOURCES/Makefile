@@ -680,7 +680,7 @@ FUSION_INSTALL = $(shell ../../build-caching get $(DESTDIR)/ $(FUSION_CACHE_PARA
 install-fusion: $(FUSION_INSTALL)
 	# save into cache if we built it
 	if [ "$(FUSION_INSTALL)" != "" ]; then ../../build-caching put $(DESTDIR)/fusion $(FUSION_CACHE_PARAMETERS); fi
-	cp -a $(DESTDIR)/fusion/* $(DESTDIR)/ && rm -rf $(DESTDIR)/fusion
+	cp -r $(DESTDIR)/fusion/* $(DESTDIR)/ && rm -rf $(DESTDIR)/fusion
 
 install-fusion-real: fusioninventory-agent fusion-modules
 # Fusion installation

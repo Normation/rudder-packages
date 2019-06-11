@@ -87,7 +87,6 @@
 %if 0%{?rhel} && 0%{?rhel} == 3
 # no PCRE on RHEL3
 %define use_system_pcre false
-%define use_system_zlib false
 %endif
 %if 0%{?rhel} && 0%{?rhel} <= 5
 # system perl too old on rhel3 and rhel5
@@ -97,6 +96,8 @@
 %define use_system_xml false
 %endif
 %if 0%{?rhel} && 0%{?rhel} <= 6
+# Our curl version needs a recent zlib version
+%define use_system_zlib false
 # PIE and PIC incompatible on old gcc
 %define use_pie false
 %endif
