@@ -34,6 +34,7 @@
 %define htpasswd_cmd            htpasswd2
 %define ldap_clients            openldap2-client
 %define jetty_init_script       jetty-sles.sh
+%define apache_vhost_dir        %{apache}/vhosts.d
 %endif
 %if 0%{?rhel}
 %define apache                  httpd
@@ -42,8 +43,8 @@
 %define htpasswd_cmd            htpasswd
 %define ldap_clients            openldap-clients
 %define jetty_init_script       jetty-rpm.sh
+%define apache_vhost_dir        %{apache}/conf.d
 %endif
-%define apache_vhost_dir        %{apache}/vhosts.d
 
 # avoid error during byte compilation of pyc since they are removed anyway
 %define _python_bytecompile_errors_terminate_build 0
