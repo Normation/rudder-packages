@@ -101,7 +101,7 @@ BuildRequires: libopenssl-devel
 %endif
 
 %if 0%{?sle_version} && 0%{?sle_version} >= 150000
-Requires: jdk >= 1.8 insserv-compat
+Requires: jre-headless >= 8 insserv-compat
 %endif
 
 ## Python 3
