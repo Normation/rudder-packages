@@ -122,11 +122,6 @@ Requires: python, apache2-mod_wsgi, python-pyOpenSSL
 BuildRequires: python
 Requires: python, apache2-mod_wsgi-python
 %endif
-%if 0%{?suse_version} && 0%{?suse_version} > 1500
-BuildRequires: python3
-Requires: python3, apache2-mod_wsgi-python3
-%endif
-
 
 %description
 Rudder is an open source configuration management and audit solution.
