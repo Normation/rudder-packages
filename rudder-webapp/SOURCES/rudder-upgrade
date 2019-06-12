@@ -55,7 +55,8 @@ trap anomaly_handler ERR INT TERM
 # - 4.3          : Update ncf Techniques to the new format
 # - 4.3.7        : Drop tables expectedreports and expectesreportsnodes on upgrade
 # - 5.0          : Automatically upgrade Techniques if autoupdate-technique-library is set
-# - 5.0.7: Tune autovacuum on a table basis
+# - 5.0.7        : Tune autovacuum on a table basis
+# - 5.0.12       : Change indexes on RudderSysEvents table
 ####################################################################################
 
 # Some paths
@@ -551,6 +552,14 @@ upgrade_database() {
   if [ $RES -eq 0 ]; then
     echo -n "INFO: Adapting autovacuum configuration on a table basis"
     ${PSQL} -d ${SQL_DATABASE} -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-5.0.x-5.0.7-tune-autovacuum_on_table_basis.sql > /dev/null
+    echo " Done"
+  fi
+
+  # - 5.0.12: change index on ruddersysevents to improve performance 
+  RES=$(${PSQL} -t -d ${SQL_DATABASE} -c "select count(oid) from pg_class where lower(relname) = 'endrun_control_idx'")
+  if [ $RES -eq 0 ]; then
+    echo -n "INFO: Changing index on table RudderSysEvents, this may take several minutes"
+    ${PSQL} -d ${SQL_DATABASE} -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-5.0.x-5.0.12-composite-index-on-ruddersysevents.sql > /dev/null
     echo " Done"
   fi
 
