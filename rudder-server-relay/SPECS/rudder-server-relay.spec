@@ -93,7 +93,11 @@ Requires: python3, python3-mod_wsgi
 BuildRequires: python
 Requires: python, apache2-mod_wsgi, python-pyOpenSSL
 %endif
-%if 0%{?suse_version} && 0%{?suse_version} >= 1500
+%if 0%{?suse_version} && 0%{?suse_version} == 1500
+BuildRequires: python
+Requires: python, apache2-mod_wsgi-python
+%endif
+%if 0%{?suse_version} && 0%{?suse_version} > 1500
 BuildRequires: python3
 Requires: python3, apache2-mod_wsgi-python3
 %endif
