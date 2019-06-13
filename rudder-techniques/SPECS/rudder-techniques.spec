@@ -53,7 +53,7 @@ BuildArch: noarch
 #BuildRequires: gcc
 
 # Add Requires here - order is important
-Requires: ncf = %{real_epoch}:%{real_version}
+Requires: %(../format-dependencies rpm %{real_epoch}:%{real_version} ncf)
 
 # Use our own dependency generator
 %global _use_internal_dependency_generator 0

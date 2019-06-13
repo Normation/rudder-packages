@@ -8,7 +8,7 @@ Homepage: http://www.rudder-project.org
 
 Package: rudder-server-root
 Architecture: all
-Depends: ${shlibs:Depends}, ${misc:Depends}, rudder-jetty, rudder-webapp (= ${binary:Version}), rudder-inventory-endpoint (= ${binary:Version}), rudder-inventory-ldap (= ${binary:Version}), rudder-reports (= ${binary:Version}), rudder-agent (= ${binary:Version}), curl, systemd
+Depends: ${shlibs:Depends}, ${misc:Depends}, ${rudder:deps}, curl, systemd
 Description: Configuration management and audit tool - root server base package
  Rudder is an open source configuration management and audit solution.
  .

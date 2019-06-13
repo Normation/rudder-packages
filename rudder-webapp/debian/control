@@ -8,7 +8,7 @@ Homepage: http://www.rudder-project.org
 
 Package: rudder-webapp
 Architecture: all
-Depends: ${shlibs:Depends}, ${misc:Depends}, rudder-jetty, rudder-techniques (= ${binary:Version}), rudder-server-relay (= ${binary:Version}), apache2, apache2-utils, git-core, rsync, lsb-release, openssl, ldap-utils, postgresql-client (>=9.2), ncf-api-virtualenv (= ${binary:Version}), java8-runtime-headless | openjdk-8-jre-headless | oracle-java8-installer
+Depends: ${shlibs:Depends}, ${misc:Depends}, ${rudder:deps}, apache2, apache2-utils, git-core, rsync, lsb-release, openssl, ldap-utils, postgresql-client (>=9.2), java8-runtime-headless | openjdk-8-jre-headless | oracle-java8-installer
 Description: Configuration management and audit tool - webapp
  Rudder is an open source configuration management and audit solution.
  .

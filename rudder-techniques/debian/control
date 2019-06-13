@@ -8,7 +8,7 @@ Homepage: http://www.rudder-project.org
 
 Package: rudder-techniques
 Architecture: all
-Depends: ${shlibs:Depends}, ${misc:Depends}, ncf (= ${binary:Version})
+Depends: ${shlibs:Depends}, ${misc:Depends}, ${rudder:deps}
 Description: Configuration management and audit tool - techniques
  Rudder is an open source configuration management and audit solution.
  .

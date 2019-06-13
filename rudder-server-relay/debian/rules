@@ -88,7 +88,7 @@ binary-arch: install
 #	dh_makeshlibs
 	dh_installdeb
 	dh_shlibdeps
-	dh_gencontrol
+	dh_gencontrol -- "-Vrudder:deps=$(shell .../format-dependencies dpkg $(shell dpkg-parsechangelog -SVersion) rudder-agent)"
 	dh_md5sums
 	dh_builddeb
 

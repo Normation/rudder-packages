@@ -60,7 +60,7 @@ BuildArch: noarch
 
 # Dependencies
 
-Requires: rudder-inventory-ldap = %{real_epoch}:%{real_version}, rudder-jetty = %{real_epoch}:%{real_version},
+Requires: %(../format-dependencies rpm %{real_epoch}:%{real_version} rudder-inventory-ldap rudder-jetty)
 
 # OS-specific dependencies
 
