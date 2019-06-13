@@ -65,8 +65,9 @@ AutoReq: 0
 AutoProv: 0
 
 ## General
+<<<<<<< HEAD
 BuildRequires: pkgconfig, postgresql-devel, openssl-devel, zlib-devel
-Requires: rudder-agent >= %{real_epoch}:%{real_version}, rsyslog, openssl, %{apache}, %{apache_tools}, binutils, xz, zlib, postgresql
+Requires: %(../format-dependencies rpm %{real_epoch}:%{real_version} rudder-agent), rsyslog, openssl, %{apache}, %{apache_tools}, binutils, xz, zlib, postgresql
 
 ## RHEL
 %if 0%{?rhel}

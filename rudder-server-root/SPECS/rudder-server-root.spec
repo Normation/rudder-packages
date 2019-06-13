@@ -49,7 +49,7 @@ BuildArch: noarch
 AutoReq: 0
 AutoProv: 0
 
-Requires: rudder-webapp = %{real_epoch}:%{real_version}, rudder-reports = %{real_epoch}:%{real_version}, rudder-agent = %{real_epoch}:%{real_version}
+Requires: %(../format-dependencies rpm %{real_epoch}:%{real_version} rudder-webapp rudder-reports rudder-agent)
 
 %if 0%{?sle_version} && 0%{?sle_version} >= 150000
 Requires: insserv-compat

@@ -8,7 +8,7 @@ Homepage: https://www.rudder.io
 
 Package: rudder-webapp
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, systemd, rsyslog, python3, rudder-server-relay (= ${binary:Version}), apache2, apache2-utils, libapache2-mod-wsgi-py3, git-core, rsync, lsb-release, openssl, ldap-utils, postgresql-client (>=9.2), java8-runtime-headless | openjdk-8-jre-headless | oracle-java8-installer, curl
+Depends: ${shlibs:Depends}, ${misc:Depends}, systemd, rsyslog, python3, ${rudder:deps}, apache2, apache2-utils, libapache2-mod-wsgi-py3, git-core, rsync, lsb-release, openssl, ldap-utils, postgresql-client (>=9.2), java8-runtime-headless | openjdk-8-jre-headless | oracle-java8-installer, curl
 Breaks: ncf, ncf-api-virtualenv, rudder-techniques, rudder-inventory-endpoint, rudder-jetty, rudder-inventory-ldap, rudder-ldap
 Replaces: ncf, ncf-api-virtualenv, rudder-techniques, rudder-inventory-endpoint, rudder-jetty, rudder-inventory-ldap, rudder-ldap
 Description: Configuration management and audit tool - webapp

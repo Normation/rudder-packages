@@ -1,0 +1,36 @@
+#!/bin/bash
+
+pkg="$1"
+version="$2"
+shift 2
+
+if [ "${version}" = "" ]
+then
+  echo "Usage $0 <rpm|dpkg> <version> <package> ..."
+  echo ""
+  echo "Expands to a list of dependencies in package specific format"
+  echo "If version is a nightly, dependencies are made on any similar nighly for all packages"
+  echo "Otherwise, the dependencies are strict on this given version"
+  echo ""
+  exit 1
+fi
+
+deps=""
+if [[ "${version}" =~ git ]]
+then
+  # nightly
+  version_min=${version/git*/git000000000000}
+  version_max=${version/git*/git999999999999}
+  for dep in "$@"; do
+    [ "$pkg" = dpkg ] && deps="${deps}, ${dep} (>> ${version_min}), ${dep} (<< ${version_max})"
+    [ "$pkg" = rpm ] && deps="${deps}, ${dep} > ${version_min}, ${dep} < ${version_max}"
+  done
+else
+  # release
+  for dep in "$@"; do
+   [ "$pkg" = dpkg ] && deps="${deps}, ${dep} (= ${version})"
+   [ "$pkg" = rpm ] && deps="${deps}, ${dep} = ${version}"
+  done
+fi
+
+echo ${deps#, }
