@@ -96,8 +96,6 @@
 %define use_system_xml false
 %endif
 %if 0%{?rhel} && 0%{?rhel} <= 6
-# Our curl version needs a recent zlib version
-%define use_system_zlib false
 # PIE and PIC incompatible on old gcc
 %define use_pie false
 %endif
