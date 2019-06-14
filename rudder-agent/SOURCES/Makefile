@@ -564,7 +564,6 @@ build-xml: xml-source
 	cd xml-source && $(MAKE) $(MAKE_J)
 	# install to a temporary location is needed to build cfengine
 	cd xml-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
-	cd $(CURDIR)/dependencies$(RUDDER_DIR) && rm -rf share bin/xml2-config
 
 # check cache content
 PATCHES_SHA = $(shell find patches/cfengine -type f | xargs | sha256sum | awk '{print $$1}')
@@ -627,7 +626,7 @@ install-cfengine: build-cfengine $(INSTALL_DEPS) rudder.8.gz
 	# pcre useless parts
 	cd $(DESTDIR)/opt/rudder && rm -rf bin/pcregrep bin/pcretest
 	# libxml useless parts
-	cd $(DESTDIR)/opt/rudder && rm -rf bin/xmlcatalog bin/xmllint lib/xml2Conf.sh lib/cmake
+	cd $(DESTDIR)/opt/rudder && rm -rf bin/xmlcatalog bin/xmllint lib/xml2Conf.sh lib/cmake bin/xml2-config share/doc/libxml* 
 	# Install cfengine manpages
 	mkdir -p $(DESTDIR)/opt/rudder/share/man/man8
 	cd $(DESTDIR)/opt/rudder/bin && for binary in cf-agent cf-promises cf-key cf-execd cf-serverd cf-net cf-runagent; do \
