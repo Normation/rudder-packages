@@ -23,6 +23,19 @@ JAVA_MAXPERMSIZE=256
 #
 #JAVA_OPTIONS=""
 
+# Java Garbage collector option
+# On large heap (6 Go or more) and loaded platforms, ConcurrentMarkSweep (default GC 
+# for Rudder) becomes inefficient and Rudder can experience long "stop the world" 
+# garbage collections.
+# To avoid that, you can use G1GC which leads to faster (or no) full GC on big heap,
+# at the prize of a less throughout and a need of some more memory to work 
+# efficiently (~10%).
+# You can also tune you GC option here.
+#
+#JAVA_GC="-XX:+UseG1GC
+#-XX:+UnlockExperimentalVMOptions
+#-XX:MaxGCPauseMillis=500"
+
 # Java VM location
 #
 # This script should be able to automatically detect the majority of
