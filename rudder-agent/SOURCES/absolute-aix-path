@@ -84,6 +84,7 @@ do
   so=$(ar t "${f}")
   ar r "${f}" "${so}"
 done
+cd
 rm -rf "${tmpdir}"
 
 rm /opt/rudder/lib
