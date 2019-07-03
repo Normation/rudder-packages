@@ -29,7 +29,7 @@ relink() {
   if [ "${mode}" = "bin" ]; then
     files=$(for i in ${base}/*; do file $i; done | grep "executable" | sed 's/:.*//')
   elif [ "${mode}" = "so" ]; then
-    files=$(for i in ${base}/*.so.*; do file $i; done | grep "executable" | sed 's/:.*//')
+    files=$(for i in ${base}/*.so*; do file $i; done | grep "executable" | sed 's/:.*//')
   fi
 
   # keep files with rudder dependencies
