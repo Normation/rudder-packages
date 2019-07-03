@@ -68,18 +68,18 @@ relink "so" "${dir}/lib"
 # 3- relink .a libraries
 # list only libraries that contain .so files
 archive_files=$(for i in ${dir}/lib/*.a; do file $i; done | grep "archive" | sed 's/:.*//')
-files=$(for i in ${archive_files}; do dump -H $i; done | grep '\[.*\.so.*\]' | sed 's/\[.*//')
+archives=$(for i in ${archive_files}; do dump -H $i; done | grep '\[.*\.so.*\]' | sed 's/\[.*//')
 # extract so files from archives
 tmpdir=$(mktemp -d)
 cd "${tmpdir}"
-for f in ${files}
+for f in ${archives}
 do
   ar x "${f}"
 done
 # relink .so from within .a
 relink "so" "${tmpdir}"
 # put back .so to their place
-for f in ${files}
+for f in ${archives}
 do
   so=$(ar t "${f}")
   ar r "${f}" "${so}"
