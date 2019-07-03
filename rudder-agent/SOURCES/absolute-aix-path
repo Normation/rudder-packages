@@ -35,7 +35,7 @@ relink() {
   # keep files with rudder dependencies
   executables=$(for f in ${files}
   do
-    if LIBPATH="${rudder_libpath}" ldd "${f}" | grep -v "${f}" | grep ${dir}/lib > /dev/null
+    if LIBPATH="${rudder_libpath}" ldd "${f}" | grep " /opt/rudder/lib" > /dev/null
     then
       echo "${f}"
     fi
