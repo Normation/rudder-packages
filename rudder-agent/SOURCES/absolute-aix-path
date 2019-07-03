@@ -2,7 +2,7 @@
 
 set -xe
 
-# relink all binaries from a given directory to use abslute library path for rudder embedded libraries
+# relink all binaries from a given directory to use absolute library path for rudder embedded libraries
 dir="$1"
 if [ "${dir}" = "" ]
 then
@@ -19,28 +19,71 @@ fi
 mkdir -p /opt/rudder
 ln -s "${dir}/lib" /opt/rudder/lib
 
-# list unstripped binaries
-files=$(for i in ${dir}/bin/*; do file $i; done | grep "executable.*not stripped" | sed 's/:.*//')
+# function to relink executable files (binaries and .so)
+relink() {
+  mode="$1"
+  base="$2"
+  rudder_libpath="/opt/rudder/lib:/usr/lib:/lib"
 
-# list binaries wth rudder dependencies
-binaries=$(for f in ${files}
-do
-  if LIBPATH="${dir}/lib:/usr/lib:/lib" ldd "${f}" | grep ${dir}/lib > /dev/null
-  then
-    echo "${f}"
+  # list executable files
+  if [ "${mode}" = "bin" ]; then
+    files=$(for i in ${base}/*; do file $i; done | grep "executable" | sed 's/:.*//')
+  elif [ "${mode}" = "so" ]; then
+    files=$(for i in ${base}/*.so.*; do file $i; done | grep "executable" | sed 's/:.*//')
   fi
-done)
 
-for f in ${binaries}
+  # keep files with rudder dependencies
+  executables=$(for f in ${files}
+  do
+    if LIBPATH="${rudder_libpath}" ldd "${f}" | grep -v "${f}" | grep ${dir}/lib > /dev/null
+    then
+      echo "${f}"
+    fi
+  done)
+  
+  # relink
+  for f in ${executables}
+  do
+    echo $f
+    dest=$(mktemp)
+    # extract rudder dependencies with full path to final destination
+    path=$(LIBPATH="${rudder_libpath}" ldd "${f}" | grep " /opt/rudder/lib" | sed 's/(.*//' | sort -u)
+    # extract other dependencies with library name
+    lib=$(LIBPATH="${rudder_libpath}" ldd "${f}" | grep -e " /usr/lib/lib" -e " /lib/lib" | sed 's|.*/lib/lib\([^.]*\).*|-l\1|' | sort -u)
+    # relink with static paths and proper libpath (just in case)
+    if [ "${mode}" = "bin" ]; then
+      ld -bipath -bsvr4 -blibpath:${rudder_libpath} "${f}" ${path} ${lib} -o "${dest}" && mv "${dest}" "${f}"
+    elif [ "${mode}" = "so" ]; then
+      ld -bipath -bsvr4 -blibpath:${rudder_libpath} -bnoentry -bstatic "${f}" -bshared ${path} ${lib} -o "${dest}" && mv "${dest}" "${f}"
+    fi
+  done
+}
+
+# 1- relink binaries
+relink "bin" "${dir}/bin"
+
+# 2- relink .so libraries
+relink "so" "${dir}/lib"
+
+# 3- relink .a libraries
+# list only libraries that contain .so files
+archive_files=$(for i in ${dir}/lib/*.a; do file $i; done | grep "archive" | sed 's/:.*//')
+files=$(for i in ${archive_files}; do dump -H $i; done | grep '\[.*\.so.*\]' | sed 's/\[.*//')
+# extract so files from archives
+tmpdir=$(mktemp -d)
+cd "${tmpdir}"
+for f in ${files}
 do
-  echo $f
-  dest=$(mktemp)
-  # extract rudder dependencies with full path to final destination
-  path=$(LIBPATH="${dir}/lib:/usr/lib:/lib" ldd "${f}" | grep " ${dir}/lib" | sed 's/(.*//' | sort -u | sed "s|${dir}|/opt/rudder|")
-  # extract other dependencies with library name
-  lib=$(LIBPATH="${dir}/lib:/usr/lib:/lib" ldd "${f}" | grep -e " /usr/lib/lib" -e " /lib/lib" | sed 's|.*/lib/lib\([^.]*\).*|-l\1|' | sort -u)
-  # relink with static paths and proper libpath (just in case)
-  ld -bipath -bsvr4 -blibpath:/opt/rudder/bin:/urs/lib:/lib "${f}" ${path} ${lib} -o "${dest}" && mv "${dest}" "${f}"
+  ar x "${f}"
 done
+# relink .so from within .a
+relink "so" "${tmpdir}"
+# put back .so to their place
+for f in ${files}
+do
+  so=$(ar t "${f}")
+  ar r "${f}" "${so}"
+done
+rm -rf "${tmpdir}"
 
 rm /opt/rudder/lib
