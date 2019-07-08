@@ -242,7 +242,7 @@ install: build initial-promises initial-ncf
 	install -m 644 rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-4.1.x-4.1.21-drop-rulesgroupjoin-constraint.sql $(DESTDIR)/opt/rudder/share/upgrade-tools/
 	install -m 644 rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-4.3.x-4.3.8-correct-indexes-on-compliancelevel.sql $(DESTDIR)/opt/rudder/share/upgrade-tools/
 	install -m 644 rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-5.0.x-5.0.7-tune-autovacuum_on_table_basis.sql $(DESTDIR)/opt/rudder/share/upgrade-tools/
-        install -m 644 rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-5.0.x-5.0.12-composite-index-on-ruddersysevents.sql $(DESTDIR)/opt/rudder/share/upgrade-tools/
+	install -m 644 rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-5.0.x-5.0.12-composite-index-on-ruddersysevents.sql $(DESTDIR)/opt/rudder/share/upgrade-tools/
 	
 	install -m 755 rudder-upgrade $(DESTDIR)/opt/rudder/bin/
 	
