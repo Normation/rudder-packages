@@ -1,0 +1,49 @@
+--- a/lib/FusionInventory/Agent/Task/Inventory/Generic/Rudder.pm
++++ b/lib/FusionInventory/Agent/Task/Inventory/Generic/Rudder.pm
+@@ -181,9 +181,8 @@
+     my @agents;
+ 
+     # Potential agent directory candidates
+-    my %agent_candidates = ( '/var/rudder/cfengine-community' => 'cfengine-community',
+-                             '/var/rudder/cfengine-nova'      => 'cfengine-nova',
+-                             'C:/Program Files/Cfengine'      => 'cfengine-nova',
++    my %agent_candidates = ( '/var/rudder/cfengine-community'  => 'cfengine-community',
++                             'C:/Program Files/Rudder/etc'     => 'dsc',
+                            );
+ 
+     foreach my $candidate (keys(%agent_candidates)){
+@@ -195,7 +194,13 @@
+         my $agent_name           = "$agent_candidates{${candidate}}";
+         my $server_hostname_file = "${candidate}/policy_server.dat";
+         my $uuid_file            = "${candidate}/rudder-server-uuid.txt";
+-        my $cfengine_key_file    = "${candidate}/ppkeys/localhost.pub";
++        my $certificate_file     = "${candidate}/ssl/localhost.cert";
++
++        if ($agent_name eq "dsc") {
++            $uuid_file        = 'C:/Program Files/Rudder/policy/rudder-server-uuid.txt';
++        } else {
++            $certificate_file = '/opt/rudder/etc/ssl/localhost.cert';
++        }
+ 
+         # get policy server hostname
+         my $serverHostname = getFirstLine (
+@@ -217,8 +222,8 @@
+         chomp $serverUuid;
+ 
+         # get CFengine public key
+-        my $cfengineKey = getAllLines(
+-            file => $cfengine_key_file
++        my $certificate = getAllLines(
++            file => $certificate_file
+         );
+ 
+         # get owner name
+@@ -231,7 +236,7 @@
+         my $agent = {
+             AGENT_NAME             => $agent_name,
+             POLICY_SERVER_HOSTNAME => $serverHostname,
+-            CFENGINE_KEY           => $cfengineKey,
++            AGENT_CERT             => $certificate,
+             OWNER                  => $owner,
+             POLICY_SERVER_UUID     => $serverUuid,
+         };
