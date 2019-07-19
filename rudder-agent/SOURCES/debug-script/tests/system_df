@@ -25,7 +25,11 @@ system_df() {
       test_skipped "Filesystem ${i} does not exist"
     elif [ "${FILESYSTEM_PERCENTAGE}" -gt 92 ]
     then
-      test_failure "Filesystem ${i} does not have enough free space" "${FILESYSTEM_PERCENTAGE} percent used"
+      test_warnning "Filesystem ${i} does not have enough free space" "${FILESYSTEM_PERCENTAGE} percent used"
+      SYSTEM_DF='ok'
+    elif [ "${FILESYSTEM_PERCENTAGE}" -eq 100 ]
+    then
+      test_failure "Filesystem ${i} does not have free space" "${FILESYSTEM_PENRCENTAGE} percent used"
       SYSTEM_DF='ko'
     else
       test_success "Filesystem ${i} has enough free space" "${FILESYSTEM_PERCENTAGE} percent used"
