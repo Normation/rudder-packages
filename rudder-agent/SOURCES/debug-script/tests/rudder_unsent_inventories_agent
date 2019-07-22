@@ -20,12 +20,23 @@ rudder_unsent_inventories_agent() {
   else
     UNSENT_INVENTORIES_DIR="${RUDDER_VAR}/inventories"
   fi
-
-  COMMAND_OUTPUT=`ls -l "${UNSENT_INVENTORIES_DIR}" 2>&1 | wc -l`
+  # we check failed inventories that do not exceed 5 days (432000 s).
+  recent_time="432000"
+  inc=0
+  for i in "${UNSENT_INVENTORIES_DIR}"/*
+  do
+    last_modif=$(stat -c %Y $i)
+    today_date=$(date +'%s')
+    recent_modif=$(($today_date-$recent_time))
+    if [ $last_modif -ge $recent_modif ]
+    then
+      inc=$((inc+1))
+    fi
+  done
 
   # If there are unsent inventories, fail the test
-  if [ "${COMMAND_OUTPUT}" -gt 1 ]
-  then
+  if [ "${inc}" -gt 1 ]; then
+
     test_failure "There are some unsent inventories"
     RUDDER_UNSENT_INVENTORIES_AGENT='ko'
   else
@@ -36,3 +47,4 @@ rudder_unsent_inventories_agent() {
   [ "${RUDDER_UNSENT_INVENTORIES_AGENT}" = 'ko' ] && return 1
 
 }
+
