@@ -18,7 +18,7 @@ rudder_processes() {
   type httpd >/dev/null 2>/dev/null && APACHE_NAME="httpd" || APACHE_NAME="apache2"
 
   # For each core Rudder component process
-  for i in slapd /opt/rudder/jetty7 postgres "${APACHE_NAME}"
+  for i in slapd /opt/rudder/jetty postgres "${APACHE_NAME}"
   do
 
     PROCESS_COMMAND=`processutils_getcommand "${i}"`
