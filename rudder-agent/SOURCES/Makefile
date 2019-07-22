@@ -297,6 +297,10 @@ endif
 	$(INSTALL) -m 644 rudder-agent-utilities/share/lib/* $(DESTDIR)/opt/rudder/share/lib/
 	$(INSTALL) -m 644 rudder-agent-utilities/agent-capabilities $(DESTDIR)/opt/rudder/etc/
 
+	# Bootstrap promises
+	mkdir -p $(DESTDIR)/opt/rudder/share/bootstrap-promises/
+	$(INSTALL) -m 644 ./rudder-sources/rudder-techniques/bootstrap-promises/failsafe.cf $(DESTDIR)/opt/rudder/share/bootstrap-promises/
+
 	# Install /etc/bash_completion.d/rudder.sh in order to autocomplete rudder commands
 	mkdir -p $(DESTDIR)/etc/bash_completion.d
 	$(INSTALL) -m 644 rudder-agent-utilities/etc/bash_completion.d/rudder.sh $(DESTDIR)/etc/bash_completion.d/
