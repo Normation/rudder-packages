@@ -299,7 +299,7 @@ endif
 
 	# Bootstrap promises
 	mkdir -p $(DESTDIR)/opt/rudder/share/bootstrap-promises/
-	$(INSTALL) -m 644 ./rudder-sources/rudder-techniques/bootstrap-promises/failsafe.cf $(DESTDIR)/opt/rudder/share/bootstrap-promises/
+	$(INSTALL) -m 644 ./rudder-sources/rudder-techniques/bootstrap-promises/* $(DESTDIR)/opt/rudder/share/bootstrap-promises/
 
 	# Install /etc/bash_completion.d/rudder.sh in order to autocomplete rudder commands
 	mkdir -p $(DESTDIR)/etc/bash_completion.d
