@@ -405,8 +405,6 @@ upgrade_ncf() {
     fi
   done
   cd ${CURRENT}
-  # 4.3: Force rewrite of ncf techniques
-  /usr/share/ncf/ncf write_all_techniques /var/rudder/configuration-repository/ncf
 
   # All Versions: Touch ncf_update_flag_file jetty will be restarted at the end of the script 
   touch /opt/rudder/etc/force_ncf_technique_update
@@ -436,16 +434,6 @@ upgrade_ncf() {
   fi
 
 
-}
-
-# Call rudderify on all local ncf techniques to make sure the promises will be properly generated
-rudderify_techniques() {
-  STEP="Call rudderify on all local ncf techniques (#7443)"
-  if [ -d ${CONFIGURATION_REPOSITORY}/techniques ]; then
-    /usr/share/ncf/tools/ncf_rudder.py rudderify_techniques ${CONFIGURATION_REPOSITORY}/techniques/ncf_techniques
-    cd ${CONFIGURATION_REPOSITORY}/ && git add -A techniques/ncf_techniques && git commit --allow-empty -q -m "Re-Rudderify ncf Techniques - automatically done by rudder-upgrade script"
-    trigger_technique_library_reload
-  fi
 }
 
 # Upgrade masterfiles
@@ -668,7 +656,6 @@ set_git_branch
 upgrade_system_techniques
 upgrade_techniques
 upgrade_ncf
-rudderify_techniques
 upgrade_masterfiles
 upgrade_rudder_web_properties
 
