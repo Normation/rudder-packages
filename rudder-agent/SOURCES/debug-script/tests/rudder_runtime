@@ -1,0 +1,43 @@
+#!/bin/sh
+#
+# runtime test
+#
+
+# Describe your tests here
+runtime_test_description="Verify if some runs took more than amount of time between runs"
+  
+runtime_test() {
+
+  # By default, this test is successful
+  RUNTIME_AGENT='ok'
+  LOG_PATH="/var/rudder/cfengine-community/outputs"
+  runtime=300
+
+  if [ -e $LOG_PATH ]
+  then
+    for i in $(ls -rt ${LOG_PATH} | tail -5)
+    do  
+      # Get a last date access 
+      start_exec=$(echo $i | cut -d'_' -f6)
+      # Get a last date of mofification
+      date_modif=$(stat -c %Y ${LOG_PATH}/$i)
+      # fet a agent runtime
+      runtime_agent=$(($date_modif-$start_exec))
+  
+    # we check if some runs took more than amount of time between runs.
+      if [ $runtime_agent -lt $runtime ]
+      then 
+        test_success "runtime_agent " "${runtime_agent} has a normal run time "
+      else 
+        test_failure "runtime_agent " "${runtime_agent} does not have a normal run time"
+      fi
+    done
+  else 
+    test_skipped "directory ${LOG_PATH} does not exist"
+  fi
+
+ # Finally, return 1 if the test has dailed somewhere
+ [ "${RUNTIME_AGENT}" = 'ko' ] && return 1
+
+
+}
