@@ -410,7 +410,6 @@ rm -rf %{buildroot}
 /var/rudder/inventories/received
 /var/rudder/inventories/failed
 /var/rudder/configuration-repository/.gitignore
-/var/rudder/configuration-repository/ncf/ncf-hooks.d
 /var/log/rudder/ldap
 /var/log/rudder/apache2/
 /var/log/rudder/webapp/

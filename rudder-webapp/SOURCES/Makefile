@@ -168,7 +168,6 @@ install: build initial-promises initial-ncf
 	mkdir -p $(DESTDIR)/opt/rudder/share/package-scripts/
 	mkdir -p $(DESTDIR)/var/rudder/inventories/received
 	mkdir -p $(DESTDIR)/var/rudder/inventories/failed
-	mkdir -p $(DESTDIR)/var/rudder/configuration-repository/ncf/ncf-hooks.d
 	mkdir -p $(DESTDIR)/var/rudder/run
 	mkdir -p $(DESTDIR)/var/rudder/ldap/openldap-data
 	mkdir -p $(DESTDIR)/var/log/rudder/apache2/
@@ -250,8 +249,6 @@ install: build initial-promises initial-ncf
 	install -m 644 rudder-web $(DESTDIR)/opt/rudder/etc/server-roles.d/
 	install -m 640 rudder-passwords.conf $(DESTDIR)/opt/rudder/etc/
 	
-	install -m 755 post.write_technique.10_commit.sh $(DESTDIR)/var/rudder/configuration-repository/ncf/ncf-hooks.d/
-	install -m 755 post.write_technique.50_rudderify.sh $(DESTDIR)/var/rudder/configuration-repository/ncf/ncf-hooks.d/
 	# Add rudder-metrics-reporting
 	install -m 755 rudder-metrics-reporting $(DESTDIR)/opt/rudder/bin/
 	install -m 644 ca-bundle.crt $(DESTDIR)/opt/rudder/share/certificates/

@@ -31,7 +31,5 @@ chmod -R u+rwX,g+rwX /var/rudder/configuration-repository/techniques
 ## Add setgid to directories so that all files created here belong to the rudder group
 find /var/rudder/configuration-repository/.git /var/rudder/configuration-repository/ncf /var/rudder/configuration-repository/techniques -type d -exec chmod g+s "{}" \;
 
-## Add execution permission for ncf-api on pre/post-hooks
-chmod -R 2750 /var/rudder/configuration-repository/ncf/ncf-hooks.d
 echo " Done"
 

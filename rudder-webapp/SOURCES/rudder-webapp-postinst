@@ -125,12 +125,6 @@ fi
 # Adjust permissions on /var/rudder/configuration-repository
 /opt/rudder/bin/rudder-fix-repository-permissions
 
-## Add pre/post-hooks
-cd /var/rudder/configuration-repository/ncf/
-git add ncf-hooks.d
-git commit --allow-empty --message "Add ncf hooks to repository"
-
-
 if [ -f /tmp/rudder-plugins-upgrade ]
 then
   /opt/rudder/bin/rudder-pkg plugin restore-status < /tmp/rudder-plugins-upgrade

@@ -43,20 +43,18 @@ trap anomaly_handler ERR INT TERM
 # - All versions : upgrade system Techniques automatically and reload the Technique library
 # - All versions : Check that Rudder database is able to handle backslash
 # - All versions : Check for the PostgreSQL version
-# - All versions : Commit ncf hooks
 # - All versions : Create ncf technique update flag and restart at the end of the script
 # - 4.1.17       : Change LDAP attribute ipNetworkNumber -> networkSubnet
 # - 4.1.19, 4.3.9: Drop unused index nodeid_idx
 # - 4.1.21,4.3.10: Drop contraint rulesgroupjoin_pkey to replace it by an index
 # - 4.2.6,4.3.2  : Create nodecompliancelevels table
 # - 4.2.6,4.3.2  : Add new property rudder.batch.reportscleaner.compliancelevels.delete.TTL
-# - 4.2.0        : Rename hooks to have a better ordering of hooks
-# - 4.2.4, 4.3.0 : Remove 90-reload hook since logic was integrated to Rudder in #11749
 # - 4.3          : Update ncf Techniques to the new format
 # - 4.3.7        : Drop tables expectedreports and expectesreportsnodes on upgrade
 # - 5.0          : Automatically upgrade Techniques if autoupdate-technique-library is set
 # - 5.0.7        : Tune autovacuum on a table basis
 # - 5.0.12       : Change indexes on RudderSysEvents table
+# - 5.1.0        : Remove ncf hooks
 ####################################################################################
 
 # Some paths
@@ -349,41 +347,6 @@ upgrade_ncf() {
     chmod -R o-rwx ${CONFIGURATION_REPOSITORY}/ncf/50_techniques/
   fi
 
-  # 4.2.0: Rename hooks to have a better ordering of hooks
-  CURRENT="$(pwd)"
-  cd ${CONFIGURATION_REPOSITORY}/ncf
-  for hook_file in commit.sh rudderify.sh; do
-    hook=ncf-hooks.d/post.write_technique.${hook_file}
-    if [ -f ${hook} ]; then
-      git ls-files --error-unmatch ${hook} >/dev/null 2>&1
-      MANAGED_BY_GIT=$?
-      if [ ${MANAGED_BY_GIT} -eq 0 ]; then
-        git rm ${hook}
-        git commit -m "Remove technique editor hook \"${hook}\""
-      else
-        rm ${hook}
-      fi
-    fi
-  done
-  cd ${CURRENT}
-
-  # 4.2.4, 4.3.0: Remove 90-reload hook since logic was integrated to Rudder in #11749
-  CURRENT="$(pwd)"
-  cd ${CONFIGURATION_REPOSITORY}/ncf
-  for hook_file in 90_reload.sh; do
-    hook=ncf-hooks.d/post.write_technique.${hook_file}
-    if [ -f ${hook} ]; then
-      git ls-files --error-unmatch ${hook} >/dev/null 2>&1
-      MANAGED_BY_GIT=$?
-      if [ ${MANAGED_BY_GIT} -eq 0 ]; then
-        git rm ${hook}
-        git commit -m "Remove technique editor hook \"${hook}\""
-      else
-        rm ${hook}
-      fi
-    fi
-  done
-  cd ${CURRENT}
 
   # 5.1.0: Remove ncf.conf file
   if [ -f ${CONFIGURATION_REPOSITORY}/ncf/ncf.conf ]; then
@@ -394,17 +357,14 @@ upgrade_ncf() {
     cd ${current_path}
   fi
 
-  # All Versions, Commit ncf hooks
-  CURRENT="$(pwd)"
-  cd ${CONFIGURATION_REPOSITORY}/ncf
-  for hook_file in 10_commit.sh 50_rudderify.sh; do
-    hook=ncf-hooks.d/post.write_technique.${hook_file}
-    if [ -f ${hook} ]; then
-      git add ${hook}
-      git commit -m "Update technique editor hook \"${hook}\"" --allow-empty
-    fi
-  done
-  cd ${CURRENT}
+  # 5.1.0: Remove ncf hooks directory
+  if [ -d ${CONFIGURATION_REPOSITORY}/ncf/ncf-hooks.d ]; then
+    CURRENT="$(pwd)"
+    cd ${CONFIGURATION_REPOSITORY}/ncf
+    git rm -f ncf-hooks.d
+    git commit --allow-empty -m "Remove ncf-hooks.d from configuration repository"
+    cd ${CURRENT}
+  fi
 
   # All Versions: Touch ncf_update_flag_file jetty will be restarted at the end of the script 
   touch /opt/rudder/etc/force_ncf_technique_update
