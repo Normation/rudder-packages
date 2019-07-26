@@ -17,12 +17,12 @@
          my $server_hostname_file = "${candidate}/policy_server.dat";
          my $uuid_file            = "${candidate}/rudder-server-uuid.txt";
 -        my $cfengine_key_file    = "${candidate}/ppkeys/localhost.pub";
-+        my $certificate_file     = "${candidate}/ssl/localhost.cert";
++        my $certificate_file     = "${candidate}/ssl/agent.cert";
 +
 +        if ($agent_name eq "dsc") {
 +            $uuid_file        = 'C:/Program Files/Rudder/policy/rudder-server-uuid.txt';
 +        } else {
-+            $certificate_file = '/opt/rudder/etc/ssl/localhost.cert';
++            $certificate_file = '/opt/rudder/etc/ssl/agent.cert';
 +        }
  
          # get policy server hostname
