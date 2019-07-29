@@ -20,36 +20,23 @@
 # Rudder initialization utility
 
 # Check if script is executed by root
-if [ ! "z$(whoami)" = "zroot" ];then echo "You must be root"; exit 1; fi
+if [ ! "$(whoami)" = "root" ];then echo "You must be root"; exit 1; fi
 
 IPV4_NET_RE='[0-9]\{1,3\}.[0-9]\{1,3\}.[0-9]\{1,3\}.[0-9]\{1,3\}\/[0-9]\{1,2\}'
 IPV6_NET_RE='\([0-9a-fA-F]\{1,4\}:\)\{1,7\}:\?\([0-9a-fA-F]\{1,4\}:\)\{0,6\}[0-9a-fA-F]\{1,4\}\/[0-9]\{1,2\}'
 IP_NET_RE="^${IPV4_NET_RE}\\|${IPV6_NET_RE}\\|auto$"
 
 # VARS
-TMP_DIR=$(mktemp -dq)
-TMP_LOG=$(mktemp -t rudder.XXXXXXXXXX -q)
-mv ${TMP_LOG} ${TMP_LOG}.log
-TMP_LOG=${TMP_LOG}.log
+TMP_LOG=/var/log/rudder/install/rudder-init-$(date +%Y%m%d%H%M%S).log
 
+TMP_DIR=$(mktemp -dq)
 BOOTSTRAP_PATH=$TMP_DIR/bootstrap.ldif
 INITPOLICY_PATH=$TMP_DIR/init-policy-server.ldif
 
 RUDDER_OPT="/opt/rudder"
-RUDDER_VAR="/var/rudder"
-CF_AGENT="${RUDDER_OPT}/bin/cf-agent"
 
-RUDDER_ROLES_FILE="${RUDDER_VAR}/cfengine-community/inputs/rudder-server-roles.conf"
+RUDDER_ROLES_FILE="/var/rudder/cfengine-community/inputs/rudder-server-roles.conf"
 DISABLE_AUTODETECT_NETWORKS_FILE="/opt/rudder/etc/disable-autodetect-networks"
-
-RUDDER_CONTEXT=$(grep contextPath ${RUDDER_OPT}/share/webapps/rudder.xml | sed "s@^\s*<Set name=\"contextPath\">\(.*\)</Set>@\1@")
-
-REGEXP='s/^\([0-9]\{1,3\}\)\(.[0-9]\{1,3\}\)\(.[0-9]\{1,3\}\)\(.[0-9]\{1,3\}.[0-9]\{1,2\}\)$/\1\\\2\\\3\\\4/g'
-
-again="yes"
-
-cpt=0
-cpt2=0
 
 # Ensure our PATH includes Rudder's binaries
 export PATH=${PATH}:${RUDDER_OPT}/bin
@@ -62,19 +49,6 @@ then
 else
   RUDDER_HOSTNAME=$(hostname)
 fi
-
-# Check if promises already exist for CFEngine community
-INITREP=/var/rudder/cfengine-community/inputs
-
-# File containing the policy server IP
-POLICY_SERVER_FILE="${RUDDER_VAR}/cfengine-community/policy_server.dat"
-
-# Check if there is already a /var/cfengine/inputs to manage
-# CFENGINE_INSTALLED = 0 means it is installed
-[ -f "/var/cfengine/inputs/promises.cf" ]
-CFENGINE_INSTALLED=$?
-
-JETTY_INIT="service rudder-jetty"
 
 # Get how many access credentials we got for LDAP and SQL in /opt/rudder/etc/rudder-web.properties
 # (should have 2 for each, user and password)
@@ -127,7 +101,7 @@ if [ ! -f ${RUDDER_ROLE_SERVER_ROOT} -a -f ${RUDDER_ROLES_FILE} ]; then
           ;;
         rudder-db)
           SQL_SERVER=${ROLE_HOSTNAME}
-          sed -i "s%^rudder.jdbc.url *=.*$%rudder.jdbc.url=jdbc:postgresql://${SQL_SERVER}:5432/rudder%" ${RUDDER_OPT}/etc/rudder-web.properties
+          sed -i "s%^rudder.jdbc.url *=.*$%rudder.jdbc.url=jdbc:postgresql://${SQL_SERVER}:${SQL_PORT}/rudder%" ${RUDDER_OPT}/etc/rudder-web.properties
           ;;
         rudder-inventory-endpoint)
           sed -i "s%^rudder.endpoint.cmdb *=.*$%rudder.endpoint.cmdb=http://${ROLE_HOSTNAME}:8080/endpoint/upload/%" ${RUDDER_OPT}/etc/rudder-web.properties
@@ -146,17 +120,6 @@ LDAPADD="ldapadd ${LDAP_PARAMETERS}"
 LDAPDELETE="ldapdelete ${LDAP_PARAMETERS}"
 
 LDAP_EXISTS=$(${LDAPSEARCH} -b "cn=rudder-configuration" -s base dn 2>/dev/null | grep -c "dn: cn=rudder-configuration" || true)
-
-PSQL="psql -q -h ${SQL_SERVER} -p ${SQL_PORT} -U ${SQL_USER}"
-
-Pause()
-{
-  key=""
-  echo -n Hit any key to continue....
-  stty -icanon
-  key=$(dd count=1 2>/dev/null)
-  stty icanon
-}
 
 ErrorCheck()
 {
@@ -186,28 +149,9 @@ LDAPInit()
   ErrorCheck
 }
 
-# Generate the promises at the temporaty location
-# Takes two arguments:
-#  - The hostname
-#  - The computed allowed network
-function generate_promises_at_temporary_location() {
-  local COMPUTED_ALLOWED_NETWORKS=$1
-
-  cp -r /opt/rudder/share/initial-promises/ ${TMP_DIR}/community
-
-  [ -n "${COMPUTED_ALLOWED_NETWORKS}" ] && COMPUTED_ALLOWED_NETWORKS="${COMPUTED_ALLOWED_NETWORKS},"
-  COMPUTED_ALLOWED_NETWORKS=" ${COMPUTED_ALLOWED_NETWORKS} \"127.0.0.0/8\" , \"::1\" "
-  find $TMP_DIR/community -name "cf-served.cf" -type f -exec sed -i "s@'%%POLICY_SERVER_ALLOWED_NETWORKS%%'@$COMPUTED_ALLOWED_NETWORKS@g" {} \;
-}
-
 # Reset the policy server hostname
 function reset_policy_server() {
   echo "127.0.0.1" > /var/rudder/cfengine-community/policy_server.dat
-  # edit cfengine file only if it's installed
-  if [ $CFENGINE_INSTALLED -eq 0 ]
-  then
-    echo "127.0.0.1" > /var/cfengine/policy_server.dat
-  fi
 }
 
 function add_allowed_networks() {
@@ -269,131 +213,37 @@ then
     done
   fi
 else
-  echo
-  echo "Welcome to the Rudder initialization utility"
-  echo
-  echo "This utility configures a Rudder root server, and may be"
-  echo "called again if reconfiguration is required."
-
-  # Menu
-
-  ## 1st Step: Define SERVER_ALLOWED_NETWORK
-  while [ z$again = "zyes" ]
-  do
-    again=''
-    while ! echo "${ALLOWEDNETWORK[$cpt]}" | grep "${IP_NET_RE}"
-    do
-      echo
-      echo -n "Enter network allowed to access server (i.e 192.168.0.0/24): "
-      read ALLOWEDNETWORK[$cpt]
-    done
-    echo "Network(s) added:"
-    for i in ${ALLOWEDNETWORK[*]}
-    do
-      echo $i
-    done
-    while ! echo "$again" | grep "^\(yes\|no\)$";do echo -n "Add more networks? (yes/no) ";read again;done
-    ((cpt++))
-  done
-
-  ## 2nd Step: LDAP Check
-  if [ ${LDAP_EXISTS} -gt 0 ]
-  then
-    while ! echo "$LDAPRESET" | grep "^\(yes\|no\)$"
-    do
-      echo
-      echo -ne "An LDAP database has been detected.\nDo you want to reinitialize it? (yes/no) "
-      read LDAPRESET
-    done
-  fi
+  echo "ERROR: Usage is: ${0} LDAPReset AllowedNetwork1 [AllowedNetwork2]..."
+  exit 1
 fi
 
-# Before continuing asking questions, we need to generate the initial promises
-# as they should be, to check whether the actual promises on this host need resetting
-
-## 1: Format allowed networks
-## NET will modify init-policy-server.ldif and NET 2 cf-served.cf
 for i in ${ALLOWEDNETWORK[*]}
 do
-  if [ $cpt2 -eq 0 ]
+  if [ $cpt -eq 0 ]
   then
-    NET=$(echo $i | sed $REGEXP)
-    NET2="'$NET'"
+    NET="$i"
   else
-    NET="$NET\ndirectiveVariable: ALLOWEDNETWORK[$cpt2]:$(echo $i | sed $REGEXP)"
-    NET2="$NET2, '$(echo $i | sed $REGEXP)'"
+    NET="$NET\ndirectiveVariable: ALLOWEDNETWORK[$cpt]:$i"
   fi
-  ((cpt2++))
+  ((cpt++))
 done
-
-# 2: generate the initial promises
-generate_promises_at_temporary_location "${NET2}"
-
-# 3: compare the generated promises with what is on the FS
-mkdir -p ${INITREP}
-diff -Naur ${INITREP} ${TMP_DIR}/community > /dev/null
-DIFFERENT_PROMISES=$?
 
 # Review
 echo
 echo "SUMMARY OF OPTIONS:"
 echo
 echo Allowed networks: "${ALLOWEDNETWORK[*]}"
-if [ ${LDAP_EXISTS} -gt 0 ]
-then
-  echo Reinitialize LDAP database? "$LDAPRESET"
-fi
+echo Reinitialize LDAP database? "$LDAPRESET"
 echo
-# Leave the user a chance to stop only if there is a user
-tty >/dev/null && Pause
-
-# Replace CFEngine promises only if it's installed
-if [ $CFENGINE_INSTALLED -eq 0 ]
-then
-  echo -n "Configuring and installing initial CFEngine promises..."
-  rm -rf /var/cfengine/inputs/*
-  cp -r $TMP_DIR/community/* /var/cfengine/inputs/
-  echo " Done."
-fi
-
-# Configure initial promises
-echo -n "Configuring and installing initial Rudder policies..."
-
-roles_present="false"
-if [ -f "${RUDDER_ROLES_FILE}" ]
-then
-  roles_present="true"
-  # Preserve rudder-server-roles.conf
-  mv ${RUDDER_ROLES_FILE} ${TMP_DIR}/
-fi
-
-rm -rf /var/rudder/cfengine-community/inputs/*
-cp -r $TMP_DIR/community/* /var/rudder/cfengine-community/inputs/
-
-if [ "${roles_present}" = "true" ]
-then
-  # Restore rudder-server-roles.conf
-  mv ${TMP_DIR}/$(basename ${RUDDER_ROLES_FILE}) ${RUDDER_ROLES_FILE}
-fi
 
 reset_policy_server
-
-echo " Done."
-
-# Enforce that policy_server.dat exists
-if [ ! -e ${POLICY_SERVER_FILE} ]
-then
-  echo -n "Initializing IP address of the server..."
-  reset_policy_server
-  echo " Done."
-fi
 
 # LDAP (re)initialization
 if [ ${LDAP_EXISTS} -gt 0 ]
 then
-  if [ z$LDAPRESET = "zyes" ]
+  if [ "$LDAPRESET" = "yes" ]
   then
-    echo -n "Initializing LDAP database..."
+    echo -n "ReInitializing LDAP database..."
     ${LDAPDELETE} -r "cn=rudder-configuration"
     LDAPInit
   fi
@@ -430,25 +280,17 @@ echo -n "Restarting services..."
 
 # Start the whole infrastructure
 
-## Manually launch cf-agent to set up policy server
-# Running failsafe will create required directories (such as /var/rudder/ncf/local) and populate tools
-"${CF_AGENT}" -f failsafe.cf >> "$TMP_LOG" 2>&1
-# Run all server-specific bundles (except propagatePromises, because they're aren't any yet)
-"${CF_AGENT}" -b propagatePromises,install_rsyslogd,root_component_check >> "$TMP_LOG" 2>&1
+## Make sure everything is ok
+rudder agent check 2>&1 | tee "${TMP_LOG}"
 
 ## Then, restart jetty
-${JETTY_INIT} restart 2>&1 | tee "${TMP_LOG}"
-
-## And finally, rudder-agent
-service rudder-agent restart 2>&1 | tee "${TMP_LOG}"
+service rudder-jetty restart 2>&1 | tee "${TMP_LOG}"
 
 echo " done."
 
+RUDDER_CONTEXT=$(grep contextPath ${RUDDER_OPT}/share/webapps/rudder.xml | sed "s@^\s*<Set name=\"contextPath\">\(.*\)</Set>@\1@")
 echo
 echo "Reinitialization complete, Rudder is currently reloading."
 echo
-echo "You can access it via https://<hostname>${RUDDER_CONTEXT}"
+echo "You can access it via https://${RUDDER_HOSTNAME}${RUDDER_CONTEXT}"
 echo
-echo "( Example: https://${RUDDER_HOSTNAME}${RUDDER_CONTEXT} )"
-echo
-echo "Thank you for using Rudder."

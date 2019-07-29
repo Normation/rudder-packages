@@ -32,9 +32,6 @@ ulimit -v unlimited
 # Check if Rudder LDAP has already been initialize previously
 LDAPCHK=`/opt/rudder/sbin/slapcat  | grep "^dn: " | wc -l`
 if [ $LDAPCHK -eq 0 ]; then
-  echo "************************************************************"
-  echo "Rudder is now installed but not configured."
-  echo "Please run /opt/rudder/bin/rudder-init"
-  echo "************************************************************"
+  /opt/rudder/bin/rudder-init auto no
 fi
 
