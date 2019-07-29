@@ -45,9 +45,6 @@ trap anomaly_handler ERR INT TERM
 # - All versions : Check for the PostgreSQL version
 # - All versions : Create ncf technique update flag and restart at the end of the script
 # - 4.1.17       : Change LDAP attribute ipNetworkNumber -> networkSubnet
-# - 4.1.19, 4.3.9: Drop unused index nodeid_idx
-# - 4.1.21,4.3.10: Drop contraint rulesgroupjoin_pkey to replace it by an index
-# - 4.2.6,4.3.2  : Create nodecompliancelevels table
 # - 4.2.6,4.3.2  : Add new property rudder.batch.reportscleaner.compliancelevels.delete.TTL
 # - 4.3          : Update ncf Techniques to the new format
 # - 4.3.7        : Drop tables expectedreports and expectesreportsnodes on upgrade
@@ -454,14 +451,6 @@ upgrade_database() {
     echo " Done"
   fi
 
-  # - * => 4.1.12, 4.2.6, 4.3.2 : add compliance table
-  RES=$(${PSQL} -t -d ${SQL_DATABASE} -c "select count(*) from information_schema.columns where lower(table_name) = 'nodecompliancelevels'")
-  if [ $RES -eq 0 ]; then
-    echo -n "INFO: Adding new 'compliance levels' table"
-    ${PSQL} -d ${SQL_DATABASE} -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-4.1.x-4.1.12-add-compliancelevel-table.sql > /dev/null
-    echo " Done"
-  fi
-
   # - * => 4.3.7 : Drop expectedreports and expectesreportsnodes table 
   RES=$(${PSQL} -t -d ${SQL_DATABASE} -c "select count(*) from information_schema.columns where lower(table_name) = 'expectedreports'")
   if [ $RES -ne 0 ]; then
@@ -478,22 +467,6 @@ upgrade_database() {
     echo " Done"
   fi
 
-
-  # - 4.1.18: Drop unused index nodeid_idx
-  RES=$(${PSQL} -t -d ${SQL_DATABASE} -c "select count(oid) from pg_class where lower(relname) = 'nodeid_idx'")
-  if [ $RES -ne 0 ]; then
-    echo -n "INFO: Dropping index 'nodeid_idx'"
-    ${PSQL} -d ${SQL_DATABASE} -c  "DROP INDEX nodeid_idx" > /dev/null
-    echo " Done"
-  fi
-
-  # - 4.1.21: Drop constraint rulesgroupjoin_pkey
-  RES=$(${PSQL} -t -d ${SQL_DATABASE} -c "select count(*) from information_schema.constraint_column_usage where table_name = 'rulesgroupjoin'")
-  if [ $RES -ne 0 ]; then
-    echo -n "INFO: Dropping constraint 'rulesgroupjoin'"
-    ${PSQL} -d ${SQL_DATABASE} -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-4.1.x-4.1.21-drop-rulesgroupjoin-constraint.sql > /dev/null
-    echo " Done"
-  fi
 
   # - 5.0.7: Tune autovacuum on a table basis
   RES=$(${PSQL} -t -d ${SQL_DATABASE} -c "select reloptions from pg_class where relname='ruddersysevents'" | grep -c "autovacuum" || true)
