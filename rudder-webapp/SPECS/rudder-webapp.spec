@@ -275,6 +275,8 @@ then
   sed -i 's%APACHE_MODULES="${APACHE_MODULES} rewrite dav dav_fs proxy proxy_http.*%# This sources the Rudder needed by Rudder\n. /etc/sysconfig/rudder-relay-apache%' /etc/sysconfig/apache2
 fi
 
+/opt/rudder/share/package-scripts/rudder-webapp-postinst "${FIRST_INSTALL}" "%{apache}" "%{apache_user}" "%{apache_group}"
+
 %if 0%{?rhel}
 # SELinux support
 # Check "sestatus" presence, and if here tweak our installation to be
@@ -294,8 +296,6 @@ if type sestatus >/dev/null 2>&1 && sestatus | grep -q "enabled"; then
   echo " Done"
 fi
 %endif
-
-/opt/rudder/share/package-scripts/rudder-webapp-postinst "${FIRST_INSTALL}" "%{apache}" "%{apache_user}" "%{apache_group}"
 
 #=================================================
 # Post Uninstallation
