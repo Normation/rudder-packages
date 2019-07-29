@@ -76,6 +76,16 @@ cd %{_sourcedir}
 cd %{_sourcedir}
 make install DESTDIR=%{buildroot}
 
+#=================================================
+# pretrans is run before all preinst when installing more than one package
+#=================================================
+%pretrans
+# We need to be sure that uuid.hive is set to root at beginning
+mkdir -p /opt/rudder/etc
+echo 'root' > /opt/rudder/etc/uuid.hive
+mkdir -p /var/rudder/cfengine-community/
+echo "127.0.0.1" > /var/rudder/cfengine-community/policy_server.dat
+
 %pre
 #=================================================
 # Pre Installation
@@ -104,10 +114,6 @@ then
     fi
   fi
 fi
-
-# We need to be sure that uuid.hive is set to root at beginning
-mkdir -p /opt/rudder/etc
-echo 'root' > /opt/rudder/etc/uuid.hive
 
 %post
 #=================================================

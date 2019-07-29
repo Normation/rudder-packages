@@ -26,10 +26,6 @@ fi
 # Clean flag
 rm -f /var/rudder/tmp/migration-rudder-service-enabled-server
 
-# This package is only installed by the root server
-# then we can set UUID to 'root' serenly
-echo 'root' > ${RUDDER_DIR}/etc/uuid.hive
-
 # We need it to be able to open big mdb memory-mapped databases
 ulimit -v unlimited
 

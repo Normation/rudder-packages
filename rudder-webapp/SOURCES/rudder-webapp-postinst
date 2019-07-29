@@ -8,10 +8,6 @@ APACHE="$2"
 APACHE_USER="$3"
 APACHE_GROUP="$4"
 
-# Currently, we assume that the server where the webapp is installed
-# is the root server. Force the UUID.
-echo 'root' > /opt/rudder/etc/uuid.hive
-
 # Create the package user
 if ! getent passwd ncf-api-venv >/dev/null; then
   echo -n "INFO: Creating the ncf-api-venv user..."
