@@ -256,9 +256,6 @@ install: build initial-promises initial-ncf
 	# Install documentation
 	cp -rf rudder-doc/html $(DESTDIR)/usr/share/doc/rudder
 	
-	# Install rudder keys
-	install -m 755 rudder-keys $(DESTDIR)/opt/rudder/bin/
-	
 	# Install rudder fix repository permissions script
 	install -m 755 rudder-fix-repository-permissions $(DESTDIR)/opt/rudder/bin/
 	
