@@ -1,0 +1,46 @@
+#!/bin/sh 
+#
+# cf-serverd logs 
+#
+# This test allows to display the logs related to cf-served
+#
+
+# Declare your tests here (KEEP "${TESTS}")
+TESTS="${TESTS} cf_serverd logs"
+
+# Descrive your tests here
+cfserverd_logs_description="display cf-serverd related to cf-serverd file"
+
+cf_serverd() {
+
+  # BY default, this test is successful
+  # CF_SERVERD_LOGS='ok'
+
+    # For Debian|Ubuntu
+  PATH1="/var/log/syslog"
+  # For Redhat|Centos|Sles
+  PATH2="/var/log/messages"
+
+  if [ -f ${PATH1} ]; then RUDDER_LOG_PATH="${PATH1}"
+  elif [ -f ${PATH2} ]; then RUDDER_LOG_PATH="${PATH2}"
+  fi
+
+  COMMAND_OUTPUT_TEST=`grep 'cf-serverd' ${RUDDER_LOG_PATH} | tail -10 | wc -l`
+  COMMAND_OUTPUT=`grep 'cf-serverd' ${RUDDER_LOG_PATH} | tail -10`
+  
+  if [ $COMMAND_OUTPUT_TEST -eq 0 ]
+  then
+    test_success "The Rudder cf-serverd log contains no error"
+  else
+    test_failure "There are errors in the Rudder cf-serverd logs" "Output: ${COMMAND_OUTPUT}"
+    CFSERVERD_LOGS='ko'
+  fi
+
+    
+  # Finally, return 1 if the test has failed somewhere
+  [ "${CF_SERVERD_LOGS}" = 'ko'] && return 1
+
+
+}
+
+
