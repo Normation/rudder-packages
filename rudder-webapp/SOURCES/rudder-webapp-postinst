@@ -144,3 +144,10 @@ echo " Done"
 echo "INFO: Launching script to check if a migration is needed"
 /opt/rudder/bin/rudder-inventory-endpoint-upgrade
 echo "INFO: End of migration script"
+
+# Check if Rudder LDAP is initialized and run rudder-init
+LDAPCHK=`/opt/rudder/sbin/slapcat  | grep "^dn: " | wc -l`
+if [ $LDAPCHK -eq 0 ]; then
+  /opt/rudder/bin/rudder-init no auto
+fi
+
