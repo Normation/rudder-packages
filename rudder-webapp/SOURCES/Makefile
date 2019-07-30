@@ -260,6 +260,7 @@ install: build initial-promises initial-ncf
 	install -m 755 rudder-fix-repository-permissions $(DESTDIR)/opt/rudder/bin/
 	
 	# Install gitignore file for our git repo
+	mkdir -p $(DESTDIR)/var/rudder/configuration-repository/
 	install -m 644 configuration-repository-gitignore $(DESTDIR)/var/rudder/configuration-repository/.gitignore
 	
 	install -m 644 endpoint.war $(DESTDIR)/opt/rudder/share/webapps/
