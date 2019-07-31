@@ -136,7 +136,7 @@ LDAPInit()
   cp /opt/rudder/share/bootstrap.ldif $BOOTSTRAP_PATH
   cp /opt/rudder/share/init-policy-server.ldif $INITPOLICY_PATH
 
-  CERTIFICATE=$(perl -pe 's/\n/\\n/' /opt/rudder/etc/ssl/agent.crt)
+  CERTIFICATE=$(perl -pe 's/\n/\\n/' /opt/rudder/etc/ssl/agent.cert)
 
   sed -i "s/^\([^#].*\)%%POLICY_SERVER_HOSTNAME%%/\1${RUDDER_HOSTNAME}/g" $INITPOLICY_PATH
   sed -i "s#^\([^#].*\)%%POLICY_SERVER_ALLOWED_NETWORKS%%#\1$NET#g" $INITPOLICY_PATH
