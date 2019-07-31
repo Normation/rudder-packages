@@ -136,8 +136,11 @@ LDAPInit()
   cp /opt/rudder/share/bootstrap.ldif $BOOTSTRAP_PATH
   cp /opt/rudder/share/init-policy-server.ldif $INITPOLICY_PATH
 
+  CERTIFICATE=$(perl -pe 's/\n/\\n/' /opt/rudder/etc/ssl/agent.crt)
+
   sed -i "s/^\([^#].*\)%%POLICY_SERVER_HOSTNAME%%/\1${RUDDER_HOSTNAME}/g" $INITPOLICY_PATH
   sed -i "s#^\([^#].*\)%%POLICY_SERVER_ALLOWED_NETWORKS%%#\1$NET#g" $INITPOLICY_PATH
+  sed -i "s#^\([^#].*\)%%POLICY_SERVER_CERTIFICATE%%#\1${CERTIFICATE}#g" $INITPOLICY_PATH
 
   # remove root in case of REinit because it has not been removed
   [ ${LDAP_EXISTS} -gt 0 ] && sed -i '/dn: cn=rudder-configuration/,/^ *$/d' $BOOTSTRAP_PATH
@@ -217,6 +220,7 @@ else
   exit 1
 fi
 
+cpt=0
 for i in ${ALLOWEDNETWORK[*]}
 do
   if [ $cpt -eq 0 ]
