@@ -284,6 +284,10 @@ echo -n "Restarting services..."
 
 # Start the whole infrastructure
 
+# The server need initial promises to work properly
+cp -r /opt/rudder/share/initial-ncf/* /var/rudder/ncf/common/
+cp -r /opt/rudder/share/initial-promises/* /var/rudder/cfengine-community/inputs/
+
 ## Make sure everything is ok
 rudder agent check 2>&1 | tee "${TMP_LOG}"
 
