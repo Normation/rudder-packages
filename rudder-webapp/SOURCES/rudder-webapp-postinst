@@ -11,7 +11,7 @@ APACHE_GROUP="$4"
 # Manage users first
 if ! getent passwd ncf-api-venv >/dev/null; then
   echo -n "INFO: Creating the ncf-api-venv user..."
-  useradd --system --shell /bin/false --home-dir /var/lib/ncf-api-venv --groups ncf-api-venv --comment "ncf API,,," ncf-api-venv >/dev/null
+  useradd --system --shell /bin/false --home-dir /var/lib/ncf-api-venv --groups rudder --comment "ncf API,,," ncf-api-venv >/dev/null
   echo " Done"
 fi
 
@@ -42,6 +42,16 @@ mkdir -p /var/rudder/configuration-repository/shared-files
 if [ ! -d /var/rudder/configuration-repository/techniques ]; then
   cp -a /opt/rudder/share/techniques /var/rudder/configuration-repository/
   touch /opt/rudder/etc/force_technique_reload
+fi
+
+if [ ! -d /var/rudder/configuration-repository/techniques/ncf_techniques ]; then
+  mkdir /var/rudder/configuration-repository/techniques/ncf_techniques
+  echo "<xml>
+  <name>User Techniques</name>
+  <description>
+    Techniques created using the Technique editor.
+  </description>
+</xml>" > /var/rudder/configuration-repository/techniques/ncf_techniques/category.xml
 fi
 
 # Start with a fresh ncf if needed
