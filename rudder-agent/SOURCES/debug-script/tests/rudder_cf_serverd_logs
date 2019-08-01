@@ -1,22 +1,22 @@
 #!/bin/sh 
 #
-# cf-serverd logs 
+# Rudder cf_serverd_logs test
 #
 # This test allows to display the logs related to cf-served
 #
 
 # Declare your tests here (KEEP "${TESTS}")
-TESTS="${TESTS} cf_serverd logs"
+TESTS="${TESTS} rudder_cf_serverd_logs"
 
 # Descrive your tests here
-cfserverd_logs_description="display cf-serverd related to cf-serverd file"
+rudder_cf_serverd_logs_description="display cf-serverd related to cf-serverd file"
 
-cf_serverd() {
+rudder_cf_serverd_logs() {
 
   # BY default, this test is successful
-  # CF_SERVERD_LOGS='ok'
+  RUDDER_CF_SERVERD_LOGS='ok'
 
-    # For Debian|Ubuntu
+  # For Debian|Ubuntu
   PATH1="/var/log/syslog"
   # For Redhat|Centos|Sles
   PATH2="/var/log/messages"
@@ -27,19 +27,18 @@ cf_serverd() {
 
   COMMAND_OUTPUT_TEST=`grep 'cf-serverd' ${RUDDER_LOG_PATH} | tail -10 | wc -l`
   COMMAND_OUTPUT=`grep 'cf-serverd' ${RUDDER_LOG_PATH} | tail -10`
-  
+
   if [ $COMMAND_OUTPUT_TEST -eq 0 ]
   then
     test_success "The Rudder cf-serverd log contains no error"
   else
     test_failure "There are errors in the Rudder cf-serverd logs" "Output: ${COMMAND_OUTPUT}"
-    CFSERVERD_LOGS='ko'
+    RUDDER_CF_SERVERD_LOGS='ko'
   fi
 
-    
-  # Finally, return 1 if the test has failed somewhere
-  [ "${CF_SERVERD_LOGS}" = 'ko'] && return 1
 
+  # Finally, return 1 if the test has failed somewhere
+  [ "${RUDDER_CF_SERVERD_LOGS}" = 'ko' ] && return 1
 
 }
 
