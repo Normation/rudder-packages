@@ -8,16 +8,16 @@ APACHE="$2"
 APACHE_USER="$3"
 APACHE_GROUP="$4"
 
-# Create the package user
+# Manage users first
 if ! getent passwd ncf-api-venv >/dev/null; then
   echo -n "INFO: Creating the ncf-api-venv user..."
-  useradd -r -m -s /bin/false -d /var/lib/ncf-api-venv -c "ncf API,,," ncf-api-venv >/dev/null
+  useradd --system --shell /bin/false --home-dir /var/lib/ncf-api-venv --groups ncf-api-venv --comment "ncf API,,," ncf-api-venv >/dev/null
   echo " Done"
 fi
 
-# Ensure setting the shell to /bin/false in migrations
-if ! getent passwd ncf-api-venv | cut -d: -f7 | grep -qE "^/bin/false$"; then
-  usermod -s /bin/false ncf-api-venv
+if [ "${RUDDER_FIRST_INSTALL}" = "true" ]; then
+  systemctl daemon-reload
+  systemctl enable rudder-jetty
 fi
 
 echo -n "INFO: Stopping Apache HTTPd..."
@@ -33,7 +33,6 @@ rm -f /usr/share/ncf/tools/ncf_constraints.pyc
 rm -f /usr/share/ncf-api-virtualenv/tools/ncf.pyc
 rm -f /usr/share/ncf-api-virtualenv/tools/ncf_constraints.pyc
 
-
 # Add perms on inventories
 chmod 751 /var/rudder/inventories
 
@@ -45,23 +44,13 @@ if [ ! -d /var/rudder/configuration-repository/techniques ]; then
   touch /opt/rudder/etc/force_technique_reload
 fi
 
-if [ ! -d /var/rudder/configuration-repository/techniques/ncf_techniques ]; then
-  mkdir /var/rudder/configuration-repository/techniques/ncf_techniques
-  echo "<xml>           
-  <name>User Techniques</name>
-  <description>
-    Techniques created using the Technique editor.
-  </description>
-</xml>" > /var/rudder/configuration-repository/techniques/ncf_techniques/category.xml
-fi
-
+# Start with a fresh ncf if needed
 if [ ! -d /var/rudder/ncf/common/10_ncf_internals ]; then
   cp -a /usr/share/ncf/tree/* /var/rudder/ncf/common/
 fi
 
-# Go into configuration-repository to manage git
-cd /var/rudder/configuration-repository
 # Initialize git repository if it is missing, so permissions can be set on it afterwards
+cd /var/rudder/configuration-repository
 if [ ! -d /var/rudder/configuration-repository/.git ]; then
 
   git init --shared=group
@@ -72,19 +61,6 @@ if [ ! -d /var/rudder/configuration-repository/.git ]; then
 
   git add .
   git commit -q -m "initial commit"
-else
-
-  # This should have been set during repository initialization, but might need to be
-  # added if we are upgrading an existing repository
-  if [ $(git config --get-regexp "user.name|user.email"|wc -l) -ne 2 ]; then
-    git config user.name "root user (CLI)"
-    git config user.email "root@localhost"
-  fi
-
-  # Set shared repository value to group if not set
-  if ! git config core.sharedRepository >/dev/null 2>&1; then
-    git config core.sharedRepository group
-  fi
 fi
 
 if [ "${RUDDER_FIRST_INSTALL}" = "true" ]; then
@@ -96,28 +72,6 @@ echo "INFO: Launching script to check if a migration is needed"
 /opt/rudder/bin/rudder-upgrade
 echo "INFO: End of migration script"
 
-# Create the configuration-repository group if it does not exist
-if ! getent group rudder > /dev/null; then
-  echo -n "INFO: Creating group rudder..."
-  groupadd --system rudder
-  echo " Done"
-fi
-
-# Create the rudder-policy-reader group if it does not exist
-if ! getent group rudder-policy-reader > /dev/null; then
-  echo -n "INFO: Creating group rudder-policy-reader..."
-  groupadd --system rudder-policy-reader
-  usermod -a -G rudder-policy-reader www-data
-  echo " Done"
-fi
-
-# Add the ncf-api-venv user to this group
-if ! getent group rudder | grep -q ncf-api-venv > /dev/null; then
-  echo -n "INFO: Adding ncf-api-venv to the rudder group..."
-  usermod -aG rudder ncf-api-venv
-  echo " Done"
-fi
-
 # Adjust permissions on /var/rudder/configuration-repository
 /opt/rudder/bin/rudder-fix-repository-permissions
 
@@ -126,10 +80,10 @@ then
   /opt/rudder/bin/rudder-pkg plugin restore-status < /tmp/rudder-plugins-upgrade
 fi
 
-if [ "${RUDDER_FIRST_INSTALL}" = "true" ]; then
-  systemctl daemon-reload
-  systemctl enable rudder-jetty
-fi
+# Run any upgrades berore restarting the webapp
+echo "INFO: Launching script to check if a migration is needed"
+/opt/rudder/bin/rudder-inventory-endpoint-upgrade
+echo "INFO: End of migration script"
 
 echo -n "INFO: Starting Apache HTTPd..."
 systemctl start ${APACHE} >/dev/null
@@ -137,13 +91,8 @@ echo " Done"
 
 # Restart the webapp
 echo -n "INFO: Restarting Rudder webapp and inventory-endpoint..."
-systemctl start rudder-jetty >/dev/null 2>&1
+systemctl start rudder-jetty >/dev/null
 echo " Done"
-
-# Run any upgrades
-echo "INFO: Launching script to check if a migration is needed"
-/opt/rudder/bin/rudder-inventory-endpoint-upgrade
-echo "INFO: End of migration script"
 
 # Check if Rudder LDAP is initialized and run rudder-init
 LDAPCHK=`/opt/rudder/sbin/slapcat  | grep "^dn: " | wc -l`

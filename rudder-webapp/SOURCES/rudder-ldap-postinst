@@ -41,7 +41,7 @@ fi
 # Create the package user
 if ! getent passwd rudder-slapd >/dev/null; then
   echo -n "INFO: Creating the rudder-slapd user..."
-  useradd -r -s /bin/false -d /var/rudder/ldap -c "Rudder LDAP server,,," rudder-slapd >/dev/null 2>&1
+  useradd --system --shell /bin/false --home-dir /var/rudder/ldap --comment "Rudder LDAP server,,," rudder-slapd >/dev/null
   chown root:rudder-slapd "${LDAP_CONF}"
   chmod 640 "${LDAP_CONF}"
   chown -R rudder-slapd:rudder-slapd /var/rudder/ldap/
@@ -52,7 +52,6 @@ if [ "${RUDDER_FIRST_INSTALL}" = "true" ]; then
   echo -n "INFO: Setting rudder-slapd as a boot service..."
   systemctl daemon-reload
   systemctl enable rudder-slapd
-  systemctl start rudder-slapd
   echo " Done"
 fi
 
@@ -81,5 +80,4 @@ systemctl restart rudder-slapd >/dev/null
 echo " Done"
 
 echo "`date` - Ending ${PACKAGE_NAME} post installation script" >> ${LOG_FILE}
-
 

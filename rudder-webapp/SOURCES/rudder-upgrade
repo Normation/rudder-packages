@@ -135,8 +135,6 @@ fi
 # Commands
 LDAP_PARAMETERS="-H ldap://${LDAP_SERVER}:${LDAP_PORT}/ -D ${LDAP_USER} -w ${LDAP_PASSWORD} -x"
 
-JETTY_INIT="service rudder-jetty"
-
 LDAPSEARCH="ldapsearch ${LDAP_PARAMETERS} -LLL"
 LDAPMODRDN="ldapmodrdn ${LDAP_PARAMETERS}"
 LDAPADD="ldapadd ${LDAP_PARAMETERS}"
