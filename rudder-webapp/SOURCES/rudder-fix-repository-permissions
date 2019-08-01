@@ -25,11 +25,10 @@ chgrp -R rudder /var/rudder/configuration-repository
 
 ## Add execution permission for ncf-api only on directories and files with user execution permission
 chmod -R u+rwX,g+rwX /var/rudder/configuration-repository/.git
-chmod -R u+rwX,g+rwX /var/rudder/configuration-repository/ncf
 chmod -R u+rwX,g+rwX /var/rudder/configuration-repository/techniques
 
 ## Add setgid to directories so that all files created here belong to the rudder group
-find /var/rudder/configuration-repository/.git /var/rudder/configuration-repository/ncf /var/rudder/configuration-repository/techniques -type d -exec chmod g+s "{}" \;
+find /var/rudder/configuration-repository/.git /var/rudder/configuration-repository/techniques -type d -exec chmod g+s "{}" \;
 
 echo " Done"
 
