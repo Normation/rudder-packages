@@ -195,7 +195,6 @@ install: build initial-promises initial-ncf
 	install -m 644 rudder-ldap $(DESTDIR)/opt/rudder/etc/server-roles.d/
 	install -m 644 rsyslog/rudder-slapd.conf $(DESTDIR)/etc/rsyslog.d/rudder-slapd.conf
 	install -m 644 rudder-slapd.service $(DESTDIR)/usr/lib/systemd/system/rudder-slapd.service
-	install -m 755 rudder-ldap-postinst $(DESTDIR)/opt/rudder/share/package-scripts/
 
 	# Install helper scripts
 	install -m 755 rudder-init $(DESTDIR)/opt/rudder/bin/
@@ -264,7 +263,6 @@ install: build initial-promises initial-ncf
 	install -m 644 configuration-repository-gitignore $(DESTDIR)/var/rudder/configuration-repository/.gitignore
 	
 	install -m 644 endpoint.war $(DESTDIR)/opt/rudder/share/webapps/
-	install -m 755 rudder-inventory-endpoint-upgrade $(DESTDIR)/opt/rudder/bin/
 	
 	install -m 644 rudder-inventory-endpoint $(DESTDIR)/opt/rudder/etc/server-roles.d/
 	

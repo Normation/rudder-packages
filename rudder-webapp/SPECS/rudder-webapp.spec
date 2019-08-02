@@ -253,8 +253,6 @@ then
   RUDDER_FIRST_INSTALL="true"
 fi
 
-/opt/rudder/share/package-scripts/rudder-ldap-postinst "${RUDDER_FIRST_INSTALL}"
-
 # Do this ONLY at first install
 if [ $1 -eq 1 ]
 then
