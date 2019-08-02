@@ -8,7 +8,7 @@ CFRUDDER_SERVER="$4"
 
 CFE_DIR="/var/rudder/cfengine-community"
 RUDDER_CMD="/opt/rudder/bin/rudder"
-LOG_FILE="/var/log/rudder/install/rudder-agent.log"
+LOG_FILE="/var/log/rudder/install/rudder-agent-$(date +%Y%m%d%H%M%S).log"
 
 # Closing all parents fd which are inherited, otherwise it can lead to
 # a postint unable to terminate (revelant at least on debian 7)
@@ -26,7 +26,7 @@ then
   exit 1
 fi
 
-echo "`date` - Starting rudder-agent post installation script" >> ${LOG_FILE}
+echo "$(date) - Starting rudder-agent post installation script" >> ${LOG_FILE}
 
 # if no conf and no server provided, try to use rudder
 if [ ! -f /var/rudder/cfengine-community/policy_server.dat ] && [ "${CFRUDDER_SERVER}" = "" ]
@@ -70,18 +70,15 @@ then
 fi
 
 # Stop the service to make sure new binaries will be run (agent check will restart it)
-rudder agent stop
+rudder agent stop >> ${LOG_FILE}
 
 # Make sure the configuration is available in a standard place
 ln -sf "${CFE_DIR}/policy_server.dat" "/opt/rudder/etc/policy_server.dat"
 
-# Make sure the daemons are stopped (if the daemon exists)
-[ -x "${CFE_DIR}/bin/cf-execd" ] && ${RUDDER_CMD} agent stop || true
-
 # On AIX, trigger slibclean to remove any unused library/binary object from memory
 # Will prevent "Text file busy" errors during the following copy
 if type slibclean > /dev/null 2>&1; then 
-  slibclean
+  slibclean >> ${LOG_FILE}
 fi
 
 # Ensure the modification date of the capability file is correct
@@ -122,6 +119,8 @@ if command -v "setsid" >/dev/null 2>&1; then
 else
   nohup ${RUDDER_CMD} agent check -f >> ${LOG_FILE} 2>&1 &
 fi
+
+echo "$(date) - Ending rudder-agent post installation script" >> ${LOG_FILE}
 
 # force exit othewise the shell may be waiting for something
 exit 0

@@ -3,6 +3,10 @@ set -e
 
 DB_NOT_INITIALIZED="$1"
 
+LOG_FILE="/var/log/rudder/install/rudder-reports-$(date +%Y%m%d%H%M%S).log"
+
+echo "$(date) - Starting rudder-reports post installation script" >> ${LOG_FILE}
+
 # Try with systemd
 POSTGRESQL_SERVICE_NAME=$(systemctl list-unit-files --type service | awk -F'.' '{print $1}' | grep -E "^postgresql-?[0-9]*$" | tail -n 1)
 
@@ -29,10 +33,10 @@ then
     fi
 
     # rhel package doesn't initialize database
-    ${POSTGRESQL_SETUP} initdb
+    ${POSTGRESQL_SETUP} initdb >> ${LOG_FILE}
     echo " Done"
   fi
-  systemctl start ${POSTGRESQL_SERVICE_NAME} >/dev/null
+  systemctl start ${POSTGRESQL_SERVICE_NAME} >> ${LOG_FILE}
 fi
 
 # TODO RPM only ??
@@ -60,7 +64,7 @@ fi
   
       # Apply changes in PostgreSQL
       # TODO just after a start ?
-      systemctl reload ${POSTGRESQL_SERVICE_NAME}
+      systemctl reload ${POSTGRESQL_SERVICE_NAME} >> ${LOG_FILE}
     fi
   fi
 # ODOT
@@ -68,7 +72,7 @@ fi
 # RHEL doesn't autostart service
 if [ "${DB_NOT_INITIALIZED}" != "" ]; then
   echo -n "INFO: Setting PostgreSQL as a boot service..."
-  systemctl enable ${POSTGRESQL_SERVICE_NAME} >/dev/null
+  systemctl enable ${POSTGRESQL_SERVICE_NAME} >> ${LOG_FILE}
   echo " Done"
 fi
 
@@ -98,7 +102,7 @@ CHK_PG_USER=$(su - postgres -c "psql -t -c \"select count(1) from pg_user where 
 if [ ${CHK_PG_USER} -eq 0 ]
 then
   echo -n "INFO: Creating Rudder PostgreSQL user..."
-  su - postgres -c "psql -q -c \"CREATE USER ${USERNAME} WITH PASSWORD 'Normation'\"" >/dev/null 2>&1
+  su - postgres -c "psql -q -c \"CREATE USER ${USERNAME} WITH PASSWORD 'Normation'\"" >> ${LOG_FILE}
   echo "Done"
 fi
 
@@ -106,9 +110,12 @@ fi
 if [ ${CHK_PG_DB} -eq 0 ]
 then
   echo -n "INFO: Creating Rudder PostgreSQL database..."
-  su - postgres -c "psql -q -c \"CREATE DATABASE ${DBNAME} WITH OWNER = ${USERNAME}\"" >/dev/null 2>&1
+  su - postgres -c "psql -q -c \"CREATE DATABASE ${DBNAME} WITH OWNER = ${USERNAME}\"" >> ${LOG_FILE}
   echo "localhost:5432:${DBNAME}:${USERNAME}:Normation" > /root/.pgpass
   chmod 600 /root/.pgpass
-  psql -q -U rudder -h localhost -d rudder -f /opt/rudder/etc/postgresql/reportsSchema.sql  >/dev/null 2>&1
+  psql -q -U rudder -h localhost -d rudder -f /opt/rudder/etc/postgresql/reportsSchema.sql >> ${LOG_FILE}
   echo " Done"
 fi
+
+echo "$(date) - Ending rudder-reports post installation script" >> ${LOG_FILE}
+

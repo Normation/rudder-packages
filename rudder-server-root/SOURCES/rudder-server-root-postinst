@@ -1,8 +1,7 @@
 #!/bin/bash
 set -e
 
-PACKAGE_NAME="rudder-server-root"
-LOG_FILE="/var/log/rudder/install/${PACKAGE_NAME}.log"
+LOG_FILE="/var/log/rudder/install/rudder-server-root-$(date +%Y%m%d%H%M%S).log"
 RUDDER_DIR="/opt/rudder/"
 
 CFRUDDER_FIRST_INSTALL="$1"
@@ -13,14 +12,14 @@ then
   exit 1
 fi
 
-echo "`date` - Starting ${PACKAGE_NAME} post installation script" >> ${LOG_FILE}
+echo "`date` - Starting rudder-server-root post installation script" >> ${LOG_FILE}
 
 systemctl daemon-reload
 
 # Enable at first install or in migration
 if [ ${CFRUDDER_FIRST_INSTALL} -eq 1 ] || [ -f /var/rudder/tmp/migration-rudder-service-enabled-server ]
 then
-  systemctl enable rudder-server
+  systemctl enable rudder-server >> ${LOG_FILE}
 fi
 
 # Clean flag
@@ -29,3 +28,4 @@ rm -f /var/rudder/tmp/migration-rudder-service-enabled-server
 # We need it to be able to open big mdb memory-mapped databases
 ulimit -v unlimited
 
+echo "$(date) - Ending rudder-server-root post installation script" >> ${LOG_FILE}

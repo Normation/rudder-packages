@@ -7,25 +7,86 @@ RUDDER_FIRST_INSTALL="$1"
 APACHE="$2"
 APACHE_USER="$3"
 APACHE_GROUP="$4"
+LOG_FILE="/var/log/rudder/install/rudder-webapp-$(date +%Y%m%d%H%M%S).log"
+LDAP_CONF="/opt/rudder/etc/openldap/slapd.conf"
 
-# Manage users first
-if ! getent passwd ncf-api-venv >/dev/null; then
-  echo -n "INFO: Creating the ncf-api-venv user..."
-  useradd --system --shell /bin/false --home-dir /var/lib/ncf-api-venv --groups rudder --comment "ncf API,,," ncf-api-venv >/dev/null
-  echo " Done"
+echo "$(date) - Starting rudder-webapp post installation script" >> ${LOG_FILE}
+
+echo -n "INFO: Creating users ..."
+if ! getent passwd rudder-slapd >/dev/null; then
+  useradd --system --shell /bin/false --home-dir /var/rudder/ldap --comment "Rudder LDAP server,,," rudder-slapd >> ${LOG_FILE}
 fi
+chown root:rudder-slapd "${LDAP_CONF}"
+chmod 640 "${LDAP_CONF}"
+chown -R rudder-slapd:rudder-slapd /var/rudder/ldap/
 
+if ! getent passwd ncf-api-venv >/dev/null; then
+  useradd --system --shell /bin/false --home-dir /var/lib/ncf-api-venv --groups rudder --comment "ncf API,,," ncf-api-venv >> ${LOG_FILE}
+fi
+echo " Done"
+
+echo -n "INFO: Setting up systemd ..."
 if [ "${RUDDER_FIRST_INSTALL}" = "true" ]; then
   systemctl daemon-reload
-  systemctl enable rudder-jetty
+  systemctl enable rudder-jetty >> ${LOG_FILE}
+  systemctl enable rudder-slapd >> ${LOG_FILE}
+fi
+echo " Done"
+
+# Remove pidfile and argsfile
+sed -i '/^[ \t]*pidfile/d' "${LDAP_CONF}"
+sed -i '/^[ \t]*argsfile/d' "${LDAP_CONF}"
+
+# Migration from pre-5.1, moving settings to slapd.conf
+if [ -f /var/rudder/tmp/default-rudder-slapd ]; then
+  echo "Starting migration of /etc/default/rudder-slapd" >> ${LOG_FILE}  
+  . /var/rudder/tmp/default-rudder-slapd
+
+  if [ ! -z "${RUDDER_MDBSIZE}" ] && [ "${RUDDER_MDBSIZE}" != "auto" ] || [ "${RUDDER_MDBSIZE}" != "noauto" ]; then
+    echo "Importing value of RUDDER_MDBSIZE: ${RUDDER_MDBSIZE}" >> ${LOG_FILE}
+    sed -i '/^[ \t]*maxsize/d' "${LDAP_CONF}"
+    sed -i 's/^\([ \t]*suffix[ \t]\+"cn=rudder-configuration".*\)/\1\nmaxsize '${RUDDER_MDBSIZE}'/' "${LDAP_CONF}"
+  fi
+  if [ ! -z "${RUDDER_MAX_INCOMING_AUTH}" ]; then
+    echo "Importing value of RUDDER_MAX_INCOMING_AUTH: ${RUDDER_MAX_INCOMING_AUTH}" >> ${LOG_FILE}
+    sed -i '/^[ \t]*sockbuf_max_incoming_auth/d' "${LDAP_CONF}"
+    sed -i 's/^\([ \t]*argsfile[ \t]\+\/.*\)/\1\nsockbuf_max_incoming_auth '${RUDDER_MAX_INCOMING_AUTH}'/' "${LDAP_CONF}"
+  fi
+
+  rm -f /etc/default/rudder-slapd /var/rudder/tmp/default-rudder-slapd
 fi
 
+# Need to restart to take schema changes into account
+echo -n "INFO: Restarting rudder-slapd..."
+
+# during upgrade, service may not have been started with systemctl
+# detect first if rudder-slapd is seen running ?
+RUDDER_SLAPD_RUNNING_SERVICE=0
+RUDDER_SLAPD_RUNNING_SYSTEMCTL=0
+if service rudder-slapd status > /dev/null; then 
+  RUDDER_SLAPD_RUNNING_SERVICE=1
+fi
+if systemctl is-active rudder-slapd > /dev/null; then 
+  RUDDER_SLAPD_RUNNING_SYSTEMCTL=1
+fi
+
+if [ $RUDDER_SLAPD_RUNNING_SERVICE -eq 1 ] && [ $RUDDER_SLAPD_RUNNING_SYSTEMCTL -eq 0 ]
+then
+  # systemctl doesn't know the service is started, we stop it with service first
+  service rudder-slapd stop >> ${LOG_FILE}
+fi
+
+
+systemctl restart rudder-slapd >> ${LOG_FILE}
+echo " Done"
+
+
 echo -n "INFO: Stopping Apache HTTPd..."
-systemctl stop ${APACHE} >/dev/null
+systemctl stop ${APACHE} >> ${LOG_FILE}
 echo " Done"
 
 # Enable the conf-available entry if possible
-a2enconf ncf-api-virtualenv 2>/dev/null || true
+a2enconf ncf-api-virtualenv  >> ${LOG_FILE} 2>/dev/null || true
 
 # Remove .pyc files to ensure we don't end up with outdated files
 rm -f /usr/share/ncf/tools/ncf.pyc
@@ -63,7 +124,7 @@ fi
 cd /var/rudder/configuration-repository
 if [ ! -d /var/rudder/configuration-repository/.git ]; then
 
-  git init --shared=group
+  git init --shared=group >> ${LOG_FILE}
 
   # Specify default git user name and email (git will refuse to commit without them)
   git config user.name "root user (CLI)"
@@ -74,34 +135,29 @@ if [ ! -d /var/rudder/configuration-repository/.git ]; then
 fi
 
 if [ "${RUDDER_FIRST_INSTALL}" = "true" ]; then
-  /opt/rudder/bin/rudder server upgrade-techniques --set-autoupdate-technique-library=true
+  /opt/rudder/bin/rudder server upgrade-techniques --set-autoupdate-technique-library=true >> ${LOG_FILE}
 fi
 
 # Run any upgrades
-echo "INFO: Launching script to check if a migration is needed"
-/opt/rudder/bin/rudder-upgrade
-echo "INFO: End of migration script"
+echo "INFO: Launching script to check if a migration is needed ..."
+/opt/rudder/bin/rudder-upgrade >> ${LOG_FILE}
+echo "Done"
 
 # Adjust permissions on /var/rudder/configuration-repository
-/opt/rudder/bin/rudder-fix-repository-permissions
+/opt/rudder/bin/rudder-fix-repository-permissions  >> ${LOG_FILE}
 
 if [ -f /tmp/rudder-plugins-upgrade ]
 then
   /opt/rudder/bin/rudder-pkg plugin restore-status < /tmp/rudder-plugins-upgrade
 fi
 
-# Run any upgrades berore restarting the webapp
-echo "INFO: Launching script to check if a migration is needed"
-/opt/rudder/bin/rudder-inventory-endpoint-upgrade
-echo "INFO: End of migration script"
-
 echo -n "INFO: Starting Apache HTTPd..."
-systemctl start ${APACHE} >/dev/null
+systemctl start ${APACHE} >> ${LOG_FILE}
 echo " Done"
 
 # Restart the webapp
 echo -n "INFO: Restarting Rudder webapp and inventory-endpoint..."
-systemctl start rudder-jetty >/dev/null
+systemctl start rudder-jetty >> ${LOG_FILE}
 echo " Done"
 
 # Check if Rudder LDAP is initialized and run rudder-init
@@ -109,4 +165,6 @@ LDAPCHK=`/opt/rudder/sbin/slapcat  | grep "^dn: " | wc -l`
 if [ $LDAPCHK -eq 0 ]; then
   /opt/rudder/bin/rudder-init no auto
 fi
+
+echo "$(date) - Ending rudder-webapp post installation script" >> ${LOG_FILE}
 

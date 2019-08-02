@@ -52,6 +52,7 @@ trap anomaly_handler ERR INT TERM
 # - 4.3          : Update ncf Techniques to the new format
 # - 4.3.7        : Drop tables expectedreports and expectesreportsnodes on upgrade
 # - 5.0          : Automatically upgrade Techniques if autoupdate-technique-library is set
+# - 5.0.5        : Properties related to "incoming inventory watch"
 # - 5.0.7        : Tune autovacuum on a table basis
 # - 5.0.12       : Change indexes on RudderSysEvents table
 # - 5.1.0        : Remove ncf hooks
@@ -169,6 +170,17 @@ check_and_add_config_property() {
     echo "INFO: New configuration property ${PROPERTY_NAME} added to /opt/rudder/etc/rudder-web.properties"
   fi
 }
+
+check_and_add_inventory_property() {
+    PROPERTY_NAME=$1
+    PROPERTY_VALUE=$2
+    ATTRIBUTESET=`grep "^${PROPERTY_NAME}[ \t]*=" /opt/rudder/etc/inventory-web.properties | wc -l`
+    if [ ${ATTRIBUTESET} -eq 0 ]; then
+        echo "${PROPERTY_VALUE}" >> /opt/rudder/etc/inventory-web.properties
+        echo "INFO: New configuration property ${PROPERTY_NAME} added to /opt/rudder/etc/inventory-web.properties"
+    fi
+}
+
 
 # Helper function
 # Function to launch a service status check and retry to poll it in case of a failure
@@ -429,6 +441,28 @@ rudder.batch.reportscleaner.compliancelevels.delete.TTL=15
 
 }
 
+upgrade_rudder_inventory_properties() {
+# 5.0.5: 
+# Add inventories.watcher.enable, inventories.root.directory and inventories.watcher.waitForSignatureDuration
+  check_and_add_inventory_property inventories.watcher.enable "
+#
+# Rudder 5.0.5 introduce a file watcher which react to new
+# inventories put in \${inventories.root.directory}/incoming.
+# You can (should) use the watcher by setting the property
+# 'inventories.watcher.enable' to true.
+# 'inventories.watcher.waitForSignatureDuration' is the time
+# in seconds the watcher will wait for the signature file
+# in case there is only an inventory file before sending
+# only inventory to backend.
+# You can start (resp. stop) the watcher with POST to API
+# /api/watcher/start (resp /api/watcher/stop).
+#
+inventories.watcher.enable=true
+inventories.root.directory=/var/rudder/inventories
+inventories.watcher.waitForSignatureDuration=10
+"
+}
+
 ################################################################################
 # Check and update database
 ################################################################################
@@ -616,6 +650,7 @@ upgrade_techniques
 upgrade_ncf
 upgrade_masterfiles
 upgrade_rudder_web_properties
+upgrade_rudder_inventory_properties
 
 # Check the daemon status before upgrading
 RUDDER_DB_INITIALIZED=true
@@ -685,3 +720,6 @@ then
 else
   echo "INFO: The migration has completed successfully."
 fi
+
+
+

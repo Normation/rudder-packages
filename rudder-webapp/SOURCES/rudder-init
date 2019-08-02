@@ -238,7 +238,7 @@ echo
 echo "SUMMARY OF OPTIONS:"
 echo
 echo Allowed networks: "${ALLOWEDNETWORK[*]}"
-echo Reinitialize LDAP database? "$LDAPRESET"
+echo Force LDAP reset: "$LDAPRESET"
 echo
 
 reset_policy_server
