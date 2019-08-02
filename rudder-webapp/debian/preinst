@@ -31,7 +31,7 @@ case "$1" in
       # We need it to be able to open big mdb memory-mapped databases
       ulimit -v unlimited
   
-      /opt/rudder/sbin/slapcat -b "cn=rudder-configuration" -l /var/rudder/ldap/backup/openldap-data-pre-upgrade-${TIMESTAMP}.ldif
+      [ -x /opt/rudder/sbin/slapcat] && /opt/rudder/sbin/slapcat -b "cn=rudder-configuration" -l /var/rudder/ldap/backup/openldap-data-pre-upgrade-${TIMESTAMP}.ldif
   
       # Copy default file for migration
       [ -f /etc/default/rudder-slapd ] && mkdir -p /var/rudder/tmp/ && cp /etc/default/rudder-slapd /var/rudder/tmp/default-rudder-slapd
