@@ -295,6 +295,7 @@ endif
 	$(INSTALL) -m 755 rudder-agent-utilities/bin/rudder $(DESTDIR)/opt/rudder/bin/
 	$(INSTALL) -m 755 rudder-agent-utilities/share/commands/* $(DESTDIR)/opt/rudder/share/commands/
 	$(INSTALL) -m 644 rudder-agent-utilities/share/lib/* $(DESTDIR)/opt/rudder/share/lib/
+	chmod 755 $(DESTDIR)/opt/rudder/share/lib/timestamp
 	$(INSTALL) -m 644 rudder-agent-utilities/agent-capabilities $(DESTDIR)/opt/rudder/etc/
 
 	# Bootstrap promises
