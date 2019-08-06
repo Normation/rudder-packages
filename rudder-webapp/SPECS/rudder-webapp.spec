@@ -439,7 +439,8 @@ then
   /opt/rudder/bin/rudder-pkg plugin restore-status < /tmp/rudder-plugins-upgrade
 fi
 
-service rudder-jetty start
+# this may fails when ldap is not yet initialized
+service rudder-jetty start || true
 
 %postun -n rudder-webapp
 #=================================================
