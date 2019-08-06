@@ -151,6 +151,12 @@ then
   /opt/rudder/bin/rudder-pkg plugin restore-status < /tmp/rudder-plugins-upgrade
 fi
 
+# Check if Rudder LDAP is initialized and run rudder-init
+LDAPCHK=`/opt/rudder/sbin/slapcat  | grep "^dn: " | wc -l`
+if [ $LDAPCHK -eq 0 ]; then
+  /opt/rudder/bin/rudder-init no auto
+fi
+
 echo -n "INFO: Starting Apache HTTPd..."
 systemctl start ${APACHE} >> ${LOG_FILE}
 echo " Done"
@@ -159,12 +165,6 @@ echo " Done"
 echo -n "INFO: Restarting Rudder webapp and inventory-endpoint..."
 systemctl start rudder-jetty >> ${LOG_FILE}
 echo " Done"
-
-# Check if Rudder LDAP is initialized and run rudder-init
-LDAPCHK=`/opt/rudder/sbin/slapcat  | grep "^dn: " | wc -l`
-if [ $LDAPCHK -eq 0 ]; then
-  /opt/rudder/bin/rudder-init no auto
-fi
 
 echo "$(date) - Ending rudder-webapp post installation script" >> ${LOG_FILE}
 
