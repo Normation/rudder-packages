@@ -637,7 +637,7 @@ install-cfengine: build-cfengine $(INSTALL_DEPS) rudder.8.gz
 	# Install cfengine manpages
 	mkdir -p $(DESTDIR)/opt/rudder/share/man/man8
 	cd $(DESTDIR)/opt/rudder/bin && for binary in cf-agent cf-promises cf-key cf-execd cf-serverd cf-monitord cf-net cf-runagent; do \
-		LD_LIBRARY_PATH="$(DESTDIR)/opt/rudder/lib" $${binary}/$${binary} -M | gzip > $(DESTDIR)/opt/rudder/share/man/man8/$${binary}.8.gz; \
+		LD_LIBRARY_PATH="$(DESTDIR)/opt/rudder/lib" ./$${binary} -M | gzip > $(DESTDIR)/opt/rudder/share/man/man8/$${binary}.8.gz; \
 	done
 	cd $(DESTDIR)/opt/rudder && rm -rf share/doc/cfengine
 
