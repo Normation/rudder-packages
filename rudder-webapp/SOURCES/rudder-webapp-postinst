@@ -26,8 +26,9 @@ fi
 echo " Done"
 
 echo -n "INFO: Setting up systemd ..."
+systemctl daemon-reload
+
 if [ "${RUDDER_FIRST_INSTALL}" = "true" ]; then
-  systemctl daemon-reload
   systemctl enable rudder-jetty >> ${LOG_FILE}
   systemctl enable rudder-slapd >> ${LOG_FILE}
 fi
