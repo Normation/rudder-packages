@@ -257,6 +257,7 @@ rm -rf %{buildroot}
 %config(noreplace) /opt/rudder/etc/rudder-apache-relay-ssl.conf
 %config(noreplace) /opt/rudder/etc/rudder-networks-24.conf
 %config(noreplace) /opt/rudder/etc/rudder-networks-policy-server-24.conf
+%config(noreplace) /opt/rudder/etc/rudder-pkg/rudder-pkg.conf
 %config(noreplace) /etc/sysconfig/rudder-relay-apache
 %config /etc/cron.d/rudder-relay
 %attr(0440, root, root) %config /etc/sudoers.d/rudder-relay

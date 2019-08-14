@@ -3,3 +3,4 @@
 /opt/rudder/etc/rudder-apache-relay-ssl.conf
 /opt/rudder/etc/rudder-networks-24.conf
 /opt/rudder/etc/rudder-networks-policy-server-24.conf
+/opt/rudder/etc/rudder-pkg/rudder-pkg.conf
