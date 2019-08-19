@@ -82,7 +82,7 @@ Requires: pwdutils cron
 ## Python 3
 %if 0%{?rhel} && 0%{?rhel} == 7
 BuildRequires: python
-Requires: python, python-devel, python-lxml, python-requests, mod_wsgi
+Requires: python, python-libs, python-lxml, python-requests, mod_wsgi
 %endif
 %if 0%{?rhel} && 0%{?rhel} == 8
 BuildRequires: python3
