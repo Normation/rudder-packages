@@ -23,6 +23,8 @@ chown -R rudder-slapd:rudder-slapd /var/rudder/ldap/
 if ! getent passwd ncf-api-venv >/dev/null; then
   useradd --system --shell /bin/false --home-dir /var/lib/ncf-api-venv --groups rudder --comment "ncf API,,," ncf-api-venv >> ${LOG_FILE}
 fi
+chown -R ncf-api-venv:ncf-api-venv /var/lib/ncf-api-venv
+
 echo " Done"
 
 echo -n "INFO: Setting up systemd ..."
