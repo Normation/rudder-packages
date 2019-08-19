@@ -62,8 +62,9 @@ collect_logs() {
 
   if [ -d "/opt/rudder/share/plugins" ]
   then
-    collect_logs_annex_header "installed rudder plugins"
-    ls -l /opt/rudder/share/plugins >> "${LOG_FILE}" 2>&1
+    collect_logs_annex_header "installed rudder plugins" 
+    /opt/rudder/bin/rudder-pkg list >> "${LOG_FILE}" 2>&1
+    /opt/rudder/bin/rudder-pkg plugin save-status >> "${LOG_FILE}" 2>&1
   fi
 
 }
