@@ -81,20 +81,20 @@ Requires: pwdutils cron
 
 ## Python 3
 %if 0%{?rhel} && 0%{?rhel} == 7
-BuildRequires: python, python-setuptools
+BuildRequires: python, python-setuptools, python-libs, python-lxml, python-requests
 Requires: python, python-libs, python-lxml, python-requests, mod_wsgi
 %endif
 %if 0%{?rhel} && 0%{?rhel} == 8
-BuildRequires: python3, python3-pip
-Requires: python3, python3-lxml, python3-mod_wsgi
+BuildRequires: python3, python3-pip, python3-lxml, python3-requests
+Requires: python3, python3-lxml, python3-mod_wsgi, python3-requests
 %endif
 # Doc for suse versioning https://en.opensuse.org/openSUSE:Packaging_for_Leap
 %if 0%{?suse_version} && 0%{?suse_version} < 1500
-BuildRequires: python, python-setuptools
+BuildRequires: python, python-setuptools, python-lxml, python-requests
 Requires: python, python-lxml, python-requests, apache2-mod_wsgi, python-pyOpenSSL
 %endif
 %if 0%{?suse_version} && 0%{?suse_version} >= 1500
-BuildRequires: python3, python3-pip
+BuildRequires: python3, python3-pip, python3-lxml, python3-requests
 Requires: python3, python3-lxml, python3-requests, apache2-mod_wsgi-python3
 %endif
 
