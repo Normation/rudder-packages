@@ -62,6 +62,11 @@
 # Default to use PIE code if possible
 %define use_pie true
 
+%if 0%{?rhel} == 8 || 0%{?fedora}
+# https://pagure.io/packaging-committee/issue/738
+%define __brp_mangle_shebangs /usr/bin/true
+%endif
+
 # OS family to build for
 %if "%{?_os}" == "aix"
 %define os_family aix
@@ -83,7 +88,7 @@
 %define use_pie false
 %endif
 
-# 2 - RHEL
+# 2 - RHEL & Fedora
 %if 0%{?rhel} && 0%{?rhel} == 3
 # no PCRE on RHEL3
 %define use_system_pcre false
@@ -98,6 +103,11 @@
 %if 0%{?rhel} && 0%{?rhel} <= 6
 # PIE and PIC incompatible on old gcc
 %define use_pie false
+%endif
+
+%if 0%{?fedora}
+%define use_system_curl true
+%define use_system_openssl true
 %endif
 
 # 3 - SUSE
@@ -155,12 +165,12 @@ Requires: syslog
 
 ## Requirement for cpanminus
 # rh 6,7
-%if 0%{?rhel} && 0%{?rhel} >= 6
+%if 0%{?fedora} || (0%{?rhel} && 0%{?rhel} >= 6)
 BuildRequires: perl-IPC-Cmd
 %endif
 
 # rhel perl core is too minimal, we try to not add too much here
-%if 0%{?rhel} && 0%{?rhel} >= 7
+%if 0%{?fedora} || (0%{?rhel} && 0%{?rhel} >= 7)
 Requires: perl-Digest 
 BuildRequires: perl-Digest
 %endif
@@ -178,19 +188,12 @@ Requires: cron net-tools
 
 # dmiecode is provided in the "dmidecode" package on EL4+ and on kernel-utils
 # on EL3
-%if 0%{?rhel} && 0%{?rhel} >= 4
+%if 0%{?fedora} || (0%{?rhel} && 0%{?rhel} >= 4)
 Requires: dmidecode
 %endif
 
 %if 0%{?rhel} && 0%{?rhel} < 4
 Requires: kernel-utils
-%endif
-
-# dmidecode is provided by "dmidecode" too on Fedora platforms, but I'm adding
-# another if block to prevent cluttering the conditions on the >= el4 one and
-# prevent possible unwanted non-matches.
-%if 0%{?fedora}
-Requires: dmidecode
 %endif
 
 # https fails on old distro because they don't support modern certificates (namely rhel3, aix5, sles10 and sles11)
@@ -319,7 +322,7 @@ rm -f %{buildroot}/opt/rudder/bin/vzps.py
 %endif
 
 # strip binaries
-find %{buildroot}/opt/rudder/bin -type f | xargs file -i | grep -E "application/x-sharedlib|application/x-executable" | awk -F: '{print $1}' | xargs strip
+find %{buildroot}/opt/rudder/bin -type f | xargs file -i | grep -E "application/x-sharedlib|application/x-executable|application/x-pie-executable" | awk -F: '{print $1}' | xargs strip
 
 # Build a list of files to include in this package for use in the %files section below
 find %{buildroot} -type f -o -type l | sed "s,%{buildroot},," | sed "s,\.py$,\.py*," | grep -v "%{rudderdir}/etc/uuid.hive" | grep -v "/etc/bash_completion.d" | grep -v "%{ruddervardir}/cfengine-community/ppkeys" > %{_builddir}/file.list.%{name}
