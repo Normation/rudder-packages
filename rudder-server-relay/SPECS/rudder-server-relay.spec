@@ -266,6 +266,7 @@ rm -rf %{buildroot}
 /var/rudder/reports/incoming
 /var/rudder/shared-files/
 /var/rudder/share/
+/var/rudder/share/commands/package
 /var/rudder/lib/ssl/
 /var/log/rudder/apache2/
 /usr/lib/systemd/system/rudder-relayd.service
