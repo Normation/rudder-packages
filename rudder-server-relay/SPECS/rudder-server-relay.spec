@@ -282,8 +282,11 @@ rm -rf %{buildroot}
 /opt/rudder/share/selinux/
 /opt/rudder/share/relay-api/
 /opt/rudder/share/python/
+/opt/rudder/share/commands/package
 /opt/rudder/bin/rudder-pkg
 /opt/rudder/share/package-scripts/rudder-server-relay-postinst
+/opt/rudder/share/package-scripts/rudder-server-relay-prerm
+/etc/bash_completion.d/rudder-pkg.sh
 
 # Avoid having .pyo and .pyc files in our package
 # as they will always be regenerated
