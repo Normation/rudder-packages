@@ -196,6 +196,13 @@ fi
 
 /opt/rudder/share/package-scripts/rudder-server-relay-postinst "${CFRUDDER_FIRST_INSTALL}" "%{apache}" "%{apache_user}" "%{apache_group}"
 
+%preun
+#=================================================
+# Pre Uninstallation
+#=================================================
+# Do it during upgrade and uninstall
+/opt/rudder/share/package-scripts/rudder-server-relay-prerm
+
 #=================================================
 # Post Uninstallation
 #=================================================
