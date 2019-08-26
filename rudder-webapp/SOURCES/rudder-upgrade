@@ -528,7 +528,7 @@ upgrade_database() {
   fi
 
   # - 5.0.7: Tune autovacuum on a table basis
-  RES=$(${PSQL} -t -d ${SQL_DATABASE} -c "select reloptions from pg_class where relname='ruddersysevents'" | grep -c "autovacuum" || true)
+  RES=$(${PSQL} -t -d ${SQL_DATABASE} -c "select reloptions from pg_class where relname='reportsexecution'" | grep -c "autovacuum" || true)
   if [ $RES -eq 0 ]; then
     echo -n "INFO: Adapting autovacuum configuration on a table basis"
     ${PSQL} -d ${SQL_DATABASE} -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-5.0.x-5.0.7-tune-autovacuum_on_table_basis.sql > /dev/null
@@ -540,6 +540,14 @@ upgrade_database() {
   if [ $RES -eq 0 ]; then
     echo -n "INFO: Changing index on table RudderSysEvents, this may take several minutes"
     ${PSQL} -d ${SQL_DATABASE} -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-5.0.x-5.0.12-composite-index-on-ruddersysevents.sql > /dev/null
+    echo " Done"
+  fi
+
+  # - 5.0.13: Remove autovacuum on ruddersysevent table
+  RES=$(${PSQL} -t -d ${SQL_DATABASE} -c "select reloptions from pg_class where relname='ruddersysevents'" | grep -c "autovacuum_vacuum_scale_factor" || true)
+  if [ $RES -ne 0 ]; then
+    echo -n "INFO: Removing autovacuum configuration on ruddersysevents"
+    ${PSQL} -d ${SQL_DATABASE} -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-5.0.x-5.0.13-remove-autovacuum-on-ruddersysevents.sql > /dev/null
     echo " Done"
   fi
 
