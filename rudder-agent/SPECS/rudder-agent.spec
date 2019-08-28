@@ -62,7 +62,12 @@
 # Default to use PIE code if possible
 %define use_pie true
 
-%if 0%{?rhel} == 8 || 0%{?fedora}
+%if 0%{?rhel} == 8
+# https://pagure.io/packaging-committee/issue/738
+%define __brp_mangle_shebangs /usr/bin/true
+%endif
+
+%if 0%{?fedora}
 # https://pagure.io/packaging-committee/issue/738
 %define __brp_mangle_shebangs /usr/bin/true
 %endif
@@ -94,7 +99,7 @@
 %define use_system_pcre false
 %endif
 %if 0%{?rhel} && 0%{?rhel} <= 5
-# system perl too old on rhel3 and rhel5
+# system perl too old on RHEL3 and RHEL5
 %define use_system_perl false
 %define use_system_yaml false
 #libxml too old
@@ -164,39 +169,60 @@ Requires: syslog
 %endif
 
 ## Requirement for cpanminus
-# rh 6,7
-%if 0%{?fedora} || (0%{?rhel} && 0%{?rhel} >= 6)
+# RHEL >= 6 and Fedora (no OR for Fedora, not supported by old rpm, used in aix)
+%if 0%{?rhel} && 0%{?rhel} >= 6
 BuildRequires: perl-IPC-Cmd
 %endif
 
-# rhel perl core is too minimal, we try to not add too much here
-%if 0%{?fedora} || (0%{?rhel} && 0%{?rhel} >= 7)
-Requires: perl-Digest 
+%if 0%{?fedora}
+BuildRequires: perl-IPC-Cmd
+%endif
+
+
+# RHEL perl core is too minimal, we try to not add too much here
+# RHEL >= 7 and Fedora (no OR for Fedora, not supported by old rpm, used in aix)
+%if 0%{?rhel} && 0%{?rhel} >= 7
+Requires: perl-Digest
 BuildRequires: perl-Digest
 %endif
 
-## For EL and Fedora
-%if 0%{?rhel} || 0%{?fedora}
+%if 0%{?fedora}
+Requires: perl-Digest
+BuildRequires: perl-Digest
+%endif
+
+## For RHEL and Fedora
+%if 0%{?rhel}
 BuildRequires: make byacc
 Requires: crontabs net-tools
 %endif
+
+%if 0%{?fedora}
+BuildRequires: make byacc
+Requires: crontabs net-tools
+%endif
+
 
 ## For SLES
 %if 0%{?suse_version}
 Requires: cron net-tools
 %endif
 
-# dmiecode is provided in the "dmidecode" package on EL4+ and on kernel-utils
-# on EL3
-%if 0%{?fedora} || (0%{?rhel} && 0%{?rhel} >= 4)
+# dmiecode package on RHEL4+ and fedora
+%if 0%{?rhel} && 0%{?rhel} >= 4
 Requires: dmidecode
 %endif
 
-%if 0%{?rhel} && 0%{?rhel} < 4
+%%if 0%{?fedora}
+Requires: dmidecode
+%endif
+
+# dmiecode is provided by kernel-utils on RHEL3
+if 0%{?rhel} && 0%{?rhel} < 4
 Requires: kernel-utils
 %endif
 
-# https fails on old distro because they don't support modern certificates (namely rhel3, aix5, sles10 and sles11)
+# https fails on old distro because they don't support modern certificates (namely RHEL3, aix5, sles10 and sles11)
 %define use_https true
 %if 0%{?rhel} && 0%{?rhel} < 6
 %define use_https false
@@ -225,7 +251,7 @@ BuildRequires: libacl-devel
 Requires: libacl
 %endif
 %if 0%{?rhel} && 0%{?rhel} < 4
-# libattr-devel should be a dependency of libacl-devel on rhel3 but it's not declared
+# libattr-devel should be a dependency of libacl-devel on RHEL3 but it's not declared
 BuildRequires: libattr-devel
 %endif
 
@@ -279,7 +305,7 @@ FusionInventory.
 
 cd %{_sourcedir}
 
-# libattr libtool file is looked for in /lib64 but put in /usr/lib64 on rhel3
+# libattr libtool file is looked for in /lib64 but put in /usr/lib64 on RHEL3
 %if 0%{?rhel} && 0%{?rhel} < 4
 cp /usr/lib64/libattr.a /usr/lib64/libattr.la /lib64 || cp /usr/lib/libattr.a /usr/lib/libattr.la /lib
 %endif
