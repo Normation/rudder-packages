@@ -3,14 +3,22 @@
 if [ -x /bin/uuidgen ]
 then
   /bin/uuidgen
+
 elif [ -x /usr/bin/uuidgen ]
 then
   /usr/bin/uuidgen
+
+# AIX 7.2
+elif [ -x /usr/bin/uuid_get ]
+then
+  /usr/bin/uuid_get  
+
+# AIX
 elif [ -f /etc/ncs/uuid_gen ]
 then
-  # AIX
   echo `/etc/ncs/uuid_gen -C | perl -p0e "s/[^0-9a-fx]*//g" | sed "s/0x//g" | sed "s/^\([0-9a-f]\{8\}\)\([0-9a-f]\{4\}\)\([0-9a-f]\{4\}\)\([0-9a-f]\{4\}\)\([0-9a-f]\{12\}\)$/\1-\2-\3-\4-\5/"`
+
+# AIX
 else
-  # AIX
   makeuuid
 fi
