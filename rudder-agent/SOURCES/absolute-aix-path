@@ -2,6 +2,8 @@
 
 set -xe
 
+slibclean
+
 # relink all binaries from a given directory to use absolute library path for rudder embedded libraries
 dir="$1"
 if [ "${dir}" = "" ]
