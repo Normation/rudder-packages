@@ -218,7 +218,7 @@ Requires: dmidecode
 %endif
 
 # dmiecode is provided by kernel-utils on RHEL3
-if 0%{?rhel} && 0%{?rhel} < 4
+%if 0%{?rhel} && 0%{?rhel} < 4
 Requires: kernel-utils
 %endif
 
