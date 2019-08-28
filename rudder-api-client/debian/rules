@@ -1,0 +1,13 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+
+# Uncomment this to turn on verbose mode.
+export DH_VERBOSE=1
+
+# The root Makefile has all possible target and prevent dh to autodetect them
+# We have no test
+override_dh_auto_test:
+
+# Default rule that guess what to do for missing targets
+%:
+	dh $@
