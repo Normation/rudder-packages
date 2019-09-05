@@ -108,16 +108,6 @@ if [ ! -d /var/rudder/configuration-repository/techniques ]; then
   touch /opt/rudder/etc/force_technique_reload
 fi
 
-if [ ! -d /var/rudder/configuration-repository/techniques/ncf_techniques ]; then
-  mkdir /var/rudder/configuration-repository/techniques/ncf_techniques
-  echo "<xml>
-  <name>User Techniques</name>
-  <description>
-    Techniques created using the Technique editor.
-  </description>
-</xml>" > /var/rudder/configuration-repository/techniques/ncf_techniques/category.xml
-fi
-
 # Start with a fresh ncf if needed
 if [ ! -d /var/rudder/ncf/common/10_ncf_internals ]; then
   cp -a /usr/share/ncf/tree/* /var/rudder/ncf/common/
