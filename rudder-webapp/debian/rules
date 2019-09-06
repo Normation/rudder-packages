@@ -95,6 +95,7 @@ binary-arch: install
 	dh_install --sourcedir=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ dbMigration-4.3.x-4.3.8-correct-indexes-on-compliancelevel.sql /opt/rudder/share/upgrade-tools/
 	dh_install --sourcedir=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ dbMigration-5.0.x-5.0.7-tune-autovacuum_on_table_basis.sql /opt/rudder/share/upgrade-tools/
 	dh_install --sourcedir=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ dbMigration-5.0.x-5.0.12-composite-index-on-ruddersysevents.sql /opt/rudder/share/upgrade-tools/
+	dh_install --sourcedir=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/Migration/ dbMigration-5.0.x-5.0.13-remove-autovacuum-on-ruddersysevents.sql /opt/rudder/share/upgrade-tools/
 
 	## LDAP
 	## no scripts for now
