@@ -31,7 +31,7 @@ case "$1" in
       CFRUDDER_FIRST_INSTALL=0
       if [ -z "${2}" ]; then CFRUDDER_FIRST_INSTALL=1; fi
 
-      /opt/rudder/share/package-scripts/rudder-server-relay-postinst "${CFRUDDER_FIRST_INSTALL}" "apache2" "www-data" "www-data"
+      /opt/rudder/share/package-scripts/rudder-server-relay-postinst "${CFRUDDER_FIRST_INSTALL}" "apache2" "www-data" "www-data" "apache2/sites-available"
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
