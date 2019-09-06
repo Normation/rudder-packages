@@ -12,16 +12,24 @@ LDAP_CONF="/opt/rudder/etc/openldap/slapd.conf"
 
 echo "$(date) - Starting rudder-webapp post installation script" >> ${LOG_FILE}
 
+echo -n "INFO: Creating groups ..."
+if ! getent group rudder-slapd >/dev/null; then
+  groupadd --system rudder-slapd >> ${LOG_FILE}
+fi
+if ! getent group ncf-api-venv >/dev/null; then
+  groupadd --system ncf-api-venv >> ${LOG_FILE}
+fi
+
 echo -n "INFO: Creating users ..."
 if ! getent passwd rudder-slapd >/dev/null; then
-  useradd --system --shell /bin/false --home-dir /var/rudder/ldap --comment "Rudder LDAP server,,," rudder-slapd >> ${LOG_FILE}
+  useradd --system --gid rudder-slapd --shell /bin/false --home-dir /var/rudder/ldap --comment "Rudder LDAP server,,," rudder-slapd >> ${LOG_FILE}
 fi
 chown root:rudder-slapd "${LDAP_CONF}"
 chmod 640 "${LDAP_CONF}"
 chown -R rudder-slapd:rudder-slapd /var/rudder/ldap/
 
 if ! getent passwd ncf-api-venv >/dev/null; then
-  useradd --system --shell /bin/false --home-dir /var/lib/ncf-api-venv --groups rudder --comment "ncf API,,," ncf-api-venv >> ${LOG_FILE}
+  useradd --system --gid ncf-api-venv --shell /bin/false --home-dir /var/lib/ncf-api-venv --groups rudder --comment "ncf API,,," ncf-api-venv >> ${LOG_FILE}
 fi
 chown -R ncf-api-venv:ncf-api-venv /var/lib/ncf-api-venv
 
