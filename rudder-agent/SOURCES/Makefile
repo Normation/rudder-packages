@@ -570,6 +570,22 @@ build-xml: xml-source
 	# install to a temporary location is needed to build cfengine
 	cd xml-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
 
+build-perl: perl-$(PERL_RELEASE)
+	cd perl-$(PERL_RELEASE) && $(MAKE) distclean 2>/dev/null || true # Or this can fail on an already used source
+	cd perl-$(PERL_RELEASE) && ./Configure -Dnoextensions=ODBM_File -Duserelocatableinc -Dusethreads -des -Dcc="gcc" -Dinstallprefix=$(RUDDER_DIR) -Dsiteprefix=$(RUDDER_DIR) -Dprefix=$(RUDDER_DIR)
+	cd perl-$(PERL_RELEASE) && $(MAKE) $(MAKE_J)
+	cd perl-$(PERL_RELEASE) && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
+	# 8Mb of perldoc
+	rm -rf $(CURDIR)/dependencies/opt/rudder/lib/perl5/$(PERL_RELEASE)/pod
+	# 20Mb of perl manual
+	find $(CURDIR)/dependencies/opt/rudder/share/man -name 'perl' -exec rm -rf {} \;
+	# Remove 'special' files
+	find $(CURDIR)/dependencies -name perllocal.pod \
+	  -o -name ".packlist" \
+	  -o -name "*.bs" \
+	  | xargs rm -f
+	touch build-perl # because perl-$(PERL_RELEASE) is touched by make install
+
 # check cache content
 PATCHES_SHA = $(shell find patches/cfengine -type f | xargs | sha256sum | awk '{print $$1}')
 DEPS_CACHE_PARAMETERS = --with-env name=dependencies lmdb=$(LMDB_SHA1) openssl=$(OPENSSL_SHA1) old-openssl=$(OLD_OPENSSL_SHA1) pcre=$(PCRE_SHA1) curl=$(CURL_SHA1) yaml=$(YAML_SHA1) xml=$(XML_SHA1) zlib=$(ZLIB_SHA1) cfengine=$(CFENGINE_SHA1) patches=$(PATCHES_SHA)
@@ -613,12 +629,6 @@ endif
 	$(eval SECURE_CFLAGS:=$(if $(HAVE_PROTECTION),$(TRY_CFLAGS)))
 	$(eval SECURE_LDFLAGS:=$(if $(HAVE_PROTECTION),$(TRY_LDFLAGS)))
 
-build-perl: perl-$(PERL_RELEASE)
-	cd perl-$(PERL_RELEASE) && $(MAKE) distclean 2>/dev/null || true # Or this can fail on an already used source
-	cd perl-$(PERL_RELEASE) && ./Configure -Dnoextensions=ODBM_File -Duserelocatableinc -Dusethreads -des -Dcc="gcc" -Dinstallprefix=$(RUDDER_DIR) -Dsiteprefix=$(RUDDER_DIR) -Dprefix=$(RUDDER_DIR)
-	cd perl-$(PERL_RELEASE) && $(MAKE) $(MAKE_J)
-	touch $@
-
 #####################################
 # Install separated into components #
 #####################################
@@ -639,20 +649,6 @@ install-cfengine: build-cfengine $(INSTALL_DEPS) rudder.8.gz
 	done
 	cd $(DESTDIR)/opt/rudder && rm -rf share/doc/cfengine
 	printf "#!/bin/sh\necho 'cf-monitord has been removed from Rudder agent'\nexit 1" > $(DESTDIR)/opt/rudder/bin/cf-monitord
-
-install-perl: build-perl
-	cd perl-$(PERL_RELEASE) && $(MAKE) install DESTDIR=$(DESTDIR)
-	# 20Mb of perl manual, but we cannot remove $(DESTDIR) directly, so we currently just leave the package for very old distro fat
-	#rm -rf $(DESTDIR)/man
-	# 8Mb of perldoc
-	#rm -rf $(DESTDIR)/lib/perl5/5.22.0/pod
-	touch build-perl # because perl-$(PERL_RELEASE) is touched by make install
-	find $(DESTDIR)/opt/rudder/man -name 'perl' -exec rm -rf {} \;
-	# Remove 'special' files
-	find $(DESTDIR) -name perllocal.pod \
-	  -o -name ".packlist" \
-	  -o -name "*.bs" \
-	  | xargs rm -f
 
 
 CPANM:=$(CURDIR)/perl-$(PERL_RELEASE)/App-cpanminus/bin/cpanm
