@@ -150,7 +150,7 @@ endif
 ifneq (true,$(USE_SYSTEM_PERL))
 BUILD_DEPS := $(BUILD_DEPS) build-perl
 FUSION_DEPS := install-perl
-PERL:=$(DESTDIR)/opt/rudder/bin/perl
+PERL:=$(CURDIR)/dependencies/opt/rudder/bin/perl
 else
 FUSION_DEPS := cpan-source
 PERL := perl
