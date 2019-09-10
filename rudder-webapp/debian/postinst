@@ -133,6 +133,10 @@ case "$1" in
     /opt/rudder/bin/rudder-pkg plugin restore-status < /tmp/rudder-plugins-upgrade
   fi
 
+  cd /
+  setfacl --restore=/tmp/rudder-hooks-upgrade
+
+
   # Restart the webapp
   echo -n "INFO: Restarting Rudder webapp and inventory-endpoint..."
   # this may fails when ldap is not yet initialized

@@ -43,6 +43,7 @@ case "$1" in
         /opt/rudder/bin/rudder-pkg plugin save-status > /tmp/rudder-plugins-upgrade
       fi
 
+      getfacl --recursive /opt/rudder/etc/hooks.d/ > /tmp/rudder-hooks-upgrade
 
     ;;
 

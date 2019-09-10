@@ -92,7 +92,7 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
 
 # Dependencies
-Requires: %(../format-dependencies rpm %{real_epoch}:%{real_version} rudder-techniques rudder-server-relay ncf-api-virtualenv rudder-jetty), %{apache}, %{apache_tools}, git-core, rsync, openssl, %{ldap_clients}
+Requires: %(../format-dependencies rpm %{real_epoch}:%{real_version} rudder-techniques rudder-server-relay ncf-api-virtualenv rudder-jetty), %{apache}, %{apache_tools}, git-core, rsync, openssl, %{ldap_clients}, acl
 
 # We need the PostgreSQL client utilities so that we can run database checks and upgrades (rudder-upgrade, in particular)
 Requires: postgresql >= 9.2
@@ -265,13 +265,21 @@ install -m 644 %{SOURCE23} %{buildroot}%{ruddervardir}/configuration-repository/
 #=================================================
 # Pre Installation
 #=================================================
-mkdir -p /opt/rudder/etc
-echo 'root' > /opt/rudder/etc/uuid.hive
 
-service rudder-jetty stop >&2 > /dev/null
-if [ -x /opt/rudder/bin/rudder-pkg ]
+if [ $1 -eq 1 ]
 then
-  /opt/rudder/bin/rudder-pkg plugin save-status > /tmp/rudder-plugins-upgrade
+  # install
+  mkdir -p /opt/rudder/etc
+  echo 'root' > /opt/rudder/etc/uuid.hive
+else
+  # upgrade
+  service rudder-jetty stop >&2 > /dev/null
+  if [ -x /opt/rudder/bin/rudder-pkg ]
+  then
+    /opt/rudder/bin/rudder-pkg plugin save-status > /tmp/rudder-plugins-upgrade
+  fi
+
+  getfacl --recursive /opt/rudder/etc/hooks.d/ > /tmp/rudder-hooks-upgrade
 fi
 
 %post -n rudder-webapp
@@ -439,6 +447,9 @@ if [ -f /tmp/rudder-plugins-upgrade ]
 then
   /opt/rudder/bin/rudder-pkg plugin restore-status < /tmp/rudder-plugins-upgrade
 fi
+
+cd /
+setfacl --restore=/tmp/rudder-hooks-upgrade
 
 # this may fails when ldap is not yet initialized
 service rudder-jetty start || true
