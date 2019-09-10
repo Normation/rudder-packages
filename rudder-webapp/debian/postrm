@@ -23,16 +23,14 @@ case "$1" in
     purge)
           # Restart apache since it is still using the user
           systemctl restart apache2 > /dev/null
+          echo -n "INFO: Removing users..."
           if getent passwd ncf-api-venv >/dev/null; then
-            echo -n "INFO: Removing the ncf-api-venv user..."
             userdel ncf-api-venv >/dev/null 2>&1
-            echo " Done"
           fi
           if getent passwd rudder-slapd >/dev/null; then
-            echo -n "INFO: Removing the rudder-slapd user..."
             userdel rudder-slapd >/dev/null 2>&1
-            echo " Done"
           fi
+          echo " Done"
     ;;
     remove|upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
     ;;

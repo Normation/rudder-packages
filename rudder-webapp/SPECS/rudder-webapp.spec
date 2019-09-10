@@ -22,8 +22,6 @@
 %define real_name               rudder-webapp
 %define real_epoch              1398866025
 
-%define config_repository_group rudder
-
 %define maven_settings settings-external.xml
 
 # Reference for suse_version : https://en.opensuse.org/openSUSE:Build_Service_cross_distribution_howto
@@ -224,23 +222,18 @@ if [ $1 -ne 1 ]
 
   [ -x /opt/rudder/sbin/slapcat ] && /opt/rudder/sbin/slapcat -b "cn=rudder-configuration" -l /var/rudder/ldap/backup/openldap-data-pre-upgrade-${TIMESTAMP}.ldif
 
+  # If the stops fails, it's probably because it was not started
+  service rudder-jetty stop >&2 > /dev/null || true
+
   # Copy default file for migration
   [ -f /etc/default/rudder-slapd ] && mkdir -p /var/rudder/tmp/ && cp /etc/default/rudder-slapd /var/rudder/tmp/default-rudder-slapd
-fi
 
-service rudder-jetty stop >&2 > /dev/null
-if [ -x /opt/rudder/bin/rudder-pkg ]
-then
-  /opt/rudder/bin/rudder-pkg plugin save-status > /tmp/rudder-plugins-upgrade
-fi
-
-getfacl --recursive /opt/rudder/etc/hooks.d/ > /tmp/rudder-hooks-upgrade
-
-CFRUDDER_FIRST_INSTALL=$1
-
-if [ ${CFRUDDER_FIRST_INSTALL} -ne 1 ]
-then
-    service rudder-jetty stop
+  if [ -x /opt/rudder/bin/rudder-pkg ]
+  then
+    /opt/rudder/bin/rudder-pkg plugin save-status > /tmp/rudder-plugins-upgrade
+  fi
+  
+  getfacl --recursive /opt/rudder/etc/hooks.d/ > /tmp/rudder-hooks-upgrade
 fi
 
 #=================================================
@@ -250,14 +243,10 @@ fi
 
 RUDDER_FIRST_INSTALL="false"
 
-if [ $1 -eq 1 ]
-then
-  RUDDER_FIRST_INSTALL="true"
-fi
-
 # Do this ONLY at first install
 if [ $1 -eq 1 ]
 then
+  RUDDER_FIRST_INSTALL="true"
   echo 'DAVLockDB /tmp/davlock.db' > /etc/%{apache}/conf.d/dav_mod.conf
 fi
 
@@ -310,13 +299,6 @@ fi
 
 # Do it only during uninstallation
 if [ $1 -eq 0 ]; then
-  if getent group %{config_repository_group} > /dev/null; then
-    # Remove the configuration-repository group
-    echo -n "INFO: Removing group %{config_repository_group}..."
-    groupdel %{config_repository_group}
-    echo " Done"
-  fi
-
 %if 0%{?suse_version}
   # Remove required includes in the SLES apache2 configuration
   if [ -f /etc/sysconfig/apache2 ]; then
@@ -328,42 +310,33 @@ if [ $1 -eq 0 ]; then
   fi
 %endif
 
-  # Remove the package user
-  if getent passwd rudder-slapd >/dev/null; then
-    echo -n "INFO: Removing the rudder-slapd user..."
-    userdel rudder-slapd >/dev/null 2>&1
-    echo " Done"
-  fi
-fi
-
 %if 0%{?rhel}
-  # Do it only during uninstallation
-  if [ $1 -eq 0 ]; then
-    if type sestatus >/dev/null 2>&1 && sestatus | grep -q "enabled"; then
-      if semodule -l | grep -q rudder-webapp; then
-        echo -n "INFO: Removing selinux policy..."
-        # Remove the ncf-api-virtualenv SELinux policy
-        semodule -r ncf-api-virtualenv 2>/dev/null
-        restorecon -RF /var/lib/ncf-api-venv/
-        # Remove the rudder-webapp SELinux policy
-        semodule -r rudder-webapp
-        restorecon -RF /var/rudder/configuration-repository/techniques
-        echo " Done"
-      fi
+  if type sestatus >/dev/null 2>&1 && sestatus | grep -q "enabled"; then
+    if semodule -l | grep -q rudder-webapp; then
+      echo -n "INFO: Removing selinux policy..."
+      # Remove the ncf-api-virtualenv SELinux policy
+      semodule -r ncf-api-virtualenv 2>/dev/null
+      restorecon -RF /var/lib/ncf-api-venv/
+      # Remove the rudder-webapp SELinux policy
+      semodule -r rudder-webapp
+      restorecon -RF /var/rudder/configuration-repository/techniques
+      echo " Done"
     fi
   fi
 %endif
 
-# Do it only during uninstallation
-if [ $1 -eq 0 ]; then
   # restart apache2 since it uses the user ncf
   systemctl restart %{apache} >/dev/null
-  # Remove the package user
+
+  echo -n "INFO: Removing users..."
   if getent passwd ncf-api-venv >/dev/null; then
-    echo -n "INFO: Removing the ncf-api-venv user..."
     userdel ncf-api-venv >/dev/null 2>&1
-    echo " Done"
   fi
+
+  if getent passwd rudder-slapd >/dev/null; then
+    userdel rudder-slapd >/dev/null 2>&1
+  fi
+   echo " Done"
 fi
 
 

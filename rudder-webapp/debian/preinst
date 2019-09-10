@@ -18,6 +18,8 @@ case "$1" in
     install)
       mkdir -p /opt/rudder/etc
       echo 'root' > /opt/rudder/etc/uuid.hive
+      mkdir -p /var/rudder/cfengine-community/
+      echo "127.0.0.1" > /var/rudder/cfengine-community/policy_server.dat
     ;;
 
     upgrade)
@@ -36,7 +38,7 @@ case "$1" in
       # Copy default file for migration
       [ -f /etc/default/rudder-slapd ] && mkdir -p /var/rudder/tmp/ && cp /etc/default/rudder-slapd /var/rudder/tmp/default-rudder-slapd
 
-      #if the stops fails, it's probably because it was not started
+      # If the stops fails, it's probably because it was not started
       service rudder-jetty stop >&2 > /dev/null || true
 
       if [ -x /opt/rudder/bin/rudder-pkg ]
