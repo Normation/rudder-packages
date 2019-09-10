@@ -77,7 +77,7 @@ BuildRequires: gcc
 Requires: rsyslog
 
 # Dependencies
-Requires: %(../format-dependencies rpm %{real_epoch}:%{real_version} rudder-server-relay), %{apache}, %{apache_tools}, git-core, rsync, openssl, %{ldap_clients}, curl
+Requires: %(../format-dependencies rpm %{real_epoch}:%{real_version} rudder-server-relay), %{apache}, %{apache_tools}, git-core, rsync, openssl, %{ldap_clients}, curl, acl
 
 # We need the PostgreSQL client utilities so that we can run database checks and upgrades (rudder-upgrade, in particular)
 Requires: postgresql >= 9.2
@@ -233,6 +233,8 @@ if [ -x /opt/rudder/bin/rudder-pkg ]
 then
   /opt/rudder/bin/rudder-pkg plugin save-status > /tmp/rudder-plugins-upgrade
 fi
+
+getfacl --recursive /opt/rudder/etc/hooks.d/ > /tmp/rudder-hooks-upgrade
 
 CFRUDDER_FIRST_INSTALL=$1
 

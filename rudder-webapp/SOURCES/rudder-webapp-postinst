@@ -152,6 +152,9 @@ then
   /opt/rudder/bin/rudder-pkg plugin restore-status < /tmp/rudder-plugins-upgrade
 fi
 
+cd /
+setfacl --restore=/tmp/rudder-hooks-upgrade
+
 # Check if Rudder LDAP is initialized and run rudder-init
 # sed stops at first match (giving a SIGPIPE to command) so that the slapcat is not too long on big db
 LDAPCHK=`/opt/rudder/sbin/slapcat | sed -n '/^dn: /{p;q}' | wc -l`
