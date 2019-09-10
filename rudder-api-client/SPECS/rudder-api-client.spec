@@ -55,6 +55,12 @@ Requires: python3, python3-requests
 Command line tools and python libraries to call Rudder.
 
 #=================================================
+# Source preparation
+#=================================================
+%prep
+%setup -c
+
+#=================================================
 # Installation
 #=================================================
 %install
