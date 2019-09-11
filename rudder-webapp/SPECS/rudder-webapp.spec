@@ -449,7 +449,7 @@ then
 fi
 
 cd /
-setfacl --restore=/tmp/rudder-hooks-upgrade
+[ -f /tmp/rudder-hooks-upgrade ] && setfacl --restore=/tmp/rudder-hooks-upgrade
 
 # this may fails when ldap is not yet initialized
 service rudder-jetty start || true

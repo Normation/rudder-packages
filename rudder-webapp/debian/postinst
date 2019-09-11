@@ -134,7 +134,7 @@ case "$1" in
   fi
 
   cd /
-  setfacl --restore=/tmp/rudder-hooks-upgrade
+  [ -f /tmp/rudder-hooks-upgrade ] && setfacl --restore=/tmp/rudder-hooks-upgrade
 
 
   # Restart the webapp
