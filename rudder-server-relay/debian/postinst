@@ -23,7 +23,7 @@ case "$1" in
 
       a2dissite default 000-default default-ssl >/dev/null 2>&1 || true
       a2ensite rudder.conf >/dev/null
-      a2enmod rewrite dav dav_fs ssl wsgi >/dev/null
+      a2enmod proxy_http rewrite dav dav_fs ssl >/dev/null
       # This module is compiled in core in some distro (debian)
       a2enmod version >/dev/null 2>&1 || true
 
