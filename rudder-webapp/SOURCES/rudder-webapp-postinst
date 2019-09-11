@@ -153,7 +153,7 @@ then
 fi
 
 cd /
-setfacl --restore=/tmp/rudder-hooks-upgrade
+[ -f /tmp/rudder-hooks-upgrade ] && setfacl --restore=/tmp/rudder-hooks-upgrade
 
 # Check if Rudder LDAP is initialized and run rudder-init
 # sed stops at first match (giving a SIGPIPE to command) so that the slapcat is not too long on big db
