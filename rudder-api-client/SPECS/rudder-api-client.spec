@@ -39,6 +39,7 @@ Release: 1%{?dist}
 Epoch: %{real_epoch}
 License: Apache-2.0
 URL: https://www.rudder.io/
+Source: rudder-sources.tar.bz2
 
 Group: Applications/System
 
