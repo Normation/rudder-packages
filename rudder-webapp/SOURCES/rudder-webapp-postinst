@@ -92,10 +92,6 @@ systemctl restart rudder-slapd >> ${LOG_FILE}
 echo " Done"
 
 
-echo -n "INFO: Stopping Apache HTTPd..."
-systemctl stop ${APACHE} >> ${LOG_FILE}
-echo " Done"
-
 # Enable the conf-available entry if possible
 a2enconf ncf-api-virtualenv  >> ${LOG_FILE} 2>/dev/null || true
 
@@ -139,6 +135,13 @@ if [ "${RUDDER_FIRST_INSTALL}" = "true" ]; then
   /opt/rudder/bin/rudder server upgrade-techniques --set-autoupdate-technique-library=true >> ${LOG_FILE}
 fi
 
+# Check if Rudder LDAP is initialized and run rudder-init
+# sed stops at first match (giving a SIGPIPE to command) so that the slapcat is not too long on big db
+LDAPCHK=`/opt/rudder/sbin/slapcat | sed -n '/^dn: /{p;q}' | wc -l`
+if [ $LDAPCHK -eq 0 ]; then
+  /opt/rudder/bin/rudder-init no auto
+fi
+
 # Run any upgrades
 echo "INFO: Launching script to check if a migration is needed ..."
 /opt/rudder/bin/rudder-upgrade >> ${LOG_FILE}
@@ -155,21 +158,17 @@ fi
 cd /
 [ -f /tmp/rudder-hooks-upgrade ] && setfacl --restore=/tmp/rudder-hooks-upgrade
 
-# Check if Rudder LDAP is initialized and run rudder-init
-# sed stops at first match (giving a SIGPIPE to command) so that the slapcat is not too long on big db
-LDAPCHK=`/opt/rudder/sbin/slapcat | sed -n '/^dn: /{p;q}' | wc -l`
-if [ $LDAPCHK -eq 0 ]; then
-  /opt/rudder/bin/rudder-init no auto
-fi
+# Restart the webapp
+echo -n "INFO: Make sure Rudder webapp is started..."
+systemctl start rudder-jetty >> ${LOG_FILE}
+echo " Done"
 
-echo -n "INFO: Starting Apache HTTPd..."
+echo -n "INFO: Make sure Apache HTTPd is started..."
 systemctl start ${APACHE} >> ${LOG_FILE}
 echo " Done"
 
-# Restart the webapp
-echo -n "INFO: Restarting Rudder webapp and inventory-endpoint..."
-systemctl start rudder-jetty >> ${LOG_FILE}
-echo " Done"
+## Make sure everything is ok
+rudder agent check 2>&1 | tee "${LOG_FILE}"
 
 echo "$(date) - Ending rudder-webapp post installation script" >> ${LOG_FILE}
 
