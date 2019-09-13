@@ -497,7 +497,7 @@ fi
 # Keep a backup copy of CFEngine ppkeys
 if [ -d /var/rudder/cfengine-community/ppkeys/ ]; then
   mkdir -p /var/backups/rudder
-  cp -f /var/rudder/cfengine-community/ppkeys/ /var/backups/rudder/ppkeys-$(date +%Y%m%d)
+  cp -rf /var/rudder/cfengine-community/ppkeys/ /var/backups/rudder/ppkeys-$(date +%Y%m%d)
   echo "INFO: A back up copy of the /var/rudder/cfengine-community/ppkeys has been created in /var/backups/rudder"
 fi
 
