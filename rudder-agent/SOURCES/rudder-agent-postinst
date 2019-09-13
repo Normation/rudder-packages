@@ -31,6 +31,11 @@ echo "$(date) - Starting rudder-agent post installation script" >> ${LOG_FILE}
 # Update systemd units
 /bin/systemctl daemon-reload
 
+if [ "${CFRUDDER_USE_SYSTEMD}" = "true" ]
+then
+  /bin/systemctl daemon-reload
+fi
+
 # if no conf and no server provided, try to use rudder
 if [ ! -f /var/rudder/cfengine-community/policy_server.dat ] && [ "${CFRUDDER_SERVER}" = "" ]
 then
