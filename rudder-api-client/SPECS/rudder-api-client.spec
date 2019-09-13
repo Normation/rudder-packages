@@ -65,9 +65,8 @@ Command line tools and python libraries to call Rudder.
 # Installation
 #=================================================
 %install
-rm -rf %{buildroot}
+cd rudder-sources-*/rudder-api-client/
 
-cd %{_sourcedir}
 make install DESTDIR=%{buildroot}
 
 #=================================================
