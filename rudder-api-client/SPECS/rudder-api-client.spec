@@ -84,7 +84,8 @@ make install DESTDIR=%{buildroot}
 # Cleaning
 #=================================================
 %clean
-cd %{_sourcedir} && make clean
+cd rudder-sources-*/rudder-api-client/
+make clean
 rm -rf %{buildroot}
 
 #=================================================
