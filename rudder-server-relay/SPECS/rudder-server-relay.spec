@@ -93,8 +93,13 @@ Requires: python3, apache2-mod_wsgi-python3
 
 
 ## Python
+%if 0%{?rhel} && 0%{?rhel} == 7
+BuildRequires: python, python-pip, python-lxml, python-requests
+Requires: python, python-lxml, python-requests
+%else
 BuildRequires: python3, python3-pip, python3-lxml, python3-requests
 Requires: python3, python3-lxml, python3-requests
+%endif
 
 %description
 Rudder is an open source configuration management and audit solution.
@@ -108,6 +113,14 @@ run a Rudder relay server on a machine.
 %prep
 %setup -c
 
+# We don't know the exact version
+cd rudder-sources-*/rudder/relay/sources/
+
+# rhel7 doesn't have python 3 so we force python2 instead
+%if 0%{?rhel} == 7 || ( 0%{?suse_version} && 0%{?suse_version} < 1500 )
+find . -type f | xargs sed -i '1,1s|#!/usr/bin/python3|#!/usr/bin/python2|'
+%endif
+
 #=================================================
 # Building
 #=================================================
@@ -119,7 +132,11 @@ cd rudder-sources-*/rudder/relay/sources/
 sed -i "s%^DocumentRoot /var/www$%DocumentRoot /srv/www%" apache/rudder-apache-relay-common.conf
 %endif
 
+%if 0%{?rhel} == 7
+make build SELINUX=%{selinux} PYTHON=python2
+%else
 make build SELINUX=%{selinux}
+%endif
 
 #=================================================
 # Installation

@@ -1,4 +1,4 @@
-sles-12:python-devel python-setuptools python-lxml python-requests pkgconfig postgresql-devel openssl-devel zlib-devel xz-devel
+sles-12:python3-devel python3-setuptools python3-lxml python3-requests pkgconfig postgresql-devel openssl-devel zlib-devel xz-devel
 sles-15:python3-devel python3-pip python3-lxml python3-requests pkgconfig postgresql-devel openssl-devel zlib-devel xz-devel
 rhel-7:python-devel python-setuptools pythons-libs python-lxml python-requests selinux-policy-devel pkgconfig postgresql-devel openssl-devel zlib-devel xz-devel
 rhel-8:python3-devel python3-pip python3-lxml python3-requests selinux-policy-devel pkgconfig postgresql-devel openssl-devel zlib-devel xz-devel
