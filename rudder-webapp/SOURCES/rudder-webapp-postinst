@@ -168,7 +168,7 @@ systemctl start ${APACHE} >> ${LOG_FILE}
 echo " Done"
 
 ## Make sure everything is ok
-rudder agent check 2>&1 | tee "${LOG_FILE}"
+rudder agent check -f 2>&1 | tee "${LOG_FILE}"
 
 echo "$(date) - Ending rudder-webapp post installation script" >> ${LOG_FILE}
 
