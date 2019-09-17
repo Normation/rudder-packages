@@ -149,10 +149,8 @@ endif
 # default: build perl
 ifneq (true,$(USE_SYSTEM_PERL))
 BUILD_DEPS := $(BUILD_DEPS) build-perl
-FUSION_DEPS := install-perl
 PERL:=$(CURDIR)/dependencies/opt/rudder/bin/perl
 else
-FUSION_DEPS := cpan-source
 PERL := perl
 endif
 # default: embed fusion
@@ -476,21 +474,16 @@ perl-$(PERL_RELEASE):
 	# Original URL: http://www.cpan.org/src/5.0/perl-5.22.4.tar.gz
 	$(GET) $(TMP_DIR)/perl.tar.gz $(HTTPS)://repository.rudder.io/build-dependencies/perl/perl-$(PERL_RELEASE).tar.gz $(PERL_SHA1)
 	gunzip < $(TMP_DIR)/perl.tar.gz | $(TAR) xf -
-	# Original URL: http://www.cpan.org/modules/by-module/App/App-cpanminus-1.7036.tar.gz
-	$(GET) ./perl-$(PERL_RELEASE)/App-cpanminus.tar.gz $(HTTPS)://repository.rudder.io/build-dependencies/cpan/App-cpanminus-$(CPANMINUS_RELEASE).tar.gz $(CPANMINUS_SHA1)
-	cd perl-$(PERL_RELEASE) && gunzip < App-cpanminus.tar.gz | $(TAR) xf -
-	mv ./perl-$(PERL_RELEASE)/App-cpanminus-$(CPANMINUS_RELEASE) ./perl-$(PERL_RELEASE)/App-cpanminus
-	# cpanminus+curl have a bug on rhel3+64bits, this is the workaround, see https://issues.rudder.io/issues/8533
-	sed -i -e "s/'-#',//" ./perl-$(PERL_RELEASE)/App-cpanminus/bin/cpanm
 	rm -rf $(TMP_DIR)
 
-cpan-source: perl-$(PERL_RELEASE)/App-cpanminus
-perl-$(PERL_RELEASE)/App-cpanminus:
-	mkdir -p ./perl-$(PERL_RELEASE)
+App-cpanminus:
 	$(eval TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX))
+	# Original URL: http://www.cpan.org/modules/by-module/App/App-cpanminus-1.7036.tar.gz
 	$(GET) $(TMP_DIR)/App-cpanminus.tar.gz $(HTTPS)://repository.rudder.io/build-dependencies/cpan/App-cpanminus-$(CPANMINUS_RELEASE).tar.gz $(CPANMINUS_SHA1)
-	cd perl-$(PERL_RELEASE) && gunzip < $(TMP_DIR)/App-cpanminus.tar.gz | $(TAR) xf -
-	mv ./perl-$(PERL_RELEASE)/App-cpanminus-$(CPANMINUS_RELEASE) ./perl-$(PERL_RELEASE)/App-cpanminus
+	gunzip < $(TMP_DIR)/App-cpanminus.tar.gz | $(TAR) xf -
+	mv App-cpanminus-$(CPANMINUS_RELEASE) App-cpanminus
+	# cpanminus+curl have a bug on rhel3+64bits, this is the workaround, see http://www.rudder-project.org/redmine/issues/8533
+	sed -i -e "s/'-#',//" App-cpanminus/bin/cpanm
 	rm -rf $(TMP_DIR)
 
 rudder-agent.cron: rudder-sources
@@ -651,7 +644,7 @@ install-cfengine: build-cfengine $(INSTALL_DEPS) rudder.8.gz
 	printf "#!/bin/sh\necho 'cf-monitord has been removed from Rudder agent'\nexit 1" > $(DESTDIR)/opt/rudder/bin/cf-monitord
 
 
-CPANM:=$(CURDIR)/perl-$(PERL_RELEASE)/App-cpanminus/bin/cpanm
+CPANM:=$(CURDIR)/App-cpanminus/bin/cpanm
 # --notest because tests add new Test:: dependencies that cannot be installed properly
 MODULE_INSTALL:=MAKEFLAGS= $(PERL) $(CPANM) $(CPAN_OPT) -L $(DESTDIR)/fusion/opt/rudder --from $(CPAN_URL) --notest
 # List from README / Makefile.PL in fusion-inventory-agent
@@ -660,7 +653,7 @@ FUSION_MODULES = File::Which LWP::UserAgent Net::IP Text::Template UNIVERSAL::re
 # update sources at normation.com with the command: ./mirror $VAR_CPAN $FUSION_MODULES
 # update core dependencies (for old perl versions) at normation.com with the command: ./mirror $VAR_CPAN Local::Win32 ExtUtils::MakeMaker parent IO::Compress::Bzip2 HTTP::Lite version CPAN::Meta::YAML CPAN::Meta::Requirements File::Temp Perl::OSType ExtUtils::Install threads::shared Module::Install URI::Escape ExtUtils::CBuilder Pod::Man ExtUtils::ParseXS TAP::Harness threads ExtUtils::Manifest Pod::Simple Module::Build Module::Implementation Test::Harness Module::CoreList File::Spec autodie Devel::PPPort Encode Pod::Escapes Class::C3 IPC::Cmd Digest::MD5 Locale::Maketext::Simple Module::Load Digest::base Params::Check Locale::Maketext::Simple
 
-fusion-modules: $(FUSION_DEPS)
+fusion-modules: App-cpanminus
 	mkdir -p $(DESTDIR)/fusion/opt/rudder/lib/perl5
 ifeq (true,$(USE_SYSTEM_PERL))
 	# install installer dependencies on the system
@@ -704,4 +697,4 @@ endif
 	rm -rf $(DESTDIR)/fusion/opt/rudder/etc/fusioninventory
 	cp -r fusioninventory-agent/lib/FusionInventory $(DESTDIR)/fusion/opt/rudder/lib/perl5/
 
-.PHONY: localdepends distclean depend build install clean mrproper install-cfengine install-perl install-fusion get-flags
+.PHONY: localdepends distclean depend build install clean mrproper install-cfengine install-fusion get-flags
