@@ -83,21 +83,17 @@ Requires: pwdutils cron
 # This should not be here because relay and webapp configuration is in a single file : /etc/sysconfig/rudder-relay-apache
 # We could remove this when we split it or when we remove wsgi from rudder-webapp
 %if 0%{?suse_version} && 0%{?suse_version} < 1500
-BuildRequires: python
-Requires: python, apache2-mod_wsgi, python-pyOpenSSL
+Requires: apache2-mod_wsgi, python-pyOpenSSL
 %endif
 %if 0%{?suse_version} && 0%{?suse_version} >= 1500
-BuildRequires: python3
-Requires: python3, apache2-mod_wsgi-python3
+Requires: apache2-mod_wsgi-python3
 %endif
 
 
-## Python
-%if 0%{?rhel} && 0%{?rhel} == 7
-BuildRequires: python, python-pip, python-lxml, python-requests
+## Python (used by rudder package command)
+%if 0%{?rhel} == 7 || ( 0%{?suse_version} && 0%{?suse_version} < 1500 )
 Requires: python, python-lxml, python-requests
 %else
-BuildRequires: python3, python3-pip, python3-lxml, python3-requests
 Requires: python3, python3-lxml, python3-requests
 %endif
 
