@@ -94,7 +94,7 @@ Requires: python3, apache2-mod_wsgi-python3
 
 ## Python
 %if 0%{?rhel} == 7 || ( 0%{?suse_version} && 0%{?suse_version} < 1500 )
-BuildRequires: python, python-pip, python-lxml, python-requests
+BuildRequires: python, python-setuptools, python-lxml, python-requests
 Requires: python, python-setuptools, python-lxml, python-requests
 %else
 BuildRequires: python3, python3-pip, python3-lxml, python3-requests
