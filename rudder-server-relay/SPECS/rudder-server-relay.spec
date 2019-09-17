@@ -129,9 +129,9 @@ sed -i "s%^DocumentRoot /var/www$%DocumentRoot /srv/www%" apache/rudder-apache-r
 %endif
 
 %if 0%{?rhel} == 7
-make build SELINUX=%{selinux} PYTHON=python2
+make --trace build SELINUX=%{selinux} PYTHON=python2
 %else
-make build SELINUX=%{selinux}
+make --trace build SELINUX=%{selinux}
 %endif
 
 #=================================================
@@ -143,7 +143,7 @@ cd rudder-sources-*/rudder/relay/sources/
 # TODO remove
 rm -rf %{buildroot}
 
-make install APACHE_VHOSTDIR=%{apache_vhost_dir} DESTDIR=%{buildroot} SELINUX=%{selinux}
+make --trace install APACHE_VHOSTDIR=%{apache_vhost_dir} DESTDIR=%{buildroot} SELINUX=%{selinux}
 
 mkdir -p %{buildroot}/etc/sysconfig/
 install -m 644 rudder-relay-apache %{buildroot}/etc/sysconfig/rudder-relay-apache
