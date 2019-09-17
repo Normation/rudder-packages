@@ -78,7 +78,7 @@ find . -type f | xargs sed -i '1,1s|#!/usr/bin/python3|#!/usr/bin/python2|'
 %install
 cd rudder-sources-*/rudder-api-client/
 
-make install DESTDIR=%{buildroot}
+make --trace install DESTDIR=%{buildroot}
 
 #=================================================
 # Cleaning
