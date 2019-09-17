@@ -81,7 +81,7 @@ calculate compliance to given configuration rules.
 rm -rf %{buildroot}
 
 cd %{_sourcedir}
-make --trace install DESTDIR=%{buildroot}
+make --debug install DESTDIR=%{buildroot}
 
 
 #=================================================

@@ -74,7 +74,7 @@ run a Rudder root server on a machine.
 cd %{_sourcedir}
 
 cd %{_sourcedir}
-make --trace install DESTDIR=%{buildroot}
+make --debug install DESTDIR=%{buildroot}
 
 #=================================================
 # pretrans is run before all preinst when installing more than one package
