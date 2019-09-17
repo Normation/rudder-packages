@@ -2,7 +2,7 @@ Source: rudder-server-relay
 Section: web
 Priority: extra
 Maintainer: Rudder Team <dev@rudder.io>
-Build-Depends: debhelper (>= 9), ca-certificates, curl, pkg-config, libpq-dev, libssl-dev, zlib1g-dev, systemd
+Build-Depends: debhelper (>= 9), python3-dev, python3-setuptools, python3-pip, python3-distutils|libpython3.5-stdlib, python3-requests, python3-lxml, ca-certificates, curl, pkg-config, libpq-dev, libssl-dev, zlib1g-dev, systemd
 Standards-Version: 3.8.0
 Homepage: https://www.rudder.io
 
