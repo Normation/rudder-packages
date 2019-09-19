@@ -34,6 +34,7 @@ JAVA_MAXPERMSIZE=256
 #
 #JAVA_GC="-XX:+UseG1GC
 #-XX:+UnlockExperimentalVMOptions
+#-XX:+UseStringDeduplication
 #-XX:MaxGCPauseMillis=500"
 
 # Java VM location
