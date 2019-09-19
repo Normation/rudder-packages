@@ -165,7 +165,7 @@ fi
 rm -rf %{buildroot}
 
 mkdir -p %{buildroot}%{rudderdir}/etc/
-mkdir -p %{buildroot}%{rudderdir}/etc/plugins/
+mkdir -p %{buildroot}%{rudderdir}/etc/plugins/licenses
 mkdir -p %{buildroot}%{rudderdir}/etc/server-roles.d/
 mkdir -p %{buildroot}%{rudderdir}/etc/hooks.d/
 mkdir -p %{buildroot}%{rudderdir}/bin/

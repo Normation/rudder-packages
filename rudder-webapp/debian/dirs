@@ -4,7 +4,7 @@ opt/rudder/share/rudder-plugins
 opt/rudder/share/certificates
 opt/rudder/share/selinux
 opt/rudder/etc
-opt/rudder/etc/plugins
+opt/rudder/etc/plugins/licenses
 opt/rudder/etc/hooks.d
 opt/rudder/share/tools
 opt/rudder/share/plugins
