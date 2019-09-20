@@ -154,7 +154,7 @@ build-ldap: openldap-source
 # install into DESTDIR
 install: build initial-promises initial-ncf
 	mkdir -p $(DESTDIR)/opt/rudder/etc/
-	mkdir -p $(DESTDIR)/opt/rudder/etc/plugins/
+	mkdir -p $(DESTDIR)/opt/rudder/etc/plugins/licenses
 	mkdir -p $(DESTDIR)/opt/rudder/etc/server-roles.d/
 	mkdir -p $(DESTDIR)/opt/rudder/etc/hooks.d/
 	mkdir -p $(DESTDIR)/opt/rudder/bin/
