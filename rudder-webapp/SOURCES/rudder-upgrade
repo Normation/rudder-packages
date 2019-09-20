@@ -687,14 +687,6 @@ fi
 RUDDER_LDAP_INITIALIZED=true
 echo -n "INFO: Checking LDAP service status..."
 
-# All versions: If the server should be on this machine, make sure rudder-inventory-ldap is available - if not LDAP will simply not be initialised yet
-if [ "${LDAP_SERVER}" = "localhost" ] && [ ! -f ${RUDDER_OPT}/etc/server-roles.d/rudder-inventory-ldap ]; then
-  # Server is localhost but rudder-inventory-ldap is not installed - this is probably a half-installed server, warn and give up
-  RUDDER_LDAP_INITIALIZED=false
-  echo " Not installed"
-  echo "INFO: No local LDAP server found. During initial install, this is expected."
-fi
-
 # All version: upgrade ldap if it is not empty
 if ${RUDDER_LDAP_INITIALIZED}; then
   # Using retry_wrapper is necessary because during an upgrade, slapd may be restarted, so we need to wait

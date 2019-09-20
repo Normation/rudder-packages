@@ -44,7 +44,7 @@ PROXY_ENV = $(if $(PROXY), http_proxy=$(PROXY))
 # grep 'GET=' */SOURCES/Makefile to patch everywhere
 GET=get() { $(PROXY_ENV) curl -s -L -o "$$1.part" "$$2" && { openssl dgst -sha256 "$$1.part" | grep -q "$$3" || { echo "Wrong checksum, aborting"; exit 1; }; } && mv "$$1.part" "$$1"; }; get
 
-localdepends: initial-promises initial-ncf rudder-sources rudder-doc rudder.war endpoint.war jetty openldap-source
+localdepends: initial-promises initial-ncf rudder-sources rudder-doc rudder.war jetty openldap-source
 	rm -rf $(TMP_DIR)
 
 openldap-source:
@@ -102,12 +102,9 @@ initial-ncf: ./rudder-sources ./initial-promises
 	rm -rf ./initial-ncf
 	cp -r ./rudder-sources/ncf/tree ./initial-ncf
 
-rudder.war: rudder-sources endpoint.war
+rudder.war: rudder-sources
 	# Direct download the war 
 	./mvn-like rudder-sources/rudder/pom.xml com.normation.rudder rudder-web rudder.war
-
-endpoint.war: rudder-sources
-	./mvn-like rudder-sources/ldap-inventory/pom.xml com.normation.inventory inventory-provisioning-web endpoint.war
 
 rudder-sources.tar.bz2:
 	$(GET) rudder-sources.tar.bz2 https://www.rudder-project.org/archives/rudder-sources-${RUDDER_VERSION_TO_PACKAGE}.tar.bz2 ""
@@ -137,7 +134,7 @@ virtualenv/virtualenv.py:
 PATCHES_SHA = $(shell find patches/ -type f | xargs | sha256sum | awk '{print $$1}')
 CACHE_PARAMETERS = --with-env name=openldap ldap=$(OPENLDAP_SHA256) patches=$(PATCHES_SHA)
 BUILD_LDAP = $(shell ../../build-caching get openldap-source/ $(CACHE_PARAMETERS) || echo build-ldap)
-build: $(BUILD_LDAP) rudder-sources virtualenv/virtualenv.py rudder-doc jetty rudder.war endpoint.war
+build: $(BUILD_LDAP) rudder-sources virtualenv/virtualenv.py rudder-doc jetty rudder.war
 	# save ldap build into cache
 	if [ "$(BUILD_LDAP)" != "" ]; then ../../build-caching put openldap-source/ $(CACHE_PARAMETERS); fi
 	$(PYTHON) virtualenv/virtualenv.py ncf-api-virtualenv
@@ -191,8 +188,6 @@ install: build initial-promises initial-ncf
 	install -m 640 slapd.conf $(DESTDIR)/opt/rudder/etc/openldap/slapd.conf
 	install -m 644 rudder-sources/ldap-inventory/inventory-repository/src/main/resources/ldap/inventory.schema $(DESTDIR)/opt/rudder/etc/openldap/schema/
 	install -m 644 rudder-sources/rudder/rudder-core/src/main/resources/ldap/rudder.schema $(DESTDIR)/opt/rudder/etc/openldap/schema/
-	install -m 644 rudder-inventory-ldap $(DESTDIR)/opt/rudder/etc/server-roles.d/
-	install -m 644 rudder-ldap $(DESTDIR)/opt/rudder/etc/server-roles.d/
 	install -m 644 rsyslog/rudder-slapd.conf $(DESTDIR)/etc/rsyslog.d/rudder-slapd.conf
 	install -m 644 rudder-slapd.service $(DESTDIR)/usr/lib/systemd/system/rudder-slapd.service
 
@@ -246,7 +241,6 @@ install: build initial-promises initial-ncf
 	install -m 755 rudder-upgrade $(DESTDIR)/opt/rudder/bin/
 	
 	install -m 644 rudder-webapp $(DESTDIR)/opt/rudder/etc/server-roles.d/
-	install -m 644 rudder-web $(DESTDIR)/opt/rudder/etc/server-roles.d/
 	install -m 640 rudder-passwords.conf $(DESTDIR)/opt/rudder/etc/
 	
 	# Add rudder-metrics-reporting
@@ -263,12 +257,6 @@ install: build initial-promises initial-ncf
 	mkdir -p $(DESTDIR)/var/rudder/configuration-repository/
 	install -m 644 configuration-repository-gitignore $(DESTDIR)/var/rudder/configuration-repository/.gitignore
 	
-	install -m 644 endpoint.war $(DESTDIR)/opt/rudder/share/webapps/
-	
-	install -m 644 rudder-inventory-endpoint $(DESTDIR)/opt/rudder/etc/server-roles.d/
-	
-	install -m 644 endpoint.xml $(DESTDIR)/opt/rudder/share/webapps/
-	
 	cp -a jetty $(DESTDIR)/opt/rudder
 	cp -a rudder-jetty-base $(DESTDIR)/opt/rudder/etc
 	
@@ -276,7 +264,6 @@ install: build initial-promises initial-ncf
 	install -m 755 jetty/bin/$(JETTY_SCRIPT) $(DESTDIR)/opt/rudder/bin/rudder-jetty.sh
 	install -m 644 rudder-jetty.default $(DESTDIR)/etc/default/rudder-jetty
 	install -m 644 rudder-jetty.conf $(DESTDIR)/opt/rudder/etc/
-	install -m 644 rudder-jetty $(DESTDIR)/opt/rudder/etc/server-roles.d/
 
 	install -m 755 rudder-webapp-postinst $(DESTDIR)/opt/rudder/share/package-scripts/
 	install -m 644 rudder-jetty.service $(DESTDIR)/usr/lib/systemd/system/
