@@ -84,11 +84,7 @@ PROXY_ENV = $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY))
 WGET = wget -q --header="accept-encoding:" -O
 FETCH = fetch -q -o
 # old curl don't have --http1.1 we also avoid https on old curl
-ifeq (false,$(USE_HTTPS))
 CURL = curl -s -L -o
-else
-CURL = curl -s --http1.1 -L -o
-endif
 ifneq (,$(wildcard /usr/bin/curl))
 _GET = $(PROXY_ENV) $(CURL)
 GET_OPT = --curl
