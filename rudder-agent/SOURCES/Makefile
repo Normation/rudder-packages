@@ -341,8 +341,10 @@ clean:
 distclean: clean
 	rm -f rudder-agent.cron
 	rm -rf rudder-agent-utilities fusioninventory-agent
-	rm -rf curl-source pcre-source xml-source yaml-source zlib-source
-	rm -rf cfengine-source lmdb-source openssl-source perl-$(PERL_RELEASE)
+	for sourcedir in cfengine lmdb openssl curl pcre zlib yaml xml; do \
+	  rm -rf $${sourcedir}-source; \
+	done
+	rm -rf perl-$(PERL_RELEASE)
 
 # standard name is mrproper
 mrproper: distclean
