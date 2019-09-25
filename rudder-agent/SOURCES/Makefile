@@ -338,7 +338,10 @@ veryclean:
 	rm -f rudder-agent.cron
 	rm -f ./rudder-sources.tar.bz2
 	rm -rf initial-promises initial-ncf rudder-agent-utilities fusioninventory-agent
-	rm -rf cfengine-source lmdb-source openssl-source perl-$(PERL_RELEASE)
+	for sourcedir in cfengine lmdb openssl curl pcre zlib yaml xml; do \
+	  rm -rf $${sourcedir}-source; \
+	done
+	rm -rf perl-$(PERL_RELEASE)
 
 ##########################################
 # Dependencies separated into components #
