@@ -186,7 +186,7 @@ install: build initial-promises initial-ncf
 
 	# Install openldap
 	install -m 640 slapd.conf $(DESTDIR)/opt/rudder/etc/openldap/slapd.conf
-	install -m 644 rudder-sources/ldap-inventory/inventory-repository/src/main/resources/ldap/inventory.schema $(DESTDIR)/opt/rudder/etc/openldap/schema/
+	install -m 644 rudder-sources/webapp/sources/ldap-inventory/inventory-repository/src/main/resources/ldap/inventory.schema $(DESTDIR)/opt/rudder/etc/openldap/schema/
 	install -m 644 rudder-sources/rudder/rudder-core/src/main/resources/ldap/rudder.schema $(DESTDIR)/opt/rudder/etc/openldap/schema/
 	install -m 644 rsyslog/rudder-slapd.conf $(DESTDIR)/etc/rsyslog.d/rudder-slapd.conf
 	install -m 644 rudder-slapd.service $(DESTDIR)/usr/lib/systemd/system/rudder-slapd.service
@@ -203,7 +203,6 @@ install: build initial-promises initial-ncf
 	install -m 644 rudder-sources/rudder/rudder-core/src/main/resources/ldap/bootstrap.ldif $(DESTDIR)/opt/rudder/share/
 	install -m 644 rudder-sources/rudder/rudder-core/src/main/resources/ldap/init-policy-server.ldif $(DESTDIR)/opt/rudder/share/
 	install -m 644 rudder-sources/rudder/rudder-web/src/main/resources/configuration.properties.sample $(DESTDIR)/opt/rudder/etc/rudder-web.properties
-	install -m 644 rudder-sources/ldap-inventory/inventory-provisioning-web/src/main/resources/configuration.properties.sample $(DESTDIR)/opt/rudder/etc/inventory-web.properties
 	install -m 644 rudder-sources/rudder/rudder-web/src/main/resources/logback.xml $(DESTDIR)/opt/rudder/etc/
 	cp -r rudder-sources/rudder-techniques/techniques/ $(DESTDIR)/opt/rudder/share/
 	
