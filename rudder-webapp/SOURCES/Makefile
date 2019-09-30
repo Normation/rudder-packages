@@ -186,7 +186,7 @@ install: build initial-promises initial-ncf
 
 	# Install openldap
 	install -m 640 slapd.conf $(DESTDIR)/opt/rudder/etc/openldap/slapd.conf
-	install -m 644 rudder-sources/webapp/sources/ldap-inventory/inventory-repository/src/main/resources/ldap/inventory.schema $(DESTDIR)/opt/rudder/etc/openldap/schema/
+	install -m 644 rudder-sources/rudder/webapp/sources/ldap-inventory/inventory-repository/src/main/resources/ldap/inventory.schema $(DESTDIR)/opt/rudder/etc/openldap/schema/
 	install -m 644 rudder-sources/rudder/rudder-core/src/main/resources/ldap/rudder.schema $(DESTDIR)/opt/rudder/etc/openldap/schema/
 	install -m 644 rsyslog/rudder-slapd.conf $(DESTDIR)/etc/rsyslog.d/rudder-slapd.conf
 	install -m 644 rudder-slapd.service $(DESTDIR)/usr/lib/systemd/system/rudder-slapd.service
