@@ -403,8 +403,6 @@ rm -rf %{buildroot}
 %attr(- , ncf-api-venv,ncf-api-venv) /var/lib/ncf-api-venv/
 /etc/%{apache_vhost_dir}/ncf-api-virtualenv.conf
 
-%config(noreplace) /opt/rudder/etc/inventory-web.properties
-
 
 %if ! 0%{?suse_version}
 # Avoid having .pyo and .pyc files in our package
