@@ -1,0 +1,24 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+
+# Uncomment this to turn on verbose mode.
+export DH_VERBOSE=1
+
+override_dh_auto_clean:
+	rm -rf BUILD
+
+override_dh_auto_build:
+# Force python everywhere in 5.0
+	find . -type f | xargs sed -i '1,1s|#!/usr/bin/python3|#!/usr/bin/python|'
+	tar -xjf SOURCES/rudder-sources.tar.bz2
+	mkdir BUILD
+	mv rudder-sources-*/* BUILD/
+	dh_auto_build
+
+# The root Makefile has all possible target and prevent dh to autodetect them
+# We have no test
+override_dh_auto_test:
+
+# Default rule that guess what to do for missing targets
+%:
+	dh $@
