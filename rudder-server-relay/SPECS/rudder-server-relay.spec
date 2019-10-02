@@ -274,6 +274,7 @@ rm -rf %{buildroot}
 /var/rudder/inventories/incoming
 /var/rudder/inventories/accepted-nodes-updates
 /var/rudder/reports/incoming
+/var/rudder/reports/failed
 /var/rudder/shared-files/
 /var/rudder/share/
 /var/rudder/lib/ssl/
