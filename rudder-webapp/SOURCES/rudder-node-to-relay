@@ -76,16 +76,6 @@ else
   LDAP_PORT='389'
 fi
 
-# Override any server values with those from ${RUDDER_ROLES_FILE}
-RUDDER_ROLES_FILE="${RUDDER_VAR}/cfengine-community/inputs/rudder-server-roles.conf"
-if [ -f ${RUDDER_ROLES_FILE} ]; then
-  role=rudder-ldap
-  ROLE_HOSTNAME=$(grep "^${role}:" ${RUDDER_ROLES_FILE} | cut -d: -f2 | cut -d, -f1 | tr -d " ")
-  if [ ! -z ${ROLE_HOSTNAME} ]; then
-    LDAP_SERVER=${ROLE_HOSTNAME}
-  fi
-fi
-
 # Commands
 LDAP_PARAMETERS="-H ldap://${LDAP_SERVER}:${LDAP_PORT}/ -D ${LDAP_USER} -w ${LDAP_PASSWORD} -x"
 
