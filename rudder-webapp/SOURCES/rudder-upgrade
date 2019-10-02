@@ -118,19 +118,10 @@ fi
 RUDDER_ROLE_SERVER_ROOT="${RUDDER_OPT}/etc/server-roles.d/rudder-server-root"
 RUDDER_ROLES_FILE="${RUDDER_VAR}/cfengine-community/inputs/rudder-server-roles.conf"
 if [ ! -f ${RUDDER_ROLE_SERVER_ROOT} -a -f ${RUDDER_ROLES_FILE} ]; then
-  for role in rudder-db rudder-ldap; do
-    ROLE_HOSTNAME=$(grep "^${role}:" ${RUDDER_ROLES_FILE} | cut -d: -f2 | cut -d, -f1 | tr -d " ")
-    if [ ! -z ${ROLE_HOSTNAME} ]; then
-      case "${role}" in
-        rudder-ldap)
-          LDAP_SERVER=${ROLE_HOSTNAME}
-          ;;
-        rudder-db)
-          SQL_SERVER=${ROLE_HOSTNAME}
-          ;;
-      esac
-    fi
-  done
+  ROLE_HOSTNAME=$(grep "^rudder-db:" ${RUDDER_ROLES_FILE} | cut -d: -f2 | cut -d, -f1 | tr -d " ")
+  if [ ! -z ${ROLE_HOSTNAME} ]; then
+    SQL_SERVER=${ROLE_HOSTNAME}
+  fi
 fi
 
 # Commands

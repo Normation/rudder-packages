@@ -91,24 +91,11 @@ fi
 # Rudder server installation (to keep using localhost)
 RUDDER_ROLE_SERVER_ROOT="${RUDDER_OPT}/etc/server-roles.d/rudder-server-root"
 if [ ! -f ${RUDDER_ROLE_SERVER_ROOT} -a -f ${RUDDER_ROLES_FILE} ]; then
-  for role in rudder-db rudder-ldap rudder-inventory-endpoint; do
-    ROLE_HOSTNAME=$(grep "^${role}:" ${RUDDER_ROLES_FILE} | cut -d: -f2 | cut -d, -f1 | tr -d " ")
-    if [ ! -z ${ROLE_HOSTNAME} ]; then
-      case "${role}" in
-        rudder-ldap)
-          LDAP_SERVER=${ROLE_HOSTNAME}
-          sed -i "s%^ldap.host *=.*$%ldap.host=${LDAP_SERVER}%" ${RUDDER_OPT}/etc/rudder-web.properties
-          ;;
-        rudder-db)
-          SQL_SERVER=${ROLE_HOSTNAME}
-          sed -i "s%^rudder.jdbc.url *=.*$%rudder.jdbc.url=jdbc:postgresql://${SQL_SERVER}:${SQL_PORT}/rudder%" ${RUDDER_OPT}/etc/rudder-web.properties
-          ;;
-        rudder-inventory-endpoint)
-          sed -i "s%^rudder.endpoint.cmdb *=.*$%rudder.endpoint.cmdb=http://${ROLE_HOSTNAME}:8080/endpoint/upload/%" ${RUDDER_OPT}/etc/rudder-web.properties
-          ;;
-      esac
-    fi
-  done
+  ROLE_HOSTNAME=$(grep "^rudder-db:" ${RUDDER_ROLES_FILE} | cut -d: -f2 | cut -d, -f1 | tr -d " ")
+  if [ ! -z ${ROLE_HOSTNAME} ]; then
+    SQL_SERVER=${ROLE_HOSTNAME}
+    sed -i "s%^rudder.jdbc.url *=.*$%rudder.jdbc.url=jdbc:postgresql://${SQL_SERVER}:${SQL_PORT}/rudder%" ${RUDDER_OPT}/etc/rudder-web.properties
+  fi
 fi
 
 # Commands
