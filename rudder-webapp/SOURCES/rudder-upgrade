@@ -162,17 +162,6 @@ check_and_add_config_property() {
   fi
 }
 
-check_and_add_inventory_property() {
-    PROPERTY_NAME=$1
-    PROPERTY_VALUE=$2
-    ATTRIBUTESET=`grep "^${PROPERTY_NAME}[ \t]*=" /opt/rudder/etc/inventory-web.properties | wc -l`
-    if [ ${ATTRIBUTESET} -eq 0 ]; then
-        echo "${PROPERTY_VALUE}" >> /opt/rudder/etc/inventory-web.properties
-        echo "INFO: New configuration property ${PROPERTY_NAME} added to /opt/rudder/etc/inventory-web.properties"
-    fi
-}
-
-
 # Helper function
 # Function to launch a service status check and retry to poll it in case of a failure
 # Parameters:
@@ -430,12 +419,9 @@ rudder.batch.reportscleaner.compliancelevels.delete.TTL=15
 
 "
 
-}
-
-upgrade_rudder_inventory_properties() {
 # 5.0.5: 
 # Add inventories.watcher.enable, inventories.root.directory and inventories.watcher.waitForSignatureDuration
-  check_and_add_inventory_property inventories.watcher.enable "
+  check_and_add_config_property inventories.watcher.enable "
 #
 # Rudder 5.0.5 introduce a file watcher which react to new
 # inventories put in \${inventories.root.directory}/incoming.
@@ -649,7 +635,6 @@ upgrade_techniques
 upgrade_ncf
 upgrade_masterfiles
 upgrade_rudder_web_properties
-upgrade_rudder_inventory_properties
 
 # Check the daemon status before upgrading
 RUDDER_DB_INITIALIZED=true
