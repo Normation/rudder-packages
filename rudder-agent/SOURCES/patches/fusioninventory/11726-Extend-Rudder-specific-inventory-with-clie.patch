@@ -122,7 +122,7 @@ index b2fd04d..41e1dea 100644
 +                };
 +                if ($@) {
 +                    $logger->error("Script $script_file didn't return valid JSON entry, error is:$@") if $logger;
-+                    my $filename = "/tmp/inventory-json-error-".time();
++                    my $filename = "/var/rudder/tmp/inventory-json-error-".time();
 +                    open(my $fh, '>', $filename);
 +                    print $fh $properties;
 +                    close($fh);
