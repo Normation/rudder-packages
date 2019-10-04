@@ -1,0 +1,12 @@
+Source: rudder-api-client
+Section: web
+Priority: extra
+Maintainer: Rudder Team <dev@rudder.io>
+Build-Depends: debhelper (>= 9), python, python-requests
+Standards-Version: 3.8.0
+Homepage: https://www.rudder.io
+
+Package: rudder-api-client
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, python, python-requests
+Description: Command line tools and python libraries to call Rudder

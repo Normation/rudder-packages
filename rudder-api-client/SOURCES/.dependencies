@@ -1,0 +1,3 @@
+sles-12:python python-requests
+sles-15:python python-requests
+rhel-7:python python-requests
