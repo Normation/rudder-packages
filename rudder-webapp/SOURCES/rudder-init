@@ -57,12 +57,12 @@ SQL_CREDENTIALS=$(grep -c -E "^rudder.jdbc.(username|password)[ \t]*=" /opt/rudd
 
 TOTAL_CREDENTIALS=$((LDAP_CREDENTIALS+SQL_CREDENTIALS))
 
+LDAP_SERVER='localhost'
+LDAP_PORT='389'
 if [ -f /opt/rudder/etc/rudder-web.properties -a ${TOTAL_CREDENTIALS} -eq 4 ]; then
   # Get the database access credentials from the rudder-web.properties file
   LDAP_USER="$(grep -E '^ldap.authdn[ \t]*=' ${RUDDER_OPT}/etc/rudder-web.properties | cut -d "=" -f 2-)"
   LDAP_PASSWORD="$(grep -E '^ldap.authpw[ \t]*=' ${RUDDER_OPT}/etc/rudder-web.properties | cut -d "=" -f 2-)"
-  LDAP_SERVER="$(grep -E '^ldap.host[ \t]*=' ${RUDDER_OPT}/etc/rudder-web.properties | cut -d '=' -f 2-)"
-  LDAP_PORT="$(grep -E '^ldap.port[ \t]*=' ${RUDDER_OPT}/etc/rudder-web.properties | cut -d '=' -f 2-)"
 
   SQL_USER="$(grep -E '^rudder.jdbc.username[ \t]*=' ${RUDDER_OPT}/etc/rudder-web.properties | cut -d "=" -f 2-)"
   SQL_PASSWORD="$(grep -E '^rudder.jdbc.password[ \t]*=' ${RUDDER_OPT}/etc/rudder-web.properties | cut -d "=" -f 2-)"
@@ -75,8 +75,6 @@ else
   echo "WARNING: Database access credentials are missing in /opt/rudder/etc/rudder-web.properties, trying to guess adequate values."
   LDAP_USER=$(grep "^rootdn" /opt/rudder/etc/openldap/slapd.conf | sed "s/\w*\s*['\"]\?\([^\"']*\)['\"]\?$/\1/")
   LDAP_PASSWORD=$(grep "^rootpw" /opt/rudder/etc/openldap/slapd.conf | sed "s/\w*\s*['\"]\?\([^\"']*\)['\"]\?$/\1/")
-  LDAP_SERVER='localhost'
-  LDAP_PORT='389'
 
   SQL_USER="rudder"
   SQL_PASSWORD="undefined"
@@ -102,7 +100,6 @@ fi
 LDAP_PARAMETERS="-H ldap://${LDAP_SERVER}:${LDAP_PORT}/ -D ${LDAP_USER} -w ${LDAP_PASSWORD} -x"
 
 LDAPSEARCH="ldapsearch ${LDAP_PARAMETERS} -LLL"
-LDAPMODRDN="ldapmodrdn ${LDAP_PARAMETERS}"
 LDAPADD="ldapadd ${LDAP_PARAMETERS}"
 LDAPDELETE="ldapdelete ${LDAP_PARAMETERS}"
 

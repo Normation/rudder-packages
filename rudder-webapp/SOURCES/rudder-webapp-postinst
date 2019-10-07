@@ -121,7 +121,6 @@ then
   service rudder-slapd stop >> ${LOG_FILE}
 fi
 
-
 systemctl restart rudder-slapd >> ${LOG_FILE}
 echo " Done"
 
