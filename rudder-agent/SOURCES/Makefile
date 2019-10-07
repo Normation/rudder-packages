@@ -586,7 +586,7 @@ build-perl: perl-$(PERL_RELEASE)
 	touch build-perl # because perl-$(PERL_RELEASE) is touched by make install
 
 # check cache content
-PATCHES_SHA = $(shell find patches/cfengine -type f | xargs | sha256sum | awk '{print $$1}')
+PATCHES_SHA = $(shell find patches/cfengine -type f | sort | xargs sha256sum | sha256sum | awk '{print $$1}')
 DEPS_CACHE_PARAMETERS = --with-env name=dependencies lmdb=$(LMDB_SHA1) openssl=$(OPENSSL_SHA1) old-openssl=$(OLD_OPENSSL_SHA1) pcre=$(PCRE_SHA1) curl=$(CURL_SHA1) yaml=$(YAML_SHA1) xml=$(XML_SHA1) zlib=$(ZLIB_SHA1) cfengine=$(CFENGINE_SHA1) patches=$(PATCHES_SHA)
 CFENGINE_DEPS = $(shell ../../build-caching get dependencies/ $(DEPS_CACHE_PARAMETERS) || echo $(BUILD_DEPS))
 build-cfengine: $(CFENGINE_DEPS) cfengine-source build-cfengine-stamp
@@ -672,8 +672,8 @@ endif
 	find $(DESTDIR)/fusion/opt/rudder/bin -type f -exec sed -i "s,$(DESTDIR)/fusion,,"  {} \;
 	touch $@
 
-FUDION_PATCHES_SHA = $(shell find patches/fusioninventory -type f | xargs | sha256sum | awk '{print $$1}')
-FUSION_CACHE_PARAMETERS = --with-env name=fusion source=$(FUSION_SHA1) patches=$(FUDION_PATCHES_SHA) cpanm=$(CPANMINUS_SHA1) cpanurl=$(CPAN_URL) perl=$(PERL_SHA1)
+FUSION_PATCHES_SHA = $(shell find patches/fusioninventory -type f | sort | xargs sha256sum | sha256sum | awk '{print $$1}')
+FUSION_CACHE_PARAMETERS = --with-env name=fusion source=$(FUSION_SHA1) patches=$(FUSION_PATCHES_SHA) cpanm=$(CPANMINUS_SHA1) cpanurl=$(CPAN_URL) perl=$(PERL_SHA1)
 FUSION_INSTALL = $(shell ../../build-caching get $(DESTDIR)/ $(FUSION_CACHE_PARAMETERS) || echo install-fusion-real)
 install-fusion: $(FUSION_INSTALL)
 	# save into cache if we built it
