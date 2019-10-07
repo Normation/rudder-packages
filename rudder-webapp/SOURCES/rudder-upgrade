@@ -39,19 +39,13 @@ trap anomaly_handler ERR INT TERM
 # /opt/rudder/etc/rudder-web.properties configuration file is harmless.
 #
 # Upgrade checks currently implemented:
-# - All versions : Check if access credentials in rudder-web.properties/inventory-web.properties match the ones from rudder-passwords.conf
+# - All versions : Check if access credentials in rudder-web.properties match the ones from rudder-passwords.conf
 # - All versions : upgrade system Techniques automatically and reload the Technique library
 # - All versions : Check that Rudder database is able to handle backslash
 # - All versions : Check for the PostgreSQL version
 # - All versions : Create ncf technique update flag and restart at the end of the script
-# - 4.1.17       : Change LDAP attribute ipNetworkNumber -> networkSubnet
-# - 4.1.19, 4.3.9: Drop unused index nodeid_idx
-# - 4.1.21,4.3.10: Drop contraint rulesgroupjoin_pkey to replace it by an index
-# - 4.2.6,4.3.2  : Create nodecompliancelevels table
-# - 4.2.6,4.3.2  : Add new property rudder.batch.reportscleaner.compliancelevels.delete.TTL
-# - 4.3          : Update ncf Techniques to the new format
-# - 4.3.7        : Drop tables expectedreports and expectesreportsnodes on upgrade
 # - 5.0          : Automatically upgrade Techniques if autoupdate-technique-library is set
+# - 5.0.3       : Change LDAP attribute ipNetworkNumber -> networkSubnet
 # - 5.0.5        : Properties related to "incoming inventory watch"
 # - 5.0.7        : Tune autovacuum on a table basis
 # - 5.0.12       : Change indexes on RudderSysEvents table
@@ -67,7 +61,7 @@ RUDDER_NCF_SOURCE_DIRECTORY="/usr/share/ncf"
 RUDDER_UPGRADE_TOOLS="${RUDDER_SHARE}/upgrade-tools"
 
 # If true, display a message at the end, asking to re-run the script
-UNCOMPLETE_MIGRATION=false
+INCOMPLETE_MIGRATION=false
 
 # Ensure our PATH includes Rudder's binaries
 export PATH=${PATH}:${RUDDER_OPT}/bin
@@ -82,12 +76,12 @@ SQL_CREDENTIALS=$(grep -c -E "^rudder.jdbc.(username|password)[ \t]*=" /opt/rudd
 
 TOTAL_CREDENTIALS=$((LDAP_CREDENTIALS+SQL_CREDENTIALS))
 
+LDAP_SERVER='localhost'
+LDAP_PORT='389'
 if [ -f /opt/rudder/etc/rudder-web.properties -a ${TOTAL_CREDENTIALS} -eq 4 ]; then
   # Get the database access credentials from the rudder-web.properties file
   LDAP_USER="$(grep -E '^ldap.authdn[ \t]*=' ${RUDDER_OPT}/etc/rudder-web.properties | cut -d "=" -f 2-)"
   LDAP_PASSWORD="$(grep -E '^ldap.authpw[ \t]*=' ${RUDDER_OPT}/etc/rudder-web.properties | cut -d "=" -f 2-)"
-  LDAP_SERVER="$(grep -E '^ldap.host[ \t]*=' ${RUDDER_OPT}/etc/rudder-web.properties | cut -d '=' -f 2-)"
-  LDAP_PORT="$(grep -E '^ldap.port[ \t]*=' ${RUDDER_OPT}/etc/rudder-web.properties | cut -d '=' -f 2-)"
 
   SQL_USER="$(grep -E '^rudder.jdbc.username[ \t]*=' ${RUDDER_OPT}/etc/rudder-web.properties | cut -d "=" -f 2-)"
   SQL_PASSWORD="$(grep -E '^rudder.jdbc.password[ \t]*=' ${RUDDER_OPT}/etc/rudder-web.properties | cut -d "=" -f 2-)"
@@ -101,8 +95,6 @@ else
   echo "WARNING: Database access credentials are missing in /opt/rudder/etc/rudder-web.properties, trying to guess adequate values."
   LDAP_USER=$(grep "^rootdn" /opt/rudder/etc/openldap/slapd.conf | sed "s/\w*\s*['\"]\?\([^\"']*\)['\"]\?$/\1/")
   LDAP_PASSWORD=$(grep "^rootpw" /opt/rudder/etc/openldap/slapd.conf | sed "s/\w*\s*['\"]\?\([^\"']*\)['\"]\?$/\1/")
-  LDAP_SERVER='localhost'
-  LDAP_PORT='389'
 
   SQL_USER="rudder"
   SQL_PASSWORD="Normation"
@@ -128,20 +120,9 @@ fi
 LDAP_PARAMETERS="-H ldap://${LDAP_SERVER}:${LDAP_PORT}/ -D ${LDAP_USER} -w ${LDAP_PASSWORD} -x"
 
 LDAPSEARCH="ldapsearch ${LDAP_PARAMETERS} -LLL"
-LDAPMODRDN="ldapmodrdn ${LDAP_PARAMETERS}"
-LDAPADD="ldapadd ${LDAP_PARAMETERS}"
 LDAPMODIFY="ldapmodify ${LDAP_PARAMETERS}"
 
 PSQL="psql -q -h ${SQL_SERVER} -p ${SQL_PORT} -U ${SQL_USER}"
-
-GIT_BRANCH_IS_SET=$(grep -c -E "^rudder.(ptlib|techniqueLibrary).git.refs.path=" /opt/rudder/etc/rudder-web.properties || true)
-if [ ${GIT_BRANCH_IS_SET} -eq 1 ]; then
-  GIT_BRANCH=$(grep -E "^rudder.(ptlib|techniqueLibrary).git.refs.path=" /opt/rudder/etc/rudder-web.properties |cut -d "=" -f 2- | sed "s@\(refs/heads/\)\?\(refs/tags/\)\?\(refs/remote/origin/\)\?\(.*\)@\4@")
-else
-  echo "The rudder.ptlib.git.refs.path attribute in rudder-web.properties does not seem to be set"
-  echo "Using 'master' by default"
-  GIT_BRANCH="master"
-fi
 
 ################################################################################
 # Helper functions
@@ -187,16 +168,6 @@ retry_wrapper() {
 }
 
 # Helper function
-# Function to trigger a Technique library reload
-# Parameters: N/A
-trigger_technique_library_reload() {
-  if [ ! -f /opt/rudder/etc/force_technique_reload ]; then
-    echo "INFO: A Technique library reload is needed and has been scheduled."
-    touch /opt/rudder/etc/force_technique_reload
-  fi
-}
-
-# Helper function
 # Function to update rudder's configuration repository from a system directory
 # Parameters:
 # - $1 = origin directory
@@ -211,8 +182,9 @@ update_rudder_repository_from_system_directory() {
       rsync --delete -rptgoq ${SRCTECHDIR} ${TRGTECHDIR}
       if [ x"${RUDDER_NO_TECHNIQUE_AUTOCOMMIT}" != x"1" ]; then
         cd ${CONFIGURATION_REPOSITORY}/ && git add -A ${2} && git commit -m "Upgrade system Techniques from ${SRCTECHDIR} - automatically done by rudder-upgrade script" >/dev/null 2>&1
-        # Schedule a Technique library reload because of the update
-        trigger_technique_library_reload
+        # Schedule a Technique library reload later because of the update
+        echo "INFO: A Technique library reload is needed and has been scheduled."
+        touch /opt/rudder/etc/force_technique_reload
       else
         echo "WARN: Autocommit of system techniques is disabled."
         echo "Please review and commit changes, then reload technique library on your own!"
@@ -229,7 +201,7 @@ ver() { printf "1%03d%03d" `echo "$1" | tr '.' ' '`; }
 # Update credentials
 ################################################################################
 
-# - All versions: Check if access credentials in rudder-web.properties/inventory-web.properties match the ones from rudder-passwords.conf
+# - All versions: Check if access credentials in rudder-web.properties match the ones from rudder-passwords.conf
 # For every property file, check if the access credentials match between the property file and
 # the rudder-passwords.conf file. If not, update the properties.
 #
@@ -241,47 +213,35 @@ update_credentials() {
     REFERENCE_LDAP_PASSWORD=$(grep -E "^RUDDER_OPENLDAP_BIND_PASSWORD:" /opt/rudder/etc/rudder-passwords.conf |cut -d ":" -f 2-)
     REFERENCE_SQL_PASSWORD=$(grep -E "^RUDDER_PSQL_PASSWORD:" /opt/rudder/etc/rudder-passwords.conf |cut -d ":" -f 2-)
 
-    for property_file in rudder-web.properties inventory-web.properties; do
+    property_file="rudder-web.properties"
+    echo -n "INFO: Checking if ${property_file} database access credentials are all right..."
 
-      echo -n "INFO: Checking if ${property_file} database access credentials are all right..."
+    if [ ! -e /opt/rudder/etc/${property_file} ]; then echo " non existant, skipping"; continue; fi
 
-      if [ ! -e /opt/rudder/etc/${property_file} ]; then echo " non existant, skipping"; continue; fi
+    # 1 - Check LDAP credentials on all property files
 
-      # 1 - Check LDAP credentials on all property files
+    # Get the LDAP password according to the property file
+    PROPERTY_LDAP_PASSWORD=$(grep -E "^ldap.authpw[ \t]*=" /opt/rudder/etc/${property_file} |cut -d "=" -f 2-)
+    if [ "z${REFERENCE_LDAP_PASSWORD}" = "z${PROPERTY_LDAP_PASSWORD}" ]; then
+      echo -n " LDAP OK, "
+    else
+      sed -i "s%ldap.authpw[ \t]*=.*%ldap.authpw=${REFERENCE_LDAP_PASSWORD}%" /opt/rudder/etc/${property_file}
+      LDAP_PASSWORD=${REFERENCE_LDAP_PASSWORD}
+      echo -n " LDAP Credentials updated, "
+    fi
 
-      # Get the LDAP password according to the property file
-      PROPERTY_LDAP_PASSWORD=$(grep -E "^ldap.authpw[ \t]*=" /opt/rudder/etc/${property_file} |cut -d "=" -f 2-)
-      if [ "z${REFERENCE_LDAP_PASSWORD}" = "z${PROPERTY_LDAP_PASSWORD}" ]; then
-        echo -n " LDAP OK, "
-      else
-        sed -i "s%ldap.authpw[ \t]*=.*%ldap.authpw=${REFERENCE_LDAP_PASSWORD}%" /opt/rudder/etc/${property_file}
-        LDAP_PASSWORD=${REFERENCE_LDAP_PASSWORD}
-        echo -n " LDAP Credentials updated, "
-      fi
+    # 2 - SQL properties only apply to rudder-web.properties
 
-      # 1 - End
-
-      # 2 - SQL properties only apply to rudder-web.properties
-
-      if [ "z${property_file}" = "zrudder-web.properties" ]; then
-        # Get the SQL password according to the property file
-        PROPERTY_SQL_PASSWORD=$(grep -E "^rudder.jdbc.password[ \t]*=" /opt/rudder/etc/${property_file} |cut -d "=" -f 2-)
-        if [ "z${REFERENCE_SQL_PASSWORD}" = "z${PROPERTY_SQL_PASSWORD}" ]; then
-          echo " SQL OK"
-        else
-          # Credentials from the properties and the rudder-password.conf do not match, update the properties.
-          sed -i "s%rudder.jdbc.password[ \t]*=.*%rudder.jdbc.password=${REFERENCE_SQL_PASSWORD}%" /opt/rudder/etc/${property_file}
-          SQL_PASSWORD=${REFERENCE_SQL_PASSWORD}
-          echo " SQL Credentials updated"
-        fi
-      else
-        # The file is not relevant for SQL checking, skip it.
-        echo " SQL skipped"
-      fi
-
-      # 2 - End
-
-    done
+    # Get the SQL password according to the property file
+    PROPERTY_SQL_PASSWORD=$(grep -E "^rudder.jdbc.password[ \t]*=" /opt/rudder/etc/${property_file} |cut -d "=" -f 2-)
+    if [ "${REFERENCE_SQL_PASSWORD}" = "${PROPERTY_SQL_PASSWORD}" ]; then
+      echo " SQL OK"
+    else
+      # Credentials from the properties and the rudder-password.conf do not match, update the properties.
+      sed -i "s%rudder.jdbc.password[ \t]*=.*%rudder.jdbc.password=${REFERENCE_SQL_PASSWORD}%" /opt/rudder/etc/${property_file}
+      SQL_PASSWORD=${REFERENCE_SQL_PASSWORD}
+      echo " SQL Credentials updated"
+    fi
 
   else
     echo "INFO: The /opt/rudder/etc/rudder-passwords.conf file is absent. LDAP and SQL passwords not checked in {rudder,inventory}-web.properties"
@@ -403,22 +363,6 @@ upgrade_masterfiles() {
 
 # Upgrade the file rudder-web.properties
 upgrade_rudder_web_properties() {
-
-  check_and_add_config_property rudder.batch.reportscleaner.compliancelevels.delete.TTL "
-#
-# Automatic compliance levels cleaning.
-# This allows you to define the periode of time during which
-# compliance level data for nodes, by run, up to directive
-# granularity are kept.
-# The table grows at ~60kB / node / directive / day
-# (ie, for 100 nodes, with 15 rules having each of them 10 directives,
-# you need ~25GB for a month back of data).
-# There is no archive state for compliance levels.
-#
-rudder.batch.reportscleaner.compliancelevels.delete.TTL=15
-
-"
-
 # 5.0.5: 
 # Add inventories.watcher.enable, inventories.root.directory and inventories.watcher.waitForSignatureDuration
   check_and_add_config_property inventories.watcher.enable "
@@ -463,47 +407,6 @@ upgrade_database() {
     echo " Done"
   fi
 
-  # - * => 4.1.12, 4.2.6, 4.3.2 : add compliance table
-  RES=$(${PSQL} -t -d ${SQL_DATABASE} -c "select count(*) from information_schema.columns where lower(table_name) = 'nodecompliancelevels'")
-  if [ $RES -eq 0 ]; then
-    echo -n "INFO: Adding new 'compliance levels' table"
-    ${PSQL} -d ${SQL_DATABASE} -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-4.1.x-4.1.12-add-compliancelevel-table.sql > /dev/null
-    echo " Done"
-  fi
-
-  # - * => 4.3.7 : Drop expectedreports and expectesreportsnodes table 
-  RES=$(${PSQL} -t -d ${SQL_DATABASE} -c "select count(*) from information_schema.columns where lower(table_name) = 'expectedreports'")
-  if [ $RES -ne 0 ]; then
-    echo -n "INFO: Droping deprecated tables 'expectedreports' and 'expectedreportsnodes'"
-    ${PSQL} -d ${SQL_DATABASE} -c "DROP TABLE expectedreportsnodes; DROP TABLE expectedreports;" > /dev/null
-    echo " Done"
-  fi
-
-  # - * => 4.3.8  : fix indexes on nodecompliancelevels and drop table ArchivedReportsExecution
-  RES=$(${PSQL} -t -d ${SQL_DATABASE} -c "select count(*) from information_schema.columns where lower(table_name) = 'archivedreportsexecution'")
-  if [ $RES -ne 0 ]; then
-    echo -n "INFO: Adding new 'compliance levels' table"
-    ${PSQL} -d ${SQL_DATABASE} -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-4.3.x-4.3.8-correct-indexes-on-compliancelevel.sql > /dev/null
-    echo " Done"
-  fi
-
-
-  # - 4.1.18: Drop unused index nodeid_idx
-  RES=$(${PSQL} -t -d ${SQL_DATABASE} -c "select count(oid) from pg_class where lower(relname) = 'nodeid_idx'")
-  if [ $RES -ne 0 ]; then
-    echo -n "INFO: Dropping index 'nodeid_idx'"
-    ${PSQL} -d ${SQL_DATABASE} -c  "DROP INDEX nodeid_idx" > /dev/null
-    echo " Done"
-  fi
-
-  # - 4.1.21: Drop constraint rulesgroupjoin_pkey
-  RES=$(${PSQL} -t -d ${SQL_DATABASE} -c "select count(*) from information_schema.constraint_column_usage where table_name = 'rulesgroupjoin'")
-  if [ $RES -ne 0 ]; then
-    echo -n "INFO: Dropping constraint 'rulesgroupjoin'"
-    ${PSQL} -d ${SQL_DATABASE} -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-4.1.x-4.1.21-drop-rulesgroupjoin-constraint.sql > /dev/null
-    echo " Done"
-  fi
-
   # - 5.0.7: Tune autovacuum on a table basis
   RES=$(${PSQL} -t -d ${SQL_DATABASE} -c "select reloptions from pg_class where relname='reportsexecution'" | grep -c "autovacuum" || true)
   if [ $RES -eq 0 ]; then
@@ -534,7 +437,7 @@ upgrade_database() {
   # - All versions: Check for the PostgreSQL version
   STEP="Check for the current PosgresSQL version"
 
-  # If coming from an old SLES11 install
+  # If coming from an old install (upgraded from centos7 or sles11)
   if [ -e /var/lib/pgsql/data/PG_VERSION ]; then
     CLUSTER_VERSION=$(cat /var/lib/pgsql/data/PG_VERSION | cut -d . -f 1-2)
     if [ `ver ${CLUSTER_VERSION}` -lt `ver 9.2` ]; then
@@ -556,64 +459,58 @@ upgrade_database() {
 
 # Upgrade the LDAP inventory
 upgrade_inventory() {
-  # Check if the LDAP has been initialised
-  LDAP_EXISTS=$(${LDAPSEARCH} -b "cn=rudder-configuration" -s base dn 2>/dev/null | grep -c "dn: cn=rudder-configuration" || true)
-
-  if [ ${LDAP_EXISTS} -ne 0 ]; then
-    # - 4.1.17, 4.3.7, 5.0.3: ipNetworkNumber -> networkSubnet
-    STEP="Migrate LDAP attribute ipNetworkNumber in networkInterface"
-    # change:
-    #  dn: networkInterface=etho0,nodeId=0876521e-3c81-4775-85c7-5dd7f9d5d3da,ou=Nodes,ou=Accepted Inventories,ou=Inventories,cn=rudder-configuration
-    #  ipNetworkNumber: 192.268.1.1
-    #  ipNetworkNumber: ffff:::1
-    #
-    # into:
-    #  dn: networkInterface=lo,nodeId=0876521e-3c81-4775-85c7-5dd7f9d5d3da,ou=Nodes,ou=Accepted Inventories,ou=Inventories,cn=rudder-configuration
-    #  changetype: modify
-    #  delete: ipNetworkNumber
-    #  -
-    #  replace: networkSubnet
-    #  networkSubnet: 192.268.1.1
-    #  networkSubnet: ffff:::1
-    #  -
-    #
-    LDAP_TEST_MIGRATE_NETWORK=$(${LDAPSEARCH} -b "ou=Inventories,cn=rudder-configuration" -s sub '(&(objectClass=networkInterfaceLogicalElement)(ipNetworkNumber=*))' 1.1 2> /dev/null | grep -c "dn: networkInterface=" || true)
-    if [ ${LDAP_TEST_MIGRATE_NETWORK} -ne 0 ]; then
-      echo -n "INFO: migrate LDAP attribute ipNetworkNumber -> networkSubnet in networkInterface..."
-      MIGRATE_IPNET_FILE="/tmp/rudder-migrate-ipNetworkNumber-network.ldif"
-      ${LDAPSEARCH} -o ldif-wrap=no -b "ou=Inventories,cn=rudder-configuration" -s sub '(&(objectClass=networkInterfaceLogicalElement)(ipNetworkNumber=*))' 'ipNetworkNumber' 2> /dev/null > ${MIGRATE_IPNET_FILE}
-      sed -i -e "s/ipNetworkNumber/networkSubnet/" ${MIGRATE_IPNET_FILE}
-      sed -i -e "s/dn:\(.*\)$/dn:\1\nchangetype:modify\ndelete: ipNetworkNumber\n-\nreplace: networkSubnet/" ${MIGRATE_IPNET_FILE}
-      sed -i -e "s/^$/-\n/" ${MIGRATE_IPNET_FILE}
-      ${LDAPMODIFY} -f ${MIGRATE_IPNET_FILE}
-      echo " OK"
-    fi
-
-    STEP="Migrate LDAP attribute ipNetworkNumber in node group query"
-    # change:
-    #  dn: nodeGroupId=ede838d0-b064-4739-a03e-f6a7651dce7b,groupCategoryId=GroupRoot,ou=Rudder,cn=rudder-configuration
-    #  jsonNodeGroupQuery: {"select":"node","composition":"And","where":[{"objectType":"networkInterfaceLogicalElement","attribute":"ipNetworkNumber","comparator":"regex","value":"192.168.42.*"}]}
-    #
-    # into:
-    #  dn: nodeGroupId=ede838d0-b064-4739-a03e-f6a7651dce7b,groupCategoryId=GroupRoot,ou=Rudder,cn=rudder-configuration
-    #  changetype: modify
-    #  replace: jsonNodeGroupQuery
-    #  jsonNodeGroupQuery: {"select":"node","composition":"And","where":[{"objectType":"networkInterfaceLogicalElement","attribute":"networkSubnet","comparator":"regex","value":"192.168.42.*"}]}
-    #  -
-    #
-    LDAP_TEST_MIGRATE_GROUP=$(${LDAPSEARCH} -b "ou=Rudder,cn=rudder-configuration" -s sub '(&(objectClass=nodeGroup)(jsonNodeGroupQuery=*ipNetworkNumber*))' 1.1 2> /dev/null | grep -c "dn: nodeGroupId=" || true)
-    if [ ${LDAP_TEST_MIGRATE_GROUP} -ne 0 ]; then
-      echo -n "INFO: migrate LDAP attribute ipNetworkNumber -> networkSubnet in node groups..."
-      MIGRATE_IPNET_FILE="/tmp/rudder-migrate-ipNetworkNumber-group.ldif"
-      ${LDAPSEARCH} -o ldif-wrap=no -b "ou=Rudder,cn=rudder-configuration" -s sub '(&(objectClass=nodeGroup)(jsonNodeGroupQuery=*ipNetworkNumber*))' 'jsonNodeGroupQuery' 2> /dev/null > ${MIGRATE_IPNET_FILE}
-      sed -i -e "s/^$/-\n\n/" ${MIGRATE_IPNET_FILE}
-      sed -i -e "s/ipNetworkNumber/networkSubnet/" ${MIGRATE_IPNET_FILE}
-      sed -i -e "s/jsonNodeGroupQuery/changetype: modify\nreplace: jsonNodeGroupQuery\njsonNodeGroupQuery/" ${MIGRATE_IPNET_FILE}
-      ${LDAPMODIFY} -f ${MIGRATE_IPNET_FILE}
-      echo " OK"
-    fi
+  # - 4.1.17, 4.3.7, 5.0.3: ipNetworkNumber -> networkSubnet
+  STEP="Migrate LDAP attribute ipNetworkNumber in networkInterface"
+  # change:
+  #  dn: networkInterface=etho0,nodeId=0876521e-3c81-4775-85c7-5dd7f9d5d3da,ou=Nodes,ou=Accepted Inventories,ou=Inventories,cn=rudder-configuration
+  #  ipNetworkNumber: 192.268.1.1
+  #  ipNetworkNumber: ffff:::1
+  #
+  # into:
+  #  dn: networkInterface=lo,nodeId=0876521e-3c81-4775-85c7-5dd7f9d5d3da,ou=Nodes,ou=Accepted Inventories,ou=Inventories,cn=rudder-configuration
+  #  changetype: modify
+  #  delete: ipNetworkNumber
+  #  -
+  #  replace: networkSubnet
+  #  networkSubnet: 192.268.1.1
+  #  networkSubnet: ffff:::1
+  #  -
+  #
+  LDAP_TEST_MIGRATE_NETWORK=$(${LDAPSEARCH} -b "ou=Inventories,cn=rudder-configuration" -s sub '(&(objectClass=networkInterfaceLogicalElement)(ipNetworkNumber=*))' 1.1 2> /dev/null | grep -c "dn: networkInterface=" || true)
+  if [ ${LDAP_TEST_MIGRATE_NETWORK} -ne 0 ]; then
+    echo -n "INFO: migrate LDAP attribute ipNetworkNumber -> networkSubnet in networkInterface..."
+    MIGRATE_IPNET_FILE="/tmp/rudder-migrate-ipNetworkNumber-network.ldif"
+    ${LDAPSEARCH} -o ldif-wrap=no -b "ou=Inventories,cn=rudder-configuration" -s sub '(&(objectClass=networkInterfaceLogicalElement)(ipNetworkNumber=*))' 'ipNetworkNumber' 2> /dev/null > ${MIGRATE_IPNET_FILE}
+    sed -i -e "s/ipNetworkNumber/networkSubnet/" ${MIGRATE_IPNET_FILE}
+    sed -i -e "s/dn:\(.*\)$/dn:\1\nchangetype:modify\ndelete: ipNetworkNumber\n-\nreplace: networkSubnet/" ${MIGRATE_IPNET_FILE}
+    sed -i -e "s/^$/-\n/" ${MIGRATE_IPNET_FILE}
+    ${LDAPMODIFY} -f ${MIGRATE_IPNET_FILE}
+    echo " OK"
   fi
 
+  STEP="Migrate LDAP attribute ipNetworkNumber in node group query"
+  # change:
+  #  dn: nodeGroupId=ede838d0-b064-4739-a03e-f6a7651dce7b,groupCategoryId=GroupRoot,ou=Rudder,cn=rudder-configuration
+  #  jsonNodeGroupQuery: {"select":"node","composition":"And","where":[{"objectType":"networkInterfaceLogicalElement","attribute":"ipNetworkNumber","comparator":"regex","value":"192.168.42.*"}]}
+  #
+  # into:
+  #  dn: nodeGroupId=ede838d0-b064-4739-a03e-f6a7651dce7b,groupCategoryId=GroupRoot,ou=Rudder,cn=rudder-configuration
+  #  changetype: modify
+  #  replace: jsonNodeGroupQuery
+  #  jsonNodeGroupQuery: {"select":"node","composition":"And","where":[{"objectType":"networkInterfaceLogicalElement","attribute":"networkSubnet","comparator":"regex","value":"192.168.42.*"}]}
+  #  -
+  #
+  LDAP_TEST_MIGRATE_GROUP=$(${LDAPSEARCH} -b "ou=Rudder,cn=rudder-configuration" -s sub '(&(objectClass=nodeGroup)(jsonNodeGroupQuery=*ipNetworkNumber*))' 1.1 2> /dev/null | grep -c "dn: nodeGroupId=" || true)
+  if [ ${LDAP_TEST_MIGRATE_GROUP} -ne 0 ]; then
+    echo -n "INFO: migrate LDAP attribute ipNetworkNumber -> networkSubnet in node groups..."
+    MIGRATE_IPNET_FILE="/tmp/rudder-migrate-ipNetworkNumber-group.ldif"
+    ${LDAPSEARCH} -o ldif-wrap=no -b "ou=Rudder,cn=rudder-configuration" -s sub '(&(objectClass=nodeGroup)(jsonNodeGroupQuery=*ipNetworkNumber*))' 'jsonNodeGroupQuery' 2> /dev/null > ${MIGRATE_IPNET_FILE}
+    sed -i -e "s/^$/-\n\n/" ${MIGRATE_IPNET_FILE}
+    sed -i -e "s/ipNetworkNumber/networkSubnet/" ${MIGRATE_IPNET_FILE}
+    sed -i -e "s/jsonNodeGroupQuery/changetype: modify\nreplace: jsonNodeGroupQuery\njsonNodeGroupQuery/" ${MIGRATE_IPNET_FILE}
+    ${LDAPMODIFY} -f ${MIGRATE_IPNET_FILE}
+    echo " OK"
+  fi
 }
 
 ################################################################################
@@ -655,7 +552,7 @@ if ${RUDDER_DB_INITIALIZED}; then
     echo " OK"
     upgrade_database
   else
-    UNCOMPLETE_MIGRATION=true
+    INCOMPLETE_MIGRATION=true
   fi
 fi
 
@@ -672,7 +569,7 @@ if ${RUDDER_LDAP_INITIALIZED}; then
     echo " OK"
     upgrade_inventory
   else
-    UNCOMPLETE_MIGRATION=true
+    INCOMPLETE_MIGRATION=true
   fi
 fi
 
@@ -686,7 +583,7 @@ upgrade_plugins
 touch /opt/rudder/etc/force_inventory
 
 echo ""
-if ${UNCOMPLETE_MIGRATION}
+if ${INCOMPLETE_MIGRATION}
 then
   echo "ERROR: The migration has failed in some steps. Check previous error messages."
   echo "Please restart the failed service(s), and start the migration script again."
@@ -696,6 +593,4 @@ then
 else
   echo "INFO: The migration has completed successfully."
 fi
-
-
 
