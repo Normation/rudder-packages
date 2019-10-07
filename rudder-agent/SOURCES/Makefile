@@ -85,7 +85,7 @@ PROXY_ENV = $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY))
 # No accept encoding to prevent the webserver form altering the distributed file
 WGET = wget -q --header="accept-encoding:" -O
 FETCH = fetch -q -o
-CURL = curl -s -L -o
+CURL = curl -s -L -f -o
 ifneq (,$(wildcard /usr/bin/curl))
 _GET = $(PROXY_ENV) $(CURL)
 GET_OPT = --curl

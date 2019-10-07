@@ -20,16 +20,8 @@ RUDDER_VERSION_TO_PACKAGE =
 
 .DEFAULT_GOAL := localdepends
 PROXY_ENV = $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY))
-# No accept encoding to prevent the webserver form altering the distributed file
-WGET = wget -q --header="accept-encoding:" -O
-CURL = curl -s --http1.1 -L -o
-ifneq (,$(wildcard /usr/bin/curl))
-_GET = $(PROXY_ENV) $(CURL)
-else
-_GET = $(PROXY_ENV) $(WGET)
-endif
 # Pass an empty string to skip hash check
-GET=get() { $(_GET) "$$1.part" "$$2" && { openssl dgst -sha256 "$$1.part" | grep -q "$$3" || { echo "Wrong checksum, aborting"; exit 1; }; } && mv "$$1.part" "$$1"; }; get
+GET=get() { $(PROXY_ENV) curl  --silent --location --fail --output "$$1.part" "$$2" && { openssl dgst -sha256 "$$1.part" | grep -q "$$3" || { echo "Wrong checksum, aborting"; exit 1; }; } && mv "$$1.part" "$$1"; }; get
 
 localdepends: ./rudder-sources
 
