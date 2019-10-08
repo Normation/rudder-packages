@@ -10,13 +10,17 @@ then
     [ "$1" = "put" ] && exit 0
     exit 9
   fi
+  PYTHON=python
+elif type python3 >/dev/null 2>&1
+then
+  PYTHON=python3
 else
   echo "No python" 1>&2
   [ "$1" = "put" ] && exit 0
   exit 9
 fi
 
-python - "$@" <<'EOF'
+${PYTHON} - "$@" <<'EOF'
 #!/usr/bin/python
 
 """
