@@ -131,7 +131,7 @@ virtualenv/virtualenv.py:
 	tar -xzf virtualenv.tgz
 	mv virtualenv-$(VIRTUALENV_RELEASE)/ virtualenv/
 
-PATCHES_SHA = $(shell find patches/ -type f | xargs sha256sum | sha256sum | awk '{print $$1}')
+PATCHES_SHA = $(shell find patches/ -type f | sort | xargs sha256sum | sha256sum | awk '{print $$1}')
 CACHE_PARAMETERS = --with-env name=openldap ldap=$(OPENLDAP_SHA256) patches=$(PATCHES_SHA)
 BUILD_LDAP = $(shell ../../build-caching get openldap-source/ $(CACHE_PARAMETERS) || echo build-ldap)
 build: $(BUILD_LDAP) rudder-sources virtualenv/virtualenv.py rudder-doc jetty rudder.war
