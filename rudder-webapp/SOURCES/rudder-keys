@@ -45,14 +45,6 @@ else
   usage
 fi
 
-if [ ! -s "${PUBKEY}" ]
-then
-  echo "ERORR ${PUBKEY} file does not exist or is empty"
-  exit 2
-fi
-
-PUBKEY=$(readlink -f "${PUBKEY}")
-
 # Get how many access credentials we got for LDAP in /opt/rudder/etc/rudder-web.properties
 # (should have 2, user and password)
 LDAP_CREDENTIALS=$(grep -c -E "^ldap.auth(dn|pw)[ \t]*=" /opt/rudder/etc/rudder-web.properties || true)
@@ -86,6 +78,15 @@ EOF
 
 elif [ "${ACTION}" = "change-key" ]
 then
+
+  if [ ! -s "${PUBKEY}" ]
+  then
+    echo "ERORR ${PUBKEY} file does not exist or is empty"
+    exit 2
+  fi
+
+  PUBKEY=$(readlink -f "${PUBKEY}")
+
   # extract and excape key public key (double escape because it will be used in a perl regex replacement
   pub_key_content=$(perl -pe 's/\n/\\\\n/g' "${PUBKEY}" | perl -pe 's|/|\\/|g')
   # extract agentName attribute from ldap into a file
