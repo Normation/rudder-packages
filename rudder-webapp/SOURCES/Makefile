@@ -131,7 +131,7 @@ virtualenv/virtualenv.py:
 	tar -xzf virtualenv.tgz
 	mv virtualenv-$(VIRTUALENV_RELEASE)/ virtualenv/
 
-PATCHES_SHA = $(shell find patches/ -type f | xargs | sha256sum | awk '{print $$1}')
+PATCHES_SHA = $(shell find patches/ -type f | xargs sha256sum | sha256sum | awk '{print $$1}')
 CACHE_PARAMETERS = --with-env name=openldap ldap=$(OPENLDAP_SHA256) patches=$(PATCHES_SHA)
 BUILD_LDAP = $(shell ../../build-caching get openldap-source/ $(CACHE_PARAMETERS) || echo build-ldap)
 build: $(BUILD_LDAP) rudder-sources virtualenv/virtualenv.py rudder-doc jetty rudder.war
@@ -143,7 +143,7 @@ build: $(BUILD_LDAP) rudder-sources virtualenv/virtualenv.py rudder-doc jetty ru
 	touch $@
 
 build-ldap: openldap-source
-	cd openldap-source && ./configure --prefix=/opt/rudder --libdir=/opt/rudder/lib/ldap --enable-dynamic --enable-debug --enable-modules --enable-monitor=mod --enable-dynlist=mod --enable-mdb=yes --enable-hdb=no --enable-bdb=no
+	cd openldap-source && CFLAGS=-Wno-format-extra-args ./configure --prefix=/opt/rudder --libdir=/opt/rudder/lib/ldap --enable-dynamic --enable-debug --enable-modules --enable-monitor=mod --enable-dynlist=mod --enable-mdb=yes --enable-hdb=no --enable-bdb=no
 	cd openldap-source && make --debug=n depend
 	cd openldap-source && make --debug=n
 	touch $@

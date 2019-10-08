@@ -71,7 +71,7 @@ Obsoletes: ncf, ncf-api-virtualenv, rudder-techniques, rudder-inventory-ldap, ru
 # Prevent reinstalling old versions
 Conflicts: ncf, ncf-api-virtualenv, rudder-techniques, rudder-inventory-ldap, rudder-ldap
 
-BuildRequires: gcc
+BuildRequires: gcc, rsync
 Requires: rsyslog
 
 # Dependencies
