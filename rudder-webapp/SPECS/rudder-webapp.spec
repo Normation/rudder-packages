@@ -451,6 +451,8 @@ fi
 cd /
 [ -f /tmp/rudder-hooks-upgrade ] && setfacl --restore=/tmp/rudder-hooks-upgrade
 
+# mandatory at least on SLES12
+systemctl restart %{apache} >/dev/null
 # this may fails when ldap is not yet initialized
 service rudder-jetty start || true
 
