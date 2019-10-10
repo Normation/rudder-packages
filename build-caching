@@ -85,8 +85,7 @@ Commands:
       Show all cache entries.
 
     purge
-      Purge entries from the cache. You can limit the purge to keep at least
-      <count> files.
+      Purge entries from the cache.
 """
 
 from __future__ import print_function
@@ -137,17 +136,23 @@ def db_match(stored_data, query):
     if stored_data[key] != value:
       return False
   return True
+
+def db_get_entry(metadata):
+  for i in range(len(DB)-1,-1,-1):
+    if db_match(DB[i], metadata):
+      return DB[i]
+  return None
+
 # End of indexing methods
 
-def get_directory_entry(dependency):
+def new_cache_path(metadata):
   """ Prepare a directory entry in the cache """
   my_uuid = uuid.uuid1()
   name ='unknown'
-  if 'name' in dependency:
-    name = dependency['name']
+  if 'name' in metadata:
+    name = metadata['name']
   path = CACHE_PATH + "/" + name + "/" + str(my_uuid) + '/'
   os.makedirs(path)
-  dependency['path'] = path
   return path
 
 def parse_metadata(arguments):
@@ -203,27 +208,28 @@ def sync(source, destination, move=False):
 
 def put(metadata, source, move):
   """ Put a source in the cache """
-  path = get_directory_entry(metadata)
+  entry=db_get_entry(metadata)
+  if entry is None:
+    path = new_cache_path(metadata)
+  else:
+    path = entry['path']
   if not sync(source, path, move):
     print("Synchronization error, aborting!", file=sys.stderr)
     shutil.rmtree(path)
     exit(3)
-  metadata['path'] = path
-  DB.append(metadata)
-  db_save()
+  if entry is None:
+    metadata['path'] = path
+    DB.append(metadata)
+    db_save()
   print("Cache saved", file=sys.stderr)
 
 def get(metadata, destination):
   """ Retrieve data from cache and put it into destination """
-  entry=None
-  for i in range(len(DB)-1,-1,-1):
-    if db_match(DB[i], metadata):
-      entry=DB[i]
-      print("Cache restored", file=sys.stderr)
-      break
-  else:
+  entry=db_get_entry(metadata)
+  if entry is None:
     print("No such entry in the cache", file=sys.stderr)
     exit(1)
+  print("Restoring cache", file=sys.stderr)
   if not sync(entry['path'], destination):
     print("Synchronization error, aborting!", file=sys.stderr)
     exit(3)
@@ -232,22 +238,15 @@ def show(metadata):
   """ Show cache content """
   print(json.dumps([ x for x in DB if db_match(x, metadata) ], indent=2))
 
-def purge(metadata, keep):
+def purge(metadata):
   """ Purge cache """
   global DB
-  DB.reverse()
   keep_db = []
-  i = 0
   for data in DB:
     if db_match(data, metadata):
-      if i < keep:
-        i += 1
-        keep_db.append(data)
-      else:
-        shutil.rmtree(data['path'])
+      shutil.rmtree(data['path'])
     else:
       keep_db.append(data)
-  keep_db.reverse()
   DB = keep_db
   db_save()
 
@@ -281,10 +280,7 @@ if __name__ == "__main__":
   elif arguments['show']:
     show(metadata)
   elif arguments['purge']:
-    keep = 0
-    if arguments['--keep'] is not None:
-      keep = arguments['--keep']
-    purge(metadata, keep)
+    purge(metadata)
   else:
     print("Unknown arguments")
     exit(9)
