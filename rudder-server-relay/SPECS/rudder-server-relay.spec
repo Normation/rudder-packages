@@ -190,6 +190,10 @@ if type sestatus >/dev/null 2>&1 && sestatus | grep -q "enabled"; then
   restorecon -R /var/rudder/inventories
   restorecon -R /var/rudder/reports
   restorecon -R /var/log/rudder/apache2
+  # Add 3030 to ports apache can connect to
+  semanage port -l | grep ^http_port_t | grep -q 3030 || semanage port -a -t http_port_t -p tcp 3030
+  # Allow apache to write to files shared with relayd
+  setsebool -P allow_httpd_anon_write 1
 fi
 %endif
 
