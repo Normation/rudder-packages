@@ -142,10 +142,12 @@ build: $(BUILD_LDAP) rudder-sources virtualenv/virtualenv.py rudder-doc jetty ru
 	for i in easy_install python pip; do rm -f ncf-api-virtualenv/bin/$${i}*; done
 	touch $@
 
+# for centos7
+DEBUGOPT:=$(shell make -v --debug=n >/dev/null2>&1 && echo --debug=n)
 build-ldap: openldap-source
 	cd openldap-source && CFLAGS=-Wno-format-extra-args ./configure --prefix=/opt/rudder --libdir=/opt/rudder/lib/ldap --enable-dynamic --enable-debug --enable-modules --enable-monitor=mod --enable-dynlist=mod --enable-mdb=yes --enable-hdb=no --enable-bdb=no
-	cd openldap-source && make --debug=n depend
-	cd openldap-source && make --debug=n
+	cd openldap-source && make $(DEBUGOPT) depend
+	cd openldap-source && make $(DEBUGOPT)
 	touch $@
 
 # install into DESTDIR
@@ -182,7 +184,7 @@ install: build initial-promises initial-ncf
 	mkdir -p $(DESTDIR)/usr/share/ncf-api-virtualenv/share/selinux/
 	mkdir -p $(DESTDIR)/usr/lib/systemd/system/
 	mkdir -p $(DESTDIR)/var/lib/ncf-api-venv/
-	cd openldap-source && make --debug=n install DESTDIR=$(DESTDIR)
+	cd openldap-source && make $(DEBUGOPT) install DESTDIR=$(DESTDIR)
 
 	# Install openldap
 	install -m 640 slapd.conf $(DESTDIR)/opt/rudder/etc/openldap/slapd.conf
