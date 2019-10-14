@@ -48,9 +48,13 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 AutoReq: 0
 AutoProv: 0
 
-## Python 2
+%if 0%{?rhel} == 8
+BuildRequires: python3, python3-requests
+Requires: python3, python3-requests
+%else
 BuildRequires: python, python-requests
 Requires: python, python-requests
+%endif
 
 %description
 Command line tools and python libraries to call Rudder.
