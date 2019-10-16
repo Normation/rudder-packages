@@ -217,7 +217,6 @@ def jar_status(name, enable):
   text = open(PLUGINS_CONTEXT_XML).read()
   def repl(match):
     enabled = [x for x in match.group(1).split(',') if x != name and x != '']
-    pprint(enabled)
     if enable:
       enabled.append(name)
     plugins = ','.join(enabled)
