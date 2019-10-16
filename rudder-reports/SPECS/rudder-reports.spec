@@ -122,7 +122,7 @@ if [ -z "${POSTGRESQL_SERVICE_NAME}" ]; then
 fi
 
 # Check if PostgreSQL is started
-systemctl status ${POSTGRESQL_SERVICE_NAME}
+systemctl status ${POSTGRESQL_SERVICE_NAME} 2>&1 >/dev/null
 
 if [ $? -ne 0 ]; then
 %if 0%{?rhel}
