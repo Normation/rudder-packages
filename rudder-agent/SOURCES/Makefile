@@ -493,6 +493,12 @@ App-cpanminus:
 
 rudder-agent.cron: rudder-sources
 	cp ./rudder-sources/rudder-techniques/techniques/system/common/1.0/rudder-agent-community-cron ./rudder-agent.cron
+
+	# rudder-agent-community-cron is a mustache template that is not rendered at postinstall
+	# It needs to be "correctly" built to avoid breaking the cron service
+	[ -f /etc/slackware-version ] && perl -0777 -pe 's|\{\{\#classes.slackware}}(.*?)\{\{/classes.slackware}}.*?\{\{\^classes.slackware}}(.*?)\{\{/classes.slackware}}|\1|sg' -i ./rudder-agent.cron || true
+	[ ! -f /etc/slackware-version ] &&  perl -0777 -pe 's|\{\{\#classes.slackware}}(.*?)\{\{/classes.slackware}}.*?\{\{\^classes.slackware}}(.*?)\{\{/classes.slackware}}|\2|sg' -i ./rudder-agent.cron || true
+
 	# Set unexpanded variables of the cron file
 	$(SED) 's@\$${sys.workdir}@/var/rudder/cfengine-community@g' rudder-agent.cron | $(SED) 's@\$${g.rudder_base}@/opt/rudder@g' | $(SED) 's@\\&\\&@\&\&@g' | $(SED) 's@\\&1@\&1@g' > rudder-agent.cron.new
 	mv rudder-agent.cron.new rudder-agent.cron
