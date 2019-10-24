@@ -282,6 +282,7 @@ rm -rf %{buildroot}
 /var/rudder/shared-files/
 /var/rudder/share/
 /var/rudder/lib/ssl/
+/var/rudder/lib/relay/
 /var/log/rudder/apache2/
 /usr/lib/systemd/system/rudder-relayd.service
 /opt/rudder/etc/
