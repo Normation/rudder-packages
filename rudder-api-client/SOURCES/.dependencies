@@ -1,3 +1,4 @@
-sles-12:python python-requests
-sles-15:python python-requests
-rhel-7:python python-requests
+SLES12:python python-requests
+SLES15:python python-requests
+RHEL6:python python-requests
+RHEL7:python python-requests
