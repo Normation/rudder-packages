@@ -18,7 +18,7 @@ build: build-stamp
 # Force python everywhere in 5.0
 	find . -type f | xargs sed -i '1,1s|#!/usr/bin/python3|#!/usr/bin/python|'
 	tar -xjf SOURCES/rudder-sources.tar.bz2
-	mkdir BUILD
+	mkdir -p BUILD
 	mv rudder-sources-*/* BUILD/
 
 build-stamp: configure-stamp
@@ -30,6 +30,7 @@ clean:
 	dh_testdir
 	dh_testroot
 	rm -f build-stamp configure-stamp
+	rm -rf BUILD
 
 	# Add here commands to clean up after the build process.
 
@@ -41,7 +42,6 @@ install: build
 	dh_prep
 	dh_installdirs
 
-	# Add here commands to install the package into debian/normation-openldap.
 
 # Build architecture-independent files here.
 binary-indep: install
