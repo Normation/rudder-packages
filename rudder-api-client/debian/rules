@@ -12,9 +12,6 @@ export DH_VERBOSE=1
 build:
 # Force python everywhere in 5.0
 	find . -type f | xargs sed -i '1,1s|#!/usr/bin/python3|#!/usr/bin/python|'
-	tar -xjf SOURCES/rudder-sources.tar.bz2
-	mkdir -p BUILD
-	mv rudder-sources-*/* BUILD/
 
 clean:
 	dh_testdir
@@ -40,6 +37,8 @@ binary-arch: install
 	dh_testdir
 	dh_testroot
 	dh_installchangelogs
+	#
+	dh_install --sourcedir=$(CURDIR)/SOURCES/rudder-sources/rudder-api-client/ build/ /
 
 	dh_installman
 	dh_link

@@ -31,7 +31,7 @@ endif
 # Pass an empty string to skip hash check
 GET=get() { $(_GET) "$$1.part" "$$2" && { openssl dgst -sha256 "$$1.part" | grep -q "$$3" || { echo "Wrong checksum, aborting"; exit 1; }; } && mv "$$1.part" "$$1"; }; get
 
-localdepends: ./rudder-sources
+localdepends: ./rudder-sources ./rudder-sources/rudder-api-client/build
 
 ./rudder-sources.tar.bz2:
 	$(GET) rudder-sources.tar.bz2 https://www.rudder-project.org/archives/rudder-sources-${RUDDER_VERSION_TO_PACKAGE}.tar.bz2 ""
@@ -39,6 +39,11 @@ localdepends: ./rudder-sources
 ./rudder-sources: ./rudder-sources.tar.bz2
 	tar -xjf rudder-sources.tar.bz2
 	mv rudder-sources-*/ rudder-sources/
+
+./rudder-sources/rudder-api-client/build:
+	cd rudder-sources/rudder-api-client && make install DESTDIR=build
+
+clean: localclean
 
 localclean:
 	rm -rf ./rudder-sources
