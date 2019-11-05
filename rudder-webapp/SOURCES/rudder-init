@@ -53,51 +53,20 @@ fi
 # Get how many access credentials we got for LDAP and SQL in /opt/rudder/etc/rudder-web.properties
 # (should have 2 for each, user and password)
 LDAP_CREDENTIALS=$(grep -c -E "^ldap.auth(dn|pw)[ \t]*=" /opt/rudder/etc/rudder-web.properties || true)
-SQL_CREDENTIALS=$(grep -c -E "^rudder.jdbc.(username|password)[ \t]*=" /opt/rudder/etc/rudder-web.properties || true)
 
-TOTAL_CREDENTIALS=$((LDAP_CREDENTIALS+SQL_CREDENTIALS))
-
-LDAP_SERVER='localhost'
-LDAP_PORT='389'
-if [ -f /opt/rudder/etc/rudder-web.properties -a ${TOTAL_CREDENTIALS} -eq 4 ]; then
+if [ -f /opt/rudder/etc/rudder-web.properties -a ${LDAP_CREDENTIALS} -eq 2 ]; then
   # Get the database access credentials from the rudder-web.properties file
   LDAP_USER="$(grep -E '^ldap.authdn[ \t]*=' ${RUDDER_OPT}/etc/rudder-web.properties | cut -d "=" -f 2-)"
   LDAP_PASSWORD="$(grep -E '^ldap.authpw[ \t]*=' ${RUDDER_OPT}/etc/rudder-web.properties | cut -d "=" -f 2-)"
-
-  SQL_USER="$(grep -E '^rudder.jdbc.username[ \t]*=' ${RUDDER_OPT}/etc/rudder-web.properties | cut -d "=" -f 2-)"
-  SQL_PASSWORD="$(grep -E '^rudder.jdbc.password[ \t]*=' ${RUDDER_OPT}/etc/rudder-web.properties | cut -d "=" -f 2-)"
-  SQL_SERVER="$(grep -E '^rudder.jdbc.url[ \t]*=' ${RUDDER_OPT}/etc/rudder-web.properties | cut -d '=' -f 2- | sed 's%^.*://\(.*\):\(.*\)/.*$%\1%')"
-  SQL_PORT="$(grep -E '^rudder.jdbc.url[ \t]*=' ${RUDDER_OPT}/etc/rudder-web.properties | cut -d '=' -f 2- | sed 's%^.*://\(.*\):\(.*\)/.*$%\2%')"
-
-  export PGPASSWORD="${SQL_PASSWORD}"
 else
   # No database access credentials in rudder-web.properties... Try anyway using "guessed" values.
   echo "WARNING: Database access credentials are missing in /opt/rudder/etc/rudder-web.properties, trying to guess adequate values."
   LDAP_USER=$(grep "^rootdn" /opt/rudder/etc/openldap/slapd.conf | sed "s/\w*\s*['\"]\?\([^\"']*\)['\"]\?$/\1/")
   LDAP_PASSWORD=$(grep "^rootpw" /opt/rudder/etc/openldap/slapd.conf | sed "s/\w*\s*['\"]\?\([^\"']*\)['\"]\?$/\1/")
-
-  SQL_USER="rudder"
-  SQL_PASSWORD="undefined"
-  SQL_SERVER="localhost"
-  SQL_PORT="5432"
-
-  # We rely on .pgpass instead
-  unset PGPASSWORD
-fi
-
-# Override any server values with those from ${RUDDER_ROLES_FILE} , unless this is a monolithic
-# Rudder server installation (to keep using localhost)
-RUDDER_ROLE_SERVER_ROOT="${RUDDER_OPT}/etc/server-roles.d/rudder-server-root"
-if [ ! -f ${RUDDER_ROLE_SERVER_ROOT} -a -f ${RUDDER_ROLES_FILE} ]; then
-  ROLE_HOSTNAME=$(grep "^rudder-db:" ${RUDDER_ROLES_FILE} | cut -d: -f2 | cut -d, -f1 | tr -d " ")
-  if [ ! -z ${ROLE_HOSTNAME} ]; then
-    SQL_SERVER=${ROLE_HOSTNAME}
-    sed -i "s%^rudder.jdbc.url *=.*$%rudder.jdbc.url=jdbc:postgresql://${SQL_SERVER}:${SQL_PORT}/rudder%" ${RUDDER_OPT}/etc/rudder-web.properties
-  fi
 fi
 
 # Commands
-LDAP_PARAMETERS="-H ldap://${LDAP_SERVER}:${LDAP_PORT}/ -D ${LDAP_USER} -w ${LDAP_PASSWORD} -x"
+LDAP_PARAMETERS="-H ldap://localhost/ -D ${LDAP_USER} -w ${LDAP_PASSWORD} -x"
 
 LDAPSEARCH="ldapsearch ${LDAP_PARAMETERS} -LLL"
 LDAPADD="ldapadd ${LDAP_PARAMETERS}"
@@ -243,21 +212,15 @@ fi
 echo " done."
 echo
 
-# Update the password file used by Rudder with random passwords - if we are on the root server with all components ONLY
-if [ -f ${RUDDER_OPT}/etc/server-roles.d/rudder-server-root ]; then
-  echo -n "Updating Rudder password file with random passwords... "
-  sed -i "s%RUDDER_WEBDAV_PASSWORD.*%RUDDER_WEBDAV_PASSWORD:$(dd if=/dev/urandom count=128 bs=1 2>&1 | md5sum | cut -b-20)%" ${RUDDER_OPT}/etc/rudder-passwords.conf
-  sed -i "s%RUDDER_PSQL_PASSWORD.*%RUDDER_PSQL_PASSWORD:$(dd if=/dev/urandom count=128 bs=1 2>&1 | md5sum | cut -b-20)%" ${RUDDER_OPT}/etc/rudder-passwords.conf
-  sed -i "s%RUDDER_OPENLDAP_BIND_PASSWORD.*%RUDDER_OPENLDAP_BIND_PASSWORD:$(dd if=/dev/urandom count=128 bs=1 2>&1 | md5sum | cut -b-20)%" ${RUDDER_OPT}/etc/rudder-passwords.conf
-  echo " done."
-else
-  echo "This appears to be a distributed Rudder server setup."
-  echo "You should manually change the passwords for the WebDAV, PostgreSQL and OpenLDAP"
-  echo "services now, and reflect these changes across all servers".
-  echo "This cannot be done automatically currently."
-  echo "See https://docs.rudder.io/reference/current/administration/multi_server.html"
-  echo
-fi
+# rudder-passwords.conf -> server-roles technique -> rudder-web.properties -> webapp
+# rudder-passwords.conf -> server-roles technique -> lapd.conf -> ldap server
+
+# Update the password file used by Rudder with random passwords
+echo -n "Updating Rudder password file with random passwords... "
+sed -i "s%RUDDER_WEBDAV_PASSWORD.*%RUDDER_WEBDAV_PASSWORD:$(dd if=/dev/urandom count=128 bs=1 2>&1 | md5sum | cut -b-20)%" ${RUDDER_OPT}/etc/rudder-passwords.conf
+sed -i "s%RUDDER_PSQL_PASSWORD.*%RUDDER_PSQL_PASSWORD:$(dd if=/dev/urandom count=128 bs=1 2>&1 | md5sum | cut -b-20)%" ${RUDDER_OPT}/etc/rudder-passwords.conf
+sed -i "s%RUDDER_OPENLDAP_BIND_PASSWORD.*%RUDDER_OPENLDAP_BIND_PASSWORD:$(dd if=/dev/urandom count=128 bs=1 2>&1 | md5sum | cut -b-20)%" ${RUDDER_OPT}/etc/rudder-passwords.conf
+echo " done."
 
 # Delete temp files
 echo -n "Cleaning up temporary directories..."
