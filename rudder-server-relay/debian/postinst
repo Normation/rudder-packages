@@ -40,7 +40,7 @@ case "$1" in
       # share directory with rudder-policy-reader
       chgrp -R rudder-policy-reader /var/rudder/share
       chmod 750 /var/rudder/share
-      find /var/rudder/share -type d | xargs chmod g+s-w
+      find /var/rudder/share -type d | xargs chmod 2750
 
 
       # Create the rudder user

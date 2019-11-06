@@ -251,7 +251,7 @@ fi
 # share directory with rudder-policy-reader
 chgrp -R rudder-policy-reader /var/rudder/share
 chmod 750 /var/rudder/share
-find /var/rudder/share -type d | xargs chmod g+s-w
+find /var/rudder/share -type d | xargs chmod 2750
 
 # Create the rudder user
 if ! getent passwd %{rudder_user} >/dev/null; then
