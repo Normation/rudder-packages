@@ -12,3 +12,7 @@ override_dh_auto_build:
 	mkdir BUILD
 	mv rudder-sources-*/* BUILD/
 	dh_auto_build
+
+# Default rule that guess what to do for missing targets
+%:
+	dh $@
