@@ -18,6 +18,7 @@
 #
 #####################################################################################
 
+from __future__ import print_function
 RUDDER_URL = "https://feedback.rudder-project.org/stats/"
 UUID_FILE = "/opt/rudder/etc/uuid.root"
 PROPERTIES_FILE = "/opt/rudder/etc/rudder-web.properties"
@@ -44,7 +45,7 @@ import uuid
 #
 
 # Things to add (TODO)
-# - Promises generation time 
+# - Promises generation time
 # - Number of relays (use special role)
 # - Number of directive per technique/version (table)
 # - Number of ncf/custom technique (50_technique, compare with usr/share)
@@ -65,31 +66,31 @@ def metrics():
   # Number of expected reports (components*directives*nodes)
   sql = "select sum(n.pending) + sum(n.success) + sum(n.repaired) + sum(n.error) + sum(n.missing) + sum(n.noanswer) + sum(n.notapplicable) + sum(n.compliant) + sum(n.auditnotapplicable) + sum(n.noncompliant) + sum(n.auditerror) + sum(n.badpolicymode) from nodecompliancelevels n inner join (select nodeid, max(runtimestamp) as maxtime from nodecompliancelevels group by nodeid) as t on t.nodeid = n.nodeid and t.maxtime = n.runtimestamp;"
   data["last_report_count"] = psql(sql)
-  
+
   # Number of rules
-  sql = "select count(ruleid) from rules where endtime is null;" 
+  sql = "select count(ruleid) from rules where endtime is null;"
   data["rule_count"] = psql(sql)
-  
+
   # Number of directives
-  sql = "select count(directiveid) from directives where endtime is null;" 
+  sql = "select count(directiveid) from directives where endtime is null;"
   data["directive_count"] = psql(sql)
-  
+
   # Number of nodes
   sql = "select count(*) from nodes where endtime is null;"
   data["nodes_count"] = psql(sql)
-  
+
   # Number of reports for one day
   sql = "select (max(id) - min(id)) as count from ruddersysevents where executiontimestamp >= (now() - interval '1 day');"
   data["report_count_last_day"] = psql(sql)
-  
+
   # Report database size
   sql = "select pg_size_pretty(pg_total_relation_size('ruddersysevents')) as size;"
   data["report_db_size"] = psql(sql)
-  
+
   # Number of lines in reports table
   sql = "select reltuples from pg_class where relname = 'ruddersysevents';"
   data["report_line_count"] = psql(sql)
-  
+
   # Full database size
   sql = "select pg_size_pretty(pg_catalog.pg_database_size('rudder'));"
   data["db_size"] = psql(sql)
@@ -117,7 +118,7 @@ def metrics():
   # OS version
   data["os_version"] = ldap_attribute("ou=Nodes,ou=Accepted Inventories,ou=Inventories,cn=rudder-configuration",
                                       "nodeId=root",
-                                      "osVersion")             
+                                      "osVersion")
 
   # Other metrics
   # -------------
@@ -136,7 +137,7 @@ def metrics():
             data["reportscleaner_frequency"] = match.group(2)
   except Exception as e:
     pass
-  
+
   # Installation date
   cmd="find /opt/rudder/bin/ -type f -exec stat -c \"%Z %n\" {} \; | sort -n | head -n1 | awk '{print $2}' | xargs -r stat -c \"%z\""
   data["installation_date"] = command(["/bin/sh", "-c", cmd]).strip()
@@ -161,7 +162,7 @@ def metrics():
 
   return json.dumps(data, indent=2)
 
- 
+
 # Sub-commands
 # ------------
 # initialise command used to make sql and ldap queries
@@ -217,7 +218,7 @@ def command(args):
       print(stderr, file=sys.stderr, end="")
     if retcode:
       return "command_error"
-    return stdout
+    return stdout.decode('utf-8')
   except Exception as e:
     if options.debug is not None:
       print(e)
@@ -230,7 +231,7 @@ def psql(query):
 # Run an ldap command and count results
 def ldap_count(query):
   result = command(ldap_cmd.split() + [ '-b', 'ou=Rudder,cn=rudder-configuration', query, 'dn' ]).strip()
-  match = re.search("\n# numEntries: (\d+)", result)
+  match = re.search(r"\n# numEntries: (\d+)", result)
   if match:
     return match.group(1)
   else:
@@ -239,7 +240,7 @@ def ldap_count(query):
 # Run an ldap command and get an attribute value
 def ldap_attribute(base, filter, attribute):
   result = command(ldap_cmd.split() + [ '-b', base, filter, attribute ]).strip()
-  match = re.search("\n"+attribute+": (.+)\n", result)
+  match = re.search(r"\n"+attribute+r": (.+)\n", result)
   if match:
     return match.group(1)
   else:
@@ -270,10 +271,10 @@ if __name__ == "__main__":
     print(data)
 
   if options.send is not None:
-    with NamedTemporaryFile(delete=False) as file:
+    with NamedTemporaryFile(mode="w+", delete=False) as file:
       file.write(data)
       file.close()
-    
+
       # python has broken https support, flaky http libs and requests is not by default
       # -> use curl
       curl = ["curl", RUDDER_URL, "--cacert", "/opt/rudder/share/certificates/ca-bundle.crt", "-f", "-L", "--post301", "--post302", "-d", "@"+file.name, "-H", "Content-Type: application/json;charset=utf-8"]
@@ -281,4 +282,4 @@ if __name__ == "__main__":
         curl.append("-s")
       command(curl)
       os.remove(file.name)
-  
+
