@@ -1,5 +1,3 @@
-#!/bin/sh
-
 processutils_matchandsanitize() {
 
   # Detect the correct ps tool to use

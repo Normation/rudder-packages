@@ -10,33 +10,13 @@ RUDDER_OPT="/opt/rudder"
 RUDDER_VAR="/var/rudder"
 OUTPUT_DIR="/var/rudder/debug/info"
 COLLECT_DIR="collect-${RUN_DATE}"
+OUTPUT_FILE="${OUTPUT_DIR}/debug-info-$(hostname)-${RUN_DATE}.tar.gz"
 
 ## LOADER
 #########
 
-LIB_DIRECTORY="`pwd`/lib"
-TEST_DIRECTORY="`pwd`/tests"
-OUTPUT_FILE="${OUTPUT_DIR}/debug-info-$(hostname)-${RUN_DATE}.tar.gz"
-
-# Source the lib elements if possible
-if [ -d "${LIB_DIRECTORY}" ]
-then
-  for i in ${LIB_DIRECTORY}/*;
-  do
-    [ -n "${VERBOSE}" ] && echo "Info: Sourcing lib ${i}"
-    . ${i}
-  done
-fi
-
-# Source tests elements if possible
-if [ -d "${TEST_DIRECTORY}" ]
-then
-  for i in ${TEST_DIRECTORY}/*;
-  do
-    [ -n "${VERBOSE}" ] && echo "Info: Sourcing test ${i}"
-    . ${i}
-  done
-fi
+#Include: lib/*
+#Include: tests/*
 
 ## FUNCTIONS
 ############
