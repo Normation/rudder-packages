@@ -277,7 +277,7 @@ if __name__ == "__main__":
 
       # python has broken https support, flaky http libs and requests is not by default
       # -> use curl
-      curl = ["curl", RUDDER_URL, "--cacert", "/opt/rudder/share/certificates/ca-bundle.crt", "-f", "-L", "--post301", "--post302", "-d", "@"+file.name, "-H", "Content-Type: application/json;charset=utf-8"]
+      curl = ["curl", RUDDER_URL, "--cacert", "/opt/rudder/etc/ssl/rudder.crt", "-f", "-L", "--post301", "--post302", "-d", "@"+file.name, "-H", "Content-Type: application/json;charset=utf-8"]
       if options.debug is None:
         curl.append("-s")
       command(curl)
