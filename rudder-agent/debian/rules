@@ -108,6 +108,9 @@ endif
 ifeq (true,$(USE_SYSTEM_XML))
 DEPS := $(DEPS), libxml2
 endif
+ifeq (true,$(USE_SYSTEMD))
+DEPS := $(DEPS), systemd
+endif
 
 configure:
 
