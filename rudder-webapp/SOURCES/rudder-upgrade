@@ -1,15 +1,15 @@
 #!/bin/bash
 
-set -e
+set -eE
 
 function anomaly_handler() {
   echo ""
-  echo "ERROR: An error happened during the step: ${STEP}"
+  echo "ERROR: An error happened during the step: ${STEP} (l $1)"
   echo "ERROR: The migration will now stop"
   echo "ERROR: Please try to run /opt/rudder/bin/rudder-upgrade again"
 }
 
-trap anomaly_handler ERR INT TERM
+trap 'anomaly_handler ${LINENO}' ERR INT TERM
 
 #####################################################################################
 # Copyright 2012 Normation SAS
