@@ -47,7 +47,6 @@ import sys
 sys.path.insert(0,"/opt/rudder/share/python")
 
 from pprint import pprint
-import argparse
 import json
 import os
 import tempfile
