@@ -11,7 +11,7 @@
 ## 2 - The system FusionInventory instance is too old
 ## 3 to inf - FusionInventory return codes
 
-. /etc/profile
+[ -f /etc/profile ] && . /etc/profile
 
 # Variable definitions
 
