@@ -5,6 +5,7 @@ After=syslog.target network.target
 [Service]
 Type=forking
 
+LimitNOFILE=64000
 ExecStart=/opt/rudder/bin/rudder-jetty.sh start
 ExecStop=/opt/rudder/bin/rudder-jetty.sh stop
 SuccessExitStatus=143
