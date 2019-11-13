@@ -4,7 +4,6 @@ After=syslog.target
 After=network.target
 ConditionPathExists=/var/rudder/cfengine-community/bin/cf-serverd
 ConditionPathExists=/var/rudder/cfengine-community/inputs/promises.cf
-ConditionPathExists=!/opt/rudder/etc/disable-agent
 ReloadPropagatedFrom=rudder-agent.service
 PartOf=rudder-agent.service
 
