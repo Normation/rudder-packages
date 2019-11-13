@@ -445,11 +445,10 @@ rudder-agent-utilities: rudder-sources
 	cp -r ./rudder-sources/rudder-agent/ ./rudder-agent-utilities
 	# Add capabilities
 	echo cfengine >> ./rudder-agent-utilities/agent-capabilities
-	echo dumpdatastate >> ./rudder-agent-utilities/agent-capabilities
-	echo bodydefault >> ./rudder-agent-utilities/agent-capabilities
 	echo yaml >> ./rudder-agent-utilities/agent-capabilities
 	echo xml >> ./rudder-agent-utilities/agent-capabilities
 	echo curl >> ./rudder-agent-utilities/agent-capabilities
+	echo http_reporting >> ./rudder-agent-utilities/agent-capabilities
 ifneq (false,$(USE_ACL))
 	echo acl >> ./rudder-agent-utilities/agent-capabilities
 endif
