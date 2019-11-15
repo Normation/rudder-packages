@@ -1,5 +1,3 @@
-#!/bin/sh
-
 # Common output formatting
 
 # Return a value like " (value)" if a string is given, and nothing if the argument is empty

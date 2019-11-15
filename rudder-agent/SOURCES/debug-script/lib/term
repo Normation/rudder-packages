@@ -1,8 +1,6 @@
-#!/bin/sh
-
 # Terminal ANSI colours and font styles
 
-## Colors configuration (enable colors only if stdout is a terminal)
+## Colors configuration (enable colors only if stdout is a terminal)
 if [ -t 1 ] && [ -z "${NO_COLORS}" ]; then
 
   # Escape sequence and resets
