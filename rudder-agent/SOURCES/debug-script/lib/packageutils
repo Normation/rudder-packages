@@ -1,5 +1,3 @@
-#!/bin/sh
-
 # Utilities to query package information on the machine
 
 # Query package info (version and such, depending on the used PM)
