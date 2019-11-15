@@ -115,6 +115,11 @@
 %define use_system_openssl true
 %endif
 
+%if 0%{?rhel} && 0%{?rhel} >= 8
+%define use_system_curl true
+%define use_system_openssl true
+%endif
+
 # 3 - SUSE
 # Reference for suse_version : https://en.opensuse.org/openSUSE:Build_Service_cross_distribution_howto
 %if 0%{?suse_version} && 0%{?suse_version} < 1200
