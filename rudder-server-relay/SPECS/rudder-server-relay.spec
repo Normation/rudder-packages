@@ -290,6 +290,7 @@ rm -rf %{buildroot}
 /opt/rudder/share/python/
 /opt/rudder/share/commands/package
 /opt/rudder/bin/rudder-pkg
+/opt/rudder/bin/relay-cleanup
 /opt/rudder/share/package-scripts/rudder-server-relay-postinst
 /opt/rudder/share/package-scripts/rudder-server-relay-prerm
 /etc/bash_completion.d/rudder-pkg.sh
