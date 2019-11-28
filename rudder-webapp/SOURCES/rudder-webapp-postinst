@@ -170,7 +170,8 @@ fi
 
 # Check if Rudder LDAP is initialized and run rudder-init
 # sed stops at first match (giving a SIGPIPE to command) so that the slapcat is not too long on big db
-LDAPCHK=`/opt/rudder/sbin/slapcat | sed -n '/^dn: /{p;q}' | wc -l`
+# To prevent error "error writing output.", we redirect error of slapcat to /dev/null
+LDAPCHK=`/opt/rudder/sbin/slapcat 2>/dev/null | sed -n '/^dn: /{p;q}' | wc -l`
 if [ $LDAPCHK -eq 0 ]; then
   /opt/rudder/bin/rudder-init no auto
 fi
