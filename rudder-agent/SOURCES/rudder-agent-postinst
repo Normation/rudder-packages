@@ -46,6 +46,17 @@ then
       CFRUDDER_SERVER="rudder"
     fi
   fi
+
+  if [ "${CFRUDDER_SERVER}" = "rudder" ]
+  then
+    echo "********************************************************************************"
+    echo "Policy server set to 'rudder' by default as it was resolvable"
+    echo "To change it, edit the configuration file with your Rudder server's hostname"
+    echo "and send an inventory to newly configured policy server."
+    echo "# echo 'rudder.server' > ${CFE_DIR}/policy_server.dat"
+    echo "# rudder agent inventory
+    echo "********************************************************************************"
+  fi
 fi
 
 # setup the policy server if we are asked to
