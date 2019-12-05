@@ -221,7 +221,7 @@ install: build $(INSTALL_DEPS) install-cfengine rudder-agent-utilities rudder-ag
 	mkdir -p $(DESTDIR)/opt/rudder/bin
 	mkdir -p $(DESTDIR)/opt/rudder/share/commands
 	mkdir -p $(DESTDIR)/opt/rudder/share/lib
-	ln -s ../../../opt/rudder/bin $(DESTDIR)/var/rudder/cfengine-community/bin
+	mkdir -p $(DESTDIR)/var/rudder/cfengine-community/bin
 	mkdir -p $(DESTDIR)/var/rudder/cfengine-community/inputs
 	mkdir -p $(DESTDIR)/var/rudder/cfengine-community/ppkeys
 	chmod 700 $(DESTDIR)/var/rudder/cfengine-community/ppkeys
