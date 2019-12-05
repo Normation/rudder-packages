@@ -225,9 +225,6 @@ if [ $1 -ne 1 ]
   # If the stops fails, it's probably because it was not started
   service rudder-jetty stop >&2 > /dev/null || true
 
-  # Copy default file for migration
-  [ -f /etc/default/rudder-slapd ] && mkdir -p /var/rudder/tmp/ && cp /etc/default/rudder-slapd /var/rudder/tmp/default-rudder-slapd
-
   if [ -x /opt/rudder/bin/rudder-pkg ]
   then
     /opt/rudder/bin/rudder-pkg plugin save-status > /tmp/rudder-plugins-upgrade
