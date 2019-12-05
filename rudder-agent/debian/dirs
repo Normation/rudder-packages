@@ -3,6 +3,7 @@ etc/bash_completion.d
 opt/rudder
 opt/rudder/share/man/man8
 var/rudder/cfengine-community
+var/rudder/cfengine-community/bin
 var/rudder/cfengine-community/inputs
 opt/rudder/etc
 var/rudder/tmp
