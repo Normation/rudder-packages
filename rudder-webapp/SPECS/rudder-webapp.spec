@@ -67,9 +67,9 @@ AutoReq: 0
 AutoProv: 0
 
 # Smooth upgrade
-Obsoletes: ncf, ncf-api-virtualenv, rudder-techniques, rudder-inventory-ldap, rudder-ldap
+Obsoletes: ncf, ncf-api-virtualenv, rudder-techniques, rudder-inventory-ldap, rudder-inventory-endpoint, rudder-ldap, rudder-jetty
 # Prevent reinstalling old versions
-Conflicts: ncf, ncf-api-virtualenv, rudder-techniques, rudder-inventory-ldap, rudder-ldap
+Conflicts: ncf, ncf-api-virtualenv, rudder-techniques, rudder-inventory-ldap, rudder-inventory-endpoint, rudder-ldap, rudder-jetty
 
 BuildRequires: gcc, rsync
 Requires: rsyslog
