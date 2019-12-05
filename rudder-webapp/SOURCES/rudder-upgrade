@@ -45,11 +45,12 @@ trap 'anomaly_handler ${LINENO}' ERR INT TERM
 # - All versions : Check for the PostgreSQL version
 # - All versions : Create ncf technique update flag and restart at the end of the script
 # - 5.0          : Automatically upgrade Techniques if autoupdate-technique-library is set
-# - 5.0.3       : Change LDAP attribute ipNetworkNumber -> networkSubnet
+# - 5.0.3        : Change LDAP attribute ipNetworkNumber -> networkSubnet
 # - 5.0.5        : Properties related to "incoming inventory watch"
 # - 5.0.7        : Tune autovacuum on a table basis
 # - 5.0.12       : Change indexes on RudderSysEvents table
-# - 5.1.0        : Remove ncf hooks
+# - 6.0.0        : Remove ncf hooks
+# - 6.0.0        : Keep syslog as default ptotocol on upgrade
 ####################################################################################
 
 # Some paths
@@ -121,6 +122,7 @@ LDAP_PARAMETERS="-H ldap://${LDAP_SERVER}:${LDAP_PORT}/ -D ${LDAP_USER} -w ${LDA
 
 LDAPSEARCH="ldapsearch ${LDAP_PARAMETERS} -LLL"
 LDAPMODIFY="ldapmodify ${LDAP_PARAMETERS}"
+LDAPADD="ldapadd ${LDAP_PARAMETERS}"
 
 PSQL="psql -q -h ${SQL_SERVER} -p ${SQL_PORT} -U ${SQL_USER}"
 
@@ -510,6 +512,19 @@ upgrade_inventory() {
     sed -i -e "s/jsonNodeGroupQuery/changetype: modify\nreplace: jsonNodeGroupQuery\njsonNodeGroupQuery/" ${MIGRATE_IPNET_FILE}
     ${LDAPMODIFY} -f ${MIGRATE_IPNET_FILE}
     echo " OK"
+  fi
+
+
+  # Pre 6.0 to post 6.0 : keep default protocol to syslog and let the user change it if he wants
+  LDAP_TEST_PROTOCOL=$(${LDAPSEARCH} -b "ou=Application Properties,cn=rudder-configuration" "propertyName=rudder_report_protocol_default" | grep -c "dn: propertyName=" || true)
+  if [ ${LDAP_TEST_PROTOCOL} -ne 0 ]; then
+    ${LDAPADD} <<EOF
+dn: propertyName=rudder_report_protocol_default,ou=Application Properties,cn=rudder-configuration
+objectClass: property
+objectClass: top
+propertyName: rudder_report_protocol_default
+propertyValue: SYSLOG
+EOF
   fi
 }
 

@@ -48,7 +48,7 @@ echo " Done"
 sed -i '/^[ \t]*pidfile/d' "${LDAP_CONF}"
 sed -i '/^[ \t]*argsfile/d' "${LDAP_CONF}"
 
-# Migration from pre-5.1, moving settings to slapd.conf
+# Migration from pre-6.0, moving settings to slapd.conf
 if [ -f /var/rudder/tmp/default-rudder-slapd ]; then
   echo "Starting migration of /etc/default/rudder-slapd" >> ${LOG_FILE}  
   . /var/rudder/tmp/default-rudder-slapd
@@ -67,7 +67,7 @@ if [ -f /var/rudder/tmp/default-rudder-slapd ]; then
   rm -f /etc/default/rudder-slapd /var/rudder/tmp/default-rudder-slapd
 fi
 
-# Migration from pre-5.1, moving inventory-web properties to rudder-web properties
+# Migration from pre-6.0, moving inventory-web properties to rudder-web properties
 INVENTORY_PROP="/opt/rudder/etc/inventory-web.properties"
 RUDDER_PROP="/opt/rudder/etc/rudder-web.properties"
 if [ -f "${INVENTORY_PROP}" ]
