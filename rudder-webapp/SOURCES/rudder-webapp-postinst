@@ -48,25 +48,6 @@ echo " Done"
 sed -i '/^[ \t]*pidfile/d' "${LDAP_CONF}"
 sed -i '/^[ \t]*argsfile/d' "${LDAP_CONF}"
 
-# Migration from pre-6.0, moving settings to slapd.conf
-if [ -f /var/rudder/tmp/default-rudder-slapd ]; then
-  echo "Starting migration of /etc/default/rudder-slapd" >> ${LOG_FILE}  
-  . /var/rudder/tmp/default-rudder-slapd
-
-  if [ ! -z "${RUDDER_MDBSIZE}" ] && [ "${RUDDER_MDBSIZE}" != "auto" ] || [ "${RUDDER_MDBSIZE}" != "noauto" ]; then
-    echo "Importing value of RUDDER_MDBSIZE: ${RUDDER_MDBSIZE}" >> ${LOG_FILE}
-    sed -i '/^[ \t]*maxsize/d' "${LDAP_CONF}"
-    sed -i 's/^\([ \t]*suffix[ \t]\+"cn=rudder-configuration".*\)/\1\nmaxsize '${RUDDER_MDBSIZE}'/' "${LDAP_CONF}"
-  fi
-  if [ ! -z "${RUDDER_MAX_INCOMING_AUTH}" ]; then
-    echo "Importing value of RUDDER_MAX_INCOMING_AUTH: ${RUDDER_MAX_INCOMING_AUTH}" >> ${LOG_FILE}
-    sed -i '/^[ \t]*sockbuf_max_incoming_auth/d' "${LDAP_CONF}"
-    sed -i 's/^\([ \t]*argsfile[ \t]\+\/.*\)/\1\nsockbuf_max_incoming_auth '${RUDDER_MAX_INCOMING_AUTH}'/' "${LDAP_CONF}"
-  fi
-
-  rm -f /etc/default/rudder-slapd /var/rudder/tmp/default-rudder-slapd
-fi
-
 # Migration from pre-6.0, moving inventory-web properties to rudder-web properties
 INVENTORY_PROP="/opt/rudder/etc/inventory-web.properties"
 RUDDER_PROP="/opt/rudder/etc/rudder-web.properties"
