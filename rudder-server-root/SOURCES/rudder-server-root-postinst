@@ -15,15 +15,7 @@ fi
 echo "`date` - Starting rudder-server-root post installation script" >> ${LOG_FILE}
 
 systemctl daemon-reload
-
-# Enable at first install or in migration
-if [ ${CFRUDDER_FIRST_INSTALL} -eq 1 ] || [ -f /var/rudder/tmp/migration-rudder-service-enabled-server ]
-then
-  systemctl enable rudder-server >> ${LOG_FILE}
-fi
-
-# Clean flag
-rm -f /var/rudder/tmp/migration-rudder-service-enabled-server
+systemctl enable rudder-server >> ${LOG_FILE}
 
 # We need it to be able to open big mdb memory-mapped databases
 ulimit -v unlimited

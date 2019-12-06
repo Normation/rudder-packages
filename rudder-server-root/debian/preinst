@@ -38,21 +38,6 @@ LOG_FILE="/var/log/rudder/install/${PACKAGE_NAME}.log"
 
 echo "`date` - Starting ${PACKAGE_NAME} pre installation script" >> ${LOG_FILE}
 
-## WARNING: This script is a copy of a part of the rudder-agent preinst
-
-if [ ${CFRUDDER_FIRST_INSTALL} -ne 1 ]
-then
-  mkdir -p /var/rudder/tmp
-
-  if [ -f /etc/init.d/rudder-server ]
-  then
-    if test /etc/rc`/sbin/runlevel | cut -d' ' -f2`.d/S??rudder-server
-    then
-      touch /var/rudder/tmp/migration-rudder-service-enabled-server
-    fi
-  fi
-fi
-
 # We need to be sure that uuid.hive is set to root at beginning
 mkdir -p /opt/rudder/etc
 echo 'root' > /opt/rudder/etc/uuid.hive

@@ -158,9 +158,9 @@ install -m 644 rudder-relay-apache %{buildroot}/etc/sysconfig/rudder-relay-apach
 CFRUDDER_FIRST_INSTALL=$1
 
 %if 0%{?rhel}
-  echo -n "INFO: Setting Apache HTTPd as a boot service..."
-  systemctl enable %{apache} >/dev/null
-  echo " Done"
+echo -n "INFO: Setting Apache httpd as a boot service..."
+systemctl enable %{apache} >/dev/null
+echo " Done"
 %endif
 
 %if 0%{?suse_version}
