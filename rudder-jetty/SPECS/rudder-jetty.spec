@@ -148,7 +148,7 @@ CFRUDDER_FIRST_INSTALL=$1
 
 if [ ${CFRUDDER_FIRST_INSTALL} -ne 1 ]
 then
-    service rudder-jetty stop
+    service rudder-jetty stop || true
 fi
 
 # Prepare the migration of /etc/default/rudder-jetty
@@ -219,7 +219,7 @@ fi
 
 if [[ $1 -eq 0 ]]
 then
-  service rudder-jetty stop
+  service rudder-jetty stop || true
 fi
 
 
