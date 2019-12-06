@@ -257,7 +257,7 @@ update_credentials() {
 # Before doing anything on git, set the branch to the Technique Reference Library branch
 set_git_branch() {
   if [ -d ${CONFIGURATION_REPOSITORY}/.git ];then
-    cd ${CONFIGURATION_REPOSITORY}/ && git checkout ${GIT_BRANCH} >/dev/null 2>&1
+    cd ${CONFIGURATION_REPOSITORY}/ && git checkout master >/dev/null 2>&1
   fi
 }
 
