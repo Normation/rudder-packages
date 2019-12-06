@@ -38,11 +38,8 @@ echo " Done"
 echo -n "INFO: Setting up systemd ..."
 systemctl daemon-reload
 
-if [ "${RUDDER_FIRST_INSTALL}" = "true" ]; then
-  systemctl enable rudder-jetty >> ${LOG_FILE}
-  systemctl enable rudder-slapd >> ${LOG_FILE}
-fi
-echo " Done"
+systemctl enable rudder-jetty >> ${LOG_FILE}
+systemctl enable rudder-slapd >> ${LOG_FILE}
 
 # Remove pidfile and argsfile
 sed -i '/^[ \t]*pidfile/d' "${LDAP_CONF}"

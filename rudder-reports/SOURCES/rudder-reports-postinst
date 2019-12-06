@@ -70,12 +70,9 @@ fi
 # ODOT
 
 # RHEL doesn't autostart service
-if [ "${DB_NOT_INITIALIZED}" != "" ]; then
-  echo -n "INFO: Setting PostgreSQL as a boot service..."
-  systemctl enable ${POSTGRESQL_SERVICE_NAME} >> ${LOG_FILE}
-  echo " Done"
-fi
-
+echo -n "INFO: Setting PostgreSQL as a boot service..."
+systemctl enable ${POSTGRESQL_SERVICE_NAME} >> ${LOG_FILE}
+echo " Done"
 
 echo -n "INFO: Waiting for PostgreSQL to be up..."
 CPT=0

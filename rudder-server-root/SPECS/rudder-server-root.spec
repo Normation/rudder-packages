@@ -96,25 +96,6 @@ LOG_FILE="/var/log/rudder/install/%{name}.log"
 
 echo "`date` - Starting %{name} pre installation script" >> ${LOG_FILE}
 
-## WARNING: This script is a copy of a part of the rudder-agent preinst
-
-if [ ${CFRUDDER_FIRST_INSTALL} -ne 1 ]
-then
-  mkdir -p /var/rudder/tmp
-
-  if [ -f /etc/init.d/rudder-server ]
-  then
-    # If old rudder service is here and enabled
-    if type chkconfig > /dev/null
-    then 
-      if chkconfig --list rudder-server 2>&1 | grep -q -e 3:on -e B:on
-      then
-        touch /var/rudder/tmp/migration-rudder-service-enabled-server
-      fi
-    fi
-  fi
-fi
-
 %post
 #=================================================
 # Post Installation
