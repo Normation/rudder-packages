@@ -59,7 +59,7 @@ then
 # need around 250 MB of spare memory.
 #
 EOF
-  grep "^waiting" "${INVENTORY_PROP}" >> "${RUDDER_PROP}"
+  grep "^waiting" "${INVENTORY_PROP}" >> "${RUDDER_PROP}" || true
   cat >> "${RUDDER_PROP}" << EOF
 
 #
@@ -75,7 +75,7 @@ EOF
 # /api/watcher/start (resp /api/watcher/stop).
 #
 EOF
-  grep "^inventory" "${INVENTORY_PROP}" >> "${RUDDER_PROP}"
+  grep "^inventory" "${INVENTORY_PROP}" >> "${RUDDER_PROP}" || true
   rm "${INVENTORY_PROP}"
 fi
 
