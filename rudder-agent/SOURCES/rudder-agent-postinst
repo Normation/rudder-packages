@@ -65,6 +65,10 @@ then
   echo "${CFRUDDER_SERVER}" > /var/rudder/cfengine-community/policy_server.dat
 fi
 
+# Copy CFEngine binaries (Changed location from sbin/ to bin/ in version 3.4)
+cp -r -f /opt/rudder/bin/cf-* ${CFE_DIR}/bin/
+cp -r -f /opt/rudder/bin/rpmvercmp ${CFE_DIR}/bin/
+
 # Do this at first install
 if [ "${CFRUDDER_FIRST_INSTALL}" = "true" ]
 then
@@ -82,10 +86,10 @@ then
   then
     /bin/systemctl enable rudder-agent rudder-cf-execd rudder-cf-serverd
   fi
+else
+  # Stop the service to make sure new binaries will be run (agent check will restart it)
+  rudder agent stop >> ${LOG_FILE} || true
 fi
-
-# Stop the service to make sure new binaries will be run (agent check will restart it)
-rudder agent stop >> ${LOG_FILE}
 
 # Make sure the configuration is available in a standard place
 ln -sf "${CFE_DIR}/policy_server.dat" "/opt/rudder/etc/policy_server.dat"
@@ -95,10 +99,6 @@ ln -sf "${CFE_DIR}/policy_server.dat" "/opt/rudder/etc/policy_server.dat"
 if type slibclean > /dev/null 2>&1; then 
   slibclean >> ${LOG_FILE}
 fi
-
-# Copy CFEngine binaries (Changed location from sbin/ to bin/ in version 3.4)
-cp -r -f /opt/rudder/bin/cf-* ${CFE_DIR}/bin/
-cp -r -f /opt/rudder/bin/rpmvercmp ${CFE_DIR}/bin/
 
 # Ensure the modification date of the capability file is correct
 # as it is used for cache invalidation in ncf lis-compatible-inputs
