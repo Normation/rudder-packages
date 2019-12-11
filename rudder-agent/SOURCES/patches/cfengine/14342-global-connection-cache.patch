@@ -31,9 +31,9 @@ index c78e879d4d..9a0b3f8577 100644
  
 +    ConnCache_Destroy();
 +
-     if (ALLCLASSESREPORT)
+     if (EvalAborted(ctx))
      {
-         AllClassesReport(ctx);
+         ret = EC_EVAL_ABORTED;
 @@ -1812,7 +1815,6 @@ static int NewTypeContext(TypeSequence type)
          break;
  
