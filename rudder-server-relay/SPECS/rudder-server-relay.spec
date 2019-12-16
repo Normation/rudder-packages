@@ -70,8 +70,15 @@ Requires: %(../format-dependencies rpm %{real_epoch}:%{real_version} rudder-agen
 
 ## RHEL
 %if 0%{?rhel}
-Requires: mod_ssl shadow-utils crontabs policycoreutils-python
+Requires: mod_ssl shadow-utils crontabs
 BuildRequires: selinux-policy-devel
+%endif
+
+%if 0%{?rhel} && 0%{?rhel} > 7
+python3-policycoreutils
+%endif
+%if 0%{?rhel} && 0%{?rhel} <= 7
+policycoreutils-python
 %endif
 
 ## SLES
