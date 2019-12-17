@@ -75,10 +75,10 @@ BuildRequires: selinux-policy-devel
 %endif
 
 %if 0%{?rhel} && 0%{?rhel} > 7
-python3-policycoreutils
+Requires: python3-policycoreutils
 %endif
 %if 0%{?rhel} && 0%{?rhel} <= 7
-policycoreutils-python
+Requires: policycoreutils-python
 %endif
 
 ## SLES
