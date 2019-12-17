@@ -1,13 +1,19 @@
-module ncf-api-virtualenv 1.1;
+module ncf-api-virtualenv 1.2;
 
 require {
   type httpd_t;
+  type http_port_t;
   type var_t;
   type init_exec_t;
   type init_t;
   type usr_t;
+  type crontab_exec_t;
   class dir { read getattr open search };
-  class file { execute read ioctl execute_no_trans write getattr unlink open append };
+  class file { append create execute execute_no_trans getattr ioctl lock map open read setattr unlink write };
+  class file execute;
+  class tcp_socket name_connect;
+  class process execmem;
+
 }
 
 #============= httpd_t =============
@@ -16,4 +22,10 @@ allow httpd_t init_exec_t:file getattr;
 allow httpd_t init_t:dir { read getattr open search };
 allow httpd_t init_t:file { read getattr open };
 allow httpd_t usr_t:file { write execute execute_no_trans };
+allow httpd_t http_port_t:tcp_socket name_connect;
+allow httpd_t self:process execmem;
+
+#============= init_t =============
+allow init_t crontab_exec_t:file getattr;
+allow init_t var_t:file { create ioctl write execute execute_no_trans open read setattr map lock };
 
