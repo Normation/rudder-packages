@@ -229,9 +229,22 @@ if [ $1 -ne 1 ]
   then
     /opt/rudder/bin/rudder-pkg plugin save-status > /tmp/rudder-plugins-upgrade
   fi
-  
+
   getfacl --recursive /opt/rudder/etc/hooks.d/ > /tmp/rudder-hooks-upgrade
+
+  # Stop non-systemd rudder-slapd service running if any
+  # If the stop fails, it's probably because it was not started
+  if [ -f "/etc/init.d/rudder-slapd" ]
+  then
+    /etc/init.d/rudder-slapd stop >&2 > /dev/null || true
+  fi
+  if [ -f "/etc/init.d/rudder-jetty" ]
+  then
+    /etc/init.d/rudder-jetty stop >&2 > /dev/null || true
+  fi
+
 fi
+
 
 #=================================================
 # Post Installation

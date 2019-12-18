@@ -38,14 +38,6 @@ echo " Done"
 echo -n "INFO: Setting up systemd ..."
 systemctl daemon-reload
 
-if [ -f "/etc/init.d/rudder-slapd" ]
-then
-  /etc/init.d/rudder-slapd stop
-fi  
-if [ -f "/etc/init.d/rudder-jetty" ]
-then
-  /etc/init.d/rudder-jetty stop
-fi  
 systemctl enable rudder-jetty >> ${LOG_FILE}
 systemctl enable rudder-slapd >> ${LOG_FILE}
 
