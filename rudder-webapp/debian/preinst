@@ -29,14 +29,22 @@ case "$1" in
       TIMESTAMP=`date +%Y%m%d%H%M%S`
       # Ensure backup folder exist
       mkdir -p /var/rudder/ldap/backup/
-  
+
       # We need it to be able to open big mdb memory-mapped databases
       ulimit -v unlimited
-  
+
       [ -x /opt/rudder/sbin/slapcat ] && /opt/rudder/sbin/slapcat -b "cn=rudder-configuration" -l /var/rudder/ldap/backup/openldap-data-pre-upgrade-${TIMESTAMP}.ldif
-  
-      # If the stops fails, it's probably because it was not started
-      service rudder-jetty stop >&2 > /dev/null || true
+
+      # Stop non-systemd rudder-slapd service running if any
+      # If the stop fails, it's probably because it was not started
+      if [ -f "/etc/init.d/rudder-slapd" ]
+      then
+        /etc/init.d/rudder-slapd stop >&2 > /dev/null || true
+      fi
+      if [ -f "/etc/init.d/rudder-jetty" ]
+      then
+        /etc/init.d/rudder-jetty stop >&2 > /dev/null || true
+      fi
 
       if [ -x /opt/rudder/bin/rudder-pkg ]
       then
