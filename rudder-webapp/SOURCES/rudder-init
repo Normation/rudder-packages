@@ -34,6 +34,7 @@ BOOTSTRAP_PATH=$TMP_DIR/bootstrap.ldif
 INITPOLICY_PATH=$TMP_DIR/init-policy-server.ldif
 
 RUDDER_OPT="/opt/rudder"
+CF_AGENT="${RUDDER_OPT}/bin/cf-agent"
 
 RUDDER_ROLES_FILE="/var/rudder/cfengine-community/inputs/rudder-server-roles.conf"
 DISABLE_AUTODETECT_NETWORKS_FILE="/opt/rudder/etc/disable-autodetect-networks"
@@ -232,6 +233,9 @@ echo " done."
 # The server need initial promises to work properly
 cp -r /opt/rudder/share/initial-ncf/* /var/rudder/ncf/common/
 cp -r /opt/rudder/share/initial-promises/* /var/rudder/cfengine-community/inputs/
+
+# Ensure that the passwords are correctly propagated
+"${CF_AGENT}" -b root_component_check  >> "$TMP_LOG" 2>&1
 
 # Restart services
 echo -n "Restarting jetty..."
