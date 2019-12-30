@@ -517,7 +517,7 @@ upgrade_inventory() {
 
   # Pre 6.0 to post 6.0 : keep default protocol to syslog and let the user change it if he wants
   LDAP_TEST_PROTOCOL=$(${LDAPSEARCH} -b "ou=Application Properties,cn=rudder-configuration" "propertyName=rudder_report_protocol_default" | grep -c "dn: propertyName=" || true)
-  if [ ${LDAP_TEST_PROTOCOL} -ne 0 ]; then
+  if [ ${LDAP_TEST_PROTOCOL} -eq 0 ]; then
     ${LDAPADD} <<EOF
 dn: propertyName=rudder_report_protocol_default,ou=Application Properties,cn=rudder-configuration
 objectClass: property
