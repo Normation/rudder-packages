@@ -2,7 +2,6 @@
 Description=CFEngine file server
 After=syslog.target
 After=network.target
-ConditionPathExists=/var/rudder/cfengine-community/bin/cf-serverd
 ConditionPathExists=/var/rudder/cfengine-community/inputs/promises.cf
 ReloadPropagatedFrom=rudder-agent.service
 PartOf=rudder-agent.service
@@ -10,7 +9,7 @@ PartOf=rudder-agent.service
 [Service]
 Type=simple
 Environment=VERBOSITY_OPTION=--inform
-ExecStart=/var/rudder/cfengine-community/bin/cf-serverd --no-fork $VERBOSITY_OPTION
+ExecStart=/opt/rudder/bin/cf-serverd --no-fork $VERBOSITY_OPTION
 ExecReload=/bin/kill -HUP $MAINPID
 Restart=always
 RestartSec=10
