@@ -235,11 +235,11 @@ cp -r /opt/rudder/share/initial-ncf/* /var/rudder/ncf/common/
 cp -r /opt/rudder/share/initial-promises/* /var/rudder/cfengine-community/inputs/
 
 # Ensure that the passwords are correctly propagated
-"${CF_AGENT}" -b root_component_check &>"$TMP_LOG"
+"${CF_AGENT}" -b root_component_check &>>"$TMP_LOG"
 
 # Restart services
 echo -n "Restarting jetty..."
-systemctl restart rudder-jetty 2>&1 | tee "${TMP_LOG}"
+systemctl restart rudder-jetty
 echo " done."
 
 RUDDER_CONTEXT=$(grep contextPath ${RUDDER_OPT}/share/webapps/rudder.xml | sed "s@^\s*<Set name=\"contextPath\">\(.*\)</Set>@\1@")
