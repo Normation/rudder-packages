@@ -1,7 +1,6 @@
 [Unit]
 Description=CFEngine Execution Scheduler
 After=syslog.target
-ConditionPathExists=/var/rudder/cfengine-community/bin/cf-execd
 ConditionPathExists=/var/rudder/cfengine-community/inputs/promises.cf
 ConditionPathExists=!/opt/rudder/etc/disable-agent
 ReloadPropagatedFrom=rudder-agent.service
@@ -10,7 +9,7 @@ PartOf=rudder-agent.service
 [Service]
 Type=simple
 Environment=VERBOSITY_OPTION=
-ExecStart=/var/rudder/cfengine-community/bin/cf-execd --no-fork $VERBOSITY_OPTION
+ExecStart=/opt/rudder/bin/cf-execd --no-fork $VERBOSITY_OPTION
 ExecReload=/bin/kill -HUP $MAINPID
 Restart=always
 RestartSec=10
