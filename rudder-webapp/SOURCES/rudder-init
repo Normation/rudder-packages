@@ -235,7 +235,7 @@ cp -r /opt/rudder/share/initial-ncf/* /var/rudder/ncf/common/
 cp -r /opt/rudder/share/initial-promises/* /var/rudder/cfengine-community/inputs/
 
 # Ensure that the passwords are correctly propagated
-"${CF_AGENT}" -b root_component_check  >> "$TMP_LOG" 2>&1
+"${CF_AGENT}" -b root_component_check &>"$TMP_LOG"
 
 # Restart services
 echo -n "Restarting jetty..."
