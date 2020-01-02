@@ -28,7 +28,6 @@
 %if 0%{?suse_version}
 %define apache                  apache2
 %define apache_tools            apache2-utils
-%define apache_group            www
 %define htpasswd_cmd            htpasswd2
 %define ldap_clients            openldap2-client
 %define jetty_init_script       jetty-sles.sh
@@ -37,7 +36,6 @@
 %if 0%{?rhel}
 %define apache                  httpd
 %define apache_tools            httpd-tools
-%define apache_group            apache
 %define htpasswd_cmd            htpasswd
 %define ldap_clients            openldap-clients
 %define jetty_init_script       jetty-rpm.sh
@@ -280,7 +278,7 @@ then
   sed -i 's%APACHE_MODULES="${APACHE_MODULES} rewrite dav dav_fs proxy proxy_http.*%# This sources the Rudder needed by Rudder\n. /etc/sysconfig/rudder-webapp-apache%' /etc/sysconfig/apache2
 fi
 
-/opt/rudder/share/package-scripts/rudder-webapp-postinst "${FIRST_INSTALL}" "%{apache}" "%{apache_user}" "%{apache_group}"
+/opt/rudder/share/package-scripts/rudder-webapp-postinst "${FIRST_INSTALL}" "%{apache}"
 
 %if 0%{?rhel}
 # SELinux support
