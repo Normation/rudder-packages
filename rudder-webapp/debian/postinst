@@ -30,7 +30,7 @@ case "$1" in
       # This module is compiled in core in some distro (debian)
       a2enmod version >/dev/null 2>&1 || true
 
-      /opt/rudder/share/package-scripts/rudder-webapp-postinst "${RUDDER_FIRST_INSTALL}" "apache2" "www-data" "www-data"
+      /opt/rudder/share/package-scripts/rudder-webapp-postinst "${RUDDER_FIRST_INSTALL}" "apache2"
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)

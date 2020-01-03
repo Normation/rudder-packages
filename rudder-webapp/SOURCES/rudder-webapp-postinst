@@ -5,8 +5,6 @@ set -e
 # Is this the first installation?
 RUDDER_FIRST_INSTALL="$1"
 APACHE="$2"
-APACHE_USER="$3"
-APACHE_GROUP="$4"
 LOG_FILE="/var/log/rudder/install/rudder-webapp-$(date +%Y%m%d%H%M%S).log"
 LDAP_CONF="/opt/rudder/etc/openldap/slapd.conf"
 
