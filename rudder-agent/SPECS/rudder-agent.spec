@@ -151,7 +151,7 @@ Source1: Makefile
 AutoReq: 0
 AutoProv: 0
 
-%if "%{use_system_perl}" == "false"
+%if "%{use_system_perl}" == "true"
 Requires: perl
 %endif
 
