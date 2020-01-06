@@ -313,7 +313,7 @@ upgrade_ncf() {
   if [ -d ${CONFIGURATION_REPOSITORY}/ncf/ncf-hooks.d ]; then
     CURRENT="$(pwd)"
     cd ${CONFIGURATION_REPOSITORY}/ncf
-    git rm -f ncf-hooks.d
+    git rm -rf ncf-hooks.d
     git commit --allow-empty -m "Remove ncf-hooks.d from configuration repository"
     cd ${CURRENT}
   fi
