@@ -4,3 +4,5 @@
 /opt/rudder/etc/rudder-networks-24.conf
 /opt/rudder/etc/rudder-networks-policy-server-24.conf
 /opt/rudder/etc/rudder-pkg/rudder-pkg.conf
+/opt/rudder/etc/relayd/main.conf
+/opt/rudder/etc/relayd/logging.conf
