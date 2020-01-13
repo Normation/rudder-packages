@@ -134,9 +134,9 @@ fi
 # If properly configured, this will run "agent reset" which will run "agent update" which will bootstrap then update ncf with cf-agent
 if command -v "setsid" >/dev/null 2>&1; then
   # detach from process group otherwise dpkg may wait forever
-  setsid ${RUDDER_CMD} agent check -f >> ${LOG_FILE} 2>&1
+  setsid ${RUDDER_CMD} agent check -f 2>&1 | tee -a ${LOG_FILE}
 else
-  nohup ${RUDDER_CMD} agent check -f >> ${LOG_FILE} 2>&1 &
+  nohup ${RUDDER_CMD} agent check -f 2>&1 | tee -a ${LOG_FILE} &
 fi
 
 echo "$(date) - Ending rudder-agent post installation script" >> ${LOG_FILE}
