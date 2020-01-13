@@ -12,6 +12,8 @@ then
   exit 1
 fi
 
+mkdir -p /var/log/rudder/install
+
 echo "`date` - Starting rudder-server-root post installation script" >> ${LOG_FILE}
 
 systemctl daemon-reload

@@ -8,6 +8,8 @@ APACHE="$2"
 LOG_FILE="/var/log/rudder/install/rudder-webapp-$(date +%Y%m%d%H%M%S).log"
 LDAP_CONF="/opt/rudder/etc/openldap/slapd.conf"
 
+mkdir -p /var/log/rudder/install
+
 echo "$(date) - Starting rudder-webapp post installation script" >> ${LOG_FILE}
 
 echo -n "INFO: Creating groups ..."
