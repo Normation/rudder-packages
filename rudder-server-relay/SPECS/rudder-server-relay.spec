@@ -277,6 +277,8 @@ rm -rf %{buildroot}
 %config(noreplace) /opt/rudder/etc/rudder-networks-24.conf
 %config(noreplace) /opt/rudder/etc/rudder-networks-policy-server-24.conf
 %config(noreplace) /opt/rudder/etc/rudder-pkg/rudder-pkg.conf
+%config(noreplace) /opt/rudder/etc/relayd/main.conf
+%config(noreplace) /opt/rudder/etc/relayd/logging.conf
 %config(noreplace) /etc/sysconfig/rudder-relay-apache
 %config /etc/cron.d/rudder-relay
 %attr(0440, root, root) %config /etc/sudoers.d/rudder-relay
@@ -290,7 +292,6 @@ rm -rf %{buildroot}
 /var/rudder/lib/relay/
 /var/log/rudder/apache2/
 /usr/lib/systemd/system/rudder-relayd.service
-/opt/rudder/etc/
 /opt/rudder/bin/rudder-relayd
 /opt/rudder/share/man/man1/rudder-relayd.1.gz
 /opt/rudder/share/selinux/
