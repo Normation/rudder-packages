@@ -283,6 +283,7 @@ rm -rf %{buildroot}
 %config /etc/cron.d/rudder-relay
 %attr(0440, root, root) %config /etc/sudoers.d/rudder-relay
 /var/rudder/inventories/incoming
+/var/rudder/inventories/failed
 /var/rudder/inventories/accepted-nodes-updates
 /var/rudder/reports/incoming
 /var/rudder/reports/failed
