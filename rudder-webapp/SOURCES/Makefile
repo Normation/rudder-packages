@@ -166,7 +166,6 @@ install: build initial-promises initial-ncf
 	mkdir -p $(DESTDIR)/opt/rudder/share/selinux/
 	mkdir -p $(DESTDIR)/opt/rudder/share/package-scripts/
 	mkdir -p $(DESTDIR)/var/rudder/inventories/received
-	mkdir -p $(DESTDIR)/var/rudder/inventories/failed
 	mkdir -p $(DESTDIR)/var/rudder/run
 	mkdir -p $(DESTDIR)/var/rudder/ldap/openldap-data
 	mkdir -p $(DESTDIR)/var/log/rudder/apache2/
