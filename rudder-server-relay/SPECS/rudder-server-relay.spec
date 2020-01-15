@@ -293,15 +293,18 @@ rm -rf %{buildroot}
 /var/rudder/lib/relay/
 /var/log/rudder/apache2/
 /usr/lib/systemd/system/rudder-relayd.service
+/opt/rudder/bin/relay-cleanup
 /opt/rudder/bin/rudder-relayd
+/opt/rudder/bin/rudder-pkg
+/opt/rudder/etc/rudder-apache-relay-nossl.conf
+/opt/rudder/etc/rudder-pkg/rudder_plugins_key.pub
+/opt/rudder/etc/ssl/openssl.cnf
+/opt/rudder/share/commands/package
 /opt/rudder/share/man/man1/rudder-relayd.1.gz
 /opt/rudder/share/selinux/
-/opt/rudder/share/python/
-/opt/rudder/share/commands/package
-/opt/rudder/bin/rudder-pkg
-/opt/rudder/bin/relay-cleanup
 /opt/rudder/share/package-scripts/rudder-server-relay-postinst
 /opt/rudder/share/package-scripts/rudder-server-relay-prerm
+/opt/rudder/share/python/
 /etc/bash_completion.d/rudder-pkg.sh
 
 # Avoid having .pyo and .pyc files in our package
