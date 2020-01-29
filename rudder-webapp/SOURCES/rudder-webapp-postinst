@@ -172,11 +172,11 @@ cd /
 
 # Restart the webapp
 echo -n "INFO: Make sure Rudder webapp is started..."
-systemctl start rudder-jetty >> ${LOG_FILE}
+systemctl restart rudder-jetty >> ${LOG_FILE}
 echo " Done"
 
 echo -n "INFO: Make sure Apache HTTPd is started..."
-systemctl start ${APACHE} >> ${LOG_FILE}
+systemctl restart ${APACHE} >> ${LOG_FILE}
 echo " Done"
 
 ## Make sure everything is ok
