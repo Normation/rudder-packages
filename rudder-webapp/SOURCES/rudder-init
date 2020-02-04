@@ -138,7 +138,7 @@ function add_allowed_networks() {
       fi
     done
     # list all ipv6 networks having a global scope
-    for i in $(LANG=C ip -family inet6 -oneline address | grep "scope global" | sed -e 's/.*inet6 \([0-9a-f\/]+\) .*/\1/')
+    for i in $(LANG=C ip -family inet6 -oneline address | grep "scope global" | sed -e 's/.*inet6 \([:0-9a-f\/]\+\) .*/\1/')
     do
       if [ -n "${DISABLE_AUTODETECT_NETWORKS}" ] || [ -e "${DISABLE_AUTODETECT_NETWORKS_FILE}" ]
       then
