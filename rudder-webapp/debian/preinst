@@ -51,7 +51,7 @@ case "$1" in
         /opt/rudder/bin/rudder-pkg plugin save-status > /tmp/rudder-plugins-upgrade
       fi
 
-      getfacl --recursive /opt/rudder/etc/hooks.d/ > /tmp/rudder-hooks-upgrade
+      getfacl --absolute-names --recursive /opt/rudder/etc/hooks.d/ > /tmp/rudder-hooks-upgrade
 
       echo "********************************************************************************"
       echo "INFO: dpkg may ask you if you want to replace rudder-web.properties or          "
