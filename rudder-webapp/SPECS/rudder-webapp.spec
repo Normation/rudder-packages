@@ -359,6 +359,14 @@ then
   systemctl stop rudder-slapd
 fi
 
+#=================================================
+# Post transaction
+#=================================================
+%posttrans -n rudder-webapp
+
+# during upgrade, service may have been stopped by uninstall of rudder-inventory-ldap
+systemctl start rudder-slapd >/dev/null
+
 
 #=================================================
 # Cleaning
