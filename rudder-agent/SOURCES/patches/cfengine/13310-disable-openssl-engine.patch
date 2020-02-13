@@ -1,7 +1,7 @@
-diff --git a/libutils/libcrypto-compat.c b/libutils/libcrypto-compat.c
-index bf39f574f..5d29b7cfb 100644
---- a/libutils/libcrypto-compat.c
-+++ b/libutils/libcrypto-compat.c
+diff --git a/libntech/libutils/libcrypto-compat.c b/libntech/libutils/libcrypto-compat.c
+index bf39f57..5d29b7c 100644
+--- a/libntech/libutils/libcrypto-compat.c
++++ b/libntech/libutils/libcrypto-compat.c
 @@ -14,7 +14,7 @@
  #if OPENSSL_VERSION_NUMBER < 0x10100000L
  

@@ -1,8 +1,8 @@
 diff --git a/libpromises/generic_agent.c b/libpromises/generic_agent.c
-index e2da48bc8..1574e6827 100644
+index 8441bfb62..fb9f8d100 100644
 --- a/libpromises/generic_agent.c
 +++ b/libpromises/generic_agent.c
-@@ -156,43 +156,9 @@ Policy *SelectAndLoadPolicy(GenericAgentConfig *config, EvalContext *ctx, bool v
+@@ -156,44 +156,9 @@ Policy *SelectAndLoadPolicy(GenericAgentConfig *config, EvalContext *ctx, bool v
      {
          policy = LoadPolicy(ctx, config);
      }
@@ -31,7 +31,8 @@ index e2da48bc8..1574e6827 100644
 -
 -            char filename[PATH_MAX];
 -            GetReleaseIdFile(GetInputDir(), filename, sizeof(filename));
--            FILE *release_id_stream = safe_fopen(filename, "w");
+-            FILE *release_id_stream = safe_fopen_create_perms(filename, "w",
+-                                                              CF_PERMS_DEFAULT);
 -            if (release_id_stream == NULL)
 -            {
 -                Log(LOG_LEVEL_ERR, "Failed to open the release_id file for writing during failsafe");
