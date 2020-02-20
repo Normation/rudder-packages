@@ -154,12 +154,6 @@ if [ $LDAPCHK -eq 0 ]; then
   /opt/rudder/bin/rudder-init no auto
 fi
 
-# Restore the plugins before checking them
-if [ -f /tmp/rudder-plugins-upgrade ]
-then
-  /opt/rudder/bin/rudder-pkg plugin restore-status < /tmp/rudder-plugins-upgrade
-fi
-
 # Run any upgrades
 echo "INFO: Launching script to check if a migration is needed ..."
 /opt/rudder/bin/rudder-upgrade >> ${LOG_FILE}
@@ -168,6 +162,13 @@ echo "Done"
 # Adjust permissions on /var/rudder/configuration-repository
 /opt/rudder/bin/rudder-fix-repository-permissions  >> ${LOG_FILE}
 
+# Restore the plugins and checking them
+if [ -f /tmp/rudder-plugins-upgrade ]
+then
+  rudder package plugin restore-status < /tmp/rudder-plugins-upgrade
+  rudder package check-compatibility
+  rudder package rudder-postupgrade
+fi
 
 cd /
 [ -f /tmp/rudder-hooks-upgrade ] && setfacl --restore=/tmp/rudder-hooks-upgrade
