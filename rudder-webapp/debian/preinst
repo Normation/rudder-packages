@@ -48,7 +48,9 @@ case "$1" in
 
       if [ -x /opt/rudder/bin/rudder-pkg ]
       then
-        /opt/rudder/bin/rudder-pkg plugin save-status > /tmp/rudder-plugins-upgrade
+       /opt/rudder/bin/rudder-pkg plugin save-status > /tmp/rudder-plugins-upgrade
+      else
+        rudder package plugin save-status > /tmp/rudder-plugins-upgrade
       fi
 
       getfacl --absolute-names --recursive /opt/rudder/etc/hooks.d/ > /tmp/rudder-hooks-upgrade

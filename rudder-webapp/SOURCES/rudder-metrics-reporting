@@ -147,7 +147,7 @@ def metrics():
   data["package_version"] = command(["/bin/sh", "-c", cmd]).strip()
 
   # List installed plugins
-  cmd="/opt/rudder/bin/rudder-pkg list"
+  cmd="rudder package list"
   data['rudder_pkg'] = command(["/bin/sh", "-c", cmd]).strip()
 
   # Read rudder.json file
