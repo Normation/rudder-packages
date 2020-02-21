@@ -163,11 +163,12 @@ echo "Done"
 /opt/rudder/bin/rudder-fix-repository-permissions  >> ${LOG_FILE}
 
 # Restore the plugins and checking them
+# Each step may fail, but we don't want to stop the migration at a plugin failure
 if [ -f /tmp/rudder-plugins-upgrade ]
 then
-  rudder package plugin restore-status < /tmp/rudder-plugins-upgrade
-  rudder package check-compatibility
-  rudder package rudder-postupgrade
+  rudder package plugin restore-status < /tmp/rudder-plugins-upgrade || true
+  rudder package check-compatibility || true
+  rudder package rudder-postupgrade  || true
 fi
 
 cd /
