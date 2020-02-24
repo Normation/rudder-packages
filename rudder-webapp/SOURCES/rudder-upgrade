@@ -532,7 +532,10 @@ EOF
 # Check and upgrade plugins
 ################################################################################
 upgrade_plugins() {
-  rudder package check-compatibility
+  # For 6.0.3 only we disable all installed plugins at install time since they
+  # are not compatible
+  #rudder package check-compatibility
+  rudder package plugin disable-all
   rudder package rudder-postupgrade
 }
 
