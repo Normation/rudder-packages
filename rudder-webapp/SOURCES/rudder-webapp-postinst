@@ -186,6 +186,10 @@ fi
 cd /
 [ -f /tmp/rudder-hooks-upgrade ] && setfacl --restore=/tmp/rudder-hooks-upgrade
 
+# On SLES ncf config has been moved from conf.d to vhosts.d between 5.0 and 6.0
+# In case both config are there, clear the old one to avoid breaking apache syntax
+[ -f /etc/apache2/vhosts.d/ncf-api-virtualenv.conf ] && [ -f /etc/apache2/conf.d/ncf-api-virtualenv.conf ] && echo '' > /etc/apache2/conf.d/ncf-api-virtualenv.conf
+
 # Restart the webapp
 echo -n "INFO: Make sure Rudder webapp is started..."
 systemctl restart rudder-jetty >> ${LOG_FILE}
