@@ -166,8 +166,20 @@ echo "Done"
 # Each step may fail, but we don't want to stop the migration at a plugin failure
 if [ -f /tmp/rudder-plugins-upgrade ]
 then
-  rudder package plugin restore-status < /tmp/rudder-plugins-upgrade || true
-  rudder package check-compatibility || true
+  # For 6.0.3 only we disable all installed plugins at install time since they
+  # are not compatible
+  #rudder package plugin restore-status < /tmp/rudder-plugins-upgrade || true
+  #rudder package check-compatibility || true
+  echo "********************************************************************************"
+  echo "Due to incompatibility reasons for this specific version all plugins have been"
+  echo "disabled. Make sure to update your repo index and install the latest version of"
+  echo "your plugins before re-enabling them."
+  echo ""
+  echo "You can use the following commands to upgrade your plugins:"
+  echo "rudder package update"
+  echo "rudder package upgrade-all"
+  echo "********************************************************************************"
+
   rudder package rudder-postupgrade  || true
 fi
 
