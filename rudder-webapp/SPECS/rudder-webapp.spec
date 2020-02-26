@@ -366,8 +366,9 @@ fi
 #=================================================
 %posttrans -n rudder-webapp
 
-# during upgrade, service may have been stopped by uninstall of rudder-inventory-ldap
+# during upgrade, service may have been stopped by uninstall of rudder-inventory-ldap or rudder-jetty
 systemctl start rudder-slapd >/dev/null
+systemctl start rudder-jetty >/dev/null
 
 
 #=================================================
