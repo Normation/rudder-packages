@@ -51,6 +51,7 @@ trap 'anomaly_handler ${LINENO}' ERR INT TERM
 # - 5.0.12       : Change indexes on RudderSysEvents table
 # - 6.0.0        : Remove ncf hooks
 # - 6.0.0        : Keep syslog as default ptotocol on upgrade
+# - 6.0.4        : Ensure that rudder-slapd sockbuf_max_incoming_auth is not lost at upgrade 
 ####################################################################################
 
 # Some paths
@@ -526,6 +527,15 @@ propertyName: rudder_report_protocol_default
 propertyValue: SYSLOG
 EOF
   fi
+
+  # 6.0.4:
+  # ensure sockbuf_max_incoming_auth is set in /opt/rudder/etc/openldap/slapd.conf
+  MAX_INCOMING_AUTH_SET=$(grep -c "sockbuf_max_incoming_auth" /opt/rudder/etc/openldap/slapd.conf 2>/dev/null || true)  
+  if [ ${MAX_INCOMING_AUTH_SET} -eq 0 ]; then
+    echo -n "Setting the sockbuf_max_incoming_auth value for slapd.conf"
+    sed -i 's/^\(# This is too little for Rudder, as there are some big entries.*\)/\1\nsockbuf_max_incoming_auth 1000000000/' /opt/rudder/etc/openldap/slapd.conf
+    echo " Done"
+  fi
 }
 
 ################################################################################
@@ -611,4 +621,3 @@ then
 else
   echo "INFO: The migration has completed successfully."
 fi
-
