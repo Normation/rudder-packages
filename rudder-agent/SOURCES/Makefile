@@ -613,6 +613,10 @@ build-cfengine-stamp:
 	cd cfengine-source && ./configure --prefix=$(RUDDER_DIR) --with-workdir=/var/rudder/cfengine-community --enable-static=yes --enable-shared=no --without-postgresql --without-mysql $(ACL_ARG) $(LMDB_ARG) $(OPENSSL_ARG) $(PCRE_ARG) $(CURL_ARG) $(YAML_ARG) $(XML_ARG) $(PAM_ARG) CFLAGS="$(CFLAGS) $(PIE_CFLAGS)" LDFLAGS="$(LDFLAGS)" CPPFLAGS="-I$(CURDIR)/dependencies$(RUDDER_DIR)/include/libxml2"
 	cd cfengine-source && $(MAKE) $(MAKE_J)
 	cd cfengine-source && $(MAKE) $(MAKE_J) install DESTDIR=$(CURDIR)/dependencies
+# solaris doesn't have uuidgen and needs one
+ifeq (solaris,$(OS_FAMILY))
+	gcc -luuid rudder-uuidgen.c -o rudder-uuidgen
+endif
 	touch $@
 ifeq (aix,$(OS_FAMILY))
 	# be clean
