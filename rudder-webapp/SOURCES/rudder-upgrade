@@ -52,6 +52,7 @@ trap 'anomaly_handler ${LINENO}' ERR INT TERM
 # - 6.0.0        : Remove ncf hooks
 # - 6.0.0        : Keep syslog as default ptotocol on upgrade
 # - 6.0.4        : Ensure that rudder-slapd sockbuf_max_incoming_auth is not lost at upgrade 
+# - 6.1.0        : Migrate RudderUniqueID to the template format
 ####################################################################################
 
 # Some paths
@@ -281,6 +282,18 @@ upgrade_techniques() {
   STEP="Upgrade Techniques"
 
   /opt/rudder/bin/rudder server upgrade-techniques  --autoupdate-technique-library --during-upgrade
+
+  # Migrate RudderUniqueID to the template format
+  NB_RUDDER_UNIQUE_ID=$((grep -Er --exclude="*.xml"  "[^\&]RudderUniqueID" /var/rudder/configuration-repository/techniques 2>/dev/null || true) | wc -l) 
+  if [ ${NB_RUDDER_UNIQUE_ID} -ne 0 ]; then
+    echo -n "INFO: Enforcing that Techniques are using correct format" 
+    find ${CONFIGURATION_REPOSITORY}/techniques -type f \( ! -iname '*.xml' \) -print0 | xargs -0 sed -i "s/\([^&]\|^\)RudderUniqueID\([^&]\|$\)/\1\&RudderUniqueID\&\2/g"
+    cd ${CONFIGURATION_REPOSITORY}/techniques && git add . >/dev/null 2>&1
+    git commit -m "Upgrade Techniques to template format - automatically done by rudder-upgrade script" >/dev/null 2>&1
+    # Schedule a Technique library reload later because of the update
+    touch /opt/rudder/etc/force_technique_reload
+    echo " Done"
+  fi
 }
 
 # Upgrade ncf from ncf package
