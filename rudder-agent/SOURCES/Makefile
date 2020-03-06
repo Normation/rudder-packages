@@ -521,7 +521,7 @@ BUILD_FLAGS=CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)"
 build-ssl: openssl-source
 	# openssl doesn't support CFLAGS (it overrides its own) so we must pass them in batch to configure
 	# openssl doesn't work with pie
-	cd openssl-source && RELEASE="" $(SSL_CONFIGURE) -fPIC $(CFLAGS) $(LDFLAGS) --prefix=$(RUDDER_DIR) --openssldir=$(RUDDER_DIR)/openssl shared no-idea no-rc5 no-ssl3 no-dtls no-psk no-srp no-engine
+	cd openssl-source && RELEASE="" $(SSL_CONFIGURE) -fPIC $(CFLAGS) $(LDFLAGS) --prefix=$(RUDDER_DIR) --openssldir=$(RUDDER_DIR)/openssl shared no-idea no-rc5 no-ssl3 no-dtls no-psk no-srp no-engine enable-egd
 # we need aix libpath in ssl library
 ifeq (aix,$(OS_FAMILY))
 	cd openssl-source && sed '/link_a.aix:/,/link_app.aix:/s/-bnolibpath,//' Makefile.shared > Makefile.shared.tmp && mv Makefile.shared.tmp Makefile.shared
@@ -531,6 +531,7 @@ endif
 	slibclean >/dev/null 2>&1 || true
 	# install to a temporary location is needed to build cfengine
 	cd openssl-source && $(MAKE) install $(OPENSSL_DESTDIR_VAR_NAME)=$(CURDIR)/dependencies
+	touch $@
 
 build-lmdb: lmdb-source
 	# lmdb doesn't support CFLAGS (it overrides its own) so we pass XCFLAGS instead, that is appended to the original ones
@@ -548,34 +549,39 @@ build-pcre: pcre-source
 	cd pcre-source && $(MAKE) $(MAKE_J)
 	# install to a temporary location is needed to build cfengine
 	cd pcre-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
+	touch $@
 
 build-zlib: zlib-source
 	cd zlib-source && $(BUILD_FLAGS) ./configure --prefix=$(RUDDER_DIR)
 	cd zlib-source && $(MAKE) $(MAKE_J)
 	# install to a temporary location is needed to build cfengine
 	cd zlib-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
+	touch $@
 
 build-curl: curl-source
 	# pkcconfig give openssl build configuration, but it point to final installation path (/opt/rudder)
 	# since we need the temporary path during build we need to add -I and -L
 	# since we also need to link it during cfengine build we add -R (--rpath)
 	# we may want to remove rpath using patchelf at the end, but this is mostly cosmetic
-	cd curl-source && ./configure --prefix=$(RUDDER_DIR) --without-libpsl --with-ssl $(ZLIB_ARG) --disable-rtsp --enable-ipv6 --without-librtmp --without-ldap-lib CPPFLAGS="-I$(CURDIR)/dependencies$(RUDDER_DIR)/include" CFLAGS="$(CFLAGS) $(PIE_CFLAGS)" LDFLAGS="$(LDFLAGS) -Wl,-R$(CURDIR)/dependencies$(RUDDER_DIR)/lib -L$(CURDIR)/dependencies$(RUDDER_DIR)/lib -Wl,-R$(CURDIR)/dependencies$(RUDDER_DIR)/lib" PKG_CONFIG_PATH="$(CURDIR)/dependencies$(RUDDER_DIR)/lib/pkgconfig"
+	cd curl-source && ./configure --prefix=$(RUDDER_DIR) --without-libpsl --with-ssl $(ZLIB_ARG) --disable-tls-srp --disable-rtsp --enable-ipv6 --without-libidn2 --without-librtmp --without-ldap-lib CPPFLAGS="-I$(CURDIR)/dependencies$(RUDDER_DIR)/include" CFLAGS="$(CFLAGS) $(PIE_CFLAGS)" LDFLAGS="$(LDFLAGS) -Wl,-R$(CURDIR)/dependencies$(RUDDER_DIR)/lib -L$(CURDIR)/dependencies$(RUDDER_DIR)/lib -Wl,-R$(CURDIR)/dependencies$(RUDDER_DIR)/lib" PKG_CONFIG_PATH="$(CURDIR)/dependencies$(RUDDER_DIR)/lib/pkgconfig"
 	cd curl-source && $(MAKE) $(MAKE_J)
 	# install to a temporary location is needed to build cfengine
 	cd curl-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
+	touch $@
 
 build-yaml: yaml-source
 	cd yaml-source && ./configure --prefix=$(RUDDER_DIR) --enable-gettext=no $(BUILD_FLAGS)
 	cd yaml-source && $(MAKE) $(MAKE_J)
 	# install to a temporary location is needed to build cfengine
 	cd yaml-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
+	touch $@
 
 build-xml: xml-source
 	cd xml-source && ./configure --prefix=$(RUDDER_DIR) $(ZLIB_ARG) --with-xpath --with-c14n --without-catalog --without-debug --without-docbook --without-ftp --without-http --without-html --without-iconv --without-python --enable-shared --disable-static $(BUILD_FLAGS)
 	cd xml-source && $(MAKE) $(MAKE_J)
 	# install to a temporary location is needed to build cfengine
 	cd xml-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
+	touch $@
 
 build-perl: perl-$(PERL_RELEASE)
 	cd perl-$(PERL_RELEASE) && $(MAKE) distclean 2>/dev/null || true # Or this can fail on an already used source
@@ -591,7 +597,7 @@ build-perl: perl-$(PERL_RELEASE)
 	  -o -name ".packlist" \
 	  -o -name "*.bs" \
 	  | xargs rm -f
-	touch build-perl # because perl-$(PERL_RELEASE) is touched by make install
+	touch $@
 
 # check cache content
 PATCHES_SHA = $(shell find patches/cfengine -type f | sort | xargs sha256sum | sha256sum | awk '{print $$1}')
