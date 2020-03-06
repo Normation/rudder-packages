@@ -76,7 +76,7 @@
 %endif
 
 # OS family to build for
-%if "%{?_os}" == "aix"
+%if 0%{?aix}
 %define os_family aix
 %else
 %define os_family linux
@@ -86,7 +86,7 @@
 %define use_system_fusion false
 
 # 1- AIX
-%if "%{?_os}" == "aix"
+%if 0%{?aix}
 # no system anything on aix
 %define use_system_perl false
 %define use_system_pcre false
@@ -172,7 +172,7 @@ Requires: fusioninventory-agent fusioninventory-agent-task-inventory
 %endif
 
 ## For Linux
-%if "%{?_os}" != "aix"
+%if 0%{?aix}
 BuildRequires: pam-devel
 Requires: syslog
 %endif
@@ -240,7 +240,7 @@ Requires: kernel-utils
 %if 0%{?suse_version} && 0%{?suse_version} < 1200
 %define use_https false
 %endif
-%if "%{?_os}" == "aix"
+%if 0%{?aix}
 %define use_https false
 %define build_old_openssl true
 %endif
@@ -255,7 +255,7 @@ Requires: dmidecode
 %endif
 
 ## ACL dependencies
-%if "%{?_os}" != "aix"
+%if 0%{?aix}
 BuildRequires: libacl-devel
 Requires: libacl
 %endif
@@ -329,7 +329,7 @@ make -d BUILD_CFLAGS="${RPM_OPT_FLAGS}" USE_SYSTEM_OPENSSL=%{use_system_openssl}
 cd %{_sourcedir}
 
 #### Use systemd everywhere except on: AIX, RHEL<7, SLES<12, Fedora<15
-%if "%{?_os}" == "aix"
+%if 0%{?aix}
 %define use_systemd false
 %endif
 
@@ -387,7 +387,7 @@ then
   CFRUDDER_FIRST_INSTALL="true"
 fi
 
-/opt/rudder/share/package-scripts/rudder-agent-postinst "${CFRUDDER_FIRST_INSTALL}" "%{?_os}" "%{use_systemd}" ""
+/opt/rudder/share/package-scripts/rudder-agent-postinst "${CFRUDDER_FIRST_INSTALL}" "rpm" "%{use_systemd}" ""
 
 %preun
 #=================================================
@@ -430,7 +430,7 @@ fi
 # Post Uninstallation
 #=================================================
 
-%if "%{?_os}" == "aix"
+%if 0%{?aix}
 # AIX doesn't have a pidof command, let's define it
 function pidof {
   # Yeah, "grep -v grep" is ugly, but we can't use the [u]nique trick on a variable
@@ -457,7 +457,7 @@ if [ $1 -eq 0 ]; then
     fi
   done
 
-%if "%{?_os}" != "aix"
+%if 0%{?aix}
   # Remove the cron script we create at installation to prevent mail
   # flooding, re-installation surprises, and general system garbage.
   rm -f /etc/cron.d/rudder-agent
@@ -503,7 +503,7 @@ rm -f %{_builddir}/file.list.%{name}
 %dir %{rudderlogdir}/install
 %dir %{rudderlogdir}/agent-check
 
-%if "%{?_os}" != "aix"
+%if 0%{?aix}
 # no init no cron and no profile with aix
 %config /etc/cron.d/rudder-agent
 %config /etc/profile.d/rudder-agent.sh
