@@ -23,6 +23,7 @@ if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ]
 then
   echo "Usage: $0 <CFRUDDER_FIRST_INSTALL> <CFRUDDER_OS> <CFRUDDER_USE_SYSTEMD>"
   echo " This should only be called from a package postinstall command"
+  echo " CFRUDDER_OS: currently ignored"
   exit 1
 fi
 
@@ -84,20 +85,21 @@ cp -r -f /opt/rudder/bin/rpmvercmp ${CFE_DIR}/bin/
 # Do this at first install
 if [ "${CFRUDDER_FIRST_INSTALL}" = "true" ]
 then
-  # Set rudder-agent as service
-  if [ ${CFRUDDER_OS} = "aix" ]
+  # Set rudder-agent as service on OS that are not packaged to do it
+  if [ "${CFRUDDER_USE_SYSTEMD}" = "true" ]
+  then
+    /bin/systemctl enable rudder-agent rudder-cf-execd rudder-cf-serverd
+  elif [ -x /usr/bin/mkssys ] # AIX
   then
     /usr/bin/mkssys -s rudder-agent -p "${CFE_DIR}/bin/cf-execd" -a "-F" -u root -S -n15 -f9 -R
     /usr/sbin/mkitab "rudder-agent:23456789:once:/usr/bin/startsrc -s rudder-agent"
     # No need to tell init to re-read /etc/inittab, it does it automatically every 60 seconds
-  elif [ ${CFRUDDER_OS} != "deb" ] && [ "${CFRUDDER_USE_SYSTEMD}" != "true" ] && [ ${CFRUDDER_OS} != "slack" ]
+  elif type chkconfig > /dev/null 2>/dev/null
   then
     chkconfig --add rudder-agent
     chkconfig rudder-agent on
-  elif [ "${CFRUDDER_USE_SYSTEMD}" = "true" ]
-  then
-    /bin/systemctl enable rudder-agent rudder-cf-execd rudder-cf-serverd
   fi
+  # old debian are packaged with a call to update-rc.d
 else
   # Stop the service to make sure new binaries will be run (agent check will restart it)
   rudder agent stop >> ${LOG_FILE} || true
