@@ -179,13 +179,19 @@ else
 XML_ARG := --with-libxml2
 endif
 
-# AIX do not support posix acl
 # AIX does nor have the same form of rpath
 ifeq (aix,$(OS_FAMILY))
 SYSTEM_LDFLAGS := -static-libgcc -Wl,-bsvr4 -Wl,-R/opt/rudder/lib
 else
-ACL_ARG := --with-libacl
 SYSTEM_LDFLAGS := -Wl,-R/opt/rudder/lib
+endif
+
+# AIX and solaris do not support posix acl
+# default: use acl
+ifneq (false,$(USE_ACL))
+ACL_ARG := --with-libacl
+else
+ACL_ARG := --without-libacl
 endif
 
 # In case we do not want pam
