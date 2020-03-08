@@ -1,4 +1,6 @@
-set -e
+#!/bin/bash
+
+set -xe
 
 VERSION="6.0.5"
 BUILD_DIR="BUILD"
@@ -11,27 +13,21 @@ wget -q --header="accept-encoding:" -O rudder-sources.tar.bz2 "http://repository
 
 # 1- install build-dependencies
 
-# dependencies
-pkg install gcc
-pkg install gnu-binutils
+pkg install gcc gnu-binutils || true
 
 # 2- configure, make and install into tmpdir
 
-# Temporary directory
-cd "${BASE}."
-mkdir -p "${BUILD_DIR}"
-
 # use gnu tools to build
-export PATH=/usr/gnu/bin:/usr/gnu/x86_64-pc-solaris2.11/bin/:$PATH
+export PATH=/usr/gnu/bin:/usr/gnu/x86_64-pc-solaris2.11/bin/:/usr/gnu/sparc-sun-solaris2.11/bin:$PATH
 
-env="RUDDER_VERSION_TO_PACKAGE=${VERSION} USE_SYSTEM_OPENSSL=false USE_SYSTEM_ZLIB=false USE_SYSTEM_LMDB=false USE_SYSTEM_PCRE=false USE_SYSTEM_PERL=false USE_SYSTEM_FUSION=false   USE_SYSTEM_CURL=false USE_SYSTEM_YAML=false USE_SYSTEM_XML=false USE_ACL=false"
-
-cd SOURCES
+env="RUDDER_VERSION_TO_PACKAGE=${VERSION} USE_SYSTEM_OPENSSL=false USE_SYSTEM_ZLIB=false USE_SYSTEM_LMDB=false USE_SYSTEM_PCRE=false USE_SYSTEM_PERL=true USE_SYSTEM_FUSION=false USE_SYSTEM_CURL=false USE_SYSTEM_YAML=false USE_SYSTEM_XML=false USE_ACL=false"
 
 # build
-gmake build ${env}
+# solaris 11.3 doesn't detect properly 64 bitness
+gmake build ${env} BUILD_CFLAGS=-m64
 
 # install in a temporary directory
+mkdir -p "${BASE}/${BUILD_DIR}"
 gmake install ${env} DESTDIR="${BASE}/${BUILD_DIR}"
 
 # 3- generate package (doc, https://docs.oracle.com/cd/E26502_01/html/E21383/pkgcreate.html)
