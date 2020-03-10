@@ -162,6 +162,9 @@ echo "Done"
 # Adjust permissions on /var/rudder/configuration-repository
 /opt/rudder/bin/rudder-fix-repository-permissions  >> ${LOG_FILE}
 
+# Rudder-lang: generates stdlib.rl and translate_config.toml. Added in version 6.1
+/opt/rudder/share/rudder-lang/tools/generate_lib
+
 # Restore the plugins and checking them
 # Each step may fail, but we don't want to stop the migration at a plugin failure
 if [ -f /tmp/rudder-plugins-upgrade ]
@@ -205,4 +208,3 @@ if [ "${RUDDER_FIRST_INSTALL}" = "true" ]; then
 fi
 
 echo "$(date) - Ending rudder-webapp post installation script" >> ${LOG_FILE}
-

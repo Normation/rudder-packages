@@ -131,10 +131,13 @@ virtualenv/virtualenv.py:
 	tar -xzf virtualenv.tgz
 	mv virtualenv-$(VIRTUALENV_RELEASE)/ virtualenv/
 
+rudder-lang:
+	cd rudder-sources/rudder/rudder-lang/ && cargo build --release
+
 PATCHES_SHA = $(shell find patches/ -type f | sort | xargs sha256sum | sha256sum | awk '{print $$1}')
 CACHE_PARAMETERS = --with-env name=openldap ldap=$(OPENLDAP_SHA256) patches=$(PATCHES_SHA)
 BUILD_LDAP = $(shell ../../build-caching get openldap-source/ $(CACHE_PARAMETERS) || echo build-ldap)
-build: $(BUILD_LDAP) rudder-sources virtualenv/virtualenv.py rudder-doc jetty rudder.war
+build: $(BUILD_LDAP) rudder-sources virtualenv/virtualenv.py rudder-doc jetty rudder.war rudder-lang
 	# save ldap build into cache
 	if [ "$(BUILD_LDAP)" != "" ]; then ../../build-caching put openldap-source/ $(CACHE_PARAMETERS); fi
 	$(PYTHON) virtualenv/virtualenv.py ncf-api-virtualenv
@@ -157,6 +160,7 @@ install: build initial-promises initial-ncf
 	mkdir -p $(DESTDIR)/opt/rudder/etc/server-roles.d/
 	mkdir -p $(DESTDIR)/opt/rudder/etc/hooks.d/
 	mkdir -p $(DESTDIR)/opt/rudder/bin/
+	mkdir -p $(DESTDIR)/opt/rudder/share/python/
 	mkdir -p $(DESTDIR)/opt/rudder/share/webapps/
 	mkdir -p $(DESTDIR)/opt/rudder/share/rudder-plugins/
 	mkdir -p $(DESTDIR)/opt/rudder/share/tools
@@ -165,6 +169,8 @@ install: build initial-promises initial-ncf
 	mkdir -p $(DESTDIR)/opt/rudder/share/certificates/
 	mkdir -p $(DESTDIR)/opt/rudder/share/selinux/
 	mkdir -p $(DESTDIR)/opt/rudder/share/package-scripts/
+	mkdir -p $(DESTDIR)/opt/rudder/share/rudder-lang/lib/
+	mkdir -p $(DESTDIR)/opt/rudder/share/rudder-lang/tools/
 	mkdir -p $(DESTDIR)/var/rudder/inventories/received
 	mkdir -p $(DESTDIR)/var/rudder/run
 	mkdir -p $(DESTDIR)/var/rudder/ldap/openldap-data
@@ -218,7 +224,7 @@ install: build initial-promises initial-ncf
 	install -m 644 rudder-apache-webapp-ssl.conf $(DESTDIR)/opt/rudder/etc/rudder-apache-webapp-ssl.conf
 	install -m 644 rudder-apache-webapp-nossl.conf $(DESTDIR)/opt/rudder/etc/rudder-apache-webapp-nossl.conf
 	install -m 644 rudder-webapp-apache $(DESTDIR)/etc/sysconfig/rudder-webapp-apache
-	
+
 	cp -r rudder-sources/rudder/rudder-core/src/main/resources/hooks.d $(DESTDIR)/opt/rudder/etc/
 	
 	install -m 644 rudder.xml $(DESTDIR)/opt/rudder/share/webapps/
@@ -227,6 +233,20 @@ install: build initial-promises initial-ncf
 	
 	install -m 644 ncf_api_flask_app.wsgi $(DESTDIR)/usr/share/ncf-api-virtualenv/
 	install -m 644 ncf-api-virtualenv.conf $(DESTDIR)/etc/$(APACHE_CONFDIR)/
+
+	# Install executable and helper scripts
+	install -m 755 rudder-sources/rudder/rudder-lang/target/release/rudderc $(DESTDIR)/opt/rudder/bin/rudderc
+	install -m 755 rudder-sources/rudder/rudder-lang/tools/tester.sh $(DESTDIR)/opt/rudder/share/rudder-lang/tools/tester.sh
+	install -m 755 rudder-sources/rudder/rudder-lang/tools/cfjson_tester $(DESTDIR)/opt/rudder/share/rudder-lang/tools/cfjson_tester
+	install -m 755 rudder-sources/rudder/rudder-lang/tools/generate_lib $(DESTDIR)/opt/rudder/share/rudder-lang/tools/generate_lib
+	cp -r tools/jsondiff $(DESTDIR)/opt/rudder/share/python/ && chmod 755 $(DESTDIR)/opt/rudder/share/python/jsondiff && chmod 644 $(DESTDIR)/opt/rudder/share/python/jsondiff/*
+
+	# Copy configuration and library files
+	# required for rudderc execution
+	install -m 644 rudder-sources/rudder/rudder-lang/tools/rudderc.conf $(DESTDIR)/opt/rudder/etc/rudderc.conf
+	install -m 644 rudder-sources/rudder/rudder-lang/libs/corelib.rl $(DESTDIR)/opt/rudder/share/rudder-lang/lib/corelib.rl
+	install -m 644 rudder-sources/rudder/rudder-lang/libs/cfengine_core.rl $(DESTDIR)/opt/rudder/share/rudder-lang/lib/cfengine_core.rl
+	install -m 644 rudder-sources/rudder/rudder-lang/libs/oslib.rl $(DESTDIR)/opt/rudder/share/rudder-lang/lib/oslib.rl
 	
 	# Install upgrade tools and migration scripts
 	

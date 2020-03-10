@@ -9,7 +9,7 @@ Homepage: https://www.rudder.io
 Package: rudder-webapp
 Architecture: any
 Pre-Depends: ${rudder:deps}
-Depends: ${shlibs:Depends}, ${misc:Depends}, systemd, rsyslog, python3, apache2, apache2-utils, libapache2-mod-wsgi-py3, git-core, rsync, lsb-release, openssl, ldap-utils, postgresql-client (>=9.2), openjdk-11-jre-headless | openjdk-8-jre-headless | oracle-java8-installer | java11-runtime-headless, curl, acl
+Depends: ${shlibs:Depends}, ${misc:Depends}, systemd, rsyslog, perl, python3, apache2, apache2-utils, libapache2-mod-wsgi-py3, git-core, rsync, lsb-release, openssl, ldap-utils, postgresql-client (>=9.2), openjdk-11-jre-headless | openjdk-8-jre-headless | oracle-java8-installer | java11-runtime-headless, curl, acl
 Breaks: ncf, ncf-api-virtualenv, rudder-techniques, rudder-inventory-endpoint, rudder-jetty, rudder-inventory-ldap, rudder-ldap, rudder-agent (<< 6.0.0)
 Replaces: ncf, ncf-api-virtualenv, rudder-techniques, rudder-inventory-endpoint, rudder-jetty, rudder-inventory-ldap, rudder-ldap
 Conflicts: openjdk-9-jre-headless
