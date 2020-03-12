@@ -172,7 +172,7 @@ Requires: fusioninventory-agent fusioninventory-agent-task-inventory
 %endif
 
 ## For Linux
-%if "%{?aix}"
+%if "%{?aix}" ==""
 BuildRequires: pam-devel
 Requires: syslog
 %endif
@@ -255,7 +255,7 @@ Requires: dmidecode
 %endif
 
 ## ACL dependencies
-%if "%{?aix}"
+%if "%{?aix}" == ""
 BuildRequires: libacl-devel
 Requires: libacl
 %endif
@@ -457,7 +457,7 @@ if [ $1 -eq 0 ]; then
     fi
   done
 
-%if "%{?aix}"
+%if "%{?aix}" == ""
   # Remove the cron script we create at installation to prevent mail
   # flooding, re-installation surprises, and general system garbage.
   rm -f /etc/cron.d/rudder-agent
@@ -503,7 +503,7 @@ rm -f %{_builddir}/file.list.%{name}
 %dir %{rudderlogdir}/install
 %dir %{rudderlogdir}/agent-check
 
-%if "%{?aix}"
+%if "%{?aix}" == ""
 # no init no cron and no profile with aix
 %config /etc/cron.d/rudder-agent
 %config /etc/profile.d/rudder-agent.sh
