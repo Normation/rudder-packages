@@ -1,0 +1,29 @@
+diff --git a/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/NonLSB.pm b/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/NonLSB.pm
+index ac0afc782..f85399ec8 100644
+--- a/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/NonLSB.pm
++++ b/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/NonLSB.pm
+@@ -118,10 +118,20 @@ sub _getDistroData {
+     };
+ 
+     if ($name eq 'SuSE') {
+-        $data->{SERVICE_PACK} = getFirstMatch(
+-            file    => '/etc/SuSE-release',
+-            pattern => qr/^PATCHLEVEL = ([0-9]+)/
+-        );
++        #SLES15 doesn't have /etc/SuSE-release
++        if (-e '/etc/SuSE-release') {
++            $data->{SERVICE_PACK} = getFirstMatch(
++                file    => '/etc/SuSE-release',
++                pattern => qr/^PATCHLEVEL = ([0-9]+)/
++            );
++        } else {
++            # fall back by checking if there's a -SP in the current version
++            # if so, split by -SP
++            if ($version =~ m/\-SP.+/) {
++              ($data->{VERSION}, $data->{SERVICE_PACK}) = $version =~ m/(.*)-SP(.*)/;
++
++            }
++        }
+     }
+ 
+     return $data;
