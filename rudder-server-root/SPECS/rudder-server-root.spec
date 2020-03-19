@@ -82,6 +82,15 @@ cd %{_sourcedir}
 
 make install DESTDIR=%{buildroot}
 
+#################################################
+# Pre trans - before anything else
+#################################################
+%pretrans
+
+# We need to be sure that uuid.hive is set to root at beginning
+mkdir -p /opt/rudder/etc
+echo 'root' > /opt/rudder/etc/uuid.hive
+
 %pre
 #=================================================
 # Pre Installation
@@ -110,10 +119,6 @@ then
     fi
   fi
 fi
-
-# We need to be sure that uuid.hive is set to root at beginning
-mkdir -p /opt/rudder/etc
-echo 'root' > /opt/rudder/etc/uuid.hive
 
 %post
 #=================================================
