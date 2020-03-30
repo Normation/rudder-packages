@@ -61,7 +61,7 @@ RUDDER_DIR = /opt/rudder
 DESTDIR = $(CURDIR)/target
 
 # Default OS to build for
-OS_FAMILY=linux
+OS_FAMILY:=$(shell uname -s)
 
 # default build with pie if possible
 TRY_CFLAGS=-fstack-protector
@@ -180,7 +180,7 @@ XML_ARG := --with-libxml2
 endif
 
 # AIX does nor have the same form of rpath
-ifeq (aix,$(OS_FAMILY))
+ifeq (AIX,$(OS_FAMILY))
 SYSTEM_LDFLAGS := -static-libgcc -Wl,-bsvr4 -Wl,-R/opt/rudder/lib
 else
 SYSTEM_LDFLAGS := -Wl,-R/opt/rudder/lib
@@ -200,9 +200,9 @@ ifeq (false, $(USE_PAM))
 PAM_ARG := --without-pam
 endif
 
-# Hack needed because openssl is not guessing correctly the architecture on solaris 32bits
-ifeq (i386-pc-solaris2.10,$(shell ./config.guess))
-SSL_CONFIGURE:=./Configure solaris-x86-gcc
+# Hack needed because openssl is not guessing correctly the architecture on sparc solaris
+ifeq (sparc-sun-solaris2.11,$(shell ./config.guess))
+SSL_CONFIGURE:=./Configure solaris64-sparcv9-gcc
 # Hack needed because openssl is not guessing correctly the architecture on debian 32 bits chroot
 else
 ifeq (i386,$(shell [ -x /usr/bin/dpkg ] && dpkg --print-architecture))
@@ -242,7 +242,7 @@ install: build $(INSTALL_DEPS) install-cfengine rudder-agent-utilities rudder-ag
 	mkdir -p $(DESTDIR)/usr/bin
 	mkdir -p $(DESTDIR)/etc/cron.d
 # AIX needs .a files
-ifneq (aix,$(OS_FAMILY))
+ifneq (AIX,$(OS_FAMILY))
 	cd $(DESTDIR)/opt/rudder && rm -rf include lib/*.a lib/*.la
 endif
 	# 2Mb manuals of C functions
@@ -264,7 +264,7 @@ endif
 
 	# Init files
 ifneq (true,$(USE_SYSTEMD))
-ifneq (aix,$(OS_FAMILY))
+ifneq (AIX,$(OS_FAMILY))
 	mkdir -p $(DESTDIR)/etc/init.d
 	mkdir -p $(DESTDIR)/etc/default
 	$(INSTALL) -m 755 rudder-agent.init $(DESTDIR)/etc/init.d/rudder-agent
@@ -273,7 +273,7 @@ endif
 endif
 
 	# cron files
-ifneq (aix,$(OS_FAMILY))
+ifneq (AIX,$(OS_FAMILY))
 	$(INSTALL) -m 644 rudder-agent.cron $(DESTDIR)/etc/cron.d/rudder-agent
 endif
 
@@ -319,13 +319,13 @@ endif
 	ln -sf $(RUDDER_DIR)/bin/rudder $(DESTDIR)/usr/bin/rudder
 
 	# Install a profile script to make cf-* part of the PATH
-ifneq (aix,$(OS_FAMILY))
+ifneq (AIX,$(OS_FAMILY))
 	mkdir -p $(DESTDIR)/etc/profile.d
 	$(INSTALL) -m 644 rudder-agent.sh $(DESTDIR)/etc/profile.d/
 endif
 
 # Strip binaries
-ifeq (aix,$(OS_FAMILY))
+ifeq (AIX,$(OS_FAMILY))
 	cp /opt/freeware/lib/gcc/powerpc-ibm-aix5.3.0.0/4.8.2/libgcc* $(DESTDIR)/opt/rudder/lib/
 	./absolute-aix-path $(DESTDIR)/opt/rudder
 	find $(DESTDIR) -type f | xargs file | grep -E "executable|shared object" | cut -f 1 -d : | xargs strip 2> /dev/null || true
@@ -335,7 +335,7 @@ else
 endif
 
 clean:
-	rm -rf dependencies build-cfengine build-perl fusion-modules build-cfengine-stamp
+	rm -rf dependencies build-*
 	rm -rf rudder-sources
 	rm -f rudder.8.gz
 	[ -d cfengine-source ] && cd cfengine-source && $(MAKE) clean 2>/dev/null || true
@@ -523,7 +523,7 @@ build-ssl: openssl-source
 	# openssl doesn't work with pie
 	cd openssl-source && RELEASE="" $(SSL_CONFIGURE) -fPIC $(CFLAGS) $(LDFLAGS) --prefix=$(RUDDER_DIR) --openssldir=$(RUDDER_DIR)/openssl shared no-idea no-rc5 no-ssl3 no-dtls no-psk no-srp no-engine enable-egd
 # we need aix libpath in ssl library
-ifeq (aix,$(OS_FAMILY))
+ifeq (AIX,$(OS_FAMILY))
 	cd openssl-source && sed '/link_a.aix:/,/link_app.aix:/s/-bnolibpath,//' Makefile.shared > Makefile.shared.tmp && mv Makefile.shared.tmp Makefile.shared
 endif
 	cd openssl-source && $(MAKE) depend
@@ -536,7 +536,8 @@ endif
 build-lmdb: lmdb-source
 	# lmdb doesn't support CFLAGS (it overrides its own) so we pass XCFLAGS instead, that is appended to the original ones
 	# we need to add -fPIE to be able to build static lib (which we do not use)
-	cd lmdb-source/libraries/liblmdb && $(MAKE) $(MAKE_J) XCFLAGS="$(CFLAGS) $(PIE_CFLAGS)" LDFLAGS="$(LDFLAGS)"
+	# lmdb also mixes cflags and ldflags
+	cd lmdb-source/libraries/liblmdb && $(MAKE) $(MAKE_J) XCFLAGS="$(CFLAGS) $(PIE_CFLAGS)" LDFLAGS="$(LDFLAGS) $(CFLAGS)"
 	# need a temporary install for cfengine
 	mkdir -p dependencies$(RUDDER_DIR)
 	# LMDB's Makefile does not know how to create destination files, do it ourselves
@@ -563,7 +564,7 @@ build-curl: curl-source
 	# since we need the temporary path during build we need to add -I and -L
 	# since we also need to link it during cfengine build we add -R (--rpath)
 	# we may want to remove rpath using patchelf at the end, but this is mostly cosmetic
-	cd curl-source && ./configure --prefix=$(RUDDER_DIR) --without-libpsl --with-ssl $(ZLIB_ARG) --disable-tls-srp --disable-rtsp --enable-ipv6 --without-libidn2 --without-librtmp --without-ldap-lib CPPFLAGS="-I$(CURDIR)/dependencies$(RUDDER_DIR)/include" CFLAGS="$(CFLAGS) $(PIE_CFLAGS)" LDFLAGS="$(LDFLAGS) -Wl,-R$(CURDIR)/dependencies$(RUDDER_DIR)/lib -L$(CURDIR)/dependencies$(RUDDER_DIR)/lib -Wl,-R$(CURDIR)/dependencies$(RUDDER_DIR)/lib" PKG_CONFIG_PATH="$(CURDIR)/dependencies$(RUDDER_DIR)/lib/pkgconfig"
+	cd curl-source && ./configure --prefix=$(RUDDER_DIR) --without-libpsl --with-ssl $(ZLIB_ARG) --disable-tls-srp --disable-rtsp --enable-ipv6 --without-librtmp --without-ldap-lib CPPFLAGS="-I$(CURDIR)/dependencies$(RUDDER_DIR)/include" CFLAGS="$(CFLAGS) $(PIE_CFLAGS)" LDFLAGS="$(LDFLAGS) -Wl,-R$(CURDIR)/dependencies$(RUDDER_DIR)/lib -L$(CURDIR)/dependencies$(RUDDER_DIR)/lib -Wl,-R$(CURDIR)/dependencies$(RUDDER_DIR)/lib" PKG_CONFIG_PATH="$(CURDIR)/dependencies$(RUDDER_DIR)/lib/pkgconfig"
 	cd curl-source && $(MAKE) $(MAKE_J)
 	# install to a temporary location is needed to build cfengine
 	cd curl-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
@@ -620,18 +621,18 @@ build-cfengine-stamp:
 	cd cfengine-source && $(MAKE) $(MAKE_J)
 	cd cfengine-source && $(MAKE) $(MAKE_J) install DESTDIR=$(CURDIR)/dependencies
 # solaris doesn't have uuidgen and needs one
-ifeq (solaris,$(OS_FAMILY))
+ifeq (SunOS,$(OS_FAMILY))
 	gcc -luuid rudder-uuidgen.c -o rudder-uuidgen
 endif
 	touch $@
-ifeq (aix,$(OS_FAMILY))
+ifeq (AIX,$(OS_FAMILY))
 	# be clean
 	slibclean
 endif
 
 # Test if compiler supports hardening flags
 get-flags:
-ifeq (aix,$(OS_FAMILY))
+ifeq (AIX,$(OS_FAMILY))
 	# AIX doesn't automatically unload libraries from memory (and a loaded library cannot be overwritten)
 	# some older versions may remain and prevent proper linking/installing
 	# This pace is the 'beginning' of the make so do it here

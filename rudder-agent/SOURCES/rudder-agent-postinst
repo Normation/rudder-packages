@@ -12,7 +12,7 @@ LOG_FILE="/var/log/rudder/install/rudder-agent-$(date +%Y%m%d%H%M%S).log"
 
 # Closing all parents fd which are inherited, otherwise it can lead to
 # a postint unable to terminate (revelant at least on debian 7)
-if [ -d /proc/self/fd ]
+if [ -d /proc/self/fd ] && [ "$(uname -s)" != "SunOS" ]
 then
   for fd in $(ls /proc/self/fd); do
     [ "${fd}" -gt 2 ] && eval "exec $fd>&-"
@@ -137,7 +137,7 @@ fi
 
 # Try to remove POSIX ACL if present, only during the first install
 # https://issues.rudder.io/issues/8065
-if [ "${CFRUDDER_FIRST_INSTALL}" = "true" ]
+if [ "${CFRUDDER_FIRST_INSTALL}" = "true" ] && [ "$(uname -s)" != "SunOS" ]
 then
   if type setfacl > /dev/null 2>&1; then
     setfacl -R -k /var/rudder/
