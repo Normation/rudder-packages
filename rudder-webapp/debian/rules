@@ -62,7 +62,6 @@ binary-arch: install
 	dh_install --sourcedir=$(CURDIR)/SOURCES/ rudder-node-to-relay /opt/rudder/bin/
 	dh_install --sourcedir=$(CURDIR)/SOURCES/ rudder-init /opt/rudder/bin/
 	dh_install --sourcedir=$(CURDIR)/SOURCES/ rudder-root-rename /opt/rudder/bin/
-	dh_install --sourcedir=$(CURDIR)/SOURCES/ rudder-plugin /opt/rudder/bin/
 	dh_install --sourcedir=$(CURDIR)/SOURCES/ rudder-reload-cf-serverd /opt/rudder/bin/
 	dh_install --sourcedir=SOURCES/ rudder-users.xml /opt/rudder/etc/
 	dh_install --sourcedir=$(CURDIR)/SOURCES/rudder-sources/rudder/rudder-core/src/main/resources/ldap/ bootstrap.ldif /opt/rudder/share/
