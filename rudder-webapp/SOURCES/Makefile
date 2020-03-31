@@ -196,7 +196,6 @@ install: build initial-promises initial-ncf
 	install -m 755 rudder-init $(DESTDIR)/opt/rudder/bin/
 	install -m 755 rudder-node-to-relay $(DESTDIR)/opt/rudder/bin/
 	install -m 755 rudder-root-rename $(DESTDIR)/opt/rudder/bin/
-	install -m 755 rudder-plugin $(DESTDIR)/opt/rudder/bin/
 	install -m 755 rudder-metrics-reporting $(DESTDIR)/opt/rudder/bin/
 	install -m 755 rudder-reload-cf-serverd $(DESTDIR)/opt/rudder/bin/
 	
