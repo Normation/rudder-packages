@@ -72,7 +72,6 @@ Source10: rudder-init
 Source11: rudder-node-to-relay
 Source12: rudder-root-rename
 Source13: rudder-passwords.conf
-Source14: rudder-plugin
 Source15: post.write_technique.10_commit.sh
 Source16: post.write_technique.50_rudderify.sh
 Source17: rudder-metrics-reporting
@@ -195,7 +194,6 @@ ln -sf %{rudderdir}/bin/rudder-init %{buildroot}%{rudderdir}/bin/rudder-init.sh
 
 cp %{SOURCE11} %{buildroot}%{rudderdir}/bin/
 cp %{SOURCE12} %{buildroot}%{rudderdir}/bin/
-cp %{SOURCE14} %{buildroot}%{rudderdir}/bin/
 cp %{SOURCE17} %{buildroot}%{rudderdir}/bin/
 cp %{SOURCE19} %{buildroot}%{rudderdir}/bin/
 
