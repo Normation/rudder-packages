@@ -18,8 +18,8 @@ distinguished_name = req_distinguished_name
 
 [ agent_cert ]
 # subject = /CN=hostname/UID=uuid
-basicConstraints        = CA:FALSE
+basicConstraints        = CA:TRUE
 subjectKeyIdentifier    = hash
 authorityKeyIdentifier  = keyid:always, issuer:always
-keyUsage                = digitalSignature, dataEncipherment, keyEncipherment, keyAgreement 
+keyUsage                = digitalSignature, dataEncipherment, keyEncipherment, keyAgreement, keyCertSign
 #extendedKeyUsage        = clientAuth
