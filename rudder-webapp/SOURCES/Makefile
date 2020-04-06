@@ -191,6 +191,7 @@ install: build initial-promises initial-ncf
 	install -m 644 rudder-sources/rudder/rudder-core/src/main/resources/ldap/rudder.schema $(DESTDIR)/opt/rudder/etc/openldap/schema/
 	install -m 644 rsyslog/rudder-slapd.conf $(DESTDIR)/etc/rsyslog.d/rudder-slapd.conf
 	install -m 644 rudder-slapd.service $(DESTDIR)/usr/lib/systemd/system/rudder-slapd.service
+	[ $$(systemctl --version | head -1 | cut -d' ' -f2) -gt 232 ] && sed -i '/\[Service\]/ r rudder-slapd-hardening' $(DESTDIR)/usr/lib/systemd/system/rudder-slapd.service || true
 
 	# Install helper scripts
 	install -m 755 rudder-init $(DESTDIR)/opt/rudder/bin/
