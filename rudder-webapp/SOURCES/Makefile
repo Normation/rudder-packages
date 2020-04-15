@@ -37,6 +37,7 @@ DESTDIR = $(CURDIR)/target
 APACHE_VHOSTDIR = apache2/sites-available
 APACHE_CONFDIR = apache2/conf-available
 JETTY_SCRIPT=jetty.sh
+WEBAPPDIR = rudder-sources/rudder/webapp/sources
 
 PROXY_ENV = $(if $(PROXY), http_proxy=$(PROXY))
 # Usage: $(GET) <destination_file> <url> <hash>
@@ -104,7 +105,7 @@ initial-ncf: ./rudder-sources ./initial-promises
 
 rudder.war: rudder-sources
 	# Direct download the war 
-	./mvn-like rudder-sources/rudder/pom.xml com.normation.rudder rudder-web rudder.war
+	./mvn-like $(WEBAPPDIR)/pom.xml com.normation.rudder rudder-web rudder.war
 
 rudder-sources.tar.bz2:
 	$(GET) rudder-sources.tar.bz2 https://www.rudder-project.org/archives/rudder-sources-${RUDDER_VERSION_TO_PACKAGE}.tar.bz2 ""
@@ -187,8 +188,8 @@ install: build initial-promises initial-ncf
 
 	# Install openldap
 	install -m 640 slapd.conf $(DESTDIR)/opt/rudder/etc/openldap/slapd.conf
-	install -m 644 rudder-sources/rudder/webapp/sources/ldap-inventory/inventory-repository/src/main/resources/ldap/inventory.schema $(DESTDIR)/opt/rudder/etc/openldap/schema/
-	install -m 644 rudder-sources/rudder/rudder-core/src/main/resources/ldap/rudder.schema $(DESTDIR)/opt/rudder/etc/openldap/schema/
+	install -m 644 $(WEBAPPDIR)/ldap-inventory/inventory-repository/src/main/resources/ldap/inventory.schema $(DESTDIR)/opt/rudder/etc/openldap/schema/
+	install -m 644 $(WEBAPPDIR)/rudder-core/src/main/resources/ldap/rudder.schema $(DESTDIR)/opt/rudder/etc/openldap/schema/
 	install -m 644 rsyslog/rudder-slapd.conf $(DESTDIR)/etc/rsyslog.d/rudder-slapd.conf
 	install -m 644 rudder-slapd.service $(DESTDIR)/usr/lib/systemd/system/rudder-slapd.service
 	[ $$(systemctl --version | head -1 | cut -d' ' -f2) -gt 232 ] && sed -i '/\[Service\]/ r rudder-slapd-hardening' $(DESTDIR)/usr/lib/systemd/system/rudder-slapd.service || true
@@ -200,11 +201,11 @@ install: build initial-promises initial-ncf
 	install -m 755 rudder-metrics-reporting $(DESTDIR)/opt/rudder/bin/
 	install -m 755 rudder-reload-cf-serverd $(DESTDIR)/opt/rudder/bin/
 	
-	install -m 644 rudder-sources/rudder/rudder-web/src/main/resources/demo-rudder-users.xml $(DESTDIR)/opt/rudder/etc/rudder-users.xml
-	install -m 644 rudder-sources/rudder/rudder-core/src/main/resources/ldap/bootstrap.ldif $(DESTDIR)/opt/rudder/share/
-	install -m 644 rudder-sources/rudder/rudder-core/src/main/resources/ldap/init-policy-server.ldif $(DESTDIR)/opt/rudder/share/
-	install -m 644 rudder-sources/rudder/rudder-web/src/main/resources/configuration.properties.sample $(DESTDIR)/opt/rudder/etc/rudder-web.properties
-	install -m 644 rudder-sources/rudder/rudder-web/src/main/resources/logback.xml $(DESTDIR)/opt/rudder/etc/
+	install -m 644 $(WEBAPPDIR)/rudder-web/src/main/resources/demo-rudder-users.xml $(DESTDIR)/opt/rudder/etc/rudder-users.xml
+	install -m 644 $(WEBAPPDIR)/rudder-core/src/main/resources/ldap/bootstrap.ldif $(DESTDIR)/opt/rudder/share/
+	install -m 644 $(WEBAPPDIR)/rudder-core/src/main/resources/ldap/init-policy-server.ldif $(DESTDIR)/opt/rudder/share/
+	install -m 644 $(WEBAPPDIR)/rudder-web/src/main/resources/configuration.properties.sample $(DESTDIR)/opt/rudder/etc/rudder-web.properties
+	install -m 644 $(WEBAPPDIR)/rudder-web/src/main/resources/logback.xml $(DESTDIR)/opt/rudder/etc/
 	cp -r rudder-sources/rudder-techniques/techniques/ $(DESTDIR)/opt/rudder/share/
 	
 	mkdir -p $(DESTDIR)/usr/share/ncf
@@ -212,14 +213,14 @@ install: build initial-promises initial-ncf
 	install -m 755 rudder-sources/ncf/ncf $(DESTDIR)/usr/share/ncf/
 	install -m 644 rudder.war $(DESTDIR)/opt/rudder/share/webapps/rudder.war
 	
-	cp -rf rudder-sources/rudder/rudder-web/src/main/resources/load-page $(DESTDIR)/opt/rudder/share/
-	install -m 644 rudder-sources/rudder/rudder-core/src/main/resources/reportsInfo.xml $(DESTDIR)/opt/rudder/etc/
+	cp -rf $(WEBAPPDIR)/rudder-web/src/main/resources/load-page $(DESTDIR)/opt/rudder/share/
+	install -m 644 $(WEBAPPDIR)/rudder-core/src/main/resources/reportsInfo.xml $(DESTDIR)/opt/rudder/etc/
 	install -m 644 rudder-apache-webapp-common.conf $(DESTDIR)/opt/rudder/etc/rudder-apache-webapp-common.conf
 	install -m 644 rudder-apache-webapp-ssl.conf $(DESTDIR)/opt/rudder/etc/rudder-apache-webapp-ssl.conf
 	install -m 644 rudder-apache-webapp-nossl.conf $(DESTDIR)/opt/rudder/etc/rudder-apache-webapp-nossl.conf
 	install -m 644 rudder-webapp-apache $(DESTDIR)/etc/sysconfig/rudder-webapp-apache
 	
-	cp -r rudder-sources/rudder/rudder-core/src/main/resources/hooks.d $(DESTDIR)/opt/rudder/etc/
+	cp -r $(WEBAPPDIR)/rudder-core/src/main/resources/hooks.d $(DESTDIR)/opt/rudder/etc/
 	
 	install -m 644 rudder.xml $(DESTDIR)/opt/rudder/share/webapps/
 	
@@ -231,12 +232,12 @@ install: build initial-promises initial-ncf
 	# Install upgrade tools and migration scripts
 	
 	## SQL migration
-	install -m 644 rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-4.1.x-4.1.12-add-compliancelevel-table.sql $(DESTDIR)/opt/rudder/share/upgrade-tools/
-	install -m 644 rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-4.1.x-4.1.21-drop-rulesgroupjoin-constraint.sql $(DESTDIR)/opt/rudder/share/upgrade-tools/
-	install -m 644 rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-4.3.x-4.3.8-correct-indexes-on-compliancelevel.sql $(DESTDIR)/opt/rudder/share/upgrade-tools/
-	install -m 644 rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-5.0.x-5.0.7-tune-autovacuum_on_table_basis.sql $(DESTDIR)/opt/rudder/share/upgrade-tools/
-	install -m 644 rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-5.0.x-5.0.12-composite-index-on-ruddersysevents.sql $(DESTDIR)/opt/rudder/share/upgrade-tools/
-	install -m 644 rudder-sources/rudder/rudder-core/src/main/resources/Migration/dbMigration-5.0.x-5.0.13-remove-autovacuum-on-ruddersysevents.sql $(DESTDIR)/opt/rudder/share/upgrade-tools/
+	install -m 644 $(WEBAPPDIR)/rudder-core/src/main/resources/Migration/dbMigration-4.1.x-4.1.12-add-compliancelevel-table.sql $(DESTDIR)/opt/rudder/share/upgrade-tools/
+	install -m 644 $(WEBAPPDIR)/rudder-core/src/main/resources/Migration/dbMigration-4.1.x-4.1.21-drop-rulesgroupjoin-constraint.sql $(DESTDIR)/opt/rudder/share/upgrade-tools/
+	install -m 644 $(WEBAPPDIR)/rudder-core/src/main/resources/Migration/dbMigration-4.3.x-4.3.8-correct-indexes-on-compliancelevel.sql $(DESTDIR)/opt/rudder/share/upgrade-tools/
+	install -m 644 $(WEBAPPDIR)/rudder-core/src/main/resources/Migration/dbMigration-5.0.x-5.0.7-tune-autovacuum_on_table_basis.sql $(DESTDIR)/opt/rudder/share/upgrade-tools/
+	install -m 644 $(WEBAPPDIR)/rudder-core/src/main/resources/Migration/dbMigration-5.0.x-5.0.12-composite-index-on-ruddersysevents.sql $(DESTDIR)/opt/rudder/share/upgrade-tools/
+	install -m 644 $(WEBAPPDIR)/rudder-core/src/main/resources/Migration/dbMigration-5.0.x-5.0.13-remove-autovacuum-on-ruddersysevents.sql $(DESTDIR)/opt/rudder/share/upgrade-tools/
 	
 	install -m 755 rudder-upgrade $(DESTDIR)/opt/rudder/bin/
 	
