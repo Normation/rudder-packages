@@ -336,7 +336,6 @@ endif
 
 clean:
 	rm -rf dependencies build-*
-	rm -rf rudder-sources
 	rm -f rudder.8.gz
 	[ -d cfengine-source ] && cd cfengine-source && $(MAKE) clean 2>/dev/null || true
 	[ -d lmdb-source ] && cd lmdb-source && $(MAKE) clean 2>/dev/null || true

@@ -52,7 +52,6 @@ install: build
 	install -m 755 rudder-reports-postinst $(DESTDIR)/opt/rudder/share/package-scripts/
 
 clean:
-	rm -rf rudder-sources
 
 distclean: clean
 

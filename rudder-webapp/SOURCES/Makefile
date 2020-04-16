@@ -280,7 +280,6 @@ clean:
 	rm -rf rudder-users.xml
 	rm -rf maven/
 	rm -rf .m2/
-	rm -rf rudder-sources
 	rm -rf rudder-doc
 	rm -rf .gitignore
 	rm -rf settings-external.xml
