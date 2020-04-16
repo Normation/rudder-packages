@@ -47,6 +47,8 @@ CPANMINUS_SHA1 = a12043498ab54d9abdc58d1ebb4988da3bd515db
 CPAN_URL = $(HTTPS)://repository.rudder.io/build-dependencies/cpan/$(RUDDER_MAJOR_VERSION)
 CURL_RELEASE = 7.61.0
 CURL_SHA1 = 34c0f89e01c27070fe3b6f86371791390f464602
+JQ_RELEASE = 1.6
+JQ_SHA1 = 73bcbdc45be4db907a864e829b06cd869f77f4f7
 YAML_RELEASE = 0.2.1
 YAML_SHA1 = 125a3113681f06320dcdfde48bab47cba9031263
 XML_RELEASE = 2.9.7
@@ -164,6 +166,10 @@ CURL_ARG := --with-libcurl=$(CURDIR)/dependencies$(RUDDER_DIR)
 else
 CURL_ARG := --with-libcurl
 endif
+# default: do not embed libjq
+ifeq (false,$(USE_SYSTEM_JQ))
+BUILD_DEPS := $(BUILD_DEPS) build-jq
+endif
 # default: do not embed libyaml
 ifeq (false,$(USE_SYSTEM_YAML))
 BUILD_DEPS := $(BUILD_DEPS) build-yaml
@@ -214,7 +220,7 @@ endif
 
 # download dependencies
 depend: localdepends
-localdepends: rudder-agent-utilities perl-$(PERL_RELEASE) fusioninventory-agent cfengine-source openssl-source lmdb-source pcre-source curl-source xml-source yaml-source zlib-source rudder-agent.cron rudder.8.gz
+localdepends: rudder-agent-utilities perl-$(PERL_RELEASE) fusioninventory-agent cfengine-source openssl-source lmdb-source pcre-source curl-source jq-source xml-source yaml-source zlib-source rudder-agent.cron rudder.8.gz
 
 # build binaries
 build: get-flags build-cfengine
@@ -347,7 +353,7 @@ clean:
 distclean: clean
 	rm -f rudder-agent.cron
 	rm -rf rudder-agent-utilities fusioninventory-agent
-	for sourcedir in cfengine lmdb openssl curl pcre zlib yaml xml; do \
+	for sourcedir in cfengine lmdb openssl curl pcre zlib jq yaml xml; do \
 	  rm -rf $${sourcedir}-source; \
 	done
 	rm -rf perl-$(PERL_RELEASE)
@@ -413,6 +419,14 @@ curl-source:
 	mv ./curl-$(CURL_RELEASE) ./curl-source
 	rm -rf $(TMP_DIR)
 
+jq-source:
+	$(eval TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX))
+	# Original URL: https://github.com/stedolan/jq/releases/download/jq-1.6/jq-1.6.tar.gz
+	$(GET) $(TMP_DIR)/jq.tgz $(HTTPS)://repository.rudder.io/build-dependencies/jq/jq-$(JQ_RELEASE).tar.gz $(JQ_SHA1)
+	gunzip < $(TMP_DIR)/jq.tgz | $(TAR) xf -
+	mv ./jq-$(JQ_RELEASE) ./jq-source
+	rm -rf $(TMP_DIR)
+
 yaml-source:
 	$(eval TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX))
 	# Original URL: http://pyyaml.org/download/libyaml/yaml-0.1.7.tar.gz
@@ -451,6 +465,7 @@ rudder-agent-utilities: rudder-sources
 	cp -r ./rudder-sources/rudder-agent/ ./rudder-agent-utilities
 	# Add capabilities
 	echo cfengine >> ./rudder-agent-utilities/agent-capabilities
+	echo jq >> ./rudder-agent-utilities/agent-capabilities
 	echo yaml >> ./rudder-agent-utilities/agent-capabilities
 	echo xml >> ./rudder-agent-utilities/agent-capabilities
 	echo curl >> ./rudder-agent-utilities/agent-capabilities
@@ -569,6 +584,12 @@ build-curl: curl-source
 	cd curl-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
 	touch $@
 
+build-jq: jq-source
+	cd jq-source && autoreconf -fi && ./configure --prefix=$(RUDDER_DIR) $(BUILD_FLAGS) --disable-maintainer-mode --disable-docs --with-oniguruma=builtin
+	cd jq-source && $(MAKE) $(MAKE_J)
+	# install to a temporary location is needed to build cfengine
+	cd jq-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
+
 build-yaml: yaml-source
 	cd yaml-source && ./configure --prefix=$(RUDDER_DIR) --enable-gettext=no $(BUILD_FLAGS)
 	cd yaml-source && $(MAKE) $(MAKE_J)
@@ -601,7 +622,7 @@ build-perl: perl-$(PERL_RELEASE)
 
 # check cache content
 PATCHES_SHA = $(shell find patches/cfengine -type f | sort | xargs sha256sum | sha256sum | awk '{print $$1}')
-DEPS_CACHE_PARAMETERS = --with-env name=dependencies lmdb=$(LMDB_SHA1) openssl=$(OPENSSL_SHA1) old-openssl=$(OLD_OPENSSL_SHA1) pcre=$(PCRE_SHA1) curl=$(CURL_SHA1) yaml=$(YAML_SHA1) xml=$(XML_SHA1) zlib=$(ZLIB_SHA1) cfengine=$(CFENGINE_SHA1) patches=$(PATCHES_SHA)
+DEPS_CACHE_PARAMETERS = --with-env name=dependencies lmdb=$(LMDB_SHA1) openssl=$(OPENSSL_SHA1) old-openssl=$(OLD_OPENSSL_SHA1) pcre=$(PCRE_SHA1) curl=$(CURL_SHA1) jq=$(JQ_SHA1) yaml=$(YAML_SHA1) xml=$(XML_SHA1) zlib=$(ZLIB_SHA1) cfengine=$(CFENGINE_SHA1) patches=$(PATCHES_SHA)
 CFENGINE_DEPS = $(shell ../../build-caching get dependencies/ $(DEPS_CACHE_PARAMETERS) || echo $(BUILD_DEPS))
 build-cfengine: $(CFENGINE_DEPS) cfengine-source build-cfengine-stamp
 	# save into cache if we built it

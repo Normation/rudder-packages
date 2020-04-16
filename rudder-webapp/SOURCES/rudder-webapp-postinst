@@ -190,6 +190,12 @@ cd /
 # In case both config are there, clear the old one to avoid breaking apache syntax
 [ -f /etc/apache2/vhosts.d/ncf-api-virtualenv.conf ] && [ -f /etc/apache2/conf.d/ncf-api-virtualenv.conf ] && echo '' > /etc/apache2/conf.d/ncf-api-virtualenv.conf
 
+
+# Rudder-lang : update libraries by re-generating it
+echo "INFO: Re-generate rudder-lang libraries ..."
+/opt/rudder/share/rudder-lang/tools/generate_lib
+echo "Done"
+
 # Restart the webapp
 echo -n "INFO: Make sure Rudder webapp is started..."
 systemctl restart rudder-jetty >> ${LOG_FILE}

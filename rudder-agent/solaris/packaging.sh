@@ -20,7 +20,7 @@ pkg install gcc gnu-binutils || true
 # use gnu tools to build
 export PATH=/usr/gnu/bin:/usr/gnu/x86_64-pc-solaris2.11/bin/:/usr/gnu/sparc-sun-solaris2.11/bin:$PATH
 
-env="RUDDER_VERSION_TO_PACKAGE=${VERSION} USE_SYSTEM_OPENSSL=false USE_SYSTEM_ZLIB=false USE_SYSTEM_LMDB=false USE_SYSTEM_PCRE=false USE_SYSTEM_PERL=true USE_SYSTEM_FUSION=false USE_SYSTEM_CURL=false USE_SYSTEM_YAML=false USE_SYSTEM_XML=false USE_ACL=false"
+env="RUDDER_VERSION_TO_PACKAGE=${VERSION} USE_SYSTEM_OPENSSL=false USE_SYSTEM_ZLIB=false USE_SYSTEM_LMDB=false USE_SYSTEM_PCRE=false USE_SYSTEM_PERL=true USE_SYSTEM_FUSION=false USE_SYSTEM_CURL=false USE_SYSTEM_JQ=false USE_SYSTEM_YAML=false USE_SYSTEM_XML=false USE_ACL=false"
 
 # build
 # solaris 11.3 doesn't detect properly 64 bitness
