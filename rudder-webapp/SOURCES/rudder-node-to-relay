@@ -1,7 +1,5 @@
 #!/bin/sh
 
-set -e
-
 #####################################################################################
 # Copyright 2011 Normation SAS
 #####################################################################################
@@ -36,13 +34,12 @@ set -e
 #
 #####################################################################################
 
-ECHO=/bin/echo
 RUDDER_OPT=/opt/rudder
 RUDDER_VAR=/var/rudder
 RUDDER_JSON="${RUDDER_VAR}/cfengine-community/inputs/rudder.json"
 
 rudder_json_value() {
-	cat "${RUDDER_JSON}" | jq -r ".$1"
+	jq -r ".$1" ${RUDDER_JSON}
 }
 
 if [ -f "${RUDDER_JSON}" ]; then
@@ -56,45 +53,51 @@ else
   CERTIFICATE_OPTION="--insecure"
 fi
 
-DOWNLOAD_COMMAND="curl --silent --show-error ${CERTIFICATE_OPTION} --location --proxy '' --globoff"
+DOWNLOAD_COMMAND="curl --silent --show-error ${CERTIFICATE_OPTION} --location --noproxy --globoff"
 
 usage() {
-	${ECHO} "Usage: $0 <UUID of the node to make a relay server>"
+	echo "Usage: $0 <UUID of the node to make a relay server>"
 }
 
 RELAY_UUID=$1
 
 # Check arguments
 if [ "${RELAY_UUID}" = "" ]; then
-	${ECHO} "ERROR: Need the UUID of the Relay server as an argument, aborting."
+	echo "ERROR: Need the UUID of the Relay server as an argument, aborting."
 	usage
 	exit 1
 elif [ "${RELAY_UUID}" = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeee" ]; then
-	${ECHO} "ERROR: Please use a real UUID, not the one supplied in the documentation, aborting."
+	echo "ERROR: Please use a real UUID, not the one supplied in the documentation, aborting."
 	exit 1
 fi
 
-${ECHO} -e "Rudder relay installation script starting, using UUID ${RELAY_UUID}.\n"
+echo "Rudder relay installation script starting, using UUID ${RELAY_UUID}.\n"
 
 # Scale-out-relay API call (must have the plugin installed)
 API_URL="https://127.0.0.1/rudder/api/latest/scaleoutrelay/promote/${RELAY_UUID}"
 TOKEN_SYSTEM=$(cat /var/rudder/run/api-token)
-curl_command="${DOWNLOAD_COMMAND} --header \"X-API-Token: ${TOKEN_SYSTEM}\" --request POST \"${API_URL}\""
-response=$(eval ${curl_command} )
+response=$(${DOWNLOAD_COMMAND} --header "X-API-Token: ${TOKEN_SYSTEM}" --request POST "${API_URL}")
+code=$?
+
+if [ ${code} -ne 0 ]; then
+	 echo "Failed to promote ${RELAY_UUID} to relay. Code ${code}" 1>&2
+	 exit 1
+fi
+
 result_api=$(echo "$response" | jq -r '.result')
 
 if [ "${result_api}" = "error" ]; then
-	${ECHO} "ERROR: Promote ${RELAY_UUID} have failed"
+	echo "ERROR: Promote ${RELAY_UUID} have failed" 1>&2
 	error_details=$(echo "$response" | jq -r '.errorDetails')
-	${ECHO} "Reason: ${error_details}"
+	echo "Reason: ${error_details}"
 	exit 1
 else
-	${ECHO} "Done."
+	echo "Done."
 
-	${ECHO} -n "INFO: Triggering promises generation..."
-	curl --proxy '' -k "https://localhost/rudder/api/deploy/reload"
-	${ECHO} " Done."
+	echo -n "INFO: Triggering promises generation..."
+	${DOWNLOAD_COMMAND} -k "https://localhost/rudder/api/deploy/reload"
+	echo " Done."
 
-	${ECHO} -e "\nSuccess: all steps completed successfully."
+	echo "\nSuccess: all steps completed successfully."
 	exit 0
 fi
