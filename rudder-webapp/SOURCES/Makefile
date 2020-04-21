@@ -128,21 +128,12 @@ rudder-doc:
 	mkdir -p rudder-doc
 	mv doc-${RUDDER_MAJOR_VERSION} rudder-doc/html
 
-virtualenv/virtualenv.py:
-	# Original URL: https://pypi.python.org/packages/source/v/virtualenv/virtualenv-12.0.7.tar.gz
-	$(GET) virtualenv.tgz https://repository.rudder.io/build-dependencies/virtualenv/virtualenv-$(VIRTUALENV_RELEASE).tar.gz $(VIRTUALENV_SHA256)
-	tar -xzf virtualenv.tgz
-	mv virtualenv-$(VIRTUALENV_RELEASE)/ virtualenv/
-
 PATCHES_SHA = $(shell find patches/ -type f | sort | xargs sha256sum | sha256sum | awk '{print $$1}')
 CACHE_PARAMETERS = --with-env name=openldap ldap=$(OPENLDAP_SHA256) patches=$(PATCHES_SHA)
 BUILD_LDAP = $(shell ../../build-caching get openldap-source/ $(CACHE_PARAMETERS) || echo build-ldap)
-build: $(BUILD_LDAP) rudder-sources virtualenv/virtualenv.py rudder-doc jetty rudder.war
+build: $(BUILD_LDAP) rudder-sources rudder-doc jetty rudder.war
 	# save ldap build into cache
 	if [ "$(BUILD_LDAP)" != "" ]; then ../../build-caching put openldap-source/ $(CACHE_PARAMETERS); fi
-	$(PYTHON) virtualenv/virtualenv.py ncf-api-virtualenv
-	ncf-api-virtualenv/bin/pip install -r rudder-sources/ncf/api/requirements.txt
-	for i in easy_install python pip; do rm -f ncf-api-virtualenv/bin/$${i}*; done
 	touch $@
 
 # for centos7
@@ -183,9 +174,7 @@ install: build initial-promises initial-ncf
 	mkdir -p $(DESTDIR)/usr/share/doc/rudder
 	mkdir -p $(DESTDIR)/usr/share/
 	mkdir -p $(DESTDIR)/usr/bin/
-	mkdir -p $(DESTDIR)/usr/share/ncf-api-virtualenv/share/selinux/
 	mkdir -p $(DESTDIR)/usr/lib/systemd/system/
-	mkdir -p $(DESTDIR)/var/lib/ncf-api-venv/
 	cd openldap-source && make $(DEBUGOPT) install DESTDIR=$(DESTDIR)
 
 	# Install openldap
@@ -225,11 +214,6 @@ install: build initial-promises initial-ncf
 	cp -r $(CORE_RESOURCES)/hooks.d $(DESTDIR)/opt/rudder/etc/
 	
 	install -m 644 rudder.xml $(DESTDIR)/opt/rudder/share/webapps/
-	
-	cp -r ncf-api-virtualenv/* $(DESTDIR)/usr/share/ncf-api-virtualenv/
-	
-	install -m 644 ncf_api_flask_app.wsgi $(DESTDIR)/usr/share/ncf-api-virtualenv/
-	install -m 644 ncf-api-virtualenv.conf $(DESTDIR)/etc/$(APACHE_CONFDIR)/
 	
 	# Install upgrade tools and migration scripts
 	
@@ -283,8 +267,6 @@ clean:
 	rm -rf rudder-doc
 	rm -rf .gitignore
 	rm -rf settings-external.xml
-	rm -rf virtualenv/
-	rm -rf ncf-api-virtualenv
 	rm -rf jetty
 	rm -f .debian/rudder-jetty.init
 	rm -f .debian/rudder-jetty.default
@@ -295,7 +277,6 @@ clean:
 # distclean should remove everything except rudder-sources.tar.bz2 since it can be brought by by external means
 distclean: clean
 	rm -rf maven.tgz
-	rm -f virtualenv.tgz
 	rm -rf initial-promises initial-ncf
 	rm -rf $(TMP_DIR)
 

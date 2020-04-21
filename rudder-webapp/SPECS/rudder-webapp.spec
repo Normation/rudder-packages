@@ -108,20 +108,20 @@ Requires: jre-headless >= 8 insserv-compat
 ## Python 3
 %if 0%{?rhel} && 0%{?rhel} == 7
 BuildRequires: python
-Requires: python, mod_wsgi
+Requires: python
 %endif
 %if 0%{?rhel} && 0%{?rhel} == 8
 BuildRequires: python3
-Requires: python3, python3-mod_wsgi
+Requires: python3
 %endif
 # Doc for suse versioning https://en.opensuse.org/openSUSE:Packaging_for_Leap
 %if 0%{?suse_version} && 0%{?suse_version} < 1500
 BuildRequires: python
-Requires: python, apache2-mod_wsgi, python-pyOpenSSL
+Requires: python, python-pyOpenSSL
 %endif
 %if 0%{?suse_version} && 0%{?suse_version} >= 1500
 BuildRequires: python3
-Requires: python3, apache2-mod_wsgi-python3
+Requires: python3
 %endif
 
 
@@ -139,10 +139,6 @@ Rudder.
 cd %{_sourcedir}
 make --debug rudder-sources
 
-# rhel7 and sles12 don't have mod wsgi python 3 so we force python2 instead
-%if 0%{?rhel} == 7 || ( 0%{?suse_version} && 0%{?suse_version} < 1500 )
-find . -type f | xargs sed -i '1,1s|#!/usr/bin/python3|#!/usr/bin/python2|'
-%endif
 
 #=================================================
 # Building
@@ -182,7 +178,6 @@ make --debug install APACHE_VHOSTDIR=%{apache_vhost_dir} DESTDIR=%{buildroot} JE
 
 %if 0%{?rhel}
   # Install SELinux policy
-  install -m 644  ncf-api-virtualenv.pp %{buildroot}/usr/share/ncf-api-virtualenv/share/selinux/
   install -m 644  rudder-webapp.pp %{buildroot}/opt/rudder/share/selinux/
   # Replace init script
   cp jetty/bin/jetty-rpm.sh jetty/bin/jetty.sh
@@ -261,7 +256,7 @@ then
 fi
 
 %if 0%{?suse_version}
-a2enmod rewrite dav dav_fs ssl version wsgi
+a2enmod rewrite dav dav_fs ssl version 
 
 # Add required includes in the apache2 configuration
 nextline=$(grep -A1 -E "^. /etc/sysconfig/rudder-webapp-apache$" /etc/sysconfig/apache2 | tail -n1)
@@ -295,9 +290,6 @@ if type sestatus >/dev/null 2>&1 && sestatus | grep -q "enabled"; then
   # including the file contexts defined in the rudder-webapp module
   restorecon -RF /var/rudder/configuration-repository/techniques
 
-  # Add/Update the ncf-api-virtualenv SELinux policy
-  semodule -i /usr/share/ncf-api-virtualenv/share/selinux/ncf-api-virtualenv.pp
-  restorecon -RF /var/lib/ncf-api-venv/
   echo " Done"
 fi
 %endif
@@ -324,9 +316,6 @@ if [ $1 -eq 0 ]; then
   if type sestatus >/dev/null 2>&1 && sestatus | grep -q "enabled"; then
     if semodule -l | grep -q rudder-webapp; then
       echo -n "INFO: Removing selinux policy..."
-      # Remove the ncf-api-virtualenv SELinux policy
-      semodule -r ncf-api-virtualenv 2>/dev/null
-      restorecon -RF /var/lib/ncf-api-venv/
       # Remove the rudder-webapp SELinux policy
       semodule -r rudder-webapp
       restorecon -RF /var/rudder/configuration-repository/techniques
@@ -417,9 +406,6 @@ rm -rf %{buildroot}
 %config(noreplace) /etc/sysconfig/rudder-webapp-apache
 /usr/share/doc/rudder
 /usr/share/ncf/
-/usr/share/ncf-api-virtualenv/
-%attr(- , ncf-api-venv,ncf-api-venv) /var/lib/ncf-api-venv/
-/etc/%{apache_vhost_dir}/ncf-api-virtualenv.conf
 
 
 %if ! 0%{?suse_version}

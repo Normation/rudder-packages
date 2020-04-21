@@ -16,9 +16,7 @@ echo -n "INFO: Creating groups ..."
 if ! getent group rudder-slapd >/dev/null; then
   groupadd --system rudder-slapd >> ${LOG_FILE}
 fi
-if ! getent group ncf-api-venv >/dev/null; then
-  groupadd --system ncf-api-venv >> ${LOG_FILE}
-fi
+echo " Done"
 
 echo -n "INFO: Creating users ..."
 if ! getent passwd rudder-slapd >/dev/null; then
@@ -27,13 +25,21 @@ fi
 chown root:rudder-slapd "${LDAP_CONF}"
 chmod 640 "${LDAP_CONF}"
 chown -R rudder-slapd:rudder-slapd /var/rudder/ldap/
-
-if ! getent passwd ncf-api-venv >/dev/null; then
-  useradd --system --gid ncf-api-venv --shell /bin/false --home-dir /var/lib/ncf-api-venv --groups rudder --comment "ncf API,,," ncf-api-venv >> ${LOG_FILE}
-fi
-chown -R ncf-api-venv:ncf-api-venv /var/lib/ncf-api-venv
-
 echo " Done"
+
+
+echo -n "INFO: Removing ncf-api-venv user and group ..."
+if getent passwd ncf-api-venv >/dev/null; then
+  userdel ncf-api-venv -r >> ${LOG_FILE}
+fi
+
+if getent group ncf-api-venv >/dev/null; then
+  groupdel --system ncf-api-venv >> ${LOG_FILE}
+fi
+
+rm -rf /var/lib/ncf-api-venv
+echo " Done"
+
 
 echo -n "INFO: Setting up systemd ..."
 systemctl daemon-reload
@@ -103,14 +109,10 @@ systemctl restart rudder-slapd >> ${LOG_FILE}
 echo " Done"
 
 
-# Enable the conf-available entry if possible
-a2enconf ncf-api-virtualenv  >> ${LOG_FILE} 2>/dev/null || true
 
 # Remove .pyc files to ensure we don't end up with outdated files
 rm -f /usr/share/ncf/tools/ncf.pyc
 rm -f /usr/share/ncf/tools/ncf_constraints.pyc
-rm -f /usr/share/ncf-api-virtualenv/tools/ncf.pyc
-rm -f /usr/share/ncf-api-virtualenv/tools/ncf_constraints.pyc
 
 # Add perms on inventories
 chmod 751 /var/rudder/inventories
@@ -185,11 +187,6 @@ fi
 
 cd /
 [ -f /tmp/rudder-hooks-upgrade ] && setfacl --restore=/tmp/rudder-hooks-upgrade
-
-# On SLES ncf config has been moved from conf.d to vhosts.d between 5.0 and 6.0
-# In case both config are there, clear the old one to avoid breaking apache syntax
-[ -f /etc/apache2/vhosts.d/ncf-api-virtualenv.conf ] && [ -f /etc/apache2/conf.d/ncf-api-virtualenv.conf ] && echo '' > /etc/apache2/conf.d/ncf-api-virtualenv.conf
-
 
 # Rudder-lang : update libraries by re-generating it
 echo "INFO: Re-generate rudder-lang libraries ..."
