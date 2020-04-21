@@ -48,7 +48,7 @@ CPAN_URL = $(HTTPS)://repository.rudder.io/build-dependencies/cpan/$(RUDDER_MAJO
 CURL_RELEASE = 7.61.0
 CURL_SHA1 = 34c0f89e01c27070fe3b6f86371791390f464602
 JQ_RELEASE = 1.6
-JQ_SHA1 = 73bcbdc45be4db907a864e829b06cd869f77f4f7
+JQ_SHA1 = 510bd75e17c73239f46e395a151b751c3dcc54ff
 YAML_RELEASE = 0.2.1
 YAML_SHA1 = 125a3113681f06320dcdfde48bab47cba9031263
 XML_RELEASE = 2.9.7
@@ -585,7 +585,7 @@ build-curl: curl-source
 	touch $@
 
 build-jq: jq-source
-	cd jq-source && autoreconf -fi && ./configure --prefix=$(RUDDER_DIR) $(BUILD_FLAGS) --disable-maintainer-mode --disable-docs --with-oniguruma=builtin
+	cd jq-source && ./configure --prefix=$(RUDDER_DIR) $(BUILD_FLAGS) --disable-maintainer-mode --disable-docs --with-oniguruma=builtin
 	cd jq-source && $(MAKE) $(MAKE_J)
 	# install to a temporary location is needed to build cfengine
 	cd jq-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
