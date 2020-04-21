@@ -67,12 +67,13 @@ OS_FAMILY:=$(shell uname -s)
 
 # default build with pie if possible
 TRY_CFLAGS=-fstack-protector
+TRY_LDFLAGS=-Wl,-z,relro -Wl,-z,now
 ifeq (false,$(USE_PIE))
 PIE_CFLAGS=
-TRY_LDFLAGS=-Wl,-z,relro -Wl,-z,now
+PIE_LDFLAGS=
 else
 PIE_CFLAGS=-fPIE
-TRY_LDFLAGS=-pie -Wl,-z,relro -Wl,-z,now
+PIE_LDFLAGS=-pie
 endif
 
 # GENERIC_GET: do not remove this line
@@ -527,10 +528,10 @@ debug-script/rudder-debug-info:
 # Builds separated into components #
 ####################################
 
-# build flags should be used everywhere
+# build flags should be used everywhere / separate PIE flags for software that don't support it
 LDFLAGS=$(BUILD_LDFLAGS) $(SECURE_LDFLAGS) $(SYSTEM_LDFLAGS)
 CFLAGS=$(BUILD_CFLAGS) $(SECURE_CFLAGS)
-BUILD_FLAGS=CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)"
+BUILD_FLAGS=CFLAGS="$(CFLAGS) $(PIE_CFLAGS)" LDFLAGS="$(LDFLAGS) $(PIE_LDFLAGS)"
 
 build-ssl: openssl-source
 	# openssl doesn't support CFLAGS (it overrides its own) so we must pass them in batch to configure
@@ -551,7 +552,7 @@ build-lmdb: lmdb-source
 	# lmdb doesn't support CFLAGS (it overrides its own) so we pass XCFLAGS instead, that is appended to the original ones
 	# we need to add -fPIE to be able to build static lib (which we do not use)
 	# lmdb also mixes cflags and ldflags
-	cd lmdb-source/libraries/liblmdb && $(MAKE) $(MAKE_J) XCFLAGS="$(CFLAGS) $(PIE_CFLAGS)" LDFLAGS="$(LDFLAGS) $(CFLAGS)"
+	cd lmdb-source/libraries/liblmdb && $(MAKE) $(MAKE_J) XCFLAGS="$(CFLAGS) $(PIE_CFLAGS)" LDFLAGS="$(LDFLAGS) $(PIE_LDFLAGS) $(CFLAGS)"
 	# need a temporary install for cfengine
 	mkdir -p dependencies$(RUDDER_DIR)
 	# LMDB's Makefile does not know how to create destination files, do it ourselves
@@ -578,7 +579,7 @@ build-curl: curl-source
 	# since we need the temporary path during build we need to add -I and -L
 	# since we also need to link it during cfengine build we add -R (--rpath)
 	# we may want to remove rpath using patchelf at the end, but this is mostly cosmetic
-	cd curl-source && ./configure --prefix=$(RUDDER_DIR) --without-libpsl --with-ssl $(ZLIB_ARG) --disable-tls-srp --disable-rtsp --enable-ipv6 --without-librtmp --without-ldap-lib CPPFLAGS="-I$(CURDIR)/dependencies$(RUDDER_DIR)/include" CFLAGS="$(CFLAGS) $(PIE_CFLAGS)" LDFLAGS="$(LDFLAGS) -Wl,-R$(CURDIR)/dependencies$(RUDDER_DIR)/lib -L$(CURDIR)/dependencies$(RUDDER_DIR)/lib -Wl,-R$(CURDIR)/dependencies$(RUDDER_DIR)/lib" PKG_CONFIG_PATH="$(CURDIR)/dependencies$(RUDDER_DIR)/lib/pkgconfig"
+	cd curl-source && ./configure --prefix=$(RUDDER_DIR) --without-libpsl --with-ssl $(ZLIB_ARG) --disable-tls-srp --disable-rtsp --enable-ipv6 --without-librtmp --without-ldap-lib CPPFLAGS="-I$(CURDIR)/dependencies$(RUDDER_DIR)/include" CFLAGS="$(CFLAGS) $(PIE_CFLAGS)" LDFLAGS="$(LDFLAGS) $(PIE_LDFLAGS) -Wl,-R$(CURDIR)/dependencies$(RUDDER_DIR)/lib -L$(CURDIR)/dependencies$(RUDDER_DIR)/lib -Wl,-R$(CURDIR)/dependencies$(RUDDER_DIR)/lib" PKG_CONFIG_PATH="$(CURDIR)/dependencies$(RUDDER_DIR)/lib/pkgconfig"
 	cd curl-source && $(MAKE) $(MAKE_J)
 	# install to a temporary location is needed to build cfengine
 	cd curl-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
@@ -661,7 +662,7 @@ endif
 	$(eval HAVE_PROTECTION:=$(shell \
 	FLAG_TEST_FILE=`mktemp /tmp/hardening.XXXXXX` ;\
 	echo "void main() {}" > "$${FLAG_TEST_FILE}.c" ;\
-	gcc $(TRY_CFLAGS) $(TRY_LDFLAGS) -o "$${FLAG_TEST_FILE}" "$${FLAG_TEST_FILE}.c" 2>/dev/null && echo "OK";\
+	gcc $(TRY_CFLAGS) $(TRY_LDFLAGS) $(PIE_CFLAGS) $(PIE_LDFLAGS) -o "$${FLAG_TEST_FILE}" "$${FLAG_TEST_FILE}.c" 2>/dev/null && echo "OK";\
 	rm -f "$${FLAG_TEST_FILE}" "$${FLAG_TEST_FILE}".c ))
 
 	$(eval SECURE_CFLAGS:=$(if $(HAVE_PROTECTION),$(TRY_CFLAGS)))
