@@ -29,6 +29,8 @@ echo " Done"
 
 
 echo -n "INFO: Removing ncf-api-venv user and group ..."
+systemctl stop ${APACHE} >> ${LOG_FILE}
+
 if getent passwd ncf-api-venv >/dev/null; then
   userdel ncf-api-venv -r >> ${LOG_FILE}
 fi
