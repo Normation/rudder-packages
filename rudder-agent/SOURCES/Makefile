@@ -29,8 +29,8 @@ CFENGINE_SHA1 = 0698a87fb34add3dae0110f691ec175134060e4d
 LMDB_RELEASE = 0.9.22
 LMDB_SHA1 = 5d62d4c7527f3474f60a0d87db2bfd539e6493eb
 # Default openssl version to use
-OPENSSL_RELEASE = 1.1.1b
-OPENSSL_SHA1 = e9710abf5e95c48ebf47991b10cbb48c09dae102
+OPENSSL_RELEASE = 1.1.1g
+OPENSSL_SHA1 = b213a293f2127ec3e323fb3cfc0c9807664fd997
 # Variable INSTALL_PREFIX name has changed with openssl 1.1.0 https://www.openssl.org/news/cl110.txt
 OPENSSL_DESTDIR_VAR_NAME = DESTDIR
 # open ssl version to use on older systems
