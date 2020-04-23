@@ -207,7 +207,7 @@ install: build initial-promises initial-ncf
 	cp -r rudder-sources/rudder-techniques/techniques/ $(DESTDIR)/opt/rudder/share/
 	
 	mkdir -p $(DESTDIR)/usr/share/ncf
-	cp -r rudder-sources/ncf/{api,builder,tools,tree} $(DESTDIR)/usr/share/ncf/
+	cp -r rudder-sources/ncf/{builder,tools,tree} $(DESTDIR)/usr/share/ncf/
 	install -m 755 rudder-sources/ncf/ncf $(DESTDIR)/usr/share/ncf/
 	install -m 644 rudder.war $(DESTDIR)/opt/rudder/share/webapps/rudder.war
 	
