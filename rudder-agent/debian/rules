@@ -71,6 +71,12 @@ ifeq (wily,$(OS_CODENAME))
 USE_PIE=false
 USE_SYSTEM_JQ=false
 endif
+# Ubuntu 20.04
+ifeq (focal,$(OS_CODENAME))
+USE_SYSTEM_OPENSSL=true
+USE_SYSTEM_CURL=true
+endif
+
 # Debian 5
 ifeq (lenny,$(OS_CODENAME))
 USE_HTTPS=false
@@ -101,6 +107,11 @@ endif
 # Debian 9
 ifeq (stretch,$(OS_CODENAME))
 DEPS := $(DEPS), libxml-treepp-perl
+endif
+# Debian 10
+ifeq (buster,$(OS_CODENAME))
+USE_SYSTEM_OPENSSL=true
+USE_SYSTEM_CURL=true
 endif
 
 
