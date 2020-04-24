@@ -34,6 +34,6 @@
 #
 #####################################################################################
 
-echo "INFO: Please use 'rudder server node-to-relay <UUID>' command"
+echo "INFO: This command is deprecated, please use 'rudder server node-to-relay <UUID>'"
 echo -e "Running: rudder server node-to-relay $@ \n"
 rudder server node-to-relay $@
