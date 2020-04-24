@@ -204,7 +204,7 @@ else
 ifeq (i386,$(shell [ -x /usr/bin/dpkg ] && dpkg --print-architecture))
 SSL_CONFIGURE:=$(PERL) ./Configure linux-generic32
 else
-SSL_CONFIGURE:=PERL$(PERL) =./config
+SSL_CONFIGURE:=PERL=$(PERL) ./config
 endif
 endif
 
