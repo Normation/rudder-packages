@@ -64,9 +64,10 @@ then
   then
     echo "********************************************************************************"
     echo "Policy server set to 'rudder' by default as it was resolvable"
-    echo "To change it, edit the configuration file with your Rudder server's hostname"
+    echo "To change it, update the policy-server with your Rudder server's hostname"
     echo "and send an inventory to newly configured policy server."
-    echo "# echo 'rudder.server' > ${CFE_DIR}/policy_server.dat"
+    echo ""
+    echo "# rudder agent policy-server <ip or hostname of the server>"
     echo "# rudder agent inventory"
     echo "********************************************************************************"
   fi
