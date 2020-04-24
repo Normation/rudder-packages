@@ -28,15 +28,8 @@ CFENGINE_RELEASE = 3.15.1
 CFENGINE_SHA1 = 0698a87fb34add3dae0110f691ec175134060e4d
 LMDB_RELEASE = 0.9.22
 LMDB_SHA1 = 5d62d4c7527f3474f60a0d87db2bfd539e6493eb
-# Default openssl version to use
 OPENSSL_RELEASE = 1.1.1g
 OPENSSL_SHA1 = b213a293f2127ec3e323fb3cfc0c9807664fd997
-# Variable INSTALL_PREFIX name has changed with openssl 1.1.0 https://www.openssl.org/news/cl110.txt
-OPENSSL_DESTDIR_VAR_NAME = DESTDIR
-# open ssl version to use on older systems
-OLD_OPENSSL_RELEASE = 1.0.2r
-OLD_OPENSSL_SHA1 = b9aec1fa5cedcfa433aed37c8fe06b0ab0ce748d
-OLD_OPENSSL_DESTDIR_VAR_NAME = INSTALL_PREFIX
 PERL_RELEASE = 5.22.4
 PERL_SHA1 = fd79af20e6454d1bb5e5e6ac4774a1e295d4d794
 PCRE_RELEASE = 8.38
@@ -131,11 +124,6 @@ ZLIB_ARG := --with-zlib
 endif
 # default: do not build openssl
 ifeq (false,$(USE_SYSTEM_OPENSSL))
-ifeq (true,$(BUILD_OLD_OPENSSL))
-OPENSSL_RELEASE = $(OLD_OPENSSL_RELEASE)
-OPENSSL_SHA1 = $(OLD_OPENSSL_SHA1)
-OPENSSL_DESTDIR_VAR_NAME = $(OLD_OPENSSL_DESTDIR_VAR_NAME)
-endif
 BUILD_DEPS := $(BUILD_DEPS) build-ssl
 OPENSSL_ARG := --with-openssl=$(CURDIR)/dependencies$(RUDDER_DIR)
 endif
@@ -152,6 +140,7 @@ endif
 # default: build perl
 ifneq (true,$(USE_SYSTEM_PERL))
 BUILD_DEPS := $(BUILD_DEPS) build-perl
+PERL_DEP := build-perl
 PERL:=$(CURDIR)/dependencies/opt/rudder/bin/perl
 else
 PERL := perl
@@ -209,13 +198,13 @@ endif
 
 # Hack needed because openssl is not guessing correctly the architecture on sparc solaris
 ifeq (sparc-sun-solaris2.11,$(shell ./config.guess))
-SSL_CONFIGURE:=./Configure solaris64-sparcv9-gcc
+SSL_CONFIGURE:=$(PERL) ./Configure solaris64-sparcv9-gcc
 # Hack needed because openssl is not guessing correctly the architecture on debian 32 bits chroot
 else
 ifeq (i386,$(shell [ -x /usr/bin/dpkg ] && dpkg --print-architecture))
-SSL_CONFIGURE:=./Configure linux-generic32
+SSL_CONFIGURE:=$(PERL) ./Configure linux-generic32
 else
-SSL_CONFIGURE:=./config
+SSL_CONFIGURE:=PERL$(PERL) =./config
 endif
 endif
 
@@ -533,7 +522,7 @@ LDFLAGS=$(BUILD_LDFLAGS) $(SECURE_LDFLAGS) $(SYSTEM_LDFLAGS)
 CFLAGS=$(BUILD_CFLAGS) $(SECURE_CFLAGS)
 BUILD_FLAGS=CFLAGS="$(CFLAGS) $(PIE_CFLAGS)" LDFLAGS="$(LDFLAGS) $(PIE_LDFLAGS)"
 
-build-ssl: openssl-source
+build-ssl: openssl-source $(PERL_DEP)
 	# openssl doesn't support CFLAGS (it overrides its own) so we must pass them in batch to configure
 	# openssl doesn't work with pie
 	cd openssl-source && RELEASE="" $(SSL_CONFIGURE) -fPIC $(CFLAGS) $(LDFLAGS) --prefix=$(RUDDER_DIR) --openssldir=$(RUDDER_DIR)/openssl shared no-idea no-rc5 no-ssl3 no-dtls no-psk no-srp no-engine enable-egd
@@ -545,7 +534,7 @@ endif
 	cd openssl-source && $(MAKE) $(MAKE_J)
 	slibclean >/dev/null 2>&1 || true
 	# install to a temporary location is needed to build cfengine
-	cd openssl-source && $(MAKE) install $(OPENSSL_DESTDIR_VAR_NAME)=$(CURDIR)/dependencies
+	cd openssl-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
 	touch $@
 
 build-lmdb: lmdb-source
@@ -613,7 +602,7 @@ build-perl: perl-$(PERL_RELEASE)
 	# 8Mb of perldoc
 	rm -rf $(CURDIR)/dependencies/opt/rudder/lib/perl5/$(PERL_RELEASE)/pod
 	# 20Mb of perl manual
-	find $(CURDIR)/dependencies/opt/rudder/share/man -name 'perl' -exec rm -rf {} \;
+	find $(CURDIR)/dependencies/opt/rudder/share/man -name 'perl' -exec rm -rf {} \; || true
 	# Remove 'special' files
 	find $(CURDIR)/dependencies -name perllocal.pod \
 	  -o -name ".packlist" \
@@ -623,7 +612,7 @@ build-perl: perl-$(PERL_RELEASE)
 
 # check cache content
 PATCHES_SHA = $(shell find patches/cfengine -type f | sort | xargs sha256sum | sha256sum | awk '{print $$1}')
-DEPS_CACHE_PARAMETERS = --with-env name=dependencies lmdb=$(LMDB_SHA1) openssl=$(OPENSSL_SHA1) old-openssl=$(OLD_OPENSSL_SHA1) pcre=$(PCRE_SHA1) curl=$(CURL_SHA1) jq=$(JQ_SHA1) yaml=$(YAML_SHA1) xml=$(XML_SHA1) zlib=$(ZLIB_SHA1) cfengine=$(CFENGINE_SHA1) patches=$(PATCHES_SHA)
+DEPS_CACHE_PARAMETERS = --with-env name=dependencies lmdb=$(LMDB_SHA1) openssl=$(OPENSSL_SHA1) pcre=$(PCRE_SHA1) curl=$(CURL_SHA1) jq=$(JQ_SHA1) yaml=$(YAML_SHA1) xml=$(XML_SHA1) zlib=$(ZLIB_SHA1) cfengine=$(CFENGINE_SHA1) patches=$(PATCHES_SHA)
 CFENGINE_DEPS = $(shell ../../build-caching get dependencies/ $(DEPS_CACHE_PARAMETERS) || echo $(BUILD_DEPS))
 build-cfengine: $(CFENGINE_DEPS) cfengine-source build-cfengine-stamp
 	# save into cache if we built it
