@@ -526,10 +526,6 @@ build-ssl: openssl-source $(PERL_DEP)
 	# openssl doesn't support CFLAGS (it overrides its own) so we must pass them in batch to configure
 	# openssl doesn't work with pie
 	cd openssl-source && RELEASE="" $(SSL_CONFIGURE) -fPIC $(CFLAGS) $(LDFLAGS) --prefix=$(RUDDER_DIR) --openssldir=$(RUDDER_DIR)/openssl shared no-idea no-rc5 no-ssl3 no-dtls no-psk no-srp no-engine enable-egd
-# we need aix libpath in ssl library
-ifeq (AIX,$(OS_FAMILY))
-	cd openssl-source && sed '/link_a.aix:/,/link_app.aix:/s/-bnolibpath,//' Makefile.shared > Makefile.shared.tmp && mv Makefile.shared.tmp Makefile.shared
-endif
 	cd openssl-source && $(MAKE) depend
 	cd openssl-source && $(MAKE) $(MAKE_J)
 	slibclean >/dev/null 2>&1 || true
