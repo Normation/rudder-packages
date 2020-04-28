@@ -9,7 +9,7 @@ export DH_VERBOSE=1
 override_dh_auto_test:
 
 override_dh_gencontrol:
-	dh_gencontrol -- "-Vrudder:deps=$(shell ../format-dependencies dpkg $(shell dpkg-parsechangelog -SVersion) rudder-webapp rudder-reports rudder-agent)"
+	dh_gencontrol -- "-Vrudder:deps=$(shell ../format-dependencies dpkg $(shell dpkg-parsechangelog -SVersion) rudder-reports rudder-webapp rudder-agent)"
 
 # Default rule that guess what to do for missing targets
 %:
