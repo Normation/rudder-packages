@@ -693,10 +693,6 @@ FUSION_MODULES = File::Which LWP::UserAgent Net::IP Text::Template UNIVERSAL::re
 
 fusion-modules: App-cpanminus
 	mkdir -p $(DESTDIR)/fusion/opt/rudder/lib/perl5
-ifeq (true,$(USE_SYSTEM_PERL))
-	# install installer dependencies on the system
-	MAKEFLAGS= $(PERL) $(CPANM) $(CPAN_OPT) --from $(CPAN_URL) --notest Module::CoreList
-endif
 	$(MODULE_INSTALL) $(FUSION_MODULES)
 	# remove perldoc (10Mb of timezone doc)
 	find $(DESTDIR)/fusion/opt/rudder/lib/perl5 -type f -name "*.pod" -exec rm {} \;
@@ -721,10 +717,6 @@ ifeq ($(INSTALL),ginstall)
 	# fusion doesn't know how to make install without gnu tools in the path
 	$(SED) 's/\([^g]\)install -m/\1ginstall -m/' fusioninventory-agent/Makefile.PL > fusioninventory-agent/Makefile.PL.new
 	mv fusioninventory-agent/Makefile.PL.new fusioninventory-agent/Makefile.PL
-endif
-ifeq (true,$(USE_SYSTEM_PERL))
-	# install installer dependencies on the system
-	MAKEFLAGS= $(PERL) $(CPANM) $(CPAN_OPT) --from $(CPAN_URL) --notest Module::Install
 endif
 	cd fusioninventory-agent && PERL_MM_USE_DEFAULT=1 $(PERL) -I. Makefile.PL --default PREFIX=$(RUDDER_DIR)
 	cd fusioninventory-agent && $(MAKE) install DESTDIR=$(DESTDIR)/fusion

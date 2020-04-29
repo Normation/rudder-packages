@@ -159,6 +159,9 @@ AutoReq: 0
 AutoProv: 0
 
 %if "%{use_system_perl}" == "true"
+%if 0%{?rhel}
+BuildRequires: perl-CPAN
+%endif
 Requires: perl
 %endif
 
@@ -318,6 +321,11 @@ FusionInventory.
 %build
 
 cd %{_sourcedir}
+
+%if "%{use_system_perl}" == "true"
+cpan install Module::CoreList
+cpan install Module::Install
+%endif
 
 # libattr libtool file is looked for in /lib64 but put in /usr/lib64 on RHEL3
 %if 0%{?rhel} && 0%{?rhel} < 4
