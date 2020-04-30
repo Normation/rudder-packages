@@ -237,10 +237,18 @@ cp -r /opt/rudder/share/initial-promises/* /var/rudder/cfengine-community/inputs
 # Ensure that the passwords are correctly propagated
 "${CF_AGENT}" -b root_component_check &>>"$TMP_LOG"
 
-# Restart services
-echo -n "Restarting jetty..."
-systemctl restart rudder-jetty
-echo " done."
+# In case of upgrade, we can restart rudder-jetty, else we are during an initialization and database
+# may not be initialized yet
+if [ ${LDAP_EXISTS} -gt 0 ]
+then
+  # Restart services
+  echo -n "Restarting jetty..."
+  systemctl restart rudder-jetty
+  echo " done."
+else
+  # Ensure that rudder-jetty is not yet started and in a broken state
+  systemctl stop rudder-jetty
+fi
 
 RUDDER_CONTEXT=$(grep contextPath ${RUDDER_OPT}/share/webapps/rudder.xml | sed "s@^\s*<Set name=\"contextPath\">\(.*\)</Set>@\1@")
 echo
