@@ -197,7 +197,7 @@ echo "Done"
 
 # Restart the webapp
 echo -n "INFO: Make sure Rudder webapp is started..."
-systemctl restart rudder-jetty >> ${LOG_FILE}
+systemctl restart rudder-jetty || true >> ${LOG_FILE}
 echo " Done"
 
 echo -n "INFO: Make sure Apache HTTPd is started..."
