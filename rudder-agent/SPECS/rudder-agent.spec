@@ -135,8 +135,8 @@
 # PIE and PIC incompatible on old gcc
 %define use_pie false
 %endif
-%if 0%{?suse_version} && 0%{?suse_version} < 1500
-# no jq on sles 10 11 and 12
+%if 0%{?suse_version} && !0%{?is_opensuse}
+# no jq on sles, only on opensuse
 %define use_system_jq false
 %endif
 
