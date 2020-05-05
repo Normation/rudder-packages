@@ -1,0 +1,23 @@
+diff --color -ruN cfengine-source.bak/cf-agent/cf-agent.c cfengine-source/cf-agent/cf-agent.c
+--- cfengine-source.bak/cf-agent/cf-agent.c	2020-03-23 18:10:31.000000000 +0100
++++ cfengine-source/cf-agent/cf-agent.c	2020-05-05 14:55:48.802030168 +0200
+@@ -298,7 +298,6 @@
+     GenerateReports(config, ctx);
+ 
+     PurgeLocks();
+-    BackupLockDatabase();
+ 
+     if (config->agent_specific.agent.show_evaluated_classes != NULL)
+     {
+diff --color -ruN cfengine-source.bak/libpromises/locks.c cfengine-source/libpromises/locks.c
+--- cfengine-source.bak/libpromises/locks.c	2020-03-23 18:10:31.000000000 +0100
++++ cfengine-source/libpromises/locks.c	2020-05-05 14:56:04.890133564 +0200
+@@ -133,8 +133,6 @@
+ {
+     CF_DB *dbp;
+ 
+-    VerifyThatDatabaseIsNotCorrupt();
+-
+     if (!OpenDB(&dbp, dbid_locks))
+     {
+         return NULL;
