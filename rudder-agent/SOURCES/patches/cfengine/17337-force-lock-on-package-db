@@ -1,0 +1,30 @@
+diff --color -ruN cfengine-source.orig/cf-agent/package_module.c cfengine-source/cf-agent/package_module.c
+--- cfengine-source.orig/cf-agent/package_module.c	2020-05-05 18:11:08.955812375 +0200
++++ cfengine-source/cf-agent/package_module.c	2020-05-05 18:19:28.098950370 +0200
+@@ -1583,6 +1583,7 @@
+ 
+     char *db_name = DBIdToSubPath(dbid_val, module_wrapper->name);
+     struct stat statbuf;
++    bool ignore_lock = EvalContextIsIgnoringLocks(ctx);
+     if (!force_update)
+     {
+         if (stat(db_name, &statbuf) == -1 && errno == ENOENT)
+@@ -1605,6 +1606,9 @@
+             }
+         }
+ 
++        // make sure we do not ignore lock on package database
++        EvalContextSetIgnoreLocks(ctx, false);
++
+         cache_updates_lock =
+                 AcquireLock(ctx, cache_updates_lock_name, VUQNAME, CFSTARTTIME,
+                             (TransactionContext) { .ifelapsed = ifelapsed_time,
+@@ -1636,5 +1640,8 @@
+             type == UPDATE_TYPE_INSTALLED ?
+                     "installed packages" : "available updates");
+     }
++
++    // reset ignore lock to previous value
++    EvalContextSetIgnoreLocks(ctx, ignore_lock);
+     return ret;
+ }
