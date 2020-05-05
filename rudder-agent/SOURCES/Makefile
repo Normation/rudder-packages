@@ -667,7 +667,7 @@ install-cfengine: build-cfengine $(INSTALL_DEPS) rudder.8.gz
 	done
 	cd $(DESTDIR)/opt/rudder && rm -rf share/doc/cfengine
 	# Remove CFEngine systemd units, only exists on some distros
-	[ -f $(DESTDIR)/usr/lib/systemd/system/cfengine3.service ] && cd $(DESTDIR)/usr/lib/systemd/system/ && rm cf-*.service cfengine3.service
+	[ -d $(DESTDIR)/usr/lib/systemd/system/ ] && cd $(DESTDIR)/usr/lib/systemd/system/ && rm -f cf-*.service cfengine3.service
 	printf "#!/bin/sh\necho 'cf-monitord has been removed from Rudder agent'\nexit 1" > $(DESTDIR)/opt/rudder/bin/cf-monitord
 
 
