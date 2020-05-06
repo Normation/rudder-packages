@@ -561,16 +561,17 @@ upgrade_slapdconf() {
   # 6.1.0~beta3:
   # Add indexes cn,softwareVersion,directiveId in slapd.conf
   SLAPD_CONF="/opt/rudder/etc/openldap/slapd.conf"
-  NEED_REINDEX=0
+  NEED_REINDEX=false
   for i in "directiveId" "softwareVersion" "cn"; do
     line="index\s*${i}\s*eq"
     grep -E "${line}" ${SLAPD_CONF} > /dev/null 2>&1 || (
       echo "Adding LDAP index on attribute: ${i}"
       sed -i "/index\s*objectClass\s*eq/a index\t${i}\teq" ${SLAPD_CONF}
-      NEED_REINDEX=1
+      NEED_REINDEX=true
     )
   done
-  if [ "${NEED_REINDEX=0}" -eq 1 ]; then
+  if "${NEED_REINDEX}"; then
+    # stop slapd, slapindex -q, start slapd. 
   fi
 } 
 
