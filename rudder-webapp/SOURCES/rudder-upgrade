@@ -53,6 +53,7 @@ trap 'anomaly_handler ${LINENO}' ERR INT TERM
 # - 6.0.0        : Keep syslog as default ptotocol on upgrade
 # - 6.0.4        : Ensure that rudder-slapd sockbuf_max_incoming_auth is not lost at upgrade 
 # - 6.1.0        : Migrate RudderUniqueID to the template format
+# - 6.1.0        : Add indexes cn,softwareVersion,directiveId in slapd.conf 
 ####################################################################################
 
 # Some paths
@@ -295,6 +296,16 @@ upgrade_techniques() {
     echo " Done"
   fi
 }
+
+# Add indexes cn,softwareVersion,directiveId in slapd.conf
+SLAPD_CONF="/opt/rudder/etc/openldap/slapd.conf"
+for i in "directiveId" "softwareVersion" "cn"; do
+  line="index\s*${i}\s*eq"
+  grep -E "${line}" ${SLAPD_CONF} > /dev/null 2>&1 || (
+    echo "Adding LDAP index on attribute: ${i}"
+    sed -i "/index\s*objectClass\s*eq/a index\t${i}\teq" ${SLAPD_CONF}
+  )
+done
 
 # Upgrade ncf from ncf package
 upgrade_ncf() {
