@@ -53,6 +53,7 @@ trap 'anomaly_handler ${LINENO}' ERR INT TERM
 # - 6.0.0        : Keep syslog as default ptotocol on upgrade
 # - 6.0.4        : Ensure that rudder-slapd sockbuf_max_incoming_auth is not lost at upgrade 
 # - 6.1.0        : Migrate RudderUniqueID to the template format
+# - 6.1.0        : Add indexes cn,softwareVersion,directiveId in slapd.conf 
 ####################################################################################
 
 # Some paths
@@ -541,6 +542,13 @@ propertyValue: SYSLOG
 EOF
   fi
 
+
+}
+
+################################################################################
+# Check and upgrade slapd.conf
+################################################################################
+upgrade_slapdconf() {
   # 6.0.4:
   # ensure sockbuf_max_incoming_auth is set in /opt/rudder/etc/openldap/slapd.conf
   MAX_INCOMING_AUTH_SET=$(grep -c "sockbuf_max_incoming_auth" /opt/rudder/etc/openldap/slapd.conf 2>/dev/null || true)  
@@ -549,7 +557,25 @@ EOF
     sed -i 's/^\(# This is too little for Rudder, as there are some big entries.*\)/\1\nsockbuf_max_incoming_auth 1000000000/' /opt/rudder/etc/openldap/slapd.conf
     echo " Done"
   fi
-}
+
+  # 6.1.0~beta3:
+  # Add indexes cn,softwareVersion,directiveId in slapd.conf
+  SLAPD_CONF="/opt/rudder/etc/openldap/slapd.conf"
+  NEED_REINDEX=0
+  for i in "directiveId" "softwareVersion" "cn"; do
+    line="index\s*${i}\s*eq"
+    grep -E "${line}" ${SLAPD_CONF} > /dev/null 2>&1 || (
+      echo "Adding LDAP index on attribute: ${i}"
+      sed -i "/index\s*objectClass\s*eq/a index\t${i}\teq" ${SLAPD_CONF}
+      NEED_REINDEX=1
+    )
+  done
+  if [ "${NEED_REINDEX=0}" -eq 1 ]; then
+  fi
+} 
+
+
+
 
 ################################################################################
 # Check and upgrade plugins
@@ -567,6 +593,7 @@ upgrade_plugins() {
 ################################################################################
 
 update_credentials
+upgrade_slapdconf
 set_git_branch
 upgrade_system_techniques
 upgrade_techniques
