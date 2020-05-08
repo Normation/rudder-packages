@@ -573,7 +573,7 @@ build-curl: curl-source
 	touch $@
 
 build-jq: jq-source
-	cd jq-source && ./configure --prefix=$(RUDDER_DIR) $(BUILD_FLAGS) --disable-maintainer-mode --disable-docs --with-oniguruma=builtin --enable-error-injection
+	cd jq-source && ./configure --prefix=$(RUDDER_DIR) $(BUILD_FLAGS) --disable-maintainer-mode --disable-docs --with-oniguruma=builtin --disable-error-injection
 	cd jq-source && $(MAKE) $(MAKE_J)
 	# install to a temporary location is needed to build cfengine
 	cd jq-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
