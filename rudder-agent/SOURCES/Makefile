@@ -574,6 +574,9 @@ build-curl: curl-source
 
 build-jq: jq-source
 	cd jq-source && ./configure --prefix=$(RUDDER_DIR) $(BUILD_FLAGS) --disable-maintainer-mode --disable-docs --with-oniguruma=builtin --disable-error-injection
+ifeq (AIX,$(OS_FAMILY))
+	cd jq-source && $(SED) -i -e 's|^onig_LDFLAGS = .*|onig_LDFLAGS = -L./modules/oniguruma/src|' Makefile
+endif
 	cd jq-source && $(MAKE) $(MAKE_J)
 	# install to a temporary location is needed to build cfengine
 	cd jq-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
