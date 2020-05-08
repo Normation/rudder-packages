@@ -416,7 +416,7 @@ jq-source:
 	gunzip < $(TMP_DIR)/jq.tgz | $(TAR) xf -
 	mv ./jq-$(JQ_RELEASE) ./jq-source
 	# this value is not propery defined on AIX (must be > 500 for c99)
-	$(SED) -i -e 's/^# define _XOPEN_SOURCE$/# define _XOPEN_SOURCE 600/' jq-source/src/builtin.c
+	$(SED) -i -e 's/^# define _XOPEN_SOURCE$$/# define _XOPEN_SOURCE 600/' jq-source/src/builtin.c
 	rm -rf $(TMP_DIR)
 
 yaml-source:
