@@ -350,7 +350,7 @@ rm -f %{buildroot}/opt/rudder/bin/vzps.py
 %endif
 
 # strip binaries
-%if 0%{?aix} = 0
+%if "%{?aix}" == ""
 # already doen in makefile and file -i on aix has a different meaning
 find %{buildroot}/opt/rudder/bin -type f | xargs file -i | grep -E "application/x-sharedlib|application/x-executable|application/x-pie-executable" | awk -F: '{print $1}' | xargs strip
 %endif
