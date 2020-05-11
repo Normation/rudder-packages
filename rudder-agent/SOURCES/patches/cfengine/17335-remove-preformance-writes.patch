@@ -1,14 +1,32 @@
-diff --color -ruN cfengine-source.bak/cf-agent/verify_files_utils.c cfengine-source/cf-agent/verify_files_utils.c
---- cfengine-source.bak/cf-agent/verify_files_utils.c	2020-05-05 14:31:43.569871911 +0200
-+++ cfengine-source/cf-agent/verify_files_utils.c	2020-05-05 14:32:12.490248921 +0200
-@@ -2761,10 +2761,6 @@
+diff --color -ruN cfengine-source-3.12/cf-agent/cf-agent.c cfengine-source/cf-agent/cf-agent.c
+--- cfengine-source-3.12/cf-agent/cf-agent.c	2020-05-11 16:07:14.108610917 +0200
++++ cfengine-source/cf-agent/cf-agent.c	2020-05-11 22:31:24.686303007 +0200
+@@ -2013,16 +2013,19 @@
+         Log(LOG_LEVEL_VERBOSE, "A: Aggregate compliance (promises kept/repaired) for bundle '%s' = %.1lf%%",
+           bundle->name, bundle_compliance * 100.0);
  
-         EndMeasure(eventname, start);
+-        if (LogGetGlobalLevel() >= LOG_LEVEL_INFO)
+-        {
+-            char name[CF_MAXVARSIZE];
+-            snprintf(name, CF_MAXVARSIZE, "%s:%s", bundle->ns, bundle->name);
+-            EndMeasure(name, start);
+-        }
+-        else
+-        {
++        //// This is always true
++        //if (LogGetGlobalLevel() >= LOG_LEVEL_INFO)
++        //{
++        //    char name[CF_MAXVARSIZE];
++        //    snprintf(name, CF_MAXVARSIZE, "%s:%s", bundle->ns, bundle->name);
++        //    // This is a performane hog : open, read, write, datasync, close 
++        //    EndMeasure(name, start);
++        //}
++        //else
++        //{
++            // this is just a log verbose
+             EndMeasure(NULL, start);
+-        }
++        //}
+         Log(LOG_LEVEL_VERBOSE, "A: ...................................................");
      }
--    else
--    {
--        EndMeasure(NULL, start);
--    }
  
-     BufferDestroy(source);
-     return result;
