@@ -1,0 +1,14 @@
+diff --color -ruN cfengine-source.bak/cf-agent/verify_files_utils.c cfengine-source/cf-agent/verify_files_utils.c
+--- cfengine-source.bak/cf-agent/verify_files_utils.c	2020-05-05 14:31:43.569871911 +0200
++++ cfengine-source/cf-agent/verify_files_utils.c	2020-05-05 14:32:12.490248921 +0200
+@@ -2761,10 +2761,6 @@
+ 
+         EndMeasure(eventname, start);
+     }
+-    else
+-    {
+-        EndMeasure(NULL, start);
+-    }
+ 
+     BufferDestroy(source);
+     return result;
