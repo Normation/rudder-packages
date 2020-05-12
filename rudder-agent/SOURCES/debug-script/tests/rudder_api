@@ -13,21 +13,15 @@ rudder_api() {
   # By default, this test is successful
   RUDDER_API='ok'
 
-  # For both webapps
-  for i in rudder endpoint
-  do
+  API_STATUS=`/usr/bin/curl -s -x '' http://localhost:8080/rudder/api/status`
 
-    API_STATUS=`/usr/bin/curl -s -x '' http://localhost:8080/${i}/api/status`
-
-    # Test if the API responds with "OK"
-    if [ "${API_STATUS}" = "OK" ]
-    then
-      test_success "API endpoint ${i} responded 'OK'"
-    else
-      test_failure "API endpoint ${i} did not respond 'OK'" "${API_STATUS}" ; RUDDER_API='ko' ; return 1
-    fi
-
-  done
+  # Test if the API responds with "OK"
+  if [ "${API_STATUS}" = "OK" ]
+  then
+    test_success "API responded 'OK'"
+  else
+    test_failure "API did not respond 'OK'" "${API_STATUS}" ; RUDDER_API='ko' ; return 1
+  fi
 
   # Finally, return 1 if the test has failed somewhere
   [ "${RUDDER_API}" = 'ko' ] && return 1

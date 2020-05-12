@@ -46,7 +46,7 @@ rudder_packages_agent() {
 
     MISSING_PACKAGE=0
 
-    for i in rudder-agent rudder-inventory-endpoint rudder-inventory-ldap rudder-jetty rudder-reports rudder-techniques rudder-webapp
+    for i in rudder-agent rudder-server-relay rudder-reports rudder-webapp
     do
 
       PACKAGE_STATUS=`packageutils_query_package_status "${i}"`

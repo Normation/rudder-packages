@@ -25,8 +25,8 @@ rudder_cf_serverd_logs() {
   elif [ -f ${PATH2} ]; then RUDDER_LOG_PATH="${PATH2}"
   fi
 
-  COMMAND_OUTPUT_TEST=`grep 'cf-serverd' ${RUDDER_LOG_PATH} | tail -10 | wc -l`
-  COMMAND_OUTPUT=`grep 'cf-serverd' ${RUDDER_LOG_PATH} | tail -10`
+  COMMAND_OUTPUT_TEST=`grep 'cf-serverd' ${RUDDER_LOG_PATH} | grep "error: " | tail -10 | wc -l`
+  COMMAND_OUTPUT=`grep 'cf-serverd' ${RUDDER_LOG_PATH} | grep "error: " | tail -10`
 
   if [ $COMMAND_OUTPUT_TEST -eq 0 ]
   then
