@@ -370,6 +370,15 @@ fi
 systemctl start rudder-slapd >/dev/null
 systemctl start rudder-jetty >/dev/null
 
+%if 0%{?rhel}
+  if type sestatus >/dev/null 2>&1 && sestatus | grep -q "enabled"; then
+    echo -n "INFO: Applying selinux policy..."
+    # Add/Update the ncf-api-virtualenv SELinux policy
+    semodule -i /usr/share/ncf-api-virtualenv/share/selinux/ncf-api-virtualenv.pp
+    restorecon -RF /var/lib/ncf-api-venv/
+    echo " Done"
+  fi
+%endif
 
 #=================================================
 # Cleaning
