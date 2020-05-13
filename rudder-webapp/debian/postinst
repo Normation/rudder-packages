@@ -29,7 +29,9 @@ case "$1" in
       a2enmod rewrite proxy_http headers ssl filter deflate >/dev/null
       # This module is compiled in core in some distro (debian)
       a2enmod version >/dev/null 2>&1 || true
-
+      # unload ncf-api-virtualenv conf at upgrade
+      a2disconf ncf-api-virtualenv 2>&1 || true
+      
       /opt/rudder/share/package-scripts/rudder-webapp-postinst "${RUDDER_FIRST_INSTALL}" "apache2"
     ;;
 
