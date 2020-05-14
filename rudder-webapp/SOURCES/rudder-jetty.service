@@ -1,6 +1,8 @@
 [Unit]
 Description=Jetty Web Application Server
-After=syslog.target network.target
+After=syslog.target network.target postgresql.service rudder-slapd.service
+Requires=rudder-slapd.service
+Wants=postgresql.service
 
 [Service]
 Type=forking
