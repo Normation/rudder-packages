@@ -19,11 +19,13 @@ rudder_unsent_inventories_agent() {
   else
     UNSENT_INVENTORIES_DIR="${RUDDER_VAR}/inventories"
   fi
+
   # we check failed inventories that do not exceed 5 days (432000 s).
   recent_time="432000"
   inc=0
   for i in "${UNSENT_INVENTORIES_DIR}"/*
   do
+    [ -e "$i" ] || continue
     last_modif=$(stat -c %Y $i)
     today_date=$(date +'%s')
     recent_modif=$(($today_date-$recent_time))

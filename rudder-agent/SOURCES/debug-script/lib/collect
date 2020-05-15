@@ -116,18 +116,17 @@ collect_files() {
 
     # Hash the passwords
     # This is ad-hoc, as most files/keys differ
-    hash_secret "^(ldap.authpw=)(.*)$" "${TARGET_DIRECTORY}/rudder/inventory-web.properties"
-
     hash_secret "^(ldap.authpw=)(.*)$" "${TARGET_DIRECTORY}/rudder/rudder-web.properties"
     hash_secret "^(rudder.jdbc.password=)(.*)$" "${TARGET_DIRECTORY}/rudder/rudder-web.properties"
     hash_secret "^(rudder.webdav.password=)(.*)$" "${TARGET_DIRECTORY}/rudder/rudder-web.properties"
     hash_secret "(.*rudder.auth.admin.password=)(.*)$" "${TARGET_DIRECTORY}/rudder/rudder-web.properties"
     hash_secret "^(rudder.auth.ldap.connection.bind.password=)(.*)$" "${TARGET_DIRECTORY}/rudder/rudder-web.properties"
 
-    hash_secret "^(.*:ompgsql:.*,rudder,rudder,)(.*);RudderReportsFormat$" "${TARGET_DIRECTORY}/syslog/rsyslog.d/rudder.conf"
-    # add back the rest of line lost by previous line
-    sed -i '/^.*ompgsql:.*,rudder,rudder/ s/$/;RudderReportsFormat/' "${TARGET_DIRECTORY}/syslog/rsyslog.d/rudder.conf"
-
+    if [ -f "${TARGET_DIRECTORY}/syslog/rsyslog.d/rudder.conf" ]; then
+      hash_secret "^(.*:ompgsql:.*,rudder,rudder,)(.*);RudderReportsFormat$" "${TARGET_DIRECTORY}/syslog/rsyslog.d/rudder.conf"
+      # add back the rest of line lost by previous line
+      sed -i '/^.*ompgsql:.*,rudder,rudder/ s/$/;RudderReportsFormat/' "${TARGET_DIRECTORY}/syslog/rsyslog.d/rudder.conf"
+    fi
 
     # Backup apache logs
     mkdir -p "${TARGET_DIRECTORY}/apache/"

@@ -26,7 +26,7 @@ cfengine_server_connection_agent() {
   fi
 
   SERVER_HOST=`cat ${RUDDER_VAR}/cfengine-community/policy_server.dat 2>/dev/null`
-  PORTS="80 443 514 5309"
+  PORTS="443 5309"
 
   # CFEngine enterprise requires port 5308 also
   [ -x /var/cfengine/bin/cf-agent ] && PORTS="${PORTS} 5308"
