@@ -15,25 +15,16 @@ rudder_get_server_uuid_agent() {
 
   SERVER_HOST=`cat ${RUDDER_VAR}/cfengine-community/policy_server.dat 2>/dev/null`
 
-  # For both http and https
-  for i in http https
-  do
+  COMMAND_OUTPUT=`curl -s -k -x '' "https://${SERVER_HOST}/uuid" 2>&1`
 
-    COMMAND_OUTPUT=`curl -s -k -x '' "${i}://${SERVER_HOST}/uuid" 2>&1`
-
-    # Test if the server uuid is reachable
-    if [ "${?}" -eq 0 ]
-    then
-      test_success "Downloading server uuid using ${i} succeeded" "Got uuid \"${COMMAND_OUTPUT}\""
-    elif [ "${i}" = "https" ]
-    then
-      test_warning "Downloading server uuid using ${i} failed" "Got uuid \"${COMMAND_OUTPUT}\""
-    else
-      test_failure "Downloading server uuid using ${i} failed" "Got uuid \"${COMMAND_OUTPUT}\""
-      RUDDER_GET_SERVER_UUID_AGENT='ko'
-    fi
-
-  done
+  # Test if the server uuid is reachable
+  if [ "${?}" -eq 0 ]
+  then
+    test_success "Downloading server uuid succeeded" "Got uuid \"${COMMAND_OUTPUT}\""
+  else
+    test_failure "Downloading server uuid failed" "Got uuid \"${COMMAND_OUTPUT}\""
+    RUDDER_GET_SERVER_UUID_AGENT='ko'
+  fi
 
   # Finally, return 1 if the test has failed somewhere
   [ "${RUDDER_GET_SERVER_UUID_AGENT}" = 'ko' ] && return 1
