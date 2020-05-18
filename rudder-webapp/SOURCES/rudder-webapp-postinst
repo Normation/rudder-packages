@@ -90,27 +90,27 @@ fi
 # Need to restart to take schema changes into account
 echo -n "INFO: Restarting rudder-slapd..."
 
-# during upgrade, service may not have been started with systemctl
-# detect first if rudder-slapd is seen running ?
-RUDDER_SLAPD_RUNNING_SERVICE=0
-RUDDER_SLAPD_RUNNING_SYSTEMCTL=0
-if service rudder-slapd status > /dev/null; then 
-  RUDDER_SLAPD_RUNNING_SERVICE=1
-fi
-if systemctl is-active rudder-slapd > /dev/null; then 
-  RUDDER_SLAPD_RUNNING_SYSTEMCTL=1
-fi
+if type service >/dev/null 2>&1; then
+  # during upgrade, service may not have been started with systemctl
+  # detect first if rudder-slapd is seen running ?
+  RUDDER_SLAPD_RUNNING_SERVICE=0
+  RUDDER_SLAPD_RUNNING_SYSTEMCTL=0
+  if service rudder-slapd status > /dev/null; then 
+    RUDDER_SLAPD_RUNNING_SERVICE=1
+  fi
+  if systemctl is-active rudder-slapd > /dev/null; then 
+    RUDDER_SLAPD_RUNNING_SYSTEMCTL=1
+  fi
 
-if [ $RUDDER_SLAPD_RUNNING_SERVICE -eq 1 ] && [ $RUDDER_SLAPD_RUNNING_SYSTEMCTL -eq 0 ]
-then
-  # systemctl doesn't know the service is started, we stop it with service first
-  service rudder-slapd stop >> ${LOG_FILE}
+  if [ $RUDDER_SLAPD_RUNNING_SERVICE -eq 1 ] && [ $RUDDER_SLAPD_RUNNING_SYSTEMCTL -eq 0 ]
+  then
+    # systemctl doesn't know the service is started, we stop it with service first
+    service rudder-slapd stop >> ${LOG_FILE}
+  fi
 fi
 
 systemctl restart rudder-slapd >> ${LOG_FILE}
 echo " Done"
-
-
 
 # Remove .pyc files to ensure we don't end up with outdated files
 rm -f /usr/share/ncf/tools/ncf.pyc
