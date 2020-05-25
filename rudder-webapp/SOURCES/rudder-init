@@ -176,6 +176,7 @@ else
 fi
 
 cpt=0
+REQUIRENET=""
 for i in ${ALLOWEDNETWORK[*]}
 do
   if [ $cpt -eq 0 ]
@@ -184,6 +185,7 @@ do
   else
     NET="$NET\ndirectiveVariable: ALLOWEDNETWORK[$cpt]:$i"
   fi
+  REQUIRENET="${REQUIRENET}Require ip $i"$'\n'
   ((cpt++))
 done
 
@@ -227,6 +229,13 @@ echo " done."
 echo -n "Cleaning up temporary directories..."
 rm -rf $TMP_DIR
 echo " done."
+
+# Add apache acl (will be overwritten at next agent run)
+cat >/opt/rudder/etc/rudder-networks-24.conf <<EOF
+Require ip 127.0.0.0/8
+Require ip ::1
+$REQUIRE_NET
+EOF
 
 # Start the whole infrastructure
 
