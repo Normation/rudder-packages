@@ -196,6 +196,7 @@ if type sestatus >/dev/null 2>&1 && sestatus | grep -q "enabled"; then
   restorecon -R /var/rudder/reports
   restorecon -R /var/log/rudder/apache2
   restorecon -R /opt/rudder/etc/relayd
+  restorecon /opt/rudder/bin/rudder-relayd
   restorecon -R /var/rudder/lib/relay
   restorecon -R /var/rudder/lib/ssl
   restorecon -R /var/rudder/share
