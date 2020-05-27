@@ -314,6 +314,11 @@ cp /usr/lib64/libattr.a /usr/lib64/libattr.la /lib64 || cp /usr/lib/libattr.a /u
 
 make BUILD_CFLAGS="${RPM_OPT_FLAGS}" USE_SYSTEM_OPENSSL=%{use_system_openssl} BUILD_OLD_OPENSSL=%{build_old_openssl} USE_SYSTEM_LMDB=%{use_system_lmdb} USE_SYSTEM_PCRE=%{use_system_pcre} USE_SYSTEM_FUSION=%{use_system_fusion} USE_SYSTEM_PERL=%{use_system_perl} USE_HTTPS=%{use_https} USE_SYSTEM_ZLIB=%{use_system_zlib} USE_SYSTEM_CURL=%{use_system_curl} USE_SYSTEM_YAML=%{use_system_yaml} USE_SYSTEM_XML=%{use_system_xml} USE_PIE=%{use_pie} USE_ACL=%{use_acl}
 
+# rhel7 doesn't have python 3 so we force python2 instead
+%if 0%{?rhel} == 7 || ( 0%{?suse_version} && 0%{?suse_version} < 1500 )
+find . -type f | xargs sed -i '1,1s|#!/usr/bin/python3|#!/usr/bin/python2|'
+%endif
+
 #=================================================
 # Installation
 #=================================================
