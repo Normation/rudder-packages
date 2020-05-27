@@ -137,11 +137,11 @@ Rudder.
 %prep
 
 cd %{_sourcedir}
+make --debug rudder-sources
 # rhel7 doesn't have python 3 so we force python2 instead
 %if 0%{?rhel} == 7 || ( 0%{?suse_version} && 0%{?suse_version} < 1500 )
 find . -type f | xargs sed -i '1,1s|#!/usr/bin/python3|#!/usr/bin/python2|'
 %endif
-make --debug rudder-sources
 
 
 #=================================================
