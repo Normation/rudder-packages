@@ -176,7 +176,7 @@ else
 fi
 
 cpt=0
-REQUIRENET=""
+REQUIRE_NET=""
 for i in ${ALLOWEDNETWORK[*]}
 do
   if [ $cpt -eq 0 ]
@@ -185,7 +185,7 @@ do
   else
     NET="$NET\ndirectiveVariable: ALLOWEDNETWORK[$cpt]:$i"
   fi
-  REQUIRENET="${REQUIRENET}Require ip $i"$'\n'
+  REQUIRE_NET="${REQUIRE_NET}Require ip $i"$'\n'
   ((cpt++))
 done
 
