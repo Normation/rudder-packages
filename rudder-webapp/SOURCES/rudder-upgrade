@@ -575,8 +575,8 @@ upgrade_slapdconf() {
   if ${NEED_REINDEX}; then
     # stop slapd, slapindex -q, start slapd. 
     systemctl stop rudder-slapd
-    echo -n "Reindexing LDAP directory"
-    /opt/rudder/sbin/slapindex -q
+    echo -n "Reindexing LDAP directory - this may take a few minutes..."
+    su - rudder-slapd -s /bin/sh -c "/opt/rudder/sbin/slapindex"
     echo " Done"
     systemctl start rudder-slapd
   fi
