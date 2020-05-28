@@ -35,11 +35,11 @@
 #####################################################################################
 
 echo "INFO: This command is deprecated, please use 'rudder server node-to-relay <UUID>'"
-echo -e "Running: rudder server node-to-relay $@ \n"
+echo "Running: rudder server node-to-relay $@"
 
-if ! [ "$(rudder package list | grep -q rudder-plugin-scale-out-relay)" ]; then
-  echo -e 'Error: This command requires `scale-out-relay` plugin' >&2
+if ! rudder package list | grep -q rudder-plugin-scale-out-relay; then
+  echo 'Error: This command requires `scale-out-relay` plugin' >&2
   exit 1
 else
-  rudder server node-to-relay $@
+  rudder server node-to-relay "$@"
 fi
