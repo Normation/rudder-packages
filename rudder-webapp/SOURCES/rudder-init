@@ -237,7 +237,7 @@ Require ip ::1
 $REQUIRE_NET
 EOF
 systemctl restart httpd 2>/dev/null 
-[ $? -eq 5 ] systemctl restart apache2 # 5 is when the service doesn't exist
+[ $? -eq 5 ] && systemctl restart apache2 # 5 is when the service doesn't exist
 
 # Start the whole infrastructure
 
