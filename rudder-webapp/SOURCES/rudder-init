@@ -245,8 +245,6 @@ Require ip 127.0.0.0/8
 Require ip ::1
 $REQUIRE_NET
 EOF
-systemctl restart httpd 2>/dev/null 
-[ $? -eq 5 ] systemctl restart apache2 # 5 is when the service doesn't exist
 
 # In case of upgrade, we can restart rudder-jetty, else we are during an initialization and database
 # may not be initialized yet

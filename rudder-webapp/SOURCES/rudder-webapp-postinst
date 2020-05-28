@@ -150,6 +150,9 @@ if [ "${RUDDER_FIRST_INSTALL}" = "true" ]; then
   /opt/rudder/bin/rudder server upgrade-techniques --set-autoupdate-technique-library=true >> ${LOG_FILE}
 fi
 
+# apache must be on before rudder-init
+systemctl start ${APACHE} >> ${LOG_FILE}
+
 # Check if Rudder LDAP is initialized and run rudder-init
 # sed stops at first match (giving a SIGPIPE to command) so that the slapcat is not too long on big db
 # To prevent error "error writing output.", we redirect error of slapcat to /dev/null
