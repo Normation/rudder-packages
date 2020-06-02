@@ -1,6 +1,17 @@
 #!/bin/bash
 set -e
 
+# check if a db is configured
+if grep -q rudder.jdbc.url /opt/rudder/etc/rudder-web.properties
+then
+  # if it is an external DB, do not run
+  if ! grep -qE 'rudder.jdbc.url=jdbc:postgresql://(localhost|127\.0\.)' /opt/rudder/etc/rudder-web.properties
+  then
+    echo "External database detected, skipping rudder-reports postinst"
+    exit 0
+  fi
+fi
+
 DB_NOT_INITIALIZED="$1"
 
 LOG_FILE="/var/log/rudder/install/rudder-reports-$(date +%Y%m%d%H%M%S).log"
