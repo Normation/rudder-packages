@@ -12,6 +12,7 @@ Pre-Depends: ${rudder:deps}
 Depends: ${shlibs:Depends}, ${misc:Depends}, systemd, iproute2, rsyslog, python3, apache2, apache2-utils, git-core, rsync, lsb-release, openssl, ldap-utils, postgresql-client (>=9.2), openjdk-11-jre-headless | openjdk-8-jre-headless | oracle-java8-installer | java11-runtime-headless, curl, acl
 Breaks: ncf, ncf-api-virtualenv, rudder-techniques, rudder-inventory-endpoint, rudder-jetty, rudder-inventory-ldap, rudder-ldap, rudder-agent (<< 6.0.0)
 Replaces: ncf, ncf-api-virtualenv, rudder-techniques, rudder-inventory-endpoint, rudder-jetty, rudder-inventory-ldap, rudder-ldap
+Suggests: rudder-reports
 Conflicts: openjdk-9-jre-headless
 Description: Configuration management and audit tool - webapp
  Rudder is an open source configuration management and audit solution.
