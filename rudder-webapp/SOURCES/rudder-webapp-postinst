@@ -150,46 +150,6 @@ if [ "${RUDDER_FIRST_INSTALL}" = "true" ]; then
   /opt/rudder/bin/rudder server upgrade-techniques --set-autoupdate-technique-library=true >> ${LOG_FILE}
 fi
 
-# apache must be on before rudder-init
-systemctl start ${APACHE} >> ${LOG_FILE}
-
-# Check if Rudder LDAP is initialized and run rudder-init
-# sed stops at first match (giving a SIGPIPE to command) so that the slapcat is not too long on big db
-# To prevent error "error writing output.", we redirect error of slapcat to /dev/null
-LDAPCHK=`/opt/rudder/sbin/slapcat 2>/dev/null | sed -n '/^dn: /{p;q}' | wc -l`
-if [ $LDAPCHK -eq 0 ]; then
-  /opt/rudder/bin/rudder-init no auto
-fi
-
-# Run any upgrades
-echo "INFO: Launching script to check if a migration is needed ..."
-/opt/rudder/bin/rudder-upgrade >> ${LOG_FILE}
-echo "Done"
-
-# Adjust permissions on /var/rudder/configuration-repository
-/opt/rudder/bin/rudder-fix-repository-permissions  >> ${LOG_FILE}
-
-# Restore the plugins and checking them
-# Each step may fail, but we don't want to stop the migration at a plugin failure
-if [ -f /tmp/rudder-plugins-upgrade ]
-then
-  # For 6.0.3 only we disable all installed plugins at install time since they
-  # are not compatible
-  #rudder package plugin restore-status < /tmp/rudder-plugins-upgrade || true
-  #rudder package check-compatibility || true
-  echo "********************************************************************************"
-  echo "Due to incompatibility reasons for this specific version all plugins have been"
-  echo "disabled. Make sure to update your repo index and install the latest version of"
-  echo "your plugins before re-enabling them."
-  echo ""
-  echo "You can use the following commands to upgrade your plugins:"
-  echo "rudder package update"
-  echo "rudder package upgrade-all"
-  echo "********************************************************************************"
-
-  rudder package rudder-postupgrade  || true
-fi
-
 cd /
 [ -f /tmp/rudder-hooks-upgrade ] && setfacl --restore=/tmp/rudder-hooks-upgrade
 
@@ -197,20 +157,6 @@ cd /
 echo "INFO: Re-generate rudder-lang libraries ..."
 /opt/rudder/share/rudder-lang/tools/generate_lib
 echo "Done"
-
-# Restart the webapp
-echo -n "INFO: Make sure Rudder webapp is started..."
-systemctl restart rudder-jetty >> ${LOG_FILE} || true
-echo " Done"
-
-echo -n "INFO: Make sure Apache HTTPd is started..."
-systemctl restart ${APACHE} >> ${LOG_FILE}
-echo " Done"
-
-## Make sure everything is ok
-if [ "${RUDDER_FIRST_INSTALL}" = "true" ]; then
-  rudder agent check -f 2>&1 | tee -a "${LOG_FILE}"
-fi
 
 echo "$(date) - Ending rudder-webapp post installation script" >> ${LOG_FILE}
 
