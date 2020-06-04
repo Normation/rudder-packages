@@ -206,18 +206,18 @@ BuildRequires: perl-Digest
 ## For RHEL and Fedora
 %if 0%{?rhel}
 BuildRequires: make byacc
-Requires: crontabs net-tools
+Requires: crontabs net-tools diffutils
 %endif
 
 %if 0%{?fedora}
 BuildRequires: make byacc
-Requires: crontabs net-tools
+Requires: crontabs net-tools diffutils
 %endif
 
 
 ## For SLES
 %if 0%{?suse_version}
-Requires: cron net-tools
+Requires: cron net-tools diffutils
 %endif
 
 # dmiecode package on RHEL4+ and fedora
