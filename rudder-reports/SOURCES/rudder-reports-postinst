@@ -2,7 +2,7 @@
 set -e
 
 # check if a db is configured
-if grep -q rudder.jdbc.url /opt/rudder/etc/rudder-web.properties
+if [ -f /opt/rudder/etc/rudder-web.properties ] && grep -q rudder.jdbc.url /opt/rudder/etc/rudder-web.properties
 then
   # if it is an external DB, do not run
   if ! grep -qE 'rudder.jdbc.url=jdbc:postgresql://(localhost|127\.0\.)' /opt/rudder/etc/rudder-web.properties
