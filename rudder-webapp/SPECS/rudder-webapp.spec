@@ -250,6 +250,8 @@ fi
 #=================================================
 %post -n rudder-webapp
 
+set -e
+
 RUDDER_FIRST_INSTALL="false"
 
 # Do this ONLY at first install
