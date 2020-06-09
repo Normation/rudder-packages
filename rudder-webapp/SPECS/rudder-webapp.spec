@@ -281,6 +281,10 @@ then
   sed -i 's%APACHE_MODULES="${APACHE_MODULES} rewrite dav dav_fs proxy proxy_http.*%# This sources the Rudder needed by Rudder\n. /etc/sysconfig/rudder-webapp-apache%' /etc/sysconfig/apache2
 fi
 
+# Remove old ncf-api-virtualenv conf, or else it will prevent apache start 
+rm -f /etc/%{apache_vhost_dir}/ncf-api-virtualenv.conf
+
+
 /opt/rudder/share/package-scripts/rudder-webapp-postinst "${FIRST_INSTALL}" "%{apache}"
 
 %if 0%{?rhel}
