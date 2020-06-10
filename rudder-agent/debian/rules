@@ -105,7 +105,6 @@ USE_SYSTEM_JQ=false
 endif
 # Debian 9
 ifeq (stretch,$(OS_CODENAME))
-DEPS := $(DEPS), libxml-treepp-perl
 endif
 # Debian 10
 ifeq (buster,$(OS_CODENAME))
@@ -121,7 +120,7 @@ ifeq (true,$(USE_SYSTEM_OPENSSL))
 DEPS := $(DEPS), openssl
 endif
 ifeq (true,$(USE_SYSTEM_PERL))
-DEPS := $(DEPS), perl
+DEPS := $(DEPS), libxml-treepp-perl, perl
 endif
 ifeq (true,$(USE_SYSTEM_CURL))
 DEPS := $(DEPS), curl
