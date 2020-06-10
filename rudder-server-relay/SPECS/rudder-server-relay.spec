@@ -285,6 +285,7 @@ rm -rf %{buildroot}
 %config(noreplace) /etc/sysconfig/rudder-relay-apache
 %config /etc/cron.d/rudder-relay
 %attr(0440, root, root) %config /etc/sudoers.d/rudder-relay
+%attr(700, root, root) /opt/rudder/etc/rudder-pkg/
 /var/rudder/inventories/incoming
 /var/rudder/inventories/failed
 /var/rudder/inventories/accepted-nodes-updates
@@ -299,6 +300,7 @@ rm -rf %{buildroot}
 /opt/rudder/bin/relay-cleanup
 /opt/rudder/bin/rudder-relayd
 /opt/rudder/bin/rudder-pkg
+/opt/rudder/etc/rudder-pkg/rudder_plugins_key.pub
 /opt/rudder/etc/rudder-apache-relay-nossl.conf
 /opt/rudder/etc/rudder-pkg/rudder_plugins_key.pub
 /opt/rudder/etc/ssl/openssl.cnf
