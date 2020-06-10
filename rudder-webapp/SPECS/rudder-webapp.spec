@@ -194,9 +194,6 @@ make --debug install APACHE_VHOSTDIR=%{apache_vhost_dir} DESTDIR=%{buildroot} JE
 # pretrans is run before all preinst when installing more than one package
 #=================================================
 %pretrans
-
-set -e
-
 # We need to be sure that uuid.hive is set to root at beginning
 mkdir -p /opt/rudder/etc
 echo 'root' > /opt/rudder/etc/uuid.hive
@@ -207,8 +204,6 @@ echo "127.0.0.1" > /var/rudder/cfengine-community/policy_server.dat
 # Pre Installation
 #=================================================
 %pre -n rudder-webapp
-
-set -e
 
 # Only do this on package upgrade
 if [ $1 -ne 1 ]
@@ -314,8 +309,6 @@ fi
 #=================================================
 %postun -n rudder-webapp
 
-set -e
-
 # Do it only during uninstallation
 if [ $1 -eq 0 ]; then
 %if 0%{?suse_version}
@@ -361,8 +354,6 @@ fi
 #=================================================
 %preun -n rudder-webapp
 
-set -e
-
 if [[ $1 -eq 0 ]]
 then
   systemctl stop rudder-jetty
@@ -373,8 +364,6 @@ fi
 # Post transaction
 #=================================================
 %posttrans -n rudder-webapp
-
-set -e
 
 # during upgrade, service may have been stopped by uninstall of rudder-inventory-ldap or rudder-jetty
 systemctl start rudder-slapd >/dev/null

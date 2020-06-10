@@ -162,8 +162,6 @@ install -m 644 rudder-relay-apache %{buildroot}/etc/sysconfig/rudder-relay-apach
 #=================================================
 %post -n rudder-server-relay
 
-set -e
-
 CFRUDDER_FIRST_INSTALL=$1
 
 %if 0%{?rhel}
@@ -220,16 +218,12 @@ fi
 # Pre Uninstallation
 #=================================================
 # Do it during upgrade and uninstall
-set -e
-
 /opt/rudder/share/package-scripts/rudder-server-relay-prerm
 
 #=================================================
 # Post Uninstallation
 #=================================================
 %postun -n rudder-server-relay
-
-set -e
 
 # Do it only during uninstallation
 if [ $1 -eq 0 ]; then

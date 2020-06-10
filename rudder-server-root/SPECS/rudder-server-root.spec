@@ -81,8 +81,6 @@ make --debug install DESTDIR=%{buildroot}
 #=================================================
 %pretrans
 
-set -e
-
 # We need to be sure that uuid.hive is set to root at beginning
 mkdir -p /opt/rudder/etc
 echo 'root' > /opt/rudder/etc/uuid.hive
@@ -95,8 +93,6 @@ echo "127.0.0.1" > /var/rudder/cfengine-community/policy_server.dat
 # Pre Installation
 #=================================================
 
-set -e
-
 CFRUDDER_FIRST_INSTALL=$1
 LOG_FILE="/var/log/rudder/install/%{name}.log"
 
@@ -107,8 +103,6 @@ echo "`date` - Starting %{name} pre installation script" >> ${LOG_FILE}
 # Post Installation
 #=================================================
 
-set -e
-
 CFRUDDER_FIRST_INSTALL=$1
 
 /opt/rudder/share/package-scripts/rudder-server-root-postinst "${CFRUDDER_FIRST_INSTALL}"
@@ -117,8 +111,6 @@ CFRUDDER_FIRST_INSTALL=$1
 #=================================================
 # Post Uninstallation
 #=================================================
-
-set -e
 
 # Do it only during uninstallation
 if [ $1 -eq 0 ]; then
