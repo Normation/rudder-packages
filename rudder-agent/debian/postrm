@@ -31,16 +31,16 @@ case "$1" in
 
     CFRUDDER_USE_SYSTEMD="false"
 
-    if readlink -f $(cut -f 1 -d "" < /proc/1/cmdline) | grep -qE "/systemd$" ; then CFRUDDER_USE_SYSTEMD="true"; fi
+    if readlink -f $(cut -f 1 -d "" /proc/1/cmdline | cut -f 1 -d " ") | grep -qE "/systemd$" ; then CFRUDDER_USE_SYSTEMD="true"; fi
 
-if [ "${CFRUDDER_USE_SYSTEMD}" = "true" ]; then
-  systemctl stop rudder-agent || true
-  systemctl disable rudder-agent rudder-cf-execd rudder-cf-serverd || true
-  rm -f /lib/systemd/system/rudder-agent.service
-  rm -f /lib/systemd/system/rudder-cf-execd.service
-  rm -f /lib/systemd/system/rudder-cf-serverd.service
-  systemctl daemon-reload
-fi
+    if [ "${CFRUDDER_USE_SYSTEMD}" = "true" ]; then
+      systemctl stop rudder-agent || true
+      systemctl disable rudder-agent rudder-cf-execd rudder-cf-serverd || true
+      rm -f /lib/systemd/system/rudder-agent.service
+      rm -f /lib/systemd/system/rudder-cf-execd.service
+      rm -f /lib/systemd/system/rudder-cf-serverd.service
+      systemctl daemon-reload
+    fi
 
     # Remove the cron script we create at installation to prevent mail
     # flooding, re-installation surprises, and general system garbage.
