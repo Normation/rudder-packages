@@ -50,7 +50,12 @@ SIGNATURE=`openssl dgst -passin "pass:${PASSPHRASE}" -${HASH} -hex -sign "${PRIV
 HOSTNAME=`hostname`
 
 # Private key modification date
-KEYDATE=`stat -c %y ${PRIVKEY}`
+if [ `uname -s` = "Darwin" ]
+then
+  KEYDATE=`stat -f "%Sm" ${PRIVKEY}`
+else
+  KEYDATE=`stat -c %y ${PRIVKEY}`
+fi
 
 # Public key identifier (last 4 bytes of the modulus)
 KEYID=`openssl rsa -passin "pass:${PASSPHRASE}" -in "${PRIVKEY}" -noout -modulus | sed 's/.*\(........\)$/\1/'`
