@@ -38,7 +38,7 @@ if getent passwd ncf-api-venv >/dev/null; then
 fi
 
 if getent group ncf-api-venv >/dev/null; then
-  groupdel --system ncf-api-venv >> ${LOG_FILE}
+  groupdel ncf-api-venv >> ${LOG_FILE}
 fi
 
 echo " Done"
