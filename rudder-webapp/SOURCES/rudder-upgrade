@@ -54,6 +54,7 @@ trap 'anomaly_handler ${LINENO}' ERR INT TERM
 # - 6.0.4        : Ensure that rudder-slapd sockbuf_max_incoming_auth is not lost at upgrade 
 # - 6.1.0        : Migrate RudderUniqueID to the template format
 # - 6.1.0        : Add indexes cn,softwareVersion,directiveId in slapd.conf 
+  # 6.1.1        : Update apache conf if it does not contain technique editor conf (file not updated by packaging
 ####################################################################################
 
 # Some paths
@@ -545,6 +546,23 @@ EOF
 
 }
 
+upgrade_apache_conf() {
+
+  # 6.1.1: Update apache conf if it does not contain technique editor conf (file not updated by packaging
+  APACHE_FILE="/opt/rudder/etc/rudder-apache-webapp-ssl.conf"
+  ALIAS_CHECK=$(grep -c "^Alias /ncf-builder" ${APACHE_FILE} || true)
+  if [ ${ALIAS_CHECK} -eq 0 ]; then
+    echo "" >> ${APACHE_FILE}
+    echo "# Technique editor (aka 'ncf builder')" >> ${APACHE_FILE}
+    echo "Alias /ncf-builder /usr/share/ncf/builder" >> ${APACHE_FILE}
+    echo "<Directory /usr/share/ncf/builder>" >> ${APACHE_FILE}
+    echo "  # Allow access from anybody" >> ${APACHE_FILE}
+    echo "  Require all granted" >> ${APACHE_FILE}
+    echo "</Directory>" >> ${APACHE_FILE}
+    echo "INFO: Technique editor apache conf added to ${APACHE_FILE}"
+  fi
+}
+
 ################################################################################
 # Check and upgrade slapd.conf
 ################################################################################
@@ -603,6 +621,7 @@ upgrade_plugins() {
 update_credentials
 upgrade_slapdconf
 set_git_branch
+upgrade_apache_conf
 upgrade_system_techniques
 upgrade_techniques
 upgrade_ncf
