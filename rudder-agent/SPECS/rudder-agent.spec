@@ -391,6 +391,8 @@ find %{buildroot} -type f -o -type l | sed "s,%{buildroot},," | sed "s,\.py$,\.p
 # Pre Installation
 #=================================================
 
+set -e
+
 CFRUDDER_FIRST_INSTALL=$1
 
 LOG_DIR="/var/log/rudder/install/"
@@ -403,6 +405,8 @@ echo "`date` - Starting rudder-agent pre installation script" >> ${LOG_FILE}
 #=================================================
 # Post Installation
 #=================================================
+
+set -e
 
 CFRUDDER_FIRST_INSTALL="false"
 
@@ -417,6 +421,8 @@ fi
 #=================================================
 # Pre Uninstallation
 #=================================================
+
+set -e
 
 # Do it during upgrade and uninstall
 
@@ -453,6 +459,8 @@ fi
 #=================================================
 # Post Uninstallation
 #=================================================
+
+set -e
 
 %if "%{?aix}"
 # AIX doesn't have a pidof command, let's define it
