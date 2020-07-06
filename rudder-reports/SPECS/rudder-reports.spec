@@ -89,6 +89,8 @@ make --debug install DESTDIR=%{buildroot}
 #=================================================
 %post -n rudder-reports
 
+set -e
+
 %if 0%{?rhel}
   /opt/rudder/share/package-scripts/rudder-reports-postinst true
 %else
