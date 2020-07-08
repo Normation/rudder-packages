@@ -85,7 +85,7 @@ CURL = curl -s -L -f -o
 ifneq (,$(wildcard /usr/bin/curl))
 _GET = $(PROXY_ENV) $(CURL)
 GET_OPT = --curl
-CPAN_OPT = --curl --no-wget
+CPAN_OPT = --curl --no-wget --no-lwp
 else
 ifneq (,$(wildcard /usr/bin/fetch))
 _GET = $(PROXY_ENV) $(FETCH)
@@ -175,11 +175,18 @@ else
 XML_ARG := --with-libxml2
 endif
 
-# AIX does nor have the same form of rpath
+# AIX does not have the same form of rpath
 ifeq (AIX,$(OS_FAMILY))
 SYSTEM_LDFLAGS := -static-libgcc -Wl,-bsvr4 -Wl,-R/opt/rudder/lib
 else
+# OSX/clang does not have rpath
+ifeq (Darwin,$(OS_FAMILY))
+SYSTEM_LDFLAGS :=
+LMDB_LDFLAGS := -dynamiclib -install_name /opt/rudder/lib/liblmdb.dylib -compatibility_version 0 -current_version 0.9 -Wl,-single_module
+LMDB_MAKEFLAGS := SOEXT=.dylib
+else
 SYSTEM_LDFLAGS := -Wl,-R/opt/rudder/lib
+endif
 endif
 
 # AIX and solaris do not support posix acl
@@ -539,7 +546,7 @@ build-lmdb: lmdb-source
 	# lmdb doesn't support CFLAGS (it overrides its own) so we pass XCFLAGS instead, that is appended to the original ones
 	# we need to add -fPIE to be able to build static lib (which we do not use)
 	# lmdb also mixes cflags and ldflags
-	cd lmdb-source/libraries/liblmdb && $(MAKE) $(MAKE_J) XCFLAGS="$(CFLAGS) $(PIE_CFLAGS)" LDFLAGS="$(LDFLAGS) $(PIE_LDFLAGS) $(CFLAGS)"
+	cd lmdb-source/libraries/liblmdb && $(MAKE) $(MAKE_J) XCFLAGS="$(CFLAGS) $(PIE_CFLAGS)" LDFLAGS="$(LDFLAGS) $(PIE_LDFLAGS) $(CFLAGS) $(LMDB_LDFLAGS)" $(LMDB_MAKEFLAGS)
 	# need a temporary install for cfengine
 	mkdir -p dependencies$(RUDDER_DIR)
 	# LMDB's Makefile does not know how to create destination files, do it ourselves
@@ -580,6 +587,7 @@ endif
 	cd jq-source && $(MAKE) $(MAKE_J)
 	# install to a temporary location is needed to build cfengine
 	cd jq-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
+	touch $@
 
 build-yaml: yaml-source
 	cd yaml-source && ./configure --prefix=$(RUDDER_DIR) --enable-gettext=no $(BUILD_FLAGS)
@@ -725,6 +733,7 @@ endif
 	chown root $(DESTDIR)/fusion/opt/rudder/share/fusioninventory/html
 	# fusion configuration file is never used, do not include it to avoid mistakes
 	rm -rf $(DESTDIR)/fusion/opt/rudder/etc/fusioninventory
+	mkdir -p $(DESTDIR)/fusion/opt/rudder/lib/perl5/
 	cp -r fusioninventory-agent/lib/FusionInventory $(DESTDIR)/fusion/opt/rudder/lib/perl5/
 
 .PHONY: localdepends distclean depend build install clean mrproper install-cfengine install-fusion get-flags
