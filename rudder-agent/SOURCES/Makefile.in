@@ -1,0 +1,505 @@
+#####################################################################################
+# Copyright 2015 Normation SAS
+#####################################################################################
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, Version 3.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#####################################################################################
+
+.DEFAULT_GOAL := build
+
+# Versions to use
+RUDDER_VERSION_TO_PACKAGE =
+RUDDER_MAJOR_VERSION := $(shell echo ${RUDDER_VERSION_TO_PACKAGE} | cut -d'.' -f 1-2)
+DEBUG = 
+
+# Original URL: http://zlib.net/zlib-$(ZLIB_RELEASE).tar.gz
+zlib_RELEASE = 1.2.11
+zlib_SHA256 = c3e5e9fdd5004dcb542feda5ee4f0ff0744628baf8ed2dd5d66f8ca1197cb1a1
+# Original URL: http://ftp.fr.debian.org/debian/pool/main/l/lmdb/lmdb_$(LMDB_RELEASE).orig.tar.xz
+lmdb_RELEASE = 0.9.22
+lmdb_SHA256 = f3927859882eb608868c8c31586bb7eb84562a40a6bf5cc3e13b6b564641ea28
+# Original URL: http://vorboss.dl.sourceforge.net/project/pcre/pcre/8.38/pcre-8.38.tar.gz
+pcre_RELEASE = 8.38
+pcre_SHA256 = 9883e419c336c63b0cb5202b09537c140966d585e4d0da66147dc513da13e629
+# Original URL: https://www.openssl.org/source/openssl-$(OPENSSL_RELEASE).tar.gz
+openssl_RELEASE = 1.1.1g
+openssl_SHA256 = ddb04774f1e32f0c49751e21b67216ac87852ceb056b75209af2443400636d46
+# Original URL: http://pyyaml.org/download/libyaml/yaml-0.1.7.tar.gz
+libyaml_RELEASE = 0.2.1
+libyaml_SHA256 = 78281145641a080fb32d6e7a87b9c0664d611dcb4d542e90baf731f51cbb59cd
+# Original URL: ftp://xmlsoft.org/libxml2/libxml2-2.9.7.tar.gz
+libxml2_RELEASE = 2.9.7
+libxml2_SHA256 = f63c5e7d30362ed28b38bfa1ac6313f9a80230720b7fb6c80575eeab3ff5900c
+# Original URL: https://curl.haxx.se/download/curl-7.58.0.tar.gz
+libcurl_RELEASE = 7.61.0
+libcurl_SHA256 = 64141f0db4945268a21b490d58806b97c615d3d0c75bf8c335bbe0efd13b45b5
+# Original URL: https://github.com/stedolan/jq/releases/download/jq-1.6/jq-1.6.tar.gz
+jq_RELEASE = 1.6
+jq_SHA256 = 1b3906e0c6dea26b5b9dcf864cc7334522f520d69543043c64b2c487e0c663ca
+# Original URL: https://cfengine-package-repos.s3.amazonaws.com/tarballs/cfengine-$(CFENGINE_RELEASE).tar.gz
+cfengine_RELEASE = 3.15.1
+cfengine_SHA256 = ab597456f9d44d907bb5a2e82b8ce2af01e9c59641dc828457cd768ef05a831d
+# Original URL: http://www.cpan.org/src/5.0/perl-5.22.4.tar.gz
+perl_RELEASE = 5.22.4
+perl_SHA256 = ba9ef57c2b709f2dad9c5f6acf3111d9dfac309c484801e0152edbca89ed61fa
+# Original URL: http://www.cpan.org/modules/by-module/App/App-cpanminus-1.7036.tar.gz
+cpanminus_RELEASE = 1.7036
+cpanminus_SHA256 = a3df8bff4a1dc15fb23a4ecc693162d1d1416fb90501ab6199d361830c65604e
+# Original URL: https://github.com/fusioninventory/fusioninventory-agent/releases/download/2.3.19/FusionInventory-Agent-$(FUSION_RELEASE).tar.gz
+fusion_RELEASE = 2.4.3
+fusion_SHA256 = ca9d3630256303bd3ea1f158044904b53fbd7e409a6a647888e9d2c3103b45fd
+
+#CPAN_URL = https://www.cpan.org
+CPAN_URL = $(HTTPS)://repository.rudder.io/build-dependencies/cpan/$(RUDDER_MAJOR_VERSION)
+
+# Default PATHs
+RUDDER_DIR = /opt/rudder
+DESTDIR = $(CURDIR)/target
+
+make = $(MAKE) $(MAKEFLAGS)
+
+@CONFIG_VARS@
+
+# We are using sha1 as sha256 is not supported on RHEL3
+# Not using the sha1sum command as it is not available on AIX
+# Pass an empty string to skip hash check
+GET=get() { @_GET@ "$$1.part" "$$2" && { openssl dgst -sha256 "$$1.part" | grep -q "$$3" || { echo "Wrong checksum, aborting"; exit 1; }; } && mv "$$1.part" "$$1"; }; get
+
+################
+# Main targets #
+################
+
+# Download sources (should not be needed but useful for debug)
+source: @SOURCE_DEPS@ cfengine-source cpanminus-source
+
+# build binaries
+build: build-cfengine @fusion_DEP@
+
+# install rudder agent
+install: install-agent
+
+
+##############################
+# Source download and unpack #
+##############################
+
+@zlib_SOURCE@
+
+@lmdb_SOURCE@
+
+@pcre_SOURCE@
+
+@openssl_SOURCE@
+
+@libyaml_SOURCE@
+
+@libxml2_SOURCE@
+	# patch libxml source to work with very old gcc
+	cd libxml2-source && $(SED) 's/#ifdef __GNUC__/#if __GNUC__ > 3/' ./timsort.h > ./timsort.h.new && mv ./timsort.h.new ./timsort.h
+	cd libxml2-source && $(SED) 's/-Wextra//' configure > configure.new && mv configure.new configure
+	cd libxml2-source && $(SED) 's/-Wno-array-bounds//' configure > configure.new && mv configure.new configure && chmod +x configure
+
+@libcurl_SOURCE@
+
+@jq_SOURCE@
+	# this value is not propery defined on AIX (must be > 500 for c99)
+	cd jq-source && $(SED) 's/^# define _XOPEN_SOURCE$$/# define _XOPEN_SOURCE 600/' src/builtin.c > src/builtin.c.new && mv src/builtin.c.new src/builtin.c
+
+@cfengine_SOURCE@
+	# Apply patches
+	for PATCHNAME in patches/cfengine/*.patch; do echo "Applying $$PATCHNAME..."; $(PATCH) -d ./cfengine-source -p1 < $$PATCHNAME; echo ""; done
+	# Make sure there were no rejects
+	test `find ./cfengine-source -name \*.rej | wc -l` = 0
+
+@perl_SOURCE@
+
+@cpanminus_SOURCE@
+
+@fusion_SOURCE@
+	# Apply patches
+	for PATCHNAME in patches/fusioninventory/*.patch; do echo "Applying $$PATCHNAME... on FusionInventory"; $(PATCH) -d ./fusion-source -p1 < $$PATCHNAME; done
+	# Make sure there were no rejects
+	test `find ./fusion-source -name \*.rej | wc -l` = 0
+
+	# Fix a lsusb invocation that crashes some SLES machines
+	find ./fusion-source -name "USB.pm" -exec rm "{}" \;
+
+rudder-sources.tar.bz2:
+	$(GET) rudder-sources.tar.bz2 $(HTTPS)://repository.rudder.io/sources/$(RUDDER_VERSION_TO_PACKAGE)/rudder-sources-$(RUDDER_VERSION_TO_PACKAGE).tar.bz2 ""
+
+rudder-sources: rudder-sources.tar.bz2
+	bunzip2 < rudder-sources.tar.bz2 | $(TAR) xf -
+	mv rudder-sources-$(RUDDER_VERSION_TO_PACKAGE)*/ rudder-sources/ # the '*' is needed for nightly release
+	touch rudder-sources # to make it younger than the bzip source file
+
+rudder.8.gz:
+	# Get man page from rudder-project.org (just have an empty man if the page doesnt' exist yet)
+	$(GET) rudder.8 $(HTTPS)://docs.rudder.io/man/${RUDDER_MAJOR_VERSION}/rudder.8 "" || touch rudder.8
+	gzip -f rudder.8
+
+rudder-agent: rudder-sources
+	cp -r ./rudder-sources/rudder-agent ./rudder-agent
+	# Add capabilities
+	echo cfengine >> ./rudder-agent/agent-capabilities
+	echo jq >> ./rudder-agent/agent-capabilities
+	echo yaml >> ./rudder-agent/agent-capabilities
+	echo xml >> ./rudder-agent/agent-capabilities
+	echo curl >> ./rudder-agent/agent-capabilities
+	echo http_reporting >> ./rudder-agent/agent-capabilities
+ifneq (false,$(USE_ACL))
+	echo acl >> ./rudder-agent/agent-capabilities
+endif
+
+rudder-agent.cron: rudder-sources
+	cp ./rudder-sources/rudder-techniques/techniques/system/common/1.0/rudder-agent-community-cron ./rudder-agent.cron
+
+	# rudder-agent-community-cron is a mustache template that is not rendered at postinstall
+	# It needs to be "correctly" built to avoid breaking the cron service
+	[ -f /etc/slackware-version ] && perl -0777 -pe 's|\{\{\#classes.slackware}}(.*?)\{\{/classes.slackware}}.*?\{\{\^classes.slackware}}(.*?)\{\{/classes.slackware}}|\1|sg' -i ./rudder-agent.cron || true
+	[ ! -f /etc/slackware-version ] &&  perl -0777 -pe 's|\{\{\#classes.slackware}}(.*?)\{\{/classes.slackware}}.*?\{\{\^classes.slackware}}(.*?)\{\{/classes.slackware}}|\2|sg' -i ./rudder-agent.cron || true
+
+	# Set unexpanded variables of the cron file
+	$(SED) 's@\$${sys.workdir}@/var/rudder/cfengine-community@g' rudder-agent.cron | $(SED) 's@\$${g.rudder_base}@/opt/rudder@g' | $(SED) 's@\\&\\&@\&\&@g' | $(SED) 's@\\&1@\&1@g' > rudder-agent.cron.new
+	mv rudder-agent.cron.new rudder-agent.cron
+
+debug-script/rudder-debug-info:
+	cd debug-script && $(make)
+
+
+########################
+# Build each component #
+########################
+
+build-zlib: zlib-source
+	cd zlib-source && $(BUILD_FLAGS_LIB) ./configure --prefix=$(RUDDER_DIR)
+	cd zlib-source && $(make)
+	cd zlib-source && $(make) install DESTDIR=$(CURDIR)/dependencies
+	touch $@
+
+build-lmdb: lmdb-source
+	# lmdb doesn't support CFLAGS (it overrides its own) so we pass XCFLAGS instead, that is appended to the original ones
+	# lmdb also mixes cflags and ldflags
+	cd lmdb-source/libraries/liblmdb && $(make) XCFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS) $(CFLAGS) $(LMDB_LDFLAGS)" $(LMDB_MAKEFLAGS)
+	# need a temporary install for cfengine
+	mkdir -p dependencies$(RUDDER_DIR)
+	# LMDB's Makefile does not know how to create destination files, do it ourselves
+	cd dependencies$(RUDDER_DIR) && mkdir -p bin lib include man/man1
+	cd lmdb-source/libraries/liblmdb && $(make) install prefix=$(RUDDER_DIR) DESTDIR=$(CURDIR)/dependencies
+	touch $@
+
+build-pcre: pcre-source
+	cd pcre-source && ./configure --enable-utf8 --enable-unicode-properties --disable-cpp --prefix=$(RUDDER_DIR) $(BUILD_FLAGS_LIB)
+	cd pcre-source && $(make)
+	cd pcre-source && $(make) install DESTDIR=$(CURDIR)/dependencies
+	touch $@
+
+build-openssl: openssl-source @perl_DEP@
+	# openssl doesn't support CFLAGS (it overrides its own) so we must pass them in batch to configure
+	cd openssl-source && RELEASE="" @SSL_CONFIGURE@ -fPIC $(CFLAGS) $(LDFLAGS) $(PIE_LDFLAGS) --prefix=$(RUDDER_DIR) --openssldir=$(RUDDER_DIR)/openssl shared no-idea no-rc5 no-ssl3 no-dtls no-psk no-srp no-engine enable-egd
+	cd openssl-source && $(make) depend
+	cd openssl-source && $(make)
+	slibclean >/dev/null 2>&1 || true
+	cd openssl-source && $(make) install DESTDIR=$(CURDIR)/dependencies
+	touch $@
+
+build-libyaml: libyaml-source
+	cd libyaml-source && ./configure --prefix=$(RUDDER_DIR) --enable-gettext=no $(BUILD_FLAGS_LIB)
+	cd libyaml-source && $(make)
+	# install to a temporary location is needed to build cfengine
+	cd libyaml-source && $(make) install DESTDIR=$(CURDIR)/dependencies
+	touch $@
+
+build-libxml2: libxml2-source @zlib_DEP@
+	cd libxml2-source && ./configure --prefix=$(RUDDER_DIR) @LIBXML2_ARGS@ --with-xpath --with-c14n --without-catalog --without-debug --without-docbook --without-ftp --without-http --without-html --without-iconv --without-python --enable-shared --disable-static $(BUILD_FLAGS_LIB)
+	cd libxml2-source && $(make)
+	cd libxml2-source && $(make) install DESTDIR=$(CURDIR)/dependencies
+	touch $@
+
+build-libcurl: libcurl-source @openssl_DEP@ @zlib_DEP@
+	# pkcconfig give openssl build configuration, but it point to final installation path (/opt/rudder)
+	# since we need the temporary path during build we need to add -I and -L
+	cd libcurl-source && ./configure --prefix=$(RUDDER_DIR) @LIBCURL_ARGS@ --without-libpsl --disable-tls-srp --disable-rtsp --enable-ipv6 --without-librtmp --without-ldap-lib CPPFLAGS="-I$(CURDIR)/dependencies$(RUDDER_DIR)/include" $(BUILD_FLAGS_EXE)
+	# is for loading dependencies of libcurl during the build of curl
+	cd libcurl-source && $(make)
+	cd libcurl-source && $(make) install DESTDIR=$(CURDIR)/dependencies
+	touch $@
+
+build-jq: jq-source
+	cd jq-source && ./configure --prefix=$(RUDDER_DIR) $(BUILD_FLAGS_EXE) --disable-maintainer-mode --disable-docs --with-oniguruma=builtin --disable-error-injection
+ifeq (AIX,$(OS_FAMILY))
+	cd jq-source && $(SED) 's|^onig_LDFLAGS = .*|onig_LDFLAGS = -L./modules/oniguruma/src|' Makefile > Makefile.new && mv Makefile.new Makefile
+endif
+	cd jq-source && $(make)
+	cd jq-source && $(make) install DESTDIR=$(CURDIR)/dependencies
+	touch $@
+
+DEPS_CACHE_PARAMETERS = --with-env name=dependencies zlib=$(zlib_SHA256) lmdb=$(lmdb_SHA256) pcre=$(pcre_SHA256) openssl=$(openssl_SHA256) libyaml=$(libyaml_SHA256) libxml2=$(libxml2_SHA256) libcurl=$(libcurl_SHA256) jq=$(jq_SHA256)
+# Strictly speaking we don't need jq here but it's easier to include it in the cache
+CFENGINE_DEPS = $(shell ../../build-caching get dependencies/ $(DEPS_CACHE_PARAMETERS) || echo @lmdb_DEP@ @pcre_DEP@ @openssl_DEP@ @libyaml_DEP@ @libxml2_DEP@ @libcurl_DEP@ @jq_DEP@ )
+
+# Cache cfengine build itself
+CFENGINE_PATCHES_SHA = $(shell find patches/cfengine -type f | sort | xargs openssl dgst -sha256 | openssl dgst -sha256 | awk '{print $$2}')
+CFENGINE_CACHE_PARAMETERS = $(DEPS_CACHE_PARAMETERS) cfengine=$(cfengine_SHA256) patches=$(CFENGINE_PATCHES_SHA)
+CFENGINE_BUILD = $(shell ../../build-caching get dependencies/ $(CFENGINE_CACHE_PARAMETERS) || echo build-cfengine-real)
+
+# Separate build-cfengine from build-cfengine-real to separately cache dependencies and cfengine+dependencies
+build-cfengine: $(CFENGINE_BUILD)
+	# save cfengine with dependencies into cache if we built it
+	if [ "$<" != "" ]; then ../../build-caching put dependencies/ $(CFENGINE_CACHE_PARAMETERS); fi
+	touch $@
+
+build-cfengine-real: $(CFENGINE_DEPS) cfengine-source
+	# save dependencies into cache if we built them
+	if [ "$<" != "cfengine-source" ]; then ../../build-caching put dependencies/ $(DEPS_CACHE_PARAMETERS); fi
+	# If there is no configure, bootstrap with autogen.sh first
+	cd cfengine-source && [ -x ./configure ] || NO_CONFIGURE=1 ./autogen.sh
+	# build system tries to reload systemd by itself
+	cd cfengine-source && $(SED) 's/-systemctl daemon-reload/#-systemctl daemon-reload/' misc/Makefile.in > misc/Makefile.in.new && mv misc/Makefile.in.new misc/Makefile.in
+	cd cfengine-source && ./configure --prefix=$(RUDDER_DIR) --with-workdir=/var/rudder/cfengine-community --without-postgresql --without-mysql $(CFENGINE_ARGS) $(BUILD_FLAGS_EXE) CPPFLAGS="-I$(CURDIR)/dependencies$(RUDDER_DIR)/include/libxml2"
+	cd cfengine-source && $(make)
+	cd cfengine-source && $(make) install DESTDIR=$(CURDIR)/dependencies
+# solaris doesn't have uuidgen and needs one
+ifeq (SunOS,$(OS_FAMILY))
+	gcc -luuid rudder-uuidgen.c -o rudder-uuidgen
+endif
+ifeq (AIX,$(OS_FAMILY))
+	slibclean
+endif
+	touch $@
+
+# ---- ^ cfengine ---- v fusion ----
+
+CPANM:=$(CURDIR)/cpanminus-source/bin/cpanm
+# List from README / Makefile.PL in fusion-inventory-agent
+# -> requires + inventory and network recommends
+FUSION_MODULES = File::Which LWP::UserAgent Net::IP Text::Template UNIVERSAL::require XML::TreePP Parse::EDID DateTime DateTime::TimeZone DateTime::TimeZone::Local::Unix Net::SNMP Net::NBName Thread::Queue Data::Dumper
+# update sources at vir-repository with the command: ./mirror $VAR_CPAN $FUSION_MODULES
+# update core dependencies (for old perl versions) at normation.com with the command: ./mirror $VAR_CPAN Local::Win32 ExtUtils::MakeMaker parent IO::Compress::Bzip2 HTTP::Lite version CPAN::Meta::YAML CPAN::Meta::Requirements File::Temp Perl::OSType ExtUtils::Install threads::shared Module::Install URI::Escape ExtUtils::CBuilder Pod::Man ExtUtils::ParseXS TAP::Harness threads ExtUtils::Manifest Pod::Simple Module::Build Module::Implementation Test::Harness Module::CoreList File::Spec autodie Devel::PPPort Encode Pod::Escapes Class::C3 IPC::Cmd Digest::MD5 Locale::Maketext::Simple Module::Load Digest::base Params::Check Locale::Maketext::Simple
+
+build-perl: perl-source
+	cd perl-source && $(make) distclean 2>/dev/null || true # Or this can fail on an already used source
+	cd perl-source && ./Configure -Dnoextensions=ODBM_File -Duserelocatableinc -Dusethreads -des -Dcc="gcc" -Dinstallprefix=$(RUDDER_DIR) -Dsiteprefix=$(RUDDER_DIR) -Dprefix=$(RUDDER_DIR)
+	cd perl-source && $(make)
+	cd perl-source && $(make) install DESTDIR=$(CURDIR)/fusion
+	# 8Mb of perldoc
+	rm -rf fusion/opt/rudder/lib/perl5/$(PERL_RELEASE)/pod
+	# 20Mb of perl manual
+	find fusion/opt/rudder/share/man -name 'perl' -exec rm -rf {} \; || true
+	# Remove 'special' files
+	find fusion -name perllocal.pod \
+	  -o -name ".packlist" \
+	  -o -name "*.bs" \
+	  | xargs rm -f
+	touch $@
+
+fusion-modules: @perl_DEP@ cpanminus-source
+	mkdir -p fusion/opt/rudder/lib/perl5
+	# --notest because tests add new Test:: dependencies that cannot be installed properly
+	MAKEFLAGS= $(PERL) $(CPANM) $(CPAN_OPT) -L $(CURDIR)/fusion/opt/rudder --from $(CPAN_URL) --notest $(FUSION_MODULES)
+	# remove perldoc (10Mb of timezone doc)
+	find fusion/opt/rudder/lib/perl5 -type f -name "*.pod" -exec rm -f {} \;
+	# Replace destdir by prefix in files generated by cpanm
+	find fusion/opt/rudder/lib/perl5 -type f -name "*.packlist" -exec $(PERL) -i -pe "s,$(CURDIR)/fusion,,"  {} \;
+	find fusion/opt/rudder/bin -type f -exec $(PERL) -i -pe "s,$(CURDIR)/fusion,,"  {} \;
+	touch $@
+
+
+# Cache fusion and its dependencies
+FUSION_PATCHES_SHA = $(shell find patches/fusioninventory -type f | sort | xargs openssl dgst -sha256 | openssl dgst -sha256 | awk '{print $$2}')
+FUSION_CACHE_PARAMETERS = --with-env name=fusion fusion=$(fusion_SHA256) perl=$(perl_SHA256) cpanminus=$(cpanminus_SHA256) patches=$(FUSION_PATCHES_SHA)
+FUSION_BUILD = $(shell ../../build-caching get fusion/ $(FUSION_CACHE_PARAMETERS) || echo build-fusion-real)
+# do not split cache for perl, this is probably not worth it
+build-fusion: $(FUSION_BUILD)
+	if [ "$<" != "" ]; then ../../build-caching put fusion/ $(FUSION_CACHE_PARAMETERS); fi
+	touch $@
+
+build-fusion-real: fusion-source fusion-modules
+	mkdir -p fusion/opt/rudder/share/fusion-utils
+	cp -r fusion-source/share/* fusion/opt/rudder/share/fusion-utils/
+ifeq ($(INSTALL),ginstall)
+	# fusion doesn't know how to make install without gnu tools in the path
+	$(SED) 's/\([^g]\)install -m/\1ginstall -m/' fusion-source/Makefile.PL > fusion-source/Makefile.PL.new
+	mv fusion-source/Makefile.PL.new fusion-source/Makefile.PL
+endif
+	cd fusion-source && PERL_MM_USE_DEFAULT=1 $(PERL) -I. Makefile.PL --default PREFIX=$(RUDDER_DIR)
+	cd fusion-source && $(make) install DESTDIR=$(CURDIR)/fusion
+	# bug in fusion installer that doesn't set the right owner to some files
+	chown root fusion/opt/rudder/share/fusioninventory
+	chown root fusion/opt/rudder/share/fusioninventory/html
+
+
+##########################################
+# Installl components #
+##########################################
+
+cleanup-build:
+# AIX needs .a files but not other systems
+ifneq (AIX,$(OS_FAMILY))
+	rm -f dependencies/opt/rudder/lib/*.a
+endif
+	rm -f dependencies/opt/rudder/lib/*.la
+	rm -rf dependencies/opt/rudder/lib/cmake
+	rm -rf dependencies/opt/rudder/lib/engines*
+	rm -rf dependencies/opt/rudder/lib/pkgconfig
+	rm -f dependencies/opt/rudder/lib/xml2Conf.sh
+	rm -f dependencies/opt/rudder/lib/libjq* # libjq can be removed, jq loads its lib statically
+	printf "#!/bin/sh\necho 'cf-monitord has been removed from Rudder agent'\nexit 1" > dependencies/opt/rudder/bin/cf-monitord
+
+# Strip binaries
+ifeq (,$(DEBUG))
+ifeq (AIX,$(OS_FAMILY))
+	cp /opt/freeware/lib/gcc/powerpc-ibm-aix5.3.0.0/4.8.2/libgcc* $(DESTDIR)/opt/rudder/lib/
+	./absolute-aix-path $(DESTDIR)/opt/rudder
+	find dependencies -type f | xargs file | grep -E "executable|shared object" | cut -f 1 -d : | xargs strip 2> /dev/null || true
+else
+	find dependencies -type f -print0 | xargs -0 file | grep -E "executable|shared object" | cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null || true
+endif
+endif
+
+
+# install to DESTDIR
+install-agent: build cleanup-build rudder-agent rudder-agent.cron debug-script/rudder-debug-info rudder.8.gz
+	# Directories
+	mkdir -p $(DESTDIR)/var/rudder/tmp
+	mkdir -p $(DESTDIR)/var/rudder/tools
+	mkdir -p $(DESTDIR)/var/rudder/inventories
+	mkdir -p $(DESTDIR)/var/rudder/ncf/local
+	mkdir -p $(DESTDIR)/var/rudder/ncf/common
+	mkdir -p $(DESTDIR)/var/rudder/reports/ready
+	mkdir -p $(DESTDIR)/var/log/rudder/install
+	mkdir -p $(DESTDIR)/var/log/rudder/agent-check
+
+	# Binaries
+	mkdir -p $(DESTDIR)/opt/rudder/bin
+	mkdir -p $(DESTDIR)/var/rudder
+	cp -rp dependencies/var/rudder/cfengine-community $(DESTDIR)/var/rudder/
+	cp -rp dependencies/opt/rudder/bin/cf-* $(DESTDIR)/opt/rudder/bin/
+	cp -rp dependencies/opt/rudder/bin/curl $(DESTDIR)/opt/rudder/bin/
+	cp -rp dependencies/opt/rudder/bin/jq $(DESTDIR)/opt/rudder/bin/
+
+	mkdir -p $(DESTDIR)/opt/rudder/share/man/man8
+	cd $(DESTDIR)/opt/rudder/bin && for binary in cf-agent cf-promises cf-key cf-execd cf-serverd cf-net cf-runagent; do \
+		./$${binary} -M | gzip > $(DESTDIR)/opt/rudder/share/man/man8/$${binary}.8.gz; \
+	done
+
+	# Libraries
+	mkdir -p $(DESTDIR)/opt/rudder/lib
+	cp -rp dependencies/opt/rudder/lib/* $(DESTDIR)/opt/rudder/lib/
+
+	# Perl and fusion
+	cp -rp fusion/opt/rudder/bin/perl $(DESTDIR)/opt/rudder/bin/
+	cp -rp fusion/opt/rudder/bin/fusioninventory-agent $(DESTDIR)/opt/rudder/bin/
+	cp -rp fusion/opt/rudder/lib/perl5 $(DESTDIR)/opt/rudder/lib/
+	mkdir -p $(DESTDIR)/opt/rudder/share/
+	cp -rp fusion/opt/rudder/share/fusion* $(DESTDIR)/opt/rudder/share/
+
+ifeq (true,$(USE_SYSTEMD))
+	# Systemd files
+	mkdir -p $(DESTDIR)/lib/systemd/system
+	$(INSTALL) -m 644 systemd/rudder-agent.service $(DESTDIR)/lib/systemd/system/rudder-agent.service
+	$(INSTALL) -m 644 systemd/rudder-cf-execd.service $(DESTDIR)/lib/systemd/system/rudder-cf-execd.service
+	$(INSTALL) -m 644 systemd/rudder-cf-serverd.service $(DESTDIR)/lib/systemd/system/rudder-cf-serverd.service
+else
+	# Init files
+ifneq (AIX,$(OS_FAMILY))
+	mkdir -p $(DESTDIR)/etc/init.d
+	mkdir -p $(DESTDIR)/etc/default
+	$(INSTALL) -m 755 rudder-agent.init $(DESTDIR)/etc/init.d/rudder-agent
+	$(INSTALL) -m 644 rudder-agent.default $(DESTDIR)/etc/default/rudder-agent
+endif
+endif
+
+	# cron files
+ifneq (AIX,$(OS_FAMILY))
+	mkdir -p $(DESTDIR)/etc/cron.d
+	$(INSTALL) -m 644 rudder-agent.cron $(DESTDIR)/etc/cron.d/rudder-agent
+endif
+
+	# Openssl configuration
+	mkdir -p $(DESTDIR)/opt/rudder/etc/ssl
+	$(INSTALL) -m 640 openssl.cnf $(DESTDIR)/opt/rudder/etc/ssl/openssl-agent.cnf
+
+	# Rudder scripts
+	$(INSTALL) -m 755 run-inventory $(DESTDIR)/opt/rudder/bin/
+	$(INSTALL) -m 755 rudder-sign $(DESTDIR)/opt/rudder/bin/
+	$(INSTALL) -m 755 rudder-signature-check $(DESTDIR)/opt/rudder/bin/
+	$(INSTALL) -m 755 check-rudder-agent $(DESTDIR)/opt/rudder/bin/
+	$(INSTALL) -m 755 vzps.py $(DESTDIR)/opt/rudder/bin/
+	$(INSTALL) -m 755 rudder-perl $(DESTDIR)/opt/rudder/bin/
+	$(INSTALL) -m 755 rudder-uuidgen $(DESTDIR)/opt/rudder/bin/
+	$(INSTALL) -m 755 debug-script/rudder-debug-info $(DESTDIR)/opt/rudder/bin/
+	$(INSTALL) -m 755 rudder-agent/bin/rudder $(DESTDIR)/opt/rudder/bin/
+
+	# Package scripts
+	mkdir -p $(DESTDIR)/opt/rudder/share/package-scripts
+	$(INSTALL) -m 755 rudder-agent-postinst $(DESTDIR)/opt/rudder/share/package-scripts/
+
+	# Rudder agent utilities
+	mkdir -p $(DESTDIR)/opt/rudder/share/commands
+	$(INSTALL) -m 755 rudder-agent/share/commands/* $(DESTDIR)/opt/rudder/share/commands/
+	mkdir -p $(DESTDIR)/opt/rudder/share/lib
+	$(INSTALL) -m 644 rudder-agent/share/lib/* $(DESTDIR)/opt/rudder/share/lib/
+	chmod 755 $(DESTDIR)/opt/rudder/share/lib/timestamp
+	mkdir -p $(DESTDIR)/opt/rudder/etc
+	$(INSTALL) -m 644 rudder-agent/agent-capabilities $(DESTDIR)/opt/rudder/etc/
+
+	# Bootstrap promises
+	mkdir -p $(DESTDIR)/opt/rudder/share/bootstrap-promises/
+	$(INSTALL) -m 644 ./rudder-sources/rudder-techniques/bootstrap-promises/* $(DESTDIR)/opt/rudder/share/bootstrap-promises/
+
+	# Install /etc/bash_completion.d/rudder.sh in order to autocomplete rudder commands
+	mkdir -p $(DESTDIR)/etc/bash_completion.d
+	$(INSTALL) -m 644 rudder-agent/etc/bash_completion.d/rudder.sh $(DESTDIR)/etc/bash_completion.d/
+
+	# Install rudder man page
+	mkdir -p $(DESTDIR)/opt/rudder/share/man/man8/
+	$(INSTALL) -m 644 rudder.8.gz $(DESTDIR)/opt/rudder/share/man/man8/
+
+	# Create a symlink to make "rudder" available as part of the default PATH
+	# /usr/bin is not writable on MacOSX
+ifeq (Darwin,$(OS_FAMILY))
+	mkdir -p $(DESTDIR)/usr/local/bin
+	ln -sf /opt/rudder/bin/rudder $(DESTDIR)/usr/local/bin/rudder
+else
+	mkdir -p $(DESTDIR)/usr/bin
+	ln -sf /opr/rudder/bin/rudder $(DESTDIR)/usr/bin/rudder
+endif
+
+# TODO remove ?
+	# Install a profile script to make cf-* part of the PATH
+ifneq (AIX,$(OS_FAMILY))
+	mkdir -p $(DESTDIR)/etc/profile.d
+	$(INSTALL) -m 644 rudder-agent.sh $(DESTDIR)/etc/profile.d/
+endif
+
+
+#################
+# Clean targets #
+#################
+
+clean:
+	rm -rf dependencies fusion
+	rm -f build-*
+	rm -f rudder.8.gz rudder-agent.cron 
+	rm -rf rudder-agent
+	cd debug-script && $(make) clean 2>/dev/null || true
+
+# distclean should remove everything except rudder-sources.tar.bz2 since it can be brought by by external means
+distclean: clean
+	rm -rf *-source
+
+mrproper: distclean
+	rm -f rudder-sources.tar.bz2
+
+.PHONY: source build install clean dist-clean

@@ -27,43 +27,22 @@
 %define rudderlogdir         /var/log/rudder
 %define bindir               /usr/bin
 
-# use_system_lmdb checks if to build CFEngine we will need to build LMDB or if
-# a package already exists on the system.
-# Default value is false since no rpm based target provides it
-%define use_system_lmdb false
-
-# We want openssl 1.1.1 which is currently provided by noone
-%define use_system_openssl false
-
-# Same goes for the use of the local PCRE install vs. a bundled one
-%define use_system_pcre true
-
-# We need to build curl since we embed openssl
-%define use_system_curl false
-
-# Same goes for the use of the local jq install vs. a bundled one
-%define use_system_jq true
-
-# Same goes for the use of the local libyaml install vs. a bundled one
-%define use_system_yaml true
-
-# Same goes for the use of the local libxml2 install vs. a bundled one
-%define use_system_xml true
-
-# Same goes for the use of the local zlib install vs. a bundled one
-%define use_system_zlib true
-
-# Same goes for the use of the local perl install vs. a bundled one
-%define use_system_perl true
-
-# Default to using systemd for service management
-%define use_systemd true
-
-# Default to use PIE code if possible
-%define use_pie true
-
-# Default to use ACL library in th agent
-%define use_acl true
+# Defaults
+%define with_zlib false
+%define with_lmdb false
+%define with_pcre false
+%define with_openssl false
+%define with_libyaml false
+%define with_libxml2 false
+%define with_libcurl false
+%define with_jq false
+%define with_perl false
+# replicate defauls from configure : all features
+%define enable_https true
+%define enable_pie true
+%define enable_systemd true
+%define enable_acl true
+%define enable_pam true
 
 %if 0%{?rhel} == 8
 # https://pagure.io/packaging-committee/issue/738
@@ -75,69 +54,60 @@
 %define __brp_mangle_shebangs /usr/bin/true
 %endif
 
-# Default to embed fusion
-%define use_system_fusion false
-
 # 1- AIX
 %if "%{?aix}"
-# no system anything on aix
-%define use_system_perl false
-%define use_system_jq false
-%define use_system_pcre false
-%define use_system_zlib false
-%define use_system_yaml false
-%define use_system_xml false
-%define use_pie false
-%define use_acl false
+%define with_zlib true
+%define with_pcre true
+%define with_openssl true
+%define with_libyaml true
+%define with_libxml2 true
+%define with_libcurl true
+%define with_jq true
+%define with_perl true
+%define enable_https false
+%define enable_systemd false
 %endif
 
 # 2 - RHEL & Fedora
-%if 0%{?rhel} && 0%{?rhel} == 3
-# no PCRE on RHEL3
-%define use_system_pcre false
-%endif
 %if 0%{?rhel} && 0%{?rhel} <= 5
-# system perl too old on RHEL3 and RHEL5
-%define use_system_perl false
-%define use_system_yaml false
+# system perl too old on RHEL5
+%define with_perl true
+%define with_libyaml true
 #libxml too old
-%define use_system_xml false
+%define with_libxml2 true
 %endif
 %if 0%{?rhel} && 0%{?rhel} <= 6
 # PIE and PIC incompatible on old gcc
-%define use_pie false
+%define enable_pie false
 %endif
 %if 0%{?rhel} && 0%{?rhel} < 8
 # no jq before RHEL8
-%define use_system_jq false
+%define with_jq true
+%define with_libcurl true
+%define with_openssl true
+%define with_lmdb true
 %endif
 
-%if 0%{?fedora}
-%define use_system_curl true
-%define use_system_jq false
-%define use_system_openssl true
-%endif
-
-%if 0%{?rhel} && 0%{?rhel} >= 8
-%define use_system_curl true
-%define use_system_openssl true
-%endif
+# Recent fedora has proper defaults
 
 # 3 - SUSE
 # Reference for suse_version : https://en.opensuse.org/openSUSE:Build_Service_cross_distribution_howto
 %if 0%{?suse_version} && 0%{?suse_version} < 1200
 # system perl and openssl too old on sles 10 and 11
-%define use_system_perl false
+%define with_perl true
 # no yaml on sles 10 and 11
-%define use_system_yaml false
+%define with_libyaml true
 #libxml too old
-%define use_system_xml false
+%define with_libxml2 true
 # PIE and PIC incompatible on old gcc
-%define use_pie false
+%define enable_pie false
 %endif
 %if 0%{?suse_version} && !0%{?is_opensuse}
 # no jq on sles, only on opensuse
-%define use_system_jq false
+%define with_jq true
+%define with_libcurl true
+%define with_openssl true
+%define with_lmdb true
 %endif
 
 #=================================================
@@ -158,7 +128,7 @@ Source1: Makefile
 AutoReq: 0
 AutoProv: 0
 
-%if "%{use_system_perl}" == "true"
+%if "%{with_perl}" == "false"
 %if 0%{?rhel}
 BuildRequires: perl-CPAN
 %endif
@@ -172,10 +142,6 @@ BuildRequires: gcc bison flex autoconf automake libtool
 Conflicts: rudder-agent-thin
 
 # Specific requirements
-
-%if "%{use_system_fusion}" == "true"
-Requires: fusioninventory-agent fusioninventory-agent-task-inventory
-%endif
 
 ## For Linux
 %if "%{?aix}" ==""
@@ -238,15 +204,11 @@ Requires: kernel-utils
 %endif
 
 # https fails on old distro because they don't support modern certificates (namely RHEL3, aix5, sles10 and sles11)
-%define use_https true
 %if 0%{?rhel} && 0%{?rhel} < 6
-%define use_https false
+%define enable_https false
 %endif
 %if 0%{?suse_version} && 0%{?suse_version} < 1200
-%define use_https false
-%endif
-%if "%{?aix}"
-%define use_https false
+%define enable_https false
 %endif
 
 # Reference for suse_version : https://en.opensuse.org/openSUSE:Build_Service_cross_distribution_howto
@@ -268,45 +230,60 @@ Requires: libacl
 BuildRequires: libattr-devel
 %endif
 
-%if "%{use_system_jq}" == "true"
+%if "%{with_jq}" == "false"
 Requires: jq
 %endif
 
 ## YAML dependencies
-%if "%{use_system_yaml}" == "true"
+%if "%{with_libyaml}" == "false"
 BuildRequires: libyaml-devel
 %endif
-%if "%{use_system_yaml}" == "true" && 0%{?suse_version} && 0%{?suse_version} >= 1200
+%if "%{with_libyaml}" == "false" && 0%{?suse_version} && 0%{?suse_version} >= 1200
 Requires: libyaml-0-2
 %endif
 # no yaml on sles other than 12
-%if "%{use_system_yaml}" == "true" && 0%{?suse_version} == 0
+%if "%{with_libyaml}" == "false" && 0%{?suse_version} == 0
 Requires: libyaml
 %endif
 
 ## XML dependencies
-%if "%{use_system_xml}" == "true"
+%if "%{with_libxml2}" == "false"
 BuildRequires: libxml2-devel
 Requires: libxml2
 %endif
 
 ## CURL dependencies
-%if "%{use_system_curl}" == "true"
+%if "%{with_libcurl}" == "false"
 BuildRequires: curl-devel
 Requires: curl
 %endif
 
 ## Openssl dependencies
-%if "%{use_system_openssl}" == "true"
+%if "%{with_openssl}" == "false"
 BuildRequires: openssl-devel
 Requires: openssl
 %endif
 
-## PRE dependencies
-%if "%{use_system_pcre}" == "true"
+## PCRE dependencies
+%if "%{with_pcre}" == "false"
 BuildRequires: pcre-devel
 Requires: pcre
 %endif
+
+#### Use systemd everywhere except on: AIX, RHEL<7, SLES<12, Fedora<15
+%if 0%{?rhel} && 0%{?rhel} < 7
+%define enable_systemd false
+%endif
+
+%if 0%{?suse_version} && 0%{?suse_version} < 1315
+%define enable_systemd false
+%endif
+
+%if 0%{?fedora} && 0%{?fedora} < 15
+%define enable_systemd false
+%endif
+####
+
 
 %description
 Rudder is an open source configuration management and audit solution.
@@ -322,7 +299,7 @@ FusionInventory.
 
 cd %{_sourcedir}
 
-%if "%{use_system_perl}" == "true"
+%if "%{with_perl}" == "false"
 cpan install Module::CoreList
 cpan install Module::Install
 %endif
@@ -332,6 +309,7 @@ cpan install Module::Install
 cp /usr/lib64/libattr.a /usr/lib64/libattr.la /lib64 || cp /usr/lib/libattr.a /usr/lib/libattr.la /lib
 %endif
 
+./configure 
 make BUILD_CFLAGS="${RPM_OPT_FLAGS}" USE_SYSTEM_OPENSSL=%{use_system_openssl} USE_SYSTEM_LMDB=%{use_system_lmdb} USE_SYSTEM_PCRE=%{use_system_pcre} USE_SYSTEM_FUSION=%{use_system_fusion} USE_SYSTEM_PERL=%{use_system_perl} USE_SYSTEM_JQ=%{use_system_jq} USE_HTTPS=%{use_https} USE_SYSTEM_ZLIB=%{use_system_zlib} USE_SYSTEM_CURL=%{use_system_curl} USE_SYSTEM_YAML=%{use_system_yaml} USE_SYSTEM_XML=%{use_system_xml} USE_PIE=%{use_pie} USE_ACL=%{use_acl}
 
 # rhel7 doesn't have python 3 so we force python2 instead
@@ -349,25 +327,7 @@ find . -type f | xargs sed -i '1,1s|#!/usr/bin/python3|#!/usr/bin/python2|'
 
 cd %{_sourcedir}
 
-#### Use systemd everywhere except on: AIX, RHEL<7, SLES<12, Fedora<15
-%if "%{?aix}"
-%define use_systemd false
-%endif
-
-%if 0%{?rhel} && 0%{?rhel} < 7
-%define use_systemd false
-%endif
-
-%if 0%{?suse_version} && 0%{?suse_version} < 1315
-%define use_systemd false
-%endif
-
-%if 0%{?fedora} && 0%{?fedora} < 15
-%define use_systemd false
-%endif
-####
-
-make install DESTDIR=%{buildroot} USE_SYSTEM_OPENSSL=%{use_system_openssl} USE_SYSTEM_LMDB=%{use_system_lmdb} USE_SYSTEM_JQ=%{use_system_jq} USE_SYSTEM_PCRE=%{use_system_pcre} USE_SYSTEM_ZLIB=%{use_system_zlib} USE_SYSTEM_CURL=%{use_system_curl} USE_SYSTEMD=%{use_systemd} USE_SYSTEM_FUSION=%{use_system_fusion} USE_SYSTEM_PERL=%{use_system_perl} USE_HTTPS=%{use_https}  USE_SYSTEM_YAML=%{use_system_yaml} USE_SYSTEM_XML=%{use_system_xml} USE_PIE=%{use_pie} USE_ACL=%{use_acl}
+make install DESTDIR=%{buildroot}
 
 # remove perl doc
 rm -rf %{buildroot}/opt/rudder/man %{buildroot}/opt/rudder/lib/perl5/5.22.0/pod
@@ -415,7 +375,7 @@ then
   CFRUDDER_FIRST_INSTALL="true"
 fi
 
-/opt/rudder/share/package-scripts/rudder-agent-postinst "${CFRUDDER_FIRST_INSTALL}" "rpm" "%{use_systemd}" ""
+/opt/rudder/share/package-scripts/rudder-agent-postinst "${CFRUDDER_FIRST_INSTALL}" "rpm" "%{enable_systemd}" ""
 
 %preun
 #=================================================
@@ -473,7 +433,7 @@ function pidof {
 # Do it only during uninstallation
 if [ $1 -eq 0 ]; then
 
-%if "%{use_systemd}" == "true"
+%if "%{enable_systemd}" == "true"
   systemctl stop rudder-agent || true
   systemctl disable rudder-agent rudder-cf-execd rudder-cf-serverd || true
   rm -f /lib/systemd/system/rudder-agent.service
@@ -539,7 +499,7 @@ rm -f %{_builddir}/file.list.%{name}
 # no init no cron and no profile with aix
 %config /etc/cron.d/rudder-agent
 %config /etc/profile.d/rudder-agent.sh
-%if "%{use_systemd}" == "false"
+%if "%{enable_systemd}" == "false"
 %config(noreplace) /etc/default/rudder-agent
 %endif
 %endif

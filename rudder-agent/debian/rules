@@ -10,151 +10,118 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
-REAL_NAME=rudder-agent
-
 BUILD_CFLAGS=$(shell [ -x /usr/bin/dpkg-buildflags ] && /usr/bin/dpkg-buildflags --get CFLAGS )
 BUILD_LDFLAGS=$(shell [ -x /usr/bin/dpkg-buildflags ] && /usr/bin/dpkg-buildflags --get LDFLAGS )
-
-# Defaults (use our own openssl 1.1.1, and curl since it depends on it)
-USE_HTTPS=true
-USE_SYSTEM_OPENSSL=false
-USE_SYSTEM_PERL=true
-USE_SYSTEM_CURL=false
-USE_SYSTEM_JQ=true
-USE_SYSTEM_YAML=true
-USE_SYSTEM_XML=true
-USE_SYSTEMD=true
-USE_PIE=true
-
-ifeq (rudder-agent,$(REAL_NAME))
-USE_SYSTEM_FUSION=false
-else
-USE_SYSTEM_FUSION=true
-endif
 
 # add openssl to old distributions
 OS_CODENAME := $(shell lsb_release -s -c)
 # Ubuntu 10.04
 ifeq (lucid,$(OS_CODENAME))
-USE_HTTPS=false
-USE_SYSTEMD=false
-USE_SYSTEM_PERL=false
-USE_SYSTEM_JQ=false
-USE_PIE=false
+WITH = --disable-https --disable-systemd --disable-pie --with-perl --with-jq --with-openssl --with-libcurl --with-lmdb
 endif
 # Ubuntu 12.04
 ifeq (precise,$(OS_CODENAME))
-USE_SYSTEMD=false
-USE_SYSTEM_JQ=false
-USE_PIE=false
+WITH = --disable-systemd --disable-pie --with-jq --with-openssl --with-libcurl --with-lmdb
 endif
 # Ubuntu 12.10
 ifeq (quantal,$(OS_CODENAME))
-USE_SYSTEMD=false
-USE_SYSTEM_JQ=false
-USE_PIE=false
+WITH = --disable-systemd --disable-pie --with-jq --with-openssl --with-libcurl --with-lmdb
 endif
 # Ubuntu 13.04
 ifeq (raring,$(OS_CODENAME))
-USE_SYSTEMD=false
-USE_SYSTEM_JQ=false
-USE_PIE=false
+WITH = --disable-systemd --disable-pie --with-jq --with-openssl --with-libcurl --with-lmdb
 endif
 # Ubuntu 14.04
 ifeq (trusty,$(OS_CODENAME))
-USE_SYSTEMD=false
-USE_SYSTEM_JQ=false
+WITH = --disable-systemd --with-jq --with-openssl --with-libcurl --with-lmdb
 endif
 # Ubuntu 15.10
 ifeq (wily,$(OS_CODENAME))
-USE_PIE=false
-USE_SYSTEM_JQ=false
+WITH = --with-jq --with-openssl --with-libcurl --with-lmdb
+endif
+# Ubuntu 16.04
+ifeq (focal,$(OS_CODENAME))
+WITH = --with-openssl --with-libcurl --with-lmdb
+endif
+# Ubuntu 18.04
+ifeq (focal,$(OS_CODENAME))
+WITH = --with-openssl --with-libcurl --with-lmdb
 endif
 # Ubuntu 20.04
 ifeq (focal,$(OS_CODENAME))
-USE_SYSTEM_OPENSSL=true
-USE_SYSTEM_CURL=true
+WITH = 
 endif
 
 # Debian 5
 ifeq (lenny,$(OS_CODENAME))
-USE_HTTPS=false
-USE_SYSTEMD=false
-USE_SYSTEM_JQ=false
-USE_SYSTEM_PERL=false
-USE_SYSTEM_YAML=false
-USE_SYSTEM_XML=false
-USE_PIE=false
+WITH = --disable-https --disable-systemd --disable-pie --with-perl --with-jq --with-openssl --with-libcurl --with-lmdb --with-libxml2 --with-libyaml
 endif
 # Debian 6
 ifeq (squeeze,$(OS_CODENAME))
-USE_HTTPS=false
-USE_SYSTEMD=false
-USE_SYSTEM_JQ=false
-USE_PIE=false
+WITH = --disable-https --disable-systemd --disable-pie --with-jq --with-openssl --with-libcurl --with-lmdb
 endif
 # Debian 7
 ifeq (wheezy,$(OS_CODENAME))
-USE_SYSTEMD=false
-USE_SYSTEM_JQ=false
-USE_PIE=false
+WITH = --disable-systemd --disable-pie --with-jq --with-openssl --with-libcurl --with-lmdb
 endif
 # Debian 8
 ifeq (jessie,$(OS_CODENAME))
-USE_SYSTEM_JQ=false
+WITH = --with-jq --with-openssl --with-libcurl --with-lmdb
 endif
 # Debian 9
 ifeq (stretch,$(OS_CODENAME))
+WITH = --with-openssl --with-libcurl --with-lmdb
 endif
 # Debian 10
 ifeq (buster,$(OS_CODENAME))
-USE_SYSTEM_OPENSSL=true
-USE_SYSTEM_CURL=true
+WITH =
 endif
-
-
-MAKE_OPTIONS=--debug USE_HTTPS=$(USE_HTTPS) USE_SYSTEM_OPENSSL=$(USE_SYSTEM_OPENSSL) USE_SYSTEM_FUSION=$(USE_SYSTEM_FUSION) USE_SYSTEM_PERL=$(USE_SYSTEM_PERL) USE_SYSTEMD=$(USE_SYSTEMD) USE_SYSTEM_CURL=$(USE_SYSTEM_CURL) USE_SYSTEM_JQ=$(USE_SYSTEM_JQ) USE_SYSTEM_YAML=$(USE_SYSTEM_YAML) USE_SYSTEM_XML=$(USE_SYSTEM_XML) USE_PIE=$(USE_PIE)
 
 # manage dependencies
-ifeq (true,$(USE_SYSTEM_OPENSSL))
+ifeq($(findstring openssl,$(WITH)),)
 DEPS := $(DEPS), openssl
 endif
-ifeq (true,$(USE_SYSTEM_PERL))
+ifeq($(findstring perl,$(WITH)),)
 DEPS := $(DEPS), libxml-treepp-perl, perl
 endif
-ifeq (true,$(USE_SYSTEM_CURL))
+ifeq($(findstring libcurl,$(WITH)),)
 DEPS := $(DEPS), curl
 endif
-ifeq (true,$(USE_SYSTEM_JQ))
+ifeq($(findstring jq,$(WITH)),)
 DEPS := $(DEPS), jq
 endif
-ifeq (true,$(USE_SYSTEM_YAML))
+ifeq($(findstring libyaml,$(WITH)),)
 DEPS := $(DEPS), libyaml-0-2
 endif
-ifeq (true,$(USE_SYSTEM_XML))
+ifeq($(findstring libxml2,$(WITH)),)
 DEPS := $(DEPS), libxml2
 endif
-ifeq (true,$(USE_SYSTEMD))
+ifeq($(findstring lmdb,$(WITH)),)
+DEPS := $(DEPS), liblmdb0
+endif
+ifeq($(findstring systemd,$(WITH)),)
 DEPS := $(DEPS), systemd
 endif
 
 configure:
+	dh_testdir
+	cd SOURCES && ./configure $(WITH)
 
 build:
 	dh_testdir
-	cd SOURCES && $(MAKE) build $(MAKE_OPTIONS) BUILD_CFLAGS="$(BUILD_CFLAGS)" BUILD_LDFLAGS="$(BUILD_LDFLAGS)"
+	cd SOURCES && $(MAKE) build BUILD_CFLAGS="$(BUILD_CFLAGS)" BUILD_LDFLAGS="$(BUILD_LDFLAGS)"
 
 clean:
 	dh_testdir
 	dh_testroot
-	cd SOURCES && $(MAKE) clean $(MAKE_OPTIONS)
+	cd SOURCES && $(MAKE) clean
 	dh_clean
 
 install: build
 	dh_testdir
 	dh_testroot
 	dh_installdirs
-	cd SOURCES && $(MAKE) install $(MAKE_OPTIONS) BUILD_LDFLAGS="$(BUILD_LDFLAGS)" DESTDIR=$(CURDIR)/debian/tmp
+	cd SOURCES && $(MAKE) install BUILD_LDFLAGS="$(BUILD_LDFLAGS)" DESTDIR=$(CURDIR)/debian/tmp
 	# remove perl doc
 	rm -rf $(CURDIR)/debian/tmp/opt/rudder/man $(CURDIR)/debian/tmp/opt/rudder/lib/perl5/5.22.0/pod
 	# let this file be managed by dh_installinit

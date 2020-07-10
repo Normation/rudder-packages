@@ -18,6 +18,8 @@ cd ../SOURCES
 # - no jq, no lmdb, no yaml, no pcre
 build_env="USE_HTTPS=true USE_SYSTEM_OPENSSL=false USE_SYSTEM_FUSION=false USE_SYSTEM_PERL=true USE_SYSTEMD=false USE_SYSTEM_CURL=true USE_SYSTEM_JQ=false USE_SYSTEM_YAML=false USE_SYSTEM_XML=true USE_PIE=yes USE_SYSTEM_LMDB=false USE_ACL=false USE_SYSTEM_PCRE=false"
 
+./configure --with-openssl --with-jq --with-libyaml --with-lmdb --with-pcre
+
 make build ${build_env}
 
 make install ${build_env} DESTDIR="${base}/tmp"

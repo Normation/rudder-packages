@@ -1,0 +1,294 @@
+#!/bin/sh
+
+set -e
+# Overridable environment: PROXY=
+
+# Dependencies defaults: use everything from system except fusion
+DEPENDENCIES="zlib lmdb pcre openssl libyaml libxml2 libcurl jq perl fusion"
+for dep in ${DEPENDENCIES}; do
+  eval "BUILD_${dep}=false"
+done
+BUILD_fusion=true
+
+# Features defaults: things are enabled except if the unix family doesn't support it
+FEATURES="https pie systemd acl pam"
+for use in ${FEATURES}; do
+  eval "USE_${use}=true"
+done
+
+# Kernel gives unix family
+OS_FAMILY=$(uname -s)
+
+# Defaults for unix variations
+if [ "${OS_FAMILY}" != "Linux" ]; then
+  USE_acl=false
+  USE_pam=false
+  USE_systemd=false
+fi
+
+usage() {
+  echo "Usage: $0 [args]"
+  for dep in ${DEPENDENCIES}; do
+    if [ $(eval echo "\${BUILD_${dep}}") = "true" ]; then
+      ok="with"
+    else
+      ok="without"
+    fi
+    echo "  --with-${dep} / --without-${dep} : embed ${dep} in the agent [${ok}]"
+  done
+  for use in ${FEATURES}; do
+    if [ $(eval echo "\${USE_${use}}") = "true" ]; then
+      ok="enable"
+    else
+      ok="disable"
+    fi
+    echo "  --enable-${use} / --disable-${use} : enable ${use} feature when building the agent [${ok}]"
+  done
+}
+
+while [ -n "$1" ]
+do
+  opt="$1"
+  shift
+  case "${opt}" in 
+    --with-*)
+      name=$(echo "${opt}" | sed 's/--with-/BUILD_/')
+      if [ "$(eval echo \${${name}})" = "" ]; then
+        echo "Unknown dependency ${opt}"
+        exit 1
+      fi
+      eval "${name}=true"
+      ;;
+    --without-*)
+      name=$(echo "${opt}" | sed 's/--without-/BUILD_/')
+      if [ "$(eval echo \${${name}})" = "" ]; then
+        echo "Unknown dependency ${opt}"
+        exit 1
+      fi
+      eval "${name}=false"
+      ;;
+    --enable-*)
+      name=$(echo "${opt}" | sed 's/--enable-/USE_/')
+      if [ "$(eval echo \${${name}})" = "" ]; then
+        echo "Unknown feature ${opt}"
+        exit 1
+      fi
+      eval "${name}=true"
+      ;;
+    --disable-*)
+      name=$(echo "${opt}" | sed 's/--disable-/USE_/')
+      if [ "$(eval echo \${${name}})" = "" ]; then
+        echo "Unknown feature ${opt}"
+        exit 1
+      fi
+      eval "${name}=false"
+      ;;
+    --help)
+      usage
+      exit
+      ;;
+    *)
+      echo "Unknown option ${opt}"
+      exit 1
+      ;;
+  esac
+done
+
+# Compute variables
+# =================
+
+# Autodetect GNU tools
+TAR=$(type gtar >/dev/null 2>&1 && echo gtar || echo tar)
+PATCH=$(type gpatch >/dev/null 2>&1 && echo gpatch || echo patch)
+SED=$(type gsed >/dev/null 2>&1 && echo gsed || echo sed)
+INSTALL=$(type ginstall >/dev/null 2>&1 && echo ginstall || echo install)
+
+# Proxy is not autodetected, it must be given
+[ "${PROXY}" != "" ] && PROXY_ENV="http_proxy=${PROXY} ftp_proxy=${PROXY} "
+
+# try getter in this order: curl, fetch, wget
+if type curl >/dev/null 2>/dev/null; then
+  CPAN_OPT="--curl --no-wget --no-lwp"
+  _GET="${PROXY_ENV}curl -s -L -f -o"
+elif type fetch >/dev/null 2>/dev/null; then
+  CPAN_OPT=""
+  _GET="${PROXY_ENV}fetch -q -o"
+else
+  CPAN_OPT="--wget"
+  _GET="${PROXY_ENV}wget -q --header=\"accept-encoding:\" -O"
+fi
+
+# Switch to http for very old distros
+if [ "${USE_https}" = "true" ]; then
+  HTTPS="https"
+else
+  HTTPS="http"
+fi
+
+
+# Compute dependencies and their --with statements
+for dep in ${DEPENDENCIES}
+do
+  build=$(eval echo "\${BUILD_${dep}}")
+  if [ "${build}" = "true" ]; then
+    eval "WITH_${dep}='--with-${dep}=\$(CURDIR)/dependencies/opt/rudder'"
+    eval "${dep}_DEP=build-${dep}"
+    SOURCE_DEPS="${SOURCE_DEPS} ${dep}-source"
+  else
+    eval "WITH_${dep}=\"--with-${dep}\""
+  fi
+done
+# --with-openssl is simetimes called --with-ssl
+WITH_openssl="${WITH_openssl} $(echo ${WITH_openssl} | sed 's/--with-openssl/--with-ssl/')"
+
+# Compute use_* --with statements
+for feat in acl pam
+do
+  use=$(eval echo "\${USE_${feat}}")
+  if [ "${use}" = "true" ]; then
+    eval "WITH_${feat}=\"--with-${feat}\""
+  else
+    eval "WITH_${feat}=\"--without-${feat}\""
+  fi
+done
+
+# Add adequate --with statements to compilation options
+LIBCURL_ARGS="${WITH_zlib} ${WITH_openssl}"
+LIBXML2_ARGS="${WITH_zlib}"
+CFENGINE_ARGS="${WITH_acl} ${WITH_pam} ${WITH_lmdb} ${WITH_pcre} ${WITH_openssl} ${WITH_libyaml} ${WITH_libxml2} ${WITH_libcurl}"
+
+# Perl specific
+if [ "${BUILD_perl}" = "true" ]; then
+  PERL="\$(CURDIR)/fusion/opt/rudder/bin/perl"
+else
+  PERL="perl"
+fi
+
+# Many unices do not have the same form of rpath and library loading
+# We leak build path here, but it is mandatory to build properly, maybe we could clean it up after building
+if [ "${OS_FAMILY}" = "AIX" ]; then
+  SYSTEM_LDFLAGS="-static-libgcc -Wl,-bsvr4 -Wl,-R/opt/rudder/lib -Wl,-R\$(CURDIR)/dependencies/opt/rudder/lib"
+elif [ "${OS_FAMILY}" = "Darwin" ]; then
+  SYSTEM_LDFLAGS=""
+  # lmdb doesn't build as is on osx
+  LMDB_LDFLAGS="-dynamiclib -install_name /opt/rudder/lib/liblmdb.dylib -compatibility_version 0 -current_version 0.9 -Wl,-single_module"
+  LMDB_MAKEFLAGS="SOEXT=.dylib"
+else
+  # solaris and linux use GNU ld and produce elf files
+  SYSTEM_LDFLAGS="-Wl,-R/opt/rudder/lib -Wl,-R\$(CURDIR)/dependencies/opt/rudder/lib"
+fi
+
+# Openssl configuration
+if [ "$(./config.guess)" = "sparc-sun-solaris2.11" ]; then
+  # Hack needed because openssl is not guessing correctly the architecture on sparc solaris
+  SSL_CONFIGURE="${PERL} ./Configure solaris64-sparcv9-gcc"
+elif [ -x /usr/bin/dpkg ] && [ "$(dpkg --print-architecture)" = "i386" ] ; then
+  # Hack needed because openssl is not guessing correctly the architecture on debian 32 bits chroot
+  SSL_CONFIGURE="${PERL} ./Configure linux-generic32"
+else
+  SSL_CONFIGURE="PERL=${PERL} ./config"
+fi
+
+# AIX doesn't automatically unload libraries from memory (and a loaded library cannot be overwritten)
+# some older versions may remain and prevent proper linking/installing
+[ "${OS_FAMILY}" = "AIX" ] && slibclean
+
+# Test gcc flags
+test_cc() {
+  TEST_FILE=$(mktemp /tmp/cc.XXXXXX)
+  echo "void main() {}" > "${TEST_FILE}.c"
+  if cc -o "$2" "$3" "${TEST_FILE}" "${TEST_FILE}.c" 2>/dev/null
+  then
+    eval "${1}_CFLAGS='$2'"
+    eval "${1}_LDFLAGS='$3'"
+  fi
+  rm -f "${TEST_FILE}" "${TEST_FILE}".c
+}
+
+# Test if compiler supports hardening flags
+test_cc "SECURE" "-fstack-protector" "-Wl,-z,relro -Wl,-z,now"
+
+# Test if compiler supports pie flags if enabled
+if [ "${USE_PIE}" = "true" ]; then
+  test_cc "PIE" "-fPIE" "-pie"
+fi
+
+
+# Macro for source getting in the makefile
+source_macro() {
+  name="$1"
+  cat << EOF
+${name}-source:
+	\$(eval TMP_DIR := \$(shell mktemp -dq /tmp/rudder-${name}.XXXXXX))
+	\$(GET) \$(TMP_DIR)/${name}.tgz ${HTTPS}://repository.rudder.io/build-dependencies/${name}/${name}-\$(${name}_RELEASE).tar.gz \$(${name}_SHA256)
+	cd \$(TMP_DIR) && mkdir xxx && cd xxx && gunzip < ../${name}.tgz | ${TAR} xf -
+	mv \$(TMP_DIR)/xxx/* ./${name}-source
+	rm -rf \$(TMP_DIR)
+EOF
+}
+
+
+# Makefile replacements
+# =====================
+
+# Separation between makefile variables and makefile.in variable is made for readability
+# - makefile variables stay variables in the makefile, they are named and their content is terse
+# - makefile.in variables are replaced in the makefile, their content is short and useful to find inline
+
+# "Makefile" variables
+CONFIG_VARS="
+OS_FAMILY = ${OS_FAMILY}
+
+HTTPS = ${HTTPS}
+CPAN_OPT = ${CPAN_OPT}
+CFENGINE_ARGS = ${CFENGINE_ARGS}
+
+PERL = ${PERL}
+TAR = ${TAR}
+PATCH = ${PATCH}
+SED = ${SED}
+INSTALL = ${INSTALL}
+
+LMDB_MAKEFLAGS = ${LMDB_MAKEFLAGS}
+LMDB_LDFLAGS = ${LMDB_LDFLAGS}
+PIE_CFLAGS = ${PIE_CFLAGS}
+PIE_LDFLAGS = ${PIE_LDFLAGS}
+
+CFLAGS = \$(BUILD_CFLAGS) ${SECURE_CFLAGS}
+# -L for searching libs in the right place while they are not installed at their final place
+LDFLAGS = \$(BUILD_LDFLAGS) ${SECURE_LDFLAGS} ${SYSTEM_LDFLAGS} -L\$(CURDIR)/dependencies/opt/rudder/lib
+# TODO same ?
+BUILD_FLAGS_EXE = CFLAGS=\"\$(CFLAGS) \$(PIE_CFLAGS)\" LDFLAGS=\"\$(LDFLAGS) \$(PIE_LDFLAGS)\"
+BUILD_FLAGS_LIB = CFLAGS=\"\$(CFLAGS)\" LDFLAGS=\"\$(LDFLAGS)\"
+"
+
+# create a replacer sed expression
+SED_EXPR=":t"
+
+# Source macros
+for src in ${DEPENDENCIES} cfengine cpanminus
+do
+  dep=$(eval echo "\${${src}_DEP}")
+  SED_EXPR="${SED_EXPR}
+s%@${src}_SOURCE@%$(source_macro ${src})%;t t
+s%@${src}_DEP@%${dep}%;t t"
+done
+
+# "Makefile.in" variables 
+SED_EXPR="${SED_EXPR}
+s%@CONFIG_VARS@%${CONFIG_VARS}%;t t
+s%@_GET@%${_GET}%;t t
+s%@SSL_CONFIGURE@%${SSL_CONFIGURE}%;t t
+s%@LIBXML2_ARGS@%${LIBXML2_ARGS}%;t t
+s%@LIBCURL_ARGS@%${LIBCURL_ARGS}%;t t
+s%@SOURCE_DEPS@%${SOURCE_DEPS}%;t t"
+
+# newlines must be backslashed in sed
+SED_EXPR=$(echo "${SED_EXPR}" | sed '/t t$/b
+/:t$/b
+s/$/\\/')
+# ampersand must be backslashed in sed
+SED_EXPR=$(echo "${SED_EXPR}" | sed 's/\&/\\\&/g')
+
+${SED} -e "${SED_EXPR}
+" Makefile.in > Makefile

@@ -20,7 +20,9 @@ pkg install gcc gnu-binutils || true
 # use gnu tools to build
 export PATH=/usr/gnu/bin:/usr/gnu/x86_64-pc-solaris2.11/bin/:/usr/gnu/sparc-sun-solaris2.11/bin:$PATH
 
-env="RUDDER_VERSION_TO_PACKAGE=${VERSION} USE_SYSTEM_OPENSSL=false USE_SYSTEM_ZLIB=false USE_SYSTEM_LMDB=false USE_SYSTEM_PCRE=false USE_SYSTEM_PERL=true USE_SYSTEM_FUSION=false USE_SYSTEM_CURL=false USE_SYSTEM_JQ=false USE_SYSTEM_YAML=false USE_SYSTEM_XML=false USE_ACL=false"
+env="RUDDER_VERSION_TO_PACKAGE=${VERSION}"
+
+./configure --with-openssl --with-libcurl --with-zlib --with-lmdb --with-prce --with-jq --with-libyaml --with-libxml2
 
 # build
 # solaris 11.3 doesn't detect properly 64 bitness
@@ -41,6 +43,7 @@ pkgsend generate "${BUILD_DIR}" | pkgfmt > rudder-agent.p5m.1
 pkgmogrify -DARCH=`uname -p` -DVERSION=${VERSION} -DTAG=0 rudder-agent.p5m.1 solaris/rudder-agent.metadata.mog | pkgfmt > rudder-agent.p5m.2
 
 # dependencies
+# TODO add pkg install pkg:/text/gnu-grep as a dependency
 pkgdepend generate -md "${BUILD_DIR}" rudder-agent.p5m.2 | pkgfmt > rudder-agent.p5m.3
 pkgdepend resolve -m rudder-agent.p5m.3
 
