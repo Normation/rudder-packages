@@ -198,6 +198,7 @@ if type sestatus >/dev/null 2>&1 && sestatus | grep -q "enabled"; then
   restorecon -R /opt/rudder/etc/relayd
   restorecon -R /var/rudder/lib/relay
   restorecon -R /var/rudder/lib/ssl
+  restorecon -R /var/rudder/configuration-repository/shared-files
   # Add 3030 to ports apache can connect to
   semanage port -l | grep ^http_port_t | grep -q 3030 || semanage port -a -t http_port_t -p tcp 3030
   # Allow apache to write to files shared with relayd
@@ -256,7 +257,7 @@ fi
         restorecon -RF /var/rudder/reports
         restorecon -RF /var/log/rudder/apache2
         restorecon -RF /opt/rudder/etc/uuid.hive
-        restorecon -RF /var/rudder/configuration-repository/techniques
+        restorecon -RF /var/rudder/configuration-repository
       fi
     fi
   fi
