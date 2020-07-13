@@ -78,28 +78,28 @@ WITH =
 endif
 
 # manage dependencies
-ifeq($(findstring openssl,$(WITH)),)
+ifeq ($(findstring openssl,$(WITH)),)
 DEPS := $(DEPS), openssl
 endif
-ifeq($(findstring perl,$(WITH)),)
+ifeq ($(findstring perl,$(WITH)),)
 DEPS := $(DEPS), libxml-treepp-perl, perl
 endif
-ifeq($(findstring libcurl,$(WITH)),)
+ifeq ($(findstring libcurl,$(WITH)),)
 DEPS := $(DEPS), curl
 endif
-ifeq($(findstring jq,$(WITH)),)
+ifeq ($(findstring jq,$(WITH)),)
 DEPS := $(DEPS), jq
 endif
-ifeq($(findstring libyaml,$(WITH)),)
+ifeq ($(findstring libyaml,$(WITH)),)
 DEPS := $(DEPS), libyaml-0-2
 endif
-ifeq($(findstring libxml2,$(WITH)),)
+ifeq ($(findstring libxml2,$(WITH)),)
 DEPS := $(DEPS), libxml2
 endif
-ifeq($(findstring lmdb,$(WITH)),)
+ifeq ($(findstring lmdb,$(WITH)),)
 DEPS := $(DEPS), liblmdb0
 endif
-ifeq($(findstring systemd,$(WITH)),)
+ifeq ($(findstring systemd,$(WITH)),)
 DEPS := $(DEPS), systemd
 endif
 

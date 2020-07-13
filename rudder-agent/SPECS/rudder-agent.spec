@@ -29,7 +29,7 @@
 
 # Defaults
 %define with_zlib false
-%define with_lmdb false
+%define with_lmdb true
 %define with_pcre false
 %define with_openssl false
 %define with_libyaml false
@@ -85,7 +85,6 @@
 %define with_jq true
 %define with_libcurl true
 %define with_openssl true
-%define with_lmdb true
 %endif
 
 # Recent fedora has proper defaults
@@ -107,7 +106,6 @@
 %define with_jq true
 %define with_libcurl true
 %define with_openssl true
-%define with_lmdb true
 %endif
 
 #=================================================
@@ -220,6 +218,7 @@ Requires: pmtools
 Requires: dmidecode
 %endif
 
+
 ## ACL dependencies
 %if "%{?aix}" == ""
 BuildRequires: libacl-devel
@@ -299,7 +298,54 @@ FusionInventory.
 
 cd %{_sourcedir}
 
-%if "%{with_perl}" == "false"
+opt=""
+
+# Default is to not embed anything
+%if "%{with_zlib}" == "true"
+opt="${opt} --with-zlib"
+%endif
+%if "%{with_lmdb}" == "true"
+opt="${opt} --with-lmdb"
+%endif
+%if "%{with_pcre}" == "true"
+opt="${opt} --with-pcre"
+%endif
+%if "%{with_openssl}" == "true"
+opt="${opt} --with-openssl"
+%endif
+%if "%{with_libyaml}" == "true"
+opt="${opt} --with-libyaml"
+%endif
+%if "%{with_libxml2}" == "true"
+opt="${opt} --with-libxml2"
+%endif
+%if "%{with_libcurl}" == "true"
+opt="${opt} --with-libcurl"
+%endif
+%if "%{with_jq}" == "true"
+opt="${opt} --with-jq"
+%endif
+
+# Defauls is to enable all features
+%if "%{enable_https}" == "false"
+opt="${opt} --disable-https"
+%endif
+%if "%{enable_pie}" == "false"
+opt="${opt} --disable-pie"
+%endif
+%if "%{enable_systemd}" == "false"
+opt="${opt} --disable-systemd"
+%endif
+%if "%{enable_acl}" == "false"
+opt="${opt} --disable-acl"
+%endif
+%if "%{enable_pam}" == "false"
+opt="${opt} --disable-pam"
+%endif
+
+%if "%{with_perl}" == "true"
+opt="${opt} --with-perl"
+%else
 cpan install Module::CoreList
 cpan install Module::Install
 %endif
@@ -309,8 +355,10 @@ cpan install Module::Install
 cp /usr/lib64/libattr.a /usr/lib64/libattr.la /lib64 || cp /usr/lib/libattr.a /usr/lib/libattr.la /lib
 %endif
 
-./configure 
-make BUILD_CFLAGS="${RPM_OPT_FLAGS}" USE_SYSTEM_OPENSSL=%{use_system_openssl} USE_SYSTEM_LMDB=%{use_system_lmdb} USE_SYSTEM_PCRE=%{use_system_pcre} USE_SYSTEM_FUSION=%{use_system_fusion} USE_SYSTEM_PERL=%{use_system_perl} USE_SYSTEM_JQ=%{use_system_jq} USE_HTTPS=%{use_https} USE_SYSTEM_ZLIB=%{use_system_zlib} USE_SYSTEM_CURL=%{use_system_curl} USE_SYSTEM_YAML=%{use_system_yaml} USE_SYSTEM_XML=%{use_system_xml} USE_PIE=%{use_pie} USE_ACL=%{use_acl}
+
+
+./configure ${opt}
+make BUILD_CFLAGS="${RPM_OPT_FLAGS}"
 
 # rhel7 doesn't have python 3 so we force python2 instead
 %if 0%{?rhel} == 7
