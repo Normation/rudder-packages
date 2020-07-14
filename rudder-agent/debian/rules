@@ -103,12 +103,9 @@ ifeq ($(findstring systemd,$(WITH)),)
 DEPS := $(DEPS), systemd
 endif
 
-configure:
-	dh_testdir
-	cd SOURCES && ./configure $(WITH)
-
 build:
 	dh_testdir
+	cd SOURCES && ./configure $(WITH)
 	cd SOURCES && $(MAKE) build BUILD_CFLAGS="$(BUILD_CFLAGS)" BUILD_LDFLAGS="$(BUILD_LDFLAGS)"
 
 clean:

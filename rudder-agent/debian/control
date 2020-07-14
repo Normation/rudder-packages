@@ -2,7 +2,8 @@ Source: rudder-agent
 Section: admin
 Priority: extra
 Maintainer: Rudder Team <dev@rudder.io>
-Build-Depends: debhelper (>= 7), bison, gcc, flex, autoconf, automake, libtool, libpcre3-dev, libpam0g-dev, ca-certificates, perl, lsb-release, libyaml-dev, libxml2-dev, libacl1-dev, python, rsync, libssl-dev, libcurl4-openssl-dev, libmodule-corelist-perl, libmodule-install-perl
+# hack for liblmdb: liblmdb-dev is available from debian8 and after and libmsn0.3 is available before but unlikely to be already installed
+Build-Depends: debhelper (>= 7), bison, gcc, flex, autoconf, automake, libtool, libpcre3-dev, libpam0g-dev, ca-certificates, perl, lsb-release, libyaml-dev, libxml2-dev, libacl1-dev, python, rsync, libssl-dev, libcurl4-openssl-dev, libmodule-corelist-perl, libmodule-install-perl, liblmdb-dev | libmsn0.3
 Standards-Version: 3.8.0
 Homepage: https://www.rudder.io
 
