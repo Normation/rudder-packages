@@ -354,6 +354,7 @@ endif
 	rm -rf dependencies/opt/rudder/lib/pkgconfig
 	rm -f dependencies/opt/rudder/lib/xml2Conf.sh
 	rm -f dependencies/opt/rudder/lib/libjq* # libjq can be removed, jq loads its lib statically
+	# We don't use it and it takes some space
 	printf "#!/bin/sh\necho 'cf-monitord has been removed from Rudder agent'\nexit 1" > dependencies/opt/rudder/bin/cf-monitord
 
 # Strip binaries
@@ -385,8 +386,8 @@ install-agent: build cleanup-build rudder-agent rudder-agent.cron debug-script/r
 	mkdir -p $(DESTDIR)/var/rudder
 	cp -rp dependencies/var/rudder/cfengine-community $(DESTDIR)/var/rudder/
 	cp -rp dependencies/opt/rudder/bin/cf-* $(DESTDIR)/opt/rudder/bin/
-	cp -rp dependencies/opt/rudder/bin/curl $(DESTDIR)/opt/rudder/bin/
-	cp -rp dependencies/opt/rudder/bin/jq $(DESTDIR)/opt/rudder/bin/
+	@IF_libcurl@ cp -rp dependencies/opt/rudder/bin/curl $(DESTDIR)/opt/rudder/bin/
+	@IF_jq@ cp -rp dependencies/opt/rudder/bin/jq $(DESTDIR)/opt/rudder/bin/
 
 	mkdir -p $(DESTDIR)/opt/rudder/share/man/man8
 	cd $(DESTDIR)/opt/rudder/bin && for binary in cf-agent cf-promises cf-key cf-execd cf-serverd cf-net cf-runagent; do \
@@ -398,26 +399,23 @@ install-agent: build cleanup-build rudder-agent rudder-agent.cron debug-script/r
 	cp -rp dependencies/opt/rudder/lib/* $(DESTDIR)/opt/rudder/lib/
 
 	# Perl and fusion
-	cp -rp fusion/opt/rudder/bin/perl $(DESTDIR)/opt/rudder/bin/
-	cp -rp fusion/opt/rudder/bin/fusioninventory-agent $(DESTDIR)/opt/rudder/bin/
-	cp -rp fusion/opt/rudder/lib/perl5 $(DESTDIR)/opt/rudder/lib/
+	@IF_perl@ cp -rp fusion/opt/rudder/bin/perl $(DESTDIR)/opt/rudder/bin/
+	@IF_fusion@ cp -rp fusion/opt/rudder/bin/fusioninventory-agent $(DESTDIR)/opt/rudder/bin/
+	[ -d fusion/opt/rudder/lib/perl5 ] && cp -rp fusion/opt/rudder/lib/perl5 $(DESTDIR)/opt/rudder/lib/
 	mkdir -p $(DESTDIR)/opt/rudder/share/
-	cp -rp fusion/opt/rudder/share/fusion* $(DESTDIR)/opt/rudder/share/
+	@IF_fusion@ cp -rp fusion/opt/rudder/share/fusion* $(DESTDIR)/opt/rudder/share/
 
-ifeq (true,$(USE_SYSTEMD))
 	# Systemd files
-	mkdir -p $(DESTDIR)/lib/systemd/system
-	$(INSTALL) -m 644 systemd/rudder-agent.service $(DESTDIR)/lib/systemd/system/rudder-agent.service
-	$(INSTALL) -m 644 systemd/rudder-cf-execd.service $(DESTDIR)/lib/systemd/system/rudder-cf-execd.service
-	$(INSTALL) -m 644 systemd/rudder-cf-serverd.service $(DESTDIR)/lib/systemd/system/rudder-cf-serverd.service
-else
+	@IF_systemd@ mkdir -p $(DESTDIR)/lib/systemd/system
+	@IF_systemd@ $(INSTALL) -m 644 systemd/rudder-agent.service $(DESTDIR)/lib/systemd/system/rudder-agent.service
+	@IF_systemd@ $(INSTALL) -m 644 systemd/rudder-cf-execd.service $(DESTDIR)/lib/systemd/system/rudder-cf-execd.service
+	@IF_systemd@ $(INSTALL) -m 644 systemd/rudder-cf-serverd.service $(DESTDIR)/lib/systemd/system/rudder-cf-serverd.service
 	# Init files
 ifneq (AIX,$(OS_FAMILY))
 	mkdir -p $(DESTDIR)/etc/init.d
 	mkdir -p $(DESTDIR)/etc/default
 	$(INSTALL) -m 755 rudder-agent.init $(DESTDIR)/etc/init.d/rudder-agent
 	$(INSTALL) -m 644 rudder-agent.default $(DESTDIR)/etc/default/rudder-agent
-endif
 endif
 
 	# cron files

@@ -134,8 +134,10 @@ do
     eval "WITH_${dep}='--with-${dep}=\$(CURDIR)/dependencies/opt/rudder'"
     eval "${dep}_DEP=build-${dep}"
     SOURCE_DEPS="${SOURCE_DEPS} ${dep}-source"
+    eval "UNLESS_${dep}='# when no ${dep} - '"
   else
     eval "WITH_${dep}=\"--with-${dep}\""
+    eval "IF_${dep}='# for ${dep} only - '"
   fi
 done
 # --with-openssl is simetimes called --with-ssl
@@ -147,8 +149,10 @@ do
   use=$(eval echo "\${USE_${feat}}")
   if [ "${use}" = "true" ]; then
     eval "WITH_${feat}=\"--with-${feat}\""
+    eval "UNLESS_${feat}='# when no ${feat} - '"
   else
     eval "WITH_${feat}=\"--without-${feat}\""
+    eval "IF_${feat}='# for ${feat} only - '"
   fi
 done
 
@@ -272,6 +276,16 @@ do
   SED_EXPR="${SED_EXPR}
 s%@${src}_SOURCE@%$(source_macro ${src})%;t t
 s%@${src}_DEP@%${dep}%;t t"
+done
+
+# if macros
+for src in ${DEPENDENCIES} ${FEATURES}
+do
+  comment1=$(eval echo "\${IF_${src}}")
+  comment2=$(eval echo "\${UNLESS_${src}}")
+  SED_EXPR="${SED_EXPR}
+s%@IF_${src}@%${comment1}%;t t
+s%@UNLESS_${src}@%${comment2}%;t t"
 done
 
 # "Makefile.in" variables 

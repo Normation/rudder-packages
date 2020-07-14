@@ -114,7 +114,7 @@ build:
 clean:
 	dh_testdir
 	dh_testroot
-	cd SOURCES && $(MAKE) clean
+	cd SOURCES && ./configure && $(MAKE) clean
 	dh_clean
 
 install: build
