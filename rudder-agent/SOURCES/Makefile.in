@@ -470,7 +470,7 @@ ifeq (Darwin,$(OS_FAMILY))
 	ln -sf /opt/rudder/bin/rudder $(DESTDIR)/usr/local/bin/rudder
 else
 	mkdir -p $(DESTDIR)/usr/bin
-	ln -sf /opr/rudder/bin/rudder $(DESTDIR)/usr/bin/rudder
+	ln -sf /opt/rudder/bin/rudder $(DESTDIR)/usr/bin/rudder
 endif
 
 # TODO remove ?

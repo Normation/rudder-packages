@@ -126,10 +126,10 @@ Source1: Makefile
 AutoReq: 0
 AutoProv: 0
 
-%if "%{with_perl}" == "false"
-%if 0%{?rhel}
+%if "%{with_perl}" == "false" && 0%{?rhel}
 BuildRequires: perl-CPAN
 %endif
+%if "%{with_perl}" == "false"
 Requires: perl
 %endif
 
