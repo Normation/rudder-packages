@@ -40,11 +40,11 @@ ifeq (wily,$(OS_CODENAME))
 WITH = --with-jq --with-openssl --with-libcurl --with-lmdb
 endif
 # Ubuntu 16.04
-ifeq (focal,$(OS_CODENAME))
+ifeq (xenial,$(OS_CODENAME))
 WITH = --with-openssl --with-libcurl --with-lmdb
 endif
 # Ubuntu 18.04
-ifeq (focal,$(OS_CODENAME))
+ifeq (bionic,$(OS_CODENAME))
 WITH = --with-openssl --with-libcurl --with-lmdb
 endif
 # Ubuntu 20.04
