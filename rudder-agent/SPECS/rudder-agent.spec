@@ -347,6 +347,7 @@ opt="${opt} --disable-pam"
 opt="${opt} --with-perl"
 %else
 cpan -f -i Module::CoreList
+cpan -f -i YAML::Tiny
 cpan -f -i Module::Install
 %endif
 
