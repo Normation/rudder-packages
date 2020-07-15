@@ -49,7 +49,7 @@ WITH = --with-openssl --with-libcurl --with-lmdb
 endif
 # Ubuntu 20.04
 ifeq (focal,$(OS_CODENAME))
-WITH = 
+WITH = --with-lmdb
 endif
 
 # Debian 5
@@ -74,7 +74,7 @@ WITH = --with-openssl --with-libcurl --with-lmdb
 endif
 # Debian 10
 ifeq (buster,$(OS_CODENAME))
-WITH =
+WITH = --with-lmdb
 endif
 
 # manage dependencies
