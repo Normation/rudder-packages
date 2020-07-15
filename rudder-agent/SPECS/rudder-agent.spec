@@ -346,8 +346,8 @@ opt="${opt} --disable-pam"
 %if "%{with_perl}" == "true"
 opt="${opt} --with-perl"
 %else
-cpan Module::CoreList
-cpan Module::Install
+cpan -T -i Module::CoreList
+cpan -T -i Module::Install
 %endif
 
 # libattr libtool file is looked for in /lib64 but put in /usr/lib64 on RHEL3
