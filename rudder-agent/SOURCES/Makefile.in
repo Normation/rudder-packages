@@ -473,8 +473,7 @@ else
 	ln -sf /opt/rudder/bin/rudder $(DESTDIR)/usr/bin/rudder
 endif
 
-# TODO remove ?
-	# Install a profile script to make cf-* part of the PATH
+	# Install a profile script to make manuals par of the MANPATH
 ifneq (AIX,$(OS_FAMILY))
 	mkdir -p $(DESTDIR)/etc/profile.d
 	$(INSTALL) -m 644 rudder-agent.sh $(DESTDIR)/etc/profile.d/
