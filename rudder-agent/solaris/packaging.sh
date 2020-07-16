@@ -2,7 +2,7 @@
 
 set -xe
 
-VERSION="6.0.5"
+VERSION="$1"
 BUILD_DIR="BUILD"
 
 BASE=$(readlink -f $(dirname $0)/..)
