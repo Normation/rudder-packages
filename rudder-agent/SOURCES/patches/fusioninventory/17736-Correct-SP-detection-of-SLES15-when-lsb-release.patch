@@ -1,0 +1,40 @@
+From ab2c7423f585e2fde98f092f9e20846ee637ac95 Mon Sep 17 00:00:00 2001
+From: Nicolas Charles <nicolas.charles@normation.com>
+Date: Thu, 16 Jul 2020 13:43:39 +0200
+Subject: [PATCH] Fixes #17736: Correct SP detection of SLES15 when lsb-release
+ is present
+
+---
+ lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/LSB.pm    | 2 +-
+ lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/NonLSB.pm | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/LSB.pm b/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/LSB.pm
+index 44d26ec..9de482f 100644
+--- a/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/LSB.pm
++++ b/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/LSB.pm
+@@ -6,7 +6,7 @@ use warnings;
+ use FusionInventory::Agent::Tools;
+ 
+ sub isEnabled {
+-    return ! -r '/etc/SuSE-release' && ! -r '/etc/oracle-release' && canRun('lsb_release');
++    return ! -r '/etc/SuSE-release' && ! -r '/etc/oracle-release' && canRun('lsb_release') && ! ( -r '/etc/os-release' && getFirstMatch(file => '/etc/os-release', pattern => qr/SUSE Linux Enterprise Server 15/) );
+ }
+ 
+ sub doInventory {
+diff --git a/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/NonLSB.pm b/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/NonLSB.pm
+index 949433d..7aabfcf 100644
+--- a/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/NonLSB.pm
++++ b/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/NonLSB.pm
+@@ -69,7 +69,7 @@ our $runMeIfTheseChecksFailed =
+     ["FusionInventory::Agent::Task::Inventory::Linux::Distro::LSB"];
+ 
+ sub isEnabled {
+-    return -r '/etc/SuSE-release' || -r '/etc/oracle-release' || !canRun('lsb_release');
++    return -r '/etc/SuSE-release' || -r '/etc/oracle-release' || !canRun('lsb_release')  || (  -r '/etc/os-release' && getFirstMatch(file => '/etc/os-release', pattern => qr/SUSE Linux Enterprise Server 15/) ) ;
+ }
+ 
+ sub doInventory {
+-- 
+2.27.0
+
