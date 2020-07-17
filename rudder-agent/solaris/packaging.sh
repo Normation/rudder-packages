@@ -20,9 +20,12 @@ pkg install gcc gnu-binutils || true
 # use gnu tools to build
 export PATH=/usr/gnu/bin:/usr/gnu/x86_64-pc-solaris2.11/bin/:/usr/gnu/sparc-sun-solaris2.11/bin:$PATH
 
+# gcc needs an option translator to work with cpan builds
+cp -p "${BASE}/solaris/cc" /usr/gnu/bin/
+
 env="RUDDER_VERSION_TO_PACKAGE=${VERSION}"
 
-./configure --with-openssl --with-libcurl --with-zlib --with-lmdb --with-prce --with-jq --with-libyaml --with-libxml2
+./configure --with-openssl --with-libcurl --with-zlib --with-lmdb --with-pcre --with-jq --with-libyaml --with-libxml2
 
 # build
 # solaris 11.3 doesn't detect properly 64 bitness
