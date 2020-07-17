@@ -8,8 +8,8 @@ BUILD_DIR="BUILD"
 BASE=$(readlink -f $(dirname $0)/..)
 cd "${BASE}/SOURCES"
 
-# nightly get
-wget -q --header="accept-encoding:" -O rudder-sources.tar.bz2 "http://repository.rudder.io/sources/6.0-nightly/rudder-sources-${VERSION}~rc1-latest.tar.bz2"
+# sample code, builder shouls already have the source code
+#wget -q --header="accept-encoding:" -O rudder-sources.tar.bz2 "http://repository.rudder.io/sources/6.0-nightly/rudder-sources-${VERSION}~rc1-latest.tar.bz2"
 
 # 1- install build-dependencies
 
