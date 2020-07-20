@@ -22,6 +22,9 @@
 RUDDER_VERSION_TO_PACKAGE =
 RUDDER_MAJOR_VERSION := $(shell echo ${RUDDER_VERSION_TO_PACKAGE} | cut -d'.' -f 1-2)
 DEBUG = 
+ifndef RUDDER_MAJOR_VERSION
+$(error RUDDER_VERSION_TO_PACKAGE has not been set)
+endif
 
 # Original URL: http://zlib.net/zlib-$(ZLIB_RELEASE).tar.gz
 zlib_RELEASE = 1.2.11
