@@ -53,7 +53,7 @@ then
 fi
 
 # TODO RPM only ??
-  PG_HBA_FILE=$(su - postgres -c "psql -t -P format=unaligned -c 'show hba_file';")
+  PG_HBA_FILE=$(su postgres -c "psql -t -P format=unaligned -c 'show hba_file';")
   if [ $? -ne 0 ]; then
     echo "Postgresql failed to start! Halting"
     exit 1
@@ -90,7 +90,7 @@ echo " Done"
 echo -n "INFO: Waiting for PostgreSQL to be up..."
 CPT=0
 TIMEOUT=60
-while ! su - postgres -c "psql -q --output /dev/null -c \"SELECT COUNT(*) FROM pg_catalog.pg_authid\"" >/dev/null 2>&1
+while ! su postgres -c "psql -q --output /dev/null -c \"SELECT COUNT(*) FROM pg_catalog.pg_authid\"" >/dev/null 2>&1
 do
   echo -n "."
   sleep 1
@@ -105,14 +105,14 @@ echo " Done"
 
 DBNAME="rudder"
 USERNAME="rudder"
-CHK_PG_DB=$(su - postgres -c "psql -t -c \"select count(1) from pg_catalog.pg_database where datname = '${DBNAME}'\"")
-CHK_PG_USER=$(su - postgres -c "psql -t -c \"select count(1) from pg_user where usename = '${USERNAME}'\"")
+CHK_PG_DB=$(su postgres -c "psql -t -c \"select count(1) from pg_catalog.pg_database where datname = '${DBNAME}'\"")
+CHK_PG_USER=$(su postgres -c "psql -t -c \"select count(1) from pg_user where usename = '${USERNAME}'\"")
 
 # Rudder user
 if [ ${CHK_PG_USER} -eq 0 ]
 then
   echo -n "INFO: Creating Rudder PostgreSQL user..."
-  su - postgres -c "psql -q -c \"CREATE USER ${USERNAME} WITH PASSWORD 'Normation'\"" >> ${LOG_FILE}
+  su postgres -c "psql -q -c \"CREATE USER ${USERNAME} WITH PASSWORD 'Normation'\"" >> ${LOG_FILE}
   echo "Done"
 fi
 
@@ -120,7 +120,7 @@ fi
 if [ ${CHK_PG_DB} -eq 0 ]
 then
   echo -n "INFO: Creating Rudder PostgreSQL database..."
-  su - postgres -c "psql -q -c \"CREATE DATABASE ${DBNAME} WITH OWNER = ${USERNAME}\"" >> ${LOG_FILE}
+  su postgres -c "psql -q -c \"CREATE DATABASE ${DBNAME} WITH OWNER = ${USERNAME}\"" >> ${LOG_FILE}
   echo "localhost:5432:${DBNAME}:${USERNAME}:Normation" > /root/.pgpass
   chmod 600 /root/.pgpass
   psql -q -U rudder -h localhost -d rudder -f /opt/rudder/etc/postgresql/reportsSchema.sql >> ${LOG_FILE}
