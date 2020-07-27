@@ -11,8 +11,6 @@
 ## 2 - The system FusionInventory instance is too old
 ## 3 to inf - FusionInventory return codes
 
-[ -f /etc/profile ] && . /etc/profile
-
 # Variable definitions
 
 ## Oldest FusionInventory known to work with Rudder
@@ -21,19 +19,10 @@ OLDEST_SUPPORTED_FUSINV_VERSION_UNDOTTED=`echo ${OLDEST_SUPPORTED_FUSINV_VERSION
 
 # Main
 
-if [ -x /opt/rudder/bin/perl ]; then
-
-  # Rudder's perl installation is present, use it.
-  echo "[info] Perl and FusionInventory instances: builtin"
-
-  /opt/rudder/bin/perl -I /opt/rudder/lib/perl5 /opt/rudder/bin/fusioninventory-agent --config=none --no-task=Deploy "$@"
-
-elif [ -x /opt/rudder/bin/fusioninventory-agent ] && command -v perl >/dev/null 2>&1; then
-
-  # System's perl installation, with builtin FusionInventory
-  echo "[info] FusionInventory instance: builtin - Perl instance: system"
-  perl -I /opt/rudder/lib/perl5 /opt/rudder/bin/fusioninventory-agent --config=none --no-task=Deploy "$@"
-
+if [ -x /opt/rudder/bin/fusioninventory-agent ]
+then
+  echo "[info] FusionInventory instance: builtin"
+  /opt/rudder/bin/rudder-perl -I /opt/rudder/lib/perl5 /opt/rudder/bin/fusioninventory-agent --config=none --no-task=Deploy "$@"
 
 elif command -v fusioninventory-agent >/dev/null 2>&1; then
 
