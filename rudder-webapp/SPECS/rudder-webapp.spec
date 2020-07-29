@@ -296,8 +296,10 @@ if ! /opt/rudder/share/package-scripts/rudder-webapp-postinst "${RUDDER_FIRST_IN
   echo ""
   echo "Trying to recover the problem, you should check that your instance is properly working"
   echo ""
-  echo "   This should not happen, please open an issue for this problem on "
-  echo "         https://issues.rudder.io/projects/rudder/issues/new"
+  echo "You should also try to manually execute: /opt/rudder/bin/rudder-upgrade"
+  echo ""
+  echo "   Such errors should not happen, please open an issue for this problem on "
+  echo "            https://issues.rudder.io/projects/rudder/issues/new"
   echo "**************************************************************************************"
   LOG_FILE="/var/log/rudder/install/rudder-webapp-fail-$(date +%Y%m%d%H%M%S).log"
   /opt/rudder/bin/rudder-fix-repository-permissions  >> ${LOG_FILE}
