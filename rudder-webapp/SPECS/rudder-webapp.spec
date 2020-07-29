@@ -300,7 +300,7 @@ if ! /opt/rudder/share/package-scripts/rudder-webapp-postinst "${RUDDER_FIRST_IN
   echo "         https://issues.rudder.io/projects/rudder/issues/new"
   echo "**************************************************************************************"
   LOG_FILE="/var/log/rudder/install/rudder-webapp-fail-$(date +%Y%m%d%H%M%S).log"
-  /opt/rudder/bin/rudder-fix-repository-permissions  >> ${LOG_FILE
+  /opt/rudder/bin/rudder-fix-repository-permissions  >> ${LOG_FILE}
 fi
 
 %if 0%{?rhel}
