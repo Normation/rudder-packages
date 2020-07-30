@@ -290,7 +290,7 @@ fi
 rm -f /etc/%{apache_vhost_dir}/ncf-api-virtualenv.conf
 
 
-if ! /opt/rudder/share/package-scripts/rudder-webapp-postinst "${RUDDER_FIRST_INSTALL}" "apache2"; then
+if ! /opt/rudder/share/package-scripts/rudder-webapp-postinst "${RUDDER_FIRST_INSTALL}" "%{apache}"; then
   echo "**************************************************************************************"
   echo "ERROR: rudder-webapp postinstall script failed !"
   echo ""
