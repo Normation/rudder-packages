@@ -184,6 +184,12 @@ if [ "${nextline}" = "" ]; then
 fi
 %endif
 
+if [ $CFRUDDER_FIRST_INSTALL -eq 1 ];  then
+  echo 'DAVLockDB /tmp/davlock.db' > /etc/%{apache}/conf.d/dav_mod.conf
+fi
+
+/opt/rudder/share/package-scripts/rudder-server-relay-postinst "${CFRUDDER_FIRST_INSTALL}" "%{apache}" "%{apache_user}" "%{apache_group}" "%{apache_vhost_dir}"
+
 %if 0%{?rhel}
 # SELinux support
 # Check "sestatus" presence, and if here tweak our installation to be
@@ -209,12 +215,6 @@ if type sestatus >/dev/null 2>&1 && sestatus | grep -q "enabled"; then
   setsebool -P allow_httpd_anon_write 1
 fi
 %endif
-
-if [ $CFRUDDER_FIRST_INSTALL -eq 1 ];  then
-  echo 'DAVLockDB /tmp/davlock.db' > /etc/%{apache}/conf.d/dav_mod.conf
-fi
-
-/opt/rudder/share/package-scripts/rudder-server-relay-postinst "${CFRUDDER_FIRST_INSTALL}" "%{apache}" "%{apache_user}" "%{apache_group}" "%{apache_vhost_dir}"
 
 %preun
 #=================================================
