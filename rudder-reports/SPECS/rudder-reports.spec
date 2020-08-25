@@ -50,7 +50,7 @@ BuildArch: noarch
 AutoReq: 0
 AutoProv: 0
 
-Requires: postgresql-server >= 9.2
+Requires: postgresql-server >= 9.6
 Requires: rsyslog >= 4
 
 %if 0%{?suse_version}
