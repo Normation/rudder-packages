@@ -233,6 +233,8 @@ update_credentials() {
     else
       sed -i "s%ldap.authpw[ \t]*=.*%ldap.authpw=${REFERENCE_LDAP_PASSWORD}%" /opt/rudder/etc/${property_file}
       LDAP_PASSWORD=${REFERENCE_LDAP_PASSWORD}
+      # Need to restart rudder-slapd so that services can connect to it
+      systemctl restart rudder-slapd
       echo -n " LDAP Credentials updated, "
     fi
 
@@ -246,6 +248,7 @@ update_credentials() {
       # Credentials from the properties and the rudder-password.conf do not match, update the properties.
       sed -i "s%rudder.jdbc.password[ \t]*=.*%rudder.jdbc.password=${REFERENCE_SQL_PASSWORD}%" /opt/rudder/etc/${property_file}
       SQL_PASSWORD=${REFERENCE_SQL_PASSWORD}
+      export PGPASSWORD="${SQL_PASSWORD}"
       echo " SQL Credentials updated"
     fi
 
