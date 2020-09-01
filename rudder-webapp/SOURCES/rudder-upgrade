@@ -593,6 +593,20 @@ upgrade_slapdconf() {
     fi
   done
 
+  # If user choose to replace configuration file, then /opt/rudder/etc/openldap/slapd.conf
+  # already contains the index, but nothing reindexed slapd
+  # We need to check for existence of slapd.conf.dpkg-old, its age, and if it contains index
+  SLAPD_CONF_BKP="${SLAPD_CONF}.dpkg-old"
+  if [ -f ${SLAPD_CONF_BKP} ]; then
+    # if file exist, and is less than 1 hour old, check for index in it
+    if [ $(($(date +%s) - $(stat -c '%Y'  ${SLAPD_CONF_BKP}))) -lt 3600 ]; then
+      INDEX_BKP_COUNT=$(grep -c "^index\s*directiveId\s*eq" ${SLAPD_CONF_BKP} 2>/dev/null || true)
+      if [ ${INDEX_BKP_COUNT} -eq 0 ]; then
+        NEED_REINDEX=true
+      fi
+    fi
+  fi
+
   if ${NEED_REINDEX}; then
     # stop slapd, slapindex -q, start slapd. 
     systemctl stop rudder-slapd
