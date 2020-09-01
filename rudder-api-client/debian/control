@@ -8,5 +8,5 @@ Homepage: https://www.rudder.io
 
 Package: rudder-api-client
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, python3, python3-requests
+Depends: ${shlibs:Depends}, ${misc:Depends}, python3, python3-requests, python3-docopt, python3-urllib3
 Description: Command line tools and python libraries to call Rudder
