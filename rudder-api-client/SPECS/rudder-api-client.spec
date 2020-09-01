@@ -51,11 +51,11 @@ AutoProv: 0
 ## Python 2
 %if 0%{?rhel} == 7 || ( 0%{?suse_version} && 0%{?suse_version} < 1500 )
 BuildRequires: python, python-requests
-Requires: python, python-requests
+Requires: python, python-requests, python2-docopt, python-urllib3
 %else
 ## Python 3
 BuildRequires: python3, python3-requests
-Requires: python3, python3-requests
+Requires: python3, python3-requests, python3-docopt, python3-urllib3
 %endif
 
 %description
