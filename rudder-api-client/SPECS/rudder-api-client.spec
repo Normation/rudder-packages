@@ -48,13 +48,8 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 AutoReq: 0
 AutoProv: 0
 
-## Python 2, rhel7
-%if 0%{?rhel} == 7
-BuildRequires: python, python-requests
-Requires: python, python-requests, python2-docopt, python-urllib3
-%else
-## Python 2, sles12
-%if ( 0%{?suse_version} && 0%{?suse_version} < 1500 )
+## Python 2
+%if 0%{?rhel} == 7 || ( 0%{?suse_version} && 0%{?suse_version} < 1500 )
 BuildRequires: python, python-requests
 Requires: python, python-requests, python-urllib3
 %else
@@ -66,7 +61,6 @@ Requires: python3, python3-requests, python3-urllib3
 ## sles 15
 BuildRequires: python3, python3-requests
 Requires: python3, python3-requests, python3-docopt, python3-urllib3
-%endif
 %endif
 %endif
 
