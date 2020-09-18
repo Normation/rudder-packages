@@ -687,6 +687,9 @@ fi
 
 upgrade_plugins
 
+# 6.1.5: Flag file /opt/rudder/etc/policy-update-running is not used anymore
+rm -f /opt/rudder/etc/policy-update-running || true
+
 ################################################################################
 # End
 ################################################################################
