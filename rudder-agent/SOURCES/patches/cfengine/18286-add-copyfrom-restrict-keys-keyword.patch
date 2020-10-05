@@ -1,0 +1,255 @@
+From 963b3c781480e9ce9c4ca17813eb1ce29cbdc028 Mon Sep 17 00:00:00 2001
+From: Alexis Mousset <alexis.mousset@rudder.io>
+Date: Mon, 5 Oct 2020 15:03:34 +0200
+Subject: [PATCH] Add a keyword to restrict copy_from sources by key
+
+---
+ cf-agent/cf-agent.c           |  6 ++++++
+ cf-agent/verify_files_utils.c |  4 ++--
+ cf-net/cf-net.c               |  2 +-
+ cf-runagent/cf-runagent.c     |  2 +-
+ libcfnet/client_code.c        | 18 +++++++++++++++---
+ libcfnet/client_code.h        |  3 +--
+ libcfnet/tls_client.h         |  4 ++--
+ libpromises/cf3.defs.h        |  1 +
+ libpromises/eval_context.c    | 11 +++++++++++
+ libpromises/eval_context.h    |  3 +++
+ libpromises/feature.c         |  1 +
+ libpromises/mod_common.c      |  1 +
+ 12 files changed, 45 insertions(+), 11 deletions(-)
+
+diff --git a/cf-agent/cf-agent.c b/cf-agent/cf-agent.c
+index 09060490fd..792d84da03 100644
+--- a/cf-agent/cf-agent.c
++++ b/cf-agent/cf-agent.c
+@@ -894,6 +894,12 @@ static void KeepControlPromises(EvalContext *ctx, const Policy *policy, GenericA
+                 continue;
+             }
+ 
++            if (strcmp(cp->lval, CFA_CONTROLBODY[AGENT_CONTROL_COPYFROM_RESTRICT_KEYS].lval) == 0)
++            {
++                EvalContextSetRestrictKeys(ctx, value);
++                continue;
++            }
++
+             if (strcmp(cp->lval, CFA_CONTROLBODY[AGENT_CONTROL_REFRESH_PROCESSES].lval) == 0)
+             {
+                 Log(LOG_LEVEL_VERBOSE, "Setting refresh_processes when starting to...");
+diff --git a/cf-agent/verify_files_utils.c b/cf-agent/verify_files_utils.c
+index 4ed5284e4e..e868db8694 100644
+--- a/cf-agent/verify_files_utils.c
++++ b/cf-agent/verify_files_utils.c
+@@ -2822,7 +2822,7 @@ static AgentConnection *FileCopyConnectionOpen(const EvalContext *ctx,
+         else                    /* not found, open and cache new connection */
+         {
+             int err = 0;
+-            conn = ServerConnection(servername, port, conntimeout,
++            conn = ServerConnection(servername, port, EvalContextGetRestrictKeys(ctx), conntimeout,
+                                     flags, &err);
+ 
+             /* WARNING: if cache already has non-idle connections to that
+@@ -2849,7 +2849,7 @@ static AgentConnection *FileCopyConnectionOpen(const EvalContext *ctx,
+     else
+     {
+         int err = 0;
+-        conn = ServerConnection(servername, port, conntimeout,
++        conn = ServerConnection(servername, port, EvalContextGetRestrictKeys(ctx), conntimeout,
+                                 flags, &err);
+         return conn;
+     }
+diff --git a/cf-net/cf-net.c b/cf-net/cf-net.c
+index f76eb9ea54..31c534503a 100644
+--- a/cf-net/cf-net.c
++++ b/cf-net/cf-net.c
+@@ -479,7 +479,7 @@ static AgentConnection *CFNetOpenConnection(const char *server)
+     {
+         port = CFENGINE_PORT_STR;
+     }
+-    conn = ServerConnection(host, port, 30, connflags, &err);
++    conn = ServerConnection(host, port, NULL, 30, connflags, &err);
+     free(buf);
+     if (conn == NULL)
+     {
+diff --git a/cf-runagent/cf-runagent.c b/cf-runagent/cf-runagent.c
+index 06db6b5285..a9bef43fd9 100644
+--- a/cf-runagent/cf-runagent.c
++++ b/cf-runagent/cf-runagent.c
+@@ -549,7 +549,7 @@ static bool HailServer(const EvalContext *ctx, const GenericAgentConfig *config,
+         .off_the_record = false
+     };
+     int err = 0;
+-    conn = ServerConnection(hostname, port, CONNTIMEOUT, connflags, &err);
++    conn = ServerConnection(hostname, port, NULL, CONNTIMEOUT, connflags, &err);
+ 
+     if (conn == NULL)
+     {
+diff --git a/libcfnet/client_code.c b/libcfnet/client_code.c
+index d1a544d83d..f418b63b63 100644
+--- a/libcfnet/client_code.c
++++ b/libcfnet/client_code.c
+@@ -133,7 +133,7 @@ bool SetCfenginePort(const char *port_str)
+ /**
+  * @return 1 success, 0 auth/ID error, -1 other error
+  */
+-int TLSConnect(ConnectionInfo *conn_info, bool trust_server,
++int TLSConnect(ConnectionInfo *conn_info, bool trust_server, const Rlist *restrict_keys,
+                const char *ipaddr, const char *username)
+ {
+     int ret;
+@@ -154,6 +154,18 @@ int TLSConnect(ConnectionInfo *conn_info, bool trust_server,
+ 
+     const char *key_hash = KeyPrintableHash(conn_info->remote_key);
+ 
++    // If restrict_key is defined, check if the key is there
++    // Apply before trustkey to give this setting priority
++    if (restrict_keys) {
++        if (RlistContainsString(restrict_keys, key_hash)) {
++            Log(LOG_LEVEL_VERBOSE, "Server key in allowed list: %s", key_hash);
++        } else {
++            Log(LOG_LEVEL_ERR,
++                "Server key not in allowed keys, server presented: %s", key_hash);
++            return -1;
++        }
++    }
++
+     if (ret == 1)
+     {
+         Log(LOG_LEVEL_VERBOSE,
+@@ -187,7 +199,7 @@ int TLSConnect(ConnectionInfo *conn_info, bool trust_server,
+  * @NOTE if #flags.protocol_version is CF_PROTOCOL_UNDEFINED, then latest
+  *       protocol is used by default.
+  */
+-AgentConnection *ServerConnection(const char *server, const char *port,
++AgentConnection *ServerConnection(const char *server, const char *port, const Rlist *restrict_keys,
+                                   unsigned int connect_timeout,
+                                   ConnectionFlags flags, int *err)
+ {
+@@ -245,7 +257,7 @@ AgentConnection *ServerConnection(const char *server, const char *port,
+          * TLSConnect() it will have the version we finally ended up with. */
+         conn->conn_info->protocol = protocol_version;
+ 
+-        ret = TLSConnect(conn->conn_info, flags.trust_server,
++        ret = TLSConnect(conn->conn_info, flags.trust_server, restrict_keys,
+                          conn->remoteip, conn->username);
+ 
+         if (ret == -1)                                      /* Error */
+diff --git a/libcfnet/client_code.h b/libcfnet/client_code.h
+index 96134c7948..a0d52092f0 100644
+--- a/libcfnet/client_code.h
++++ b/libcfnet/client_code.h
+@@ -41,7 +41,7 @@ bool SetCfenginePort(const char *port_str);
+ /**
+   @param err Set to 0 on success, -1 no server response, -2 authentication failure.
+   */
+-AgentConnection *ServerConnection(const char *server, const char *port,
++AgentConnection *ServerConnection(const char *server, const char *port, const Rlist *restrict_keys,
+                                   unsigned int connect_timeout,
+                                   ConnectionFlags flags, int *err);
+ void DisconnectServer(AgentConnection *conn);
+@@ -53,5 +53,4 @@ Item *RemoteDirList(const char *dirname, bool encrypt, AgentConnection *conn);
+ 
+ int TLSConnectCallCollect(ConnectionInfo *conn_info, const char *username);
+ 
+-
+ #endif
+diff --git a/libcfnet/tls_client.h b/libcfnet/tls_client.h
+index 2aca44d781..043834f914 100644
+--- a/libcfnet/tls_client.h
++++ b/libcfnet/tls_client.h
+@@ -27,7 +27,7 @@
+ 
+ 
+ #include <cfnet.h>
+-
++#include <rlist.h>
+ 
+ bool TLSClientInitialize(const char *tls_min_version,
+                          const char *ciphers);
+@@ -39,7 +39,7 @@ int TLSClientIdentificationDialog(ConnectionInfo *conn_info,
+ int TLSTry(ConnectionInfo *conn_info);
+ 
+ /* Exported for enterprise. */
+-int TLSConnect(ConnectionInfo *conn_info, bool trust_server,
++int TLSConnect(ConnectionInfo *conn_info, bool trust_server, const Rlist *restrict_keys,
+                const char *ipaddr, const char *username);
+ 
+ 
+diff --git a/libpromises/cf3.defs.h b/libpromises/cf3.defs.h
+index 335891fab8..081a6e75b9 100644
+--- a/libpromises/cf3.defs.h
++++ b/libpromises/cf3.defs.h
+@@ -487,6 +487,7 @@ typedef enum
+     AGENT_CONTROL_VERBOSE,
+     AGENT_CONTROL_REPORTCLASSLOG,
+     AGENT_CONTROL_SELECT_END_MATCH_EOF,
++    AGENT_CONTROL_COPYFROM_RESTRICT_KEYS,
+     AGENT_CONTROL_NONE
+ } AgentControl;
+ 
+diff --git a/libpromises/eval_context.c b/libpromises/eval_context.c
+index 221ce5d93a..966505604d 100644
+--- a/libpromises/eval_context.c
++++ b/libpromises/eval_context.c
+@@ -139,6 +139,8 @@ struct EvalContext_
+     int pass;
+     Rlist *args;
+ 
++    Rlist *restrict_keys;
++
+     Item *heap_abort;
+     Item *heap_abort_current_bundle;
+ 
+@@ -192,6 +194,15 @@ void EvalContextSetSelectEndMatchEof(EvalContext *ctx, bool value)
+     ctx->select_end_match_eof = value;
+ }
+ 
++Rlist *EvalContextGetRestrictKeys(const EvalContext *ctx)
++{
++    return ctx->restrict_keys;
++}
++
++void EvalContextSetRestrictKeys(EvalContext *ctx, const Rlist *restrict_keys)
++{
++    ctx->restrict_keys = RlistCopy(restrict_keys);
++}
+ 
+ void AddDefaultPackageModuleToContext(const EvalContext *ctx, char *name)
+ {
+diff --git a/libpromises/eval_context.h b/libpromises/eval_context.h
+index 638b0a1549..46965e21e6 100644
+--- a/libpromises/eval_context.h
++++ b/libpromises/eval_context.h
+@@ -114,6 +114,9 @@ typedef enum
+ EvalContext *EvalContextNew(void);
+ void EvalContextDestroy(EvalContext *ctx);
+ 
++Rlist *EvalContextGetRestrictKeys(const EvalContext *ctx);
++void EvalContextSetRestrictKeys(EvalContext *ctx, const Rlist *restrict_keys);
++
+ void EvalContextHeapAddAbort(EvalContext *ctx, const char *context, const char *activated_on_context);
+ void EvalContextHeapAddAbortCurrentBundle(EvalContext *ctx, const char *context, const char *activated_on_context);
+ 
+diff --git a/libpromises/feature.c b/libpromises/feature.c
+index 5d9eeda7ed..04e3a3a2e9 100644
+--- a/libpromises/feature.c
++++ b/libpromises/feature.c
+@@ -26,6 +26,7 @@ static const char* features[] = {
+     "tls_1_3",
+ #endif
+     "def_json_preparse",
++    "copyfrom_restrict_keys",
+     NULL
+ };
+ 
+diff --git a/libpromises/mod_common.c b/libpromises/mod_common.c
+index e4237ae24b..f14dfe4869 100644
+--- a/libpromises/mod_common.c
++++ b/libpromises/mod_common.c
+@@ -316,6 +316,7 @@ const ConstraintSyntax CFA_CONTROLBODY[] =
+     ConstraintSyntaxNewBool("verbose", "true/false switches on verbose standard output. Default value: false", SYNTAX_STATUS_NORMAL),
+     ConstraintSyntaxNewBool("report_class_log", "true/false enables logging classes at the end of agent execution. Default value: false", SYNTAX_STATUS_NORMAL),
+     ConstraintSyntaxNewBool("select_end_match_eof", "Set the default behavior of select_end_match_eof in edit_line promises. Default: false", SYNTAX_STATUS_NORMAL),
++    ConstraintSyntaxNewStringList("copyfrom_restrict_keys", ".*", "A list of key hashes to restrict copy_from to", SYNTAX_STATUS_NORMAL),
+     ConstraintSyntaxNewNull()
+ };
+ 
