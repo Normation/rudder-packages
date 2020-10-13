@@ -284,8 +284,8 @@ rm -rf %{buildroot}
 %defattr(-, root, root, 0755)
 /etc/%{apache_vhost_dir}/
 %config(noreplace) /etc/%{apache_vhost_dir}/rudder.conf
-%config(noreplace) /opt/rudder/etc/rudder-apache-relay-common.conf
-%config(noreplace) /opt/rudder/etc/rudder-apache-relay-ssl.conf
+%config /opt/rudder/etc/rudder-apache-relay-common.conf
+%config /opt/rudder/etc/rudder-apache-relay-ssl.conf
 %config(noreplace) /opt/rudder/etc/rudder-networks-24.conf
 %config(noreplace) /opt/rudder/etc/rudder-networks-policy-server-24.conf
 %config(noreplace) /opt/rudder/etc/rudder-pkg/rudder-pkg.conf
