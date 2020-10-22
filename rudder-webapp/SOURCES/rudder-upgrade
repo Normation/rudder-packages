@@ -624,11 +624,14 @@ upgrade_slapdconf() {
 # Check and upgrade plugins
 ################################################################################
 upgrade_plugins() {
-  # For 6.0.3 only we disable all installed plugins at install time since they
-  # are not compatible
-  #rudder package check-compatibility
-  rudder package plugin disable-all
-  rudder package rudder-postupgrade
+  STEP="Upgrade all plugins"
+  if rudder-package check-connection >/dev/null 2>&1 ; then
+    rudder package update  || true
+    rudder package upgrade-all  || true
+  else
+    echo "Plugins were not updated, because connection test is failing, please upgrade your plugins manually"  
+  fi
+  rudder package check-compatibility || true
 }
 
 ################################################################################
