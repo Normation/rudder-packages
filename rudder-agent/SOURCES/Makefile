@@ -24,22 +24,22 @@ RUDDER_MAJOR_VERSION := $(shell echo ${RUDDER_VERSION_TO_PACKAGE} | cut -d'.' -f
 
 FUSION_RELEASE = 2.4.3
 FUSION_SHA1 = 66d6e699575e98a6c050b39ca27c72a20f5569c3
-CFENGINE_RELEASE = 3.15.1
-CFENGINE_SHA1 = 0698a87fb34add3dae0110f691ec175134060e4d
-LMDB_RELEASE = 0.9.22
-LMDB_SHA1 = 5d62d4c7527f3474f60a0d87db2bfd539e6493eb
+CFENGINE_RELEASE = 3.15.2
+CFENGINE_SHA1 = 6b71fdb0e22de1a647044b6aa3a1e2d8ad6556da
+LMDB_RELEASE = 0.9.24
+LMDB_SHA1 = 319fd7dbdb2232c28b7d71fbcd6785115898b995
 OPENSSL_RELEASE = 1.1.1g
 OPENSSL_SHA1 = b213a293f2127ec3e323fb3cfc0c9807664fd997
-PERL_RELEASE = 5.22.4
-PERL_SHA1 = fd79af20e6454d1bb5e5e6ac4774a1e295d4d794
+PERL_RELEASE = 5.32.0
+PERL_SHA1 = ddecb3117c016418b19ed3a8827e4b521b47d6bb
 PCRE_RELEASE = 8.38
 PCRE_SHA1 = 3ab418d0026c2a4e693ec783bd60660debc32b8f
-CPANMINUS_RELEASE = 1.7036
-CPANMINUS_SHA1 = a12043498ab54d9abdc58d1ebb4988da3bd515db
+CPANMINUS_RELEASE = 1.7044
+CPANMINUS_SHA1 = 3cd3997099036fce470b42b0c95d31f01e2543ff
 #CPAN_URL = https://www.cpan.org
 CPAN_URL = $(HTTPS)://repository.rudder.io/build-dependencies/cpan/$(RUDDER_MAJOR_VERSION)
-CURL_RELEASE = 7.61.0
-CURL_SHA1 = 34c0f89e01c27070fe3b6f86371791390f464602
+CURL_RELEASE = 7.73.0
+CURL_SHA1 = 5b126097ce4d51b9a01e29814974b018423960a7
 JQ_RELEASE = 1.6
 JQ_SHA1 = c61f6a5c4db66aaf01692c58130cb09c6e3d8323
 YAML_RELEASE = 0.2.1
@@ -387,9 +387,9 @@ openssl-source:
 lmdb-source:
 	$(eval TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX))
 	# Original URL: http://ftp.fr.debian.org/debian/pool/main/l/lmdb/lmdb_$(LMDB_RELEASE).orig.tar.xz
-	$(GET) $(TMP_DIR)/lmdb.tgz $(HTTPS)://repository.rudder.io/build-dependencies/lmdb/lmdb-$(LMDB_RELEASE).tar.gz $(LMDB_SHA1)
+	$(GET) $(TMP_DIR)/lmdb.tgz $(HTTPS)://repository.rudder.io/build-dependencies/lmdb/lmdb-$(LMDB_RELEASE).orig.tar.gz $(LMDB_SHA1)
 	gunzip < $(TMP_DIR)/lmdb.tgz | $(TAR) xf -
-	mv ./lmdb-LMDB_$(LMDB_RELEASE) ./lmdb-source
+	mv ./lmdb-$(LMDB_RELEASE) ./lmdb-source
 	rm -rf $(TMP_DIR)
 
 pcre-source:
