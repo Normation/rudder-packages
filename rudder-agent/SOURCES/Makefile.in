@@ -30,8 +30,8 @@ endif
 zlib_RELEASE = 1.2.11
 zlib_SHA256 = c3e5e9fdd5004dcb542feda5ee4f0ff0744628baf8ed2dd5d66f8ca1197cb1a1
 # Original URL: http://ftp.fr.debian.org/debian/pool/main/l/lmdb/lmdb_$(LMDB_RELEASE).orig.tar.xz
-lmdb_RELEASE = 0.9.22
-lmdb_SHA256 = f3927859882eb608868c8c31586bb7eb84562a40a6bf5cc3e13b6b564641ea28
+lmdb_RELEASE = 0.9.24
+lmdb_SHA256 = 8e7200fdc9bb09b0cfad1d4eee8b20d539e43fe05c7ef9406247d64659c4a480
 # Original URL: http://vorboss.dl.sourceforge.net/project/pcre/pcre/8.38/pcre-8.38.tar.gz
 pcre_RELEASE = 8.38
 pcre_SHA256 = 9883e419c336c63b0cb5202b09537c140966d585e4d0da66147dc513da13e629
@@ -45,20 +45,20 @@ libyaml_SHA256 = 78281145641a080fb32d6e7a87b9c0664d611dcb4d542e90baf731f51cbb59c
 libxml2_RELEASE = 2.9.7
 libxml2_SHA256 = f63c5e7d30362ed28b38bfa1ac6313f9a80230720b7fb6c80575eeab3ff5900c
 # Original URL: https://curl.haxx.se/download/curl-7.58.0.tar.gz
-libcurl_RELEASE = 7.61.0
-libcurl_SHA256 = 64141f0db4945268a21b490d58806b97c615d3d0c75bf8c335bbe0efd13b45b5
+libcurl_RELEASE = 7.73.0
+libcurl_SHA256 = ba98332752257b47b9dea6d8c0ad25ec1745c20424f1dd3ff2c99ab59e97cf91
 # Original URL: https://github.com/stedolan/jq/releases/download/jq-1.6/jq-1.6.tar.gz
 jq_RELEASE = 1.6
 jq_SHA256 = 1b3906e0c6dea26b5b9dcf864cc7334522f520d69543043c64b2c487e0c663ca
 # Original URL: https://cfengine-package-repos.s3.amazonaws.com/tarballs/cfengine-$(CFENGINE_RELEASE).tar.gz
-cfengine_RELEASE = 3.15.1
-cfengine_SHA256 = ab597456f9d44d907bb5a2e82b8ce2af01e9c59641dc828457cd768ef05a831d
+cfengine_RELEASE = 3.15.2
+cfengine_SHA256 = d1c570b7a0f47794a92f66e21cccdc86b8f56a7028a389780e705db41bfd3cab
 # Original URL: http://www.cpan.org/src/5.0/perl-5.22.4.tar.gz
-perl_RELEASE = 5.22.4
-perl_SHA256 = ba9ef57c2b709f2dad9c5f6acf3111d9dfac309c484801e0152edbca89ed61fa
+perl_RELEASE = 5.32.0
+perl_SHA256 = efeb1ce1f10824190ad1cadbcccf6fdb8a5d37007d0100d2d9ae5f2b5900c0b4
 # Original URL: http://www.cpan.org/modules/by-module/App/App-cpanminus-1.7036.tar.gz
-cpanminus_RELEASE = 1.7036
-cpanminus_SHA256 = a3df8bff4a1dc15fb23a4ecc693162d1d1416fb90501ab6199d361830c65604e
+cpanminus_RELEASE = 1.7044
+cpanminus_SHA256 = 9b60767fe40752ef7a9d3f13f19060a63389a5c23acc3e9827e19b75500f81f3
 # Original URL: https://github.com/fusioninventory/fusioninventory-agent/releases/download/2.3.19/FusionInventory-Agent-$(FUSION_RELEASE).tar.gz
 fusion_RELEASE = 2.4.3
 fusion_SHA256 = ca9d3630256303bd3ea1f158044904b53fbd7e409a6a647888e9d2c3103b45fd
