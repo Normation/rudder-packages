@@ -1,6 +1,8 @@
 [Unit]
 Description=Rudder OpenLDAP Server Daemon
 After=syslog.target network-online.target
+ReloadPropagatedFrom=rudder-server.service
+PartOf=rudder-server.service
 
 [Service]
 Type=forking
