@@ -232,7 +232,8 @@ install: build initial-promises initial-ncf
 	install -m 644 $(CORE_RESOURCES)/Migration/dbMigration-5.0.x-5.0.7-tune-autovacuum_on_table_basis.sql $(DESTDIR)/opt/rudder/share/upgrade-tools/
 	install -m 644 $(CORE_RESOURCES)/Migration/dbMigration-5.0.x-5.0.12-composite-index-on-ruddersysevents.sql $(DESTDIR)/opt/rudder/share/upgrade-tools/
 	install -m 644 $(CORE_RESOURCES)/Migration/dbMigration-5.0.x-5.0.13-remove-autovacuum-on-ruddersysevents.sql $(DESTDIR)/opt/rudder/share/upgrade-tools/
-	
+	install -m 644 $(CORE_RESOURCES)/Migration/dbMigration-6.1-6.2-remove-unused-index-on-ruddersysevents.sql $(DESTDIR)/opt/rudder/share/upgrade-tools/
+
 	install -m 755 rudder-upgrade $(DESTDIR)/opt/rudder/bin/
 	
 	install -m 644 rudder-webapp $(DESTDIR)/opt/rudder/etc/server-roles.d/

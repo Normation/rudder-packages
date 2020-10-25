@@ -54,7 +54,8 @@ trap 'anomaly_handler ${LINENO}' ERR INT TERM
 # - 6.0.4        : Ensure that rudder-slapd sockbuf_max_incoming_auth is not lost at upgrade 
 # - 6.1.0        : Migrate RudderUniqueID to the template format
 # - 6.1.0        : Add indexes cn,softwareVersion,directiveId in slapd.conf 
-  # 6.1.1        : Update apache conf if it does not contain technique editor conf (file not updated by packaging
+# - 6.1.1        : Update apache conf if it does not contain technique editor conf (file not updated by packaging
+# - 6.2.0        : Remove unused index on RudderSysEvents  
 ####################################################################################
 
 # Some paths
@@ -452,6 +453,14 @@ upgrade_database() {
     echo " Done"
   fi
 
+  # - 6.2: Remove unused index on RudderSysEvents
+  RES=$(${PSQL} -t -d ${SQL_DATABASE} -c "select count(oid) from pg_class where lower(relname) = 'keyvalue_idx'")
+  if [ $RES -ne 0 ]; then
+    echo -n "INFO: Removing unused index on table RudderSysEvents"
+    ${PSQL} -d ${SQL_DATABASE} -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-6.1-6.2-remove-unused-index-on-ruddersysevents.sql > /dev/null
+    echo " Done"
+  fi
+  
   # Now check the fileFormat in the eventlog
   upgrade_eventlog
 
