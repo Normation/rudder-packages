@@ -252,21 +252,22 @@ def import_techniques(path):
     else:
         import_technique(path)
 
-NCF_CACHE = {}
-def get_all_ncf():
-    global NCF_CACHE
-    if not NCF_CACHE:
-        # Call the technique API
-        ncfEndpoint = RudderEndPoint("https://localhost/rudder", TOKEN, verify=False)
-        NCF_CACHE = ncfEndpoint.request("GET", "/api/internal/methods", None, None, return_raw=False)
-
+NCF_METHODS = {}
 def get_all_generic_methods():
-    get_all_ncf()
-    return NCF_CACHE["methods"]
+    global NCF_METHODS
+    if not NCF_METHODS:
+        ncfEndpoint = RudderEndPoint("https://localhost/rudder", TOKEN, verify=False)
+        NCF_METHODS = ncfEndpoint.request("GET", "/api/internal/methods", None, None, return_raw=False)
+    return NCF_METHODS["methods"]
 
+NCF_TECHNIQUES = {}
 def get_all_techniques():
-    get_all_ncf()
-    return NCF_CACHE["techniques"]
+    global NCF_TECHNIQUES
+    if not NCF_TECHNIQUES:
+        ncfEndpoint = RudderEndPoint("https://localhost/rudder", TOKEN, verify=False)
+        techniques = ncfEndpoint.request("GET", "/api/internal/techniques", None, None, return_raw=False)
+        NCF_TECHNIQUES = { v["bundle_name"]:v for v in techniques["techniques"] }
+    return NCF_TECHNIQUES
 
 def remove_rule(rule):
     try:
