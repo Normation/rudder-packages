@@ -634,7 +634,7 @@ upgrade_slapdconf() {
 ################################################################################
 upgrade_plugins() {
   STEP="Upgrade all plugins"
-  if rudder-package check-connection >/dev/null 2>&1 ; then
+  if rudder package check-connection >/dev/null 2>&1 ; then
     rudder package update  || true
     rudder package upgrade-all  || true
   else
