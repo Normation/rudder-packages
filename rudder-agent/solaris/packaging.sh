@@ -50,6 +50,12 @@ pkgmogrify -DARCH=`uname -p` -DVERSION=${VERSION} -DTAG=0 rudder-agent.p5m.1 sol
 pkgdepend generate -md "${BUILD_DIR}" rudder-agent.p5m.2 | pkgfmt > rudder-agent.p5m.3
 pkgdepend resolve -m rudder-agent.p5m.3
 
+# provide service
+svccfg validate solaris/rudder-smf.xml
+manifest_dir="${BASE}/${BUILD_DIR}/var/svc/manifest/application"
+mkdir -p "${manifest_dir}"
+cp solaris/rudder-smf.xml "${manifest_dir}"
+
 # actuators
 pkgmogrify rudder-agent.p5m.3.res solaris/rudder-agent.postinst.mog | pkgfmt > rudder-agent.p5m.4.res
 
