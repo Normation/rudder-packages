@@ -79,11 +79,11 @@ then
   echo "${CFRUDDER_SERVER}" > /var/rudder/cfengine-community/policy_server.dat
 fi
 
-# Copy CFEngine binaries (Changed location from sbin/ to bin/ in version 3.4)
+# Copy CFEngine binaries
 cp -r -f /opt/rudder/bin/cf-* ${CFE_DIR}/bin/
 cp -r -f /opt/rudder/bin/rpmvercmp ${CFE_DIR}/bin/
 
-# Do this at first install
+# Setup service at first install
 if [ "${CFRUDDER_FIRST_INSTALL}" = "true" ]
 then
   # Set rudder-agent as service on OS that are not packaged to do it
@@ -130,11 +130,9 @@ then
 fi
 
 # Try to send an inventory after upgrade to see the new agent version on the server
-if [ "${CFRUDDER_FIRST_INSTALL}" != "true" ]
-then
-  echo "INFO: Scheduling an inventory during next run..."
-  touch /opt/rudder/etc/force_inventory
-fi
+# We can do it a first install to since bootstrap policies won't send un inventory
+echo "INFO: Scheduling an inventory during next run..."
+touch /opt/rudder/etc/force_inventory
 
 # Try to remove POSIX ACL if present, only during the first install
 # https://issues.rudder.io/issues/8065
