@@ -56,6 +56,7 @@ trap 'anomaly_handler ${LINENO}' ERR INT TERM
 # - 6.1.0        : Add indexes cn,softwareVersion,directiveId in slapd.conf 
 # - 6.1.1        : Update apache conf if it does not contain technique editor conf (file not updated by packaging
 # - 6.2.0        : Remove unused index on RudderSysEvents  
+# - 6.2.0~beta2  : Add sofware and modifyTimestamp indexes in slapd.conf
 ####################################################################################
 
 # Some paths
@@ -602,6 +603,18 @@ upgrade_slapdconf() {
     fi
   done
 
+  # 6.2.0~beta2:
+  # Add software and modifyTimestamp indexes in slapd.conf
+  for i in "software" "modifyTimestamp"; do
+    line="index\s*${i}\s*eq"
+    INDEX_COUNT=$(grep -c "^${line}" ${SLAPD_CONF} 2>/dev/null || true)
+    if [ ${INDEX_COUNT} -eq 0 ]; then
+      echo "Adding LDAP index on attribute: ${i}"
+      sed -i "/index\s*objectClass\s*eq/a index\t${i}\teq" ${SLAPD_CONF}
+      NEED_REINDEX=true
+    fi
+  done
+
   # If user choose to replace configuration file, then /opt/rudder/etc/openldap/slapd.conf
   # already contains the index, but nothing reindexed slapd
   # We need to check for existence of slapd.conf.dpkg-old, its age, and if it contains index
@@ -610,7 +623,8 @@ upgrade_slapdconf() {
     # if file exist, and is less than 1 hour old, check for index in it
     if [ $(($(date +%s) - $(stat -c '%Z'  ${SLAPD_CONF_BKP}))) -lt 3600 ]; then
       INDEX_BKP_COUNT=$(grep -c "^index\s*directiveId\s*eq" ${SLAPD_CONF_BKP} 2>/dev/null || true)
-      if [ ${INDEX_BKP_COUNT} -eq 0 ]; then
+      INDEX_BKP_COUNT_2=$(grep -c "^index\s*modifyTimestamp\s*eq" ${SLAPD_CONF_BKP} 2>/dev/null || true)
+      if [ ${INDEX_BKP_COUNT} -eq 0 || ${INDEX_BKP_COUNT_2} -eq 0 ]; then
         NEED_REINDEX=true
       fi
     fi
