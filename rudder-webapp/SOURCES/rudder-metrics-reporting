@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 #####################################################################################
-# Copyright 2014 Normation SAS
+# Copyright 2014-2020 Normation SAS
 #####################################################################################
 #
 # This program is free software: you can redistribute it and/or modify
@@ -19,7 +19,7 @@
 #####################################################################################
 
 from __future__ import print_function
-RUDDER_URL = "https://feedback.rudder-project.org/stats/"
+RUDDER_URL = "https://api.rudder.io/metrics/v1/"
 UUID_FILE = "/opt/rudder/etc/uuid.root"
 PROPERTIES_FILE = "/opt/rudder/etc/rudder-web.properties"
 
@@ -27,11 +27,15 @@ PROPERTIES_FILE = "/opt/rudder/etc/rudder-web.properties"
 from subprocess import Popen, PIPE
 from tempfile import NamedTemporaryFile
 from optparse import OptionParser
+from datetime import datetime
 import sys
 import json
 import re
 import os
 import uuid
+
+# In case we need rudder binaries
+os.environ["PATH"] = "/opt/rudder/bin/" + os.pathsep + os.environ["PATH"]
 
 #
 # Goal:
@@ -55,7 +59,7 @@ def metrics():
   data = { }
 
   # Define the versionning of the file
-  data['file_version'] = "2"
+  data['file_version'] = "3"
 
   # find uuid, or generate it
   data["uuid"] = get_uuid()
@@ -139,16 +143,19 @@ def metrics():
     pass
 
   # Installation date
-  cmd="find /opt/rudder/bin/ -type f -exec stat -c \"%Z %n\" {} \; | sort -n | head -n1 | awk '{print $2}' | xargs -r stat -c \"%z\""
+  cmd="stat -c \"%y\" /var/rudder/cfengine-community/ppkeys/localhost.pub"
   data["installation_date"] = command(["/bin/sh", "-c", cmd]).strip()
 
   # Rudder version
   cmd="[ -x /usr/bin/dpkg ] && dpkg-query -W rudder-server-root || rpm -q rudder-server-root"
   data["package_version"] = command(["/bin/sh", "-c", cmd]).strip()
 
+  cmd="rudder-relayd --version | cut -d' ' -f2"
+  data["rudder_version"] = command(["/bin/sh", "-c", cmd]).strip()
+
   # List installed plugins
-  cmd="rudder package list"
-  data['rudder_pkg'] = command(["/bin/sh", "-c", cmd]).strip()
+  cmd="cat /var/rudder/packages/index.json | jq -r '.plugins | keys[]' | sed 's/rudder-plugin-//'"
+  data['plugins']=command(["/bin/sh", "-c", cmd]).strip().splitlines()
 
   # Read rudder.json file
   with open('/var/rudder/cfengine-community/inputs/rudder.json') as rudder_json_file:
@@ -159,6 +166,8 @@ def metrics():
 
   # Modified file ttl
   data['rudder_modified_files_ttl'] = rudder_json_data.get('MODIFIED_FILES_TTL')
+
+  data['date'] = datetime.now().isoformat()
 
   return json.dumps(data, indent=2)
 
@@ -195,7 +204,7 @@ def init_commands():
         psql_host = match.group(1)
         psql_port = match.group(2)
   psql_cmd = "psql -h " + psql_host + " -U " + psql_user
-  ldap_cmd = "/opt/rudder/bin/ldapsearch -x -z0 -h " + ldap_host + " -p " + ldap_port + " -D " + ldap_user + " -w " + ldap_pwd
+  ldap_cmd = "ldapsearch -x -z0 -h " + ldap_host + " -p " + ldap_port + " -D " + ldap_user + " -w " + ldap_pwd
 
 # find existing uuid or create it
 def get_uuid():
@@ -277,9 +286,10 @@ if __name__ == "__main__":
 
       # python has broken https support, flaky http libs and requests is not by default
       # -> use curl
-      curl = ["curl", RUDDER_URL, "--cacert", "/opt/rudder/etc/ssl/rudder.crt", "-f", "-L", "--post301", "--post302", "-d", "@"+file.name, "-H", "Content-Type: application/json;charset=utf-8"]
+      curl = ["curl", RUDDER_URL, "-f", "-L", "--post301", "--post302", "-d", "@"+file.name, "-H", "Content-Type: application/json;charset=utf-8"]
       if options.debug is None:
         curl.append("-s")
+      # ignores errors
       command(curl)
       os.remove(file.name)
 
