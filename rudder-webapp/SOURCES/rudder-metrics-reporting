@@ -83,8 +83,11 @@ def metrics():
   sql = "select count(*) from nodes where endtime is null;"
   data["nodes_count"] = psql(sql)
 
-  # Number of reports for one day
-  sql = "select (max(id) - min(id)) as count from ruddersysevents where executiontimestamp >= (now() - interval '1 day');"
+  # Number of reports on a day
+  sql = "select extract(epoch from max(executiontimestamp) - min(executiontimestamp))/3600/24 as days from ruddersysevents;"
+  days = psql(sql)
+
+  sql = "(SELECT reltuples::bigint / " + days + ")  AS estimate  FROM   pg_class WHERE  oid = 'ruddersysevents'::regclass;"
   data["report_count_last_day"] = psql(sql)
 
   # Report database size
