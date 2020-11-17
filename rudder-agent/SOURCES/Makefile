@@ -40,6 +40,8 @@ CPANMINUS_SHA1 = 3cd3997099036fce470b42b0c95d31f01e2543ff
 CPAN_URL = $(HTTPS)://repository.rudder.io/build-dependencies/cpan/$(RUDDER_MAJOR_VERSION)
 CURL_RELEASE = 7.73.0
 CURL_SHA1 = 5b126097ce4d51b9a01e29814974b018423960a7
+AUGEAS_RELEASE = 1.12.0
+AUGEAS_SHA1 = afe7aee292e058141d8c19f6a82b5f8bae2d5163
 JQ_RELEASE = 1.6
 JQ_SHA1 = c61f6a5c4db66aaf01692c58130cb09c6e3d8323
 YAML_RELEASE = 0.2.1
@@ -155,6 +157,10 @@ BUILD_DEPS := $(BUILD_DEPS) build-curl
 CURL_ARG := --with-libcurl=$(CURDIR)/dependencies$(RUDDER_DIR)
 else
 CURL_ARG := --with-libcurl
+endif
+# default: do not embed augeas
+ifeq (false,$(USE_SYSTEM_AUGEAS))
+BUILD_DEPS := $(BUILD_DEPS) build-augeas
 endif
 # default: do not embed libjq
 ifeq (false,$(USE_SYSTEM_JQ))
@@ -416,6 +422,14 @@ curl-source:
 	mv ./curl-$(CURL_RELEASE) ./curl-source
 	rm -rf $(TMP_DIR)
 
+augeas-source:
+	$(eval TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX))
+	# Original URL: http://download.augeas.net/augeas-1.12.0.tar.gz
+	$(GET) $(TMP_DIR)/augeas.tgz $(HTTPS)://repository.rudder.io/build-dependencies/augeas/augeas-$(AUGEAS_RELEASE).tar.gz $(AUGEAS_SHA1)
+	gunzip < $(TMP_DIR)/augeas.tgz | $(TAR) xf -
+	mv ./augeas-$(AUGEAS_RELEASE) ./augeas-source
+	rm -rf $(TMP_DIR)
+
 jq-source:
 	$(eval TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX))
 	# Original URL: https://github.com/stedolan/jq/releases/download/jq-1.6/jq-1.6.tar.gz
@@ -577,6 +591,15 @@ build-curl: curl-source
 	cd curl-source && $(MAKE) $(MAKE_J)
 	# install to a temporary location is needed to build cfengine
 	cd curl-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
+	touch $@
+
+build-augeas: augeas-source
+	# augeas configure doesn't take the classic --with-libxml argument, same as curl
+	cd augeas-source && ./configure --disable-dependency-tracking --prefix=$(RUDDER_DIR) CPPFLAGS="-I$(CURDIR)/dependencies$(RUDDER_DIR)/include/libxml2" CFLAGS="$(CFLAGS) $(PIE_CFLAGS)" LDFLAGS="$(LDFLAGS) $(PIE_LDFLAGS) -Wl,-R$(CURDIR)/dependencies$(RUDDER_DIR)/lib -L$(CURDIR)/dependencies$(RUDDER_DIR)/lib -Wl,-R$(CURDIR)/dependencies$(RUDDER_DIR)/lib" PKG_CONFIG_PATH="$(CURDIR)/dependencies$(RUDDER_DIR)/lib/pkgconfig"
+	cd augeas-source && $(MAKE) $(MAKE_J)
+	cd augeas-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
+	# remove augeas tests
+	rm -rf $(CURDIR)/dependencies/$(RUDDER_DIR)/share/augeas/lenses/dist/tests/
 	touch $@
 
 build-jq: jq-source

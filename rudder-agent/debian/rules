@@ -20,6 +20,7 @@ USE_HTTPS=true
 USE_SYSTEM_OPENSSL=false
 USE_SYSTEM_PERL=true
 USE_SYSTEM_CURL=false
+USE_SYSTEM_AUGEAS=true
 USE_SYSTEM_JQ=true
 USE_SYSTEM_YAML=true
 USE_SYSTEM_XML=true
@@ -40,35 +41,45 @@ USE_HTTPS=false
 USE_SYSTEMD=false
 USE_SYSTEM_PERL=false
 USE_SYSTEM_JQ=false
+USE_SYSTEM_AUGEAS=false
 USE_PIE=false
 endif
 # Ubuntu 12.04
 ifeq (precise,$(OS_CODENAME))
 USE_SYSTEMD=false
 USE_SYSTEM_JQ=false
+USE_SYSTEM_AUGEAS=false
 USE_PIE=false
 endif
 # Ubuntu 12.10
 ifeq (quantal,$(OS_CODENAME))
 USE_SYSTEMD=false
 USE_SYSTEM_JQ=false
+USE_SYSTEM_AUGEAS=false
 USE_PIE=false
 endif
 # Ubuntu 13.04
 ifeq (raring,$(OS_CODENAME))
 USE_SYSTEMD=false
 USE_SYSTEM_JQ=false
+USE_SYSTEM_AUGEAS=false
 USE_PIE=false
 endif
 # Ubuntu 14.04
 ifeq (trusty,$(OS_CODENAME))
 USE_SYSTEMD=false
 USE_SYSTEM_JQ=false
+USE_SYSTEM_AUGEAS=false
 endif
 # Ubuntu 15.10
 ifeq (wily,$(OS_CODENAME))
 USE_PIE=false
 USE_SYSTEM_JQ=false
+USE_SYSTEM_AUGEAS=false
+endif
+# Ubuntu 16.04
+ifeq (xenial,$(OS_CODENAME))
+USE_SYSTEM_AUGEAS=false
 endif
 # Ubuntu 20.04
 ifeq (focal,$(OS_CODENAME))
@@ -81,6 +92,7 @@ ifeq (lenny,$(OS_CODENAME))
 USE_HTTPS=false
 USE_SYSTEMD=false
 USE_SYSTEM_JQ=false
+USE_SYSTEM_AUGEAS=false
 USE_SYSTEM_PERL=false
 USE_SYSTEM_YAML=false
 USE_SYSTEM_XML=false
@@ -91,17 +103,20 @@ ifeq (squeeze,$(OS_CODENAME))
 USE_HTTPS=false
 USE_SYSTEMD=false
 USE_SYSTEM_JQ=false
+USE_SYSTEM_AUGEAS=false
 USE_PIE=false
 endif
 # Debian 7
 ifeq (wheezy,$(OS_CODENAME))
 USE_SYSTEMD=false
 USE_SYSTEM_JQ=false
+USE_SYSTEM_AUGEAS=false
 USE_PIE=false
 endif
 # Debian 8
 ifeq (jessie,$(OS_CODENAME))
 USE_SYSTEM_JQ=false
+USE_SYSTEM_AUGEAS=false
 endif
 # Debian 9
 ifeq (stretch,$(OS_CODENAME))
@@ -113,7 +128,7 @@ USE_SYSTEM_CURL=true
 endif
 
 
-MAKE_OPTIONS=--debug USE_HTTPS=$(USE_HTTPS) USE_SYSTEM_OPENSSL=$(USE_SYSTEM_OPENSSL) USE_SYSTEM_FUSION=$(USE_SYSTEM_FUSION) USE_SYSTEM_PERL=$(USE_SYSTEM_PERL) USE_SYSTEMD=$(USE_SYSTEMD) USE_SYSTEM_CURL=$(USE_SYSTEM_CURL) USE_SYSTEM_JQ=$(USE_SYSTEM_JQ) USE_SYSTEM_YAML=$(USE_SYSTEM_YAML) USE_SYSTEM_XML=$(USE_SYSTEM_XML) USE_PIE=$(USE_PIE)
+MAKE_OPTIONS=--debug USE_HTTPS=$(USE_HTTPS) USE_SYSTEM_OPENSSL=$(USE_SYSTEM_OPENSSL) USE_SYSTEM_FUSION=$(USE_SYSTEM_FUSION) USE_SYSTEM_PERL=$(USE_SYSTEM_PERL) USE_SYSTEMD=$(USE_SYSTEMD) USE_SYSTEM_CURL=$(USE_SYSTEM_CURL) USE_SYSTEM_AUGEAS=$(USE_SYSTEM_AUGEAS) USE_SYSTEM_JQ=$(USE_SYSTEM_JQ) USE_SYSTEM_YAML=$(USE_SYSTEM_YAML) USE_SYSTEM_XML=$(USE_SYSTEM_XML) USE_PIE=$(USE_PIE)
 
 # manage dependencies
 ifeq (true,$(USE_SYSTEM_OPENSSL))
@@ -124,6 +139,9 @@ DEPS := $(DEPS), libxml-treepp-perl, perl
 endif
 ifeq (true,$(USE_SYSTEM_CURL))
 DEPS := $(DEPS), curl
+endif
+ifeq (true,$(USE_SYSTEM_AUGEAS))
+DEPS := $(DEPS), augeas-lenses, augeas-tools
 endif
 ifeq (true,$(USE_SYSTEM_JQ))
 DEPS := $(DEPS), jq

@@ -41,6 +41,9 @@
 # We need to build curl since we embed openssl
 %define use_system_curl false
 
+# default to not embed augeas
+%define use_system_augeas true
+
 # Same goes for the use of the local jq install vs. a bundled one
 %define use_system_jq true
 
@@ -87,6 +90,7 @@
 %define use_system_zlib false
 %define use_system_yaml false
 %define use_system_xml false
+%define use_system_augeas false
 %define use_pie false
 %define use_acl false
 %endif
@@ -106,6 +110,8 @@
 %if 0%{?rhel} && 0%{?rhel} <= 6
 # PIE and PIC incompatible on old gcc
 %define use_pie false
+# no augeas or augeas too old
+%define use_system_augeas false
 %endif
 %if 0%{?rhel} && 0%{?rhel} < 8
 # no jq before RHEL8
@@ -134,6 +140,10 @@
 %define use_system_xml false
 # PIE and PIC incompatible on old gcc
 %define use_pie false
+%endif
+%if 0%{?suse_version} && 0%{?suse_version} < 1500
+# augeas too old on suse
+%define use_system_augeas false
 %endif
 %if 0%{?suse_version} && !0%{?is_opensuse}
 # no jq on sles, only on opensuse
@@ -293,6 +303,14 @@ BuildRequires: curl-devel
 Requires: curl
 %endif
 
+## Augeas dependencies
+%if "%{use_system_augeas}" == "true"
+Requires: augeas
+%endif
+%if "%{use_system_augeas}" == "false"
+BuildRequires: readline-devel
+%endif
+
 ## Openssl dependencies
 %if "%{use_system_openssl}" == "true"
 BuildRequires: openssl-devel
@@ -324,7 +342,7 @@ cd %{_sourcedir}
 cp /usr/lib64/libattr.a /usr/lib64/libattr.la /lib64 || cp /usr/lib/libattr.a /usr/lib/libattr.la /lib
 %endif
 
-make BUILD_CFLAGS="${RPM_OPT_FLAGS}" USE_SYSTEM_OPENSSL=%{use_system_openssl} USE_SYSTEM_LMDB=%{use_system_lmdb} USE_SYSTEM_PCRE=%{use_system_pcre} USE_SYSTEM_FUSION=%{use_system_fusion} USE_SYSTEM_PERL=%{use_system_perl} USE_SYSTEM_JQ=%{use_system_jq} USE_HTTPS=%{use_https} USE_SYSTEM_ZLIB=%{use_system_zlib} USE_SYSTEM_CURL=%{use_system_curl} USE_SYSTEM_YAML=%{use_system_yaml} USE_SYSTEM_XML=%{use_system_xml} USE_PIE=%{use_pie} USE_ACL=%{use_acl}
+make BUILD_CFLAGS="${RPM_OPT_FLAGS}" USE_SYSTEM_OPENSSL=%{use_system_openssl} USE_SYSTEM_LMDB=%{use_system_lmdb} USE_SYSTEM_PCRE=%{use_system_pcre} USE_SYSTEM_FUSION=%{use_system_fusion} USE_SYSTEM_PERL=%{use_system_perl} USE_SYSTEM_JQ=%{use_system_jq} USE_HTTPS=%{use_https} USE_SYSTEM_ZLIB=%{use_system_zlib} USE_SYSTEM_CURL=%{use_system_curl} USE_SYSTEM_AUGEAD=%{use_system_augeas} USE_SYSTEM_YAML=%{use_system_yaml} USE_SYSTEM_XML=%{use_system_xml} USE_PIE=%{use_pie} USE_ACL=%{use_acl}
 
 # rhel7 doesn't have python 3 so we force python2 instead
 %if 0%{?rhel} == 7
