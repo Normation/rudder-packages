@@ -40,6 +40,8 @@ CPANMINUS_SHA1 = 3cd3997099036fce470b42b0c95d31f01e2543ff
 CPAN_URL = $(HTTPS)://repository.rudder.io/build-dependencies/cpan/$(RUDDER_MAJOR_VERSION)
 CURL_RELEASE = 7.73.0
 CURL_SHA1 = 5b126097ce4d51b9a01e29814974b018423960a7
+READLINE_RELEASE = 8.0
+READLINE_SHA1 = d58041c2143595dc001d2777ae9a200be30198b0
 AUGEAS_RELEASE = 1.12.0
 AUGEAS_SHA1 = afe7aee292e058141d8c19f6a82b5f8bae2d5163
 JQ_RELEASE = 1.6
@@ -160,6 +162,10 @@ CURL_ARG := --with-libcurl
 endif
 # default: do not embed augeas
 ifeq (false,$(USE_SYSTEM_AUGEAS))
+# augeas needs readline and aix doesn't have it
+ifeq (AIX,$(OS_FAMILY))
+BUILD_DEPS := $(BUILD_DEPS) build-readline
+endif
 BUILD_DEPS := $(BUILD_DEPS) build-augeas
 endif
 # default: do not embed libjq
@@ -223,7 +229,7 @@ endif
 
 # download dependencies
 depend: localdepends
-localdepends: rudder-agent-utilities perl-$(PERL_RELEASE) fusioninventory-agent cfengine-source openssl-source lmdb-source pcre-source curl-source jq-source xml-source yaml-source zlib-source rudder-agent.cron rudder.8.gz
+localdepends: rudder-agent-utilities perl-$(PERL_RELEASE) fusioninventory-agent cfengine-source openssl-source lmdb-source pcre-source curl-source readline-source augeas-source jq-source xml-source yaml-source zlib-source rudder-agent.cron rudder.8.gz
 
 # build binaries
 build: get-flags build-cfengine
@@ -422,6 +428,14 @@ curl-source:
 	mv ./curl-$(CURL_RELEASE) ./curl-source
 	rm -rf $(TMP_DIR)
 
+readline-source:
+	$(eval TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX))
+	# Original URL: https://ftp.gnu.org/gnu/readline/readline-8.0.tar.gz
+	$(GET) $(TMP_DIR)/readline.tgz $(HTTPS)://repository.rudder.io/build-dependencies/readline/readline-$(READLINE_RELEASE).tar.gz $(READLINE_SHA1)
+	gunzip < $(TMP_DIR)/readline.tgz | $(TAR) xf -
+	mv ./readline-$(READLINE_RELEASE) ./readline-source
+	rm -rf $(TMP_DIR)
+
 augeas-source:
 	$(eval TMP_DIR := $(shell mktemp -dq /tmp/rudder.XXXXXX))
 	# Original URL: http://download.augeas.net/augeas-1.12.0.tar.gz
@@ -593,9 +607,15 @@ build-curl: curl-source
 	cd curl-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
 	touch $@
 
+build-readline: readline-source
+	# do not override flags as they don't work here
+	cd readline-source && ./configure --prefix=$(RUDDER_DIR)
+	cd augeas-source && $(MAKE) $(MAKE_J)
+	cd augeas-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
+
 build-augeas: augeas-source
 	# augeas configure doesn't take the classic --with-libxml argument, same as curl
-	cd augeas-source && ./configure --disable-dependency-tracking --prefix=$(RUDDER_DIR) CPPFLAGS="-I$(CURDIR)/dependencies$(RUDDER_DIR)/include/libxml2" CFLAGS="$(CFLAGS) $(PIE_CFLAGS)" LDFLAGS="$(LDFLAGS) $(PIE_LDFLAGS) -Wl,-R$(CURDIR)/dependencies$(RUDDER_DIR)/lib -L$(CURDIR)/dependencies$(RUDDER_DIR)/lib -Wl,-R$(CURDIR)/dependencies$(RUDDER_DIR)/lib" PKG_CONFIG_PATH="$(CURDIR)/dependencies$(RUDDER_DIR)/lib/pkgconfig"
+	cd augeas-source && ./configure --disable-dependency-tracking --prefix=$(RUDDER_DIR) CPPFLAGS="-I$(CURDIR)/dependencies$(RUDDER_DIR)/include/libxml2 -I$(CURDIR)/dependencies$(RUDDER_DIR)/include" CFLAGS="$(CFLAGS) $(PIE_CFLAGS)" LDFLAGS="$(LDFLAGS) $(PIE_LDFLAGS) -Wl,-R$(CURDIR)/dependencies$(RUDDER_DIR)/lib -L$(CURDIR)/dependencies$(RUDDER_DIR)/lib -Wl,-R$(CURDIR)/dependencies$(RUDDER_DIR)/lib" PKG_CONFIG_PATH="$(CURDIR)/dependencies$(RUDDER_DIR)/lib/pkgconfig"
 	cd augeas-source && $(MAKE) $(MAKE_J)
 	cd augeas-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
 	# remove augeas tests
