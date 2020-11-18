@@ -183,6 +183,9 @@ endif
 ifeq (false,$(USE_SYSTEM_XML))
 BUILD_DEPS := $(BUILD_DEPS) build-xml
 XML_ARG := --with-libxml2=$(CURDIR)/dependencies$(RUDDER_DIR)
+AUGEAS_DEP = build-xml
+AUGEAS_VAR = . $(CURDIR)/dependencies$(RUDDER_DIR)/lib/xml2Conf.sh &&
+AUGEAS_ARG = LIBXML_LIBS="$${XML2_LIBS}" LIBXML_CFLAGS=" "
 else
 XML_ARG := --with-libxml2
 endif
@@ -613,9 +616,9 @@ build-readline: readline-source
 	cd augeas-source && $(MAKE) $(MAKE_J)
 	cd augeas-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
 
-build-augeas: augeas-source
+build-augeas: augeas-source $(AUGEAS_DEP)
 	# augeas configure doesn't take the classic --with-libxml argument, same as curl
-	cd augeas-source && ./configure --disable-dependency-tracking --prefix=$(RUDDER_DIR) CPPFLAGS="-I$(CURDIR)/dependencies$(RUDDER_DIR)/include/libxml2 -I$(CURDIR)/dependencies$(RUDDER_DIR)/include" CFLAGS="$(CFLAGS) $(PIE_CFLAGS)" LDFLAGS="$(LDFLAGS) $(PIE_LDFLAGS) -Wl,-R$(CURDIR)/dependencies$(RUDDER_DIR)/lib -L$(CURDIR)/dependencies$(RUDDER_DIR)/lib -Wl,-R$(CURDIR)/dependencies$(RUDDER_DIR)/lib" PKG_CONFIG_PATH="$(CURDIR)/dependencies$(RUDDER_DIR)/lib/pkgconfig"
+	$(AUGEAS_VAR) cd augeas-source && ./configure --disable-dependency-tracking --prefix=$(RUDDER_DIR) CPPFLAGS="-I$(CURDIR)/dependencies$(RUDDER_DIR)/include/libxml2 -I$(CURDIR)/dependencies$(RUDDER_DIR)/include" CFLAGS="$(CFLAGS) $(PIE_CFLAGS)" LDFLAGS="$(LDFLAGS) $(PIE_LDFLAGS) -Wl,-R$(CURDIR)/dependencies$(RUDDER_DIR)/lib -L$(CURDIR)/dependencies$(RUDDER_DIR)/lib -Wl,-R$(CURDIR)/dependencies$(RUDDER_DIR)/lib" $(AUGEAS_ARG)
 	cd augeas-source && $(MAKE) $(MAKE_J)
 	cd augeas-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
 	# remove augeas tests

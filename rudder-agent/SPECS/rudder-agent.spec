@@ -307,7 +307,7 @@ Requires: curl
 %if "%{use_system_augeas}" == "true"
 Requires: augeas
 %endif
-%if "%{use_system_augeas}" == "false"
+%if "%{use_system_augeas}" == "false" && "%{?aix}" ==""
 BuildRequires: readline-devel
 %endif
 
