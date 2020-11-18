@@ -344,7 +344,7 @@ endif
 
 # Strip binaries
 ifeq (AIX,$(OS_FAMILY))
-	cp /opt/freeware/lib/gcc/powerpc-ibm-aix5.3.0.0/4.8.2/libgcc* $(DESTDIR)/opt/rudder/lib/
+	cp /opt/freeware/lib/gcc/powerpc-ibm-aix5.3.0.0/4.8.4/libgcc* $(DESTDIR)/opt/rudder/lib/
 	./absolute-aix-path $(DESTDIR)/opt/rudder
 	find $(DESTDIR) -type f | xargs file | grep -E "executable|shared object" | cut -f 1 -d : | xargs strip 2> /dev/null || true
 	echo done
