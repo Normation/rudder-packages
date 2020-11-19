@@ -8,6 +8,42 @@ BUILD_DIR="BUILD"
 BASE=$(readlink -f $(dirname $0)/..)
 cd "${BASE}/SOURCES"
 
+version_release() {
+  ver="$1"
+  # solaris only allow numbers in its version, so here is the mapping example for rudder 6.2
+  # 6.2 alpha (nightly)-> 6.2.0.0.ddd (ddd = la date comme dans git202011191134)
+  # 6.2 betaX (nighty) -> 6.2.0.1.x.0.ddd
+  # 6.2 betaX -> 6.2.0.1.x.1
+  # 6.2 rcX (nigtly) -> 6.2.0.2.x.0.ddd
+  # 6.2 rcX -> 6.2.0.2.x.1
+  # 6.2.0 -> 6.2.0.3
+  # 6.2.1 nightly -> 6.2.1.2.ddd
+  maj_min=$(echo "${ver}" | cut -d. -f 1-3)
+  extra=$(echo "${ver}" | cut -d. -f 4-)
+  ddd=$(echo "${ver}" | grep git | sed 's/.*git//')
+  betax=$(echo "${ver}" | grep beta | sed 's/.*beta\([0-9]\+\).*/\1/')
+  rcx=$(echo "${ver}" | grep rc | sed 's/.*rc\([0-9]\+\).*/\1/')
+  if echo "${extra}" | grep -q alpha; then
+    echo "${maj_min}.0.${ddd}"
+  elif [ "${betax}" != "" ]; then
+    if [ "${ddd}" != "" ]; then
+      echo "${maj_min}.1.${betax}.0.${ddd}"
+    else
+      echo "${maj_min}.1.${betax}.1"
+    fi
+  elif [ "${rcx}" != "" ]; then
+    if [ "${ddd}" != "" ]; then
+      echo "${maj_min}.2.${rcx}.0.${ddd}"
+    else
+      echo "${maj_min}.2.${rcx}.1"
+    fi
+  elif [ "${ddd}" != "" ]; then # should not happen, classic nightly are called rc
+    echo "${maj_min}.2.${ddd}"  # but this would match the desired behaviour anyway
+  else
+    echo "${maj_min}.3"
+  fi
+}
+
 # sample code, builder shouls already have the source code
 #wget -q --header="accept-encoding:" -O rudder-sources.tar.bz2 "http://repository.rudder.io/sources/6.0-nightly/rudder-sources-${VERSION}~rc1-latest.tar.bz2"
 
@@ -38,7 +74,8 @@ cd "${BASE}"
 pkgsend generate "${BUILD_DIR}" | pkgfmt > rudder-agent.p5m.1
 
 # metadata
-pkgmogrify -DARCH=`uname -p` -DVERSION=${VERSION} -DTAG=0 rudder-agent.p5m.1 solaris/rudder-agent.metadata.mog | pkgfmt > rudder-agent.p5m.2
+SOLARIS_VERSION=$(version "${VERSION}") # compute solaris specific version
+pkgmogrify -DARCH=`uname -p` -DVERSION=${SOLARIS_VERSION} -DTAG=0 -DRELEASE=${VERSION} rudder-agent.p5m.1 solaris/rudder-agent.metadata.mog | pkgfmt > rudder-agent.p5m.2
 
 # dependencies
 pkgdepend generate -md "${BUILD_DIR}" rudder-agent.p5m.2 | pkgfmt > rudder-agent.p5m.3
