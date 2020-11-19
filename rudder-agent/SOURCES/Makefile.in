@@ -31,7 +31,7 @@ zlib_RELEASE = 1.2.11
 zlib_SHA256 = c3e5e9fdd5004dcb542feda5ee4f0ff0744628baf8ed2dd5d66f8ca1197cb1a1
 # Original URL: http://ftp.fr.debian.org/debian/pool/main/l/lmdb/lmdb_$(LMDB_RELEASE).orig.tar.xz
 lmdb_RELEASE = 0.9.24
-lmdb_SHA256 = 8e7200fdc9bb09b0cfad1d4eee8b20d539e43fe05c7ef9406247d64659c4a480
+lmdb_SHA256 = 44602436c52c29d4f301f55f6fd8115f945469b868348e3cddaf91ab2473ea26
 # Original URL: http://vorboss.dl.sourceforge.net/project/pcre/pcre/8.38/pcre-8.38.tar.gz
 pcre_RELEASE = 8.38
 pcre_SHA256 = 9883e419c336c63b0cb5202b09537c140966d585e4d0da66147dc513da13e629
@@ -47,6 +47,12 @@ libxml2_SHA256 = f63c5e7d30362ed28b38bfa1ac6313f9a80230720b7fb6c80575eeab3ff5900
 # Original URL: https://curl.haxx.se/download/curl-7.58.0.tar.gz
 libcurl_RELEASE = 7.73.0
 libcurl_SHA256 = ba98332752257b47b9dea6d8c0ad25ec1745c20424f1dd3ff2c99ab59e97cf91
+# Original URL: https://ftp.gnu.org/gnu/readline/readline-8.0.tar.gz
+readline_RELEASE = 8.0
+readline_SHA256 = e339f51971478d369f8a053a330a190781acb9864cf4c541060f12078948e461
+# Original URL: http://download.augeas.net/augeas-1.12.0.tar.gz
+augeas_RELEASE = 1.12.0
+augeas_SHA256 = 321942c9cc32185e2e9cb72d0a70eea106635b50269075aca6714e3ec282cb87
 # Original URL: https://github.com/stedolan/jq/releases/download/jq-1.6/jq-1.6.tar.gz
 jq_RELEASE = 1.6
 jq_SHA256 = 1b3906e0c6dea26b5b9dcf864cc7334522f520d69543043c64b2c487e0c663ca
@@ -112,6 +118,10 @@ install: install-agent
 	cd libxml2-source && $(SED) 's/-Wno-array-bounds//' configure > configure.new && mv configure.new configure && chmod +x configure
 
 @libcurl_SOURCE@
+
+@readline_SOURCE@
+
+@augeas_SOURCE@
 
 @jq_SOURCE@
 	# this value is not propery defined on AIX (must be > 500 for c99)
@@ -236,6 +246,21 @@ build-libcurl: libcurl-source @openssl_DEP@ @zlib_DEP@
 	cd libcurl-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
 	touch $@
 
+build-readline: readline-source
+	# do not override flags as they don't work here
+	cd readline-source && ./configure --prefix=$(RUDDER_DIR)
+	cd augeas-source && $(MAKE)
+	cd augeas-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
+	touch $@
+
+build-augeas: augeas-source @readline_DEP@ @libxml2_DEP@
+	@xml2conf@ cd augeas-source && ./configure --disable-dependency-tracking --prefix=$(RUDDER_DIR) @AUGEAS_ARGS@ CPPFLAGS="-I$(CURDIR)/dependencies$(RUDDER_DIR)/include/libxml2 -I$(CURDIR)/dependencies$(RUDDER_DIR)/include" $(BUILD_FLAGS_EXE)
+	cd augeas-source && $(MAKE)
+	cd augeas-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
+	# remove augeas tests
+	rm -rf $(CURDIR)/dependencies/$(RUDDER_DIR)/share/augeas/lenses/dist/tests/
+	touch $@
+
 build-jq: jq-source
 	cd jq-source && ./configure --prefix=$(RUDDER_DIR) $(BUILD_FLAGS_EXE) --disable-maintainer-mode --disable-docs --with-oniguruma=builtin --disable-error-injection
 ifeq (AIX,$(OS_FAMILY))
@@ -245,9 +270,9 @@ endif
 	cd jq-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
 	touch $@
 
-DEPS_CACHE_PARAMETERS = --with-env name=dependencies zlib=$(zlib_SHA256) lmdb=$(lmdb_SHA256) pcre=$(pcre_SHA256) openssl=$(openssl_SHA256) libyaml=$(libyaml_SHA256) libxml2=$(libxml2_SHA256) libcurl=$(libcurl_SHA256) jq=$(jq_SHA256)
+DEPS_CACHE_PARAMETERS = --with-env name=dependencies zlib=$(zlib_SHA256) lmdb=$(lmdb_SHA256) pcre=$(pcre_SHA256) openssl=$(openssl_SHA256) libyaml=$(libyaml_SHA256) libxml2=$(libxml2_SHA256) libcurl=$(libcurl_SHA256) augeas=$(augeas_SHA256) readline=$(readline_SHA256) jq=$(jq_SHA256)
 # Strictly speaking we don't need jq here but it's easier to include it in the cache
-CFENGINE_DEPS = $(shell ../../build-caching get dependencies/ $(DEPS_CACHE_PARAMETERS) || echo @lmdb_DEP@ @pcre_DEP@ @openssl_DEP@ @libyaml_DEP@ @libxml2_DEP@ @libcurl_DEP@ @jq_DEP@ )
+CFENGINE_DEPS = $(shell ../../build-caching get dependencies/ $(DEPS_CACHE_PARAMETERS) || echo @lmdb_DEP@ @pcre_DEP@ @openssl_DEP@ @libyaml_DEP@ @libxml2_DEP@ @libcurl_DEP@ @augeas_DEP@ @jq_DEP@ )
 
 # Cache cfengine build itself
 CFENGINE_PATCHES_SHA = $(shell find patches/cfengine -type f | sort | xargs openssl dgst -sha256 | openssl dgst -sha256 | awk '{print $$2}')
@@ -390,6 +415,7 @@ install-agent: build cleanup-build rudder-agent rudder-agent.cron debug-script/r
 	cp -rp dependencies/opt/rudder/bin/cf-* $(DESTDIR)/opt/rudder/bin/
 	@IF_libcurl@ cp -rp dependencies/opt/rudder/bin/curl $(DESTDIR)/opt/rudder/bin/
 	@IF_jq@ cp -rp dependencies/opt/rudder/bin/jq $(DESTDIR)/opt/rudder/bin/
+	@IF_augeas@ cp -rp dependencies/opt/rudder/bin/aug* $(DESTDIR)/opt/rudder/bin/
 
 	mkdir -p $(DESTDIR)/opt/rudder/share/man/man8
 	cd $(DESTDIR)/opt/rudder/bin && for binary in cf-agent cf-promises cf-key cf-execd cf-serverd cf-net cf-runagent; do \
@@ -406,6 +432,9 @@ install-agent: build cleanup-build rudder-agent rudder-agent.cron debug-script/r
 	[ -d fusion/opt/rudder/lib/perl5 ] && cp -rp fusion/opt/rudder/lib/perl5 $(DESTDIR)/opt/rudder/lib/
 	mkdir -p $(DESTDIR)/opt/rudder/share/
 	@IF_fusion@ cp -rp fusion/opt/rudder/share/fusion* $(DESTDIR)/opt/rudder/share/
+
+	# Augeas lens
+	@IF_augeas@ cp -rp dependencies/opt/rudder/share/augeas $(DESTDIR)/opt/rudder/share/
 
 	# Systemd files
 	@IF_systemd@ mkdir -p $(DESTDIR)/lib/systemd/system

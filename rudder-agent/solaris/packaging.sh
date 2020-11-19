@@ -13,7 +13,7 @@ cd "${BASE}/SOURCES"
 
 # 1- install build-dependencies
 
-pkg install gcc gnu-binutils || true
+pkg install gcc gnu-binutils flex bison || true
 
 # 2- configure, make and install into tmpdir
 
@@ -25,7 +25,7 @@ cp -p "${BASE}/solaris/cc" /usr/gnu/bin/
 
 env="RUDDER_VERSION_TO_PACKAGE=${VERSION}"
 
-./configure --with-openssl --with-libcurl --with-zlib --with-lmdb --with-pcre --with-jq --with-libyaml --with-libxml2
+./configure --with-openssl --with-libcurl --with-augeas --with-zlib --with-lmdb --with-pcre --with-jq --with-libyaml --with-libxml2
 
 # build
 # solaris 11.3 doesn't detect properly 64 bitness

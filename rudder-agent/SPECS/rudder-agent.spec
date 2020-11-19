@@ -35,6 +35,7 @@
 %define with_libyaml false
 %define with_libxml2 false
 %define with_libcurl false
+%define with_augeas false
 %define with_jq false
 %define with_perl false
 # replicate defauls from configure : all features
@@ -62,6 +63,7 @@
 %define with_libyaml true
 %define with_libxml2 true
 %define with_libcurl true
+%define with_augeas true
 %define with_jq true
 %define with_perl true
 %define enable_https false
@@ -79,6 +81,8 @@
 %if 0%{?rhel} && 0%{?rhel} <= 6
 # PIE and PIC incompatible on old gcc
 %define enable_pie false
+# no augeas or augeas too old
+%define with_augeas true
 %endif
 %if 0%{?rhel} && 0%{?rhel} < 8
 # no jq before RHEL8
@@ -100,6 +104,10 @@
 %define with_libxml2 true
 # PIE and PIC incompatible on old gcc
 %define enable_pie false
+%endif
+%if 0%{?suse_version} && 0%{?suse_version} < 1500
+# augeas too old on suse < 15
+%define with_augeas true
 %endif
 %if 0%{?suse_version} && !0%{?is_opensuse}
 # no jq on sles, only on opensuse
@@ -257,6 +265,14 @@ BuildRequires: curl-devel
 Requires: curl
 %endif
 
+## Augeas dependencies
+%if "%{use_system_augeas}" == "true"
+Requires: augeas
+%endif
+%if "%{use_system_augeas}" == "false" && "%{?aix}" ==""
+BuildRequires: readline-devel
+%endif
+
 ## Openssl dependencies
 %if "%{with_openssl}" == "false"
 BuildRequires: openssl-devel
@@ -318,6 +334,16 @@ opt="${opt} --with-libyaml"
 %endif
 %if "%{with_libxml2}" == "true"
 opt="${opt} --with-libxml2"
+%endif
+%if "%{with_libcurl}" == "true"
+opt="${opt} --with-libcurl"
+%endif
+%if "%{with_augeas}" == "true"
+opt="${opt} --with-augeas"
+# augeas on aix depends on readline
+%if "%{?aix}"
+opt="${opt} --with-readline"
+%endif
 %endif
 %if "%{with_libcurl}" == "true"
 opt="${opt} --with-libcurl"

@@ -1,6 +1,6 @@
-sles-10sp3:gcc bison flex autoconf automake libtool pcre-devel zlib-devel pam-devel libxml2-devel curl-devel libacl-devel
-sles-11:gcc openssl-devel bison flex autoconf automake libtool pcre-devel zlib-devel libbz2-devel pam-devel libxml2-devel libcurl-devel libacl-devel
-sles-12:gcc openssl-devel bison flex autoconf automake libtool pcre-devel zlib-devel libbz2-devel pam-devel libyaml-devel libxml2-devel curl-devel libacl-devel
+sles-10sp3:gcc bison flex autoconf automake libtool pcre-devel zlib-devel pam-devel libxml2-devel curl-devel libacl-devel readline-devel
+sles-11:gcc openssl-devel bison flex autoconf automake libtool pcre-devel zlib-devel libbz2-devel pam-devel libxml2-devel libcurl-devel libacl-devel readline-devel
+sles-12:gcc openssl-devel bison flex autoconf automake libtool pcre-devel zlib-devel libbz2-devel pam-devel libyaml-devel libxml2-devel curl-devel libacl-devel readline-devel
 sles-15:gcc openssl-devel bison flex autoconf automake libtool pcre-devel zlib-devel libbz2-devel pam-devel libyaml-devel libxml2-devel curl-devel libacl-devel
 rhel-3:gcc bison flex autoconf automake libtool pcre-devel make byacc zlib-devel bzip2-devel kernel-utils pam-devel libxml2-devel curl-devel libacl-devel libattr-devel readline-devel
 rhel-5:gcc openssl-devel bison flex autoconf automake libtool pcre-devel make byacc zlib-devel bzip2-devel pam-devel libxml2-devel curl-devel libacl-devel readline-devel

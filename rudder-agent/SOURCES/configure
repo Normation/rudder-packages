@@ -4,7 +4,7 @@ set -e
 # Overridable environment: PROXY=
 
 # Dependencies defaults: use everything from system except fusion
-DEPENDENCIES="zlib lmdb pcre openssl libyaml libxml2 libcurl jq perl fusion"
+DEPENDENCIES="zlib lmdb pcre openssl libyaml libxml2 libcurl readline augeas jq perl fusion"
 for dep in ${DEPENDENCIES}; do
   eval "BUILD_${dep}=false"
 done
@@ -156,6 +156,17 @@ do
   fi
 done
 
+# Augeas specific parameter for xml
+# augeas configure doesn't take the classic --with-libxml argument
+if [ "${BUILD_libxml2}" = "true" ]
+then
+  AUGEAS_ARGS='LIBXML_LIBS="$${XML2_LIBS}" LIBXML_CFLAGS=" "'
+  xml2conf='. $(CURDIR)/dependencies$(RUDDER_DIR)/lib/xml2Conf.sh &&'
+else
+  AUGEAS_ARGS=""
+  xml2conf=""
+fi
+
 # Add adequate --with statements to compilation options
 LIBCURL_ARGS="${WITH_zlib} ${WITH_openssl}"
 LIBXML2_ARGS="${WITH_zlib}"
@@ -294,6 +305,8 @@ s%@_GET@%${_GET}%;t t
 s%@SSL_CONFIGURE@%${SSL_CONFIGURE}%;t t
 s%@LIBXML2_ARGS@%${LIBXML2_ARGS}%;t t
 s%@LIBCURL_ARGS@%${LIBCURL_ARGS}%;t t
+s%@AUGEAS_ARGS@%${AUGEAS_ARGS}%;t t
+s%@xml2conf@%${xml2conf}%;t t
 s%@SOURCE_DEPS@%${SOURCE_DEPS}%;t t"
 
 # newlines must be backslashed in sed
