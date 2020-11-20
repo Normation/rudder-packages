@@ -8,7 +8,7 @@ BUILD_DIR="BUILD"
 BASE=$(readlink -f $(dirname $0)/..)
 cd "${BASE}/SOURCES"
 
-version_release() {
+version() {
   ver="$1"
   # solaris only allow numbers in its version, so here is the mapping example for rudder 6.2
   # 6.2 alpha (nightly)-> 6.2.0.0.ddd (ddd = la date comme dans git202011191134)
@@ -87,26 +87,28 @@ manifest_dir="${BASE}/${BUILD_DIR}/var/svc/manifest/application"
 mkdir -p "${manifest_dir}"
 cp solaris/rudder-smf.xml "${manifest_dir}"
 
+# postinstall 
+svccfg validate solaris/rudder-postinst.xml
+cp solaris/rudder-postinst.xml "${manifest_dir}"
+
 # actuators
 pkgmogrify rudder-agent.p5m.3.res solaris/rudder-agent.postinst.mog | pkgfmt > rudder-agent.p5m.4.res
 
 # lint
 pkglint -c ~/solaris-reference -r http://pkg.oracle.com/solaris/release rudder-agent.p5m.4.res
 
-# generate repo
+# generate a fresh repo
+rm -rf rudder-nightly
 pkgrepo create rudder-nightly
 pkgrepo -s rudder-nightly set publisher/prefix=normation
 pkgsend -s rudder-nightly publish -d BUILD rudder-agent.p5m.4.res
 
-# tar for easy transportation
-tar czf rudder-nightly.tgz rudder-nightly
+# tar for easy transportation to publisher
+tar czf rudder-nightly-${VERSION}.tgz rudder-nightly
 
 # create repo archive for easy transpotration to another solaris
 #pkgrecv -s rudder-nightly -a -d rudder-nightly.p5p rudder-agent
 
 # merge solaris + i386 into a single package : https://docs.oracle.com/cd/E26502_01/html/E29030/pkgmerge-1.html#REFMAN1pkgmerge-1
 # pkgmerge -s arch=sparc,http://src1.example.com -s arch=i386,http://src2.example.com -d /path/to/target/repository
-
-# post install
-#/opt/rudder/share/package-scripts/rudder-agent-postinst "true" "solaris" "false" "orchestrateur"
 
