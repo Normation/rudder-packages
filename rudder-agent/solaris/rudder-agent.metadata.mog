@@ -1,5 +1,5 @@
 set name=pkg.fmri value=rudder-agent@$(VERSION),5.11-$(TAG)
-set name=pkg.summary value="Configuration management and audit tool - agent"
+set name=pkg.summary value="Configuration management and audit tool - agent $(RELEASE)"
 set name=pkg.description value=" Rudder is an open source configuration management and audit solution.\
  .\
  This package contains the agent that must be installed on all nodes to be\
