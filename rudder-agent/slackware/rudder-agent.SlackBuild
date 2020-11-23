@@ -71,7 +71,7 @@ mkdir -p $TMP $PKG
 
 # Compile the application and install it into the $PKG directory
 cd ../SOURCES
-env="--debug USE_PAM=false DESTDIR=$PKG/ USE_SYSTEM_JQ=false USE_SYSTEM_JQ=false USE_SYSTEM_PERL=false USE_SYSTEM_OPENSSL=false"
+env="--debug USE_PAM=false DESTDIR=$PKG/ USE_SYSTEM_AUGEAS=false USE_SYSTEM_JQ=false USE_SYSTEM_PERL=false USE_SYSTEM_OPENSSL=false"
 make $env
 make install $env
 cd $PKG

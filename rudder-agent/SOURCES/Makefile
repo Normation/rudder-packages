@@ -667,7 +667,7 @@ build-perl: perl-$(PERL_RELEASE)
 
 # check cache content
 PATCHES_SHA = $(shell find patches/cfengine -type f | sort | xargs sha256sum | sha256sum | awk '{print $$1}')
-DEPS_CACHE_PARAMETERS = --with-env name=dependencies lmdb=$(LMDB_SHA1) openssl=$(OPENSSL_SHA1) pcre=$(PCRE_SHA1) curl=$(CURL_SHA1) jq=$(JQ_SHA1) yaml=$(YAML_SHA1) xml=$(XML_SHA1) zlib=$(ZLIB_SHA1) cfengine=$(CFENGINE_SHA1) patches=$(PATCHES_SHA)
+DEPS_CACHE_PARAMETERS = --with-env name=dependencies lmdb=$(LMDB_SHA1) openssl=$(OPENSSL_SHA1) pcre=$(PCRE_SHA1) curl=$(CURL_SHA1) augeas=$(AUGEAS_SHA1) jq=$(JQ_SHA1) yaml=$(YAML_SHA1) xml=$(XML_SHA1) zlib=$(ZLIB_SHA1) cfengine=$(CFENGINE_SHA1) patches=$(PATCHES_SHA)
 CFENGINE_DEPS = $(shell ../../build-caching get dependencies/ $(DEPS_CACHE_PARAMETERS) || echo $(BUILD_DEPS))
 build-cfengine: $(CFENGINE_DEPS) cfengine-source build-cfengine-stamp
 	# save into cache if we built it
