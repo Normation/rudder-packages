@@ -98,10 +98,26 @@ pkgmogrify rudder-agent.p5m.3.res solaris/rudder-agent.postinst.mog | pkgfmt > r
 pkglint -c ~/solaris-reference -r http://pkg.oracle.com/solaris/release rudder-agent.p5m.4.res
 
 # generate a fresh repo
-rm -rf rudder-nightly
-pkgrepo create rudder-nightly
-pkgrepo -s rudder-nightly set publisher/prefix=normation
-pkgsend -s rudder-nightly publish -d BUILD rudder-agent.p5m.4.res
+rm -rf rudder-repo
+pkgrepo create rudder-repo
+pkgrepo -s rudder-repo set publisher/prefix=normation
+pkgsend -s rudder-repo publish -d BUILD rudder-agent.p5m.4.res
+
+# generated mostly from : /usr/lib/pkg.depot-config -F -d customconfi=/usr/src/rudder-packages/package/rudder-nightly -r /tmp/runtime
+publisher="rudder-repo/publisher"
+base="${publisher}/normation/"
+mkdir -p "${base}/status/0"
+mkdir -p "${base}/versions/0"
+mkdir -p "${publisher}/1"
+cp solaris/repo/versions "${base}/versions/0/index.html"
+cp solaris/repo/publisher "${publisher}/1/index.html"
+cp solaris/repo/status "${base}/status/0/index.html"
+sed -i 's/${date}/'$(date +%Y%m%dT%H%M%S)'/' "${base}/status/0/index.html"
+cd rudder-depo
+ln -s publisher/normation/catalog/
+ln -s publisher/normation/file/
+ln -s publisher/normation/versions/
+ln -s publisher/normation/status/
 
 # tar for easy transportation to publisher
 tar czf rudder-nightly-${VERSION}.tgz rudder-nightly
