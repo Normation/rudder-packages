@@ -387,14 +387,6 @@ cp /usr/lib64/libattr.a /usr/lib64/libattr.la /lib64 || cp /usr/lib/libattr.a /u
 ./configure ${opt}
 %{make} BUILD_CFLAGS="${RPM_OPT_FLAGS}"
 
-# rhel7 doesn't have python 3 so we force python2 instead
-%if 0%{?rhel} == 7
-find . -type f | xargs sed -i '1,1s|#!/usr/bin/python3|#!/usr/bin/python2|'
-%endif
-%if 0%{?suse_version} && 0%{?suse_version} < 1500
-find . -type f | xargs sed -i '1,1s|#!/usr/bin/python3|#!/usr/bin/python2|'
-%endif
-
 #=================================================
 # Installation
 #=================================================
@@ -403,6 +395,14 @@ find . -type f | xargs sed -i '1,1s|#!/usr/bin/python3|#!/usr/bin/python2|'
 cd %{_sourcedir}
 
 %{make} install DESTDIR=%{buildroot}
+
+# rhel7 doesn't have python 3 so we force python2 instead
+%if 0%{?rhel} == 7
+find %{buildroot} -type f | xargs sed -i '1,1s|#!/usr/bin/python3|#!/usr/bin/python2|'
+%endif
+%if 0%{?suse_version} && 0%{?suse_version} < 1500
+find %{buildroot} -type f | xargs sed -i '1,1s|#!/usr/bin/python3|#!/usr/bin/python2|'
+%endif
 
 # remove perl doc
 rm -rf %{buildroot}/opt/rudder/man %{buildroot}/opt/rudder/lib/perl5/5.22.0/pod
