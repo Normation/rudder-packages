@@ -127,7 +127,7 @@ ln -s publisher/normation/status/
 cd ..
 
 # tar for easy transportation to publisher
-tar czf rudder-nightly-${VERSION}.tgz rudder-nightly
+tar czf rudder-nightly-${VERSION}.tgz rudder-repo
 
 # create repo archive for easy transpotration to another solaris
 #pkgrecv -s rudder-nightly -a -d rudder-nightly.p5p rudder-agent
