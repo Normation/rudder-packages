@@ -613,8 +613,8 @@ build-curl: curl-source
 build-readline: readline-source
 	# do not override flags as they don't work here
 	cd readline-source && ./configure --prefix=$(RUDDER_DIR)
-	cd augeas-source && $(MAKE) $(MAKE_J)
-	cd augeas-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
+	cd readline-source && $(MAKE) $(MAKE_J)
+	cd readline-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
 
 build-augeas: augeas-source $(AUGEAS_DEP)
 	# augeas configure doesn't take the classic --with-libxml argument, same as curl
