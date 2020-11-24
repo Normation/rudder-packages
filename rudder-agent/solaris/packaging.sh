@@ -124,6 +124,7 @@ ln -s publisher/normation/catalog/
 ln -s publisher/normation/file/
 ln -s publisher/normation/versions/
 ln -s publisher/normation/status/
+cd ..
 
 # tar for easy transportation to publisher
 tar czf rudder-nightly-${VERSION}.tgz rudder-nightly
