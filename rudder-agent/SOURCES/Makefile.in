@@ -249,8 +249,8 @@ build-libcurl: libcurl-source @openssl_DEP@ @zlib_DEP@
 build-readline: readline-source
 	# do not override flags as they don't work here
 	cd readline-source && ./configure --prefix=$(RUDDER_DIR)
-	cd augeas-source && $(MAKE)
-	cd augeas-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
+	cd readline-source && $(MAKE)
+	cd readline-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
 	touch $@
 
 build-augeas: augeas-source @readline_DEP@ @libxml2_DEP@
