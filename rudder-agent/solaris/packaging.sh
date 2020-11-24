@@ -113,7 +113,7 @@ cp solaris/repo/versions "${base}/versions/0/index.html"
 cp solaris/repo/publisher "${publisher}/1/index.html"
 cp solaris/repo/status "${base}/status/0/index.html"
 sed -i 's/${date}/'$(date +%Y%m%dT%H%M%S)'/' "${base}/status/0/index.html"
-cd rudder-depo
+cd rudder-repo
 ln -s publisher/normation/catalog/
 ln -s publisher/normation/file/
 ln -s publisher/normation/versions/
