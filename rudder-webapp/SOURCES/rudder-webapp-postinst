@@ -43,6 +43,8 @@ fi
 
 echo " Done"
 
+# create gitignore if it doesn't exist
+[ -f /var/rudder/configuration-repository/.gitignore ] || echo "ncf/ncf_hash_file" > /var/rudder/configuration-repository/.gitignore
 
 echo -n "INFO: Setting up systemd ..."
 systemctl daemon-reload

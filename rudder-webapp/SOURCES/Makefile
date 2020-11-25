@@ -250,7 +250,6 @@ install: build initial-promises initial-ncf
 	
 	# Install gitignore file for our git repo
 	mkdir -p $(DESTDIR)/var/rudder/configuration-repository/
-	install -m 644 configuration-repository-gitignore $(DESTDIR)/var/rudder/configuration-repository/.gitignore
 	
 	cp -a jetty $(DESTDIR)/opt/rudder
 	cp -a rudder-jetty-base $(DESTDIR)/opt/rudder/etc
