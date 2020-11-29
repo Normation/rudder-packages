@@ -428,7 +428,6 @@ rm -rf %{buildroot}
 /opt/rudder/libexec
 /var/rudder/run
 /var/rudder/inventories/received
-/var/rudder/configuration-repository/.gitignore
 /var/log/rudder/ldap
 /var/log/rudder/apache2/
 /var/log/rudder/webapp/
