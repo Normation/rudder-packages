@@ -1,0 +1,202 @@
+From 004a3fd500de6ea5bb9c6d695ed705ec178896a5 Mon Sep 17 00:00:00 2001
+From: Ole Herman Schumacher Elgesem <ole@northern.tech>
+Date: Wed, 22 Jul 2020 12:38:10 +0200
+Subject: [PATCH 1/4] Backgrounded commands are now correctly executed in the
+ child process
+
+Changelog: Title
+Ticket: CFE-3379
+Signed-off-by: Ole Herman Schumacher Elgesem <ole@northern.tech>
+(cherry picked from commit 66e0a82d962735024412eea58edbad89fe0f253a)
+---
+ cf-agent/verify_exec.c | 15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
+
+diff --git a/cf-agent/verify_exec.c b/cf-agent/verify_exec.c
+index 9a8eaa6709..66a70e4ff2 100644
+--- a/cf-agent/verify_exec.c
++++ b/cf-agent/verify_exec.c
+@@ -212,7 +212,8 @@ static ActionResult RepairExec(EvalContext *ctx, const Attributes *a,
+     char eventname[CF_BUFSIZE];
+     char cmdline[CF_BUFSIZE];
+     char comm[20];
+-    int outsourced, count = 0;
++    bool do_work_here;
++    int count = 0;
+ #if !defined(__MINGW32__)
+     mode_t maskval = 0;
+ #endif
+@@ -294,18 +295,18 @@ static ActionResult RepairExec(EvalContext *ctx, const Attributes *a,
+     if (a->transaction.background)
+     {
+ #ifdef __MINGW32__
+-        outsourced = true;
++        do_work_here = true;
+ #else
+         Log(LOG_LEVEL_VERBOSE, "Backgrounding job '%s'", cmdline);
+-        outsourced = fork();
++        do_work_here = (fork() == 0); // true for child, false for parent
+ #endif
+     }
+     else
+     {
+-        outsourced = false;
++        do_work_here = false;
+     }
+ 
+-    if (outsourced || (!a->transaction.background))    // work done here: either by child or non-background parent
++    if (do_work_here || (!a->transaction.background))    // work done here: either by child or non-background parent
+     {
+         if (a->contain.timeout != CF_NOINT)
+         {
+@@ -421,7 +422,7 @@ static ActionResult RepairExec(EvalContext *ctx, const Attributes *a,
+         free(line);
+ 
+ #ifdef __MINGW32__
+-        if (outsourced)     // only get return value if we waited for command execution
++        if (do_work_here)     // only get return value if we waited for command execution
+         {
+             cf_pclose_nowait(pfp);
+         }
+@@ -467,7 +468,7 @@ static ActionResult RepairExec(EvalContext *ctx, const Attributes *a,
+     snprintf(eventname, CF_BUFSIZE - 1, "Exec(%s)", cmdline);
+ 
+ #ifndef __MINGW32__
+-    if ((a->transaction.background) && outsourced)
++    if ((a->transaction.background) && do_work_here)
+     {
+         Log(LOG_LEVEL_VERBOSE, "Backgrounded command '%s' is done - exiting", cmdline);
+ 
+
+From 329d1e0f30f393b577bb4481584fa9a00d5e8962 Mon Sep 17 00:00:00 2001
+From: Ole Herman Schumacher Elgesem <ole@northern.tech>
+Date: Wed, 22 Jul 2020 13:32:43 +0200
+Subject: [PATCH 2/4] Backgrounded child processes no longer run cleanup exit
+ handlers
+
+I haven't seen this cause issues, but it's more correct.
+
+Changelog: None
+Ticket: CFE-3379
+Signed-off-by: Ole Herman Schumacher Elgesem <ole@northern.tech>
+(cherry picked from commit 7fedde00fd5ea94a02eb75a829baec1a6c6783fd)
+---
+ cf-agent/verify_exec.c | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
+
+diff --git a/cf-agent/verify_exec.c b/cf-agent/verify_exec.c
+index 66a70e4ff2..f345e3a5bb 100644
+--- a/cf-agent/verify_exec.c
++++ b/cf-agent/verify_exec.c
+@@ -468,13 +468,12 @@ static ActionResult RepairExec(EvalContext *ctx, const Attributes *a,
+     snprintf(eventname, CF_BUFSIZE - 1, "Exec(%s)", cmdline);
+ 
+ #ifndef __MINGW32__
+-    if ((a->transaction.background) && do_work_here)
++    if ((a->transaction.background) && do_work_here) // Child process
+     {
+         Log(LOG_LEVEL_VERBOSE, "Backgrounded command '%s' is done - exiting", cmdline);
+ 
+-        /* exit() OK since this is a forked process and no functions are
+-           registered for cleanup */
+-        exit(EXIT_SUCCESS);
++        // _exit() since this is the child and we don't want to run cleanup
++        _exit(EXIT_SUCCESS);
+     }
+ #endif /* !__MINGW32__ */
+ 
+
+From 30af04e209eac397eafd0fda5888ed55649da143 Mon Sep 17 00:00:00 2001
+From: Ole Herman Schumacher Elgesem <ole@northern.tech>
+Date: Wed, 22 Jul 2020 14:36:54 +0200
+Subject: [PATCH 3/4] Cleaned up use of do_work_here variable
+
+Signed-off-by: Ole Herman Schumacher Elgesem <ole@northern.tech>
+(cherry picked from commit ea1629658cc7c104c2943f609ea61c6bf00e8319)
+---
+ cf-agent/verify_exec.c | 15 +++++----------
+ 1 file changed, 5 insertions(+), 10 deletions(-)
+
+diff --git a/cf-agent/verify_exec.c b/cf-agent/verify_exec.c
+index f345e3a5bb..76f18b99d7 100644
+--- a/cf-agent/verify_exec.c
++++ b/cf-agent/verify_exec.c
+@@ -212,7 +212,6 @@ static ActionResult RepairExec(EvalContext *ctx, const Attributes *a,
+     char eventname[CF_BUFSIZE];
+     char cmdline[CF_BUFSIZE];
+     char comm[20];
+-    bool do_work_here;
+     int count = 0;
+ #if !defined(__MINGW32__)
+     mode_t maskval = 0;
+@@ -292,21 +291,17 @@ static ActionResult RepairExec(EvalContext *ctx, const Attributes *a,
+ 
+     CommandPrefix(cmdline, comm);
+ 
++    bool do_work_here = true;
++
+     if (a->transaction.background)
+     {
+-#ifdef __MINGW32__
+-        do_work_here = true;
+-#else
+         Log(LOG_LEVEL_VERBOSE, "Backgrounding job '%s'", cmdline);
++#ifndef __MINGW32__
+         do_work_here = (fork() == 0); // true for child, false for parent
+ #endif
+     }
+-    else
+-    {
+-        do_work_here = false;
+-    }
+ 
+-    if (do_work_here || (!a->transaction.background))    // work done here: either by child or non-background parent
++    if (do_work_here)    // work done here: either by child or non-background parent
+     {
+         if (a->contain.timeout != CF_NOINT)
+         {
+@@ -422,7 +417,7 @@ static ActionResult RepairExec(EvalContext *ctx, const Attributes *a,
+         free(line);
+ 
+ #ifdef __MINGW32__
+-        if (do_work_here)     // only get return value if we waited for command execution
++        if (a->transaction.background) // only get return value if we waited for command execution
+         {
+             cf_pclose_nowait(pfp);
+         }
+
+From dfd9a05c3ff8a1761a016065611bc0c305fdbbe0 Mon Sep 17 00:00:00 2001
+From: Ole Herman Schumacher Elgesem <ole@northern.tech>
+Date: Fri, 24 Jul 2020 13:43:58 +0200
+Subject: [PATCH 4/4] Stopped printing background log message on windows
+
+Just a small mistake from previous PR.
+
+Changelog: None
+Ticket: CFE-3379
+Signed-off-by: Ole Herman Schumacher Elgesem <ole@northern.tech>
+(cherry picked from commit c7ee3e9ddc5a14171be3ba73027296587239bd3f)
+---
+ cf-agent/verify_exec.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/cf-agent/verify_exec.c b/cf-agent/verify_exec.c
+index 76f18b99d7..326e0d907c 100644
+--- a/cf-agent/verify_exec.c
++++ b/cf-agent/verify_exec.c
+@@ -293,13 +293,13 @@ static ActionResult RepairExec(EvalContext *ctx, const Attributes *a,
+ 
+     bool do_work_here = true;
+ 
++#ifndef __MINGW32__
+     if (a->transaction.background)
+     {
+         Log(LOG_LEVEL_VERBOSE, "Backgrounding job '%s'", cmdline);
+-#ifndef __MINGW32__
+         do_work_here = (fork() == 0); // true for child, false for parent
+-#endif
+     }
++#endif
+ 
+     if (do_work_here)    // work done here: either by child or non-background parent
+     {
