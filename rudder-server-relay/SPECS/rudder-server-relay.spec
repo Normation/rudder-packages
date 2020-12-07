@@ -103,7 +103,7 @@ BuildRequires: python, python-setuptools, python-lxml, python-requests
 Requires: python, python-setuptools, python-lxml, python-requests
 %else
 BuildRequires: python3, python3-pip, python3-lxml, python3-requests
-Requires: python3, python3-lxml, python3-requests
+Requires: python3, python3-lxml, python3-requests, python3-setuptools
 %endif
 
 %description
