@@ -174,8 +174,12 @@ def parse_metadata(arguments):
           m.update(data)
     metadata['env'] = m.hexdigest()
     print("Environment summarised as " + m.hexdigest(), file=sys.stderr)
-    metadata['arch'] = platform.platform()
-    print("Architecture " + platform.platform(), file=sys.stderr)
+    metadata['arch']     = platform.architecture()[0]
+    metadata['machine']  = platform.machine()
+    metadata['platform'] = platform.platform()
+    print("Architecture: " + metadata['arch'], file=sys.stderr)
+    print("Machine:      " + metadata['machine'], file=sys.stderr)
+    print("Platform:     " + metadata['platform'], file=sys.stderr)
   for kv in arguments['<key>=<value>']:
     match = re.match(r'(^.*?)=(.*)', kv)
     if match:
