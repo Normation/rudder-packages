@@ -51,15 +51,6 @@ AutoReq: 0
 AutoProv: 0
 
 Requires: postgresql-server >= 9.6
-Requires: rsyslog >= 4
-
-%if 0%{?suse_version}
-Requires: rsyslog-module-pgsql >= 4
-%endif
-
-%if 0%{?rhel}
-Requires: rsyslog-pgsql >= 4
-%endif
 
 %description
 Rudder is an open source configuration management and audit solution.

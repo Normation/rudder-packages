@@ -70,7 +70,6 @@ Obsoletes: ncf, ncf-api-virtualenv, rudder-techniques, rudder-inventory-ldap, ru
 Conflicts: ncf, ncf-api-virtualenv, rudder-techniques, rudder-inventory-ldap, rudder-inventory-endpoint, rudder-ldap, rudder-jetty
 
 BuildRequires: gcc, rsync
-Requires: rsyslog
 
 # Dependencies
 Requires: %(../format-dependencies rpm %{real_epoch}:%{real_version} rudder-server-relay), %{apache}, %{apache_tools}, git-core, iproute, rsync, openssl, %{ldap_clients}, curl, acl

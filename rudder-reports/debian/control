@@ -8,8 +8,7 @@ Homepage: https://www.rudder.io
 
 Package: rudder-reports
 Architecture: all
-Depends: ${shlibs:Depends}, ${misc:Depends}, postgresql (>=9.6), rsyslog, rsyslog-pgsql, systemd
-Conflicts: rsyslog-pgsql (= 7.4.4-1ubuntu2.6)
+Depends: ${shlibs:Depends}, ${misc:Depends}, postgresql (>=9.6), systemd
 Description: Configuration management and audit tool - reports database
  Rudder is an open source configuration management and audit solution.
  .
