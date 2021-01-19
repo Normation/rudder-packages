@@ -645,6 +645,7 @@ upgrade_plugins() {
   else
     echo "Plugins were not updated, because connection test is failing, please upgrade your plugins manually"  
   fi
+  rudder package plugin restore-status < /tmp/rudder-plugins-upgrade || true
   rudder package check-compatibility --version=6.2 || true
 }
 
