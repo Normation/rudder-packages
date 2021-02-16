@@ -24,6 +24,8 @@
 
 %define maven_settings settings-external.xml
 
+%define apache_conf_dir         %{apache}/conf.d
+
 # Reference for suse_version : https://en.opensuse.org/openSUSE:Build_Service_cross_distribution_howto
 %if 0%{?suse_version}
 %define apache                  apache2
@@ -175,9 +177,9 @@ rm -rf %{buildroot}
 cd %{_sourcedir}
 # python should not be needed at install time, but build is run twice, i don't know why
 %if 0%{?rhel} == 7 || ( 0%{?suse_version} && 0%{?suse_version} < 1500 )
-make --debug install APACHE_VHOSTDIR=%{apache_vhost_dir} DESTDIR=%{buildroot} JETTY_SCRIPT=%{jetty_init_script} APACHE_CONFDIR=%{apache_vhost_dir} PYTHON=python2
+make --debug install APACHE_VHOSTDIR=%{apache_vhost_dir} DESTDIR=%{buildroot} JETTY_SCRIPT=%{jetty_init_script} APACHE_CONFDIR=%{apache_conf_dir} PYTHON=python2
 %else
-make --debug install APACHE_VHOSTDIR=%{apache_vhost_dir} DESTDIR=%{buildroot} JETTY_SCRIPT=%{jetty_init_script} APACHE_CONFDIR=%{apache_vhost_dir}
+make --debug install APACHE_VHOSTDIR=%{apache_vhost_dir} DESTDIR=%{buildroot} JETTY_SCRIPT=%{jetty_init_script} APACHE_CONFDIR=%{apache_conf_dir}
 %endif
 
 %if 0%{?rhel}
@@ -287,7 +289,7 @@ then
 fi
 
 # Remove old ncf-api-virtualenv conf, or else it will prevent apache start 
-rm -f /etc/%{apache_vhost_dir}/ncf-api-virtualenv.conf
+rm -f /etc/%{apache_conf_dir}/ncf-api-virtualenv.conf
 
 
 if ! /opt/rudder/share/package-scripts/rudder-webapp-postinst "${RUDDER_FIRST_INSTALL}" "%{apache}"; then

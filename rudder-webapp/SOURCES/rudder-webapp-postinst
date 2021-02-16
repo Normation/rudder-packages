@@ -27,10 +27,10 @@ chmod 640 "${LDAP_CONF}"
 chown -R rudder-slapd:rudder-slapd /var/rudder/ldap/
 echo " Done"
 
-
-echo -n "INFO: Removing ncf-api-venv user and group ..."
+# stopping apache before running upgrade scripts
 systemctl stop ${APACHE} >> ${LOG_FILE}
 
+echo -n "INFO: Removing ncf-api-venv user and group ..."
 rm -rf /var/lib/ncf-api-venv
 
 if getent passwd ncf-api-venv >/dev/null; then
@@ -42,7 +42,6 @@ if getent group ncf-api-venv >/dev/null; then
 fi
 
 echo " Done"
-
 
 echo -n "INFO: Setting up systemd ..."
 systemctl daemon-reload
