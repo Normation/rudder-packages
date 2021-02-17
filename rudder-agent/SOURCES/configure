@@ -212,22 +212,37 @@ fi
 test_cc() {
   TEST_FILE=$(mktemp /tmp/cc.XXXXXX)
   echo "void main() {}" > "${TEST_FILE}.c"
-  if cc -o "$2" "$3" "${TEST_FILE}" "${TEST_FILE}.c" 2>/dev/null
+  if cc $2 $3 -o "${TEST_FILE}" "${TEST_FILE}.c" 2>/dev/null
   then
-    eval "${1}_CFLAGS='$2'"
-    eval "${1}_LDFLAGS='$3'"
+    old_cflags="${1}_CFLAGS"
+    eval "${1}_CFLAGS=\"${!old_cflags} $2\""
+    old_ldflags="${1}_LDFLAGS"
+    eval "${1}_LDFLAGS=\"${!old_ldflags} $3\""
   fi
   rm -f "${TEST_FILE}" "${TEST_FILE}".c
 }
 
 # Test if compiler supports hardening flags
-test_cc "SECURE" "-fstack-protector" "-Wl,-z,relro -Wl,-z,now"
+# test options one by one to enable as many as possible
+
+# try strong first
+test_cc "SECURE" "-fstack-protector-strong" ""
+
+# fallback to basic
+if ! grep -q 'fstack' <<< $SECURE_CFLAGS; then
+  test_cc "SECURE" "-fstack-protector" ""
+fi
+
+# full relro
+test_cc "SECURE" "" "-Wl,-z,relro -Wl,-z,now"
+
+# fortify source
+test_cc "SECURE" "-D_FORTIFY_SOURCE=2" ""
 
 # Test if compiler supports pie flags if enabled
 if [ "${USE_PIE}" = "true" ]; then
   test_cc "PIE" "-fPIE" "-pie"
 fi
-
 
 # Macro for source getting in the makefile
 source_macro() {
