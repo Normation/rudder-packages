@@ -1,0 +1,27 @@
+diff --git a/cf-agent/verify_methods.c b/cf-agent/verify_methods.c
+index 4e67e71fe..b4de63c23 100644
+--- a/cf-agent/verify_methods.c
++++ b/cf-agent/verify_methods.c
+@@ -189,7 +189,7 @@ PromiseResult VerifyMethod(EvalContext *ctx, const Rval call, Attributes a, cons
+                 break;
+ 
+             case PROMISE_RESULT_WARN:
+-                cfPS(ctx, LOG_LEVEL_WARNING, PROMISE_RESULT_WARN, pp, a, "Method '%s' invoked repairs, but only warnings promised", bp->name);
++                cfPS(ctx, LOG_LEVEL_VERBOSE, PROMISE_RESULT_WARN, pp, a, "Method '%s' invoked repairs, but only warnings promised", bp->name);
+                 break;
+ 
+             case PROMISE_RESULT_CHANGE:
+@@ -198,11 +198,11 @@ PromiseResult VerifyMethod(EvalContext *ctx, const Rval call, Attributes a, cons
+ 
+             case PROMISE_RESULT_FAIL:
+             case PROMISE_RESULT_DENIED:
+-                cfPS(ctx, LOG_LEVEL_ERR, PROMISE_RESULT_FAIL, pp, a, "Method '%s' failed in some repairs", bp->name);
++                cfPS(ctx, LOG_LEVEL_VERBOSE, PROMISE_RESULT_FAIL, pp, a, "Method '%s' failed in some repairs", bp->name);
+                 break;
+ 
+             default: // PROMISE_RESULT_INTERRUPTED, TIMEOUT
+-                cfPS(ctx, LOG_LEVEL_INFO, PROMISE_RESULT_FAIL, pp, a, "Method '%s' aborted in some repairs", bp->name);
++                cfPS(ctx, LOG_LEVEL_VERBOSE, PROMISE_RESULT_FAIL, pp, a, "Method '%s' aborted in some repairs", bp->name);
+                 break;
+             }
+         }
