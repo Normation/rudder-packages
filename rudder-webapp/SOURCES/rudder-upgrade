@@ -44,11 +44,6 @@ trap 'anomaly_handler ${LINENO}' ERR INT TERM
 # - All versions : Check that Rudder database is able to handle backslash
 # - All versions : Check for the PostgreSQL version
 # - All versions : Create ncf technique update flag and restart at the end of the script
-# - 5.0          : Automatically upgrade Techniques if autoupdate-technique-library is set
-# - 5.0.3        : Change LDAP attribute ipNetworkNumber -> networkSubnet
-# - 5.0.5        : Properties related to "incoming inventory watch"
-# - 5.0.7        : Tune autovacuum on a table basis
-# - 5.0.12       : Change indexes on RudderSysEvents table
 # - 6.0.0        : Remove ncf hooks
 # - 6.0.0        : Keep syslog as default ptotocol on upgrade
 # - 6.0.4        : Ensure that rudder-slapd sockbuf_max_incoming_auth is not lost at upgrade 
@@ -384,28 +379,6 @@ upgrade_masterfiles() {
 # Check and update config
 ################################################################################
 
-# Upgrade the file rudder-web.properties
-upgrade_rudder_web_properties() {
-# 5.0.5: 
-# Add inventories.watcher.enable, inventories.root.directory and inventories.watcher.waitForSignatureDuration
-  check_and_add_config_property inventories.watcher.enable "
-#
-# Rudder 5.0.5 introduce a file watcher which react to new
-# inventories put in \${inventories.root.directory}/incoming.
-# You can (should) use the watcher by setting the property
-# 'inventories.watcher.enable' to true.
-# 'inventories.watcher.waitForSignatureDuration' is the time
-# in seconds the watcher will wait for the signature file
-# in case there is only an inventory file before sending
-# only inventory to backend.
-# You can start (resp. stop) the watcher with POST to API
-# /api/watcher/start (resp /api/watcher/stop).
-#
-inventories.watcher.enable=true
-inventories.root.directory=/var/rudder/inventories
-inventories.watcher.waitForSignatureDuration=10
-"
-}
 
 ################################################################################
 # Check and update database
@@ -427,30 +400,6 @@ upgrade_database() {
   if [ ${CHECK_BACKSLASH} -ne 1 ]; then
     echo -n "INFO: Rudder database is not backslash compliant, fixing..."
     ${PSQL} -t -d ${SQL_DATABASE} -c "alter database rudder set standard_conforming_strings=true;" >/dev/null 2>&1
-    echo " Done"
-  fi
-
-  # - 5.0.7: Tune autovacuum on a table basis
-  RES=$(${PSQL} -t -d ${SQL_DATABASE} -c "select reloptions from pg_class where relname='reportsexecution'" | grep -c "autovacuum" || true)
-  if [ $RES -eq 0 ]; then
-    echo -n "INFO: Adapting autovacuum configuration on a table basis"
-    ${PSQL} -d ${SQL_DATABASE} -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-5.0.x-5.0.7-tune-autovacuum_on_table_basis.sql > /dev/null
-    echo " Done"
-  fi
-
-  # - 5.0.12: change index on ruddersysevents to improve performance 
-  RES=$(${PSQL} -t -d ${SQL_DATABASE} -c "select count(oid) from pg_class where lower(relname) = 'endrun_control_idx'")
-  if [ $RES -eq 0 ]; then
-    echo -n "INFO: Changing index on table RudderSysEvents, this may take several minutes"
-    ${PSQL} -d ${SQL_DATABASE} -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-5.0.x-5.0.12-composite-index-on-ruddersysevents.sql > /dev/null
-    echo " Done"
-  fi
-
-  # - 5.0.13: Remove autovacuum on ruddersysevent table
-  RES=$(${PSQL} -t -d ${SQL_DATABASE} -c "select reloptions from pg_class where relname='ruddersysevents'" | grep -c "autovacuum_vacuum_scale_factor" || true)
-  if [ $RES -ne 0 ]; then
-    echo -n "INFO: Removing autovacuum configuration on ruddersysevents"
-    ${PSQL} -d ${SQL_DATABASE} -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-5.0.x-5.0.13-remove-autovacuum-on-ruddersysevents.sql > /dev/null
     echo " Done"
   fi
 
@@ -490,60 +439,6 @@ upgrade_database() {
 
 # Upgrade the LDAP inventory
 upgrade_inventory() {
-  # - 4.1.17, 4.3.7, 5.0.3: ipNetworkNumber -> networkSubnet
-  STEP="Migrate LDAP attribute ipNetworkNumber in networkInterface"
-  # change:
-  #  dn: networkInterface=etho0,nodeId=0876521e-3c81-4775-85c7-5dd7f9d5d3da,ou=Nodes,ou=Accepted Inventories,ou=Inventories,cn=rudder-configuration
-  #  ipNetworkNumber: 192.268.1.1
-  #  ipNetworkNumber: ffff:::1
-  #
-  # into:
-  #  dn: networkInterface=lo,nodeId=0876521e-3c81-4775-85c7-5dd7f9d5d3da,ou=Nodes,ou=Accepted Inventories,ou=Inventories,cn=rudder-configuration
-  #  changetype: modify
-  #  delete: ipNetworkNumber
-  #  -
-  #  replace: networkSubnet
-  #  networkSubnet: 192.268.1.1
-  #  networkSubnet: ffff:::1
-  #  -
-  #
-  LDAP_TEST_MIGRATE_NETWORK=$(${LDAPSEARCH} -b "ou=Inventories,cn=rudder-configuration" -s sub '(&(objectClass=networkInterfaceLogicalElement)(ipNetworkNumber=*))' 1.1 2> /dev/null | grep -c "dn: networkInterface=" || true)
-  if [ ${LDAP_TEST_MIGRATE_NETWORK} -ne 0 ]; then
-    echo -n "INFO: migrate LDAP attribute ipNetworkNumber -> networkSubnet in networkInterface..."
-    MIGRATE_IPNET_FILE="/tmp/rudder-migrate-ipNetworkNumber-network.ldif"
-    ${LDAPSEARCH} -o ldif-wrap=no -b "ou=Inventories,cn=rudder-configuration" -s sub '(&(objectClass=networkInterfaceLogicalElement)(ipNetworkNumber=*))' 'ipNetworkNumber' 2> /dev/null > ${MIGRATE_IPNET_FILE}
-    sed -i -e "s/ipNetworkNumber/networkSubnet/" ${MIGRATE_IPNET_FILE}
-    sed -i -e "s/dn:\(.*\)$/dn:\1\nchangetype:modify\ndelete: ipNetworkNumber\n-\nreplace: networkSubnet/" ${MIGRATE_IPNET_FILE}
-    sed -i -e "s/^$/-\n/" ${MIGRATE_IPNET_FILE}
-    ${LDAPMODIFY} -f ${MIGRATE_IPNET_FILE}
-    echo " OK"
-  fi
-
-  STEP="Migrate LDAP attribute ipNetworkNumber in node group query"
-  # change:
-  #  dn: nodeGroupId=ede838d0-b064-4739-a03e-f6a7651dce7b,groupCategoryId=GroupRoot,ou=Rudder,cn=rudder-configuration
-  #  jsonNodeGroupQuery: {"select":"node","composition":"And","where":[{"objectType":"networkInterfaceLogicalElement","attribute":"ipNetworkNumber","comparator":"regex","value":"192.168.42.*"}]}
-  #
-  # into:
-  #  dn: nodeGroupId=ede838d0-b064-4739-a03e-f6a7651dce7b,groupCategoryId=GroupRoot,ou=Rudder,cn=rudder-configuration
-  #  changetype: modify
-  #  replace: jsonNodeGroupQuery
-  #  jsonNodeGroupQuery: {"select":"node","composition":"And","where":[{"objectType":"networkInterfaceLogicalElement","attribute":"networkSubnet","comparator":"regex","value":"192.168.42.*"}]}
-  #  -
-  #
-  LDAP_TEST_MIGRATE_GROUP=$(${LDAPSEARCH} -b "ou=Rudder,cn=rudder-configuration" -s sub '(&(objectClass=nodeGroup)(jsonNodeGroupQuery=*ipNetworkNumber*))' 1.1 2> /dev/null | grep -c "dn: nodeGroupId=" || true)
-  if [ ${LDAP_TEST_MIGRATE_GROUP} -ne 0 ]; then
-    echo -n "INFO: migrate LDAP attribute ipNetworkNumber -> networkSubnet in node groups..."
-    MIGRATE_IPNET_FILE="/tmp/rudder-migrate-ipNetworkNumber-group.ldif"
-    ${LDAPSEARCH} -o ldif-wrap=no -b "ou=Rudder,cn=rudder-configuration" -s sub '(&(objectClass=nodeGroup)(jsonNodeGroupQuery=*ipNetworkNumber*))' 'jsonNodeGroupQuery' 2> /dev/null > ${MIGRATE_IPNET_FILE}
-    sed -i -e "s/^$/-\n\n/" ${MIGRATE_IPNET_FILE}
-    sed -i -e "s/ipNetworkNumber/networkSubnet/" ${MIGRATE_IPNET_FILE}
-    sed -i -e "s/jsonNodeGroupQuery/changetype: modify\nreplace: jsonNodeGroupQuery\njsonNodeGroupQuery/" ${MIGRATE_IPNET_FILE}
-    ${LDAPMODIFY} -f ${MIGRATE_IPNET_FILE}
-    echo " OK"
-  fi
-
-
   # Pre 6.0 to post 6.0 : keep default protocol to syslog and let the user change it if he wants
   LDAP_TEST_PROTOCOL=$(${LDAPSEARCH} -b "ou=Application Properties,cn=rudder-configuration" "propertyName=rudder_report_protocol_default" | grep -c "dn: propertyName=" || true)
   if [ ${LDAP_TEST_PROTOCOL} -eq 0 ]; then
@@ -670,7 +565,6 @@ upgrade_system_techniques
 upgrade_techniques
 upgrade_ncf
 upgrade_masterfiles
-upgrade_rudder_web_properties
 
 # Check the daemon status before upgrading
 RUDDER_DB_INITIALIZED=true

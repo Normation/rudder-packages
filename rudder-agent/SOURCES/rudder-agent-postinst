@@ -34,18 +34,6 @@ then
   /bin/systemctl daemon-reload
 fi
 
-# Remove ld.so.conf configuration
-# In case of upgrade from a very old agent or a previous
-# postinst failed
-if [ -f /etc/ld.so.conf.d/rudder.conf ]; then
-  rm -f /etc/ld.so.conf.d/rudder.conf
-  type ldconfig > /dev/null 2>&1 && ldconfig
-fi
-if [ -e /etc/ld.so.conf ] && grep -q "/opt/rudder/lib" /etc/ld.so.conf; then
-  sed -i '/\/opt\/rudder\/lib/d' /etc/ld.so.conf
-  type ldconfig > /dev/null 2>&1 && ldconfig
-fi
-  
 # if no conf and no server provided, try to use rudder
 if [ ! -f /var/rudder/cfengine-community/policy_server.dat ] && [ "${CFRUDDER_SERVER}" = "" ]
 then

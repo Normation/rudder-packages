@@ -56,40 +56,6 @@ systemctl enable rudder-slapd >> ${LOG_FILE}
 sed -i '/^[ \t]*pidfile/d' "${LDAP_CONF}"
 sed -i '/^[ \t]*argsfile/d' "${LDAP_CONF}"
 
-# Migration from pre-6.0, moving inventory-web properties to rudder-web properties
-INVENTORY_PROP="/opt/rudder/etc/inventory-web.properties"
-RUDDER_PROP="/opt/rudder/etc/rudder-web.properties"
-if [ -f "${INVENTORY_PROP}" ]
-then
-  cat >> "${RUDDER_PROP}" << EOF
-
-#
-# Max number of reports waiting to be processed internally.
-# For a rough estimation, you can consider that a report in queue
-# takes 5 MB, so to handle 50 (default), the application will
-# need around 250 MB of spare memory.
-#
-EOF
-  grep "^waiting" "${INVENTORY_PROP}" >> "${RUDDER_PROP}" || true
-  cat >> "${RUDDER_PROP}" << EOF
-
-#
-# Rudder 5.0.5 introduce a file watcher which react to new
-# inventories put in \${inventories.root.directory}/incoming.
-# You can (should) use the watcher by setting the property
-# 'inventories.watcher.enable' to true.
-# 'inventories.watcher.waitForSignatureDuration' is the time
-# in seconds the watcher will wait for the signature file
-# in case there is only an inventory file before sending
-# only inventory to backend.
-# You can start (resp. stop) the watcher with POST to API
-# /api/watcher/start (resp /api/watcher/stop).
-#
-EOF
-  grep "^inventory" "${INVENTORY_PROP}" >> "${RUDDER_PROP}" || true
-  rm "${INVENTORY_PROP}"
-fi
-
 # Need to restart to take schema changes into account
 echo -n "INFO: Restarting rudder-slapd..."
 
