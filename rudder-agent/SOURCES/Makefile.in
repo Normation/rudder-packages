@@ -369,6 +369,11 @@ endif
 # Installl components #
 ##########################################
 
+rudder-agent-version:
+	[ -f rudder-sources/versions ] && cp ./rudder-sources/versions $@
+	[ -f $@ ] || echo "main_version=unknown" > $@
+	[ -f rudder-sources/commits ] && awk '{print $1"_commit="$2}' commits >> $@
+
 cleanup-build:
 # AIX needs .a files but not other systems
 ifneq (AIX,$(OS_FAMILY))
@@ -396,7 +401,7 @@ endif
 
 
 # install to DESTDIR
-install-agent: build cleanup-build rudder-agent rudder-agent.cron debug-script/rudder-debug-info rudder.8.gz
+install-agent: build cleanup-build rudder-agent rudder-agent.cron debug-script/rudder-debug-info rudder.8.gz rudder-agent-version
 	# Directories
 	mkdir -p $(DESTDIR)/var/rudder/cfengine-community/bin
 	mkdir -p $(DESTDIR)/var/rudder/tmp
@@ -511,6 +516,9 @@ ifneq (AIX,$(OS_FAMILY))
 	$(INSTALL) -m 644 rudder-agent.sh $(DESTDIR)/etc/profile.d/
 endif
 
+	# install agent version file
+	mkdir -p $(DESTDIR)/opt/rudder/share/versions/
+	$(INSTALL) -m 644 rudder-agent-version $(DESTDIR)/opt/rudder/share/versions/
 
 #################
 # Clean targets #

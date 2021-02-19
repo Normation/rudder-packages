@@ -148,8 +148,13 @@ build-ldap: openldap-source
 build-rudder-lang:
 	cd $(LANGDIR) && make $(DEBUGOPT) build
 
+rudder-webapp-version:
+	[ -f rudder-sources/versions ] && cp ./rudder-sources/versions $@
+	[ -f $@ ] || echo "main_version=unknown" > $@
+	[ -f rudder-sources/commits ] && awk '{print $1"_commit="$2}' commits >> $@
+
 # install into DESTDIR
-install: build initial-promises initial-ncf
+install: build initial-promises initial-ncf rudder-webapp-version
 	mkdir -p $(DESTDIR)/opt/rudder/etc/
 	mkdir -p $(DESTDIR)/opt/rudder/etc/plugins/licenses
 	mkdir -p $(DESTDIR)/opt/rudder/etc/server-roles.d/
@@ -179,6 +184,7 @@ install: build initial-promises initial-ncf
 	mkdir -p $(DESTDIR)/usr/share/
 	mkdir -p $(DESTDIR)/usr/bin/
 	mkdir -p $(DESTDIR)/usr/lib/systemd/system/
+	mkdir -p $(DESTDIR)/opt/rudder/share/versions/
 	cd openldap-source && make $(DEBUGOPT) install DESTDIR=$(DESTDIR)
 
 	# Install rudder-lang
@@ -265,6 +271,8 @@ install: build initial-promises initial-ncf
 
 	cp -r initial-promises/ $(DESTDIR)/opt/rudder/share/
 	cp -r initial-ncf/ $(DESTDIR)/opt/rudder/share/
+
+	install -m 644 rudder-webapp-version $(DESTDIR)/opt/rudder/share/versions/
 
 	touch $@
 

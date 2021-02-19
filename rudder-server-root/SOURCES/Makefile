@@ -34,13 +34,20 @@ localdepends:
 
 build:
 
-install: build
+rudder-server-root-version:
+	[ -f rudder-sources/versions ] && cp ./rudder-sources/versions $@
+	[ -f $@ ] || echo "main_version=unknown" > $@
+	[ -f rudder-sources/commits ] && awk '{print $1"_commit="$2}' commits >> $@
+
+install: build rudder-server-root-version
 	mkdir -p $(DESTDIR)/usr/lib/systemd/system
 	mkdir -p $(DESTDIR)/opt/rudder/etc/server-roles.d/
 	mkdir -p $(DESTDIR)/opt/rudder/share/package-scripts/
+	mkdir -p $(DESTDIR)/opt/rudder/share/versions/
 	install -m 644 rudder-server.service $(DESTDIR)/usr/lib/systemd/system/
 	install -m 644 rudder-server-root $(DESTDIR)/opt/rudder/etc/server-roles.d/
 	install -m 755 rudder-server-root-postinst $(DESTDIR)/opt/rudder/share/package-scripts/
+	install -m 644 rudder-server-root-version $(DESTDIR)/opt/rudder/share/versions/
 
 clean:
 

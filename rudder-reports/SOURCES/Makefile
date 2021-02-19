@@ -41,15 +41,22 @@ rudder-sources: rudder-sources.tar.bz2
 build: rudder-sources
 	touch $@
 
+rudder-reports-version:
+	[ -f rudder-sources/versions ] && cp ./rudder-sources/versions $@
+	[ -f $@ ] || echo "main_version=unknown" > $@
+	[ -f rudder-sources/commits ] && awk '{print $1"_commit="$2}' commits >> $@
+
 # Install into DESTDIR
-install: build
+install: build rudder-reports-version
 	mkdir -p $(DESTDIR)/opt/rudder/etc/postgresql/
 	mkdir -p $(DESTDIR)/opt/rudder/etc/server-roles.d/
 	mkdir -p $(DESTDIR)/opt/rudder/share/package-scripts/
+	mkdir -p $(DESTDIR)/opt/rudder/share/versions/
 	install -m 644 rudder-sources/rudder/webapp/sources/rudder/rudder-core/src/main/resources/reportsSchema.sql $(DESTDIR)/opt/rudder/etc/postgresql/
 	install -m 644 rudder-reports $(DESTDIR)/opt/rudder/etc/server-roles.d/
 	install -m 644 rudder-db $(DESTDIR)/opt/rudder/etc/server-roles.d/
 	install -m 755 rudder-reports-postinst $(DESTDIR)/opt/rudder/share/package-scripts/
+	install -m 644 rudder-reports-version $(DESTDIR)/opt/rudder/share/versions/
 
 clean:
 
