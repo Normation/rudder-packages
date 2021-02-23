@@ -214,10 +214,8 @@ test_cc() {
   echo "void main() {}" > "${TEST_FILE}.c"
   if cc $2 $3 -o "${TEST_FILE}" "${TEST_FILE}.c" 2>/dev/null
   then
-    old_cflags="${1}_CFLAGS"
-    eval "${1}_CFLAGS=\"${!old_cflags} $2\""
-    old_ldflags="${1}_LDFLAGS"
-    eval "${1}_LDFLAGS=\"${!old_ldflags} $3\""
+    eval "${1}_CFLAGS=\"\${${1}_CFLAGS} $2\""
+    eval "${1}_LDFLAGS=\"\${${1}_LDFLAGS} $3\""
   fi
   rm -f "${TEST_FILE}" "${TEST_FILE}".c
 }
@@ -229,7 +227,7 @@ test_cc() {
 test_cc "SECURE" "-fstack-protector-strong" ""
 
 # fallback to basic
-if ! grep -q 'fstack' <<< $SECURE_CFLAGS; then
+if ! echo "${SECURE_CFLAGS}" | grep -q 'fstack'; then
   test_cc "SECURE" "-fstack-protector" ""
 fi
 
