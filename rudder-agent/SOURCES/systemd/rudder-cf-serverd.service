@@ -9,7 +9,7 @@ PartOf=rudder-agent.service
 [Service]
 Type=simple
 Environment=VERBOSITY_OPTION=--inform
-ExecStart=/opt/rudder/bin/cf-serverd --graceful-detach=600--no-fork $VERBOSITY_OPTION
+ExecStart=/opt/rudder/bin/cf-serverd --graceful-detach=600 --no-fork $VERBOSITY_OPTION
 ExecReload=/bin/kill -HUP $MAINPID
 Restart=always
 NotifyAccess=main
