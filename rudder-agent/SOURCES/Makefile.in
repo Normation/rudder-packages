@@ -292,7 +292,7 @@ build-cfengine-real: $(CFENGINE_DEPS) cfengine-source
 	cd cfengine-source && [ -x ./configure ] || NO_CONFIGURE=1 ./autogen.sh
 	# build system tries to reload systemd by itself
 	cd cfengine-source && $(SED) 's/-systemctl daemon-reload/#-systemctl daemon-reload/' misc/Makefile.in > misc/Makefile.in.new && mv misc/Makefile.in.new misc/Makefile.in
-	cd cfengine-source && ./configure --prefix=$(RUDDER_DIR) --with-workdir=/var/rudder/cfengine-community --without-postgresql --without-mysql $(CFENGINE_ARGS) $(BUILD_FLAGS_EXE) CPPFLAGS="-I$(CURDIR)/dependencies$(RUDDER_DIR)/include/libxml2"
+	cd cfengine-source && ./autogen.sh --prefix=$(RUDDER_DIR) --with-workdir=/var/rudder/cfengine-community --without-postgresql --without-mysql $(CFENGINE_ARGS) $(BUILD_FLAGS_EXE) CPPFLAGS="-I$(CURDIR)/dependencies$(RUDDER_DIR)/include/libxml2"
 	cd cfengine-source && $(MAKE)
 	cd cfengine-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
 # solaris doesn't have uuidgen and needs one
