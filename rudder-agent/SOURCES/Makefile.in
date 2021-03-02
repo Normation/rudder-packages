@@ -288,8 +288,8 @@ build-cfengine: $(CFENGINE_BUILD)
 build-cfengine-real: $(CFENGINE_DEPS) cfengine-source
 	# save dependencies into cache if we built them
 	if [ "$<" != "cfengine-source" ]; then ../../build-caching put dependencies/ $(DEPS_CACHE_PARAMETERS); fi
-	# bootstrap with autogen.sh first since configure may have modified ac files
-	cd cfengine-source && NO_CONFIGURE=1 ./autogen.sh
+	# regenerate configure since configure.ac may have been modified by systemd (18889 and 18893) patches
+	cd cfengine-source && autoreconf -Wno-portability --force --install -I m4
 	# build system tries to reload systemd by itself
 	cd cfengine-source && $(SED) 's/-systemctl daemon-reload/#-systemctl daemon-reload/' misc/Makefile.in > misc/Makefile.in.new && mv misc/Makefile.in.new misc/Makefile.in
 	cd cfengine-source && ./configure --prefix=$(RUDDER_DIR) --with-workdir=/var/rudder/cfengine-community --without-postgresql --without-mysql $(CFENGINE_ARGS) $(BUILD_FLAGS_EXE) CPPFLAGS="-I$(CURDIR)/dependencies$(RUDDER_DIR)/include/libxml2"
