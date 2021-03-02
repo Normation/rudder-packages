@@ -674,8 +674,8 @@ build-cfengine: $(CFENGINE_DEPS) cfengine-source build-cfengine-stamp
 	if [ "$(CFENGINE_DEPS)" != "" ]; then ../../build-caching put dependencies/ $(DEPS_CACHE_PARAMETERS); fi
 
 build-cfengine-stamp:
-	# bootstrap with autogen.sh first since configure may have modified ac files
-	cd cfengine-source && NO_CONFIGURE=1 ./autogen.sh
+	# regenerate configure since configure.ac may have been modified by systemd (18889 and 18893) patches
+	cd cfengine-source && autoreconf -Wno-portability --force --install -I m4
 	# remove temporary rpath added by configure to build options
 	cd cfengine-source && $(SED) 's/[A-Z]*_LDFLAGS="$$[A-Z]*_LDFLAGS -R$$with_[a-z]*\/lib"/true/' configure > configure.new && mv configure.new configure && chmod +x configure
 	# build system bug when libxml is enabled
