@@ -388,6 +388,9 @@ cfengine-source:
 
 	# Apply patches
 	for PATCHNAME in patches/cfengine/*.patch; do echo "Applying $$PATCHNAME..."; $(PATCH) -d ./cfengine-source -p1 < $$PATCHNAME; echo ""; done
+ifeq (true,$(USE_SYSTEMD))
+	for PATCHNAME in patches/cfengine-systemd/*.patch; do echo "Applying $$PATCHNAME..."; $(PATCH) -d ./cfengine-source -p1 < $$PATCHNAME; echo ""; done
+endif
 	# Make sure there were no rejects
 	test `find ./cfengine-source -name \*.rej | wc -l` = 0
 
