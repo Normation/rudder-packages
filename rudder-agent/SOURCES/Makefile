@@ -675,9 +675,9 @@ build-cfengine: $(CFENGINE_DEPS) cfengine-source build-cfengine-stamp
 
 build-cfengine-stamp:
 	# regenerate configure since configure.ac may have been modified by systemd patches (18889 and 18893)
-	# not needed for older os so skip it if autoconf is too old
+	# not needed for older os so skip it if autoconf is too old but touch files to make sure it is skipped otherwise make will try to to it automatically
 	# Crapy: remove this when 18889 and 18893 have been merged upstream
-	if type autoconf 2>/dev/null && [ $$(autoconf --version | sed -n '/^autoconf/s/[^0-9]*//gp') -ge 263 ]; then cd cfengine-source && autoreconf -Wno-portability --force --install -I m4; fi
+	if type autoconf 2>/dev/null && [ $$(autoconf --version | sed -n '/^autoconf/s/[^0-9]*//gp') -ge 263 ]; then cd cfengine-source && autoreconf -Wno-portability --force --install -I m4; else touch -d+1min configure Makefile.in; fi
 	# remove temporary rpath added by configure to build options
 	cd cfengine-source && $(SED) 's/[A-Z]*_LDFLAGS="$$[A-Z]*_LDFLAGS -R$$with_[a-z]*\/lib"/true/' configure > configure.new && mv configure.new configure && chmod +x configure
 	# build system bug when libxml is enabled
