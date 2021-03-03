@@ -383,7 +383,6 @@ cp /usr/lib64/libattr.a /usr/lib64/libattr.la /lib64 || cp /usr/lib/libattr.a /u
 %endif
 
 
-
 ./configure ${opt}
 %{make} BUILD_CFLAGS="${RPM_OPT_FLAGS}"
 
