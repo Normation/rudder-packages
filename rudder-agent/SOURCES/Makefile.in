@@ -91,7 +91,7 @@ GET=get() { @_GET@ "$$1.part" "$$2" && { openssl dgst -sha256 "$$1.part" | grep 
 source: @SOURCE_DEPS@ cfengine-source cpanminus-source
 
 # build binaries
-build: build-cfengine @fusion_DEP@
+build: build-cfengine @fusion_DEP@ build_client
 
 # install rudder agent
 install: install-agent
@@ -192,6 +192,10 @@ debug-script/rudder-debug-info:
 ########################
 # Build each component #
 ########################
+
+build-client: rudder-sources
+	cd rudder-sources/rudder/agent/sources/client && $(BUILD_FLAGS_EXE) $(MAKE) build-release
+	touch $@
 
 build-zlib: zlib-source
 	cd zlib-source && $(BUILD_FLAGS_LIB) ./configure --prefix=$(RUDDER_DIR)
@@ -490,6 +494,9 @@ endif
 	chmod 755 $(DESTDIR)/opt/rudder/share/lib/timestamp
 	mkdir -p $(DESTDIR)/opt/rudder/etc
 	$(INSTALL) -m 644 rudder-agent/agent-capabilities $(DESTDIR)/opt/rudder/etc/
+
+	# Network client
+	cd rudder-sources/rudder/agent/sources/client && $(MAKE) install DESTDIR=$(DESTDIR)/opt/rudder/
 
 	# Bootstrap promises
 	mkdir -p $(DESTDIR)/opt/rudder/share/bootstrap-promises/
