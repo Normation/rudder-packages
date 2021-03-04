@@ -286,6 +286,10 @@ Requires: pcre
 %endif
 
 #### Use systemd everywhere except on: AIX, RHEL<7, SLES<12, Fedora<15
+%if "%{?aix}"
+%define enable_systemd false
+%endif
+
 %if 0%{?rhel} && 0%{?rhel} < 7
 %define enable_systemd false
 %endif
