@@ -2,8 +2,8 @@ Source: rudder-agent
 Section: admin
 Priority: extra
 Maintainer: Rudder Team <dev@rudder.io>
-# Hack: aegis exist on old distros (debian<=8) but not on server distros (debian>=9) where we need libsystemd-dev so this will work unconditionnaly
 Build-Depends: debhelper (>= 7), bison, gcc, flex, autoconf, automake, libtool, libpcre3-dev, libpam0g-dev, ca-certificates, perl, lsb-release, libyaml-dev, libxml2-dev, libacl1-dev, python, rsync, libssl-dev, libcurl4-openssl-dev, libsystemd-dev | aegis
+# Hack: aegis exist on old distros (debian<=8) but not on server distros (debian>=9) where we need libsystemd-dev so this will work unconditionnaly
 Standards-Version: 3.8.0
 Homepage: https://www.rudder.io
 
