@@ -91,7 +91,7 @@ GET=get() { @_GET@ "$$1.part" "$$2" && { openssl dgst -sha256 "$$1.part" | grep 
 source: @SOURCE_DEPS@ cfengine-source cpanminus-source
 
 # build binaries
-build: build-cfengine @fusion_DEP@ build_client
+build: build-cfengine @fusion_DEP@ build-client
 
 # install rudder agent
 install: install-agent
