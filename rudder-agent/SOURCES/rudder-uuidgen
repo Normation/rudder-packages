@@ -8,6 +8,11 @@ elif [ -x /usr/bin/uuidgen ]
 then
   /usr/bin/uuidgen
 
+# bare linux
+elif [ -f /proc/sys/kernel/random/uuid ]
+then
+  cat /proc/sys/kernel/random/uuid
+
 # AIX 7.2
 elif [ -x /usr/bin/uuid_get ]
 then
