@@ -388,7 +388,7 @@ cp /usr/lib64/libattr.a /usr/lib64/libattr.la /lib64 || cp /usr/lib/libattr.a /u
 
 
 ./configure ${opt}
-%{make} BUILD_CFLAGS="${RPM_OPT_FLAGS}"
+make BUILD_CFLAGS="${RPM_OPT_FLAGS}"
 
 #=================================================
 # Installation
@@ -397,7 +397,7 @@ cp /usr/lib64/libattr.a /usr/lib64/libattr.la /lib64 || cp /usr/lib/libattr.a /u
 
 cd %{_sourcedir}
 
-%{make} install DESTDIR=%{buildroot}
+make install DESTDIR=%{buildroot}
 
 # rhel7 doesn't have python 3 so we force python2 instead
 %if 0%{?rhel} == 7
