@@ -11,7 +11,7 @@ done
 BUILD_fusion=true
 
 # Features defaults: things are enabled except if the unix family doesn't support it
-FEATURES="https pie systemd acl pam"
+FEATURES="https pie systemd libacl pam"
 for use in ${FEATURES}; do
   eval "USE_${use}=true"
 done
@@ -21,7 +21,7 @@ OS_FAMILY=$(uname -s)
 
 # Defaults for unix variations
 if [ "${OS_FAMILY}" != "Linux" ]; then
-  USE_acl=false
+  USE_libacl=false
   USE_pam=false
   USE_systemd=false
 fi
@@ -140,11 +140,11 @@ do
     eval "IF_${dep}='# for ${dep} only - '"
   fi
 done
-# --with-openssl is simetimes called --with-ssl
+# --with-openssl is sometimes called --with-ssl
 WITH_openssl="${WITH_openssl} $(echo ${WITH_openssl} | sed 's/--with-openssl/--with-ssl/')"
 
 # Compute use_* --with statements
-for feat in acl pam
+for feat in libacl pam
 do
   use=$(eval echo "\${USE_${feat}}")
   if [ "${use}" = "true" ]; then
@@ -170,7 +170,7 @@ fi
 # Add adequate --with statements to compilation options
 LIBCURL_ARGS="${WITH_zlib} ${WITH_openssl}"
 LIBXML2_ARGS="${WITH_zlib}"
-CFENGINE_ARGS="${WITH_acl} ${WITH_pam} ${WITH_lmdb} ${WITH_pcre} ${WITH_openssl} ${WITH_libyaml} ${WITH_libxml2} ${WITH_libcurl}"
+CFENGINE_ARGS="${WITH_libacl} ${WITH_pam} ${WITH_lmdb} ${WITH_pcre} ${WITH_openssl} ${WITH_libyaml} ${WITH_libxml2} ${WITH_libcurl}"
 
 # Perl specific
 if [ "${BUILD_perl}" = "true" ]; then

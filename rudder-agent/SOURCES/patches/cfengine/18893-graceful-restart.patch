@@ -1,5 +1,5 @@
 diff --git a/cf-serverd/cf-serverd-functions.c b/cf-serverd/cf-serverd-functions.c
-index c4b2aafa1..2c4a503c8 100644
+index c4b2aafa1..575188d67 100644
 --- a/cf-serverd/cf-serverd-functions.c
 +++ b/cf-serverd/cf-serverd-functions.c
 @@ -51,6 +51,10 @@
@@ -61,7 +61,7 @@ index c4b2aafa1..2c4a503c8 100644
          default:
              {
                  Writer *w = FileWriter(stdout);
-@@ -540,14 +555,71 @@ static void PrepareServer(int sd)
+@@ -540,14 +555,99 @@ static void PrepareServer(int sd)
      WritePID("cf-serverd.pid"); /* Arranges for cleanup() to tidy it away */
  }
  
@@ -81,6 +81,14 @@ index c4b2aafa1..2c4a503c8 100644
 +        Log(LOG_LEVEL_ERR, "Cannot detach graceful process (no pipe)");
 +        return;
 +    }
++#ifdef HAVE_SD_NOTIFY_BARRIER
++    int anything = 1;
++    int grand_child_pipe[2];
++    if (pipe(grand_child_pipe) == -1) {
++        Log(LOG_LEVEL_ERR, "Cannot detach graceful process (no pipe)");
++        return;
++    }
++#endif
 +    pid_t child_pid = fork();
 +    if (child_pid == 0)
 +    {
@@ -90,14 +98,27 @@ index c4b2aafa1..2c4a503c8 100644
 +        if (grand_child_pid == 0)
 +        {
 +            /* grand child */
-+            /* Wait for systemd to follow us then exit.
-+             * We should use sd_notify_barrier in parent to know when to exit,
-+             * but it is only available on recent versions of systemd */
++            /* Wait for systemd to follow us then exit. */
++#ifdef HAVE_SD_NOTIFY_BARRIER
++#warning have barrier
++            /* use sd_notify_barrier in parent to know when to exit on recent versions of systemd */
++            close(grand_child_pipe[1]);
++            read(grand_child_pipe[0], &anything, sizeof(anything));
++            close(grand_child_pipe[0]);
++#else
++#warning no barrier
++            /* use sleep synchronization on old systemd */
 +            sleep(2);
++#endif
 +            exit(0);
 +        }
 +        else
 +        {
++#ifdef HAVE_SD_NOTIFY_BARRIER
++            /* not needed here */
++            close(grand_child_pipe[0]);
++            close(grand_child_pipe[1]);
++#endif
 +            /* first child */
 +            /* Send grand child pid to parent then exit to give grand child to systemd */
 +            close(child_pipe[0]);
@@ -110,14 +131,21 @@ index c4b2aafa1..2c4a503c8 100644
 +    {
 +        /* Parent */
 +        pid_t grand_child_pid;
-+        // read grand child pid from first child
++        /* read grand child pid from first child */
 +        close(child_pipe[1]);
 +        read(child_pipe[0], &grand_child_pid, sizeof(grand_child_pid));
 +        close(child_pipe[0]);
 +        waitpid(child_pid, NULL, 0);
 +#if HAVE_SYSTEMD_SD_DAEMON_H
-+        // send it to systemd
++        /* send it to systemd */
 +        sd_notifyf(0, "MAINPID=%d", grand_child_pid);
++#ifdef HAVE_SD_NOTIFY_BARRIER
++        sd_notify_barrier(0, 2 * 1000000);
++        /* notify grand child it can die */
++        close(grand_child_pipe[0]);
++        write(grand_child_pipe[0], &anything, sizeof(anything));
++        close(grand_child_pipe[1]);
++#endif
 +#endif // HAVE_SYSTEMD_SD_DAEMON_H
 +    }
 +}
@@ -135,7 +163,7 @@ index c4b2aafa1..2c4a503c8 100644
      {
          ThreadLock(cft_server_children);
          result = ACTIVE_THREADS;
-@@ -747,7 +819,13 @@ int StartServer(EvalContext *ctx, Policy **policy, GenericAgentConfig *config)
+@@ -747,7 +847,13 @@ int StartServer(EvalContext *ctx, Policy **policy, GenericAgentConfig *config)
                  AcceptAndHandle(ctx, sd);
              }
          } /* else: interrupted, maybe pending termination. */
@@ -150,7 +178,7 @@ index c4b2aafa1..2c4a503c8 100644
      Log(LOG_LEVEL_NOTICE, "Cleaning up and exiting...");
  
      CollectCallStop();
-@@ -757,9 +835,19 @@ int StartServer(EvalContext *ctx, Policy **policy, GenericAgentConfig *config)
+@@ -757,9 +863,19 @@ int StartServer(EvalContext *ctx, Policy **policy, GenericAgentConfig *config)
          cf_closesocket(sd);                       /* Close listening socket */
      }
  
@@ -173,3 +201,28 @@ index c4b2aafa1..2c4a503c8 100644
      PolicyDestroy(server_cfengine_policy);
  
      return threads_left;
+diff --git a/configure.ac b/configure.ac
+index 5c715128e..2ac457b57 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -511,6 +511,7 @@ if test "x$with_systemd_socket" != xno
+ then
+    CF3_WITH_LIBRARY(systemd_socket, [
+       AC_CHECK_LIB(systemd, sd_listen_fds, [], [if test "x$with_systemd_socket" != xcheck; then AC_MSG_ERROR(Cannot find systemd library); fi])
++      AC_CHECK_LIB(systemd, sd_notify_barrier, [AC_DEFINE([HAVE_SD_NOTIFY_BARRIER],[1],[sd_notify_barrier on recent systemd])])
+       AC_CHECK_HEADERS(systemd/sd-daemon.h, [], [if test "x$with_systemd_socket" != xcheck; then AC_MSG_ERROR(Cannot find systemd headers); fi])
+    ])
+ fi
+diff --git a/misc/systemd/cf-serverd.socket b/misc/systemd/cf-serverd.socket
+index 8c4d12de8..a59cba534 100644
+--- a/misc/systemd/cf-serverd.socket
++++ b/misc/systemd/cf-serverd.socket
+@@ -4,7 +4,7 @@ PartOf=cfengine3.service
+ Before=cf-serverd.service
+ 
+ [Socket]
+-ListenStream = 5309
++ListenStream = 5308
+ 
+ [Install]
+ WantedBy=multi-user.target

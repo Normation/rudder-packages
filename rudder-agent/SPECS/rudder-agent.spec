@@ -42,7 +42,7 @@
 %define enable_https true
 %define enable_pie true
 %define enable_systemd true
-%define enable_acl true
+%define enable_libacl true
 %define enable_pam true
 
 %if 0%{?rhel} == 8
@@ -366,8 +366,8 @@ opt="${opt} --disable-pie"
 %if "%{enable_systemd}" == "false"
 opt="${opt} --disable-systemd"
 %endif
-%if "%{enable_acl}" == "false"
-opt="${opt} --disable-acl"
+%if "%{enable_libacl}" == "false"
+opt="${opt} --disable-libacl"
 %endif
 %if "%{enable_pam}" == "false"
 opt="${opt} --disable-pam"

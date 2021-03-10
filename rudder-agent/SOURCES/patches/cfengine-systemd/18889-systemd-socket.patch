@@ -1,36 +1,5 @@
-diff --git a/cf-serverd/Makefile.am b/cf-serverd/Makefile.am
-index b2b268d15..731fed62c 100644
---- a/cf-serverd/Makefile.am
-+++ b/cf-serverd/Makefile.am
-@@ -35,7 +35,11 @@ AM_CFLAGS = \
- 	$(PTHREAD_CFLAGS) \
- 	$(ENTERPRISE_CFLAGS)
- 
--libcf_serverd_la_LIBADD = ../libpromises/libpromises.la
-+AM_LDFLAGS = \
-+       $(SYSTEMD_SOCKET_LDFLAGS)
-+
-+libcf_serverd_la_LIBADD = ../libpromises/libpromises.la \
-+       $(SYSTEMD_SOCKET_LIBS)
- 
- libcf_serverd_la_SOURCES = \
- 	cf-serverd.c \
-diff --git a/cf-testd/Makefile.am b/cf-testd/Makefile.am
-index 4752ba003..571e6bd74 100644
---- a/cf-testd/Makefile.am
-+++ b/cf-testd/Makefile.am
-@@ -37,7 +37,8 @@ AM_CFLAGS = \
- 
- libcf_testd_la_LIBADD = \
- 	../libpromises/libpromises.la \
--	../cf-serverd/libcf-serverd.la
-+	../cf-serverd/libcf-serverd.la \
-+	$(SYSTEMD_SOCKET_LIBS)
- 
- libcf_testd_la_SOURCES = \
- 	cf-testd.c
 diff --git a/configure.ac b/configure.ac
-index 5975e637d..5c715128e 100644
+index 5975e637d5..5c715128e5 100644
 --- a/configure.ac
 +++ b/configure.ac
 @@ -502,6 +502,19 @@ CF3_WITH_LIBRARY(pcre, [
@@ -54,7 +23,7 @@ index 5975e637d..5c715128e 100644
  
  AC_ARG_WITH([libvirt],
 diff --git a/libcfnet/Makefile.am b/libcfnet/Makefile.am
-index b10dc52b1..e0c1a65b9 100644
+index b10dc52b1e..e0c1a65b9f 100644
 --- a/libcfnet/Makefile.am
 +++ b/libcfnet/Makefile.am
 @@ -26,6 +26,7 @@ noinst_LTLIBRARIES = libcfnet.la
@@ -66,7 +35,7 @@ index b10dc52b1..e0c1a65b9 100644
  
  libcfnet_la_SOURCES = \
 diff --git a/libcfnet/server_code.c b/libcfnet/server_code.c
-index b7db2bbfc..00dddf019 100644
+index b7db2bbfcb..00dddf019a 100644
 --- a/libcfnet/server_code.c
 +++ b/libcfnet/server_code.c
 @@ -8,6 +8,9 @@
@@ -125,9 +94,22 @@ index b7db2bbfc..00dddf019 100644
      }
  
      DoCleanupAndExit(EXIT_FAILURE);
+diff --git a/libpromises/Makefile.am b/libpromises/Makefile.am
+index ef354fe249..c2afa52582 100644
+--- a/libpromises/Makefile.am
++++ b/libpromises/Makefile.am
+@@ -47,7 +47,7 @@ AM_CFLAGS = $(CORE_CFLAGS) $(ENTERPRISE_CFLAGS) \
+ AM_YFLAGS = -d
+ 
+ LIBS = $(LMDB_LIBS) $(TOKYOCABINET_LIBS) $(QDBM_LIBS) \
+-	$(PCRE_LIBS) $(OPENSSL_LIBS) $(SQLITE3_LIBS) $(LIBACL_LIBS) $(LIBYAML_LIBS) $(LIBCURL_LIBS)
++	$(PCRE_LIBS) $(OPENSSL_LIBS) $(SQLITE3_LIBS) $(LIBACL_LIBS) $(LIBYAML_LIBS) $(LIBCURL_LIBS) $(SYSTEMD_SOCKET_LIBS)
+ 
+ libpromises_la_LIBADD = ../libntech/libutils/libutils.la ../libcfnet/libcfnet.la \
+ 	../libenv/libenv.la $(ENTERPRISE_LDADD)
 diff --git a/misc/systemd/cf-serverd.socket b/misc/systemd/cf-serverd.socket
 new file mode 100644
-index 000000000..8c4d12de8
+index 0000000000..8c4d12de8f
 --- /dev/null
 +++ b/misc/systemd/cf-serverd.socket
 @@ -0,0 +1,12 @@
