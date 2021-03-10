@@ -201,18 +201,6 @@ index c4b2aafa1..575188d67 100644
      PolicyDestroy(server_cfengine_policy);
  
      return threads_left;
-diff --git a/configure.ac b/configure.ac
-index 5c715128e..2ac457b57 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -511,6 +511,7 @@ if test "x$with_systemd_socket" != xno
- then
-    CF3_WITH_LIBRARY(systemd_socket, [
-       AC_CHECK_LIB(systemd, sd_listen_fds, [], [if test "x$with_systemd_socket" != xcheck; then AC_MSG_ERROR(Cannot find systemd library); fi])
-+      AC_CHECK_LIB(systemd, sd_notify_barrier, [AC_DEFINE([HAVE_SD_NOTIFY_BARRIER],[1],[sd_notify_barrier on recent systemd])])
-       AC_CHECK_HEADERS(systemd/sd-daemon.h, [], [if test "x$with_systemd_socket" != xcheck; then AC_MSG_ERROR(Cannot find systemd headers); fi])
-    ])
- fi
 diff --git a/misc/systemd/cf-serverd.socket b/misc/systemd/cf-serverd.socket
 index 8c4d12de8..a59cba534 100644
 --- a/misc/systemd/cf-serverd.socket
