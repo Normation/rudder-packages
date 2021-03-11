@@ -145,7 +145,7 @@ done
 WITH_openssl="${WITH_openssl} $(echo ${WITH_openssl} | sed 's/--with-openssl/--with-ssl/')"
 
 # Compute use_* --with statements
-for feat in libacl pam
+for feat in ${FEATURES}
 do
   use=$(eval echo "\${USE_${feat}}")
   if [ "${use}" = "true" ]; then
