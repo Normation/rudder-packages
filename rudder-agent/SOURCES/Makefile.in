@@ -198,7 +198,7 @@ debug-script/rudder-debug-info:
 # Build each component #
 ########################
 
-build-client: rudder-sources tomlc99-sources
+build-client: rudder-sources tomlc99-source
 	cp -r tomlc99-sources rudder-sources/rudder/agent/sources/client/tomlc99
 	cd rudder-sources/rudder/agent/sources/client && $(BUILD_FLAGS_EXE) $(MAKE) build-release
 	touch $@
