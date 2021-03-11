@@ -68,6 +68,9 @@ cpanminus_SHA256 = 9b60767fe40752ef7a9d3f13f19060a63389a5c23acc3e9827e19b75500f8
 # Original URL: https://github.com/fusioninventory/fusioninventory-agent/releases/download/2.3.19/FusionInventory-Agent-$(FUSION_RELEASE).tar.gz
 fusion_RELEASE = 2.4.3
 fusion_SHA256 = ca9d3630256303bd3ea1f158044904b53fbd7e409a6a647888e9d2c3103b45fd
+# Original URL : https://github.com/cktan/tomlc99 (no release, this is a commit)
+tomlc99_RELEASE = c5d2e37
+tomlc99_SHA256 = bf297aa23aaa5b5a33b5790f590c8f481b9449e9a99ec30761e05469c94c92ba
 
 #CPAN_URL = https://www.cpan.org
 CPAN_URL = $(HTTPS)://repository.rudder.io/build-dependencies/cpan/$(RUDDER_MAJOR_VERSION)
@@ -100,6 +103,8 @@ install: install-agent
 ##############################
 # Source download and unpack #
 ##############################
+
+@tomlc99_SOURCE@
 
 @zlib_SOURCE@
 
@@ -193,7 +198,8 @@ debug-script/rudder-debug-info:
 # Build each component #
 ########################
 
-build-client: rudder-sources
+build-client: rudder-sources tomlc99-sources
+	cp -r tomlc99-sources rudder-sources/rudder/agent/sources/client/tomlc99
 	cd rudder-sources/rudder/agent/sources/client && $(BUILD_FLAGS_EXE) $(MAKE) build-release
 	touch $@
 
