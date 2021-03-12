@@ -86,6 +86,9 @@ DESTDIR = $(CURDIR)/target
 # Pass an empty string to skip hash check
 GET=get() { @_GET@ "$$1.part" "$$2" && { openssl dgst -sha256 "$$1.part" | grep -q "$$3" || { echo "Wrong checksum, aborting"; exit 1; }; } && mv "$$1.part" "$$1"; }; get
 
+# do not pass variables to sub make
+MAKEOVERRIDES = 
+
 ################
 # Main targets #
 ################
@@ -200,7 +203,7 @@ debug-script/rudder-debug-info:
 
 build-client: rudder-sources tomlc99-source @libcurl_DEP@
 	cp -r tomlc99-source rudder-sources/rudder/agent/sources/client/tomlc99
-	cd rudder-sources/rudder/agent/sources/client && $(MAKE) build-release STATIC_TOML=1 $(BUILD_FLAGS_EXE)
+	cd rudder-sources/rudder/agent/sources/client && $(MAKE) MAKEFLAGS= build-release STATIC_TOML=1 $(BUILD_FLAGS_EXE)
 	touch $@
 
 build-zlib: zlib-source

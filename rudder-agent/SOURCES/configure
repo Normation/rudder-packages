@@ -283,7 +283,8 @@ LMDB_LDFLAGS = ${LMDB_LDFLAGS}
 PIE_CFLAGS = ${PIE_CFLAGS}
 PIE_LDFLAGS = ${PIE_LDFLAGS}
 
-CFLAGS = \$(BUILD_CFLAGS) ${SECURE_CFLAGS}
+# -I for includes from dependencies
+CFLAGS = \$(BUILD_CFLAGS) ${SECURE_CFLAGS} -I\$(CURDIR)/dependencies/opt/rudder/include
 # -L for searching libs in the right place while they are not installed at their final place
 LDFLAGS = \$(BUILD_LDFLAGS) ${SECURE_LDFLAGS} ${SYSTEM_LDFLAGS} -L\$(CURDIR)/dependencies/opt/rudder/lib
 BUILD_FLAGS_EXE = CFLAGS=\"\$(CFLAGS) \$(PIE_CFLAGS)\" LDFLAGS=\"\$(LDFLAGS) \$(PIE_LDFLAGS)\"
