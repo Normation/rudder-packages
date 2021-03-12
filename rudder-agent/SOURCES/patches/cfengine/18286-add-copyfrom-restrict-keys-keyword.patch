@@ -22,7 +22,7 @@ diff --git a/cf-agent/cf-agent.c b/cf-agent/cf-agent.c
 index 09060490fd..792d84da03 100644
 --- a/cf-agent/cf-agent.c
 +++ b/cf-agent/cf-agent.c
-@@ -894,6 +894,12 @@ static void KeepControlPromises(EvalContext *ctx, const Policy *policy, GenericA
+@@ -895,6 +895,12 @@ static void KeepControlPromises(EvalContext *ctx, const Policy *policy, GenericA
                  continue;
              }
  
@@ -39,7 +39,7 @@ diff --git a/cf-agent/verify_files_utils.c b/cf-agent/verify_files_utils.c
 index 4ed5284e4e..e868db8694 100644
 --- a/cf-agent/verify_files_utils.c
 +++ b/cf-agent/verify_files_utils.c
-@@ -2822,7 +2822,7 @@ static AgentConnection *FileCopyConnectionOpen(const EvalContext *ctx,
+@@ -2824,7 +2824,7 @@ static AgentConnection *FileCopyConnectionOpen(const EvalContext *ctx,
          else                    /* not found, open and cache new connection */
          {
              int err = 0;
@@ -48,7 +48,7 @@ index 4ed5284e4e..e868db8694 100644
                                      flags, &err);
  
              /* WARNING: if cache already has non-idle connections to that
-@@ -2849,7 +2849,7 @@ static AgentConnection *FileCopyConnectionOpen(const EvalContext *ctx,
+@@ -2851,7 +2851,7 @@ static AgentConnection *FileCopyConnectionOpen(const EvalContext *ctx,
      else
      {
          int err = 0;
@@ -61,7 +61,7 @@ diff --git a/cf-net/cf-net.c b/cf-net/cf-net.c
 index f76eb9ea54..31c534503a 100644
 --- a/cf-net/cf-net.c
 +++ b/cf-net/cf-net.c
-@@ -479,7 +479,7 @@ static AgentConnection *CFNetOpenConnection(const char *server)
+@@ -480,7 +480,7 @@ static AgentConnection *CFNetOpenConnection(const char *server)
      {
          port = CFENGINE_PORT_STR;
      }
@@ -74,7 +74,7 @@ diff --git a/cf-runagent/cf-runagent.c b/cf-runagent/cf-runagent.c
 index 06db6b5285..a9bef43fd9 100644
 --- a/cf-runagent/cf-runagent.c
 +++ b/cf-runagent/cf-runagent.c
-@@ -549,7 +549,7 @@ static bool HailServer(const EvalContext *ctx, const GenericAgentConfig *config,
+@@ -550,7 +550,7 @@ static bool HailServer(const EvalContext *ctx, const GenericAgentConfig *config,
          .off_the_record = false
      };
      int err = 0;

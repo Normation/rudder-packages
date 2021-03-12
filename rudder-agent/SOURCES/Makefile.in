@@ -207,7 +207,7 @@ debug-script/rudder-debug-info:
 
 build-client: rudder-sources tomlc99-source @libcurl_DEP@
 	cp -r tomlc99-source rudder-sources/rudder/agent/sources/client/tomlc99
-	cd rudder-sources/rudder/agent/sources/client && $(MAKE) MAKEFLAGS= build-release STATIC_TOML=1 $(BUILD_FLAGS_EXE)
+	cd rudder-sources/rudder/agent/sources/client && $(MAKE) MAKEFLAGS= build-release STATIC_TOML=1 CC=$(CC) $(BUILD_FLAGS_EXE)
 	touch $@
 
 build-zlib: zlib-source

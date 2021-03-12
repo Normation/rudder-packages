@@ -125,7 +125,7 @@ rudder-sources: rudder-sources.tar.bz2
 rudder-doc:
 	# Get user manual from rudder-project.org and rename directory containing it to rudder-doc
 	$(GET) doc-${RUDDER_MAJOR_VERSION}.tar.gz https://docs.rudder.io/archives/doc-${RUDDER_MAJOR_VERSION}.tar.gz ""
-	tar -xzf doc-${RUDDER_MAJOR_VERSION}.tar.gz
+	tar -xf doc-${RUDDER_MAJOR_VERSION}.tar.gz
 	mkdir -p rudder-doc
 	mv doc-${RUDDER_MAJOR_VERSION} rudder-doc/html
 

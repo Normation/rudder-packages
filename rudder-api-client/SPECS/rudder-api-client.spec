@@ -100,7 +100,6 @@ rm -rf %{buildroot}
 %defattr(-, root, root, 0755)
 /usr/share/rudder-api-client/rudder.py
 /usr/bin/rudder-cli
-/opt/rudder/share/versions/rudder-api-client-version
 %exclude /usr/share/rudder-api-client/rudder.pyc
 %exclude /usr/share/rudder-api-client/rudder.pyo
 

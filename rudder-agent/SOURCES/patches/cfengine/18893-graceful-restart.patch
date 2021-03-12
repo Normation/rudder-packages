@@ -201,16 +201,3 @@ index c4b2aafa1..575188d67 100644
      PolicyDestroy(server_cfengine_policy);
  
      return threads_left;
-diff --git a/misc/systemd/cf-serverd.socket b/misc/systemd/cf-serverd.socket
-index 8c4d12de8..a59cba534 100644
---- a/misc/systemd/cf-serverd.socket
-+++ b/misc/systemd/cf-serverd.socket
-@@ -4,7 +4,7 @@ PartOf=cfengine3.service
- Before=cf-serverd.service
- 
- [Socket]
--ListenStream = 5309
-+ListenStream = 5308
- 
- [Install]
- WantedBy=multi-user.target
