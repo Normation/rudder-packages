@@ -102,6 +102,7 @@ rm -rf %{buildroot}
 /opt/rudder/etc/postgresql/reportsSchema.sql
 /opt/rudder/etc/server-roles.d/
 /opt/rudder/share/package-scripts/
+/opt/rudder/share/versions/rudder-reports-version
 
 #=================================================
 # Changelog

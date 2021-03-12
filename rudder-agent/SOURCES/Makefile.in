@@ -81,6 +81,10 @@ DESTDIR = $(CURDIR)/target
 
 @CONFIG_VARS@
 
+ifeq (AIX,$(OS_FAMILY))
+CC=gcc
+endif
+
 # We are using sha1 as sha256 is not supported on RHEL3
 # Not using the sha1sum command as it is not available on AIX
 # Pass an empty string to skip hash check

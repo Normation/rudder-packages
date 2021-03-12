@@ -439,6 +439,7 @@ rm -rf %{buildroot}
 %config(noreplace) /etc/sysconfig/rudder-webapp-apache
 /usr/share/doc/rudder
 /usr/share/ncf/
+/opt/rudder/share/versions/rudder-webapp-version
 
 
 %if ! 0%{?suse_version}

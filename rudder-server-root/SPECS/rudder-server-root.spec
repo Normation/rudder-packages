@@ -142,6 +142,7 @@ rm -rf %{buildroot}
 /opt/rudder/etc/
 /opt/rudder/share/package-scripts/rudder-server-root-postinst
 /usr/lib/systemd/system/rudder-server.service
+/opt/rudder/share/versions/rudder-server-root-version
 
 #=================================================
 # Changelog
