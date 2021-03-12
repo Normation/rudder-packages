@@ -37,7 +37,7 @@ build:
 rudder-server-root-version:
 	[ -f rudder-sources/versions ] && cp ./rudder-sources/versions $@
 	[ -f $@ ] || echo "main_version=unknown" > $@
-	[ -f rudder-sources/commits ] && awk '{print $1"_commit="$2}' commits >> $@
+	[ -f rudder-sources/commits ] && awk '{print $1"_commit="$2}' rudder-sources/commits >> $@
 
 install: build rudder-server-root-version
 	mkdir -p $(DESTDIR)/usr/lib/systemd/system

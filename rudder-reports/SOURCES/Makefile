@@ -44,7 +44,7 @@ build: rudder-sources
 rudder-reports-version:
 	[ -f rudder-sources/versions ] && cp ./rudder-sources/versions $@
 	[ -f $@ ] || echo "main_version=unknown" > $@
-	[ -f rudder-sources/commits ] && awk '{print $1"_commit="$2}' commits >> $@
+	[ -f rudder-sources/commits ] && awk '{print $1"_commit="$2}' rudder-sources/commits >> $@
 
 # Install into DESTDIR
 install: build rudder-reports-version

@@ -151,7 +151,7 @@ build-rudder-lang:
 rudder-webapp-version:
 	[ -f rudder-sources/versions ] && cp ./rudder-sources/versions $@
 	[ -f $@ ] || echo "main_version=unknown" > $@
-	[ -f rudder-sources/commits ] && awk '{print $1"_commit="$2}' commits >> $@
+	[ -f rudder-sources/commits ] && awk '{print $1"_commit="$2}' rudder-sources/commits >> $@
 
 # install into DESTDIR
 install: build initial-promises initial-ncf rudder-webapp-version
