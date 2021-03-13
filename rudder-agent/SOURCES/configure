@@ -225,11 +225,11 @@ test_cc() {
 # test options one by one to enable as many as possible
 
 # try strong first
-test_cc "SECURE" "-fstack-protector-strong" ""
+test_cc "SECURE" "-fstack-protector-strong" "-fstack-protector-strong"
 
 # fallback to basic
 if ! echo "${SECURE_CFLAGS}" | grep -q 'fstack'; then
-  test_cc "SECURE" "-fstack-protector" ""
+  test_cc "SECURE" "-fstack-protector" "-fstack-protector"
 fi
 
 # full relro
