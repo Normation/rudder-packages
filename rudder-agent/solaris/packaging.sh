@@ -44,8 +44,9 @@ version() {
   fi
 }
 
-# sample code, builder shouls already have the source code
+# sample code, builder should already have the source code and version
 #wget -q --header="accept-encoding:" -O rudder-sources.tar.bz2 "http://repository.rudder.io/sources/6.0-nightly/rudder-sources-${VERSION}~rc1-latest.tar.bz2"
+#env="RUDDER_VERSION_TO_PACKAGE=${VERSION}"
 
 # 1- install build-dependencies
 
@@ -58,8 +59,6 @@ export PATH=/usr/gnu/bin:/usr/gnu/x86_64-pc-solaris2.11/bin/:/usr/gnu/sparc-sun-
 
 # gcc needs an option translator to work with cpan builds
 cp -p "${BASE}/solaris/cc" /usr/gnu/bin/
-
-env="RUDDER_VERSION_TO_PACKAGE=${VERSION}"
 
 ./configure --with-openssl --with-libcurl --with-augeas --with-zlib --with-lmdb --with-pcre --with-jq --with-libyaml --with-libxml2
 

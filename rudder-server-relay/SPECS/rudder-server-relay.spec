@@ -319,7 +319,6 @@ rm -rf %{buildroot}
 /opt/rudder/share/package-scripts/rudder-server-relay-postinst
 /opt/rudder/share/package-scripts/rudder-server-relay-prerm
 /opt/rudder/share/python/
-/opt/rudder/share/versions/rudder-server-relay-version
 /etc/bash_completion.d/rudder-pkg.sh
 
 # Avoid having .pyo and .pyc files in our package
