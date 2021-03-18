@@ -182,7 +182,7 @@ update_rudder_repository_from_system_directory() {
 
   if [ -d ${SRCTECHDIR} -a -d ${TRGTECHDIR} ]; then
     if ! diff -Naur ${SRCTECHDIR} ${TRGTECHDIR} >/dev/null 2>&1; then
-      rsync --delete -rptgoq ${SRCTECHDIR} ${TRGTECHDIR}
+      rsync --delete --ignore-times -rptgoq ${SRCTECHDIR} ${TRGTECHDIR}
       if [ x"${RUDDER_NO_TECHNIQUE_AUTOCOMMIT}" != x"1" ]; then
         cd ${CONFIGURATION_REPOSITORY}/ && git add -A ${2} && git commit -m "Upgrade system Techniques from ${SRCTECHDIR} - automatically done by rudder-upgrade script" >/dev/null 2>&1
         # Schedule a Technique library reload later because of the update
@@ -306,7 +306,7 @@ upgrade_ncf() {
   mkdir -p ${RUDDER_VAR}/ncf/common
   if [ -d ${RUDDER_NCF_SOURCE_DIRECTORY}/tree ]; then
     if ! diff -aur ${RUDDER_NCF_SOURCE_DIRECTORY}/tree/ ${RUDDER_VAR}/ncf/common/ >/dev/null 2>&1; then
-      rsync --delete -rpgoq ${RUDDER_NCF_SOURCE_DIRECTORY}/tree/ ${RUDDER_VAR}/ncf/common/
+      rsync --delete --ignore-times -rpgoq ${RUDDER_NCF_SOURCE_DIRECTORY}/tree/ ${RUDDER_VAR}/ncf/common/
     fi
   fi
 
@@ -371,7 +371,7 @@ upgrade_masterfiles() {
   if [ -d "${RUDDER_SHARE}/initial-promises/" ]
   then
     mkdir -p "${RUDDER_VAR}/cfengine-community/masterfiles/"
-    rsync --delete -rptgoq "${RUDDER_SHARE}/initial-promises/" "${RUDDER_VAR}/cfengine-community/masterfiles/"
+    rsync --delete --ignore-times -rptgoq "${RUDDER_SHARE}/initial-promises/" "${RUDDER_VAR}/cfengine-community/masterfiles/"
   fi
 }
 
