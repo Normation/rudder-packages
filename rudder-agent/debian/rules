@@ -88,7 +88,7 @@ ifeq ($(findstring libcurl,$(WITH)),)
 DEPS := $(DEPS), curl
 endif
 ifeq ($(findstring augeas,$(WITH)),)
-DEPS := $(DEPS), augeas
+DEPS := $(DEPS), augeas-tools
 endif
 ifeq ($(findstring jq,$(WITH)),)
 DEPS := $(DEPS), jq
