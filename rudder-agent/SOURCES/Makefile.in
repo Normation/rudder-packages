@@ -438,6 +438,7 @@ install-agent: build cleanup-build rudder-agent rudder-agent.cron debug-script/r
 	mkdir -p $(DESTDIR)/var/rudder
 	cp -rp dependencies/var/rudder/cfengine-community $(DESTDIR)/var/rudder/
 	cp -rp dependencies/opt/rudder/bin/cf-* $(DESTDIR)/opt/rudder/bin/
+	cp -rp dependencies/opt/rudder/bin/rpmvercmp $(DESTDIR)/opt/rudder/bin/
 	@IF_libcurl@ cp -rp dependencies/opt/rudder/bin/curl $(DESTDIR)/opt/rudder/bin/
 	@IF_jq@ cp -rp dependencies/opt/rudder/bin/jq $(DESTDIR)/opt/rudder/bin/
 	@IF_augeas@ cp -rp dependencies/opt/rudder/bin/aug* $(DESTDIR)/opt/rudder/bin/
