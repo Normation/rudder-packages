@@ -405,20 +405,6 @@ endif
 	rm -rf dependencies/opt/rudder/lib/pkgconfig
 	rm -f dependencies/opt/rudder/lib/xml2Conf.sh
 	rm -f dependencies/opt/rudder/lib/libjq* # libjq can be removed, jq loads its lib statically
-	# We don't use it and it takes some space
-	printf "#!/bin/sh\necho 'cf-monitord has been removed from Rudder agent'\nexit 1" > dependencies/opt/rudder/bin/cf-monitord
-
-# Strip binaries
-ifeq (,$(DEBUG))
-ifeq (AIX,$(OS_FAMILY))
-	cp /opt/freeware/lib/gcc/powerpc-ibm-aix5.3.0.0/4.8.4/libgcc* dependencies/opt/rudder/lib/
-	./absolute-aix-path $(CURDIR)/dependencies/opt/rudder
-	find dependencies/opt/rudder/{bin,lib} -type f | xargs file | grep -E "executable|shared object" | cut -f 1 -d : | /usr/bin/xargs strip || true
-else
-	find dependencies/opt/rudder/{bin,lib} -type f -print0 | xargs -0 file | grep -E "executable|shared object" | cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null || true
-endif
-endif
-
 
 # install to DESTDIR
 install-agent: build cleanup-build rudder-agent rudder-agent.cron debug-script/rudder-debug-info rudder.8.gz rudder-agent-version
@@ -469,10 +455,10 @@ install-agent: build cleanup-build rudder-agent rudder-agent.cron debug-script/r
 	@IF_systemd@ $(INSTALL) -m 644 systemd/rudder-cf-serverd.service $(DESTDIR)/lib/systemd/system/rudder-cf-serverd.service
 	# Init files
 ifneq (AIX,$(OS_FAMILY))
-	mkdir -p $(DESTDIR)/etc/init.d
-	mkdir -p $(DESTDIR)/etc/default
-	$(INSTALL) -m 755 rudder-agent.init $(DESTDIR)/etc/init.d/rudder-agent
-	$(INSTALL) -m 644 rudder-agent.default $(DESTDIR)/etc/default/rudder-agent
+	@UNLESS_systemd@ mkdir -p $(DESTDIR)/etc/init.d
+	@UNLESS_systemd@ mkdir -p $(DESTDIR)/etc/default
+	@UNLESS_systemd@ $(INSTALL) -m 755 rudder-agent.init $(DESTDIR)/etc/init.d/rudder-agent
+	@UNLESS_systemd@ $(INSTALL) -m 644 rudder-agent.default $(DESTDIR)/etc/default/rudder-agent
 endif
 
 	# cron files
@@ -543,6 +529,21 @@ endif
 	# install agent version file
 	mkdir -p $(DESTDIR)/opt/rudder/share/versions/
 	$(INSTALL) -m 644 rudder-agent-version $(DESTDIR)/opt/rudder/share/versions/
+
+# We don't use it and it takes some space
+	printf "#!/bin/sh\necho 'cf-monitord has been removed from Rudder agent'\nexit 1" > dependencies/opt/rudder/bin/cf-monitord
+
+# Strip binaries
+ifeq (,$(DEBUG))
+ifeq (AIX,$(OS_FAMILY))
+	cp /opt/freeware/lib/gcc/powerpc-ibm-aix5.3.0.0/4.8.4/libgcc* dependencies/opt/rudder/lib/
+	./absolute-aix-path $(CURDIR)/dependencies/opt/rudder
+	find dependencies/opt/rudder/{bin,lib} -type f | xargs file | grep -E "executable|shared object" | cut -f 1 -d : | /usr/bin/xargs strip || true
+else
+	find dependencies/opt/rudder/{bin,lib} -type f -print0 | xargs -0 file | grep -E "executable|shared object" | cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null || true
+endif
+endif
+
 
 #################
 # Clean targets #
