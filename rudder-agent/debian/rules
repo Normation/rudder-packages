@@ -78,31 +78,31 @@ WITH = --with-lmdb
 endif
 
 # manage dependencies
-ifeq ($(findstring openssl,$(WITH)),)
+ifeq ($(findstring with-openssl,$(WITH)),)
 DEPS := $(DEPS), openssl
 endif
-ifeq ($(findstring perl,$(WITH)),)
+ifeq ($(findstring with-perl,$(WITH)),)
 DEPS := $(DEPS), libxml-treepp-perl, perl
 endif
-ifeq ($(findstring libcurl,$(WITH)),)
+ifeq ($(findstring with-libcurl,$(WITH)),)
 DEPS := $(DEPS), curl
 endif
-ifeq ($(findstring augeas,$(WITH)),)
+ifeq ($(findstring with-augeas,$(WITH)),)
 DEPS := $(DEPS), augeas-tools
 endif
-ifeq ($(findstring jq,$(WITH)),)
+ifeq ($(findstring with-jq,$(WITH)),)
 DEPS := $(DEPS), jq
 endif
-ifeq ($(findstring libyaml,$(WITH)),)
+ifeq ($(findstring with-libyaml,$(WITH)),)
 DEPS := $(DEPS), libyaml-0-2
 endif
-ifeq ($(findstring libxml2,$(WITH)),)
+ifeq ($(findstring with-libxml2,$(WITH)),)
 DEPS := $(DEPS), libxml2
 endif
-ifeq ($(findstring lmdb,$(WITH)),)
+ifeq ($(findstring with-lmdb,$(WITH)),)
 DEPS := $(DEPS), liblmdb0
 endif
-ifeq ($(findstring systemd,$(WITH)),)
+ifeq ($(findstring disable-systemd,$(WITH)),)
 DEPS := $(DEPS), systemd
 endif
 
@@ -124,8 +124,8 @@ install: build
 	cd SOURCES && $(MAKE) install BUILD_LDFLAGS="$(BUILD_LDFLAGS)" DESTDIR=$(CURDIR)/debian/tmp
 	# remove perl doc
 	rm -rf $(CURDIR)/debian/tmp/opt/rudder/man $(CURDIR)/debian/tmp/opt/rudder/lib/perl5/5.22.0/pod
+ifneq ($(findstring disable-systemd,$(WITH)),)
 	# let this file be managed by dh_installinit
-ifneq (true,$(USE_SYSTEMD))
 	mv $(CURDIR)/debian/tmp/etc/init.d/rudder-agent debian/rudder-agent.init
 endif
 
@@ -147,7 +147,7 @@ binary-arch: install
 #	dh_installmime
 #	dh_python
 	# Init script and configuration files
-ifeq (true,$(USE_SYSTEMD))
+ifeq ($(findstring systemd,$(WITH)),)
 	dh_install lib
 else
 	dh_installinit --no-start -R # restart after upgrade (instead of stop, upgrade, start)
