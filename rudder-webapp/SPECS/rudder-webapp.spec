@@ -77,7 +77,7 @@ BuildRequires: gcc, rsync
 Requires: %(../format-dependencies rpm %{real_epoch}:%{real_version} rudder-server-relay), %{apache}, %{apache_tools}, git-core, iproute, rsync, openssl, %{ldap_clients}, curl, acl
 
 # We need the PostgreSQL client utilities so that we can run database checks and upgrades (rudder-upgrade, in particular)
-Requires: postgresql >= 9.6, rudder-reports
+Requires: postgresql >= 9.6, rudder-reports, rudder-api-client
 
 # TODO obsolete / provides / conflicts
 
