@@ -14,7 +14,6 @@ ExecReload=/bin/kill -HUP $MAINPID
 Restart=always
 NotifyAccess=main
 KillMode=process
-RestartSec=10
 
 [Install]
 WantedBy=multi-user.target
