@@ -84,6 +84,9 @@ do
       fi
       eval "${name}=false"
       ;;
+    --win64)
+      CROSS_COMPILE="win64"
+      ;;
     --help)
       usage
       exit
@@ -173,6 +176,13 @@ LIBCURL_ARGS="${WITH_zlib} ${WITH_openssl}"
 LIBXML2_ARGS="${WITH_zlib}"
 CFENGINE_ARGS="${WITH_libacl} ${WITH_pam} ${WITH_lmdb} ${WITH_pcre} ${WITH_openssl} ${WITH_libyaml} ${WITH_libxml2} ${WITH_libcurl}"
 
+# cross compilation specifics
+if [ "${CROSS_COMPILE}" = "win64" ]; then
+  LIBCURL_ARGS="--host=x86_64-w64-mingw32 --build=x86_64-pc-linux-gnu ${LIBCURL_ARGS}"
+  ZLIB_ARGS="CROSS_PREFIX=x86_64-w64-mingw32-"
+  CACHE_ARGS="win64"
+fi
+
 # Perl specific
 if [ "${BUILD_perl}" = "true" ]; then
   PERL="\$(CURDIR)/fusion/opt/rudder/bin/perl"
@@ -201,6 +211,8 @@ if [ "$(./config.guess)" = "sparc-sun-solaris2.11" ]; then
 elif [ -x /usr/bin/dpkg ] && [ "$(dpkg --print-architecture)" = "i386" ] ; then
   # Hack needed because openssl is not guessing correctly the architecture on debian 32 bits chroot
   SSL_CONFIGURE="${PERL} ./Configure linux-generic32"
+elif [ "${CROSS_COMPILE}" = "win64" ]; then
+  SSL_CONFIGURE="${PERL} ./Configure mingw64 --cross-compile-prefix=x86_64-w64-mingw32-"
 else
   SSL_CONFIGURE="PERL=${PERL} ./config"
 fi
@@ -233,7 +245,9 @@ if ! echo "${SECURE_CFLAGS}" | grep -q 'fstack'; then
 fi
 
 # full relro
-test_cc "SECURE" "" "-Wl,-z,relro -Wl,-z,now"
+if [ "${CROSS_COMPILE}" = "" ]; then
+  test_cc "SECURE" "" "-Wl,-z,relro -Wl,-z,now"
+fi
 
 # fortify source
 test_cc "SECURE" "-D_FORTIFY_SOURCE=2" ""
@@ -318,9 +332,11 @@ SED_EXPR="${SED_EXPR}
 s%@CONFIG_VARS@%${CONFIG_VARS}%;t t
 s%@_GET@%${_GET}%;t t
 s%@SSL_CONFIGURE@%${SSL_CONFIGURE}%;t t
+s%@ZLIB_ARGS@%${ZLIB_ARGS}%;t t
 s%@LIBXML2_ARGS@%${LIBXML2_ARGS}%;t t
 s%@LIBCURL_ARGS@%${LIBCURL_ARGS}%;t t
 s%@AUGEAS_ARGS@%${AUGEAS_ARGS}%;t t
+s%@CACHE_ARGS@%${CACHE_ARGS}%;t t
 s%@xml2conf@%${xml2conf}%;t t
 s%@SOURCE_DEPS@%${SOURCE_DEPS}%;t t"
 
