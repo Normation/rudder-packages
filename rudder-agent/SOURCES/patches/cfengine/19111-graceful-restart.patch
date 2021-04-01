@@ -1,5 +1,5 @@
 diff --git a/cf-serverd/cf-serverd-functions.c b/cf-serverd/cf-serverd-functions.c
-index c4b2aafa1..575188d67 100644
+index c4b2aafa1..5c7f2af80 100644
 --- a/cf-serverd/cf-serverd-functions.c
 +++ b/cf-serverd/cf-serverd-functions.c
 @@ -51,6 +51,10 @@
@@ -46,14 +46,17 @@ index c4b2aafa1..575188d67 100644
                              OPTIONS, NULL))
             != -1)
      {
-@@ -285,6 +292,14 @@ GenericAgentConfig *CheckOpts(int argc, char **argv)
+@@ -285,6 +292,17 @@ GenericAgentConfig *CheckOpts(int argc, char **argv)
              LoggingEnableTimestamps(true);
              break;
  
 +        case 't':
-+            if (optarg == NULL) {
++            if (optarg == NULL)
++            {
 +                GRACEFUL = 60;
-+            } else {
++            }
++            else
++            {
 +                GRACEFUL = StringToLongExitOnError(optarg);
 +            }
 +            break;
@@ -61,34 +64,20 @@ index c4b2aafa1..575188d67 100644
          default:
              {
                  Writer *w = FileWriter(stdout);
-@@ -540,14 +555,99 @@ static void PrepareServer(int sd)
+@@ -540,14 +558,50 @@ static void PrepareServer(int sd)
      WritePID("cf-serverd.pid"); /* Arranges for cleanup() to tidy it away */
  }
  
++#if HAVE_SYSTEMD_SD_DAEMON_H
 +/* Graceful Stop
-+ * This runs a new main process that will die and that init can restart (as systemd can do).
-+ * This this can prevent systemd from kill us it there is a problem.
-+ * But this makes it possible to finish kandling connections while systemd tries to restart us.
-+ * If there is no systemd make sure alternative init restarts us. */
++ * Fork twice and let the grand child process existing connections 
++ * The child will exit and systemd will follow grand child
++ * The parent will die and systemd will restart us
++ *
++ * This only works properly if the unit has KillMode=process (and it should have a quick restartsec)*/
 +static void GracefulStop()
 +{
 +    Log(LOG_LEVEL_NOTICE, "Stopping gracefully");
-+    /* Fork twice and tell systemd to follow our grand child
-+     * The child will exit and systemd will follow grand child
-+     * The grand child will exit and systemd will ignore us */
-+    int child_pipe[2];
-+    if (pipe(child_pipe) == -1) {
-+        Log(LOG_LEVEL_ERR, "Cannot detach graceful process (no pipe)");
-+        return;
-+    }
-+#ifdef HAVE_SD_NOTIFY_BARRIER
-+    int anything = 1;
-+    int grand_child_pipe[2];
-+    if (pipe(grand_child_pipe) == -1) {
-+        Log(LOG_LEVEL_ERR, "Cannot detach graceful process (no pipe)");
-+        return;
-+    }
-+#endif
 +    pid_t child_pid = fork();
 +    if (child_pid == 0)
 +    {
@@ -97,58 +86,23 @@ index c4b2aafa1..575188d67 100644
 +        pid_t grand_child_pid = fork();
 +        if (grand_child_pid == 0)
 +        {
-+            /* grand child */
-+            /* Wait for systemd to follow us then exit. */
-+#ifdef HAVE_SD_NOTIFY_BARRIER
-+#warning have barrier
-+            /* use sd_notify_barrier in parent to know when to exit on recent versions of systemd */
-+            close(grand_child_pipe[1]);
-+            read(grand_child_pipe[0], &anything, sizeof(anything));
-+            close(grand_child_pipe[0]);
-+#else
-+#warning no barrier
-+            /* use sleep synchronization on old systemd */
-+            sleep(2);
-+#endif
-+            exit(0);
++            /* grand child : return to continue processing existing connections */
++            return;
 +        }
 +        else
 +        {
-+#ifdef HAVE_SD_NOTIFY_BARRIER
-+            /* not needed here */
-+            close(grand_child_pipe[0]);
-+            close(grand_child_pipe[1]);
-+#endif
 +            /* first child */
-+            /* Send grand child pid to parent then exit to give grand child to systemd */
-+            close(child_pipe[0]);
-+            write(child_pipe[1], &grand_child_pid, sizeof(grand_child_pid));
-+            close(child_pipe[1]);
++            /* exit to give grand child to systemd */
 +            exit(0);
 +        }
 +    }
 +    else 
 +    {
-+        /* Parent */
-+        pid_t grand_child_pid;
-+        /* read grand child pid from first child */
-+        close(child_pipe[1]);
-+        read(child_pipe[0], &grand_child_pid, sizeof(grand_child_pid));
-+        close(child_pipe[0]);
-+        waitpid(child_pid, NULL, 0);
-+#if HAVE_SYSTEMD_SD_DAEMON_H
-+        /* send it to systemd */
-+        sd_notifyf(0, "MAINPID=%d", grand_child_pid);
-+#ifdef HAVE_SD_NOTIFY_BARRIER
-+        sd_notify_barrier(0, 2 * 1000000);
-+        /* notify grand child it can die */
-+        close(grand_child_pipe[0]);
-+        write(grand_child_pipe[0], &anything, sizeof(anything));
-+        close(grand_child_pipe[1]);
-+#endif
-+#endif // HAVE_SYSTEMD_SD_DAEMON_H
++        /* parent : die and let systemd rerun us */
++      exit(0);
 +    }
 +}
++#endif // HAVE_SYSTEMD_SD_DAEMON_H
 +
  /* Wait for connection-handler threads to finish their work.
   *
@@ -163,22 +117,23 @@ index c4b2aafa1..575188d67 100644
      {
          ThreadLock(cft_server_children);
          result = ACTIVE_THREADS;
-@@ -747,7 +847,13 @@ int StartServer(EvalContext *ctx, Policy **policy, GenericAgentConfig *config)
+@@ -747,6 +801,15 @@ int StartServer(EvalContext *ctx, Policy **policy, GenericAgentConfig *config)
                  AcceptAndHandle(ctx, sd);
              }
          } /* else: interrupted, maybe pending termination. */
--    }
++#if HAVE_SYSTEMD_SD_DAEMON_H
 +        /* if we have a reload config requested but not yet processed
 +         * it means we still have clients, let's do a graceful restart */
-+        if(ReloadConfigRequested() && GRACEFUL != 0) {
++        if (ReloadConfigRequested() && GRACEFUL != 0)
++        {
 +            Log(LOG_LEVEL_INFO, "Doing a Graceful restart");
 +            break;
 +        }
-+   }
++#endif
+     }
      Log(LOG_LEVEL_NOTICE, "Cleaning up and exiting...");
  
-     CollectCallStop();
-@@ -757,9 +863,19 @@ int StartServer(EvalContext *ctx, Policy **policy, GenericAgentConfig *config)
+@@ -757,9 +820,24 @@ int StartServer(EvalContext *ctx, Policy **policy, GenericAgentConfig *config)
          cf_closesocket(sd);                       /* Close listening socket */
      }
  
@@ -187,12 +142,17 @@ index c4b2aafa1..575188d67 100644
 -    YieldCurrentLock(thislock);
 +    int threads_left;
 +
-+    if(ReloadConfigRequested() && GRACEFUL != 0) {
++#if HAVE_SYSTEMD_SD_DAEMON_H
++    if (ReloadConfigRequested() && GRACEFUL != 0)
++    {
 +        /* This is a graceful restart */
 +        YieldCurrentLock(thislock); // must be done before restart
 +        GracefulStop();
 +        threads_left = WaitOnThreads(GRACEFUL);
-+    } else {
++    }
++    else
++#endif
++    {
 +        /* This is a graceful exit, give 2 seconds chance to threads. */
 +        threads_left = WaitOnThreads(2);
 +        YieldCurrentLock(thislock); // can we do this one first too ?
