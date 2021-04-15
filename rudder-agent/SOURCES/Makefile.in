@@ -390,7 +390,8 @@ endif
 ##########################################
 
 rudder-agent-version:
-	[ -f rudder-sources/versions ] && cp ./rudder-sources/versions $@ || echo "main_version=unknown" > $@
+	[ -f rudder-sources/versions ] && cp ./rudder-sources/versions $@ || echo "rudder_version=unknown" > $@
+	[ -f ../../versions ] && cat ../../versions >> $@
 
 # Do this just before generating package
 cleanup-build:

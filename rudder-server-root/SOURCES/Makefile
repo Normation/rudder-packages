@@ -35,8 +35,9 @@ localdepends:
 build:
 
 rudder-server-root-version:
-	echo "main_version=unknown" > $@
+	echo "rudder_version=unknown" > $@
 	echo "RUDDER_VERSION_TO_PACKAGE=$(RUDDER_VERSION_TO_PACKAGE)" >> $@
+	[ -f ../../versions ] && cat ../../versions >> $@
 
 install: build rudder-server-root-version
 	mkdir -p $(DESTDIR)/usr/lib/systemd/system
