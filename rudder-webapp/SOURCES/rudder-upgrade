@@ -52,6 +52,7 @@ trap 'anomaly_handler ${LINENO}' ERR INT TERM
 # - 6.1.1        : Update apache conf if it does not contain technique editor conf (file not updated by packaging
 # - 6.2.0        : Remove unused index on RudderSysEvents  
 # - 6.2.0~beta2  : Add sofware and modifyTimestamp indexes in slapd.conf
+# - 7.0.0~alpha1 : Rename property rudder.community.port into rudder.policy.distribution.port.cfengine
 ####################################################################################
 
 # Some paths
@@ -379,6 +380,21 @@ upgrade_masterfiles() {
 # Check and update config
 ################################################################################
 
+upgrade_conf_file() {
+
+  STEP="Upgrade /opt/rudder/etc/rudder-web.properties"
+  CONF_FILE="/opt/rudder/etc/rudder-web.properties"
+
+  # - 7.0.0~alpha1 : Rename property rudder.community.port into rudder.policy.distribution.port.cfengine
+  OLD_PROPERTY_NAME="rudder.community.port"
+  NEW_PROPERTY_NAME="rudder.policy.distribution.port.cfengine"
+  ATTRIBUTESET=$(grep -c "^${NEW_PROPERTY_NAME}[ \t]*=" ${CONF_FILE} || true)
+  if [ ${ATTRIBUTESET} -eq 0 ]; then
+    sed -i -e "s/${OLD_PROPERTY_NAME}/${NEW_PROPERTY_NAME}/" ${CONF_FILE}
+    echo "INFO: Configuration property '${OLD_PROPERTY_NAME}' was updated to '${NEW_PROPERTY_NAME}' in /opt/rudder/etc/rudder-web.properties"
+  fi
+
+}
 
 ################################################################################
 # Check and update database
@@ -562,6 +578,7 @@ upgrade_plugins() {
 ################################################################################
 
 update_credentials
+upgrade_conf_file
 upgrade_slapdconf
 set_git_branch
 upgrade_apache_conf
