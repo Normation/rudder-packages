@@ -42,8 +42,10 @@ build: rudder-sources
 	touch $@
 
 rudder-reports-version:
+	# versions details from the source tarbal
 	[ -f rudder-sources/versions ] && cp ./rudder-sources/versions $@ || echo "rudder_version=unknown" > $@
-	[ -f ../../versions ] && cat ../../versions >> $@
+	# version details from the ci checkout
+	[ -f ../../versions ] && cat ../../versions >> $@ || true
 
 # Install into DESTDIR
 install: build rudder-reports-version

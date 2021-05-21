@@ -35,9 +35,11 @@ localdepends:
 build:
 
 rudder-server-root-version:
+	# No source, so no need for source version details
 	echo "rudder_version=unknown" > $@
 	echo "RUDDER_VERSION_TO_PACKAGE=$(RUDDER_VERSION_TO_PACKAGE)" >> $@
-	[ -f ../../versions ] && cat ../../versions >> $@
+	# version details from the ci checkout
+	[ -f ../../versions ] && cat ../../versions >> $@ || true
 
 install: build rudder-server-root-version
 	mkdir -p $(DESTDIR)/usr/lib/systemd/system

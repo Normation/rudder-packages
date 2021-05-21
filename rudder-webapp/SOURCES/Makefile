@@ -149,8 +149,10 @@ build-rudder-lang:
 	cd $(LANGDIR) && make $(DEBUGOPT) build
 
 rudder-webapp-version:
+	# versions details from the source tarball
 	[ -f rudder-sources/versions ] && cp ./rudder-sources/versions $@ || echo "rudder_version=unknown" > $@
-	[ -f ../../versions ] && cat ../../versions >> $@
+	# version details from the ci checkout
+	[ -f ../../versions ] && cat ../../versions >> $@ || true
 
 # install into DESTDIR
 install: build initial-promises initial-ncf rudder-webapp-version

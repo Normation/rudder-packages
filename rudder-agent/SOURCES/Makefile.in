@@ -390,8 +390,10 @@ endif
 ##########################################
 
 rudder-agent-version:
+	# versions details from the source tarball
 	[ -f rudder-sources/versions ] && cp ./rudder-sources/versions $@ || echo "rudder_version=unknown" > $@
-	[ -f ../../versions ] && cat ../../versions >> $@
+	# version details from the ci checkout
+	[ -f ../../versions ] && cat ../../versions >> $@ || true
 
 # Do this just before generating package
 cleanup-build:
