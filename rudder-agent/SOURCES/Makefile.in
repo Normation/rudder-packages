@@ -101,7 +101,7 @@ MAKEOVERRIDES =
 source: @SOURCE_DEPS@ cfengine-source cpanminus-source
 
 # build binaries
-build: build-cfengine @fusion_DEP@ build-client
+build: build-cfengine @fusion_DEP@
 
 # install rudder agent
 install: install-agent
@@ -204,11 +204,6 @@ debug-script/rudder-debug-info:
 ########################
 # Build each component #
 ########################
-
-build-client: rudder-sources tomlc99-source @libcurl_DEP@
-	cp -r tomlc99-source rudder-sources/rudder/agent/sources/client/tomlc99
-	cd rudder-sources/rudder/agent/sources/client && $(MAKE) MAKEFLAGS= build-release STATIC_TOML=1 CC=$(CC) $(BUILD_FLAGS_EXE)
-	touch $@
 
 build-zlib: zlib-source
 	cd zlib-source && $(BUILD_FLAGS_LIB) @ZLIB_ARGS@ ./configure --prefix=$(RUDDER_DIR)
@@ -508,9 +503,6 @@ endif
 	chmod 755 $(DESTDIR)/opt/rudder/share/lib/timestamp
 	mkdir -p $(DESTDIR)/opt/rudder/etc
 	$(INSTALL) -m 644 rudder-agent/agent-capabilities $(DESTDIR)/opt/rudder/etc/
-
-	# Network client
-	cd rudder-sources/rudder/agent/sources/client && $(MAKE) install DESTDIR=$(DESTDIR)/opt/rudder/
 
 	# Bootstrap promises
 	mkdir -p $(DESTDIR)/opt/rudder/share/bootstrap-promises/
