@@ -1,8 +1,7 @@
-diff --git a/lib/FusionInventory/Agent/Task/Inventory/Generic/Rudder.pm b/lib/FusionInventory/Agent/Task/Inventory/Generic/Rudder.pm
-index 05d13de..eabe4ee 100644
---- a/lib/FusionInventory/Agent/Task/Inventory/Generic/Rudder.pm
-+++ b/lib/FusionInventory/Agent/Task/Inventory/Generic/Rudder.pm
-@@ -187,8 +187,7 @@ sub _manageAgent {
+diff --color -ruN fusion-source.orig/lib/FusionInventory/Agent/Task/Inventory/Generic/Rudder.pm fusion-source/lib/FusionInventory/Agent/Task/Inventory/Generic/Rudder.pm
+--- fusion-source.orig/lib/FusionInventory/Agent/Task/Inventory/Generic/Rudder.pm	2021-05-25 17:00:32.062916133 +0200
++++ fusion-source/lib/FusionInventory/Agent/Task/Inventory/Generic/Rudder.pm	2021-05-25 18:33:02.325915550 +0200
+@@ -187,20 +187,30 @@
  
      # Potential agent directory candidates
      my %agent_candidates = ( '/var/rudder/cfengine-community' => 'cfengine-community',
@@ -12,21 +11,33 @@ index 05d13de..eabe4ee 100644
                             );
  
      foreach my $candidate (keys(%agent_candidates)){
-@@ -201,6 +200,13 @@ sub _manageAgent {
-         my $server_hostname_file = "${candidate}/policy_server.dat";
-         my $uuid_file            = "${candidate}/rudder-server-uuid.txt";
+ 
+         # Verify if the candidate is installed and configured
+-        next unless ( -e "${candidate}/policy_server.dat" );
++        next unless ( -e "${candidate}/policy_server.dat" ) || ( -e "${candidate}/policy-server.conf");
+ 
+         # Get a list of useful file paths to key Rudder components
+         my $agent_name           = "$agent_candidates{${candidate}}";
+-        my $server_hostname_file = "${candidate}/policy_server.dat";
+-        my $uuid_file            = "${candidate}/rudder-server-uuid.txt";
          my $cfengine_key_file    = "${candidate}/ppkeys/localhost.pub";
-+        my $certificate_file     = "${candidate}/ssl/agent.cert";
++        my $certificate_file;
++        my $uuid_file;
++        my $server_hostname_file;
 +
 +        if ($agent_name eq "dsc") {
 +            $uuid_file        = 'C:/Program Files/Rudder/policy/rudder-server-uuid.txt';
++            $certificate_file = "${candidate}/ssl/localhost.cert";
++            $server_hostname_file = "${candidate}/policy-server.conf";
 +        } else {
++            $uuid_file        = "${candidate}/rudder-server-uuid.txt";
 +            $certificate_file = '/opt/rudder/etc/ssl/agent.cert';
++            $server_hostname_file = "${candidate}/policy_server.dat";
 +        }
  
          # get policy server hostname
          my $serverHostname = getFirstLine (
-@@ -225,6 +231,9 @@ sub _manageAgent {
+@@ -225,6 +235,9 @@
          my $cfengineKey = getAllLines(
              file => $cfengine_key_file
          );
@@ -36,7 +47,7 @@ index 05d13de..eabe4ee 100644
  
          # get owner name
          my $owner = getFirstLine (
-@@ -237,6 +246,7 @@ sub _manageAgent {
+@@ -237,6 +250,7 @@
              AGENT_NAME             => $agent_name,
              POLICY_SERVER_HOSTNAME => $serverHostname,
              CFENGINE_KEY           => $cfengineKey,
