@@ -76,6 +76,10 @@ endif
 ifeq (buster,$(OS_CODENAME))
 WITH = --with-lmdb
 endif
+# Debian 11
+ifeq (bullseye,$(OS_CODENAME))
+WITH = --with-lmdb
+endif
 
 # manage dependencies
 ifeq ($(findstring with-openssl,$(WITH)),)
