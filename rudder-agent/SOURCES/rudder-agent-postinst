@@ -11,10 +11,10 @@ RUDDER_CMD="/opt/rudder/bin/rudder"
 LOG_FILE="/var/log/rudder/install/rudder-agent-$(date +%Y%m%d%H%M%S).log"
 
 # Closing all parents fd which are inherited, otherwise it can lead to
-# a postint unable to terminate (revelant at least on debian 7)
+# a postint unable to terminate (relevant at least on debian 7)
 if [ -d /proc/self/fd ] && [ "$(uname -s)" != "SunOS" ]
 then
-  for fd in $(ls /proc/self/fd); do
+  for fd in /proc/self/fd/*; do
     [ "${fd}" -gt 2 ] && eval "exec $fd>&-"
   done
 fi

@@ -30,7 +30,7 @@
  
  ##################################################
 +# Set default JVM parameters, to be
-+# overriden by the configuration file
++# overridden by the configuration file
 +##################################################
 +JAVA_XMX=${JAVA_XMX:-1024}
 +JAVA_MAXPERMSIZE=${JAVA_MAXPERMSIZE:-256}
