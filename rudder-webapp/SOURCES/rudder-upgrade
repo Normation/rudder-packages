@@ -223,7 +223,7 @@ update_credentials() {
     property_file="rudder-web.properties"
     echo -n "INFO: Checking if ${property_file} database access credentials are all right..."
 
-    if [ ! -e /opt/rudder/etc/${property_file} ]; then echo " non existant, skipping"; continue; fi
+    if [ ! -e /opt/rudder/etc/${property_file} ]; then echo " non existent, skipping"; return; fi
 
     # 1 - Check LDAP credentials on all property files
 
@@ -290,7 +290,7 @@ upgrade_techniques() {
   /opt/rudder/bin/rudder server upgrade-techniques  --autoupdate-technique-library --during-upgrade
 
   # Migrate RudderUniqueID to the template format
-  NB_RUDDER_UNIQUE_ID=$((grep -Er --exclude="*.xml"  "[^\&]RudderUniqueID" /var/rudder/configuration-repository/techniques 2>/dev/null || true) | wc -l) 
+  NB_RUDDER_UNIQUE_ID=$( (grep -Er --exclude="*.xml"  "[^\&]RudderUniqueID" /var/rudder/configuration-repository/techniques 2>/dev/null || true) | wc -l) 
   if [ ${NB_RUDDER_UNIQUE_ID} -ne 0 ]; then
     echo -n "INFO: Enforcing that Techniques are using correct format" 
     find ${CONFIGURATION_REPOSITORY}/techniques -type f \( ! -iname '*.xml' \) -print0 | xargs -0 sed -i "s/\([^&]\|^\)RudderUniqueID\([^&]\|$\)/\1\&RudderUniqueID\&\2/g"
@@ -615,7 +615,7 @@ upgrade_slapdconf() {
     if [ $(($(date +%s) - $(stat -c '%Z'  ${SLAPD_CONF_BKP}))) -lt 3600 ]; then
       INDEX_BKP_COUNT=$(grep -c "^index\s*directiveId\s*eq" ${SLAPD_CONF_BKP} 2>/dev/null || true)
       INDEX_BKP_COUNT_2=$(grep -c "^index\s*modifyTimestamp\s*eq" ${SLAPD_CONF_BKP} 2>/dev/null || true)
-      if [ ${INDEX_BKP_COUNT} -eq 0 || ${INDEX_BKP_COUNT_2} -eq 0 ]; then
+      if [ ${INDEX_BKP_COUNT} -eq 0 ] || [ ${INDEX_BKP_COUNT_2} -eq 0 ]; then
         NEED_REINDEX=true
       fi
     fi

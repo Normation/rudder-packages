@@ -66,12 +66,12 @@ rudder_packages_agent() {
 
   # We check if ".rpmnew" packages exist in the directories that keep the configuration files.
   PATH_DIRECTORY1="/opt/rudder/etc/"
-  PATH_DIRECTOTY2="/etc/httpd/"
+  PATH_DIRECTORY2="/etc/httpd/"
 
-  if [ -d "${PATH_DIRECTORY1}" -a -d "${PATH_DIRECTOTY2}" ]
+  if [ -d "${PATH_DIRECTORY1}" -a -d "${PATH_DIRECTORY2}" ]
   then
     TEST1=$( find "${PATH_DIRECTORY1}" -type f \( -name "*.rpmnew" \) | wc -l )
-    TEST2=$( find "${PATH_DIRECTOTY2}" -type f \( -name "*.rpmnew" \) | wc -l )
+    TEST2=$( find "${PATH_DIRECTORY2}" -type f \( -name "*.rpmnew" \) | wc -l )
     RESULT=$(($TEST1+$TEST2))
 
     if [ "${RESULT}" -ne 0 ]
