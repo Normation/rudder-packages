@@ -18,7 +18,7 @@ diff --color -ruN cfengine-source-3.12/cf-agent/cf-agent.c cfengine-source/cf-ag
 +        //{
 +        //    char name[CF_MAXVARSIZE];
 +        //    snprintf(name, CF_MAXVARSIZE, "%s:%s", bundle->ns, bundle->name);
-+        //    // This is a performane hog : open, read, write, datasync, close 
++        //    // This is a performance hog : open, read, write, datasync, close 
 +        //    EndMeasure(name, start);
 +        //}
 +        //else

@@ -80,7 +80,7 @@ ErrorCheck()
   if [ $? -ne 0 ]
   then
     echo "ERROR: Execution failed! Aborting."
-    echo "An error occured. Please check $TMP_LOG for details."
+    echo "An error occurred. Please check $TMP_LOG for details."
     exit
   fi
 }

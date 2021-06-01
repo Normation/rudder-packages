@@ -50,7 +50,7 @@ Synopsys:
 
     When searching for an entry, you can provide any number of key,value pairs.
     The search returns an exact match on all key,value pairs provided, if a the
-    key asked for isn't known in the index, ther is no match.
+    key asked for isn't known in the index, there is no match.
 
     The database is ordered. When purging or showing, the oldest entries are
     purged or returned first. When getting an entry, the earliest entry matching
