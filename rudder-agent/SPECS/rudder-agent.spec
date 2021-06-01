@@ -38,7 +38,7 @@
 %define with_augeas false
 %define with_jq false
 %define with_perl false
-# replicate defauls from configure : all features
+# replicate defaults from configure : all features
 %define enable_https true
 %define enable_pie true
 %define enable_systemd true
@@ -356,7 +356,7 @@ opt="${opt} --with-libcurl"
 opt="${opt} --with-jq"
 %endif
 
-# Defauls is to enable all features
+# Defaults is to enable all features
 %if "%{enable_https}" == "false"
 opt="${opt} --disable-https"
 %endif
