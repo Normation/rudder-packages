@@ -55,7 +55,7 @@ trap 'anomaly_handler ${LINENO}' ERR INT TERM
 # - 6.1.0        : Migrate RudderUniqueID to the template format
 # - 6.1.0        : Add indexes cn,softwareVersion,directiveId in slapd.conf 
 # - 6.1.1        : Update apache conf if it does not contain technique editor conf (file not updated by packaging
-# - 6.2.0~beta2  : Add sofware and modifyTimestamp indexes in slapd.conf
+# - 6.2.0~beta2  : Add software and modifyTimestamp indexes in slapd.conf
 ####################################################################################
 
 # Some paths
