@@ -3,13 +3,12 @@
 set -e
 # Overridable environment: PROXY=
 
-# Dependencies defaults: use everything from system except fusion and tomlc99
-DEPENDENCIES="tomlc99 zlib lmdb pcre openssl libyaml libxml2 libcurl readline augeas jq perl fusion"
+# Dependencies defaults: use everything from system except fusion
+DEPENDENCIES="zlib lmdb pcre openssl libyaml libxml2 libcurl readline augeas jq perl fusion"
 for dep in ${DEPENDENCIES}; do
   eval "BUILD_${dep}=false"
 done
 BUILD_fusion=true
-BUILD_tomlc99=true
 
 # Features defaults: things are enabled except if the unix family doesn't support it
 FEATURES="https pie systemd libacl pam"
