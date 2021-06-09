@@ -14,8 +14,9 @@ LOG_FILE="/var/log/rudder/install/rudder-agent-$(date +%Y%m%d%H%M%S).log"
 # a postint unable to terminate (relevant at least on debian 7)
 if [ -d /proc/self/fd ] && [ "$(uname -s)" != "SunOS" ]
 then
-  for fd in /proc/self/fd/*; do
-    [ "${fd}" -gt 2 ] && eval "exec $fd>&-"
+  for f in /proc/self/fd/*; do
+    fd=$(basename "${f}")
+    [ "$fd" -gt 2 ] && eval "exec $fd>&-"
   done
 fi
 
