@@ -16,7 +16,10 @@ if [ -d /proc/self/fd ] && [ "$(uname -s)" != "SunOS" ]
 then
   for f in /proc/self/fd/*; do
     fd=$(basename "${f}")
-    [ "$fd" -gt 2 ] && eval "exec $fd>&-"
+    if [ "$fd" -gt 2 ] && [ -e "$fd" ]
+    then
+      eval "exec $fd>&-"
+    fi
   done
 fi
 
