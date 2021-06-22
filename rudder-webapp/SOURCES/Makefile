@@ -38,7 +38,7 @@ APACHE_VHOSTDIR = apache2/sites-available
 APACHE_CONFDIR = apache2/conf-available
 JETTY_SCRIPT=jetty.sh
 WEBAPPDIR = rudder-sources/rudder/webapp/sources
-LANGDIR = rudder-sources/rudder/rudder-lang
+LANGDIR = rudder-sources/rudder/language
 CORE_RESOURCES = $(WEBAPPDIR)/rudder/rudder-core/src/main/resources
 WEB_RESOURCES = $(WEBAPPDIR)/rudder/rudder-web/src/main/resources
 
@@ -132,7 +132,7 @@ rudder-doc:
 PATCHES_SHA = $(shell find patches/ -type f | sort | xargs sha256sum | sha256sum | awk '{print $$1}')
 CACHE_PARAMETERS = --with-env name=openldap ldap=$(OPENLDAP_SHA256) patches=$(PATCHES_SHA)
 BUILD_LDAP = $(shell ../../build-caching get openldap-source/ $(CACHE_PARAMETERS) || echo build-ldap)
-build: $(BUILD_LDAP) rudder-sources build-rudder-lang rudder-doc jetty rudder.war
+build: $(BUILD_LDAP) rudder-sources build-language rudder-doc jetty rudder.war
 	# save ldap build into cache
 	if [ "$(BUILD_LDAP)" != "" ]; then ../../build-caching put openldap-source/ $(CACHE_PARAMETERS); fi
 	touch $@
@@ -145,7 +145,7 @@ build-ldap: openldap-source
 	cd openldap-source && make $(DEBUGOPT)
 	touch $@
 
-build-rudder-lang:
+build-language:
 	cd $(LANGDIR) && make $(DEBUGOPT) build
 
 rudder-webapp-version:
@@ -188,7 +188,7 @@ install: build initial-promises initial-ncf rudder-webapp-version
 	mkdir -p $(DESTDIR)/opt/rudder/share/versions/
 	cd openldap-source && make $(DEBUGOPT) install DESTDIR=$(DESTDIR)
 
-	# Install rudder-lang
+	# Install language
 	cd $(LANGDIR) && make $(DEBUGOPT) install DESTDIR=$(DESTDIR)
 
 	# Install openldap

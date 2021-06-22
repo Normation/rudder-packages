@@ -144,8 +144,8 @@ cd /
 [ -f /tmp/rudder-hooks-upgrade ] && setfacl --restore=/tmp/rudder-hooks-upgrade
 
 # Rudder-lang : update libraries by re-generating it
-echo "INFO: Re-generate rudder-lang libraries ..."
-/opt/rudder/share/rudder-lang/tools/generate_lib
+echo "INFO: Re-generate language libraries ..."
+/opt/rudder/share/language/tools/generate_lib
 echo "Done"
 
 # Restart the webapp
