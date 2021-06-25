@@ -238,8 +238,8 @@ index 5d9eeda7ed..04e3a3a2e9 100644
  #endif
      "def_json_preparse",
 +    "copyfrom_restrict_keys",
+     "host_specific_data_load",
      NULL
- };
  
 diff --git a/libpromises/mod_common.c b/libpromises/mod_common.c
 index e4237ae24b..f14dfe4869 100644
