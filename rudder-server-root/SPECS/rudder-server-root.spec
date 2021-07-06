@@ -51,10 +51,6 @@ AutoProv: 0
 
 Requires: %(../format-dependencies rpm %{real_epoch}:%{real_version} rudder-webapp rudder-reports rudder-agent)
 
-%if 0%{?sle_version} && 0%{?sle_version} >= 150000
-Requires: insserv-compat
-%endif
-
 %description
 Rudder is an open source configuration management and audit solution.
 
