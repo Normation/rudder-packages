@@ -648,7 +648,7 @@ upgrade_plugins() {
   fi
 
   if [ -f $PLUGIN_STATUS_FILE ]; then
-    rudder package plugin restore-status < $PLUGIN_STATUS_FILE || true
+    rudder package plugin restore-status --version=6.2 < $PLUGIN_STATUS_FILE || true
     rudder package check-compatibility --version=6.2 || true
   fi
 }
