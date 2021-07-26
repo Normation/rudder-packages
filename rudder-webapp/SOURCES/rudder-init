@@ -179,13 +179,14 @@ cpt=0
 REQUIRE_NET=""
 for i in ${ALLOWEDNETWORK[*]}
 do
-  if [ $cpt -eq 0 ]
+# comma between element of array
+  if [ ${cpt} -ne 0 ]
   then
-    NET="$i"
-  else
-    NET="$NET\ndirectiveVariable: ALLOWEDNETWORK[$cpt]:$i"
+    NET="${NET},"
   fi
-  REQUIRE_NET="${REQUIRE_NET}Require ip $i"$'\n'
+
+  NET="${NET}\n {\"name\":\"root init allowed network ${cpt}\",\"inet\":\"${i}\"}"
+  REQUIRE_NET="${REQUIRE_NET}Require ip ${i}"$'\n'
   ((cpt++))
 done
 
