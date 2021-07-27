@@ -238,7 +238,7 @@ cp -r /opt/rudder/share/initial-ncf/* /var/rudder/ncf/common/
 cp -r /opt/rudder/share/initial-promises/* /var/rudder/cfengine-community/inputs/
 
 # Ensure that the passwords are correctly propagated
-"${CF_AGENT}" -b root_component_check &>>"$TMP_LOG"
+"${CF_AGENT}" -b system_rudder_postgresql_configuration,system_rudder_slapd_configuration,system_rudder_webapp,system_rudder_relay_configuration,system_reload_rudder_services  &>>"$TMP_LOG"
 
 # Add apache acl (will be overwritten at next agent run)
 cat >/opt/rudder/etc/rudder-networks-24.conf <<EOF
