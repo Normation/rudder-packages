@@ -422,6 +422,7 @@ install-agent: build cleanup-build rudder-agent rudder-agent.cron debug-script/r
 	mkdir -p $(DESTDIR)/var/rudder/ncf/local
 	mkdir -p $(DESTDIR)/var/rudder/ncf/common
 	mkdir -p $(DESTDIR)/var/rudder/reports/ready
+	mkdir -p $(DESTDIR)/var/rudder/lib/ssl
 	mkdir -p $(DESTDIR)/var/log/rudder/install
 	mkdir -p $(DESTDIR)/var/log/rudder/agent-check
 

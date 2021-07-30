@@ -11,5 +11,6 @@ var/rudder/tools
 var/rudder/ncf/common
 var/rudder/ncf/local
 var/rudder/reports/ready
+var/rudder/lib/ssl
 var/log/rudder/install
 var/log/rudder/agent-check

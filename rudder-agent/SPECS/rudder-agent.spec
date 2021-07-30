@@ -570,6 +570,7 @@ rm -f %{_builddir}/file.list.%{name}
 %dir %{ruddervardir}/inventories
 %dir %{ruddervardir}/tools
 %dir %{ruddervardir}/reports/ready
+%dir %{ruddervardir}/lib/ssl
 %dir %{rudderlogdir}/install
 %dir %{rudderlogdir}/agent-check
 
