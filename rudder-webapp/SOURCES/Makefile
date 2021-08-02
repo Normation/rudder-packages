@@ -42,6 +42,9 @@ LANGDIR = rudder-sources/rudder/language
 CORE_RESOURCES = $(WEBAPPDIR)/rudder/rudder-core/src/main/resources
 WEB_RESOURCES = $(WEBAPPDIR)/rudder/rudder-web/src/main/resources
 
+SECURE_CFLAGS = -fstack-protector-strong -D_FORTIFY_SOURCE=2 -fPIE
+SECURE_LDFLAGS = -fstack-protector-strong -Wl,-z,relro -Wl,-z,now -pie
+
 PROXY_ENV = $(if $(PROXY), http_proxy=$(PROXY))
 # Usage: $(GET) <destination_file> <url> <hash>
 # Pass an empty string to skip hash check
@@ -140,7 +143,7 @@ build: $(BUILD_LDAP) rudder-sources build-language rudder-doc jetty rudder.war
 # for centos7
 DEBUGOPT:=$(shell make -v --debug=n >/dev/null2>&1 && echo --debug=n)
 build-ldap: openldap-source
-	cd openldap-source && CFLAGS=-Wno-format-extra-args ./configure --prefix=/opt/rudder --libdir=/opt/rudder/lib/ldap --enable-dynamic --enable-debug --enable-modules --enable-monitor=mod --enable-dynlist=mod --enable-mdb=yes --enable-hdb=no --enable-bdb=no
+	cd openldap-source && CFLAGS="-Wno-format-extra-args -O2 ${SECURE_CFLAGS}" LDFLAGS="${SECURE_LDFLAGS}" ./configure --prefix=/opt/rudder --libdir=/opt/rudder/lib/ldap --enable-dynamic --enable-debug --enable-modules --enable-monitor=mod --enable-dynlist=mod --enable-mdb=yes --enable-hdb=no --enable-bdb=no
 	cd openldap-source && make $(DEBUGOPT) depend
 	cd openldap-source && make $(DEBUGOPT)
 	touch $@
