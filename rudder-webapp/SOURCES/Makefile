@@ -140,7 +140,7 @@ build: $(BUILD_LDAP) rudder-sources build-rudder-lang rudder-doc jetty rudder.wa
 # for centos7
 DEBUGOPT:=$(shell make -v --debug=n >/dev/null2>&1 && echo --debug=n)
 build-ldap: openldap-source
-	cd openldap-source && CFLAGS=-Wno-format-extra-args ./configure --prefix=/opt/rudder --libdir=/opt/rudder/lib/ldap --enable-dynamic --enable-debug --enable-modules --enable-monitor=mod --enable-dynlist=mod --enable-mdb=yes --enable-hdb=no --enable-bdb=no
+	cd openldap-source && CFLAGS="-Wno-format-extra-args -O2" ./configure --prefix=/opt/rudder --libdir=/opt/rudder/lib/ldap --enable-dynamic --enable-debug --enable-modules --enable-monitor=mod --enable-dynlist=mod --enable-mdb=yes --enable-hdb=no --enable-bdb=no
 	cd openldap-source && make $(DEBUGOPT) depend
 	cd openldap-source && make $(DEBUGOPT)
 	touch $@
