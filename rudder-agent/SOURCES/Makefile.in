@@ -21,7 +21,7 @@
 # Versions to use
 RUDDER_VERSION_TO_PACKAGE =
 RUDDER_MAJOR_VERSION := $(shell echo ${RUDDER_VERSION_TO_PACKAGE} | cut -d'.' -f 1-2)
-DEBUG = 
+DEBUG =
 ifndef RUDDER_MAJOR_VERSION
 $(error RUDDER_VERSION_TO_PACKAGE has not been set)
 endif
@@ -88,7 +88,7 @@ endif
 GET=get() { @_GET@ "$$1.part" "$$2" && { openssl dgst -sha256 "$$1.part" | grep -q "$$3" || { echo "Wrong checksum, aborting"; exit 1; }; } && mv "$$1.part" "$$1"; }; get
 
 # do not pass variables to sub make
-MAKEOVERRIDES = 
+MAKEOVERRIDES =
 
 ################
 # Main targets #
@@ -187,6 +187,7 @@ rudder-agent.cron: rudder-sources
 	# It needs to be "correctly" built to avoid breaking the cron service
 	[ -f /etc/slackware-version ] && perl -0777 -pe 's|\{\{\#classes.slackware}}(.*?)\{\{/classes.slackware}}.*?\{\{\^classes.slackware}}(.*?)\{\{/classes.slackware}}|\1|sg' -i ./rudder-agent.cron || true
 	[ ! -f /etc/slackware-version ] &&  perl -0777 -pe 's|\{\{\#classes.slackware}}(.*?)\{\{/classes.slackware}}.*?\{\{\^classes.slackware}}(.*?)\{\{/classes.slackware}}|\2|sg' -i ./rudder-agent.cron || true
+	perl -0777 -pe 's|\{\{\{vars.setup_cronjob.cron_prefix\}\}\}|0,5,10,15,20,25,30,35,40,45,50,55|sg' -i ./rudder-agent.cron
 
 	# Set unexpanded variables of the cron file
 	$(SED) 's@\$${sys.workdir}@/var/rudder/cfengine-community@g' rudder-agent.cron | $(SED) 's@\$${g.rudder_base}@/opt/rudder@g' | $(SED) 's@\\&\\&@\&\&@g' | $(SED) 's@\\&1@\&1@g' > rudder-agent.cron.new
@@ -542,7 +543,7 @@ endif
 clean:
 	rm -rf dependencies fusion
 	rm -f build-*
-	rm -f rudder.8.gz rudder-agent.cron 
+	rm -f rudder.8.gz rudder-agent.cron
 	rm -rf rudder-agent
 	cd debug-script && $(MAKE) clean 2>/dev/null || true
 
