@@ -207,6 +207,7 @@ if type sestatus >/dev/null 2>&1 && sestatus | grep -q "enabled"; then
   restorecon /opt/rudder/bin/rudder-relayd
   restorecon -R /var/rudder/lib/relay
   restorecon -R /var/rudder/lib/ssl
+  restorecon -R /var/rudder/cfengine-community/ppkeys
   restorecon -R /var/rudder/share
   restorecon -R /var/rudder/shared-files
   restorecon -R /var/rudder/configuration-repository/shared-files
