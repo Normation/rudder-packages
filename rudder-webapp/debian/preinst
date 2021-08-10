@@ -35,18 +35,6 @@ case "$1" in
 
       [ -x /opt/rudder/sbin/slapcat ] && /opt/rudder/sbin/slapcat -b "cn=rudder-configuration" -l /var/rudder/ldap/backup/openldap-data-pre-upgrade-${TIMESTAMP}.ldif
 
-      # Stop non-systemd rudder-slapd service running if any
-      # If the stop fails, it's probably because it was not started
-      # If the configuration file is absent do not try to stop it, it may mean that it hasn't been stopped properly, but this is too late anyway.
-      if [ -f "/etc/init.d/rudder-slapd" ] && [ -f "/opt/rudder/etc/rudder-slapd.conf" ]
-      then
-        /etc/init.d/rudder-slapd stop >&2 > /dev/null || true
-      fi
-      if [ -f "/etc/init.d/rudder-jetty" ] && [ -d "/opt/rudder/jetty/" ]
-      then
-        /etc/init.d/rudder-jetty stop >&2 > /dev/null || true
-      fi
-
       if [ -x /opt/rudder/bin/rudder-pkg ]
       then
        /opt/rudder/bin/rudder-pkg plugin save-status > /tmp/rudder-plugins-upgrade

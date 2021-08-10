@@ -226,7 +226,7 @@ if [ $1 -ne 1 ]
   [ -x /opt/rudder/sbin/slapcat ] && /opt/rudder/sbin/slapcat -b "cn=rudder-configuration" -l /var/rudder/ldap/backup/openldap-data-pre-upgrade-${TIMESTAMP}.ldif
 
   # If the stops fails, it's probably because it was not started
-  service rudder-jetty stop >&2 > /dev/null || true
+  systemctl stop rudder-jetty >&2 > /dev/null || true
 
   if [ -x /opt/rudder/bin/rudder-pkg ]
   then
@@ -236,18 +236,6 @@ if [ $1 -ne 1 ]
   fi
 
   getfacl --absolute-names --recursive /opt/rudder/etc/hooks.d/ > /tmp/rudder-hooks-upgrade
-
-  # Stop non-systemd rudder-slapd service running if any
-  # If the stop fails, it's probably because it was not started
-  if [ -f "/etc/init.d/rudder-slapd" ]
-  then
-    /etc/init.d/rudder-slapd stop >&2 > /dev/null || true
-  fi
-  if [ -f "/etc/init.d/rudder-jetty" ]
-  then
-    /etc/init.d/rudder-jetty stop >&2 > /dev/null || true
-  fi
-
 fi
 
 
