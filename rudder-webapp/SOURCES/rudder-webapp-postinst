@@ -12,25 +12,20 @@ mkdir -p /var/log/rudder/install
 
 echo "$(date) - Starting rudder-webapp post installation script" >> ${LOG_FILE}
 
-echo -n "INFO: Creating groups ..."
 if ! getent group rudder-slapd >/dev/null; then
   groupadd --system rudder-slapd >> ${LOG_FILE}
 fi
-echo " Done"
 
-echo -n "INFO: Creating users ..."
 if ! getent passwd rudder-slapd >/dev/null; then
   useradd --system --gid rudder-slapd --shell /bin/false --home-dir /var/rudder/ldap --comment "Rudder LDAP server,,," rudder-slapd >> ${LOG_FILE}
 fi
 chown root:rudder-slapd "${LDAP_CONF}"
 chmod 640 "${LDAP_CONF}"
 chown -R rudder-slapd:rudder-slapd /var/rudder/ldap/
-echo " Done"
 
 # stopping apache before running upgrade scripts
 systemctl stop ${APACHE} >> ${LOG_FILE}
 
-echo -n "INFO: Removing ncf-api-venv user and group ..."
 rm -rf /var/lib/ncf-api-venv
 
 if getent passwd ncf-api-venv >/dev/null; then
@@ -41,24 +36,19 @@ if getent group ncf-api-venv >/dev/null; then
   groupdel ncf-api-venv >> ${LOG_FILE}
 fi
 
-echo " Done"
-
 # create gitignore if it doesn't exist
 [ -f /var/rudder/configuration-repository/.gitignore ] || echo "ncf/ncf_hash_file" > /var/rudder/configuration-repository/.gitignore
 
-echo -n "INFO: Setting up systemd ..."
 systemctl daemon-reload
 
-systemctl enable rudder-jetty >> ${LOG_FILE}
-systemctl enable rudder-slapd >> ${LOG_FILE}
+systemctl enable rudder-jetty >> ${LOG_FILE} 2>&1
+systemctl enable rudder-slapd >> ${LOG_FILE} 2>&1
 
 # Remove pidfile and argsfile
 sed -i '/^[ \t]*pidfile/d' "${LDAP_CONF}"
 sed -i '/^[ \t]*argsfile/d' "${LDAP_CONF}"
 
 # Need to restart to take schema changes into account
-echo -n "INFO: Restarting rudder-slapd..."
-
 if type service >/dev/null 2>&1; then
   # during upgrade, service may not have been started with systemctl
   # detect first if rudder-slapd is seen running ?
@@ -79,7 +69,6 @@ if type service >/dev/null 2>&1; then
 fi
 
 systemctl restart rudder-slapd >> ${LOG_FILE}
-echo " Done"
 
 # Remove .pyc files to ensure we don't end up with outdated files
 rm -f /usr/share/ncf/tools/ncf.pyc
@@ -131,9 +120,7 @@ if [ $LDAPCHK -eq 0 ]; then
 fi
 
 # Run any upgrades
-echo "INFO: Launching script to check if a migration is needed ..."
 /opt/rudder/bin/rudder-upgrade >> ${LOG_FILE}
-echo "Done"
 
 # Adjust permissions on /var/rudder/configuration-repository
 /opt/rudder/bin/rudder-fix-repository-permissions  >> ${LOG_FILE}
@@ -144,18 +131,12 @@ cd /
 [ -f /tmp/rudder-hooks-upgrade ] && setfacl --restore=/tmp/rudder-hooks-upgrade
 
 # Rudder-lang : update libraries by re-generating it
-echo "INFO: Re-generate language libraries ..."
 /opt/rudder/share/language/tools/generate_lib
-echo "Done"
 
 # Restart the webapp
-echo -n "INFO: Make sure Rudder webapp is started..."
 systemctl restart rudder-jetty >> ${LOG_FILE} || true
-echo " Done"
 
-echo -n "INFO: Make sure Apache HTTPd is started..."
 systemctl restart ${APACHE} >> ${LOG_FILE}
-echo " Done"
 
 ## Make sure everything is ok
 if [ "${RUDDER_FIRST_INSTALL}" = "true" ]; then

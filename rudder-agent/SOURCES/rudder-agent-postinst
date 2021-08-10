@@ -123,7 +123,7 @@ fi
 
 # Try to send an inventory after upgrade to see the new agent version on the server
 # We can do it a first install to since bootstrap policies won't send un inventory
-echo "INFO: Scheduling an inventory during next run..."
+echo "INFO: Scheduling an inventory during next run..." >> ${LOG_FILE}
 touch /opt/rudder/etc/force_inventory
 
 # Try to remove POSIX ACL if present, only during the first install

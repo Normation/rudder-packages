@@ -468,30 +468,27 @@ set -e
 if [ -f /opt/rudder/etc/uuid.hive ]; then
   mkdir -p /var/backups/rudder
   cp -f /opt/rudder/etc/uuid.hive /var/backups/rudder/uuid.hive-$(date +%Y%m%d)
-  echo "INFO: A back up copy of the /opt/rudder/etc/uuid.hive has been created in /var/backups/rudder"
 fi
 
 # Keep a backup copy of policy_server.dat
 if [ -f /var/rudder/cfengine-community/policy_server.dat ]; then
   mkdir -p /var/backups/rudder
   cp -f /var/rudder/cfengine-community/policy_server.dat /var/backups/rudder/policy_server.dat-$(date +%Y%m%d)
-  echo "INFO: A back up copy of the /var/rudder/cfengine-community/policy_server.dat has been created in /var/backups/rudder"
 fi
 
 # Keep a backup copy of ppkeys
 if [ -d /var/rudder/cfengine-community/ppkeys/ ]; then
   mkdir -p /var/backups/rudder
   cp -rf /var/rudder/cfengine-community/ppkeys/ /var/backups/rudder/ppkeys-$(date +%Y%m%d)
-  echo "INFO: A back up copy of the /var/rudder/cfengine-community/ppkeys has been created in /var/backups/rudder"
 fi
 
 # Keep a backup copy of agent certificate
 if [ -f /opt/rudder/etc/ssl/agent.cert ]; then
   mkdir -p /var/backups/rudder
   cp -f /opt/rudder/etc/ssl/agent.cert /var/backups/rudder/agent.cert-$(date +%Y%m%d)
-  echo "INFO: A back up copy of the /opt/rudder/etc/ssl/agent.cert has been created in /var/backups/rudder"
 fi
 
+echo "INFO: A backup copy of Rudder agent credentials and id has been done in /var/backups/rudder"
 
 %postun
 #=================================================

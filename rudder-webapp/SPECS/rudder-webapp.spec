@@ -311,15 +311,12 @@ fi
 # Check "sestatus" presence, and if here tweak our installation to be
 # SELinux compliant
 if type sestatus >/dev/null 2>&1 && sestatus | grep -q "enabled"; then
-  echo -n "INFO: Applying selinux policy..."
   # Add/Update the rudder-webapp SELinux policy
   semodule -i /opt/rudder/share/selinux/rudder-webapp.pp
   # Ensure inventory directories context is set by resetting
   # their context to the contexts defined in SELinux configuration,
   # including the file contexts defined in the rudder-webapp module
   restorecon -RF /var/rudder/configuration-repository/techniques
-
-  echo " Done"
 fi
 %endif
 
@@ -346,11 +343,9 @@ if [ $1 -eq 0 ]; then
 %if 0%{?rhel}
   if type sestatus >/dev/null 2>&1 && sestatus | grep -q "enabled"; then
     if semodule -l | grep -q rudder-webapp; then
-      echo -n "INFO: Removing selinux policy..."
       # Remove the rudder-webapp SELinux policy
       semodule -r rudder-webapp
       restorecon -RF /var/rudder/configuration-repository/techniques
-      echo " Done"
     fi
   fi
 %endif
@@ -358,7 +353,6 @@ if [ $1 -eq 0 ]; then
   # restart apache2 since it uses the user ncf
   systemctl restart %{apache} >/dev/null
 
-  echo -n "INFO: Removing users..."
   if getent passwd ncf-api-venv >/dev/null; then
     userdel ncf-api-venv >/dev/null 2>&1
   fi
@@ -366,7 +360,6 @@ if [ $1 -eq 0 ]; then
   if getent passwd rudder-slapd >/dev/null; then
     userdel rudder-slapd >/dev/null 2>&1
   fi
-   echo " Done"
 fi
 
 

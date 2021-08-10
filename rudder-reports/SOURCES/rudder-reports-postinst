@@ -7,7 +7,7 @@ then
   # if it is an external DB, do not run
   if ! grep -qE 'rudder.jdbc.url=jdbc:postgresql://(localhost|127\.0\.)' /opt/rudder/etc/rudder-web.properties
   then
-    echo "External database detected, skipping rudder-reports postinst"
+    echo "INFO: External database detected, skipping rudder-reports postinst"
     exit 0
   fi
 fi
@@ -37,8 +37,6 @@ fi
 if ! systemctl status ${POSTGRESQL_SERVICE_NAME} > /dev/null
 then
   if [ "${DB_NOT_INITIALIZED}" != "" ]; then
-    echo -n "INFO: Initializing PostgreSQL ..."
-
     # Detecting path of postgresql-setup
     POSTGRESQL_SETUP=$(ls -1  /usr/pgsql-*/bin/postgresql*-setup 2> /dev/null | sort -V | tail -1)
     if [ -z "${POSTGRESQL_SETUP}" ]; then
@@ -47,7 +45,6 @@ then
 
     # rhel package doesn't initialize database
     ${POSTGRESQL_SETUP} initdb >> ${LOG_FILE}
-    echo " Done"
   fi
   systemctl start ${POSTGRESQL_SERVICE_NAME} >> ${LOG_FILE}
 fi
@@ -83,11 +80,8 @@ fi
 # ODOT
 
 # RHEL doesn't autostart service
-echo -n "INFO: Setting PostgreSQL as a boot service..."
-systemctl enable ${POSTGRESQL_SERVICE_NAME} >> ${LOG_FILE}
-echo " Done"
+systemctl enable ${POSTGRESQL_SERVICE_NAME} >> ${LOG_FILE} 2>&1
 
-echo -n "INFO: Waiting for PostgreSQL to be up..."
 CPT=0
 TIMEOUT=60
 while ! su postgres -c "psql -q --output /dev/null -c \"SELECT COUNT(*) FROM pg_catalog.pg_authid\"" >/dev/null 2>&1
@@ -101,7 +95,6 @@ do
     exit 1
   fi
 done
-echo " Done"
 
 DBNAME="rudder"
 USERNAME="rudder"
@@ -111,21 +104,16 @@ CHK_PG_USER=$(su postgres -c "psql -t -c \"select count(1) from pg_user where us
 # Rudder user
 if [ ${CHK_PG_USER} -eq 0 ]
 then
-  echo -n "INFO: Creating Rudder PostgreSQL user..."
   su postgres -c "psql -q -c \"CREATE USER ${USERNAME} WITH PASSWORD 'Normation'\"" >> ${LOG_FILE}
-  echo "Done"
 fi
 
 # Rudder database
 if [ ${CHK_PG_DB} -eq 0 ]
 then
-  echo -n "INFO: Creating Rudder PostgreSQL database..."
   su postgres -c "psql -q -c \"CREATE DATABASE ${DBNAME} WITH OWNER = ${USERNAME}\"" >> ${LOG_FILE}
   echo "localhost:5432:${DBNAME}:${USERNAME}:Normation" > /root/.pgpass
   chmod 600 /root/.pgpass
   psql -q -U rudder -h localhost -d rudder -f /opt/rudder/etc/postgresql/reportsSchema.sql >> ${LOG_FILE}
-  echo " Done"
 fi
 
 echo "$(date) - Ending rudder-reports post installation script" >> ${LOG_FILE}
-

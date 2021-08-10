@@ -169,9 +169,7 @@ set -e
 CFRUDDER_FIRST_INSTALL=$1
 
 %if 0%{?rhel}
-echo -n "INFO: Setting Apache httpd as a boot service..."
-systemctl enable %{apache} >/dev/null
-echo " Done"
+systemctl enable %{apache} >/dev/null 2>&1
 %endif
 
 %if 0%{?suse_version}
@@ -214,19 +212,13 @@ if [ $1 -eq 0 ]; then
   systemctl restart %{apache} >/dev/null
   # Remove package user and groups
   if getent group rudder >/dev/null; then
-    echo -n "INFO: Removing the rudder group ..."
     groupdel rudder >/dev/null 2>&1
-    echo " Done"
   fi
    if getent group rudder-policy-reader >/dev/null; then
-    echo -n "INFO: Removing the rudder-policy-reader group ..."
     groupdel rudder-policy-reader >/dev/null 2>&1
-    echo " Done"
   fi
   if getent passwd rudder >/dev/null; then
-    echo -n "INFO: Removing the rudder user..."
     userdel rudder >/dev/null 2>&1
-    echo " Done"
   fi
 fi
 

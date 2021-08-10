@@ -17,7 +17,7 @@ mkdir -p /var/log/rudder/install
 echo "`date` - Starting rudder-server-root post installation script" >> ${LOG_FILE}
 
 systemctl daemon-reload
-systemctl enable rudder-server >> ${LOG_FILE}
+systemctl enable rudder-server >> ${LOG_FILE} 2>&1
 
 # We need it to be able to open big mdb memory-mapped databases
 ulimit -v unlimited

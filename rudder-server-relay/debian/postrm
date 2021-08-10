@@ -25,19 +25,13 @@ case "$1" in
         systemctl restart apache2 > /dev/null
         # Remove package user and groups
         if getent group rudder >/dev/null; then
-          echo -n "INFO: Removing the rudder group ..."
           groupdel rudder >/dev/null 2>&1
-          echo " Done"
         fi
          if getent group rudder-policy-reader >/dev/null; then
-          echo -n "INFO: Removing the rudder-policy-reader group ..."
           groupdel rudder-policy-reader >/dev/null 2>&1
-          echo " Done"
         fi
         if getent passwd rudder >/dev/null; then
-          echo -n "INFO: Removing the rudder user..."
           userdel rudder >/dev/null 2>&1
-          echo " Done"
         fi
 
     ;;
