@@ -154,8 +154,10 @@ rm -rf %{buildroot}
 
 make --debug install APACHE_VHOSTDIR=%{apache_vhost_dir} DESTDIR=%{buildroot} SELINUX=%{selinux}
 
+%if 0%{?suse_version}
 mkdir -p %{buildroot}/etc/sysconfig/
 install -m 644 rudder-relay-apache %{buildroot}/etc/sysconfig/rudder-relay-apache
+%endif
 
 #=================================================
 # Post Installation
@@ -188,35 +190,7 @@ if [ $CFRUDDER_FIRST_INSTALL -eq 1 ];  then
   echo 'DAVLockDB /tmp/davlock.db' > /etc/%{apache}/conf.d/dav_mod.conf
 fi
 
-%if 0%{?rhel}
-# SELinux support
-# Check "sestatus" presence, and if here tweak our installation to be
-# SELinux compliant
-if type sestatus >/dev/null 2>&1 && sestatus | grep -q "enabled"; then
-  # Add/Update the rudder-relay SELinux policy
-  semodule -i /opt/rudder/share/selinux/rudder-relay.pp
-  # Ensure inventory directories context is set by resetting
-  # their context to the contexts defined in SELinux configuration,
-  # including the file contexts defined in the rudder-relay module
-  restorecon -R /var/rudder/inventories
-  restorecon -R /var/rudder/reports
-  restorecon -R /var/log/rudder/apache2
-  restorecon -R /opt/rudder/etc/relayd
-  restorecon /opt/rudder/bin/rudder-relayd
-  restorecon -R /var/rudder/lib/relay
-  restorecon -R /var/rudder/lib/ssl
-  restorecon -R /var/rudder/cfengine-community/ppkeys
-  restorecon -R /var/rudder/share
-  restorecon -R /var/rudder/shared-files
-  restorecon -R /var/rudder/configuration-repository/shared-files
-  # Add 3030 to ports apache can connect to
-  semanage port -l | grep ^http_port_t | grep -q 3030 || semanage port -a -t http_port_t -p tcp 3030
-  # Allow apache to write to files shared with relayd
-  setsebool -P allow_httpd_anon_write 1
-fi
-%endif
-
-/opt/rudder/share/package-scripts/rudder-server-relay-postinst "${CFRUDDER_FIRST_INSTALL}" "%{apache}" "%{apache_user}" "%{apache_group}" "%{apache_vhost_dir}"
+/opt/rudder/share/package-scripts/rudder-server-relay-postinst "${CFRUDDER_FIRST_INSTALL}" "%{apache}" "%{apache_user}" "%{apache_group}" "%{apache_vhost_dir}" "%{selinux}"
 
 %preun
 #=================================================
@@ -284,14 +258,14 @@ rm -rf %{buildroot}
 %defattr(-, root, root, 0755)
 /etc/%{apache_vhost_dir}/
 %config(noreplace) /etc/%{apache_vhost_dir}/rudder.conf
-%config /opt/rudder/etc/rudder-apache-relay-common.conf
-%config /opt/rudder/etc/rudder-apache-relay-ssl.conf
 %config(noreplace) /opt/rudder/etc/rudder-networks-24.conf
 %config(noreplace) /opt/rudder/etc/rudder-networks-policy-server-24.conf
 %config(noreplace) /opt/rudder/etc/rudder-pkg/rudder-pkg.conf
 %config(noreplace) /opt/rudder/etc/relayd/main.conf
 %config(noreplace) /opt/rudder/etc/relayd/logging.conf
+%if 0%{?suse_version}
 %config(noreplace) /etc/sysconfig/rudder-relay-apache
+%endif
 %config /etc/cron.d/rudder-relay
 %attr(0440, root, root) %config /etc/sudoers.d/rudder-relay
 %attr(700, root, root) /opt/rudder/etc/rudder-pkg/
@@ -312,6 +286,8 @@ rm -rf %{buildroot}
 /opt/rudder/etc/rudder-pkg/rudder_plugins_key.pub
 /opt/rudder/etc/rudder-apache-relay-nossl.conf
 /opt/rudder/etc/rudder-pkg/rudder_plugins_key.pub
+/opt/rudder/etc/rudder-apache-relay-common.conf
+/opt/rudder/etc/rudder-apache-relay-ssl.conf
 /opt/rudder/etc/ssl/openssl.cnf
 /opt/rudder/share/commands/package
 /opt/rudder/share/man/man1/rudder-relayd.1.gz
