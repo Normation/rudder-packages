@@ -154,11 +154,6 @@ rm -rf %{buildroot}
 
 make --debug install APACHE_VHOSTDIR=%{apache_vhost_dir} DESTDIR=%{buildroot} SELINUX=%{selinux}
 
-%if 0%{?suse_version}
-mkdir -p %{buildroot}/etc/sysconfig/
-install -m 644 rudder-relay-apache %{buildroot}/etc/sysconfig/rudder-relay-apache
-%endif
-
 #=================================================
 # Post Installation
 #=================================================
@@ -255,9 +250,8 @@ rm -rf %{buildroot}
 %config(noreplace) /opt/rudder/etc/rudder-pkg/rudder-pkg.conf
 %config(noreplace) /opt/rudder/etc/relayd/main.conf
 %config(noreplace) /opt/rudder/etc/relayd/logging.conf
-%if 0%{?suse_version}
+# only used on SLES
 %config(noreplace) /etc/sysconfig/rudder-relay-apache
-%endif
 %config /etc/cron.d/rudder-relay
 %attr(0440, root, root) %config /etc/sudoers.d/rudder-relay
 %attr(700, root, root) /opt/rudder/etc/rudder-pkg/
