@@ -396,7 +396,6 @@ rm -rf %{buildroot}
 %config(noreplace) /opt/rudder/etc/rudder-passwords.conf
 %config(noreplace) /etc/default/rudder-jetty
 %attr(0600, root, root) /opt/rudder/etc/rudder-passwords.conf
-%attr(0755, rudder-slapd, rudder-slapd) /var/rudder/ldap/openldap-data
 /usr/lib/systemd/system/
 /opt/rudder/jetty
 /opt/rudder/etc

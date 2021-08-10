@@ -11,7 +11,7 @@ RUDDER_CMD="/opt/rudder/bin/rudder"
 LOG_FILE="/var/log/rudder/install/rudder-agent-$(date +%Y%m%d%H%M%S).log"
 
 # Closing all parents fd which are inherited, otherwise it can lead to
-# a postint unable to terminate (relevant at least on debian 7)
+# a postinst unable to terminate (relevant at least on debian 7)
 if [ -d /proc/self/fd ] && [ "$(uname -s)" != "SunOS" ]
 then
   for f in /proc/self/fd/*; do
@@ -81,7 +81,7 @@ then
   # Set rudder-agent as service on OS that are not packaged to do it
   if [ "${CFRUDDER_USE_SYSTEMD}" = "true" ]
   then
-    /bin/systemctl enable rudder-agent rudder-cf-execd rudder-cf-serverd
+    /bin/systemctl enable rudder-agent rudder-cf-execd rudder-cf-serverd >/dev/null 2>&1
   elif [ -x /usr/bin/mkssys ] # AIX
   then
     /usr/bin/mkssys -s rudder-agent -p "${CFE_DIR}/bin/cf-execd" -a "-F" -u root -S -n15 -f9 -R
@@ -139,12 +139,12 @@ fi
 # If properly configured, this will run "agent reset" which will run "agent update" which will bootstrap then update ncf with cf-agent
 if command -v "setsid" >/dev/null 2>&1; then
   # detach from process group otherwise dpkg may wait forever
-  setsid ${RUDDER_CMD} agent check -f 2>&1 | tee -a ${LOG_FILE}
+  setsid ${RUDDER_CMD} agent check -f 2>&1 >> ${LOG_FILE}
 else
-  nohup ${RUDDER_CMD} agent check -f 2>&1 | tee -a ${LOG_FILE} &
+  nohup ${RUDDER_CMD} agent check -f 2>&1 >> ${LOG_FILE} &
 fi
 
 echo "$(date) - Ending rudder-agent post installation script" >> ${LOG_FILE}
 
-# force exit othewise the shell may be waiting for something
+# force exit otherwise the shell may be waiting for something
 exit 0

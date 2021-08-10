@@ -96,7 +96,7 @@ systemctl start ${APACHE} >> ${LOG_FILE}
 # To prevent error "error writing output.", we redirect error of slapcat to /dev/null
 LDAPCHK=`/opt/rudder/sbin/slapcat 2>/dev/null | sed -n '/^dn: /{p;q}' | wc -l`
 if [ $LDAPCHK -eq 0 ]; then
-  /opt/rudder/bin/rudder-init no auto
+  /opt/rudder/bin/rudder-init no auto >> ${LOG_FILE}
 fi
 
 # Run any upgrades

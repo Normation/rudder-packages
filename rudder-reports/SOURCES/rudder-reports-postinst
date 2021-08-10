@@ -44,7 +44,7 @@ then
     fi
 
     # rhel package doesn't initialize database
-    ${POSTGRESQL_SETUP} initdb >> ${LOG_FILE}
+    ${POSTGRESQL_SETUP} initdb >> ${LOG_FILE} 2>&1
   fi
   systemctl start ${POSTGRESQL_SERVICE_NAME} >> ${LOG_FILE}
 fi
