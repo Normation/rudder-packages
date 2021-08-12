@@ -44,9 +44,6 @@ trap 'anomaly_handler ${LINENO}' ERR INT TERM
 # - All versions : Check that Rudder database is able to handle backslash
 # - All versions : Check for the PostgreSQL version
 # - All versions : Create ncf technique update flag and restart at the end of the script
-# - 6.0.0        : Remove ncf hooks
-# - 6.0.0        : Keep syslog as default ptotocol on upgrade
-# - 6.0.4        : Ensure that rudder-slapd sockbuf_max_incoming_auth is not lost at upgrade 
 # - 6.1.0        : Migrate RudderUniqueID to the template format
 # - 6.1.0        : Add indexes cn,softwareVersion,directiveId in slapd.conf 
 # - 6.1.1        : Update apache conf if it does not contain technique editor conf (file not updated by packaging
@@ -316,25 +313,6 @@ upgrade_ncf() {
     chmod -R o-rwx ${CONFIGURATION_REPOSITORY}/ncf/50_techniques/
   fi
 
-
-  # 5.1.0: Remove ncf.conf file
-  if [ -f ${CONFIGURATION_REPOSITORY}/ncf/ncf.conf ]; then
-    current_path=$(pwd)
-    cd ${CONFIGURATION_REPOSITORY}
-    git rm -f ncf/ncf.conf
-    git commit --allow-empty -m "Remove ncf.conf from configuration repository"
-    cd ${current_path}
-  fi
-
-  # 5.1.0: Remove ncf hooks directory
-  if [ -d ${CONFIGURATION_REPOSITORY}/ncf/ncf-hooks.d ]; then
-    CURRENT="$(pwd)"
-    cd ${CONFIGURATION_REPOSITORY}/ncf
-    git rm -rf ncf-hooks.d
-    git commit --allow-empty -m "Remove ncf-hooks.d from configuration repository"
-    cd ${CURRENT}
-  fi
-
   # All Versions: Touch ncf_update_flag_file jetty will be restarted at the end of the script 
   touch /opt/rudder/etc/force_ncf_technique_update
 
@@ -455,18 +433,7 @@ upgrade_database() {
 
 # Upgrade the LDAP inventory
 upgrade_inventory() {
-  # Pre 6.0 to post 6.0 : keep default protocol to syslog and let the user change it if he wants
-  LDAP_TEST_PROTOCOL=$(${LDAPSEARCH} -b "ou=Application Properties,cn=rudder-configuration" "propertyName=rudder_report_protocol_default" | grep -c "dn: propertyName=" || true)
-  if [ ${LDAP_TEST_PROTOCOL} -eq 0 ]; then
-    ${LDAPADD} <<EOF
-dn: propertyName=rudder_report_protocol_default,ou=Application Properties,cn=rudder-configuration
-objectClass: property
-objectClass: top
-propertyName: rudder_report_protocol_default
-propertyValue: SYSLOG
-EOF
-  fi
-
+  true
 
 }
 
@@ -491,28 +458,6 @@ upgrade_apache_conf() {
 # Check and upgrade slapd.conf
 ################################################################################
 upgrade_slapdconf() {
-  # 6.0.4:
-  # ensure sockbuf_max_incoming_auth is set in /opt/rudder/etc/openldap/slapd.conf
-  MAX_INCOMING_AUTH_SET=$(grep -c "sockbuf_max_incoming_auth" /opt/rudder/etc/openldap/slapd.conf 2>/dev/null || true)  
-  if [ ${MAX_INCOMING_AUTH_SET} -eq 0 ]; then
-    echo -n "Setting the sockbuf_max_incoming_auth value for slapd.conf"
-    sed -i 's/^\(# This is too little for Rudder, as there are some big entries.*\)/\1\nsockbuf_max_incoming_auth 1000000000/' /opt/rudder/etc/openldap/slapd.conf
-    echo " Done"
-  fi
-
-  # 6.1.0~beta3:
-  # Add indexes cn,softwareVersion,directiveId in slapd.conf
-  SLAPD_CONF="/opt/rudder/etc/openldap/slapd.conf"
-  NEED_REINDEX=false
-  for i in "directiveId" "softwareVersion" "cn"; do
-    line="index\s*${i}\s*eq"
-    INDEX_COUNT=$(grep -c "^${line}" ${SLAPD_CONF} 2>/dev/null || true)
-    if [ ${INDEX_COUNT} -eq 0 ]; then
-      echo "Adding LDAP index on attribute: ${i}"
-      sed -i "/index\s*objectClass\s*eq/a index\t${i}\teq" ${SLAPD_CONF}
-      NEED_REINDEX=true
-    fi
-  done
 
   # 6.2.0~beta2:
   # Add software and modifyTimestamp indexes in slapd.conf
@@ -550,9 +495,6 @@ upgrade_slapdconf() {
     systemctl start rudder-slapd
   fi
 } 
-
-
-
 
 ################################################################################
 # Check and upgrade plugins

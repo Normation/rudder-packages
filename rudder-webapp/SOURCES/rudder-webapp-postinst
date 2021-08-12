@@ -26,16 +26,6 @@ chown -R rudder-slapd:rudder-slapd /var/rudder/ldap/
 # stopping apache before running upgrade scripts
 systemctl stop ${APACHE} >> ${LOG_FILE}
 
-rm -rf /var/lib/ncf-api-venv
-
-if getent passwd ncf-api-venv >/dev/null; then
-  userdel ncf-api-venv -r >> ${LOG_FILE}
-fi
-
-if getent group ncf-api-venv >/dev/null; then
-  groupdel ncf-api-venv >> ${LOG_FILE}
-fi
-
 # create gitignore if it doesn't exist
 [ -f /var/rudder/configuration-repository/.gitignore ] || echo "ncf/ncf_hash_file" > /var/rudder/configuration-repository/.gitignore
 
@@ -43,10 +33,6 @@ systemctl daemon-reload
 
 systemctl enable rudder-jetty >> ${LOG_FILE} 2>&1
 systemctl enable rudder-slapd >> ${LOG_FILE} 2>&1
-
-# Remove pidfile and argsfile
-sed -i '/^[ \t]*pidfile/d' "${LDAP_CONF}"
-sed -i '/^[ \t]*argsfile/d' "${LDAP_CONF}"
 
 systemctl restart rudder-slapd >> ${LOG_FILE}
 
@@ -103,7 +89,7 @@ fi
 /opt/rudder/bin/rudder-upgrade >> ${LOG_FILE}
 
 # Adjust permissions on /var/rudder/configuration-repository
-/opt/rudder/bin/rudder-fix-repository-permissions  >> ${LOG_FILE}
+/opt/rudder/bin/rudder-fix-repository-permissions >> ${LOG_FILE}
 
 rudder package rudder-postupgrade  || true
 
