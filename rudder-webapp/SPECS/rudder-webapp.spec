@@ -407,6 +407,7 @@ rm -rf %{buildroot}
 /opt/rudder/lib
 /opt/rudder/var
 /opt/rudder/libexec
+/var/rudder/ldap/openldap-data
 /var/rudder/run
 /var/rudder/inventories/received
 /var/log/rudder/ldap
