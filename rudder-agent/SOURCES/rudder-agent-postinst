@@ -122,7 +122,7 @@ then
 fi
 
 # Try to send an inventory after upgrade to see the new agent version on the server
-# We can do it a first install to since bootstrap policies won't send un inventory
+# We can do it a first install to since bootstrap policies won't send an inventory
 echo "INFO: Scheduling an inventory during next run..." >> ${LOG_FILE}
 touch /opt/rudder/etc/force_inventory
 
@@ -139,9 +139,9 @@ fi
 # If properly configured, this will run "agent reset" which will run "agent update" which will bootstrap then update ncf with cf-agent
 if command -v "setsid" >/dev/null 2>&1; then
   # detach from process group otherwise dpkg may wait forever
-  setsid ${RUDDER_CMD} agent check -f 2>&1 >> ${LOG_FILE}
+  setsid ${RUDDER_CMD} agent check -f >> ${LOG_FILE} 2>&1
 else
-  nohup ${RUDDER_CMD} agent check -f 2>&1 >> ${LOG_FILE} &
+  nohup ${RUDDER_CMD} agent check -f >> ${LOG_FILE} 2>&1 &
 fi
 
 echo "$(date) - Ending rudder-agent post installation script" >> ${LOG_FILE}

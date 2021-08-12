@@ -120,7 +120,7 @@ systemctl restart ${APACHE} >> ${LOG_FILE}
 
 ## Make sure everything is ok
 if [ "${RUDDER_FIRST_INSTALL}" = "true" ]; then
-  rudder agent check -f 2>&1 | tee -a "${LOG_FILE}"
+  rudder agent check -f >> "${LOG_FILE}" 2>&1
 fi
 
 echo "$(date) - Ending rudder-webapp post installation script" >> ${LOG_FILE}
