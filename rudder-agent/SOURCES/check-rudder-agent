@@ -1,3 +1,0 @@
-#!/bin/sh
-# this file content has been moved
-exec /opt/rudder/bin/rudder agent check
