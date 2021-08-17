@@ -483,7 +483,6 @@ endif
 	$(INSTALL) -m 755 run-inventory $(DESTDIR)/opt/rudder/bin/
 	$(INSTALL) -m 755 rudder-sign $(DESTDIR)/opt/rudder/bin/
 	$(INSTALL) -m 755 rudder-signature-check $(DESTDIR)/opt/rudder/bin/
-	$(INSTALL) -m 755 check-rudder-agent $(DESTDIR)/opt/rudder/bin/
 	$(INSTALL) -m 755 vzps.py $(DESTDIR)/opt/rudder/bin/
 	$(INSTALL) -m 755 rudder-perl $(DESTDIR)/opt/rudder/bin/
 	$(INSTALL) -m 755 rudder-uuidgen $(DESTDIR)/opt/rudder/bin/
