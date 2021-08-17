@@ -18,12 +18,12 @@ cfengine_keys_agent() {
   then
 
     # Test if we can execute the signature.sh script
-    if [ -e "${RUDDER_OPT}/bin/signature.sh" ]
+    if [ -e "${RUDDER_OPT}/bin/rudder-sign" ]
     then
 
       # Try to sign a test file
       TEST_FILE=`mktemp`
-      COMMAND_OUTPUT=`${RUDDER_OPT}/bin/signature.sh "${TEST_FILE}" && grep -qE "^digest=[a-z0-9]+$" "${TEST_FILE}.sign"`
+      COMMAND_OUTPUT=`${RUDDER_OPT}/bin/rudder-sign "${TEST_FILE}" && grep -qE "^digest=[a-z0-9]+$" "${TEST_FILE}.sign"`
 
       if [ "${?}" -eq 0 ]
       then
