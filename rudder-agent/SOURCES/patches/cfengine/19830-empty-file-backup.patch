@@ -1,0 +1,32 @@
+From dc07dc879d1c1ec7d5b1686b5647019940e4feb1 Mon Sep 17 00:00:00 2001
+From: Alexis Mousset <alexis.mousset@rudder.io>
+Date: Fri, 20 Aug 2021 13:21:43 +0200
+Subject: [PATCH] Don't try to backup files with an empty name
+
+When creating new files (for example with a copy_from when the destination
+does not exist), if backups are enabled, the agent would try to backup the
+previous state of the (non-existent) destination. It makes the promise
+fail and logs errors about the backup of an empty file name.
+
+Changelog: Don't fail on new file creation when backups are enabled
+Ticket: CFE-3640
+---
+ libpromises/files_repository.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/libpromises/files_repository.c b/libpromises/files_repository.c
+index 84b45593000..f08ab416bf2 100644
+--- a/libpromises/files_repository.c
++++ b/libpromises/files_repository.c
+@@ -91,6 +91,11 @@ bool ArchiveToRepository(const char *file, const Attributes *attr)
+     char destination[CF_BUFSIZE];
+     struct stat sb, dsb;
+ 
++    // Skip empty file name
++    if (file[0] == '\0') {
++        return false;
++    }
++
+     if (!GetRepositoryPath(file, attr, destination))
+     {
+         return false;
