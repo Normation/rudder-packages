@@ -235,14 +235,10 @@ install: build initial-promises initial-ncf rudder-webapp-version
 	install -m 644 rudder.xml $(DESTDIR)/opt/rudder/share/webapps/
 	
 	# Install upgrade tools and migration scripts
-	
+
+	## SQL init
+	install -m 644 $(CORE_RESOURCES)/reportsSchema.sql $(DESTDIR)/opt/rudder/share/upgrade-tools/
 	## SQL migration
-	install -m 644 $(CORE_RESOURCES)/Migration/dbMigration-4.1.x-4.1.12-add-compliancelevel-table.sql $(DESTDIR)/opt/rudder/share/upgrade-tools/
-	install -m 644 $(CORE_RESOURCES)/Migration/dbMigration-4.1.x-4.1.21-drop-rulesgroupjoin-constraint.sql $(DESTDIR)/opt/rudder/share/upgrade-tools/
-	install -m 644 $(CORE_RESOURCES)/Migration/dbMigration-4.3.x-4.3.8-correct-indexes-on-compliancelevel.sql $(DESTDIR)/opt/rudder/share/upgrade-tools/
-	install -m 644 $(CORE_RESOURCES)/Migration/dbMigration-5.0.x-5.0.7-tune-autovacuum_on_table_basis.sql $(DESTDIR)/opt/rudder/share/upgrade-tools/
-	install -m 644 $(CORE_RESOURCES)/Migration/dbMigration-5.0.x-5.0.12-composite-index-on-ruddersysevents.sql $(DESTDIR)/opt/rudder/share/upgrade-tools/
-	install -m 644 $(CORE_RESOURCES)/Migration/dbMigration-5.0.x-5.0.13-remove-autovacuum-on-ruddersysevents.sql $(DESTDIR)/opt/rudder/share/upgrade-tools/
 	install -m 644 $(CORE_RESOURCES)/Migration/dbMigration-6.1-6.2-remove-unused-index-on-ruddersysevents.sql $(DESTDIR)/opt/rudder/share/upgrade-tools/
 
 	install -m 755 rudder-upgrade $(DESTDIR)/opt/rudder/bin/
