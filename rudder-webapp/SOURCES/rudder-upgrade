@@ -562,7 +562,7 @@ upgrade_plugins() {
   PLUGIN_STATUS_FILE="/tmp/rudder-plugins-upgrade"
   if rudder package check-connection >/dev/null 2>&1 ; then
     rudder package update  || true
-    rudder package upgrade-all --version=6.2 || true
+    rudder package upgrade-all || true
   else
     echo "Plugins were not updated, because connection test is failing, please upgrade your plugins manually"  
   fi
