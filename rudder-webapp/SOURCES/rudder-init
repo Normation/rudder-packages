@@ -216,8 +216,10 @@ fi
 echo " done."
 echo
 
-# rudder-passwords.conf -> server-roles technique -> rudder-web.properties -> webapp
-# rudder-passwords.conf -> server-roles technique -> lapd.conf -> ldap server
+# rudder-passwords.conf -> rudder-service-postgresql -> pgpass + postgresql
+# rudder-passwords.conf -> rudder-service-slapd      -> slapd.conf
+# rudder-passwords.conf -> system_rudder_webapp      -> rudder-web.properties
+# rudder-passwords.conf -> rudder-service-relayd     -> /etc/relayd/main.conf
 
 # Update the password file used by Rudder with random passwords
 echo -n "Updating Rudder password file with random passwords... "
@@ -238,7 +240,7 @@ cp -r /opt/rudder/share/initial-ncf/* /var/rudder/ncf/common/
 cp -r /opt/rudder/share/initial-promises/* /var/rudder/cfengine-community/inputs/
 
 # Ensure that the passwords are correctly propagated
-"${CF_AGENT}" -b system_rudder_postgresql_configuration,system_rudder_slapd_configuration,system_rudder_webapp,system_rudder_relay_configuration,system_reload_rudder_services  &>>"$TMP_LOG"
+"${CF_AGENT}" -b bootstrap_server_rudder  &>>"$TMP_LOG"
 
 # Add apache acl (will be overwritten at next agent run)
 cat >/opt/rudder/etc/rudder-networks-24.conf <<EOF
@@ -247,15 +249,10 @@ Require ip ::1
 $REQUIRE_NET
 EOF
 
-# In case of upgrade, we can restart rudder-jetty, else we are during an initialization and database
-# may not be initialized yet
-if [ ${LDAP_EXISTS} -gt 0 ]
+# In case of upgrade, we can restart rudder-jetty, else we are during an initialization and restart
+# was done by agent
+if [ ${LDAP_EXISTS} -eq 0 ]
 then
-  # Restart services
-  echo -n "Restarting jetty..."
-  systemctl restart rudder-jetty
-  echo " done."
-else
   # Ensure that rudder-jetty is not yet started and in a broken state
   systemctl stop rudder-jetty
 fi
