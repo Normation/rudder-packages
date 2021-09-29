@@ -53,6 +53,7 @@ trap 'anomaly_handler ${LINENO}' ERR INT TERM
 # - 6.2.0        : Remove unused index on RudderSysEvents  
 # - 6.2.0~beta2  : Add software and modifyTimestamp indexes in slapd.conf
 # - 7.0.0~alpha1 : Rename property rudder.community.port into rudder.policy.distribution.port.cfengine
+# - 7.0.0~beta2  : Change the way compliance is computed - change table ReportsExecution
 ####################################################################################
 
 # Some paths
@@ -427,6 +428,14 @@ upgrade_database() {
     echo " Done"
   fi
   
+  # - 7.0: Change the way compliance is computed
+  RES=$(${PSQL} -t -d ${SQL_DATABASE} -c "select count(oid) from pg_class where lower(relname) = 'reportsexecution_insertionid_idx'")
+  if [ $RES -ne 0 ]; then
+    echo -n "INFO: Change format of table ReportsExecution"
+    ${PSQL} -d ${SQL_DATABASE} -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-6.1-7.0-compliance_computation_change.sql > /dev/null
+    echo " Done"
+  fi
+
   # Now check the fileFormat in the eventlog
   upgrade_eventlog
 

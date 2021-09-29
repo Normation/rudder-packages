@@ -240,7 +240,8 @@ install: build initial-promises initial-ncf rudder-webapp-version
 	install -m 644 $(CORE_RESOURCES)/reportsSchema.sql $(DESTDIR)/opt/rudder/share/upgrade-tools/
 	## SQL migration
 	install -m 644 $(CORE_RESOURCES)/Migration/dbMigration-6.1-6.2-remove-unused-index-on-ruddersysevents.sql $(DESTDIR)/opt/rudder/share/upgrade-tools/
-
+	install -m 644 $(CORE_RESOURCES)/Migration/dbMigration-6.1-7.0-compliance_computation_change.sql $(DESTDIR)/opt/rudder/share/upgrade-tools/
+	
 	install -m 755 rudder-upgrade $(DESTDIR)/opt/rudder/bin/
 	
 	install -m 644 rudder-webapp $(DESTDIR)/opt/rudder/etc/server-roles.d/
