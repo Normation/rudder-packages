@@ -51,6 +51,7 @@ trap 'anomaly_handler ${LINENO}' ERR INT TERM
 # - 6.2.0~beta2  : Add software and modifyTimestamp indexes in slapd.conf
 # - 7.0.0~alpha1 : Rename property rudder.community.port into rudder.policy.distribution.port.cfengine
 # - 7.0.0~beta2  : Change the way compliance is computed - change table ReportsExecution
+# - 7.0.0~beta2  : Remove old system techniques
 ####################################################################################
 
 # Some paths
@@ -195,6 +196,26 @@ update_rudder_repository_from_system_directory() {
   fi
 }
 
+# Helper function
+# Function to remove deprecated system technique from the system directory
+# Parameters:
+# - $1 = technique name
+remove_system_technique_from_system_directory() {
+  TECHNAME="${1}"
+  LOCALTECHDIR="techniques/system/${TECHNAME}"
+  TECHDIR="${CONFIGURATION_REPOSITORY}/${LOCALTECHDIR}"
+
+
+  if [ -d ${TECHDIR} ]; then
+    rm -rf ${TECHDIR}
+    cd ${CONFIGURATION_REPOSITORY}/ && git rm -rf ${LOCALTECHDIR} >/dev/null 2>&1
+    git commit -m "Remove deprecated system Techniques ${TECHNAME} - automatically done by rudder-upgrade script" >/dev/null 2>&1
+    # Schedule a Technique library reload later because of the update
+    echo "INFO: A Technique library reload is needed and has been scheduled."
+    touch /opt/rudder/etc/force_technique_reload
+  fi
+}
+ 
 # Helper function to compare version numbers with 2 components
 ver() { printf "1%03d%03d" `echo "$1" | tr '.' ' '`; }
 
@@ -272,10 +293,19 @@ set_git_branch() {
 upgrade_system_techniques() {
   STEP="Upgrade system Techniques"
 
-  update_rudder_repository_from_system_directory /opt/rudder/share/techniques/system/common/ techniques/system/common/
-  update_rudder_repository_from_system_directory /opt/rudder/share/techniques/system/distributePolicy/ techniques/system/distributePolicy/
   update_rudder_repository_from_system_directory /opt/rudder/share/techniques/system/inventory/ techniques/system/inventory/
-  update_rudder_repository_from_system_directory /opt/rudder/share/techniques/system/server-roles/ techniques/system/server-roles/
+  update_rudder_repository_from_system_directory /opt/rudder/share/techniques/system/rudder-service-postgresql/ techniques/system/rudder-service-postgresql/
+  update_rudder_repository_from_system_directory /opt/rudder/share/techniques/system/rudder-service-slapd/ techniques/system/rudder-service-slapd/
+  update_rudder_repository_from_system_directory /opt/rudder/share/techniques/system/server-common/ techniques/system/server-common/
+  update_rudder_repository_from_system_directory /opt/rudder/share/techniques/system/common/ techniques/system/common/
+  update_rudder_repository_from_system_directory /opt/rudder/share/techniques/system/rudder-service-apache/ techniques/system/rudder-service-apache/
+  update_rudder_repository_from_system_directory /opt/rudder/share/techniques/system/rudder-service-relayd/ techniques/system/rudder-service-relayd/    
+  update_rudder_repository_from_system_directory /opt/rudder/share/techniques/system/rudder-service-webapp/ techniques/system/rudder-service-webapp/
+  
+  STEP="Remove deprecated system Techniques"
+  remove_system_technique_from_system_directory server-roles
+  
+  remove_system_technique_from_system_directory distributePolicy
 }
 
 # Upgrade techniques
