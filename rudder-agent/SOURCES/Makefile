@@ -79,9 +79,9 @@ endif
 # Usage: $(GET) <destination_file> <url> <hash>
 PROXY_ENV = $(if $(PROXY), http_proxy=$(PROXY) ftp_proxy=$(PROXY))
 # No accept encoding to prevent the webserver form altering the distributed file
-WGET = wget -q --header="accept-encoding:" -O
-FETCH = fetch -q -o
-CURL = curl -s -L -f -o
+WGET = wget -q --header="accept-encoding:" --ca-certificate=$(CURDIR)/letsencrypt-root-x1.pem -O
+FETCH = fetch -q --ca-cert=$(CURDIR)/letsencrypt-root-x1.pem -o
+CURL = curl -s -L -f --cacert $(CURDIR)/letsencrypt-root-x1.pem -o
 ifneq (,$(wildcard /usr/bin/curl))
 _GET = $(PROXY_ENV) $(CURL)
 GET_OPT = --curl
@@ -683,7 +683,7 @@ install-cfengine: build-cfengine $(INSTALL_DEPS) rudder.8.gz
 	# pcre useless parts
 	cd $(DESTDIR)/opt/rudder && rm -rf bin/pcregrep bin/pcretest
 	# libxml useless parts
-	cd $(DESTDIR)/opt/rudder && rm -rf bin/xmlcatalog bin/xmllint lib/xml2Conf.sh lib/cmake bin/xml2-config share/doc/libxml* 
+	cd $(DESTDIR)/opt/rudder && rm -rf bin/xmlcatalog bin/xmllint lib/xml2Conf.sh lib/cmake bin/xml2-config share/doc/libxml*
 	# Install cfengine manpages
 	mkdir -p $(DESTDIR)/opt/rudder/share/man/man8
 	cd $(DESTDIR)/opt/rudder/bin && for binary in cf-agent cf-promises cf-key cf-execd cf-serverd cf-net cf-runagent; do \
