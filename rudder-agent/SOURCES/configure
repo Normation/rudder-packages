@@ -50,7 +50,7 @@ while [ -n "$1" ]
 do
   opt="$1"
   shift
-  case "${opt}" in 
+  case "${opt}" in
     --with-*)
       name=$(echo "${opt}" | sed 's/--with-/BUILD_/')
       if [ "$(eval echo \${${name}})" = "" ]; then
@@ -112,13 +112,13 @@ INSTALL=$(type ginstall >/dev/null 2>&1 && echo ginstall || echo install)
 # try getter in this order: curl, fetch, wget
 if type curl >/dev/null 2>/dev/null; then
   CPAN_OPT="--curl --no-wget --no-lwp"
-  _GET="${PROXY_ENV}curl -s -L -f -o"
+  _GET="${PROXY_ENV}curl -s -L -f --cacert \$(CURDIR)/letsencrypt-root-x1.pem -o"
 elif type fetch >/dev/null 2>/dev/null; then
   CPAN_OPT=""
-  _GET="${PROXY_ENV}fetch -q -o"
+  _GET="${PROXY_ENV}fetch -q --ca-cert=\$(CURDIR)/letsencrypt-root-x1.pem -o"
 else
   CPAN_OPT="--wget"
-  _GET="${PROXY_ENV}wget -q --header=\"accept-encoding:\" -O"
+  _GET="${PROXY_ENV}wget -q --header=\"accept-encoding:\" --ca-certificate=\$(CURDIR)/letsencrypt-root-x1.pem -O"
 fi
 
 # Switch to http for very old distros
@@ -326,7 +326,7 @@ s%@IF_${src}@%${comment1}%;t t
 s%@UNLESS_${src}@%${comment2}%;t t"
 done
 
-# "Makefile.in" variables 
+# "Makefile.in" variables
 SED_EXPR="${SED_EXPR}
 s%@CONFIG_VARS@%${CONFIG_VARS}%;t t
 s%@_GET@%${_GET}%;t t
