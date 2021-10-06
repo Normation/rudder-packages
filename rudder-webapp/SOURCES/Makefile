@@ -59,7 +59,7 @@ openldap-source:
 	$(GET) ./openldap.tgz https://repository.rudder.io/build-dependencies/openldap/openldap-$(OPENLDAP_RELEASE).tgz $(OPENLDAP_SHA256)
 	tar xzf ./openldap.tgz -C .
 	mv ./openldap-$(OPENLDAP_RELEASE) ./openldap-source
-	
+
 	# Apply patches
 	for PATCHNAME in patches/openldap/*.patch; do echo "Applying $$PATCHNAME..."; patch -d ./openldap-source -p1 < $$PATCHNAME; done
 	# Make sure there were no rejects
@@ -110,11 +110,11 @@ initial-ncf: ./rudder-sources ./initial-promises
 	cp -r ./rudder-sources/ncf/tree ./initial-ncf
 
 rudder.war: rudder-sources
-	# Direct download the war 
+	# Direct download the war
 	./mvn-like $(WEBAPPDIR)/rudder/pom.xml com.normation.rudder rudder-web rudder.war
 
 rudder-sources.tar.bz2:
-	$(GET) rudder-sources.tar.bz2 https://www.rudder-project.org/archives/rudder-sources-${RUDDER_VERSION_TO_PACKAGE}.tar.bz2 ""
+	$(GET) rudder-sources.tar.bz2 https://repository.rudder.io/sources/$(RUDDER_VERSION_TO_PACKAGE)/rudder-sources-$(RUDDER_VERSION_TO_PACKAGE).tar.bz2 ""
 
 rudder-sources: rudder-sources.tar.bz2
 	tar -xjf rudder-sources.tar.bz2
@@ -208,32 +208,32 @@ install: build initial-promises initial-ncf rudder-webapp-version
 	install -m 755 rudder-metrics-reporting $(DESTDIR)/opt/rudder/bin/
 	install -m 755 rudder-reload-cf-serverd $(DESTDIR)/opt/rudder/bin/
 	install -m 755 rudder_synchronize.py ${DESTDIR}/opt/rudder/bin/
-	
+
 	install -m 644 $(WEB_RESOURCES)/demo-rudder-users.xml $(DESTDIR)/opt/rudder/etc/rudder-users.xml
 	install -m 644 $(CORE_RESOURCES)/ldap/bootstrap.ldif $(DESTDIR)/opt/rudder/share/
 	install -m 644 $(CORE_RESOURCES)/ldap/init-policy-server.ldif $(DESTDIR)/opt/rudder/share/
 	install -m 644 $(WEB_RESOURCES)/configuration.properties.sample $(DESTDIR)/opt/rudder/etc/rudder-web.properties
 	install -m 644 $(WEB_RESOURCES)/logback.xml $(DESTDIR)/opt/rudder/etc/
 	cp -r rudder-sources/rudder-techniques/techniques/ $(DESTDIR)/opt/rudder/share/
-	
+
 	mkdir -p $(DESTDIR)/usr/share/ncf
 	cp -r rudder-sources/ncf/builder $(DESTDIR)/usr/share/ncf/
 	cp -r rudder-sources/ncf/tools $(DESTDIR)/usr/share/ncf/
 	cp -r rudder-sources/ncf/tree $(DESTDIR)/usr/share/ncf/
 	install -m 755 rudder-sources/ncf/ncf $(DESTDIR)/usr/share/ncf/
 	install -m 644 rudder.war $(DESTDIR)/opt/rudder/share/webapps/rudder.war
-	
+
 	cp -rf $(WEB_RESOURCES)/load-page $(DESTDIR)/opt/rudder/share/
 	install -m 644 $(CORE_RESOURCES)/reportsInfo.xml $(DESTDIR)/opt/rudder/etc/
 	install -m 644 rudder-apache-webapp-common.conf $(DESTDIR)/opt/rudder/etc/rudder-apache-webapp-common.conf
 	install -m 644 rudder-apache-webapp-ssl.conf $(DESTDIR)/opt/rudder/etc/rudder-apache-webapp-ssl.conf
 	install -m 644 rudder-apache-webapp-nossl.conf $(DESTDIR)/opt/rudder/etc/rudder-apache-webapp-nossl.conf
 	install -m 644 rudder-webapp-apache $(DESTDIR)/etc/sysconfig/rudder-webapp-apache
-	
+
 	cp -r $(CORE_RESOURCES)/hooks.d $(DESTDIR)/opt/rudder/etc/
-	
+
 	install -m 644 rudder.xml $(DESTDIR)/opt/rudder/share/webapps/
-	
+
 	# Install upgrade tools and migration scripts
 
 	## SQL init
@@ -241,28 +241,28 @@ install: build initial-promises initial-ncf rudder-webapp-version
 	## SQL migration
 	install -m 644 $(CORE_RESOURCES)/Migration/dbMigration-6.1-6.2-remove-unused-index-on-ruddersysevents.sql $(DESTDIR)/opt/rudder/share/upgrade-tools/
 	install -m 644 $(CORE_RESOURCES)/Migration/dbMigration-6.1-7.0-compliance_computation_change.sql $(DESTDIR)/opt/rudder/share/upgrade-tools/
-	
+
 	install -m 755 rudder-upgrade $(DESTDIR)/opt/rudder/bin/
-	
+
 	install -m 644 rudder-webapp $(DESTDIR)/opt/rudder/etc/server-roles.d/
 	install -m 640 rudder-passwords.conf $(DESTDIR)/opt/rudder/etc/
-	
+
 	# Add rudder-metrics-reporting
 	install -m 755 rudder-metrics-reporting $(DESTDIR)/opt/rudder/bin/
 	install -m 644 ca-bundle.crt $(DESTDIR)/opt/rudder/share/certificates/
-	
+
 	# Install documentation
 	cp -rf rudder-doc/html $(DESTDIR)/usr/share/doc/rudder
-	
+
 	# Install rudder fix repository permissions script
 	install -m 755 rudder-fix-repository-permissions $(DESTDIR)/opt/rudder/bin/
-	
+
 	# Install gitignore file for our git repo
 	mkdir -p $(DESTDIR)/var/rudder/configuration-repository/
-	
+
 	cp -a jetty $(DESTDIR)/opt/rudder
 	cp -a rudder-jetty-base $(DESTDIR)/opt/rudder/etc
-	
+
 	# Init script
 	install -m 755 jetty/bin/$(JETTY_SCRIPT) $(DESTDIR)/opt/rudder/bin/rudder-jetty.sh
 	install -m 644 rudder-jetty.default $(DESTDIR)/etc/default/rudder-jetty
