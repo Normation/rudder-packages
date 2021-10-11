@@ -44,6 +44,8 @@ trap 'anomaly_handler ${LINENO}' ERR INT TERM
 # - All versions : Check that Rudder database is able to handle backslash
 # - All versions : Check for the PostgreSQL version
 # - All versions : Create ncf technique update flag and restart at the end of the script
+# - 6.0.0        : Remove ncf hooks
+# - 6.0.4        : Ensure that rudder-slapd sockbuf_max_incoming_auth is not lost at upgrade 
 # - 6.1.0        : Migrate RudderUniqueID to the template format
 # - 6.1.0        : Add indexes cn,softwareVersion,directiveId in slapd.conf 
 # - 6.1.1        : Update apache conf if it does not contain technique editor conf (file not updated by packaging
@@ -52,6 +54,7 @@ trap 'anomaly_handler ${LINENO}' ERR INT TERM
 # - 7.0.0~alpha1 : Rename property rudder.community.port into rudder.policy.distribution.port.cfengine
 # - 7.0.0~beta2  : Change the way compliance is computed - change table ReportsExecution
 # - 7.0.0~beta2  : Remove old system techniques
+# - 7.0.0~beta2  : Don't show wizard on upgrade
 ####################################################################################
 
 # Some paths
@@ -141,7 +144,7 @@ check_and_add_config_property() {
   PROPERTY_VALUE=$2
   ATTRIBUTESET=$(grep -c "^${PROPERTY_NAME}[ \t]*=" /opt/rudder/etc/rudder-web.properties || true)
   if [ ${ATTRIBUTESET} -eq 0 ]; then
-    echo "${PROPERTY_VALUE}" >> /opt/rudder/etc/rudder-web.properties
+echo "${PROPERTY_VALUE}" >> /opt/rudder/etc/rudder-web.properties
     echo "INFO: New configuration property ${PROPERTY_NAME} added to /opt/rudder/etc/rudder-web.properties"
   fi
 }
@@ -467,12 +470,22 @@ upgrade_database() {
 }
 
 ################################################################################
-# Check and update inventory
+# Check and update ldap web properties
 ################################################################################
 
-# Upgrade the LDAP inventory
-upgrade_inventory() {
-  true
+# Upgrade the LDAP web properties
+upgrade_ldap_web_properties() {
+  #Pre 7.0 to 7.0: Don't show wizard at upgrade
+  LDAP_TEST_PROTOCOL=$(${LDAPSEARCH} -b "ou=Application Properties,cn=rudder-configuration" "propertyName=rudder_setup_done" | grep -c "dn: propertyName=" || true)
+  if [ ${LDAP_TEST_PROTOCOL} -eq 0 ]; then
+    ${LDAPADD} <<EOF
+dn: propertyName=rudder_setup_done,ou=Application Properties,cn=rudder-configuration
+objectClass: property
+objectClass: top
+propertyName: rudder_setup_done
+propertyValue: true
+EOF
+  fi
 
 }
 
@@ -598,14 +611,14 @@ fi
 RUDDER_LDAP_INITIALIZED=true
 echo -n "INFO: Checking LDAP service status..."
 
-# All version: upgrade ldap if it is not empty
+# All version: upgrade ldap properties if it is not empty
 if ${RUDDER_LDAP_INITIALIZED}; then
   # Using retry_wrapper is necessary because during an upgrade, slapd may be restarted, so we need to wait
   # for it to be available again
   if retry_wrapper "${LDAPSEARCH} -b '' -s base + >/dev/null 2>&1" "LDAP";
   then
     echo " OK"
-    upgrade_inventory
+    upgrade_ldap_web_properties
   else
     INCOMPLETE_MIGRATION=true
   fi
