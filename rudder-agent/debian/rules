@@ -29,7 +29,7 @@ WITH = --disable-systemd --disable-pie --with-jq --with-openssl --with-libcurl -
 endif
 # Ubuntu 13.04
 ifeq (raring,$(OS_CODENAME))
-WITH = --disable-systemd --disable-pie --with-jq --with-openssl --with-libcurl --with-augeas --with-lmdb
+WITH = --disable-https --disable-systemd --disable-pie --with-jq --with-openssl --with-libcurl --with-augeas --with-lmdb
 endif
 # Ubuntu 14.04
 ifeq (trusty,$(OS_CODENAME))
