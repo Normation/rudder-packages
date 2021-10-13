@@ -56,6 +56,7 @@ USE_PIE=false
 endif
 # Ubuntu 13.04
 ifeq (raring,$(OS_CODENAME))
+USE_HTTPS=false
 USE_SYSTEMD=false
 USE_SYSTEM_JQ=false
 USE_PIE=false
