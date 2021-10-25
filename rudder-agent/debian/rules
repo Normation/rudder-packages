@@ -42,14 +42,17 @@ endif
 # Ubuntu 16.04
 ifeq (xenial,$(OS_CODENAME))
 WITH = --with-openssl --with-libcurl --with-augeas --with-lmdb
+STRIP_OPT = --no-automatic-dbgsym
 endif
 # Ubuntu 18.04
 ifeq (bionic,$(OS_CODENAME))
 WITH = --with-openssl --with-libcurl --with-lmdb
+STRIP_OPT = --no-automatic-dbgsym
 endif
 # Ubuntu 20.04
 ifeq (focal,$(OS_CODENAME))
 WITH = --with-lmdb
+STRIP_OPT = --no-automatic-dbgsym
 endif
 
 # Debian 5
@@ -71,14 +74,17 @@ endif
 # Debian 9
 ifeq (stretch,$(OS_CODENAME))
 WITH = --with-openssl --with-libcurl --with-lmdb
+STRIP_OPT = --no-automatic-dbgsym
 endif
 # Debian 10
 ifeq (buster,$(OS_CODENAME))
 WITH = --with-lmdb
+STRIP_OPT = --no-automatic-dbgsym
 endif
 # Debian 11
 ifeq (bullseye,$(OS_CODENAME))
 WITH = --with-lmdb
+STRIP_OPT = --no-automatic-dbgsym
 endif
 
 # manage dependencies
@@ -159,7 +165,7 @@ endif
 #	dh_installinfo
 	dh_installman
 	dh_link
-	dh_strip
+	dh_strip $(STRIP_OPT)
 	dh_compress
 	dh_fixperms -Xppkeys
 #	dh_perl
