@@ -79,6 +79,7 @@ if [ ! -d /var/rudder/configuration-repository/.git ]; then
   # Specify default git user name and email (git will refuse to commit without them)
   git config user.name "root user (CLI)"
   git config user.email "root@localhost"
+  git config init.defaultBranch master
 
   git add .
   git commit -q -m "initial commit"
