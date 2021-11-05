@@ -55,6 +55,7 @@ trap 'anomaly_handler ${LINENO}' ERR INT TERM
 # - 7.0.0~beta2  : Change the way compliance is computed - change table ReportsExecution
 # - 7.0.0~beta2  : Remove old system techniques
 # - 7.0.0~beta2  : Don't show wizard on upgrade
+# - 7.0.0~beta2  : Remove name historization tables
 ####################################################################################
 
 # Some paths
@@ -463,6 +464,14 @@ upgrade_database() {
   if [ $RES -ne 0 ]; then
     echo -n "INFO: Change format of table ReportsExecution"
     ${PSQL} -d ${SQL_DATABASE} -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-6.1-7.0-compliance_computation_change.sql > /dev/null
+    echo " Done"
+  fi
+
+  # - 7.0: Remove names historization tables
+  RES=$(${PSQL} -t -d ${SQL_DATABASE} -c "select count(oid) from pg_class where lower(relname) = 'nodes'")
+  if [ $RES -ne 0 ]; then
+    echo -n "INFO: Drop names historization tables"
+    ${PSQL} -d ${SQL_DATABASE} -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-6.x-7.0-drop-historization-table.sql > /dev/null
     echo " Done"
   fi
 
