@@ -186,7 +186,7 @@ rudder-agent.cron: rudder-sources
 	# It needs to be "correctly" built to avoid breaking the cron service
 	[ -f /etc/slackware-version ] && perl -0777 -pe 's|\{\{\#classes.slackware}}(.*?)\{\{/classes.slackware}}.*?\{\{\^classes.slackware}}(.*?)\{\{/classes.slackware}}|\1|sg' -i ./rudder-agent.cron || true
 	[ ! -f /etc/slackware-version ] &&  perl -0777 -pe 's|\{\{\#classes.slackware}}(.*?)\{\{/classes.slackware}}.*?\{\{\^classes.slackware}}(.*?)\{\{/classes.slackware}}|\2|sg' -i ./rudder-agent.cron || true
-	perl -0777 -pe 's|\{\{\{vars.setup_cronjob.cron_prefix\}\}\}|0,5,10,15,20,25,30,35,40,45,50,55|sg' -i ./rudder-agent.cron
+	perl -0777 -pe 's|\{\{\{vars.setup_cronjob.cron_prefix\}\}\}|0,5,10,15,20,25,30,35,40,45,50,55 * * * *|sg' -i ./rudder-agent.cron
 
 	# Set unexpanded variables of the cron file
 	$(SED) 's@\$${sys.workdir}@/var/rudder/cfengine-community@g' rudder-agent.cron | $(SED) 's@\$${g.rudder_base}@/opt/rudder@g' | $(SED) 's@\\&\\&@\&\&@g' | $(SED) 's@\\&1@\&1@g' > rudder-agent.cron.new
