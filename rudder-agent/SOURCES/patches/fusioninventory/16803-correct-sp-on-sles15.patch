@@ -2,7 +2,7 @@ diff --git a/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/NonLSB.pm b/l
 index ac0afc782..f85399ec8 100644
 --- a/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/NonLSB.pm
 +++ b/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/NonLSB.pm
-@@ -118,10 +118,20 @@ sub _getDistroData {
+@@ -146,6 +146,19 @@ sub _getDistroData {
      };
  
      if ($name eq 'SuSE') {

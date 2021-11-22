@@ -1,0 +1,14 @@
+diff --git a/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/NonLSB.pm b/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/NonLSB.pm
+index 8f5f161e7..a89c9083f 100644
+--- a/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/NonLSB.pm
++++ b/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/NonLSB.pm
+@@ -39,6 +39,9 @@ my @distributions = (
+     # oracle-release contains something like "Oracle Linux Server release 6.3"
+     [ '/etc/oracle-release',    'Oracle Linux Server',        'release ([\d.]+)', '%s' ],
+ 
++    # almalinux-release contains something like AlmaLinux release 8.5 (Arctic Sphynx)
++    [ '/etc/almalinux-release',    'AlmaLinux',                     'release ([\d.]+)', '%s' ],
++
+     # centos-release contains something like "CentOS Linux release 6.0 (Final)
+     [ '/etc/centos-release',    'CentOS',                     'release ([\d.]+)', '%s' ],
+ 
