@@ -32,6 +32,7 @@ OPENLDAP_RELEASE = 2.4.59
 OPENLDAP_SHA256 = 99f37d6747d88206c470067eda624d5e48c1011e943ec0ab217bae8712e22f34
 TMP_DIR := $(shell mktemp -dq)
 PYTHON = python3
+RELEASE_TYPE := $(shell if echo ${RUDDER_VERSION_TO_PACKAGE} | grep -q git; then echo nightly; else echo release; fi)
 
 DESTDIR = $(CURDIR)/target
 APACHE_VHOSTDIR = apache2/sites-available
@@ -133,7 +134,7 @@ rudder-doc:
 	mv doc-${RUDDER_MAJOR_VERSION} rudder-doc/html
 
 PATCHES_SHA = $(shell find patches/ -type f | sort | xargs sha256sum | sha256sum | awk '{print $$1}')
-CACHE_PARAMETERS = --with-env name=openldap ldap=$(OPENLDAP_SHA256) patches=$(PATCHES_SHA)
+CACHE_PARAMETERS = --with-env name=openldap ldap=$(OPENLDAP_SHA256) patches=$(PATCHES_SHA) release_type=$(RELEASE_TYPE)
 BUILD_LDAP = $(shell ../../build-caching get openldap-source/ $(CACHE_PARAMETERS) || echo build-ldap)
 build: $(BUILD_LDAP) rudder-sources build-language rudder-doc jetty rudder.war
 	# save ldap build into cache
