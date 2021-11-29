@@ -17,6 +17,9 @@ override_dh_auto_build:
 # We have no test
 override_dh_auto_test:
 
+override_dh_strip:
+	dh_strip --no-automatic-dbgsym
+
 override_dh_gencontrol:
 	dh_gencontrol -- "-Vrudder:deps=$(shell ../format-dependencies dpkg $(shell dpkg-parsechangelog -SVersion) rudder-agent)"
 

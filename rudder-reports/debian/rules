@@ -8,6 +8,9 @@ export DH_VERBOSE=1
 # We have no test
 override_dh_auto_test:
 
+override_dh_strip:
+	dh_strip --no-automatic-dbgsym
+
 # Default rule that guess what to do for missing targets
 %:
 	dh $@

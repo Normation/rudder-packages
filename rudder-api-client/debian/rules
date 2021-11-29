@@ -13,6 +13,9 @@ override_dh_auto_build:
 	mv rudder-sources-*/* BUILD/
 	dh_auto_build
 
+override_dh_strip:
+	dh_strip --no-automatic-dbgsym
+
 # The root Makefile has all possible target and prevent dh to autodetect them
 # We have no test
 override_dh_auto_test:
