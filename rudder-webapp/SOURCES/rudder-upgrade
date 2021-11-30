@@ -652,7 +652,7 @@ fi
 
 # All version: upgrade database if it is not empty
 if ${RUDDER_DB_INITIALIZED}; then
-  if retry_wrapper "${PSQL} -t -d ${SQL_DATABASE} -c 'select count(ruleid) from rules' >/dev/null 2>&1" "PostgreSQL";
+  if retry_wrapper "${PSQL} -t -d ${SQL_DATABASE} -c 'select 1' >/dev/null 2>&1" "PostgreSQL";
   then
     echo " OK"
     upgrade_database
