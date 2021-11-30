@@ -57,8 +57,8 @@ augeas_SHA256 = 321942c9cc32185e2e9cb72d0a70eea106635b50269075aca6714e3ec282cb87
 jq_RELEASE = 1.6
 jq_SHA256 = 1b3906e0c6dea26b5b9dcf864cc7334522f520d69543043c64b2c487e0c663ca
 # Original URL: https://cfengine-package-repos.s3.amazonaws.com/tarballs/cfengine-$(CFENGINE_RELEASE).tar.gz
-cfengine_RELEASE = 3.18.0
-cfengine_SHA256 = d601a3af30f3fba7d51a37476c9e1a00b750682149bf96f4a0002e804bc87783
+cfengine_RELEASE = 3.18.1
+cfengine_SHA256 = 9d22db44a0a879c6edae5759fc481ac86ff13f81374fb835fe5e73fe8bc57681
 # Original URL: http://www.cpan.org/src/5.0/perl-5.22.4.tar.gz
 perl_RELEASE = 5.32.0
 perl_SHA256 = efeb1ce1f10824190ad1cadbcccf6fdb8a5d37007d0100d2d9ae5f2b5900c0b4
