@@ -184,18 +184,18 @@ update_rudder_repository_from_system_directory() {
   SRCTECHDIR="${1}"
   TRGTECHDIR="${CONFIGURATION_REPOSITORY}/${2}"
 
-  if [ -d ${SRCTECHDIR} -a -d ${TRGTECHDIR} ]; then
-    if ! diff -Naur ${SRCTECHDIR} ${TRGTECHDIR} >/dev/null 2>&1; then
-      rsync --delete --ignore-times -rptgoq ${SRCTECHDIR} ${TRGTECHDIR}
-      if [ x"${RUDDER_NO_TECHNIQUE_AUTOCOMMIT}" != x"1" ]; then
-        cd ${CONFIGURATION_REPOSITORY}/ && git add -A ${2} && git commit -m "Upgrade system Techniques from ${SRCTECHDIR} - automatically done by rudder-upgrade script" >/dev/null 2>&1
-        # Schedule a Technique library reload later because of the update
-        echo "INFO: A Technique library reload is needed and has been scheduled."
-        touch /opt/rudder/etc/force_technique_reload
-      else
-        echo "WARN: Autocommit of system techniques is disabled."
-        echo "Please review and commit changes, then reload technique library on your own!"
-      fi
+  mkdir -p "${TRGTECHDIR}"
+
+  if ! diff -Naur ${SRCTECHDIR} ${TRGTECHDIR} >/dev/null 2>&1; then
+    rsync --delete --ignore-times -rptgoq ${SRCTECHDIR} ${TRGTECHDIR}
+    if [ x"${RUDDER_NO_TECHNIQUE_AUTOCOMMIT}" != x"1" ]; then
+      cd ${CONFIGURATION_REPOSITORY}/ && git add -A ${2} && git commit -m "Upgrade system Techniques from ${SRCTECHDIR} - automatically done by rudder-upgrade script" >/dev/null 2>&1
+      # Schedule a Technique library reload later because of the update
+      echo "INFO: A Technique library reload is needed and has been scheduled."
+      touch /opt/rudder/etc/force_technique_reload
+    else
+      echo "WARN: Autocommit of system techniques is disabled."
+      echo "Please review and commit changes, then reload technique library on your own!"
     fi
   fi
 }
