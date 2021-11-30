@@ -1,0 +1,26 @@
+= Rudder: Continuous Auditing & Configuration
+
+This project is part of Rudder, see https://github.com/Normation/rudder[the main repository]
+for more information.
+ 
+== License
+
+This sub-project is licensed under GPLv3 license, 
+see the provided "LICENSE" file or 
+http://www.gnu.org/licenses/gpl-3.0.txt
+
+== Synopsis
+
+This git repository contains all the packaging and patches required to build
+Rudder packages, in debian and RPM format.
+
+== Usage
+
+The easiest way to test and use Rudder is to install it from the provided packages,
+read the https://docs.rudder.io/[documentation] for installation instructions.
+
+You can also build these packages yourself.
+There are detailed build instructions for Rudder agent https://docs.rudder.io/reference/7.0/reference/build.html#_building_the_rudder_agent[in the manual].
+
+
+
