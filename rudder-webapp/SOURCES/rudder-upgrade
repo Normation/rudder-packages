@@ -202,13 +202,14 @@ update_rudder_repository_from_system_directory() {
 
 # Helper function
 # Function to remove deprecated system technique from the system directory
+# It also removes it from /opt/rudder/share/techniques/system directory (see https://issues.rudder.io/issues/20356 )
 # Parameters:
 # - $1 = technique name
 remove_system_technique_from_system_directory() {
   TECHNAME="${1}"
   LOCALTECHDIR="techniques/system/${TECHNAME}"
   TECHDIR="${CONFIGURATION_REPOSITORY}/${LOCALTECHDIR}"
-
+  INITTECHDIR="/opt/rudder/share/${LOCALTECHDIR}"
 
   if [ -d ${TECHDIR} ]; then
     rm -rf ${TECHDIR}
@@ -217,6 +218,10 @@ remove_system_technique_from_system_directory() {
     # Schedule a Technique library reload later because of the update
     echo "INFO: A Technique library reload is needed and has been scheduled."
     touch /opt/rudder/etc/force_technique_reload
+  fi
+  # remove it in /opt/rudder/share/ so that subsequent rudder server upgrade-techniques don't put it back
+  if [ -d ${INITTECHDIR} ]; then
+    rm -rf ${INITTECHDIR}
   fi
 }
  
