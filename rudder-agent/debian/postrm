@@ -42,10 +42,6 @@ case "$1" in
       systemctl daemon-reload
     fi
 
-    # Remove the cron script we create at installation to prevent mail
-    # flooding, re-installation surprises, and general system garbage.
-    rm -f /etc/cron.d/rudder-agent
-
     # Make sure that Rudder agent specific files have been removed
     rm -f /etc/init.d/rudder-agent
     rm -f /etc/default/rudder-agent
