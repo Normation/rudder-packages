@@ -171,6 +171,12 @@ endif
 #	dh_perl
 	dh_makeshlibs
 	dh_installdeb
+	# the conffiles case
+	#-------------------
+	# 1/ dh_installdeb adds everything under /etc as conffile (since v12, packages.conffiles file is also ignored)
+	# to do so, it lists them in debian/<packagename or tmp>/DEBIAN/conffiles
+	# 2/ when a conffile becomes a non conffile, dpkg happily replaces it
+	sed -i '\|/etc/cron.d/rudder-agent|d' debian/*/DEBIAN/conffiles
 	# LD_LIBRARY_PATH necessary to avoid libcrypto detection problems on old OSes like Ubuntu 10.04
 	# Please see https://issues.rudder.io/issues/6337 for details
 	LD_LIBRARY_PATH="$(CURDIR)/debian/tmp/opt/rudder/lib:$${LD_LIBRARY_PATH}" dh_shlibdeps -- --ignore-missing-info
