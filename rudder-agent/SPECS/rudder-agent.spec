@@ -455,6 +455,15 @@ fi
 
 /opt/rudder/share/package-scripts/rudder-agent-postinst "${CFRUDDER_FIRST_INSTALL}" "rpm" "%{enable_systemd}" ""
 
+# the conffiles case (aka %config)
+# --------------------------------
+# 1/ %config files and %config(noreplace) files can become regular files and rpm stays happy
+# 2/ when a conffile becomes a regular file, rpm saves it with a .rpmsave extension whether (noreplace) has been provided or not
+# since it it not really a conffile we must remove it
+
+# migration from pre 7.0
+rm -f /etc/cron.d/rudder-agent.rpmsave
+
 %preun
 #=================================================
 # Pre Uninstallation
@@ -573,7 +582,6 @@ rm -f %{_builddir}/file.list.%{name}
 
 %if "%{?aix}" == ""
 # no init no cron and no profile with aix
-%config /etc/cron.d/rudder-agent
 %config /etc/profile.d/rudder-agent.sh
 %if "%{enable_systemd}" == "false"
 %config(noreplace) /etc/default/rudder-agent
