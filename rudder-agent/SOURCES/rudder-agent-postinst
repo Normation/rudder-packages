@@ -16,7 +16,8 @@ if [ -d /proc/self/fd ] && [ "$(uname -s)" != "SunOS" ]
 then
   for f in /proc/self/fd/*; do
     fd=$(basename "${f}")
-    if [ "$fd" -gt 2 ] && [ -e "$fd" ]
+    # posix shell doesn't support 2 digits fd
+    if [ "$fd" -gt 2 ] && [ "$fd" -lt 10 ]
     then
       eval "exec $fd>&-"
     fi
@@ -49,7 +50,7 @@ if [ -e /etc/ld.so.conf ] && grep -q "/opt/rudder/lib" /etc/ld.so.conf; then
   sed -i '/\/opt\/rudder\/lib/d' /etc/ld.so.conf
   type ldconfig > /dev/null 2>&1 && ldconfig
 fi
-  
+
 # if no conf and no server provided, try to use rudder
 if [ ! -f /var/rudder/cfengine-community/policy_server.dat ] && [ "${CFRUDDER_SERVER}" = "" ]
 then
@@ -115,7 +116,7 @@ ln -sf "${CFE_DIR}/policy_server.dat" "/opt/rudder/etc/policy_server.dat"
 
 # On AIX, trigger slibclean to remove any unused library/binary object from memory
 # Will prevent "Text file busy" errors during the following copy
-if type slibclean > /dev/null 2>&1; then 
+if type slibclean > /dev/null 2>&1; then
   slibclean >> ${LOG_FILE}
 fi
 
