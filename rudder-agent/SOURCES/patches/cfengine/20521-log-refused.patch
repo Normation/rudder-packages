@@ -1,13 +1,13 @@
 diff --git a/cf-agent/verify_files_utils.c b/cf-agent/verify_files_utils.c
-index 4d1433e..9a308d9 100644
+index d5d9667..9a1600e 100644
 --- a/cf-agent/verify_files_utils.c
 +++ b/cf-agent/verify_files_utils.c
-@@ -2697,7 +2697,7 @@ static PromiseResult CopyFileSources(EvalContext *ctx, char *destination, const
+@@ -3136,7 +3136,7 @@ static PromiseResult CopyFileSources(EvalContext *ctx, char *destination, const
          else
          {
-             cfPS(ctx, LOG_LEVEL_INFO, PROMISE_RESULT_FAIL, pp, attr,
--                 "Can't stat file '%s' on '%s' in files.copy_from promise",
-+                 "Can't stat file '%s' on '%s' in files.copy_from promise, it may be missing or access may not be authorized",
-                  BufferData(source), conn ? conn->remoteip : "localhost");
-             BufferDestroy(source);
+             RecordFailure(ctx, pp, attr,
+-                          "Can't stat file '%s' on '%s' in files.copy_from promise",
++                          "Can't stat file '%s' on '%s' in files.copy_from promise, it may be missing or access may not be authorized",
+                           source, conn ? conn->remoteip : "localhost");
+             BufferDestroy(source_buf);
              return PROMISE_RESULT_FAIL;
