@@ -236,6 +236,8 @@ if [ $1 -ne 1 ]
   fi
 
   getfacl --absolute-names --recursive /opt/rudder/etc/hooks.d/ > /tmp/rudder-hooks-upgrade
+else
+  [ -x /opt/rudder/bin/rudder ] && /opt/rudder/bin/rudder agent check
 fi
 
 
@@ -256,7 +258,7 @@ then
 fi
 
 %if 0%{?suse_version}
-a2enmod rewrite dav dav_fs ssl version 
+a2enmod rewrite dav dav_fs ssl version
 
 # Add required includes in the apache2 configuration
 nextline=$(grep -A1 -E "^. /etc/sysconfig/rudder-webapp-apache$" /etc/sysconfig/apache2 | tail -n1)
@@ -275,7 +277,7 @@ then
   sed -i 's%APACHE_MODULES="${APACHE_MODULES} rewrite dav dav_fs proxy proxy_http.*%# This sources the Rudder needed by Rudder\n. /etc/sysconfig/rudder-webapp-apache%' /etc/sysconfig/apache2
 fi
 
-# Remove old ncf-api-virtualenv conf, or else it will prevent apache start 
+# Remove old ncf-api-virtualenv conf, or else it will prevent apache start
 rm -f /etc/%{apache_conf_dir}/ncf-api-virtualenv.conf
 
 

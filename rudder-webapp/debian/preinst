@@ -20,6 +20,7 @@ case "$1" in
       echo 'root' > /opt/rudder/etc/uuid.hive
       mkdir -p /var/rudder/cfengine-community/
       echo "127.0.0.1" > /var/rudder/cfengine-community/policy_server.dat
+      [ -x /opt/rudder/bin/rudder ] && /opt/rudder/bin/rudder agent check
     ;;
 
     upgrade)
