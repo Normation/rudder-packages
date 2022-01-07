@@ -74,6 +74,7 @@ fi
 cd /var/rudder/configuration-repository
 if [ ! -d /var/rudder/configuration-repository/.git ]; then
 
+  git config --global init.defaultBranch master
   git init --shared=group >> ${LOG_FILE}
 
   # Specify default git user name and email (git will refuse to commit without them)
