@@ -122,9 +122,6 @@ rudder-sources: rudder-sources.tar.bz2
 	mv rudder-sources-*/ rudder-sources/
 	# Remove tests folders we don't want to package
 	find rudder-sources/rudder-techniques -name "tests" -type d | xargs -r rm -r
-	# Set version in technique editor files to use correctly browser cache (See https://issues.rudder.io/issues/14194)
-	sed -i "s/version=dev/version=${RUDDER_VERSION_TO_PACKAGE}/" rudder-sources/ncf/builder/index.html
-
 
 rudder-doc:
 	# Get user manual from rudder-project.org and rename directory containing it to rudder-doc
@@ -218,7 +215,6 @@ install: build initial-promises initial-ncf rudder-webapp-version
 	cp -r rudder-sources/rudder-techniques/techniques/ $(DESTDIR)/opt/rudder/share/
 
 	mkdir -p $(DESTDIR)/usr/share/ncf
-	cp -r rudder-sources/ncf/builder $(DESTDIR)/usr/share/ncf/
 	cp -r rudder-sources/ncf/tools $(DESTDIR)/usr/share/ncf/
 	cp -r rudder-sources/ncf/tree $(DESTDIR)/usr/share/ncf/
 	install -m 755 rudder-sources/ncf/ncf $(DESTDIR)/usr/share/ncf/
