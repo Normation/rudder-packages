@@ -82,6 +82,7 @@ def make_jsonfile(filename, content):
     fd.write(json.dumps(content, sort_keys=True, indent=2, separators=(',', ': ')))
 
 def queryYesNo(question, answer=None):
+    global YES
     if YES:
         return (YES, YES)
     valid = {"yes": True, "y": True, "ye": True,
@@ -92,8 +93,10 @@ def queryYesNo(question, answer=None):
             choice = input()
 
             if choice == "Y":
+                YES = True
                 return (True, True)
             elif choice == "N":
+                YES = False
                 return (False, False)
             elif choice in valid:
                 return (answer, valid[choice])
@@ -172,20 +175,33 @@ def import_technique(path):
         with open(path) as f:
             data = json.load(f)["data"]
 
-        techniqueData = { "path": "/var/rudder/configuration-repository/ncf", "technique": data, "methods": [] }
+        techniqueData = data
+        techniqueName = techniqueData["name"]
+        techniqueId = techniqueData["id"]
+        method = 'PUT'
+        endpoint = '/api/latest/techniques'
 
-        # Extend the technique json with GM
-        gms = get_all_generic_methods()
-        techniqueData["methods"] = [ v for v in gms.values() ]
-        techniqueData["reason"] = "Importing technique %s from rudder-synchronize"%techniqueData["technique"]["name"]
+        # Look for existing technique
+        if techniqueId in get_all_techniques().keys():
+            (answer, replace) = queryYesNo("The technique %s \"%s\" %s already exists, do you really want to replace it? [y/n/Y/N]"%(
+                colors.YELLOW,
+                techniqueName,
+                colors.ENDC
+            ), None)
+            if replace:
+                method = 'POST'
+                endpoint = '/api/latest/techniques/' + techniqueId + '/1.0'
+            else:
+                logging.info(colors.GREEN + "Skipping technique %s as is already exists"%techniqueName + colors.ENDC)
+                return
 
         # Call the ncf API
         ncfEndpoint = RudderEndPoint("https://localhost/rudder", TOKEN, verify=False)
-        technique = ncfEndpoint.request("PUT", "/api/internal/techniques", None, techniqueData, return_raw=False)
-        logging.info(colors.GREEN + "Successfully imported technique %s"%techniqueData["technique"]["name"] + colors.ENDC)
+        technique = ncfEndpoint.request(method, endpoint, None, techniqueData, return_raw=False)
+        logging.info(colors.GREEN + "Successfully imported technique %s"%techniqueName + colors.ENDC)
 
     except RudderError as e:
-        fail("Error while importing technique %s:\n%s\n%s"%(techniqueData["technique"]["name"], e.response, e.message))
+        fail("Error while importing technique %s:\n%s\n%s"%(techniqueName, e.response, e.message))
 
 def import_directive(path):
     try:
@@ -251,6 +267,8 @@ def import_techniques(path):
                      import_technique(os.path.join(root, file))
     else:
         import_technique(path)
+    global YES
+    YES = None
 
 NCF_METHODS = {}
 def get_all_generic_methods():
@@ -265,8 +283,8 @@ def get_all_techniques():
     global NCF_TECHNIQUES
     if not NCF_TECHNIQUES:
         ncfEndpoint = RudderEndPoint("https://localhost/rudder", TOKEN, verify=False)
-        techniques = ncfEndpoint.request("GET", "/api/internal/techniques", None, None, return_raw=False)
-        NCF_TECHNIQUES = { v["bundle_name"]:v for v in techniques["techniques"] }
+        techniques = ncfEndpoint.request("GET", "/api/latest/techniques", None, None, return_raw=False)
+        NCF_TECHNIQUES = { v["id"]:v for v in techniques["techniques"] }
     return NCF_TECHNIQUES
 
 def remove_rule(rule):
