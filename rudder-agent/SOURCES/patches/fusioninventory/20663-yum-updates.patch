@@ -1,0 +1,104 @@
+commit d6be779732968829f15a544c44288b6f288ec88b
+Author: Alexis Mousset <alexis.mousset@rudder.io>
+Date:   Wed Feb 2 12:11:52 2022 +0100
+
+    r
+
+diff --git a/lib/FusionInventory/Agent/Inventory.pm b/lib/FusionInventory/Agent/Inventory.pm
+index b9178cb..a29f1d8 100644
+--- a/lib/FusionInventory/Agent/Inventory.pm
++++ b/lib/FusionInventory/Agent/Inventory.pm
+@@ -87,6 +87,7 @@ my %fields = (
+                             UNINSTALL_STRING URL_INFO_ABOUT VERSION
+                             VERSION_MINOR VERSION_MAJOR GUID ARCH USERNAME
+                             USERID SYSTEM_CATEGORY SOURCE_NAME SOURCE_VERSION/ ],
++    SOFTWAREUPDATES  => [ qw/NAME VERSION ARCH FROM SOURCE/ ],
+     SOUNDS           => [ qw/CAPTION DESCRIPTION MANUFACTURER NAME/ ],
+     STORAGES         => [ qw/DESCRIPTION DISKSIZE INTERFACE MANUFACTURER MODEL
+                             NAME TYPE SERIAL SERIALNUMBER FIRMWARE SCSI_COID
+diff --git a/lib/FusionInventory/Agent/Task/Inventory/Generic/Softwares/Yum.pm b/lib/FusionInventory/Agent/Task/Inventory/Generic/Softwares/Yum.pm
+new file mode 100644
+index 0000000..b084f53
+--- /dev/null
++++ b/lib/FusionInventory/Agent/Task/Inventory/Generic/Softwares/Yum.pm
+@@ -0,0 +1,80 @@
++package FusionInventory::Agent::Task::Inventory::Generic::Softwares::Yum;
++
++use strict;
++use warnings;
++
++use parent 'FusionInventory::Agent::Task::Inventory::Module';
++
++use FusionInventory::Agent::Tools;
++
++sub isEnabled {
++    return canRun('yum') || canRun('dnf');
++}
++
++sub doInventory {
++    my (%params) = @_;
++
++    my $inventory = $params{inventory};
++    my $logger    = $params{logger};
++
++    my $command;
++    my $from;
++    if (canRun('yum')) {
++      $command = 'yum --quiet -y check-update';
++      $from = 'yum';
++    } else {
++      $command = 'dnf --quiet -y list updates';
++      $from = 'dnf';
++    }
++    
++    my @packages = _getUpdatesList(
++        logger => $logger, command => $command, from => $from
++    );
++    return unless @packages;
++
++    foreach my $package (@packages) {
++        $inventory->addEntry(
++            section => 'SOFTWAREUPDATES',
++            entry   => $package
++        );
++    }
++}
++
++# yum --quiet -y [-C] check-update
++
++# name                           version                      repo
++# NetworkManager-tui.x86_64      1:1.18.8-2.el7_9             updates  
++# acl.x86_64                     2.2.51-15.el7                base  
++sub _getUpdatesList {
++    my (%params) = @_;
++
++    my $handle = getFileHandle(@_);
++    return unless $handle;
++
++    my @packages;
++    while (my $line = <$handle>) {
++
++	#print $line;
++        chomp $line;
++
++        $line =~ /^(\S+)\.([^.\s]+)\s+(\S+)\s+(\S+)\s*$/ || next;
++
++        my $package = {
++            NAME        => $1,
++            ARCH        => $2,
++            VERSION     => $3,
++            FROM        => $params{from},
++            SOURCE      => $4
++            # KIND      => security, enhancement, ...
++        };
++
++        push @packages, $package;
++    }
++
++    close $handle;
++
++    return @packages;
++}
++
++1;
++
