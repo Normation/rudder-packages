@@ -1,0 +1,73 @@
+diff --git a/lib/FusionInventory/Agent/Task/Inventory/Generic/Rudder.pm b/lib/FusionInventory/Agent/Task/Inventory/Generic/Rudder.pm
+index 94187b2..6d7be6d 100644
+--- a/lib/FusionInventory/Agent/Task/Inventory/Generic/Rudder.pm
++++ b/lib/FusionInventory/Agent/Task/Inventory/Generic/Rudder.pm
+@@ -78,15 +78,24 @@ sub _getCustomProperties {
+         closedir(DIR);
+         while (my $file = shift @ordered_script_list) {
+             my $script_file = $custom_properties_dir . "/" . $file;
++            my $properties;
+             if (-f $script_file) {
+                 next if ($file =~ m/^\./);
+-                # Ignore non-executable file, or folders
+-                next unless -x $script_file;
+ 
+-                # Check that the file is not world writable on non Windows system
+                 if ($OSNAME eq 'MSWin32') {
+-                  # TODO
++                  # We assume the files are non world-writtable on windows
++                  # -x does not make sense since the files are just interpreted by the powershell exe
++
++                  $logger->debug("Executing Rudder inventory hook $script_file") if $logger;
++                  $properties =  `powershell.exe -file "$script_file"`;
++                  my $exit_code = $? >> 8;
++                  if ($exit_code > 0) {
++                      $logger->error("Script $script_file failed to run properly, with exit code $exit_code") if $logger;
++                      next;
++                  }
+                 } else {
++                  # Ignore non-executable file, or folders
++                  next unless -x $script_file;
+                   # Check that the file is owned by current user (or root), and not world writable
+                   my $stats = stat($script_file);
+                   my $owner = $stats->uid;
+@@ -104,14 +113,15 @@ sub _getCustomProperties {
+                       $logger->error("Skipping script $script_file as it is world or group writable") if $logger;
+                       next;
+                   }
+-                }
+ 
+-                $logger->debug2("executing $script_file") if $logger;
+-                my $properties = qx($script_file);
+-                my $exit_code = $? >> 8;
+-                if ($exit_code > 0) {
+-                    $logger->error("Script $script_file failed to run properly, with exit code $exit_code") if $logger;
+-                    next;
++                  # Execute the inventory script
++                  $logger->debug2("executing $script_file") if $logger;
++                  $properties = qx($script_file);
++                  my $exit_code = $? >> 8;
++                  if ($exit_code > 0) {
++                      $logger->error("Script $script_file failed to run properly, with exit code $exit_code") if $logger;
++                      next;
++                  }
+                 }
+ 
+                 # check that it is valid JSON
+@@ -129,14 +139,14 @@ sub _getCustomProperties {
+                 };
+                 if ($@) {
+                     $logger->error("Script $script_file didn't return valid JSON entry, error is:$@") if $logger;
+-                    my $filename = "/var/rudder/tmp/inventory-json-error-".time();
++                    my $rudderTmp = ($OSNAME eq 'MSWin32') ? 'C:\Program Files\Rudder\tmp' : '/var/rudder/tmp';
++                    my $filename = "$rudderTmp/inventory-json-error-".time();
+                     open(my $fh, '>', $filename);
+                     print $fh $properties;
+                     close($fh);
+                     $logger->error("Invalid JSON data stored in $filename") if $logger;
+                 }
+             }
+-            
+         }
+         $custom_properties = "[". join(",", @custom_properties_list) . "]";
+    }
