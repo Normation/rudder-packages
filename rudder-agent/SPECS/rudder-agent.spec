@@ -266,10 +266,10 @@ Requires: curl
 %endif
 
 ## Augeas dependencies
-%if "%{use_system_augeas}" == "true"
+%if "%{with_augeas}" == "false"
 Requires: augeas
 %endif
-%if "%{use_system_augeas}" == "false" && "%{?aix}" ==""
+%if "%{with_augeas}" == "true" && "%{?aix}" ==""
 BuildRequires: readline-devel
 %endif
 
