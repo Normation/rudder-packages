@@ -238,7 +238,7 @@ if [ $1 -ne 1 ]
   getfacl --absolute-names --recursive /opt/rudder/etc/hooks.d/ > /tmp/rudder-hooks-upgrade
 else
   # make sure keys and certificate are the server ones
-  [ -x /opt/rudder/bin/rudder ] && /opt/rudder/bin/rudder agent check -s keys
+  [ -x /opt/rudder/bin/rudder ] && /opt/rudder/bin/rudder agent check -f -s keys
 fi
 
 
