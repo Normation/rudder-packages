@@ -1,0 +1,165 @@
+commit c59360b7f0010b95c652a3fb6a0e8c94aace6e89
+Author: Alexis Mousset <alexis.mousset@rudder.io>
+Date:   Mon Feb 7 18:03:15 2022 +0100
+
+    i
+
+diff --git a/lib/FusionInventory/Agent/Task/Inventory/Generic/Softwares/AptGet.pm b/lib/FusionInventory/Agent/Task/Inventory/Generic/Softwares/AptGet.pm
+new file mode 100644
+index 0000000..43ee9fa
+--- /dev/null
++++ b/lib/FusionInventory/Agent/Task/Inventory/Generic/Softwares/AptGet.pm
+@@ -0,0 +1,79 @@
++package FusionInventory::Agent::Task::Inventory::Generic::Softwares::AptGet;
++
++use strict;
++use warnings;
++
++use parent 'FusionInventory::Agent::Task::Inventory::Module';
++
++use FusionInventory::Agent::Tools;
++
++sub isEnabled {
++    return canRun('apt-get');
++}
++
++sub doInventory {
++    my (%params) = @_;
++
++    my $inventory = $params{inventory};
++    my $logger    = $params{logger};
++
++    my $command = 'apt-get --simulate upgrade';
++    my $from = 'apt-get';
++    
++    my @packages = _getUpdatesList(
++        logger => $logger, command => $command, from => $from
++    );
++    return unless @packages;
++
++    foreach my $package (@packages) {
++        $inventory->addEntry(
++            section => 'SOFTWAREUPDATES',
++            entry   => $package
++        );
++    }
++}
++
++sub _getUpdatesList {
++    my (%params) = @_;
++
++    my $handle = getFileHandle(@_);
++    return unless $handle;
++
++    my @packages;
++    while (my $line = <$handle>) {
++
++	#print $line;
++        chomp $line;
++
++        $line =~ /^Inst\s+([^\s:]+)(?::\S+)?\s+\[[^]\s]+\]\s+\((\S+)\s*(\S+)(\s+\[([^]\s]+)\])?\).*/ || next;
++ 
++        my ($name,$version,$source,$arch) = ($1,$2,$3,$5);
++
++
++        my $kind;
++        # Best heuristic on debian
++        if ($source =~ /[Ss]ecurity/) {
++           $kind = "security";
++        } else {
++           $kind = "none";
++        }
++
++        my $package = {
++            NAME        => $name,
++            ARCH        => $arch,
++            VERSION     => $version,
++            FROM        => $params{from},
++            SOURCE      => $source,
++            KIND        => $kind
++        };
++
++        push @packages, $package;
++    }
++
++    close $handle;
++
++    return @packages;
++}
++
++1;
++
+diff --git a/lib/FusionInventory/Agent/Task/Inventory/Generic/Softwares/Zypper.pm b/lib/FusionInventory/Agent/Task/Inventory/Generic/Softwares/Zypper.pm
+new file mode 100644
+index 0000000..112757e
+--- /dev/null
++++ b/lib/FusionInventory/Agent/Task/Inventory/Generic/Softwares/Zypper.pm
+@@ -0,0 +1,68 @@
++package FusionInventory::Agent::Task::Inventory::Generic::Softwares::Zypper;
++
++use strict;
++use warnings;
++
++use parent 'FusionInventory::Agent::Task::Inventory::Module';
++
++use FusionInventory::Agent::Tools;
++
++sub isEnabled {
++    return canRun('zypper');
++}
++
++sub doInventory {
++    my (%params) = @_;
++
++    my $inventory = $params{inventory};
++    my $logger    = $params{logger};
++
++    my  $command = 'zypper --non-interactive list-updates';
++    my  $from = 'zypper';
++    
++    my @packages = _getUpdatesList(
++        logger => $logger, command => $command, from => $from
++    );
++    return unless @packages;
++
++    foreach my $package (@packages) {
++        $inventory->addEntry(
++            section => 'SOFTWAREUPDATES',
++            entry   => $package
++        );
++    }
++}
++
++sub _getUpdatesList {
++    my (%params) = @_;
++
++    my $handle = getFileHandle(@_);
++    return unless $handle;
++
++    my @packages;
++    while (my $line = <$handle>) {
++
++	#print $line;
++        chomp $line;
++
++        $line =~ /v\s+\|\s+(\S+)\s+\|\s+(\S+)\s+\|\s+\S+\s+\|\s+(\S+)\s+\|\s+(\S+)\s*$/ || next;
++
++        my $package = {
++            NAME        => $2,
++            ARCH        => $4,
++            VERSION     => $3,
++            FROM        => $params{from},
++            SOURCE      => $1
++            # KIND      => security, enhancement, ...
++        };
++
++        push @packages, $package;
++    }
++
++    close $handle;
++
++    return @packages;
++}
++
++1;
++
