@@ -1,0 +1,69 @@
+diff --git a/lib/FusionInventory/Agent/Task/Inventory/Generic/Softwares/Yum.pm b/lib/FusionInventory/Agent/Task/Inventory/Generic/Softwares/Yum.pm
+index b084f53..51771a9 100644
+--- a/lib/FusionInventory/Agent/Task/Inventory/Generic/Softwares/Yum.pm
++++ b/lib/FusionInventory/Agent/Task/Inventory/Generic/Softwares/Yum.pm
+@@ -18,17 +18,25 @@ sub doInventory {
+     my $logger    = $params{logger};
+ 
+     my $command;
++    my $detailCommand;
+     my $from;
+     if (canRun('yum')) {
+       $command = 'yum --quiet -y check-update';
++      $detailCommand = 'yum updateinfo --list';
+       $from = 'yum';
+     } else {
+-      $command = 'dnf --quiet -y list updates';
++      $command = 'dnf --quiet -y check-update';
++      $detailCommand = 'dnf updateinfo --list';
+       $from = 'dnf';
+     }
+-    
++
++    my $handler = getFileHandle(
++        logger => $logger, command => $detailCommand 
++    );
++    my $details = do { local $/; <$handler> };
++
+     my @packages = _getUpdatesList(
+-        logger => $logger, command => $command, from => $from
++        logger => $logger, command => $command, from => $from, details => $details
+     );
+     return unless @packages;
+ 
+@@ -59,13 +67,30 @@ sub _getUpdatesList {
+ 
+         $line =~ /^(\S+)\.([^.\s]+)\s+(\S+)\s+(\S+)\s*$/ || next;
+ 
++        my ($name,$arch,$version,$source) = ($1,$2,$3,$4);
++
++        my $kind;
++        if ($params{details} =~ /^\S+\s+(\S+)\s+$name-$version.$arch\s*$/m) {
++            if ($1 =~ /\/Sec/) {
++                $kind = "security";
++            } elsif ($1 eq "bugfix") {
++                $kind = "defect";
++            } elsif ($1 eq "enhancement") {
++                $kind = $1;
++            } else {
++                $kind = "other";
++            }
++        } else {
++            $kind = "none";
++        }
++
+         my $package = {
+-            NAME        => $1,
+-            ARCH        => $2,
+-            VERSION     => $3,
++            NAME        => $name,
++            ARCH        => $arch,
++            VERSION     => $version,
+             FROM        => $params{from},
+-            SOURCE      => $4
+-            # KIND      => security, enhancement, ...
++            SOURCE      => $source,
++            KIND        => $kind
+         };
+ 
+         push @packages, $package;
