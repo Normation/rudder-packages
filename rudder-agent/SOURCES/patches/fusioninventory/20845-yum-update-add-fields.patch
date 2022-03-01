@@ -1,0 +1,153 @@
+diff --git a/lib/FusionInventory/Agent/Inventory.pm b/lib/FusionInventory/Agent/Inventory.pm
+index 2a7cbb4..6dbf05c 100644
+--- a/lib/FusionInventory/Agent/Inventory.pm
++++ b/lib/FusionInventory/Agent/Inventory.pm
+@@ -87,7 +87,7 @@ my %fields = (
+                             UNINSTALL_STRING URL_INFO_ABOUT VERSION
+                             VERSION_MINOR VERSION_MAJOR GUID ARCH USERNAME
+                             USERID SYSTEM_CATEGORY SOURCE_NAME SOURCE_VERSION/ ],
+-    SOFTWAREUPDATES  => [ qw/NAME VERSION ARCH FROM SOURCE KIND/ ],
++    SOFTWAREUPDATES  => [ qw/NAME VERSION ARCH FROM SOURCE KIND SEVERITY DESCRIPTION ID/ ],
+     SOUNDS           => [ qw/CAPTION DESCRIPTION MANUFACTURER NAME/ ],
+     STORAGES         => [ qw/DESCRIPTION DISKSIZE INTERFACE MANUFACTURER MODEL
+                             NAME TYPE SERIAL SERIALNUMBER FIRMWARE SCSI_COID
+diff --git a/lib/FusionInventory/Agent/Task/Inventory/Generic/Softwares/Yum.pm b/lib/FusionInventory/Agent/Task/Inventory/Generic/Softwares/Yum.pm
+index 51771a9..57a7f7c 100644
+--- a/lib/FusionInventory/Agent/Task/Inventory/Generic/Softwares/Yum.pm
++++ b/lib/FusionInventory/Agent/Task/Inventory/Generic/Softwares/Yum.pm
+@@ -22,11 +22,11 @@ sub doInventory {
+     my $from;
+     if (canRun('yum')) {
+       $command = 'yum --quiet -y check-update';
+-      $detailCommand = 'yum updateinfo --list';
++      $detailCommand = 'yum updateinfo --info';
+       $from = 'yum';
+     } else {
+       $command = 'dnf --quiet -y check-update';
+-      $detailCommand = 'dnf updateinfo --list';
++      $detailCommand = 'dnf updateinfo --info';
+       $from = 'dnf';
+     }
+ 
+@@ -48,6 +48,32 @@ sub doInventory {
+     }
+ }
+ 
++# parse a list of item, one on each line after a colon
++sub _parse_list {
++    my $info = shift;
++    my @lines = split(/\n/, $info);
++    my @result;
++    foreach ( @lines ) {
++	if ($_ =~ /\s*:\s*(.+)/) {
++            push @result, $1;
++        }
++    }
++    return(@result);
++}
++
++sub _parse_string {
++    join '\n', _parse_list(shift);
++}
++
++sub _extract_section {
++    my $details = shift;
++    my $name = shift;
++
++    if ($details =~ /^[\S\s]*?\n?\s*$name(: [\S \n]+?)\n\s*([a-zA-Z]+: [\S\s]*?)?$/) {
++        return($1);
++    }
++}
++
+ # yum --quiet -y [-C] check-update
+ 
+ # name                           version                      repo
+@@ -70,19 +96,67 @@ sub _getUpdatesList {
+         my ($name,$arch,$version,$source) = ($1,$2,$3,$4);
+ 
+         my $kind;
+-        if ($params{details} =~ /^\S+\s+(\S+)\s+$name-$version.$arch\s*$/m) {
+-            if ($1 =~ /\/Sec/) {
+-                $kind = "security";
+-            } elsif ($1 eq "bugfix") {
++	my @ids;
++	my $severity;
++	my $description;
++
++	# Select the right section in details
++        if ($params{details} =~ /^[\S\s]*?=+\n  (\S+: )?$name [a-z ]+\n=+\n([\S\s]*?)\n=+\n/) {
++	  #print "TOTO $2\n";
++	  my $details = $2;
++
++	  my $cve = _extract_section($details, "CVEs");
++	  if ($cve) {
++	    @ids = (@ids, _parse_list($cve));
++          }
++	  my $id = _extract_section($details, "Update ID");
++	  if ($id) {
++            @ids = (@ids, _parse_list($id));
++          }
++
++          $kind = _extract_section($details, "Type");
++	  if ($kind) {
++            $kind = _parse_string($kind);
++            if ($kind eq "security" ) {
++                ;
++            } elsif ($kind eq "bugfix") {
+                 $kind = "defect";
+-            } elsif ($1 eq "enhancement") {
+-                $kind = $1;
++            } elsif ($kind eq "enhancement") {
++                ;
+             } else {
+                 $kind = "other";
+             }
+-        } else {
+-            $kind = "none";
+-        }
++	  } else {
++	    $kind = "none";
++	  }
++
++          $severity = _extract_section($details, "Severity");
++          if ($severity) {
++            $severity = lc _parse_string($severity);
++            if ($severity eq "important" ) {
++                $severity = "high";
++            } elsif ($severity eq "moderate") {
++                ;
++            } elsif ($severity eq "low") {
++                ;
++	    } elsif ($severity eq "critical") {
++                ;
++	    } elsif ($severity eq "none") {
++                ;
++            } else {
++                $severity = "none";
++            }
++          } else {
++            $severity = "none";
++          }
++
++          $description = _extract_section($details, "Description");
++          if ($description) {
++            $description = _parse_string($description);
++          } else {
++            $description = "";
++          }
++	}
+ 
+         my $package = {
+             NAME        => $name,
+@@ -90,7 +164,10 @@ sub _getUpdatesList {
+             VERSION     => $version,
+             FROM        => $params{from},
+             SOURCE      => $source,
+-            KIND        => $kind
++            KIND        => $kind,
++            SEVERITY    => $severity,
++            ID          => join(',', @ids),
++            DESCRIPTION => $description
+         };
+ 
+         push @packages, $package;
