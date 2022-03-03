@@ -66,7 +66,7 @@ AutoProv: 0
 
 ## General
 BuildRequires: pkgconfig, postgresql-devel
-Requires: %(../format-dependencies rpm %{real_epoch}:%{real_version} rudder-agent), %{apache}, %{apache_tools}, binutils, xz, postgresql, rsync
+Requires: %(../format-dependencies rpm %{real_epoch}:%{real_version} rudder-agent), %{apache}, %{apache_tools}, binutils, xz, postgresql, rsync, sudo
 
 ## RHEL
 %if 0%{?rhel}
