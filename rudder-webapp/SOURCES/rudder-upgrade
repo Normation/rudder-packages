@@ -508,6 +508,9 @@ EOF
 ################################################################################
 upgrade_slapdconf() {
 
+  SLAPD_CONF="/opt/rudder/etc/openldap/slapd.conf"
+  NEED_REINDEX=false
+
   # 6.2.0~beta2:
   # Add software and modifyTimestamp indexes in slapd.conf
   for i in "software" "modifyTimestamp"; do
