@@ -56,6 +56,7 @@ trap 'anomaly_handler ${LINENO}' ERR INT TERM
 # - 7.0.0~beta2  : Remove old system techniques
 # - 7.0.0~beta2  : Don't show wizard on upgrade
 # - 7.0.0~beta2  : Remove name historization tables
+# - 7.1.0~beta1  : Replace serial from ruddersysevents table with reportid
 ####################################################################################
 
 # Some paths
@@ -461,6 +462,14 @@ upgrade_database() {
     echo " Done"
   fi
 
+  # - 7.1: Replace serial with report id in reporting tablenames historization tables
+  RES=$(${PSQL} -t -d ${SQL_DATABASE} -c "select count(*) from pg_attribute where attrelid = 'ruddersysevents'::regclass and attname = 'serial' and not attisdropped")
+  if [ $RES -ne 0 ]; then
+    echo -n "INFO: Replace serial from reporting table with reportid"
+    ${PSQL} -d ${SQL_DATABASE} -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-7.0-7.1-serial_to_reportid_change.sql > /dev/null
+    echo " Done"
+  fi
+  
   # Now check the fileFormat in the eventlog
   upgrade_eventlog
 
