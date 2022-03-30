@@ -136,7 +136,7 @@ install: install-agent
 
 @cfengine_SOURCE@
 	# Apply patches
-	for PATCHNAME in patches/cfengine/*.patch; do echo "Applying $$PATCHNAME..."; $(PATCH) -d ./cfengine-source -p1 < $$PATCHNAME; echo ""; done
+	for PATCHNAME in patches/cfengine/*.patch; do echo "Applying $$PATCHNAME..."; $(PATCH) -d ./cfengine-source -p1 < $$PATCHNAME || exit ; echo ""; done
 	# Make sure there were no rejects
 	test `find ./cfengine-source -name \*.rej | wc -l` = 0
 
@@ -146,7 +146,7 @@ install: install-agent
 
 @fusion_SOURCE@
 	# Apply patches
-	for PATCHNAME in patches/fusioninventory/*.patch; do echo "Applying $$PATCHNAME... on FusionInventory"; $(PATCH) -d ./fusion-source -p1 < $$PATCHNAME; done
+	for PATCHNAME in patches/fusioninventory/*.patch; do echo "Applying $$PATCHNAME... on FusionInventory"; $(PATCH) -d ./fusion-source -p1 < $$PATCHNAME || exit; done
 	# Make sure there were no rejects
 	test `find ./fusion-source -name \*.rej | wc -l` = 0
 
