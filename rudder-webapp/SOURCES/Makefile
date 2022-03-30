@@ -62,7 +62,7 @@ openldap-source:
 	mv ./openldap-$(OPENLDAP_RELEASE) ./openldap-source
 
 	# Apply patches
-	for PATCHNAME in patches/openldap/*.patch; do echo "Applying $$PATCHNAME..."; patch -d ./openldap-source -p1 < $$PATCHNAME; done
+	for PATCHNAME in patches/openldap/*.patch; do echo "Applying $$PATCHNAME..."; patch -d ./openldap-source -p1 < $$PATCHNAME || exit; done
 	# Make sure there were no rejects
 	test `find ./openldap-source -name \*.rej | wc -l` = 0
 	rm -rf ./openldap.tgz
