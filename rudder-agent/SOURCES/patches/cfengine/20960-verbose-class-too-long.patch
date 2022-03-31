@@ -1,0 +1,13 @@
+diff --git a/libpromises/eval_context.c b/libpromises/eval_context.c
+index 9665056..13fb94c 100644
+--- a/libpromises/eval_context.c
++++ b/libpromises/eval_context.c
+@@ -1614,7 +1614,7 @@ static bool EvalContextClassPut(EvalContext *ctx, const char *ns, const char *na
+          * Fix for classes names longer than CF_MAXVARSIZE. */
+         if (strlen(name) >= sizeof(canonified_context))
+         {
+-            Log(LOG_LEVEL_WARNING, "Skipping adding class [%s] as its name "
++            Log(LOG_LEVEL_VERBOSE, "Skipping adding class [%s] as its name "
+                 "is equal or longer than %zu", name, sizeof(canonified_context));
+             return false;
+         }
