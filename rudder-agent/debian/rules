@@ -54,6 +54,11 @@ ifeq (focal,$(OS_CODENAME))
 WITH = --with-lmdb
 STRIP_OPT = --no-automatic-dbgsym
 endif
+# Ubuntu 22.04
+ifeq (jammy,$(OS_CODENAME))
+WITH = --with-lmdb
+STRIP_OPT = --no-automatic-dbgsym
+endif
 
 # Debian 5
 ifeq (lenny,$(OS_CODENAME))
