@@ -16,6 +16,11 @@ override_dh_strip:
 override_dh_gencontrol:
 	dh_gencontrol -- "-Vrudder:deps=$(shell ../format-dependencies dpkg $(shell dpkg-parsechangelog -SVersion) rudder-server-relay)"
 
+# default zst on ubuntu22 is not supported on our repository
+# but xz is supported on all our supported debian based server os
+override_dh_builddeb:
+	dh_builddeb -- -Zxz
+
 # Default rule that guess what to do for missing targets
 %:
 	dh $@

@@ -20,6 +20,11 @@ override_dh_strip:
 # We have no test
 override_dh_auto_test:
 
+# default zst on ubuntu22 is not supported on our repository
+# but xz is supported on all our supported debian based server os
+override_dh_builddeb:
+	dh_builddeb -- -Zxz
+
 # Default rule that guess what to do for missing targets
 %:
 	dh $@
