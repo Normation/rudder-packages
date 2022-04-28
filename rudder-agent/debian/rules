@@ -188,7 +188,7 @@ endif
 	LD_LIBRARY_PATH="$(CURDIR)/debian/tmp/opt/rudder/lib:$${LD_LIBRARY_PATH}" dh_shlibdeps -- --ignore-missing-info
 	dh_gencontrol -- "-Vrudder:deps=$(DEPS)"
 	dh_md5sums
-	dh_builddeb
+	dh_builddeb -- -Zgzip
 
 binary: binary-indep binary-arch
 .PHONY: build clean binary-indep binary-arch binary install configure
