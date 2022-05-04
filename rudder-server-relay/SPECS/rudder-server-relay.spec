@@ -70,7 +70,7 @@ Requires: %(../format-dependencies rpm %{real_epoch}:%{real_version} rudder-agen
 
 ## RHEL
 %if 0%{?rhel}
-Requires: mod_ssl shadow-utils crontabs
+Requires: mod_ssl shadow-utils
 BuildRequires: selinux-policy-devel
 %endif
 
@@ -83,7 +83,7 @@ Requires: policycoreutils-python
 
 ## SLES
 %if 0%{?suse_version}
-Requires: pwdutils cron
+Requires: pwdutils
 %endif
 
 # Doc for suse versioning https://en.opensuse.org/openSUSE:Packaging_for_Leap
@@ -252,7 +252,6 @@ rm -rf %{buildroot}
 %config(noreplace) /opt/rudder/etc/relayd/logging.conf
 # only used on SLES
 %config(noreplace) /etc/sysconfig/rudder-relay-apache
-%config /etc/cron.d/rudder-relay
 %attr(0440, root, root) %config /etc/sudoers.d/rudder-relay
 %attr(700, root, root) /opt/rudder/etc/rudder-pkg/
 /var/rudder/inventories/incoming
