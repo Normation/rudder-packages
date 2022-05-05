@@ -1,0 +1,145 @@
+From 389ab6ac2120631768a44eef9827ad1d0753f2d6 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?F=C3=A9lix=20Dallidet?= <felix.dallidet@rudder.io>
+Date: Thu, 19 May 2022 19:41:37 +0200
+Subject: [PATCH] Add Windows support to the software update inventory feature
+
+---
+ .../Inventory/Generic/Softwares/Windows.pm    | 126 ++++++++++++++++++
+ 1 file changed, 126 insertions(+)
+ create mode 100644 lib/FusionInventory/Agent/Task/Inventory/Generic/Softwares/Windows.pm
+
+diff --git a/lib/FusionInventory/Agent/Task/Inventory/Generic/Softwares/Windows.pm b/lib/FusionInventory/Agent/Task/Inventory/Generic/Softwares/Windows.pm
+new file mode 100644
+index 0000000..0d50653
+--- /dev/null
++++ b/lib/FusionInventory/Agent/Task/Inventory/Generic/Softwares/Windows.pm
+@@ -0,0 +1,126 @@
++package FusionInventory::Agent::Task::Inventory::Generic::Softwares::Windows;
++
++use strict;
++use warnings;
++
++use parent 'FusionInventory::Agent::Task::Inventory::Module';
++
++use FusionInventory::Agent::Tools;
++use JSON::PP;
++use Data::Dumper;
++
++sub isEnabled {
++    return canRun('powershell');
++}
++
++sub doInventory {
++    my (%params) = @_;
++
++    my $inventory = $params{inventory};
++    my $logger    = $params{logger};
++    my $from      = 'powershell';
++
++    my @packages = _getUpdatesList(
++        logger => $logger, from => $from
++    );
++    return unless @packages;
++
++    foreach my $package (@packages) {
++        $inventory->addEntry(
++            section => 'SOFTWAREUPDATES',
++            entry   => $package
++        );
++    }
++}
++
++sub _getUpdatesList {
++    my (%params) = @_;
++    my $logger    = $params{logger};
++    FusionInventory::Agent::Tools::Win32->use('runCommand');
++
++    # Create temp script
++    my $fh = File::Temp->new(
++        TEMPLATE    => 'get-available-updates-XXXXXX',
++        SUFFIX      => '.ps1'
++    );
++    print $fh <DATA>;
++    close($fh);
++    my $file = $fh->filename;
++    return unless ($file && -f $file);
++
++    $logger->debug("executing $file") if $logger;
++    my @lines = getAllLines(
++        command => "powershell -NonInteractive -ExecutionPolicy ByPass -File $file",
++        %params
++    );
++    my $raw_json = join(' ', @lines);
++    my @updates;
++    my @packages;
++
++    # check that it is valid JSON
++    eval {
++        my $coder = JSON::PP->new;
++        my @raw_updates = @{$coder->decode($raw_json)};
++        $logger->debug(Data::Dumper->Dump([ \@raw_updates ], [ qw(*packages) ])) if $logger;
++        @updates = @raw_updates;
++    };
++    if ($@) {
++        $logger->error("Rudder system updates detection didn't return valid JSON entry, error is:$@") if $logger;
++        $logger->error($raw_json) if $logger;
++    }
++    foreach my $update (@updates) {
++      my $package = {
++        NAME => $update->{Name},
++        FROM => $update->{From},
++        DESCRIPTION => $update->{Description},
++        KIND => $update->{Kind},
++        ID => $update->{Id}
++      };
++      push @packages, $package;
++    }
++    return @packages;
++}
++
++1;
++
++
++__DATA__
++# Script PowerShell
++Add-Type -TypeDefinition @"
++namespace Fusion {
++  public enum UpdateType
++  {
++    software,
++    driver
++  }
++  public enum UpdateInstallationImpact
++  {
++    normal,
++    minor,
++    requiresExclusiveHandling
++  }
++}
++"@
++
++try {
++  $session = New-Object -ComObject Microsoft.Update.Session
++  $searcher = $session.CreateUpdateSearcher()
++  $searchResult = $searcher.Search("IsInstalled=0 and IsHidden=0")
++} catch {
++  return $_
++}
++
++$updates = @()
++foreach ($update in $searchResult.Updates) {
++  $Kbs = @($update.KBArticleIDs | ForEach-Object { "KB$_" })
++  $updates += @{
++    Name = $update.Title
++    From = "Windows Update"
++    Description = $update.Description
++    Kind = ($update.Categories | Where-Object { $_.Type -eq "UpdateClassification" }).Name
++    Id = $Kbs + @($update.Identity.UpdateID)
++    Risk = [Enum]::ToObject([Fusion.UpdateInstallationImpact], $update.InstallationBehavior.Impact).ToString()
++    Type = [Enum]::ToObject([Fusion.UpdateType], $update.Type).ToString()
++  }
++}
++$updates | ConvertTo-Json -Compress
+-- 
+2.35.1
+
