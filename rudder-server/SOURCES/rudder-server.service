@@ -1,0 +1,18 @@
+[Unit]
+Description=Rudder server umbrella service
+Documentation=https://docs.rudder.io
+After=syslog.target
+# Dependencies register themselves with a WantedBy/RequiredBy
+# currently they are rudder-slapd and rudder-jetty
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+# This is required for the service to be able to
+# pass these commands to its dependencies
+ExecStart=/bin/true
+ExecReload=/bin/true
+
+[Install]
+WantedBy=multi-user.target
+

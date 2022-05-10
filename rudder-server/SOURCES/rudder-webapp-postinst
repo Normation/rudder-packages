@@ -1,0 +1,115 @@
+#!/bin/bash
+
+set -e
+
+# Is this the first installation?
+RUDDER_FIRST_INSTALL="$1"
+APACHE="$2"
+LOG_FILE="/var/log/rudder/install/rudder-webapp-$(date +%Y%m%d%H%M%S).log"
+LDAP_CONF="/opt/rudder/etc/openldap/slapd.conf"
+
+mkdir -p /var/log/rudder/install
+
+echo "$(date) - Starting rudder-webapp post installation script" >> ${LOG_FILE}
+
+if ! getent group rudder-slapd >/dev/null; then
+  groupadd --system rudder-slapd >> ${LOG_FILE}
+fi
+
+if ! getent passwd rudder-slapd >/dev/null; then
+  useradd --system --gid rudder-slapd --shell /bin/false --home-dir /var/rudder/ldap --comment "Rudder LDAP server,,," rudder-slapd >> ${LOG_FILE}
+fi
+chown root:rudder-slapd "${LDAP_CONF}"
+chmod 640 "${LDAP_CONF}"
+chown -R rudder-slapd:rudder-slapd /var/rudder/ldap/
+
+# stopping apache before running upgrade scripts
+systemctl stop ${APACHE} >> ${LOG_FILE}
+
+# create gitignore if it doesn't exist
+[ -f /var/rudder/configuration-repository/.gitignore ] || echo "ncf/ncf_hash_file" > /var/rudder/configuration-repository/.gitignore
+
+systemctl daemon-reload
+
+systemctl enable rudder-jetty >> ${LOG_FILE} 2>&1
+systemctl enable rudder-slapd >> ${LOG_FILE} 2>&1
+
+systemctl restart rudder-slapd >> ${LOG_FILE}
+
+# Remove .pyc files to ensure we don't end up with outdated files
+rm -f /usr/share/ncf/tools/ncf.pyc
+rm -f /usr/share/ncf/tools/ncf_constraints.pyc
+
+# Add perms on inventories
+chmod 751 /var/rudder/inventories
+
+# Create and populate technique store
+mkdir -p /var/rudder/configuration-repository/shared-files
+
+if [ ! -d /var/rudder/configuration-repository/techniques ]; then
+  cp -a /opt/rudder/share/techniques /var/rudder/configuration-repository/
+  touch /opt/rudder/etc/force_technique_reload
+fi
+
+# Start with a fresh ncf if needed
+if [ ! -d /var/rudder/ncf/common/10_ncf_internals ]; then
+  cp -a /usr/share/ncf/tree/* /var/rudder/ncf/common/
+fi
+
+# Initialize git repository if it is missing, so permissions can be set on it afterwards
+cd /var/rudder/configuration-repository
+if [ ! -d /var/rudder/configuration-repository/.git ]; then
+
+  git config --global init.defaultBranch master
+  git init --shared=group >> ${LOG_FILE}
+
+  # Specify default git user name and email (git will refuse to commit without them)
+  git config user.name "root user (CLI)"
+  git config user.email "root@localhost"
+  git config init.defaultBranch master
+
+  git add .
+  git commit -q -m "initial commit"
+fi
+
+if [ "${RUDDER_FIRST_INSTALL}" = "true" ]; then
+  /opt/rudder/bin/rudder server upgrade-techniques --set-autoupdate-technique-library=true >> ${LOG_FILE}
+fi
+
+# apache must be on before rudder-init
+systemctl start ${APACHE} >> ${LOG_FILE}
+
+# Check if Rudder LDAP is initialized and run rudder-init
+# sed stops at first match (giving a SIGPIPE to command) so that the slapcat is not too long on big db
+# To prevent error "error writing output.", we redirect error of slapcat to /dev/null
+LDAPCHK=`/opt/rudder/sbin/slapcat 2>/dev/null | sed -n '/^dn: /{p;q}' | wc -l`
+if [ $LDAPCHK -eq 0 ]; then
+  /opt/rudder/bin/rudder-init no auto >> ${LOG_FILE}
+fi
+
+# Run any upgrades
+/opt/rudder/bin/rudder-upgrade >> ${LOG_FILE}
+
+# Adjust permissions on /var/rudder/configuration-repository
+/opt/rudder/bin/rudder-fix-repository-permissions >> ${LOG_FILE}
+
+rudder package rudder-postupgrade  || true
+
+cd /
+[ -f /tmp/rudder-hooks-upgrade ] && setfacl --restore=/tmp/rudder-hooks-upgrade
+
+# Rudder-lang : update libraries by re-generating it
+/opt/rudder/share/language/tools/generate_lib
+
+# Restart the webapp
+systemctl restart rudder-jetty >> ${LOG_FILE} || true
+
+systemctl restart ${APACHE} >> ${LOG_FILE}
+
+## Make sure everything is ok
+if [ "${RUDDER_FIRST_INSTALL}" = "true" ]; then
+  rudder agent check -f >> "${LOG_FILE}" 2>&1
+fi
+
+echo "$(date) - Ending rudder-webapp post installation script" >> ${LOG_FILE}
+

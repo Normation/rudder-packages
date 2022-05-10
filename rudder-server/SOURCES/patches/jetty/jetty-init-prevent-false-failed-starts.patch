@@ -1,0 +1,30 @@
+--- jetty/bin/jetty.sh	2017-10-20 21:09:54.213736038 +0200
++++ jetty/bin/jetty.sh_5	2017-10-20 21:18:07.960397445 +0200
+@@ -133,10 +133,10 @@
+   do
+     sleep 4
+     [ -z "$(grep STARTED $1 2>/dev/null)" ] || return 0
++
+     [ -z "$(grep STOPPED $1 2>/dev/null)" ] || return 1
+     [ -z "$(grep FAILED $1 2>/dev/null)" ] || return 1
+-    local PID=$(cat "$2" 2>/dev/null) || return 1
+-    kill -0 "$PID" 2>/dev/null || return 1
++
+     echo -n ". "
+   done
+ 
+@@ -469,6 +469,14 @@
+       exit
+     fi
+ 
++    if [ $(${PS_COMMAND} | grep -cE "[j]ava .* /opt/rudder/jetty/start.jar") -ne 0 ]
++    then
++        echo "already running."
++        exit 0
++    fi
++
++    rm -f ${JETTY_STATE}
++
+     if [ $UID -eq 0 ] && type start-stop-daemon > /dev/null 2>&1
+     then
+       unset CH_USER

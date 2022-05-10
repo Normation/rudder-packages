@@ -1,0 +1,21 @@
+--- jetty/bin/jetty-rpm.sh.orig	2017-05-17 13:56:36.919856595 +0200
++++ jetty/bin/jetty-rpm.sh	2017-05-17 14:01:52.135850950 +0200
+@@ -483,6 +483,18 @@
+     UMASK="0007"
+     echo "Setting umask to ${UMASK}"
+ 
++    # Check if there is a mismatch in nss version, see https://issues.rudder.io/issues/9905
++    nss_ver=$(rpm -qa nss | cut -d - -f 2)
++    nss_bug_ver=$(echo "${nss_ver}" | cut -d . -f 1-2)
++    softokn_ver=$(rpm -qa nss-softokn | cut -d - -f 3)
++    if [ "${nss_bug_ver}" = "3.15" ] && [ "${nss_ver}" != "${softokn_ver}" ]
++    then
++      echo "nss version mismatch, your nss-softokn version (${softokn_ver}) should match your nss version (${nss_ver})"
++      exit 1
++    elif [ "${nss_ver}" != "${softokn_ver}" ]
++    then
++      echo "nss version mismatch, your nss-softokn version (${softokn_ver}) may not be compatible with your nss version (${nss_ver}) (see https://issues.rudder.io/issues/10734)" >> /var/log/rudder/webapp/java.log
++    fi
+     # Checking if enough RAM is available for Jetty to use
+     checkAvailableRam $((${JAVA_XMX}+${JAVA_MAXPERMSIZE}))
+ 

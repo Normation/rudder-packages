@@ -1,0 +1,20 @@
+--- jetty/bin/jetty.sh.orig	2017-10-20 18:44:16.263661812 +0200
++++ jetty/bin/jetty.sh	2017-10-20 18:52:56.183656275 +0200
+@@ -435,6 +435,8 @@
+ ##################################################
+ case "$ACTION" in
+   start)
++    UMASK="0007"
++    echo "Setting umask to ${UMASK}"
+     echo -n "Starting Jetty: "
+ 
+     if (( NO_START )); then
+@@ -450,7 +452,7 @@
+         CH_USER="-c$JETTY_USER"
+       fi
+ 
+-      start-stop-daemon -S -p"$JETTY_PID" $CH_USER -d"$JETTY_BASE" -b -m -a "$JAVA" -- "${RUN_ARGS[@]}" start-log-file="$JETTY_START_LOG"
++      start-stop-daemon -k ${UMASK} -S -p"$JETTY_PID" $CH_USER -d"$JETTY_BASE" -b -m -a "$JAVA" -- "${RUN_ARGS[@]}" start-log-file="$JETTY_START_LOG"
+ 
+     else
+ 

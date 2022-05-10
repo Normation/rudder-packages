@@ -1,0 +1,265 @@
+#!/bin/bash
+#####################################################################################
+# Copyright 2011 Normation SAS
+#####################################################################################
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, Version 3.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#####################################################################################
+
+# Rudder initialization utility
+
+# Check if script is executed by root
+if [ ! "$(whoami)" = "root" ];then echo "You must be root"; exit 1; fi
+
+IPV4_NET_RE='[0-9]\{1,3\}.[0-9]\{1,3\}.[0-9]\{1,3\}.[0-9]\{1,3\}\/[0-9]\{1,2\}'
+IPV6_NET_RE='\([0-9a-fA-F]\{1,4\}:\)\{1,7\}:\?\([0-9a-fA-F]\{1,4\}:\)\{0,6\}[0-9a-fA-F]\{1,4\}\/[0-9]\{1,2\}'
+IP_NET_RE="^${IPV4_NET_RE}\\|${IPV6_NET_RE}\\|auto$"
+
+# VARS
+TMP_LOG=/var/log/rudder/install/rudder-init-$(date +%Y%m%d%H%M%S).log
+
+TMP_DIR=$(mktemp -dq)
+BOOTSTRAP_PATH=$TMP_DIR/bootstrap.ldif
+INITPOLICY_PATH=$TMP_DIR/init-policy-server.ldif
+
+RUDDER_OPT="/opt/rudder"
+CF_AGENT="${RUDDER_OPT}/bin/cf-agent"
+
+RUDDER_ROLES_FILE="/var/rudder/cfengine-community/inputs/rudder-server-roles.conf"
+DISABLE_AUTODETECT_NETWORKS_FILE="/opt/rudder/etc/disable-autodetect-networks"
+
+# Ensure our PATH includes Rudder's binaries
+export PATH=${PATH}:${RUDDER_OPT}/bin
+
+# Try to get the machine FQDN, or default to the unqualified
+# one if it fails.
+if hostname -f > /dev/null 2>&1
+then
+  RUDDER_HOSTNAME=$(hostname -f)
+else
+  RUDDER_HOSTNAME=$(hostname)
+fi
+
+# Get how many access credentials we got for LDAP and SQL in /opt/rudder/etc/rudder-web.properties
+# (should have 2 for each, user and password)
+LDAP_CREDENTIALS=$(grep -c -E "^ldap.auth(dn|pw)[ \t]*=" /opt/rudder/etc/rudder-web.properties || true)
+
+if [ -f /opt/rudder/etc/rudder-web.properties -a ${LDAP_CREDENTIALS} -eq 2 ]; then
+  # Get the database access credentials from the rudder-web.properties file
+  LDAP_USER="$(grep -E '^ldap.authdn[ \t]*=' ${RUDDER_OPT}/etc/rudder-web.properties | cut -d "=" -f 2-)"
+  LDAP_PASSWORD="$(grep -E '^ldap.authpw[ \t]*=' ${RUDDER_OPT}/etc/rudder-web.properties | cut -d "=" -f 2-)"
+else
+  # No database access credentials in rudder-web.properties... Try anyway using "guessed" values.
+  echo "WARNING: Database access credentials are missing in /opt/rudder/etc/rudder-web.properties, trying to guess adequate values."
+  LDAP_USER=$(grep "^rootdn" /opt/rudder/etc/openldap/slapd.conf | sed "s/\w*\s*['\"]\?\([^\"']*\)['\"]\?$/\1/")
+  LDAP_PASSWORD=$(grep "^rootpw" /opt/rudder/etc/openldap/slapd.conf | sed "s/\w*\s*['\"]\?\([^\"']*\)['\"]\?$/\1/")
+fi
+
+# Commands
+LDAP_PARAMETERS="-H ldap://localhost/ -D ${LDAP_USER} -w ${LDAP_PASSWORD} -x"
+
+LDAPSEARCH="ldapsearch ${LDAP_PARAMETERS} -LLL"
+LDAPADD="ldapadd ${LDAP_PARAMETERS}"
+LDAPDELETE="ldapdelete ${LDAP_PARAMETERS}"
+
+LDAP_EXISTS=$(${LDAPSEARCH} -b "cn=rudder-configuration" -s base dn 2>/dev/null | grep -c "dn: cn=rudder-configuration" || true)
+
+ErrorCheck()
+{
+  if [ $? -ne 0 ]
+  then
+    echo "ERROR: Execution failed! Aborting."
+    echo "An error occurred. Please check $TMP_LOG for details."
+    exit
+  fi
+}
+
+LDAPInit()
+{
+  cp /opt/rudder/share/bootstrap.ldif $BOOTSTRAP_PATH
+  cp /opt/rudder/share/init-policy-server.ldif $INITPOLICY_PATH
+
+  # we need to insert a double baclslask (\\n) because it vill be reinterpreted by the sed below
+  CERTIFICATE=$(perl -pe 's/\n/\\\\n/' /opt/rudder/etc/ssl/agent.cert)
+
+  sed -i "s/^\([^#].*\)%%POLICY_SERVER_HOSTNAME%%/\1${RUDDER_HOSTNAME}/g" $INITPOLICY_PATH
+  sed -i "s#^\([^#].*\)%%POLICY_SERVER_ALLOWED_NETWORKS%%#\1$NET#g" $INITPOLICY_PATH
+  sed -i "s#^\([^#].*\)%%POLICY_SERVER_CERTIFICATE%%#\1${CERTIFICATE}#g" $INITPOLICY_PATH
+
+  # remove root in case of REinit because it has not been removed
+  [ ${LDAP_EXISTS} -gt 0 ] && sed -i '/dn: cn=rudder-configuration/,/^ *$/d' $BOOTSTRAP_PATH
+
+  ${LDAPADD} -f $BOOTSTRAP_PATH >> $TMP_LOG 2>&1
+  ErrorCheck
+
+  ${LDAPADD} -f $INITPOLICY_PATH >> $TMP_LOG 2>&1
+  ErrorCheck
+}
+
+# Reset the policy server hostname
+function reset_policy_server() {
+  echo "127.0.0.1" > /var/rudder/cfengine-community/policy_server.dat
+}
+
+function add_allowed_networks() {
+  network="$1"
+  # check for invalid network definition
+  echo -n "${network}" | grep "${IP_NET_RE}" > /dev/null
+  if [ $? -ne 0 ]
+  then
+    echo "ERROR: Invalid network ${network}"
+    echo "Usage is: ${0} LDAPReset AllowedNetwork1 [AllowedNetwork2]..."
+    exit 1
+  fi
+
+  # add it to the ALLOWEDNETWORK array
+  if [ "${network}" = "auto" ]
+  then
+    # list all ipv4 networks matching each non loopback interface
+    for i in $(LANG=C ip -family inet -oneline address | grep "scope global" | sed -e 's/.*inet \([0-9.\/]\+\) .*/\1/')
+    do
+      if [ -n "${DISABLE_AUTODETECT_NETWORKS}" ] || [ -e "${DISABLE_AUTODETECT_NETWORKS_FILE}" ]
+      then
+        # if automatic network is not allowed, just add the host's ip/32
+        ALLOWEDNETWORK[${#ALLOWEDNETWORK[*]}]=$(echo ${i} | sed 's|/.*|/32|')
+      else
+        ALLOWEDNETWORK[${#ALLOWEDNETWORK[*]}]="${i}"
+      fi
+    done
+    # list all ipv6 networks having a global scope
+    for i in $(LANG=C ip -family inet6 -oneline address | grep "scope global" | sed -e 's/.*inet6 \([:0-9a-f\/]\+\) .*/\1/')
+    do
+      if [ -n "${DISABLE_AUTODETECT_NETWORKS}" ] || [ -e "${DISABLE_AUTODETECT_NETWORKS_FILE}" ]
+      then
+        # if automatic network is not allowed, just add the host's ip/128
+        ALLOWEDNETWORK[${#ALLOWEDNETWORK[*]}]=$(echo ${i} | sed 's|/.*|/128|')
+      else
+        ALLOWEDNETWORK[${#ALLOWEDNETWORK[*]}]="${i}"
+      fi
+    done
+  else
+    # just use the provided network
+    ALLOWEDNETWORK[${#ALLOWEDNETWORK[*]}]="${network}"
+  fi
+}
+
+# Check if some arguments have been given
+if [ $# -gt 0 ]
+then
+  if [ $# -lt 2 ]
+  then
+    echo "ERROR: Usage is: ${0} LDAPReset AllowedNetwork1 [AllowedNetwork2]..."
+    exit 1
+  else
+    LDAPRESET=${1}         # Reset LDAP ?
+    shift
+    while [ -n "$1" ]
+    do
+      add_allowed_networks "$1"
+      shift
+    done
+  fi
+else
+  echo "ERROR: Usage is: ${0} LDAPReset AllowedNetwork1 [AllowedNetwork2]..."
+  exit 1
+fi
+
+cpt=0
+REQUIRE_NET=""
+for i in ${ALLOWEDNETWORK[*]}
+do
+# comma between element of array
+  if [ ${cpt} -ne 0 ]
+  then
+    NET="${NET},"
+  fi
+
+  NET="${NET}\n {\"name\":\"root init allowed network ${cpt}\",\"inet\":\"${i}\"}"
+  REQUIRE_NET="${REQUIRE_NET}Require ip ${i}"$'\n'
+  ((cpt++))
+done
+
+# Review
+echo
+echo "SUMMARY OF OPTIONS:"
+echo
+echo Allowed networks: "${ALLOWEDNETWORK[*]}"
+echo Force LDAP reset: "$LDAPRESET"
+echo
+
+reset_policy_server
+
+# LDAP (re)initialization
+if [ ${LDAP_EXISTS} -gt 0 ]
+then
+  if [ "$LDAPRESET" = "yes" ]
+  then
+    echo -n "ReInitializing LDAP database..."
+    ${LDAPDELETE} -r "cn=rudder-configuration"
+    LDAPInit
+  fi
+else
+  echo -n "Initializing LDAP database..."
+  LDAPInit
+fi
+echo " done."
+echo
+
+# rudder-passwords.conf -> rudder-service-postgresql -> pgpass + postgresql
+# rudder-passwords.conf -> rudder-service-slapd      -> slapd.conf
+# rudder-passwords.conf -> system_rudder_webapp      -> rudder-web.properties
+# rudder-passwords.conf -> rudder-service-relayd     -> /etc/relayd/main.conf
+
+# Update the password file used by Rudder with random passwords
+echo -n "Updating Rudder password file with random passwords... "
+sed -i "s%RUDDER_WEBDAV_PASSWORD.*%RUDDER_WEBDAV_PASSWORD:$(dd if=/dev/urandom count=128 bs=1 2>&1 | md5sum | cut -b-20)%" ${RUDDER_OPT}/etc/rudder-passwords.conf
+sed -i "s%RUDDER_PSQL_PASSWORD.*%RUDDER_PSQL_PASSWORD:$(dd if=/dev/urandom count=128 bs=1 2>&1 | md5sum | cut -b-20)%" ${RUDDER_OPT}/etc/rudder-passwords.conf
+sed -i "s%RUDDER_OPENLDAP_BIND_PASSWORD.*%RUDDER_OPENLDAP_BIND_PASSWORD:$(dd if=/dev/urandom count=128 bs=1 2>&1 | md5sum | cut -b-20)%" ${RUDDER_OPT}/etc/rudder-passwords.conf
+echo " done."
+
+# Delete temp files
+echo -n "Cleaning up temporary directories..."
+rm -rf $TMP_DIR
+echo " done."
+
+# Start the whole infrastructure
+
+# The server need initial promises to work properly
+cp -r /opt/rudder/share/initial-ncf/* /var/rudder/ncf/common/
+cp -r /opt/rudder/share/initial-promises/* /var/rudder/cfengine-community/inputs/
+
+# Ensure that the passwords are correctly propagated
+"${CF_AGENT}" -b bootstrap_server_rudder  &>>"$TMP_LOG"
+
+# Add apache acl (will be overwritten at next agent run)
+cat >/opt/rudder/etc/rudder-networks-24.conf <<EOF
+Require ip 127.0.0.0/8
+Require ip ::1
+$REQUIRE_NET
+EOF
+
+# In case of upgrade, we can restart rudder-jetty, else we are during an initialization and restart
+# was done by agent
+if [ ${LDAP_EXISTS} -eq 0 ]
+then
+  # Ensure that rudder-jetty is not yet started and in a broken state
+  systemctl stop rudder-jetty
+fi
+
+RUDDER_CONTEXT=$(grep contextPath ${RUDDER_OPT}/share/webapps/rudder.xml | sed "s@^\s*<Set name=\"contextPath\">\(.*\)</Set>@\1@")
+echo
+echo "Reinitialization complete, Rudder is currently reloading."
+echo
+echo "You can access it via https://${RUDDER_HOSTNAME}${RUDDER_CONTEXT}"
+echo
