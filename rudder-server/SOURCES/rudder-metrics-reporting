@@ -150,7 +150,7 @@ def metrics():
   data["installation_date"] = command(["/bin/sh", "-c", cmd]).strip()
 
   # Rudder version
-  cmd="[ -x /usr/bin/dpkg ] && dpkg-query -W rudder-server-root || rpm -q rudder-server-root"
+  cmd="[ -x /usr/bin/dpkg ] && dpkg-query -W rudder-server || rpm -q rudder-server"
   data["package_version"] = command(["/bin/sh", "-c", cmd]).strip()
 
   cmd="rudder-relayd --version | cut -d' ' -f2"

@@ -33,7 +33,7 @@
 #=================================================
 # Header
 #=================================================
-Summary: Configuration management and audit tool - root server base package
+Summary: Configuration management and audit tool - transitional package
 Name: %{real_name}
 Version: %{real_version}
 Release: 1%{?dist}
@@ -49,13 +49,13 @@ BuildArch: noarch
 AutoReq: 0
 AutoProv: 0
 
-Requires: %(../format-dependencies rpm %{real_epoch}:%{real_version} rudder-webapp rudder-reports rudder-agent)
+Requires: rudder-server
 
 %description
 Rudder is an open source configuration management and audit solution.
 
-This package is essentially a meta-package to install all components required to
-run a Rudder root server on a machine.
+This is a transitional package to install rudder-server.
+It can be safely removed (no not remove rudder-server).
 
 #=================================================
 # Building
@@ -67,62 +67,21 @@ run a Rudder root server on a machine.
 #=================================================
 %install
 
-cd %{_sourcedir}
-
-cd %{_sourcedir}
-make --debug install DESTDIR=%{buildroot}
-
-#=================================================
-# pretrans is run before all preinst when installing more than one package
-#=================================================
-%pretrans
-
-set -e
-
-# We need to be sure that uuid.hive is set to root at beginning
-mkdir -p /opt/rudder/etc
-echo 'root' > /opt/rudder/etc/uuid.hive
-
-mkdir -p /var/rudder/cfengine-community/
-echo "127.0.0.1" > /var/rudder/cfengine-community/policy_server.dat
-
 %pre
 #=================================================
 # Pre Installation
 #=================================================
-
-set -e
-
-CFRUDDER_FIRST_INSTALL=$1
-LOG_FILE="/var/log/rudder/install/%{name}.log"
-
-echo "`date` - Starting %{name} pre installation script" >> ${LOG_FILE}
 
 %post
 #=================================================
 # Post Installation
 #=================================================
 
-set -e
-
-CFRUDDER_FIRST_INSTALL=$1
-
-/opt/rudder/share/package-scripts/rudder-server-root-postinst "${CFRUDDER_FIRST_INSTALL}"
-
 %postun
 #=================================================
 # Post Uninstallation
 #=================================================
 
-set -e
-
-# Do it only during uninstallation
-if [ $1 -eq 0 ]; then
-
-  # Clean up all logrotate leftovers
-  rm -rf %{_sysconfdir}/logrotate.d/rudder*
-
-fi
 
 #=================================================
 # Cleaning
@@ -135,10 +94,6 @@ rm -rf %{buildroot}
 #=================================================
 %files
 %defattr(-, root, root, 0755)
-/opt/rudder/etc/
-/opt/rudder/share/package-scripts/rudder-server-root-postinst
-/usr/lib/systemd/system/rudder-server.service
-/opt/rudder/share/versions/rudder-server-root-version
 
 #=================================================
 # Changelog

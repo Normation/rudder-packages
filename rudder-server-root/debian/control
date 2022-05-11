@@ -8,9 +8,9 @@ Homepage: https://www.rudder.io
 
 Package: rudder-server-root
 Architecture: all
-Depends: ${shlibs:Depends}, ${misc:Depends}, ${rudder:deps}, systemd
+Depends: ${shlibs:Depends}, ${misc:Depends}, rudder-server
 Description: Configuration management and audit tool - root server base package
  Rudder is an open source configuration management and audit solution.
  .
- This package is essentially a meta-package to install all components required
- to run a Rudder root server on a machine.
+ This is a transitional package to install rudder-server.
+ It can be safely removed (no not remove rudder-server).

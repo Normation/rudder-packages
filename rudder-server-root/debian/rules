@@ -8,12 +8,6 @@ export DH_VERBOSE=1
 # We have no test
 override_dh_auto_test:
 
-override_dh_strip:
-	dh_strip --no-automatic-dbgsym
-
-override_dh_gencontrol:
-	dh_gencontrol -- "-Vrudder:deps=$(shell ../format-dependencies dpkg $(shell dpkg-parsechangelog -SVersion) rudder-reports rudder-webapp rudder-agent)"
-
 # default zst on ubuntu22 is not supported on our repository
 # but xz is supported on all our supported debian based server os
 override_dh_builddeb:

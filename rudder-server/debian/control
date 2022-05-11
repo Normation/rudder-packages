@@ -8,7 +8,7 @@ Homepage: https://www.rudder.io
 
 Package: rudder-server
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, ${rudder:deps}, systemd, postgresql (>=10.3), iproute2, python3, apache2, apache2-utils, git-core, rsync, lsb-release, openssl, ldap-utils, postgresql-client (>=10.3), openjdk-11-jre-headless | java11-runtime-headless, curl, acl, rudder-reports, rudder-api-client
+Depends: ${shlibs:Depends}, ${misc:Depends}, ${rudder:deps}, systemd, postgresql (>=10.3), iproute2, python3, apache2, apache2-utils, git-core, rsync, lsb-release, openssl, ldap-utils, postgresql-client (>=10.3), openjdk-11-jre-headless | java11-runtime-headless, curl, acl, rudder-api-client
 Description: Configuration management and audit tool - root server base package
  Rudder is an open source configuration management and audit solution.
  .

@@ -28,7 +28,7 @@
 # Variables
 #=================================================
 %define real_name        rudder-server
-%define real_epoch       1398866025
+%define old_epoch       1398866025
 
 %define maven_settings settings-external.xml
 
@@ -62,7 +62,7 @@ Summary: Configuration management and audit tool - server package
 Name: %{real_name}
 Version: %{real_version}
 Release: 1%{?dist}
-Epoch: %{real_epoch}
+Epoch: 0
 License: GPLv3
 URL: https://www.rudder.io/
 
@@ -73,7 +73,8 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 AutoReq: 0
 AutoProv: 0
 
-Requires: %(../format-dependencies rpm %{real_epoch}:%{real_version} rudder-server-relay rudder-agent)
+Requires: %(../format-dependencies rpm %{old_epoch}:%{real_version} rudder-agent)
+Requires: %(../format-dependencies rpm %{real_version} rudder-server-relay)
 Requires: postgresql-server >= 10.3, %{apache}, %{apache_tools}, git-core, iproute, rsync, openssl, %{ldap_clients}, curl, acl, rudder-api-client
 
 BuildRequires: gcc, rsync

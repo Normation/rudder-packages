@@ -4,29 +4,9 @@
 # Uncomment this to turn on verbose mode.
 export DH_VERBOSE=1
 
-override_dh_auto_clean:
-	rm -rf BUILD
-
-override_dh_auto_build:
-	tar -xjf SOURCES/rudder-sources.tar.bz2
-	mkdir BUILD
-	mv rudder-sources-*/* BUILD/
-	dh_auto_build
-
 # The root Makefile has all possible target and prevent dh to autodetect them
 # We have no test
 override_dh_auto_test:
-
-override_dh_strip:
-	dh_strip --no-automatic-dbgsym
-
-override_dh_gencontrol:
-	dh_gencontrol -- "-Vrudder:deps=$(shell ../format-dependencies dpkg $(shell dpkg-parsechangelog -SVersion) rudder-agent)"
-
-# default zst on ubuntu22 is not supported on our repository
-# but xz is supported on all our supported debian based server os
-override_dh_builddeb:
-	dh_builddeb -- -Zxz
 
 # default zst on ubuntu22 is not supported on our repository
 # but xz is supported on all our supported debian based server os
