@@ -21,7 +21,7 @@ set -e
 case "$1" in
     purge)
 
-        # Restart apache since it is still using this user
+        # Restart apache since it is holding this user
         systemctl restart apache2 > /dev/null
         # Remove package user and groups
         if getent group rudder >/dev/null; then

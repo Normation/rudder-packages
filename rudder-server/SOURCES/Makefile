@@ -158,18 +158,15 @@ rudder-server-version:
 install: build rudder-server-version initial-promises initial-ncf
 	mkdir -p $(DESTDIR)/opt/rudder/etc/postgresql/
 	mkdir -p $(DESTDIR)/usr/lib/systemd/system
-	mkdir -p $(DESTDIR)/opt/rudder/etc/server-roles.d/
 	mkdir -p $(DESTDIR)/opt/rudder/share/package-scripts/
 	mkdir -p $(DESTDIR)/opt/rudder/share/versions/
 	install -m 644 rudder-sources/rudder/webapp/sources/rudder/rudder-core/src/main/resources/reportsSchema.sql $(DESTDIR)/opt/rudder/etc/postgresql/
 	install -m 644 rudder-server.service $(DESTDIR)/usr/lib/systemd/system/
-	install -m 644 rudder-server $(DESTDIR)/opt/rudder/etc/server-roles.d/
 	install -m 755 rudder-server-root-postinst $(DESTDIR)/opt/rudder/share/package-scripts/
 	install -m 755 rudder-server-reports-postinst $(DESTDIR)/opt/rudder/share/package-scripts/
 	install -m 644 rudder-server-version $(DESTDIR)/opt/rudder/share/versions/
 	mkdir -p $(DESTDIR)/opt/rudder/etc/
 	mkdir -p $(DESTDIR)/opt/rudder/etc/plugins/licenses
-	mkdir -p $(DESTDIR)/opt/rudder/etc/server-roles.d/
 	mkdir -p $(DESTDIR)/opt/rudder/etc/hooks.d/
 	mkdir -p $(DESTDIR)/opt/rudder/bin/
 	mkdir -p $(DESTDIR)/opt/rudder/share/webapps/
@@ -255,7 +252,6 @@ install: build rudder-server-version initial-promises initial-ncf
 
 	install -m 755 rudder-upgrade $(DESTDIR)/opt/rudder/bin/
 
-	install -m 644 rudder-webapp $(DESTDIR)/opt/rudder/etc/server-roles.d/
 	install -m 640 rudder-passwords.conf $(DESTDIR)/opt/rudder/etc/
 
 	# Add rudder-metrics-reporting

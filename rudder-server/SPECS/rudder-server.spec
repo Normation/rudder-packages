@@ -384,7 +384,6 @@ rm -rf %{buildroot}
 /usr/lib/systemd/system/rudder-server.service
 /opt/rudder/share/versions/rudder-server-version
 /opt/rudder/etc/postgresql/reportsSchema.sql
-/opt/rudder/etc/server-roles.d/
 /opt/rudder/share/package-scripts/
 %config(noreplace) /opt/rudder/etc/openldap/slapd.conf
 %config(noreplace) /etc/rsyslog.d/rudder-slapd.conf

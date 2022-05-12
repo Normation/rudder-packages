@@ -1,5 +1,5 @@
 Source: rudder-server-root
-Section: web
+Section: oldlibs
 Priority: extra
 Maintainer: Rudder Team <dev@rudder.io>
 Build-Depends: debhelper (>= 9), ca-certificates, curl
