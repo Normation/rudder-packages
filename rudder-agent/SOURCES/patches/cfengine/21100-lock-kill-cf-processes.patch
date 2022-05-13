@@ -4,7 +4,7 @@ diff --color -ruN cfengine-source.orig/libpromises/locks.c cfengine-source/libpr
 @@ -717,6 +717,30 @@
      };
  }
- 
+
 +// returns true if pid points to a cfenbgine process
 +static bool is_cfengine_process(const int pid)
 +{
@@ -35,7 +35,7 @@ diff --color -ruN cfengine-source.orig/libpromises/locks.c cfengine-source/libpr
 @@ -834,15 +858,23 @@
                      "Lock expired after %jd/%u minutes: %s",
                      (intmax_t) elapsedtime, expireafter, cflock);
- 
+
 -                if (KillLockHolder(cflock))
 +                if (is_cfengine_process(cflock.pid))
                  {
@@ -43,7 +43,7 @@ diff --color -ruN cfengine-source.orig/libpromises/locks.c cfengine-source/libpr
 -                        "Lock successfully expired: %s", cflock);
 -                    unlink(cflock);
 +                    Log(LOG_LEVEL_INFO,
-+                        "Lock holder disapeared");
++                        "Lock holder disappeared");
                  }
                  else
                  {
