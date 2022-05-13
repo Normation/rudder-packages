@@ -238,13 +238,13 @@ fi
 
 set -e
 
-%if 0%{?rhel}
-  /opt/rudder/share/package-scripts/rudder-reports-postinst true
-%else
-  /opt/rudder/share/package-scripts/rudder-reports-postinst
-%endif
-
 RUDDER_FIRST_INSTALL="false"
+%if 0%{?rhel}
+# rhel does'nt initialize postgresql
+DB_NOT_INITIALIZED="true"
+%else
+DB_NOT_INITIALIZED="false"
+%endif
 
 # Do this ONLY at first install
 if [ $1 -eq 1 ]
@@ -273,9 +273,9 @@ then
   sed -i 's%APACHE_MODULES="${APACHE_MODULES} rewrite dav dav_fs proxy proxy_http.*%# This sources the Rudder needed by Rudder\n. /etc/sysconfig/rudder-webapp-apache%' /etc/sysconfig/apache2
 fi
 
-if ! /opt/rudder/share/package-scripts/rudder-webapp-postinst "${RUDDER_FIRST_INSTALL}" "%{apache}"; then
+if ! /opt/rudder/share/package-scripts/rudder-server-postinst "${RUDDER_FIRST_INSTALL}" "%{apache}" "${DB_NOT_INITIALIZED}"; then
   echo "**************************************************************************************"
-  echo "ERROR: rudder-webapp postinstall script failed !"
+  echo "ERROR: rudder-server postinstall script failed !"
   echo ""
   echo "Trying to recover the problem, you should check that your instance is properly working"
   echo ""
@@ -302,12 +302,10 @@ if type sestatus >/dev/null 2>&1 && sestatus | grep -q "enabled"; then
 fi
 %endif
 
-/opt/rudder/share/package-scripts/rudder-server-root-postinst "$1"
-
 #=================================================
 # Pre Un-installation
 #=================================================
-%preun -n rudder-webapp
+%preun
 
 set -e
 
@@ -361,11 +359,12 @@ fi
 #=================================================
 # Post transaction
 #=================================================
-%posttrans -n rudder-webapp
+%posttrans
 
 set -e
 
 # during upgrade, service may have been stopped by uninstall of rudder-inventory-ldap or rudder-jetty
+# 7.2 should not happen anymore
 systemctl start rudder-slapd >/dev/null
 systemctl start rudder-jetty >/dev/null
 
@@ -380,7 +379,7 @@ rm -rf %{buildroot}
 #=================================================
 %files
 %defattr(-, root, root, 0755)
-/opt/rudder/share/package-scripts/rudder-server-root-postinst
+/opt/rudder/share/package-scripts/rudder-server-postinst
 /usr/lib/systemd/system/rudder-server.service
 /opt/rudder/share/versions/rudder-server-version
 /opt/rudder/etc/postgresql/reportsSchema.sql

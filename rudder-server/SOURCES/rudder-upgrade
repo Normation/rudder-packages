@@ -44,8 +44,6 @@ trap 'anomaly_handler ${LINENO}' ERR INT TERM
 # - All versions : Check that Rudder database is able to handle backslash
 # - All versions : Check for the PostgreSQL version
 # - All versions : Create ncf technique update flag and restart at the end of the script
-# - 6.0.0        : Remove ncf hooks
-# - 6.0.4        : Ensure that rudder-slapd sockbuf_max_incoming_auth is not lost at upgrade
 # - 6.1.0        : Migrate RudderUniqueID to the template format
 # - 6.1.0        : Add indexes cn,softwareVersion,directiveId in slapd.conf
 # - 6.1.1        : Update apache conf if it does not contain technique editor conf (file not updated by packaging

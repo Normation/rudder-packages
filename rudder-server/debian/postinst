@@ -21,20 +21,16 @@ set -e
 case "$1" in
     configure)
       # Is this the first installation?
-      CFRUDDER_FIRST_INSTALL=0
       RUDDER_FIRST_INSTALL="false"
       if [ -z "${2}" ]; then
-        CFRUDDER_FIRST_INSTALL=1
         RUDDER_FIRST_INSTALL="true"
       fi
-
-      /opt/rudder/share/package-scripts/rudder-reports-postinst
 
       a2enmod rewrite proxy_http headers ssl filter deflate >/dev/null
       # This module is compiled in core in some distro (debian)
       a2enmod version >/dev/null 2>&1 || true
 
-      if ! /opt/rudder/share/package-scripts/rudder-webapp-postinst "${RUDDER_FIRST_INSTALL}" "apache2"; then
+      if ! /opt/rudder/share/package-scripts/rudder-server-postinst "${RUDDER_FIRST_INSTALL}" "apache2" "false"; then
         echo "**************************************************************************************"
         echo "ERROR: rudder-webapp postinstall script failed !"
         echo ""
@@ -49,8 +45,6 @@ case "$1" in
         LOG_FILE="/var/log/rudder/install/rudder-webapp-fail-$(date +%Y%m%d%H%M%S).log"
         /opt/rudder/bin/rudder-fix-repository-permissions  >> ${LOG_FILE}
       fi
-
-      /opt/rudder/share/package-scripts/rudder-server-root-postinst "${CFRUDDER_FIRST_INSTALL}"
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)

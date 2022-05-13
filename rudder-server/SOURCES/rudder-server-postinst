@@ -1,0 +1,260 @@
+#!/bin/bash
+set -e
+
+LDAP_CONF="/opt/rudder/etc/openldap/slapd.conf"
+RUDDER_DIR="/opt/rudder/"
+LOG_FILE="/var/log/rudder/install/rudder-server-$(date +%Y%m%d%H%M%S).log"
+mkdir -p /var/log/rudder/install
+
+RUDDER_FIRST_INSTALL="$1"
+APACHE="$2"
+DB_NOT_INITIALIZED="$3"
+if [ -z "$1" ]
+then
+  echo "Usage: $0 <RUDDER_FIRST_INSTALL>"
+  echo " This should only be called from a package postinstall command"
+  exit 1
+fi
+
+mkdir -p /var/log/rudder/install
+
+echo "`date` - Starting rudder-server post installation script" >> ${LOG_FILE}
+
+
+# check if a db is configured
+CREATE_DB="true"
+if [ -f /opt/rudder/etc/rudder-web.properties ] && grep -q rudder.jdbc.url /opt/rudder/etc/rudder-web.properties
+then
+  # if it is an external DB, do not run
+  if ! grep -qE 'rudder.jdbc.url=jdbc:postgresql://(localhost|127\.0\.)' /opt/rudder/etc/rudder-web.properties
+  then
+    echo "INFO: External database detected, skipping rudder-reports postinst"
+    CREATE_DB="false"
+  fi
+fi
+
+if [ "${CREATE_DB}" = "true" ]
+then
+  echo "$(date) - Starting rudder-reports post installation step" >> ${LOG_FILE}
+
+  # Try with systemd
+  POSTGRESQL_SERVICE_NAME=$(systemctl list-unit-files --type service | awk -F'.' '{print $1}' | grep -E "^postgresql-?[0-9]*$" | tail -n 1)
+
+  if [ -z "${POSTGRESQL_SERVICE_NAME}" ] && ! type chkconfig >/dev/null 2>/dev/null ; then
+    # on sles 12 postgresql uses an old init file but is properly managed by systemd so this is the only place we need a workaround
+    POSTGRESQL_SERVICE_NAME=$(chkconfig 2>/dev/null | awk '{ print $1 }' | grep "postgresql" | tail -n 1)
+  fi
+
+  # If nothing try default name (should not happen)
+  if [ -z "${POSTGRESQL_SERVICE_NAME}" ]; then
+    POSTGRESQL_SERVICE_NAME="postgresql"
+  fi
+  echo "Found postgres service name: ${POSTGRESQL_SERVICE_NAME}" >> ${LOG_FILE}
+
+  # Start if necessary
+  if ! systemctl status ${POSTGRESQL_SERVICE_NAME} > /dev/null
+  then
+    # redhat doesn't initialize postgres, do it now
+    if [ "${DB_NOT_INITIALIZED}" = "true" ]; then
+      # Detecting path of postgresql-setup
+      POSTGRESQL_SETUP=$(ls -1  /usr/pgsql-*/bin/postgresql*-setup 2> /dev/null | sort -V | tail -1)
+      if [ -z "${POSTGRESQL_SETUP}" ]; then
+        POSTGRESQL_SETUP="postgresql-setup"
+      fi
+
+      # rhel package doesn't initialize database
+      echo "Initializing postgresql db (initdb)" >> ${LOG_FILE}
+      ${POSTGRESQL_SETUP} initdb >> ${LOG_FILE} 2>&1
+    fi
+    systemctl start ${POSTGRESQL_SERVICE_NAME} >> ${LOG_FILE}
+  fi
+
+  # TODO RPM only ??
+    PG_HBA_FILE=$(su postgres -c "psql -t -P format=unaligned -c 'show hba_file';")
+    if [ $? -ne 0 ]; then
+      echo "Postgresql failed to start! Halting"
+      exit 1
+    fi
+
+    #HACK: Give rights for login without unix account
+    if [ -f ${PG_HBA_FILE} ]; then
+      RUDDER_PG_DEFINED=`grep "rudder" ${PG_HBA_FILE} | wc -l`
+      if [ ${RUDDER_PG_DEFINED} -le 0 ]; then
+        # we cannot put at the bottom the rules
+        # Check that the defining line for file is there
+        grep -q "^# TYPE" ${PG_HBA_FILE}
+        if [ $? -eq 0 ]; then
+          sed -i  '/^# TYPE.*/a # Rudder specific access for PostgreSQL' ${PG_HBA_FILE}
+        else
+          # Put it on top
+          sed -i 1i"# Rudder specific access for PostgreSQL" ${PG_HBA_FILE}
+        fi
+        sed -i  '/^# Rudder specific access for PostgreSQL/a host    all             rudder          127.0.0.1/32            md5' ${PG_HBA_FILE}
+        sed -i  '/^# Rudder specific access for PostgreSQL/a host    all             rudder             ::1/128              md5' ${PG_HBA_FILE}
+
+        # Apply changes in PostgreSQL
+        # TODO just after a start ?
+        systemctl reload ${POSTGRESQL_SERVICE_NAME} >> ${LOG_FILE}
+      fi
+    fi
+  # ODOT
+
+  # RHEL doesn't autostart service
+  systemctl enable ${POSTGRESQL_SERVICE_NAME} >> ${LOG_FILE} 2>&1
+
+  CPT=0
+  TIMEOUT=60
+  while ! su postgres -c "psql -q --output /dev/null -c \"SELECT COUNT(*) FROM pg_catalog.pg_authid\"" >/dev/null 2>&1
+  do
+    echo -n "."
+    sleep 1
+    CPT=$((${CPT}+1))
+    if [ ${CPT} -eq ${TIMEOUT} ]
+    then
+      echo -e "\nERROR: Connection to PostgreSQL has not been established before timeout. Exiting"
+      exit 1
+    fi
+  done
+
+  DBNAME="rudder"
+  USERNAME="rudder"
+  CHK_PG_DB=$(su postgres -c "psql -t -c \"select count(1) from pg_catalog.pg_database where datname = '${DBNAME}'\"")
+  CHK_PG_USER=$(su postgres -c "psql -t -c \"select count(1) from pg_user where usename = '${USERNAME}'\"")
+
+  # Rudder user
+  if [ ${CHK_PG_USER} -eq 0 ]
+  then
+    su postgres -c "psql -q -c \"CREATE USER ${USERNAME} WITH PASSWORD 'Normation'\"" >> ${LOG_FILE}
+  fi
+
+  # Rudder database
+  if [ ${CHK_PG_DB} -eq 0 ]
+  then
+    su postgres -c "psql -q -c \"CREATE DATABASE ${DBNAME} WITH OWNER = ${USERNAME}\"" >> ${LOG_FILE}
+    echo "localhost:5432:${DBNAME}:${USERNAME}:Normation" > /root/.pgpass
+    chmod 600 /root/.pgpass
+    psql -q -U rudder -h localhost -d rudder -f /opt/rudder/etc/postgresql/reportsSchema.sql >> ${LOG_FILE}
+  fi
+
+  echo "$(date) - Ending rudder-reports post installation step" >> ${LOG_FILE}
+fi
+
+
+
+mkdir -p /var/log/rudder/install
+
+echo "$(date) - Starting rudder-webapp post installation step" >> ${LOG_FILE}
+
+echo "Creating rudder users" >> ${LOG_FILE}
+if ! getent group rudder-slapd >/dev/null; then
+  groupadd --system rudder-slapd >> ${LOG_FILE}
+fi
+
+if ! getent passwd rudder-slapd >/dev/null; then
+  useradd --system --gid rudder-slapd --shell /bin/false --home-dir /var/rudder/ldap --comment "Rudder LDAP server,,," rudder-slapd >> ${LOG_FILE}
+fi
+chown root:rudder-slapd "${LDAP_CONF}"
+chmod 640 "${LDAP_CONF}"
+chown -R rudder-slapd:rudder-slapd /var/rudder/ldap/
+
+echo "Stopping apache before running upgrade scripts" >> ${LOG_FILE}
+systemctl stop ${APACHE} >> ${LOG_FILE}
+
+# create gitignore if it doesn't exist
+[ -f /var/rudder/configuration-repository/.gitignore ] || echo "ncf/ncf_hash_file" > /var/rudder/configuration-repository/.gitignore
+
+echo "Managing services" >> ${LOG_FILE}
+systemctl daemon-reload
+
+systemctl enable rudder-jetty >> ${LOG_FILE} 2>&1
+systemctl enable rudder-slapd >> ${LOG_FILE} 2>&1
+systemctl enable rudder-server >> ${LOG_FILE} 2>&1
+
+echo "Initializing filesystem" >> ${LOG_FILE}
+# Remove .pyc files to ensure we don't end up with outdated files
+rm -f /usr/share/ncf/tools/ncf.pyc
+rm -f /usr/share/ncf/tools/ncf_constraints.pyc
+rm -rf /usr/share/ncf/tools/__pycache__
+
+# Add perms on inventories
+chmod 751 /var/rudder/inventories
+
+# Create and populate technique store
+mkdir -p /var/rudder/configuration-repository/shared-files
+
+if [ ! -d /var/rudder/configuration-repository/techniques ]; then
+  cp -a /opt/rudder/share/techniques /var/rudder/configuration-repository/
+  touch /opt/rudder/etc/force_technique_reload
+fi
+
+# Start with a fresh ncf if needed
+if [ ! -d /var/rudder/ncf/common/10_ncf_internals ]; then
+  cp -a /usr/share/ncf/tree/* /var/rudder/ncf/common/
+fi
+
+# Initialize git repository if it is missing, so permissions can be set on it afterwards
+cd /var/rudder/configuration-repository
+if [ ! -d /var/rudder/configuration-repository/.git ]; then
+  echo "Initializing git" >> ${LOG_FILE}
+  git config --global init.defaultBranch master
+  git init --shared=group >> ${LOG_FILE}
+
+  # Specify default git user name and email (git will refuse to commit without them)
+  git config user.name "root user (CLI)"
+  git config user.email "root@localhost"
+  git config init.defaultBranch master
+
+  git add .
+  git commit -q -m "initial commit"
+fi
+
+if [ "${RUDDER_FIRST_INSTALL}" = "true" ]; then
+  echo "Upgrading techniques" >> ${LOG_FILE}
+  /opt/rudder/bin/rudder server upgrade-techniques --set-autoupdate-technique-library=true >> ${LOG_FILE}
+fi
+
+echo "Configuring LDAP" >> ${LOG_FILE}
+
+# Check if Rudder LDAP is initialized and run rudder-init
+# sed stops at first match (giving a SIGPIPE to command) so that the slapcat is not too long on big db
+# To prevent error "error writing output.", we redirect error of slapcat to /dev/null
+LDAPCHK=`/opt/rudder/sbin/slapcat 2>/dev/null | sed -n '/^dn: /{p;q}' | wc -l`
+if [ $LDAPCHK -eq 0 ]; then
+  /opt/rudder/bin/rudder-init no auto >> ${LOG_FILE}
+fi
+
+# Run any upgrades
+echo "Running upgrade script" >> ${LOG_FILE}
+/opt/rudder/bin/rudder-upgrade >> ${LOG_FILE}
+
+# Adjust permissions on /var/rudder/configuration-repository
+/opt/rudder/bin/rudder-fix-repository-permissions >> ${LOG_FILE}
+
+echo "Running plugins upgrade scripts" >> ${LOG_FILE}
+rudder package rudder-postupgrade  || true
+
+echo "Restoring file ACLs" >> ${LOG_FILE}
+cd /
+[ -f /tmp/rudder-hooks-upgrade ] && setfacl --restore=/tmp/rudder-hooks-upgrade
+
+echo "Rudder-lang : update libraries by re-generating them" >> ${LOG_FILE}
+/opt/rudder/share/language/tools/generate_lib
+
+# Restart the webapp
+systemctl restart rudder-jetty >> ${LOG_FILE} || true
+
+## Make sure everything is ok
+if [ "${RUDDER_FIRST_INSTALL}" = "true" ]; then
+  rudder agent check -f >> "${LOG_FILE}" 2>&1
+fi
+
+echo "$(date) - Ending rudder-webapp post installation step" >> ${LOG_FILE}
+
+# apache must be started (and restarted if needed)
+systemctl restart ${APACHE} >> ${LOG_FILE}
+
+
+# We need it to be able to open big mdb memory-mapped databases
+ulimit -v unlimited
+
+echo "$(date) - Ending rudder-server post installation script" >> ${LOG_FILE}

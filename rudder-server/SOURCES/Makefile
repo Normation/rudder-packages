@@ -162,8 +162,7 @@ install: build rudder-server-version initial-promises initial-ncf
 	mkdir -p $(DESTDIR)/opt/rudder/share/versions/
 	install -m 644 rudder-sources/rudder/webapp/sources/rudder/rudder-core/src/main/resources/reportsSchema.sql $(DESTDIR)/opt/rudder/etc/postgresql/
 	install -m 644 rudder-server.service $(DESTDIR)/usr/lib/systemd/system/
-	install -m 755 rudder-server-root-postinst $(DESTDIR)/opt/rudder/share/package-scripts/
-	install -m 755 rudder-server-reports-postinst $(DESTDIR)/opt/rudder/share/package-scripts/
+	install -m 755 rudder-server-postinst $(DESTDIR)/opt/rudder/share/package-scripts/
 	install -m 644 rudder-server-version $(DESTDIR)/opt/rudder/share/versions/
 	mkdir -p $(DESTDIR)/opt/rudder/etc/
 	mkdir -p $(DESTDIR)/opt/rudder/etc/plugins/licenses
@@ -275,7 +274,6 @@ install: build rudder-server-version initial-promises initial-ncf
 	install -m 644 rudder-jetty.default $(DESTDIR)/etc/default/rudder-jetty
 	install -m 644 rudder-jetty.conf $(DESTDIR)/opt/rudder/etc/
 
-	install -m 755 rudder-webapp-postinst $(DESTDIR)/opt/rudder/share/package-scripts/
 	install -m 644 rudder-jetty.service $(DESTDIR)/usr/lib/systemd/system/
 
 	cp -r initial-promises/ $(DESTDIR)/opt/rudder/share/

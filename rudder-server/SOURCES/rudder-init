@@ -107,11 +107,6 @@ LDAPInit()
   ErrorCheck
 }
 
-# Reset the policy server hostname
-function reset_policy_server() {
-  echo "127.0.0.1" > /var/rudder/cfengine-community/policy_server.dat
-}
-
 function add_allowed_networks() {
   network="$1"
   # check for invalid network definition
@@ -198,7 +193,8 @@ echo Allowed networks: "${ALLOWEDNETWORK[*]}"
 echo Force LDAP reset: "$LDAPRESET"
 echo
 
-reset_policy_server
+# slapd must bne started and up to date
+systemctl restart rudder-slapd
 
 # LDAP (re)initialization
 if [ ${LDAP_EXISTS} -gt 0 ]
@@ -249,17 +245,9 @@ Require ip ::1
 $REQUIRE_NET
 EOF
 
-# In case of upgrade, we can restart rudder-jetty, else we are during an initialization and restart
-# was done by agent
-if [ ${LDAP_EXISTS} -eq 0 ]
-then
-  # Ensure that rudder-jetty is not yet started and in a broken state
-  systemctl stop rudder-jetty
-fi
-
 RUDDER_CONTEXT=$(grep contextPath ${RUDDER_OPT}/share/webapps/rudder.xml | sed "s@^\s*<Set name=\"contextPath\">\(.*\)</Set>@\1@")
 echo
-echo "Reinitialization complete, Rudder is currently reloading."
+echo "Reinitialization complete."
 echo
-echo "You can access it via https://${RUDDER_HOSTNAME}${RUDDER_CONTEXT}"
+echo "Rudder URL https://${RUDDER_HOSTNAME}${RUDDER_CONTEXT}"
 echo
