@@ -85,7 +85,7 @@ BuildRequires: gcc, rsync
 %if 0%{?rhel}
 BuildRequires: selinux-policy-devel
 Requires: mod_ssl httpd shadow-utils
-Requires: jre-headless >= 1.8
+Requires: jre-headless >= 11
 Requires: perl-Digest-SHA libtool-ltdl
 BuildRequires: openssl-devel libtool-ltdl-devel
 %endif
@@ -96,12 +96,8 @@ Requires: apache2 pwdutils libltdl7
 BuildRequires: libopenssl-devel
 %endif
 
-%if 0%{?sle_version} && 0%{?sle_version} >= 120100 && 0%{?sle_version} < 150000
-Requires: java-1_8_0-openjdk-headless
-%endif
-
 %if 0%{?sle_version} && 0%{?sle_version} >= 150000
-Requires: jre-headless >= 8
+Requires: jre-headless >= 11
 %endif
 
 ## Python 3
