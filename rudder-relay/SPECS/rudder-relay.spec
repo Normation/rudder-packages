@@ -265,7 +265,6 @@ rm -rf %{buildroot}
 /var/rudder/lib/relay/
 /var/log/rudder/apache2/
 /usr/lib/systemd/system/rudder-relayd.service
-/opt/rudder/bin/relay-cleanup
 /opt/rudder/bin/rudder-relayd
 /opt/rudder/bin/rudder-pkg
 /opt/rudder/etc/rudder-pkg/rudder_plugins_key.pub
