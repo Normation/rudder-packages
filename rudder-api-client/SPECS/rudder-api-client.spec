@@ -47,35 +47,17 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 AutoReq: 0
 AutoProv: 0
 
-## Python 2
-%if 0%{?rhel} == 7 || ( 0%{?suse_version} && 0%{?suse_version} < 1500 )
-BuildRequires: python, python-requests
-Requires: python, python-requests, python-urllib3
-%else
-## Python 3, rhel8
-%if 0%{?rhel} == 8
+## Python
 BuildRequires: python3, python3-requests
 Requires: python3, python3-requests, python3-urllib3
-%else
-## sles 15
-BuildRequires: python3, python3-requests
-Requires: python3, python3-requests, python3-docopt, python3-urllib3
-%endif
+
+## sles
+%if 0%{?suse_version}
+Requires: python3-docopt
 %endif
 
 %description
 Command line tools and python libraries to call Rudder.
-
-#=================================================
-# Source preparation
-#=================================================
-%prep
-%setup -c
-
-# rhel7 does not have python3 so we force python2 instead
-%if 0%{?rhel} == 7 || ( 0%{?suse_version} && 0%{?suse_version} < 1500 )
-find . -type f | xargs sed -i '1,1s|#!/usr/bin/python3|#!/usr/bin/python2|'
-%endif
 
 #=================================================
 # Installation

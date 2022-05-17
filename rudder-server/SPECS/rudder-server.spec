@@ -104,24 +104,9 @@ Requires: java-1_8_0-openjdk-headless
 Requires: jre-headless >= 8
 %endif
 
-## Python 3
-%if 0%{?rhel} && 0%{?rhel} == 7
-BuildRequires: python
-Requires: python
-%endif
-%if 0%{?rhel} && 0%{?rhel} == 8
+## Python
 BuildRequires: python3
 Requires: python3
-%endif
-# Doc for suse versioning https://en.opensuse.org/openSUSE:Packaging_for_Leap
-%if 0%{?suse_version} && 0%{?suse_version} < 1500
-BuildRequires: python
-Requires: python, python-pyOpenSSL
-%endif
-%if 0%{?suse_version} && 0%{?suse_version} >= 1500
-BuildRequires: python3
-Requires: python3
-%endif
 
 %description
 Rudder is an open source configuration management and audit solution.
