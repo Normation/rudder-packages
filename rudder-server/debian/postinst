@@ -26,9 +26,8 @@ case "$1" in
         RUDDER_FIRST_INSTALL="true"
       fi
 
-      a2enmod rewrite proxy_http headers ssl filter deflate >/dev/null
-      # This module is compiled in core in some distro (debian)
-      a2enmod version >/dev/null 2>&1 || true
+      # apache modules must be handled in rudder-relay because they are needed
+      # to restart apache properly and avoid Pre Dependencies which are complex to handle
 
       if ! /opt/rudder/share/package-scripts/rudder-server-postinst "${RUDDER_FIRST_INSTALL}" "apache2" "false"; then
         echo "**************************************************************************************"

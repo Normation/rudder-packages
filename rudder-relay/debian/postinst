@@ -27,6 +27,14 @@ case "$1" in
       # This module is compiled in core in some distro (debian)
       a2enmod version >/dev/null 2>&1 || true
 
+      if [ -f "/opt/rudder/etc/rudder-apache-webapp-ssl.conf" ]
+      then
+        # Those modules are webapp specific, but are needed to restart apache
+        # - we avoid loading unnecessary files with the if
+        # - we trade a big source of bug (predepends) with this little trick
+        a2enmod rewrite headers filter deflate >/dev/null
+      fi
+
       # Is this the first installation?
       CFRUDDER_FIRST_INSTALL=0
       if [ -z "${2}" ]; then CFRUDDER_FIRST_INSTALL=1; fi
