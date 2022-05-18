@@ -64,6 +64,8 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 AutoReq: 0
 AutoProv: 0
 
+Obsoletes: rudder-server-relay < 7.2
+
 ## General
 BuildRequires: pkgconfig, postgresql-devel
 Requires: %(../format-dependencies rpm %{old_epoch}:%{real_version} rudder-agent), %{apache}, %{apache_tools}, binutils, xz, postgresql, rsync, sudo

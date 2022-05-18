@@ -1,4 +1,17 @@
 #!/bin/bash
+
+# During a DPKG server installation this happens
+# apt-get install -> server preinst -> relay preinst -> agent preinst ...
+#                 -> agent, relay, server files
+#                 -> agent postinst -> relay postinst -> server postinst
+#
+# During a RPM server installation this happens
+# dnf install -> pretrans
+#             -> agent preinst -> agent files -> agent postinst
+#             -> relay preinst -> relay files -> relay postinst
+#             -> server preinst -> server files -> server postinst
+#             -> posttrans
+
 set -e
 
 LDAP_CONF="/opt/rudder/etc/openldap/slapd.conf"

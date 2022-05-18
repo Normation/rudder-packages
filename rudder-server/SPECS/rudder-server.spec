@@ -73,8 +73,12 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 AutoReq: 0
 AutoProv: 0
 
+Obsoletes: rudder-server-root < 7.2
+Obsoletes: rudder-webapp < 7.2
+Obsoletes: rudder-reports < 7.2
+
 Requires: %(../format-dependencies rpm %{old_epoch}:%{real_version} rudder-agent)
-Requires: %(../format-dependencies rpm %{real_version} rudder-server-relay)
+Requires: %(../format-dependencies rpm %{real_version} rudder-relay)
 Requires: postgresql-server >= 10.3, %{apache}, %{apache_tools}, git-core, iproute, rsync, openssl, %{ldap_clients}, curl, acl, rudder-api-client
 
 BuildRequires: gcc, rsync
