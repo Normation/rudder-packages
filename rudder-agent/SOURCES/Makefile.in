@@ -27,29 +27,29 @@ $(error RUDDER_VERSION_TO_PACKAGE has not been set)
 endif
 
 # Original URL: http://zlib.net/zlib-$(ZLIB_RELEASE).tar.gz
-zlib_RELEASE = 1.2.11
-zlib_SHA256 = c3e5e9fdd5004dcb542feda5ee4f0ff0744628baf8ed2dd5d66f8ca1197cb1a1
-# Original URL: http://ftp.fr.debian.org/debian/pool/main/l/lmdb/lmdb_$(LMDB_RELEASE).orig.tar.xz
-lmdb_RELEASE = 0.9.24
-lmdb_SHA256 = 44602436c52c29d4f301f55f6fd8115f945469b868348e3cddaf91ab2473ea26
-# Original URL: http://vorboss.dl.sourceforge.net/project/pcre/pcre/8.38/pcre-8.38.tar.gz
-pcre_RELEASE = 8.38
-pcre_SHA256 = 9883e419c336c63b0cb5202b09537c140966d585e4d0da66147dc513da13e629
+zlib_RELEASE = 1.2.12
+zlib_SHA256 = 91844808532e5ce316b3c010929493c0244f3d37593afd6de04f71821d5136d9
+# Original URL: https://github.com/LMDB/lmdb/archive/refs/tags/LMDB_$(LMDB_RELEASE).tar.gz
+lmdb_RELEASE = 0.9.29
+lmdb_SHA256 = 22054926b426c66d8f2bc22071365df6e35f3aacf19ad943bc6167d4cae3bebb
+# Original URL: https://deac-ams.dl.sourceforge.net/project/pcre/pcre/8.45/pcre-8.45.tar.gz
+pcre_RELEASE = 8.45
+pcre_SHA256 = 4e6ce03e0336e8b4a3d6c2b70b1c5e18590a5673a98186da90d4f33c23defc09
 # Original URL: https://www.openssl.org/source/openssl-$(OPENSSL_RELEASE).tar.gz
-openssl_RELEASE = 1.1.1n
-openssl_SHA256 = 40dceb51a4f6a5275bde0e6bf20ef4b91bfc32ed57c0552e2e8e15463372b17a
-# Original URL: http://pyyaml.org/download/libyaml/yaml-0.1.7.tar.gz
-libyaml_RELEASE = 0.2.1
-libyaml_SHA256 = 78281145641a080fb32d6e7a87b9c0664d611dcb4d542e90baf731f51cbb59cd
+openssl_RELEASE = 1.1.1o
+openssl_SHA256 = 9384a2b0570dd80358841464677115df785edb941c71211f75076d72fe6b438f
+# Original URL: http://pyyaml.org/download/libyaml/yaml-0.2.5.tar.gz
+libyaml_RELEASE = 0.2.5
+libyaml_SHA256 = c642ae9b75fee120b2d96c712538bd2cf283228d2337df2cf2988e3c02678ef4
 # Original URL: ftp://xmlsoft.org/libxml2/libxml2-2.9.7.tar.gz
-libxml2_RELEASE = 2.9.7
-libxml2_SHA256 = f63c5e7d30362ed28b38bfa1ac6313f9a80230720b7fb6c80575eeab3ff5900c
+libxml2_RELEASE = 2.9.12
+libxml2_SHA256 = c8d6681e38c56f172892c85ddc0852e1fd4b53b4209e7f4ebf17f7e2eae71d92
 # Original URL: https://curl.haxx.se/download/curl-7.58.0.tar.gz
-libcurl_RELEASE = 7.73.0
-libcurl_SHA256 = ba98332752257b47b9dea6d8c0ad25ec1745c20424f1dd3ff2c99ab59e97cf91
+libcurl_RELEASE = 7.83.1
+libcurl_SHA256 = 93fb2cd4b880656b4e8589c912a9fd092750166d555166370247f09d18f5d0c0
 # Original URL: https://ftp.gnu.org/gnu/readline/readline-8.0.tar.gz
-readline_RELEASE = 8.0
-readline_SHA256 = e339f51971478d369f8a053a330a190781acb9864cf4c541060f12078948e461
+readline_RELEASE = 8.1
+readline_SHA256 = f8ceb4ee131e3232226a17f51b164afc46cd0b9e6cef344be87c65962cb82b02
 # Original URL: http://download.augeas.net/augeas-1.12.0.tar.gz
 augeas_RELEASE = 1.12.0
 augeas_SHA256 = 321942c9cc32185e2e9cb72d0a70eea106635b50269075aca6714e3ec282cb87
@@ -60,11 +60,11 @@ jq_SHA256 = 1b3906e0c6dea26b5b9dcf864cc7334522f520d69543043c64b2c487e0c663ca
 cfengine_RELEASE = 3.18.1
 cfengine_SHA256 = 9d22db44a0a879c6edae5759fc481ac86ff13f81374fb835fe5e73fe8bc57681
 # Original URL: http://www.cpan.org/src/5.0/perl-5.22.4.tar.gz
-perl_RELEASE = 5.32.0
-perl_SHA256 = efeb1ce1f10824190ad1cadbcccf6fdb8a5d37007d0100d2d9ae5f2b5900c0b4
-# Original URL: http://www.cpan.org/modules/by-module/App/App-cpanminus-1.7036.tar.gz
-cpanminus_RELEASE = 1.7044
-cpanminus_SHA256 = 9b60767fe40752ef7a9d3f13f19060a63389a5c23acc3e9827e19b75500f81f3
+perl_RELEASE = 5.34.1
+perl_SHA256 = 357951a491b0ba1ce3611263922feec78ccd581dddc24a446b033e25acf242a1
+# Original URL: http://www.cpan.org/modules/by-module/App/App-cpanminus-1.7046.tar.gz
+cpanminus_RELEASE = 1.7046
+cpanminus_SHA256 = 3e8c9d9b44a7348f9acc917163dbfc15bd5ea72501492cea3a35b346440ff862
 # Original URL: https://github.com/fusioninventory/fusioninventory-agent/releases/download/2.3.19/FusionInventory-Agent-$(FUSION_RELEASE).tar.gz
 fusion_RELEASE = 2.4.3
 fusion_SHA256 = ca9d3630256303bd3ea1f158044904b53fbd7e409a6a647888e9d2c3103b45fd

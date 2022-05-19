@@ -21,13 +21,13 @@ SHELL = /bin/bash
 
 RUDDER_VERSION_TO_PACKAGE =
 RUDDER_MAJOR_VERSION := $(shell echo ${RUDDER_VERSION_TO_PACKAGE} | cut -d'.' -f 1-2)
-MAVEN_RELEASE = 3.5.4
-MAVEN_SHA256 = ce50b1c91364cb77efe3776f756a6d92b76d9038b0a0782f7d53acf1e997a14d
+# Original URL: http://repo1.maven.org/maven2/org/eclipse/jetty/jetty-distribution/$(JETTY_RELEASE).v$(DATE_RELEASE)/jetty-distribution-$(JETTY_RELEASE).v$(DATE_RELEASE).tar.gz
 JETTY_RELEASE = 9.4.44
 DATE_RELEASE = 20210927
 JETTY_SHA256 = fdfd0d1e2732576c09246df8484ff7ed4aa4c84143927936934cb6b8e5194fa3
-OPENLDAP_RELEASE = 2.4.59
-OPENLDAP_SHA256 = 99f37d6747d88206c470067eda624d5e48c1011e943ec0ab217bae8712e22f34
+# Original URL: https://www.openldap.org/software/download/OpenLDAP/openldap-release/openldap-2.6.2.tgz
+OPENLDAP_RELEASE = 2.6.2
+OPENLDAP_SHA256 = 81d09345232eb62486ecf5acacd2c56c0c45b4a6c8c066612e7f421a23a1cf87
 TMP_DIR := $(shell mktemp -dq)
 RELEASE_TYPE := $(shell if echo ${RUDDER_VERSION_TO_PACKAGE} | grep -q git; then echo nightly; else echo release; fi)
 
@@ -56,19 +56,17 @@ localdepends: initial-promises initial-ncf rudder-sources rudder-doc rudder.war 
 	rm -rf $(TMP_DIR)
 
 openldap-source:
-	# Original URL: ftp://ftp.openldap.org/pub/OpenLDAP/openldap-release/openldap-$(OPENLDAP_RELEASE).tgz
 	$(GET) ./openldap.tgz https://repository.rudder.io/build-dependencies/openldap/openldap-$(OPENLDAP_RELEASE).tgz $(OPENLDAP_SHA256)
 	tar xzf ./openldap.tgz -C .
 	mv ./openldap-$(OPENLDAP_RELEASE) ./openldap-source
 
 	# Apply patches
-	for PATCHNAME in patches/openldap/*.patch; do echo "Applying $$PATCHNAME..."; patch -d ./openldap-source -p1 < $$PATCHNAME || exit; done
+	#for PATCHNAME in patches/openldap/*.patch; do echo "Applying $$PATCHNAME..."; patch -d ./openldap-source -p1 < $$PATCHNAME || exit; done
 	# Make sure there were no rejects
 	test `find ./openldap-source -name \*.rej | wc -l` = 0
 	rm -rf ./openldap.tgz
 
 jetty:
-	# Original URL: http://repo1.maven.org/maven2/org/eclipse/jetty/jetty-distribution/$(JETTY_RELEASE).v$(DATE_RELEASE)/jetty-distribution-$(JETTY_RELEASE).v$(DATE_RELEASE).tar.gz
 	$(GET) $(TMP_DIR)/jetty.tgz https://repository.rudder.io/build-dependencies/jetty/jetty-distribution-$(JETTY_RELEASE).v$(DATE_RELEASE).tar.gz $(JETTY_SHA256)
 	tar xzf $(TMP_DIR)/jetty.tgz -C $(TMP_DIR)
 	mv $(TMP_DIR)/jetty-distribution-$(JETTY_RELEASE).v$(DATE_RELEASE) jetty
@@ -139,7 +137,7 @@ build: $(BUILD_LDAP) rudder-sources build-language rudder-doc jetty rudder.war
 	touch $@
 
 # for centos7
-DEBUGOPT:=$(shell make -v --debug=n >/dev/null2>&1 && echo --debug=n)
+DEBUGOPT:=$(shell make -v --debug=n >/dev/null 2>&1 && echo --debug=n)
 build-ldap: openldap-source
 	cd openldap-source && CFLAGS="-Wno-format-extra-args -O2 ${SECURE_CFLAGS}" LDFLAGS="${SECURE_LDFLAGS}" ./configure --prefix=/opt/rudder --libdir=/opt/rudder/lib/ldap --enable-dynamic --enable-debug --enable-modules --enable-monitor=mod --enable-dynlist=mod --enable-mdb=yes --enable-hdb=no --enable-bdb=no
 	cd openldap-source && make $(DEBUGOPT) depend
