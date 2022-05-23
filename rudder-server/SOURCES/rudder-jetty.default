@@ -23,19 +23,38 @@ JAVA_MAXPERMSIZE=256
 #
 #JAVA_OPTIONS=""
 
-# Java Garbage collector option
-# On large heap (6 Go or more) and loaded platforms, ConcurrentMarkSweep (default GC 
-# for Rudder) becomes inefficient and Rudder can experience long "stop the world" 
-# garbage collections.
-# To avoid that, you can use G1GC which leads to faster (or no) full GC on big heap,
-# at the prize of a less throughout and a need of some more memory to work 
-# efficiently (~10%).
-# You can also tune you GC option here.
+# Java garbage collector option
 #
+# By default, Rudder uses G1GC which is a very good general purpose GC on
+# all sizes of heap. The configuration should be good on most case.
+# But you can change GC or tune GC options here, like debug flags.
+# Documentation can be found here:
+# https://docs.oracle.com/en/java/javase/11/gctuning/garbage-first-garbage-collector-tuning.html
+#
+# For example, to keep defaut GC and options but add a hint on maximum
+# latency for full GC, you can use:
 #JAVA_GC="-XX:+UseG1GC
-#-XX:+UnlockExperimentalVMOptions
 #-XX:+UseStringDeduplication
-#-XX:MaxGCPauseMillis=500"
+#-XX:+AlwaysPreTouch
+#-XX:MaxGCPauseMillis=100"
+
+# Java garbage collector log options
+# You can specify alternatives options for JVM GC logs: file path, log level, rotation parameters.
+
+# Configure alternative log file path. Default is:
+#JAVA_GC_LOG_FILE="/var/log/rudder/webapp/jvm-gc.log"
+# For example for a specific file for debug logs:
+#JAVA_GC_LOG_FILE="/var/log/rudder/webapp/jvm-gc-debug.log"
+
+# Configure log level for debug. Default gives general info about GC timing:
+#JAVA_GC_LOG="gc=info,gc+cpu=info,gc+stringdedup=info"
+# The example below is insightful for debugging GC problem but verbose:
+#JAVA_GC_LOG="gc*=info,gc+heap=debug,gc+phases=debug,gc+ref*=debug,gc+ergo*=trace,gc+age*=trace"
+
+# Configure gc log rotation. Default is 5 files of 50M:
+#JAVA_GC_LOG_ROTATE="filecount=5,filesize=50M"
+# But it may be too little for debug, you may want less, bigger files:
+#JAVA_GC_LOG_ROTATE="filecount=3,filesize=100M"
 
 # Java VM location
 #
@@ -45,7 +64,7 @@ JAVA_MAXPERMSIZE=256
 # Please specify a JVM location here if the script is unable to find
 # it.
 #
-#JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64
+#JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
 #JAVA=java
 
 # Source variables from /opt/rudder/etc/rudder-jetty.conf
