@@ -129,11 +129,24 @@ index 0000000..0d50653
 +$updates = @()
 +foreach ($update in $searchResult.Updates) {
 +  $Kbs = @($update.KBArticleIDs | ForEach-Object { "KB$_" })
++  $kind = ($update.Categories | Where-Object { $_.Type -eq "UpdateClassification" }).Name
++  if ( $kind -eq "SecurityUpdates" ) {
++    $kind = "security"
++  }
++  if ( $kind -eq "CriticalUpdates" ) {
++    $kind = "defect"
++  }
++  if ( $kind -eq "FeaturePacks" ) {
++    $kind = "enhancement"
++  }
++  if ( $kind -eq "Updates" ) {
++    $kind = "none"
++  }
 +  $updates += @{
 +    Name = $update.Title
 +    From = "Windows Update"
 +    Description = $update.Description
-+    Kind = ($update.Categories | Where-Object { $_.Type -eq "UpdateClassification" }).Name
++    Kind = $kind 
 +    Id = $Kbs + @($update.Identity.UpdateID)
 +    Risk = [Enum]::ToObject([Fusion.UpdateInstallationImpact], $update.InstallationBehavior.Impact).ToString()
 +    Type = [Enum]::ToObject([Fusion.UpdateType], $update.Type).ToString()
