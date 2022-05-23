@@ -21,10 +21,9 @@ SHELL = /bin/bash
 
 RUDDER_VERSION_TO_PACKAGE =
 RUDDER_MAJOR_VERSION := $(shell echo ${RUDDER_VERSION_TO_PACKAGE} | cut -d'.' -f 1-2)
-# Original URL: http://repo1.maven.org/maven2/org/eclipse/jetty/jetty-distribution/$(JETTY_RELEASE).v$(DATE_RELEASE)/jetty-distribution-$(JETTY_RELEASE).v$(DATE_RELEASE).tar.gz
-JETTY_RELEASE = 9.4.44
-DATE_RELEASE = 20210927
-JETTY_SHA256 = fdfd0d1e2732576c09246df8484ff7ed4aa4c84143927936934cb6b8e5194fa3
+# Original URL: http://repo1.maven.org/maven2/org/eclipse/jetty/jetty-home/${JETTY_RELEASE}/jetty-home-${JETTY_RELEASE}.tar.gz
+JETTY_RELEASE = 10.0.9
+JETTY_SHA256 = 69e4508d69d036e7569c82f242ef566b3ca7ad9ba7ad877408923e2abc1521e9
 # Original URL: https://www.openldap.org/software/download/OpenLDAP/openldap-release/openldap-2.6.2.tgz
 OPENLDAP_RELEASE = 2.6.2
 OPENLDAP_SHA256 = 81d09345232eb62486ecf5acacd2c56c0c45b4a6c8c066612e7f421a23a1cf87
@@ -67,14 +66,14 @@ openldap-source:
 	rm -rf ./openldap.tgz
 
 jetty:
-	$(GET) $(TMP_DIR)/jetty.tgz https://repository.rudder.io/build-dependencies/jetty/jetty-distribution-$(JETTY_RELEASE).v$(DATE_RELEASE).tar.gz $(JETTY_SHA256)
+	$(GET) $(TMP_DIR)/jetty.tgz https://repository.rudder.io/build-dependencies/jetty/jetty-home-$(JETTY_RELEASE).tar.gz $(JETTY_SHA256)
 	tar xzf $(TMP_DIR)/jetty.tgz -C $(TMP_DIR)
-	mv $(TMP_DIR)/jetty-distribution-$(JETTY_RELEASE).v$(DATE_RELEASE) jetty
+	mv $(TMP_DIR)/jetty-home-$(JETTY_RELEASE) jetty
 	rm -rf $(TMP_DIR)
 
 	# Remove useless / demo elements from Jetty
-	# jetty9 is clean now - only demo-base
-	rm -rf jetty/demo-base
+	# jetty 10 is clean now 
+	# rm -rf jetty/...
 
 	# Change jetty.sh before distincts files
 	patch -p0 -s < patches/jetty/jetty-init-umask.patch
@@ -93,9 +92,6 @@ jetty:
 
 	# Provide jetty's init script to the debian package's standard location
 	cp rudder-jetty.default ../debian/rudder-jetty.default
-
-	# Restore the name for log file from version of Rudder before 4.3 (see https://www.rudder-project.org/redmine/issues/12607)
-	patch -p0 -s < patches/jetty/jetty-console-capture-restore-log-filename.patch
 
 	# Make sure there were no rejects
 	test `find . -name \*.rej | wc -l` = 0

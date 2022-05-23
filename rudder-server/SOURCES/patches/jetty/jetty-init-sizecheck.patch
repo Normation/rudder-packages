@@ -1,6 +1,6 @@
 --- jetty/bin/jetty.sh.orig	2018-08-28 17:55:24.439012644 +0200
 +++ jetty/bin/jetty.sh	2018-08-28 17:58:28.054678897 +0200
-@@ -153,9 +153,24 @@
+@@ -154,9 +154,23 @@
    source "$1"
  }
  
@@ -21,32 +21,29 @@
  {
      echo "JAVA                  =  $JAVA"
 +    echo "JAVA_XMX              =  ${JAVA_XMX}"
-+    echo "JAVA_MAXPERMSIZE      =  ${JAVA_MAXPERMSIZE}"
      echo "JAVA_OPTIONS          =  ${JAVA_OPTIONS[*]}"
      echo "JETTY_HOME            =  $JETTY_HOME"
      echo "JETTY_BASE            =  $JETTY_BASE"
-@@ -361,6 +376,13 @@
+@@ -363,6 +377,12 @@
+   done < "$JETTY_CONF"
  fi
  
- ##################################################
++##################################################
 +# Set default JVM parameters, to be
 +# overridden by the configuration file
 +##################################################
 +JAVA_XMX=${JAVA_XMX:-1024}
-+JAVA_MAXPERMSIZE=${JAVA_MAXPERMSIZE:-256}
 +
-+##################################################
+ ##################################################
  # Setup JAVA if unset
  ##################################################
- if [ -z "$JAVA" ]
-@@ -449,6 +471,10 @@
-   start)
+@@ -454,6 +474,9 @@
      UMASK="0007"
      echo "Setting umask to ${UMASK}"
-+
+
 +    # Checking if enough RAM is available for Jetty to use
-+    checkAvailableRam $((${JAVA_XMX}+${JAVA_MAXPERMSIZE}))
-+
-     echo -n "Starting Jetty: "
- 
++    # Metaspace is auomanaged in JDK8+. Rudder needs 150Mo of it.
++    checkAvailableRam $((${JAVA_XMX}+150))
+
      if (( NO_START )); then
+       echo "Not starting ${NAME} - NO_START=1";
