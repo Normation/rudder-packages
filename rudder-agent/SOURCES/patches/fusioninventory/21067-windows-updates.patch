@@ -1,19 +1,19 @@
-From 389ab6ac2120631768a44eef9827ad1d0753f2d6 Mon Sep 17 00:00:00 2001
+From 1d72f4b1cb106eeb08f439af07e69fee5f6d1827 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?F=C3=A9lix=20Dallidet?= <felix.dallidet@rudder.io>
-Date: Thu, 19 May 2022 19:41:37 +0200
-Subject: [PATCH] Add Windows support to the software update inventory feature
+Date: Tue, 24 May 2022 18:27:50 +0200
+Subject: [PATCH] Adding Windows support for system update plugin
 
 ---
- .../Inventory/Generic/Softwares/Windows.pm    | 139 ++++++++++++++++++
- 1 file changed, 139 insertions(+)
+ .../Inventory/Generic/Softwares/Windows.pm    | 134 ++++++++++++++++++
+ 1 file changed, 134 insertions(+)
  create mode 100644 lib/FusionInventory/Agent/Task/Inventory/Generic/Softwares/Windows.pm
 
 diff --git a/lib/FusionInventory/Agent/Task/Inventory/Generic/Softwares/Windows.pm b/lib/FusionInventory/Agent/Task/Inventory/Generic/Softwares/Windows.pm
 new file mode 100644
-index 0000000..0d50653
+index 0000000..4bd62e3
 --- /dev/null
 +++ b/lib/FusionInventory/Agent/Task/Inventory/Generic/Softwares/Windows.pm
-@@ -0,0 +1,139 @@
+@@ -0,0 +1,134 @@
 +package FusionInventory::Agent::Task::Inventory::Generic::Softwares::Windows;
 +
 +use strict;
@@ -128,26 +128,21 @@ index 0000000..0d50653
 +
 +$updates = @()
 +foreach ($update in $searchResult.Updates) {
-+  $Kbs = @($update.KBArticleIDs | ForEach-Object { "KB$_" })
-+  $kind = ($update.Categories | Where-Object { $_.Type -eq "UpdateClassification" }).Name
-+  if ( $kind -eq "SecurityUpdates" ) {
-+    $kind = "security"
-+  }
-+  if ( $kind -eq "CriticalUpdates" ) {
-+    $kind = "defect"
-+  }
-+  if ( $kind -eq "FeaturePacks" ) {
-+    $kind = "enhancement"
-+  }
-+  if ( $kind -eq "Updates" ) {
-+    $kind = "none"
++  $kbs = @($update.KBArticleIDs | ForEach-Object { "KB$_" })
++  $category = ($update.Categories | Where-Object { $_.Type -eq "UpdateClassification" }).Name
++  $kind = switch -Wildcard ($category) {
++    'Security*Updates' { 'security' }
++    'Critical*Updates' { 'defect' }
++    'Feature*Packs' { 'enhancement' }
++    'Updates' { 'None' }
++    default { $category }
 +  }
 +  $updates += @{
 +    Name = $update.Title
 +    From = "Windows Update"
 +    Description = $update.Description
-+    Kind = $kind 
-+    Id = $Kbs + @($update.Identity.UpdateID)
++    Kind = $kind
++    Id = $kbs + @($update.Identity.UpdateID)
 +    Risk = [Enum]::ToObject([Fusion.UpdateInstallationImpact], $update.InstallationBehavior.Impact).ToString()
 +    Type = [Enum]::ToObject([Fusion.UpdateType], $update.Type).ToString()
 +  }
