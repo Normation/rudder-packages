@@ -4,8 +4,8 @@ Date: Thu, 19 May 2022 19:41:37 +0200
 Subject: [PATCH] Add Windows support to the software update inventory feature
 
 ---
- .../Inventory/Generic/Softwares/Windows.pm    | 126 ++++++++++++++++++
- 1 file changed, 126 insertions(+)
+ .../Inventory/Generic/Softwares/Windows.pm    | 139 ++++++++++++++++++
+ 1 file changed, 139 insertions(+)
  create mode 100644 lib/FusionInventory/Agent/Task/Inventory/Generic/Softwares/Windows.pm
 
 diff --git a/lib/FusionInventory/Agent/Task/Inventory/Generic/Softwares/Windows.pm b/lib/FusionInventory/Agent/Task/Inventory/Generic/Softwares/Windows.pm
@@ -13,7 +13,7 @@ new file mode 100644
 index 0000000..0d50653
 --- /dev/null
 +++ b/lib/FusionInventory/Agent/Task/Inventory/Generic/Softwares/Windows.pm
-@@ -0,0 +1,126 @@
+@@ -0,0 +1,139 @@
 +package FusionInventory::Agent::Task::Inventory::Generic::Softwares::Windows;
 +
 +use strict;
@@ -152,7 +152,7 @@ index 0000000..0d50653
 +    Type = [Enum]::ToObject([Fusion.UpdateType], $update.Type).ToString()
 +  }
 +}
-+$updates | ConvertTo-Json -Compress
++ConvertTo-Json -Compress $updates
 -- 
 2.35.1
 
