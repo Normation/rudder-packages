@@ -79,7 +79,15 @@ Obsoletes: rudder-reports < 7.2
 
 Requires: %(../format-dependencies rpm %{old_epoch}:%{real_version} rudder-agent)
 Requires: %(../format-dependencies rpm %{real_version} rudder-relay)
-Requires: postgresql-server >= 10.3, %{apache}, %{apache_tools}, git-core, iproute, rsync, openssl, %{ldap_clients}, curl, acl, rudder-api-client
+Requires: %{apache}, %{apache_tools}, git-core, iproute, rsync, openssl, %{ldap_clients}, curl, acl, rudder-api-client
+
+%if 0%{?rhel} && 0%{?rhel} == 7
+# rudder-external-db will not prevent installation of postgresql-server on rhel7
+Requires: postgresql-server
+%else
+# rudder-external-db must prevent installation of postgresql-server
+Requires: (postgresql-server >= 10.3 or rudder-external-db)
+%endif
 
 BuildRequires: gcc, rsync
 

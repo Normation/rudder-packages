@@ -1,0 +1,32 @@
+#!/bin/bash
+
+# We provide this configuration file from a script because it should be removed
+# after the first install and never be used again after.
+
+if [ ! -f /opt/rudder/etc/rudder-web.properties ] && [ ! -f /opt/rudder/etc/external-db.conf ]
+then
+  cat > /opt/rudder/etc/external-db.conf <<'EOF'
+# Please fill the configuration to make sure Rudder serveur will be properly installed
+# Please ask your database administrator for those informations.
+# Some commands are provided in case you need them.
+
+# Host where rudder server must connect to access the database
+DB_HOST="postgresql.example.com"
+
+# Database user and password, to create them ask your database administrator or use the following command
+#    su postgres -c "psql -q -c \"CREATE USER ${DB_USER} WITH PASSWORD '${DB_PASSWORD}'\""
+DB_USER="rudder"
+DB_PASSWORD="xxx"
+
+# Postgresql database name, to create it ask your database administrator or use the following command
+#    su postgres -c "psql -q -c \"CREATE DATABASE ${DB_NAME} WITH OWNER = ${DB_USER}\""
+DB_NAME="rudder"
+
+# - true if your database administrator has already created the database structure
+#   in this case please send you database administrator the provided schema (/opt/rudder/etc/postgresql/reportsSchema-ext.sql)
+#   so that he can create it before you install rudder server
+# - false to let rudder setup populate the database (provided that DB_USER has the permission to do so)
+DB_IS_POPULATED="true"
+EOF
+fi
+
