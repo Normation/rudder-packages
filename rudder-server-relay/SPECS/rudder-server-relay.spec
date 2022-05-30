@@ -75,7 +75,7 @@ BuildRequires: selinux-policy-devel
 %endif
 
 %if 0%{?rhel} && 0%{?rhel} > 7
-Requires: python3-policycoreutils
+Requires: python3-policycoreutils policycoreutils-python-utils
 %endif
 %if 0%{?rhel} && 0%{?rhel} <= 7
 Requires: policycoreutils-python
