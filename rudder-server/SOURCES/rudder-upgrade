@@ -56,6 +56,7 @@ trap 'anomaly_handler ${LINENO}' ERR INT TERM
 # - 7.0.0~beta2  : Remove name historization tables
 # - 7.1.0~beta1  : Replace serial from ruddersysevents table with reportid
 # - 7.2.0~alpha1 : Add softwareId index in slapd.conf
+# - 7.2.0~alpha1 : Add nodeId index in slapd.conf
 ####################################################################################
 
 # Some paths
@@ -521,8 +522,8 @@ upgrade_slapdconf() {
   # 6.2.0~beta2:
   # Add software and modifyTimestamp indexes in slapd.conf
   # 7.2.0~alpha1:
-  # Add softwareId index in slapd.conf
-  for i in "software" "modifyTimestamp" "softwareId"; do
+  # Add softwareId and nodeId index in slapd.conf
+  for i in "software" "modifyTimestamp" "softwareId" "nodeId"; do
     line="index\s*${i}\s*eq"
     INDEX_COUNT=$(grep -c "^${line}" ${SLAPD_CONF} 2>/dev/null || true)
     if [ ${INDEX_COUNT} -eq 0 ]; then
@@ -541,7 +542,8 @@ upgrade_slapdconf() {
     if [ $(($(date +%s) - $(stat -c '%Z'  ${SLAPD_CONF_BKP}))) -lt 3600 ]; then
       INDEX_BKP_COUNT=$(grep -c "^index\s*directiveId\s*eq" ${SLAPD_CONF_BKP} 2>/dev/null || true)
       INDEX_BKP_COUNT_2=$(grep -c "^index\s*modifyTimestamp\s*eq" ${SLAPD_CONF_BKP} 2>/dev/null || true)
-      if [ ${INDEX_BKP_COUNT} -eq 0 ] || [ ${INDEX_BKP_COUNT_2} -eq 0 ]; then
+      INDEX_BKP_COUNT_3=$(grep -c "^index\s*softwareId\s*eq" ${SLAPD_CONF_BKP} 2>/dev/null || true)
+      if [ ${INDEX_BKP_COUNT} -eq 0 ] || [ ${INDEX_BKP_COUNT_2} -eq 0 ] || [ ${INDEX_BKP_COUNT_3} -eq 0 ]; then
         NEED_REINDEX=true
       fi
     fi
