@@ -76,6 +76,7 @@ jetty:
 	# rm -rf jetty/...
 
 	# Change jetty.sh before distincts files
+	patch -p0 -s < patches/jetty/jetty-init-java-options.patch
 	patch -p0 -s < patches/jetty/jetty-init-umask.patch
 	patch -p0 -s < patches/jetty/jetty-init-stop-fix.patch
 	patch -p0 -s < patches/jetty/jetty-init-sizecheck.patch
