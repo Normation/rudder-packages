@@ -293,9 +293,6 @@ echo "Restoring file ACLs" >> ${LOG_FILE}
 cd /
 [ -f /tmp/rudder-hooks-upgrade ] && setfacl --restore=/tmp/rudder-hooks-upgrade
 
-echo "Rudder-lang : update libraries by re-generating them" >> ${LOG_FILE}
-/opt/rudder/share/language/tools/generate_lib
-
 # Restart the webapp
 systemctl restart rudder-jetty >> ${LOG_FILE} || true
 
