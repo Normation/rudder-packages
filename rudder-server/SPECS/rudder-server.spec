@@ -97,7 +97,7 @@ BuildRequires: gcc, rsync
 %if 0%{?rhel}
 BuildRequires: selinux-policy-devel
 Requires: mod_ssl httpd shadow-utils
-Requires: jre-headless >= 11
+Requires: jre-11-headless
 Requires: perl-Digest-SHA libtool-ltdl
 BuildRequires: openssl-devel libtool-ltdl-devel
 %endif
