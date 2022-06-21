@@ -14,7 +14,6 @@
 
 set -e
 
-MIN_JDK=11
 LDAP_CONF="/opt/rudder/etc/openldap/slapd.conf"
 RUDDER_DIR="/opt/rudder/"
 LOG_FILE="/var/log/rudder/install/rudder-server-$(date +%Y%m%d%H%M%S).log"
@@ -201,17 +200,6 @@ fi
 mkdir -p /var/log/rudder/install
 
 echo "$(date) - Starting rudder-webapp post installation step" >> ${LOG_FILE}
-
-echo "Making sure JDK is at least ${MIN_JDK}"
-jdk=$(java-version | head -n1 | perl -pe 's/.*"(\d+)\..*/$1')
-if [ "${jdk}" -lt ${MIN_JDK} ]
-then
-  # best effort, should work on all supported distro
-  if java_path=$(update-alternatives --display java | grep "^/.*-${MIN_JDK}-openjdk.*" | cut -d' ' -f1)
-  then
-    update-alternatives --set java "${java_path}"
-  fi
-fi
 
 echo "Creating rudder users" >> ${LOG_FILE}
 if ! getent group rudder-slapd >/dev/null; then
