@@ -35,7 +35,7 @@ APACHE_VHOSTDIR = apache2/sites-available
 APACHE_CONFDIR = apache2/conf-available
 JETTY_SCRIPT=jetty.sh
 WEBAPPDIR = rudder-sources/rudder/webapp/sources
-LANGDIR = rudder-sources/rudder/policies/rudderc
+LANGDIR = rudder-sources/rudder/policies
 CORE_RESOURCES = $(WEBAPPDIR)/rudder/rudder-core/src/main/resources
 WEB_RESOURCES = $(WEBAPPDIR)/rudder/rudder-web/src/main/resources
 
