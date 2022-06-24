@@ -95,6 +95,7 @@ BuildRequires: gcc, rsync
 
 ## RHEL
 %if 0%{?rhel}
+BuildRequires: groff-base
 BuildRequires: selinux-policy-devel
 Requires: mod_ssl httpd shadow-utils
 Requires: jre-11-headless
@@ -104,6 +105,7 @@ BuildRequires: openssl-devel libtool-ltdl-devel
 
 ## SLES
 %if 0%{?suse_version}
+BuildRequires: groff
 Requires: apache2 pwdutils libltdl7
 BuildRequires: libopenssl-devel
 %endif
