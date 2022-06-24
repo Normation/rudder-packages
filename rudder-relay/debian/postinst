@@ -39,6 +39,18 @@ case "$1" in
       CFRUDDER_FIRST_INSTALL=0
       if [ -z "${2}" ]; then CFRUDDER_FIRST_INSTALL=1; fi
 
+      # bring back diverts in case thay contain user modifications
+      # move to avoid doing it twice
+      if [ -f /opt/rudder/etc/relayd/logging.conf.distrib ]; then
+        mv /opt/rudder/etc/relayd/logging.conf.distrib /opt/rudder/etc/relayd/logging.conf
+      fi
+      if [ -f /opt/rudder/etc/relayd/main.conf.distrib ]; then
+        mv /opt/rudder/etc/relayd/main.conf.distrib /opt/rudder/etc/relayd/main.conf
+      fi
+      if [ -f /opt/rudder/etc/rudder-pkg/rudder-pkg.conf.distrib ]; then
+        mv /opt/rudder/etc/rudder-pkg/rudder-pkg.conf.distrib /opt/rudder/etc/rudder-pkg/rudder-pkg.conf
+      fi
+
       /opt/rudder/share/package-scripts/rudder-relay-postinst "${CFRUDDER_FIRST_INSTALL}" "apache2" "www-data" "www-data" "apache2/sites-available" "0"
     ;;
 
