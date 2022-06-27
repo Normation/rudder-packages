@@ -176,11 +176,12 @@ then
   if [ "${POPULATE}" = "true" ]; then
     echo "${HOST}:5432:${DBNAME}:${USERNAME}:${PASSWORD}" > /root/.pgpass
     chmod 600 /root/.pgpass
+    sed -i "s/^ALTER database rudder/ALTER database ${DBNAME}/" /opt/rudder/etc/postgresql/reportsSchema.sql
     psql -q -U "${USERNAME}" -h "${HOST}" -d "${DBNAME}" -f /opt/rudder/etc/postgresql/reportsSchema.sql >> ${LOG_FILE}
   fi
 
   # the user has already provided credentials, do not force her to do it again
-  if [ "${DB_USER}" = "" ]; then
+  if [ "${DB_USER}" != "" ]; then
     sed -i "\|^rudder.jdbc.url|s|.*|rudder.jdbc.url=jdbc:postgresql://${HOST}:5432/${DBNAME}|" /opt/rudder/etc/rudder-web.properties
     sed -i "\|^rudder.jdbc.username|s|.*|rudder.jdbc.username=${USERNAME}|" /opt/rudder/etc/rudder-web.properties
     sed -i "\|^rudder.jdbc.password|s|.*|rudder.jdbc.password=${PASSWORD}|" /opt/rudder/etc/rudder-web.properties

@@ -68,6 +68,15 @@ This package prevents rudder from installing and configuring a local postgresql 
 rm -rf %{buildroot}
 
 #=================================================
+# Post Installation
+#=================================================
+%post
+
+set -e
+
+/opt/rudder/share/package-scripts/rudder-external-db-postinst
+
+#=================================================
 # Cleaning
 #=================================================
 %clean

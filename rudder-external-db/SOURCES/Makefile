@@ -47,7 +47,7 @@ install: rudder-sources build
 	# must be a different name from the one in rudder-server
 	install -m 644 -T rudder-sources/rudder/webapp/sources/rudder/rudder-core/src/main/resources/reportsSchema.sql $(DESTDIR)/opt/rudder/etc/postgresql/reportsSchema-ext.sql
 	mkdir -p $(DESTDIR)/opt/rudder/share/package-scripts/
-	install -m 644 rudder-external-db-postinst $(DESTDIR)/opt/rudder/etc/
+	install -m 755 rudder-external-db-postinst $(DESTDIR)/opt/rudder/share/package-scripts/
 
 clean:
 
