@@ -55,25 +55,12 @@ Rudder is an open source configuration management and audit solution.
 This package prevents rudder from installing and configuring a local postgresql database.
 
 #=================================================
-# Building
-#=================================================
-%build
-
-# Ensure an appropriate environment for the compiler
-export CFLAGS="$RPM_OPT_FLAGS"
-
-cd %{_sourcedir}
-make --debug build
-
-#=================================================
 # Installation
 #=================================================
 %install
 
-# TODO remove
-rm -rf %{buildroot}
 cd %{_sourcedir}
-make --debug install
+make --debug install DESTDIR=%{buildroot}
 
 #=================================================
 # Post Installation
