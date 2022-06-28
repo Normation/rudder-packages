@@ -172,7 +172,7 @@ then
       POPULATE="true"
     fi
     # rudder-passwords default is not adapted to external db
-    sed -i "/^RUDDER_PSQL_PASSWORD/s/.*/RUDDER_PSQL_PASSWORD:${PASSWORD}/" /opt/rudder/etc/rudder-web.properties
+    sed -i "/^RUDDER_PSQL_PASSWORD/s/.*/RUDDER_PSQL_PASSWORD:${PASSWORD}/" /opt/rudder/etc/rudder-passwords.conf
 
   fi
 
