@@ -59,6 +59,12 @@ This package prevents rudder from installing and configuring a local postgresql 
 #=================================================
 %build
 
+# Ensure an appropriate environment for the compiler
+export CFLAGS="$RPM_OPT_FLAGS"
+
+cd %{_sourcedir}
+make --debug build
+
 #=================================================
 # Installation
 #=================================================
@@ -66,6 +72,8 @@ This package prevents rudder from installing and configuring a local postgresql 
 
 # TODO remove
 rm -rf %{buildroot}
+cd %{_sourcedir}
+make --debug install
 
 #=================================================
 # Post Installation
@@ -87,6 +95,8 @@ rm -rf %{buildroot}
 #=================================================
 %files -n rudder-external-db
 %defattr(-, root, root, 0755)
+/opt/rudder/etc/postgresql/reportsSchema-ext.sql
+/opt/rudder/share/package-scripts/rudder-external-db-postinst
 
 #=================================================
 # Changelog

@@ -171,12 +171,15 @@ then
     if [ "${DB_IS_POPULATED}" != "true" ]; then
       POPULATE="true"
     fi
+    # rudder-passwords default is not adapted to external db
+    sed -i "/^RUDDER_PSQL_PASSWORD/s/.*/RUDDER_PSQL_PASSWORD:${PASSWORD}/" /opt/rudder/etc/rudder-web.properties
+
   fi
 
   if [ "${POPULATE}" = "true" ]; then
     echo "${HOST}:5432:${DBNAME}:${USERNAME}:${PASSWORD}" > /root/.pgpass
     chmod 600 /root/.pgpass
-    sed -i "s/^ALTER database rudder/ALTER database ${DBNAME}/" /opt/rudder/etc/postgresql/reportsSchema.sql
+    sed -i "s/^ALTER database rudder /ALTER database ${DBNAME} /" /opt/rudder/etc/postgresql/reportsSchema.sql
     psql -q -U "${USERNAME}" -h "${HOST}" -d "${DBNAME}" -f /opt/rudder/etc/postgresql/reportsSchema.sql >> ${LOG_FILE}
   fi
 
