@@ -173,7 +173,6 @@ then
     fi
     # rudder-passwords default is not adapted to external db
     sed -i "/^RUDDER_PSQL_PASSWORD/s/.*/RUDDER_PSQL_PASSWORD:${PASSWORD}/" /opt/rudder/etc/rudder-passwords.conf
-
   fi
 
   if [ "${POPULATE}" = "true" ]; then
@@ -188,6 +187,12 @@ then
     sed -i "\|^rudder.jdbc.url|s|.*|rudder.jdbc.url=jdbc:postgresql://${HOST}:5432/${DBNAME}|" /opt/rudder/etc/rudder-web.properties
     sed -i "\|^rudder.jdbc.username|s|.*|rudder.jdbc.username=${USERNAME}|" /opt/rudder/etc/rudder-web.properties
     sed -i "\|^rudder.jdbc.password|s|.*|rudder.jdbc.password=${PASSWORD}|" /opt/rudder/etc/rudder-web.properties
+  fi
+
+  # is a database is external tell it to the webapp which will tell to the agent not to mess with the local postgresql
+  if [ "${HOST}" != "localhost" ]
+  then
+    sed -i "\|^rudder.postgresql.local|s|.*|rudder.postgresql.local=false|" /opt/rudder/etc/rudder-web.propertie
   fi
 
   # save external db file womewhere else so that the user doesn't try to update it
