@@ -136,7 +136,7 @@ cd rudder-sources-*/rudder/relay/sources/
 
 %if 0%{?suse_version}
 # On SLES, change the Apache DocumentRoot to the OS default
-sed -i "s%^DocumentRoot /var/www$%DocumentRoot /srv/www%" apache/rudder-apache-relay-common.conf
+sed -i "s|^DocumentRoot /var/www$|DocumentRoot /srv/www|" apache/rudder-apache-relay-common.conf
 %endif
 
 %if 0%{?rhel} == 7

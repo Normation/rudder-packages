@@ -1,4 +1,4 @@
-#####################################################################################
+%#####################################################################################
 # Copyright 2011- Normation SAS
 #####################################################################################
 #
@@ -280,7 +280,7 @@ fi
 if [ -f /etc/sysconfig/apache2 ] && grep -q 'APACHE_MODULES="${APACHE_MODULES} rewrite dav dav_fs proxy proxy_http' /etc/sysconfig/apache2
 then
   echo "INFO: Upgrading the /etc/sysconfig/apache2 file, Rudder needed modules for Apache are now listed in /etc/sysconfig/rudder-webapp-apache"
-  sed -i 's%APACHE_MODULES="${APACHE_MODULES} rewrite dav dav_fs proxy proxy_http.*%# This sources the Rudder needed by Rudder\n. /etc/sysconfig/rudder-webapp-apache%' /etc/sysconfig/apache2
+  sed -i 's|APACHE_MODULES="${APACHE_MODULES} rewrite dav dav_fs proxy proxy_http.*|# This sources the Rudder needed by Rudder\n. /etc/sysconfig/rudder-webapp-apache|' /etc/sysconfig/apache2
 fi
 
 if ! /opt/rudder/share/package-scripts/rudder-server-postinst "${RUDDER_FIRST_INSTALL}" "%{apache}" "${DB_NOT_INITIALIZED}"; then
@@ -294,7 +294,7 @@ if ! /opt/rudder/share/package-scripts/rudder-server-postinst "${RUDDER_FIRST_IN
   echo "   Such errors should not happen, please open an issue for this problem on "
   echo "            https://issues.rudder.io/projects/rudder/issues/new"
   echo "**************************************************************************************"
-  LOG_FILE="/var/log/rudder/install/rudder-webapp-fail-$(date +%Y%m%d%H%M%S).log"
+  LOG_FILE="/var/log/rudder/install/rudder-webapp-fail-$(date +%%Y%%m%%d%%H%%M%%S).log"
   /opt/rudder/bin/rudder-fix-repository-permissions  >> ${LOG_FILE}
 fi
 
