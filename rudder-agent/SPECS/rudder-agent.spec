@@ -90,6 +90,10 @@
 %define with_libcurl true
 %define with_openssl true
 %endif
+%if 0%{?rhel} && 0%{?rhel} >= 9
+# we embed openssl as system is too recent (openssl3) in this case
+%define with_openssl true
+%endif
 
 # Recent fedora has proper defaults
 
