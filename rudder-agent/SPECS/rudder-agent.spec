@@ -45,7 +45,7 @@
 %define enable_libacl true
 %define enable_pam true
 
-%if 0%{?rhel} == 8
+%if 0%{?rhel} >= 8
 # https://pagure.io/packaging-committee/issue/738
 %define __brp_mangle_shebangs /usr/bin/true
 %endif
@@ -411,7 +411,7 @@ find %{buildroot} -type f | xargs sed -i '1,1s|#!/usr/bin/python3|#!/usr/bin/pyt
 rm -rf %{buildroot}/opt/rudder/man %{buildroot}/opt/rudder/lib/perl5/5.22.0/pod
 
 # rhel8 do not have vzps
-%if 0%{?rhel} == 8
+%if 0%{?rhel} >= 8
 rm -f %{buildroot}/opt/rudder/bin/vzps.py
 %endif
 

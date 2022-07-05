@@ -53,7 +53,7 @@ BuildRequires: python, python-requests
 Requires: python, python-requests, python-urllib3
 %else
 ## Python 3, rhel8
-%if 0%{?rhel} == 8
+%if 0%{?rhel} >= 8
 BuildRequires: python3, python3-requests
 Requires: python3, python3-requests, python3-urllib3
 %else

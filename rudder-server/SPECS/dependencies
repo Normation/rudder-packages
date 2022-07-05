@@ -1,3 +1,4 @@
 sles-15:gcc libopenssl-devel python3-devel rsync
 rhel-8:gcc openssl-devel libtool-ltdl-devel python3-devel selinux-policy-devel rsync
+rhel-9:gcc openssl-devel libtool-ltdl-devel python3-devel selinux-policy-devel rsync
 rust:yes

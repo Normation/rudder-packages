@@ -119,7 +119,7 @@ Requires: jre-headless >= 11
 BuildRequires: python
 Requires: python
 %endif
-%if 0%{?rhel} && 0%{?rhel} == 8
+%if 0%{?rhel} && 0%{?rhel} >= 8
 BuildRequires: python3
 Requires: python3
 %endif
