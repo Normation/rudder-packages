@@ -86,7 +86,7 @@ Requires: %{apache}, %{apache_tools}, git-core, iproute, rsync, openssl, %{ldap_
 Requires: postgresql-server
 %else
 # rudder-external-db must prevent installation of postgresql-server
-Requires: (postgresql-server >= 10.3 or rudder-external-db)
+Requires: (rudder-external-db or postgresql-server >= 10.3)
 %endif
 
 BuildRequires: gcc, rsync
