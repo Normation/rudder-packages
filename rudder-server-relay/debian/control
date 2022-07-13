@@ -8,7 +8,7 @@ Homepage: https://www.rudder.io
 
 Package: rudder-server-relay
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, python3, python3-distutils|libpython3.5-stdlib, python3-requests, python3-lxml, ${rudder:deps}, apache2, apache2-utils, cron, binutils, xz-utils, libpq5, systemd
+Depends: ${shlibs:Depends}, ${misc:Depends}, python3, python3-distutils|libpython3.5-stdlib, python3-requests, python3-lxml, ${rudder:deps}, apache2, apache2-utils, cron, binutils, xz-utils, libpq5, systemd, gpg
 Description: Configuration management and audit tool - Server relay package
  Rudder is an open source configuration management and audit solution.
  .
