@@ -1,0 +1,31 @@
+diff --git a/lib/FusionInventory/Agent/Task/Inventory/Generic/Rudder.pm b/lib/FusionInventory/Agent/Task/Inventory/Generic/Rudder.pm
+index 6d7be6d..a1327ef 100644
+--- a/lib/FusionInventory/Agent/Task/Inventory/Generic/Rudder.pm
++++ b/lib/FusionInventory/Agent/Task/Inventory/Generic/Rudder.pm
+@@ -37,7 +37,7 @@ sub doInventory {
+         logger => $logger
+     );
+     # Get machine hostname
+-    my $command = $OSNAME eq 'linux' ? 'hostname --fqdn' : 'hostname';
++    my $command = $OSNAME eq 'linux' ? 'hostname --fqdn' : 'powershell -NonInteractive -ExecutionPolicy ByPass "[System.Net.DNS]::GetHostByName($env:computerName)"';
+     my $hostname = getFirstLine(
+         logger => $logger, command => $command
+     );
+diff --git a/lib/FusionInventory/Agent/Task/Inventory/Win32/OS.pm b/lib/FusionInventory/Agent/Task/Inventory/Win32/OS.pm
+index cea5d07..8542bf5 100644
+--- a/lib/FusionInventory/Agent/Task/Inventory/Win32/OS.pm
++++ b/lib/FusionInventory/Agent/Task/Inventory/Win32/OS.pm
+@@ -70,9 +70,10 @@ sub doInventory {
+     my $installDate = getFormatedWMIDateTime($operatingSystem->{InstallDate});
+     $installDate = _getInstallDate() unless ($installDate || $remotewmi);
+ 
+-    # Finally get the name through native Win32::API if local inventory and as
+-    # WMI DB is sometimes broken
+-    my $hostname = $computerSystem->{DNSHostName} || $computerSystem->{Name};
++    # Finally get the name through powershell & DNS to get FQDN
++    my $command = 'powershell -NonInteractive -ExecutionPolicy ByPass "[System.Net.DNS]::GetHostByName($env:computerName)"';
++    my $hostname = getFirstLine(command => $command),
++
+     $hostname = getHostname(short => 1) unless ($hostname || $remotewmi);
+ 
+     my $os = {
