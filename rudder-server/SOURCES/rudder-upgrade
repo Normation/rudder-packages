@@ -57,6 +57,7 @@ trap 'anomaly_handler ${LINENO}' ERR INT TERM
 # - 7.1.0~beta1  : Replace serial from ruddersysevents table with reportid
 # - 7.2.0~alpha1 : Add softwareId index in slapd.conf
 # - 7.2.0~alpha1 : Add nodeId index in slapd.conf
+# - 7.2.0~beta2  : Add the CampaignEvent table
 ####################################################################################
 
 # Some paths
@@ -466,6 +467,14 @@ upgrade_database() {
   if [ $RES -ne 0 ]; then
     echo -n "INFO: Replace serial from reporting table with reportid"
     ${PSQL} -d ${SQL_DATABASE} -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-7.0-7.1-serial_to_reportid_change.sql > /dev/null
+    echo " Done"
+  fi
+
+  # - 7.2: Create the CampaignEvents table
+  RES=$(${PSQL} -t -d ${SQL_DATABASE} -c "select count(oid) from pg_class where lower(relname) = 'campaignevents'")
+  if [ $RES -eq 0 ]; then
+    echo -n "INFO: Create campaign events tables"
+    ${PSQL} -d ${SQL_DATABASE} -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-7.1-7.2-create-campaign-table.sql > /dev/null
     echo " Done"
   fi
 
