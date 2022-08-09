@@ -234,6 +234,14 @@ if [ $1 -ne 1 ]
   fi
 
   getfacl --absolute-names --recursive /opt/rudder/etc/hooks.d/ > /tmp/rudder-hooks-upgrade
+
+  # Backup in case there was custom changes when it was a conffile
+  # not used anymore
+  if [ -f /opt/rudder/etc/rudder-apache-webapp-common.conf ]; then
+    cp /opt/rudder/etc/rudder-apache-webapp-common.conf "${BACKUP_DIR}/rudder-apache-webapp-common-`date +%Y%m%d`.conf"
+    cp /opt/rudder/etc/rudder-apache-webapp-ssl.conf "${BACKUP_DIR}/rudder-apache-webapp-ssl-`date +%Y%m%d`.conf"
+    cp /opt/rudder/etc/rudder-apache-webapp-nossl.conf "${BACKUP_DIR}/rudder-apache-webapp-nossl-`date +%Y%m%d`.conf"
+  fi
 else
   # make sure keys and certificate are the server ones
   [ -x /opt/rudder/bin/rudder ] && /opt/rudder/bin/rudder agent check -f -s keys
@@ -419,9 +427,9 @@ rm -rf %{buildroot}
 /var/log/rudder/apache2/
 /var/log/rudder/webapp/
 /etc/%{apache_vhost_dir}/
-%config /opt/rudder/etc/rudder-apache-webapp-common.conf
-%config /opt/rudder/etc/rudder-apache-webapp-ssl.conf
-%config /opt/rudder/etc/rudder-apache-webapp-nossl.conf
+/opt/rudder/etc/rudder-apache-webapp-common.conf
+/opt/rudder/etc/rudder-apache-webapp-ssl.conf
+/opt/rudder/etc/rudder-apache-webapp-nossl.conf
 %config(noreplace) /etc/sysconfig/rudder-webapp-apache
 /usr/share/doc/rudder
 /usr/share/ncf/
