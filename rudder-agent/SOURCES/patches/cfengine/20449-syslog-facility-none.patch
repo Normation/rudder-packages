@@ -1,0 +1,67 @@
+diff --color -ruN cfengine-source.old/libntech/libutils/logging.c cfengine-source/libntech/libutils/logging.c
+--- cfengine-source.old/libntech/libutils/logging.c	2021-12-16 22:26:53.392432302 +0100
++++ cfengine-source/libntech/libutils/logging.c	2021-12-16 22:29:47.273755076 +0100
+@@ -31,6 +31,7 @@
+ #include <definitions.h>        /* CF_BUFSIZE */
+
+ char VPREFIX[1024] = ""; /* GLOBAL_C */
++bool USE_SYSLOG = true;
+
+ static char AgentType[80] = "generic";
+ static bool TIMESTAMPS = false;
+@@ -261,8 +262,10 @@
+ void LogToSystemLog(const char *msg, LogLevel level)
+ {
+     char logmsg[4096];
+-    snprintf(logmsg, sizeof(logmsg), "CFEngine(%s) %s %s\n", AgentType, VPREFIX, msg);
+-    syslog(LogLevelToSyslogPriority(level), "%s", logmsg);
++    if(USE_SYSLOG) {
++      snprintf(logmsg, sizeof(logmsg), "CFEngine(%s) %s %s\n", AgentType, VPREFIX, msg);
++      syslog(LogLevelToSyslogPriority(level), "%s", logmsg);
++    }
+ }
+ #endif  /* !__MINGW32__ */
+
+diff --color -ruN cfengine-source.old/libpromises/generic_agent.c cfengine-source/libpromises/generic_agent.c
+--- cfengine-source.old/libpromises/generic_agent.c	2021-12-16 22:26:53.364431978 +0100
++++ cfengine-source/libpromises/generic_agent.c	2021-12-16 22:29:35.941706989 +0100
+@@ -81,6 +81,8 @@
+ #define AUGMENTS_CLASSES_REGULAR_EXPRESSIONS "regular_expressions"
+ #define AUGMENTS_COMMENT_KEY "comment"
+
++extern bool USE_SYSLOG;
++
+ static pthread_once_t pid_cleanup_once = PTHREAD_ONCE_INIT; /* GLOBAL_T */
+
+ static char PIDFILE[CF_BUFSIZE] = ""; /* GLOBAL_C */
+@@ -2098,11 +2100,14 @@
+     Log(LOG_LEVEL_VERBOSE, "SET Syslog FACILITY = %s", retval);
+
+     CloseLog();
+-    OpenLog(ParseFacility(retval));
+-    SetSyslogFacility(ParseFacility(retval));
+-    if (!StoreDefaultLogFacility())
+-    {
++    if(strcmp(retval == "NONE")==0) {
++      USE_SYSLOG = false;
++    } else {
++      OpenLog(ParseFacility(retval));
++      SetSyslogFacility(ParseFacility(retval));
++      if (!StoreDefaultLogFacility()) {
+         Log(LOG_LEVEL_ERR, "Failed to store default log facility");
++      }
+     }
+ }
+
+diff --color -ruN cfengine-source.old/libpromises/mod_common.c cfengine-source/libpromises/mod_common.c
+--- cfengine-source.old/libpromises/mod_common.c	2021-12-16 22:26:53.384432209 +0100
++++ cfengine-source/libpromises/mod_common.c	2021-12-16 22:27:02.384534617 +0100
+@@ -48,7 +48,7 @@
+ #include <syntax.h>
+
+ #define CF_LOGRANGE    "stdout|udp_syslog|(\042?[a-zA-Z]:\\\\.*)|(/.*)"
+-#define CF_FACILITY "LOG_USER,LOG_DAEMON,LOG_LOCAL0,LOG_LOCAL1,LOG_LOCAL2,LOG_LOCAL3,LOG_LOCAL4,LOG_LOCAL5,LOG_LOCAL6,LOG_LOCAL7"
++#define CF_FACILITY "LOG_USER,LOG_DAEMON,LOG_LOCAL0,LOG_LOCAL1,LOG_LOCAL2,LOG_LOCAL3,LOG_LOCAL4,LOG_LOCAL5,LOG_LOCAL6,LOG_LOCAL7,NONE"
+
+ static const char *const POLICY_ERROR_VARS_CONSTRAINT_DUPLICATE_TYPE =
+     "Variable contains existing data type contstraint %s, tried to "
