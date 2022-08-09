@@ -26,8 +26,11 @@ case "$1" in
         RUDDER_FIRST_INSTALL="true"
       fi
 
-      # apache modules must be handled in rudder-relay because they are needed
+      # common apache modules must be handled in rudder-relay because they are needed
       # to restart apache properly and avoid Pre Dependencies which are complex to handle
+
+      # those modules are webapp specific, so must be handled twice to make sure they are present at any apacke2 restart
+      a2enmod rewrite headers filter deflate >/dev/null
 
       if ! /opt/rudder/share/package-scripts/rudder-server-postinst "${RUDDER_FIRST_INSTALL}" "apache2" "false"; then
         echo "**************************************************************************************"
