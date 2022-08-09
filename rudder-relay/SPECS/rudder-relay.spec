@@ -204,18 +204,22 @@ set -e
 set -e
 
 # Do it only during uninstallation
+# common to all distro but cannot be done in a commond script since its is *post*rm
 if [ $1 -eq 0 ]; then
   # Restart apache since it is still using this user
   systemctl restart %{apache} >/dev/null
-  # Remove package user and groups
+  # remove users before groups
+  if getent passwd rudder >/dev/null; then
+    userdel rudder >/dev/null 2>&1
+  fi
+  if getent passwd rudder-relayd >/dev/null; then
+    userdel rudder-relayd >/dev/null 2>&1
+  fi
   if getent group rudder >/dev/null; then
     groupdel rudder >/dev/null 2>&1
   fi
    if getent group rudder-policy-reader >/dev/null; then
     groupdel rudder-policy-reader >/dev/null 2>&1
-  fi
-  if getent passwd rudder >/dev/null; then
-    userdel rudder >/dev/null 2>&1
   fi
 fi
 
