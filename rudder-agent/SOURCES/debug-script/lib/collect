@@ -44,7 +44,7 @@ collect_logs() {
   type rudder >/dev/null 2>&1 && rudder agent info >> "${LOG_FILE}" 2>&1
 
   collect_logs_annex_header "agent library linking info"
-  ldd ${RUDDER_VAR}/cfengine-community/bin/cf-agent >> "${LOG_FILE}" 2>&1
+  ldd ${RUDDER_OPT}/bin/cf-agent >> "${LOG_FILE}" 2>&1
 
   collect_logs_annex_header "agent core info"
   echo "policy_server.dat: `cat ${RUDDER_VAR}/cfengine-community/policy_server.dat  2>/dev/null`" >> "${LOG_FILE}" 2>&1
@@ -61,7 +61,7 @@ collect_logs() {
 
   if [ -d "/opt/rudder/share/plugins" ]
   then
-    collect_logs_annex_header "installed rudder plugins" 
+    collect_logs_annex_header "installed rudder plugins"
     /opt/rudder/bin/rudder-pkg list >> "${LOG_FILE}" 2>&1
     /opt/rudder/bin/rudder-pkg plugin save-status >> "${LOG_FILE}" 2>&1
   fi
@@ -74,7 +74,6 @@ hash_secret() {
 
   perl -MDigest::SHA=sha512_hex -pe "s/${REGEX}/\$1.sha512_hex\$2/e" "${FILENAME}" > "${FILENAME}.hashed"
   mv "${FILENAME}.hashed" "${FILENAME}"
-  
 }
 
 collect_files() {

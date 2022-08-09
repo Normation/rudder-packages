@@ -4,14 +4,14 @@ cfengineutils_test_cfpromises() {
 
   if [ ${?} -eq 0 ]
   then
-    # Time is present, we can benchmark the speed of the cf-promises  
+    # Time is present, we can benchmark the speed of the cf-promises
 
     # Hack to outsmart bash :
     #   When it sees a command starting with time, it removes it, run it, then print the time.
     #   It allows it to print time out of a pipe, but that is exactly what we don't want here.
     #   Using a variable here just disable this detection.
     TIMECMD=time
-    COMMAND_OUTPUT=`${TIMECMD} -p ${RUDDER_VAR}/cfengine-community/bin/cf-promises "${2}" 2>&1`
+    COMMAND_OUTPUT=`${TIMECMD} -p ${RUDDER_OPT}/bin/cf-promises "${2}" 2>&1`
 
     if [ "${?}" -ne 0 ]
     then
@@ -30,7 +30,7 @@ cfengineutils_test_cfpromises() {
     fi
   else
     test_skipped "Time is not installed on this system" "can measure cfpromises speed"
-    COMMAND_OUTPUT=`${RUDDER_VAR}/cfengine-community/bin/cf-promises "${2}" 2>&1`
+    COMMAND_OUTPUT=`${RUDDER_OPT}/bin/cf-promises "${2}" 2>&1`
 
     if [ "${?}" -ne 0 ]
     then
