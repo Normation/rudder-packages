@@ -24,7 +24,7 @@ index cea5d07..8542bf5 100644
 -    my $hostname = $computerSystem->{DNSHostName} || $computerSystem->{Name};
 +    # Finally get the name through powershell & DNS to get FQDN
 +    my $command = 'powershell -NonInteractive -ExecutionPolicy ByPass "[System.Net.DNS]::GetHostByName($env:computerName)"';
-+    my $hostname = getFirstLine(command => $command),
++    my $hostname = getFirstLine(command => $command);
 +
      $hostname = getHostname(short => 1) unless ($hostname || $remotewmi);
  
