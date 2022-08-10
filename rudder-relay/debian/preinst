@@ -24,6 +24,13 @@ case "$1" in
     ;;
 
     upgrade)
+      # Backup in case there was custom changes when it was a conffile
+      # not used anymore
+      if [ -f /opt/rudder/etc/rudder-apache-webapp-common.conf ]; then
+        cp /opt/rudder/etc/rudder-apache-webapp-common.conf "${BACKUP_DIR}/rudder-apache-webapp-common-`date +%Y%m%d`.conf"
+        cp /opt/rudder/etc/rudder-apache-webapp-ssl.conf "${BACKUP_DIR}/rudder-apache-webapp-ssl-`date +%Y%m%d`.conf"
+        cp /opt/rudder/etc/rudder-apache-webapp-nossl.conf "${BACKUP_DIR}/rudder-apache-webapp-nossl-`date +%Y%m%d`.conf"
+      fi
     ;;
 
     abort-upgrade)
