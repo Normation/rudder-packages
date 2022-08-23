@@ -48,7 +48,7 @@ then
       CFRUDDER_SERVER="rudder"
     fi
   elif type host > /dev/null 2>&1; then # aix
-    if host rudder > /dev/null; then
+    if host rudder > /dev/null 2>&1; then
       CFRUDDER_SERVER="rudder"
     fi
   fi
