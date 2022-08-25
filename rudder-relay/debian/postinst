@@ -51,6 +51,14 @@ case "$1" in
         mv /opt/rudder/etc/rudder-pkg/rudder-pkg.conf.distrib /opt/rudder/etc/rudder-pkg/rudder-pkg.conf
       fi
 
+      # sometimes (ubuntu22 ?) divert prevents the file to be present
+      if [ ! -f /opt/rudder/etc/rudder-networks-24.conf.distrib ]; then
+        mv /opt/rudder/etc/rudder-networks-24.conf.distrib /opt/rudder/etc/rudder-networks-24.conf
+      fi
+      if [ ! -f /opt/rudder/etc/rudder-networks-policy-server-24.conf.distrib ]; then
+        mv /opt/rudder/etc/rudder-networks-policy-server-24.conf.distrib /opt/rudder/etc/rudder-networks-policy-server-24.conf
+      fi
+
       /opt/rudder/share/package-scripts/rudder-relay-postinst "${CFRUDDER_FIRST_INSTALL}" "apache2" "www-data" "www-data" "apache2/sites-available" "0"
     ;;
 
