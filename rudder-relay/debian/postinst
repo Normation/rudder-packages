@@ -52,10 +52,10 @@ case "$1" in
       fi
 
       # sometimes (ubuntu22 ?) divert prevents the file to be present
-      if [ ! -f /opt/rudder/etc/rudder-networks-24.conf.distrib ]; then
+      if [ -f /opt/rudder/etc/rudder-networks-24.conf.distrib ]; then
         mv /opt/rudder/etc/rudder-networks-24.conf.distrib /opt/rudder/etc/rudder-networks-24.conf
       fi
-      if [ ! -f /opt/rudder/etc/rudder-networks-policy-server-24.conf.distrib ]; then
+      if [ -f /opt/rudder/etc/rudder-networks-policy-server-24.conf.distrib ]; then
         mv /opt/rudder/etc/rudder-networks-policy-server-24.conf.distrib /opt/rudder/etc/rudder-networks-policy-server-24.conf
       fi
 
