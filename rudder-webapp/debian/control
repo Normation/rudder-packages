@@ -1,0 +1,12 @@
+Source: rudder-webapp
+Section: oldlibs
+Priority: extra
+Maintainer: Rudder Team <dev@rudder.io>
+Build-Depends: debhelper (>= 9), ca-certificates, curl
+Standards-Version: 3.8.0
+Homepage: https://www.rudder.io
+
+Package: rudder-webapp
+Architecture: all
+Depends:
+Description: Transitional package, can be safely removed.
