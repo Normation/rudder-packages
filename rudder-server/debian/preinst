@@ -16,6 +16,11 @@ set -e
 
 case "$1" in
     install)
+      dpkg-divert --add --rename --package rudder-server /opt/rudder/etc/rudder-apache-webapp-common.conf
+      dpkg-divert --add --rename --package rudder-server /opt/rudder/etc/rudder-apache-webapp-nossl.conf
+      dpkg-divert --add --rename --package rudder-server /opt/rudder/etc/rudder-apache-webapp-ssl.conf
+      dpkg-divert --add --rename --package rudder-server /opt/rudder/etc/rudder-jetty.conf
+
       mkdir -p /opt/rudder/etc
       echo 'root' > /opt/rudder/etc/uuid.hive
       mkdir -p /var/rudder/cfengine-community/
