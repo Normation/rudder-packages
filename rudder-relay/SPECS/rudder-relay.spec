@@ -83,6 +83,10 @@ Requires: python3-policycoreutils policycoreutils-python-utils
 Requires: policycoreutils-python
 %endif
 
+%if 0%{?rhel} && 0%{?rhel} >= 9
+Requires: libpq
+%endif
+
 ## SLES
 %if 0%{?suse_version}
 Requires: pwdutils
