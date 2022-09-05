@@ -603,44 +603,28 @@ upgrade_techniques
 upgrade_ncf
 upgrade_masterfiles
 
-# Check the daemon status before upgrading
-RUDDER_DB_INITIALIZED=true
-echo -n "INFO: Checking PostgreSQL service status..."
-
-# All versions: If the server should be on this machine, make sure rudder-reports is available - if not the DB will simply not be initialised yet
-if [ ! "${SQL_SERVER}" = "localhost" ]; then
-  # Server is localhost but rudder-reports is not installed - this is probably a half-installed server, warn and give up
-  RUDDER_DB_INITIALIZED=false
-  echo " Not installed"
-  echo "INFO: No local database found. During initial install, this is expected."
+# Upgrade database
+echo -n "INFO: Upgrading PostgreSQL DB..."
+if retry_wrapper "${PSQL} -t -d ${SQL_DATABASE} -c 'select 1' >/dev/null 2>&1" "PostgreSQL";
+then
+  echo " OK"
+  upgrade_database
+else
+  echo " ERROR"
+  INCOMPLETE_MIGRATION=true
 fi
 
-# All version: upgrade database if it is not empty
-if ${RUDDER_DB_INITIALIZED}; then
-  if retry_wrapper "${PSQL} -t -d ${SQL_DATABASE} -c 'select 1' >/dev/null 2>&1" "PostgreSQL";
-  then
-    echo " OK"
-    upgrade_database
-  else
-    INCOMPLETE_MIGRATION=true
-  fi
-fi
-
-# Check the daemon status before upgrading
-RUDDER_LDAP_INITIALIZED=true
-echo -n "INFO: Checking LDAP service status..."
-
-# All version: upgrade ldap properties if it is not empty
-if ${RUDDER_LDAP_INITIALIZED}; then
-  # Using retry_wrapper is necessary because during an upgrade, slapd may be restarted, so we need to wait
-  # for it to be available again
-  if retry_wrapper "${LDAPSEARCH} -b '' -s base + >/dev/null 2>&1" "LDAP";
-  then
-    echo " OK"
-    upgrade_ldap_web_properties
-  else
-    INCOMPLETE_MIGRATION=true
-  fi
+# Upgrade ldap properties
+echo -n "INFO: Upgrading LDAP DB..."
+# Using retry_wrapper is necessary because during an upgrade, slapd may be restarted, so we need to wait
+# for it to be available again
+if retry_wrapper "${LDAPSEARCH} -b '' -s base + >/dev/null 2>&1" "LDAP";
+then
+  echo " OK"
+  upgrade_ldap_web_properties
+else
+echo " ERROR"
+  INCOMPLETE_MIGRATION=true
 fi
 
 upgrade_plugins
