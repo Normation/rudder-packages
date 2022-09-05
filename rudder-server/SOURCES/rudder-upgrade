@@ -608,7 +608,7 @@ RUDDER_DB_INITIALIZED=true
 echo -n "INFO: Checking PostgreSQL service status..."
 
 # All versions: If the server should be on this machine, make sure rudder-reports is available - if not the DB will simply not be initialised yet
-if [ "${SQL_SERVER}" = "localhost" ] && [ ! -f ${RUDDER_OPT}/etc/server-roles.d/rudder-reports ]; then
+if [ ! "${SQL_SERVER}" = "localhost" ]; then
   # Server is localhost but rudder-reports is not installed - this is probably a half-installed server, warn and give up
   RUDDER_DB_INITIALIZED=false
   echo " Not installed"
