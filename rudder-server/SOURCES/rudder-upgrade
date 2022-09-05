@@ -604,16 +604,10 @@ upgrade_ncf
 upgrade_masterfiles
 
 # Check the daemon status before upgrading
+# (before 7.2, it used to checck the rudder server role, but now, we always try to update DB, even if remote =>
+# for now, we consider DB always init)
 RUDDER_DB_INITIALIZED=true
 echo -n "INFO: Checking PostgreSQL service status..."
-
-# All versions: If the server should be on this machine, make sure rudder-reports is available - if not the DB will simply not be initialised yet
-if [ ! "${SQL_SERVER}" = "localhost" ]; then
-  # Server is localhost but rudder-reports is not installed - this is probably a half-installed server, warn and give up
-  RUDDER_DB_INITIALIZED=false
-  echo " Not installed"
-  echo "INFO: No local database found. During initial install, this is expected."
-fi
 
 # All version: upgrade database if it is not empty
 if ${RUDDER_DB_INITIALIZED}; then
