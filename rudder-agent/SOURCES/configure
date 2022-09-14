@@ -177,7 +177,8 @@ CFENGINE_ARGS="${WITH_libacl} ${WITH_pam} ${WITH_lmdb} ${WITH_pcre} ${WITH_opens
 
 # cross compilation specifics
 if [ "${CROSS_COMPILE}" = "win64" ]; then
-  LIBCURL_ARGS="--host=x86_64-w64-mingw32 --build=x86_64-pc-linux-gnu ${LIBCURL_ARGS}"
+  # schannel backend is mandatory if we want to use the default system CA store on windows agents
+  LIBCURL_ARGS="--host=x86_64-w64-mingw32 --build=x86_64-pc-linux-gnu ${LIBCURL_ARGS} --with-schannel"
   ZLIB_ARGS="CROSS_PREFIX=x86_64-w64-mingw32-"
   CACHE_ARGS="win64"
 fi
