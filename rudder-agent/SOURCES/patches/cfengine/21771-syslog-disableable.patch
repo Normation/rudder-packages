@@ -12,10 +12,10 @@ diff --git a/libpromises/feature.c b/libpromises/feature.c
 index 04e3a3a..1ca6f0e 100644
 --- a/libpromises/feature.c
 +++ b/libpromises/feature.c
-@@ -27,6 +27,7 @@ static const char* features[] = {
- #endif
+@@ -28,6 +28,7 @@ static const char* features[] = {
      "def_json_preparse",
      "copyfrom_restrict_keys",
+     "host_specific_data_load",
 +    "syslog_disableable",
      NULL
  };
