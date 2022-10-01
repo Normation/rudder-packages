@@ -21,9 +21,9 @@ SHELL = /bin/bash
 
 RUDDER_VERSION_TO_PACKAGE =
 RUDDER_MAJOR_VERSION := $(shell echo ${RUDDER_VERSION_TO_PACKAGE} | cut -d'.' -f 1-2)
-# Original URL: http://repo1.maven.org/maven2/org/eclipse/jetty/jetty-home/${JETTY_RELEASE}/jetty-home-${JETTY_RELEASE}.tar.gz
-JETTY_RELEASE = 10.0.9
-JETTY_SHA256 = 69e4508d69d036e7569c82f242ef566b3ca7ad9ba7ad877408923e2abc1521e9
+# Original URL: https://repo1.maven.org/maven2/org/eclipse/jetty/jetty-home/${JETTY_RELEASE}/jetty-home-${JETTY_RELEASE}.tar.gz
+JETTY_RELEASE = 10.0.12
+JETTY_SHA256 = b2ae3170a729365e05ba9da057aee5d2654d169912efec73cddc8381ac35d516
 # Original URL: https://www.openldap.org/software/download/OpenLDAP/openldap-release/openldap-2.6.2.tgz
 OPENLDAP_RELEASE = 2.6.2
 OPENLDAP_SHA256 = 81d09345232eb62486ecf5acacd2c56c0c45b4a6c8c066612e7f421a23a1cf87
