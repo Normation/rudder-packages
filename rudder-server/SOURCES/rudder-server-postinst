@@ -236,10 +236,7 @@ systemctl enable rudder-slapd >> ${LOG_FILE} 2>&1
 systemctl enable rudder-server >> ${LOG_FILE} 2>&1
 
 echo "Initializing filesystem" >> ${LOG_FILE}
-# Remove .pyc files to ensure we don't end up with outdated files
-rm -f /usr/share/ncf/tools/ncf.pyc
-rm -f /usr/share/ncf/tools/ncf_constraints.pyc
-rm -rf /usr/share/ncf/tools/__pycache__
+rm -rf /usr/share/ncf/tools
 
 # Add perms on inventories
 chmod 751 /var/rudder/inventories
