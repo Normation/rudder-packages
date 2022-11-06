@@ -240,6 +240,7 @@ ver() { printf "1%03d%03d" `echo "$1" | tr '.' ' '`; }
 #
 # This is to prevent an upgrade failure if the properties have been resetted during a package upgrade.
 update_credentials() {
+  STEP="Update credentials"
   if [ -f /opt/rudder/etc/rudder-passwords.conf ]; then
 
     # Get the passwords stored in rudder-passwords.conf
@@ -290,8 +291,9 @@ update_credentials() {
 
 # Before doing anything on git, set the branch to the Technique Reference Library branch
 set_git_branch() {
+  STEP="Set configuration repository branch"
   if [ -d ${CONFIGURATION_REPOSITORY}/.git ];then
-    cd ${CONFIGURATION_REPOSITORY}/ && git checkout master >/dev/null 2>&1
+    cd ${CONFIGURATION_REPOSITORY}/ && git checkout master
   fi
 }
 
@@ -517,6 +519,7 @@ EOF
 ################################################################################
 upgrade_slapdconf() {
 
+  STEP="Upgrade slapd configuration file"
   SLAPD_CONF="/opt/rudder/etc/openldap/slapd.conf"
   NEED_REINDEX=false
 
