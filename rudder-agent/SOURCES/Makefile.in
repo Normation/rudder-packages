@@ -27,8 +27,8 @@ $(error RUDDER_VERSION_TO_PACKAGE has not been set)
 endif
 
 # Original URL: http://zlib.net/zlib-$(ZLIB_RELEASE).tar.gz
-zlib_RELEASE = 1.2.12
-zlib_SHA256 = 91844808532e5ce316b3c010929493c0244f3d37593afd6de04f71821d5136d9
+zlib_RELEASE = 1.2.13
+zlib_SHA256 = b3a24de97a8fdbc835b9833169501030b8977031bcb54b3b3ac13740f846ab30
 # Original URL: https://github.com/LMDB/lmdb/archive/refs/tags/LMDB_$(LMDB_RELEASE).tar.gz
 lmdb_RELEASE = 0.9.29
 lmdb_SHA256 = 22054926b426c66d8f2bc22071365df6e35f3aacf19ad943bc6167d4cae3bebb
@@ -36,8 +36,8 @@ lmdb_SHA256 = 22054926b426c66d8f2bc22071365df6e35f3aacf19ad943bc6167d4cae3bebb
 pcre_RELEASE = 8.45
 pcre_SHA256 = 4e6ce03e0336e8b4a3d6c2b70b1c5e18590a5673a98186da90d4f33c23defc09
 # Original URL: https://www.openssl.org/source/openssl-$(OPENSSL_RELEASE).tar.gz
-openssl_RELEASE = 1.1.1q
-openssl_SHA256 = d7939ce614029cdff0b6c20f0e2e5703158a489a72b2507b8bd51bf8c8fd10ca
+openssl_RELEASE = 1.1.1s
+openssl_SHA256 = c5ac01e760ee6ff0dab61d6b2bbd30146724d063eb322180c6f18a6f74e4b6aa
 # Original URL: http://pyyaml.org/download/libyaml/yaml-0.2.5.tar.gz
 libyaml_RELEASE = 0.2.5
 libyaml_SHA256 = c642ae9b75fee120b2d96c712538bd2cf283228d2337df2cf2988e3c02678ef4
@@ -45,11 +45,11 @@ libyaml_SHA256 = c642ae9b75fee120b2d96c712538bd2cf283228d2337df2cf2988e3c02678ef
 libxml2_RELEASE = 2.9.12
 libxml2_SHA256 = c8d6681e38c56f172892c85ddc0852e1fd4b53b4209e7f4ebf17f7e2eae71d92
 # Original URL: https://curl.haxx.se/download/curl-7.58.0.tar.gz
-libcurl_RELEASE = 7.83.1
-libcurl_SHA256 = 93fb2cd4b880656b4e8589c912a9fd092750166d555166370247f09d18f5d0c0
+libcurl_RELEASE = 7.86.0
+libcurl_SHA256 = 3dfdd39ba95e18847965cd3051ea6d22586609d9011d91df7bc5521288987a82
 # Original URL: https://ftp.gnu.org/gnu/readline/readline-8.0.tar.gz
-readline_RELEASE = 8.1
-readline_SHA256 = f8ceb4ee131e3232226a17f51b164afc46cd0b9e6cef344be87c65962cb82b02
+readline_RELEASE = 8.2
+readline_SHA256 = 3feb7171f16a84ee82ca18a36d7b9be109a52c04f492a053331d7d1095007c35
 # Original URL: http://download.augeas.net/augeas-1.12.0.tar.gz
 augeas_RELEASE = 1.12.0
 augeas_SHA256 = 321942c9cc32185e2e9cb72d0a70eea106635b50269075aca6714e3ec282cb87
@@ -60,8 +60,8 @@ jq_SHA256 = 1b3906e0c6dea26b5b9dcf864cc7334522f520d69543043c64b2c487e0c663ca
 cfengine_RELEASE = 3.18.3
 cfengine_SHA256 = 6b7545bb0c7dc556aca713664f5d6f4af13e2f9d9585f0f07d5785ef03e3d575
 # Original URL: http://www.cpan.org/src/5.0/perl-5.22.4.tar.gz
-perl_RELEASE = 5.34.1
-perl_SHA256 = 357951a491b0ba1ce3611263922feec78ccd581dddc24a446b033e25acf242a1
+perl_RELEASE = 5.37.5
+perl_SHA256 = b52bed9b0f7c039367b51cd61ae1bbe89d6d93ad8b2ed9d35760b0d7e80fb93e
 # Original URL: http://www.cpan.org/modules/by-module/App/App-cpanminus-1.7046.tar.gz
 cpanminus_RELEASE = 1.7046
 cpanminus_SHA256 = 3e8c9d9b44a7348f9acc917163dbfc15bd5ea72501492cea3a35b346440ff862
