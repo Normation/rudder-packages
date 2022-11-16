@@ -72,8 +72,8 @@ init_commands
 CFENGINE_COMMUNITY_VAR_PATH="/var/rudder/cfengine-community"
 CFENGINE_COMMUNITY_RUN_0="1"
 CFENGINE_COMMUNITY_RUN_1="1"
-CFENGINE_COMMUNITY_BIN_0="$CFENGINE_COMMUNITY_VAR_PATH/bin/cf-execd"
-CFENGINE_COMMUNITY_BIN_1="$CFENGINE_COMMUNITY_VAR_PATH/bin/cf-serverd"
+CFENGINE_COMMUNITY_BIN_0="/opt/rudder/bin/cf-execd"
+CFENGINE_COMMUNITY_BIN_1="/opt/rudder/bin/cf-serverd"
 CFENGINE_COMMUNITY_PARAMS_0=""
 CFENGINE_COMMUNITY_PARAMS_1="--info"
 CFENGINE_COMMUNITY_PID_FILE_0="$CFENGINE_COMMUNITY_VAR_PATH/cf-execd.pid"
@@ -114,7 +114,7 @@ then
   # No need for a warning sinc we have sane defaults
   # and the default file is provided with commented out content
 fi
- 
+
 #====================================================================
 # Initial checks
 #====================================================================
