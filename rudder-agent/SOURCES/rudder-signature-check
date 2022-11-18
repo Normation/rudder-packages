@@ -3,42 +3,42 @@
 # To allow Rudder to provide its own version of openssl
 export PATH=/opt/rudder/bin:$PATH
 
-if openssl -h 2> /dev/null
+if openssl help 2> /dev/null
 then
   true
 else
-  echo "ERROR: openssl binary is missing !" 
+  echo "ERROR: openssl binary is missing !"
   exit 1
 fi
 
 # the file to verify
-FILE="$1" 
+FILE="$1"
 if [ ! -e "${FILE}" ]
 then
-  echo "Cannot verify: The file ${FILE} doesn't exist" 
+  echo "Cannot verify: The file ${FILE} doesn't exist"
   exit 2
 fi
 
 # Signature of this file
-SIGNATURE="${FILE}.sign" 
+SIGNATURE="${FILE}.sign"
 if [ ! -e "${SIGNATURE}" ]
 then
-  echo "Cannot verify: The file ${SIGNATURE} doesn't exist" 
+  echo "Cannot verify: The file ${SIGNATURE} doesn't exist"
   exit 2
 fi
 
 # the public key to use for verification
-PUBKEY="$2" 
+PUBKEY="$2"
 if [ ! -e "${PUBKEY}" ]
 then
-  echo "Cannot verify: The file ${PUBKEY} doesn't exist" 
+  echo "Cannot verify: The file ${PUBKEY} doesn't exist"
   exit 2
 fi
 
 # extract data from signature file
 if [ $(head -n1 "${SIGNATURE}") != "header=rudder-signature-v1" ]
 then
-  echo "Not a valid signature file" 
+  echo "Not a valid signature file"
   exit 3
 fi
 HASH=$(sed -ne '/algorithm=/s/algorithm=//p' "${SIGNATURE}")
@@ -49,7 +49,7 @@ KEYID=$(sed -ne '/keyid=/s/keyid=//p' "${SIGNATURE}")
 
 # create binary signature file
 SIGN=$(mktemp)
-echo -ne $(echo "${SIGN_HEX}" | tr -d '[:space:]' | sed 's/../\\x&/g') > "${SIGN}" 
+echo -ne $(echo "${SIGN_HEX}" | tr -d '[:space:]' | sed 's/../\\x&/g') > "${SIGN}"
 
 # openssl command only read public keys in X509/pkcs8 format
 PUBKEY8=$(mktemp)
@@ -59,7 +59,7 @@ openssl rsa -RSAPublicKey_in -in "${PUBKEY}" -pubout -out "${PUBKEY8}" 2> /dev/n
 LOCAL_KEYID=$(openssl rsa -RSAPublicKey_in -in "${PUBKEY}" -noout -modulus | sed 's/.*\(........\)$/\1/')
 
 # Check the signature
-openssl dgst "-${HASH}" -verify "${PUBKEY8}" -signature "${SIGN}" < "${FILE}" 
+openssl dgst "-${HASH}" -verify "${PUBKEY8}" -signature "${SIGN}" < "${FILE}"
 RET=$?
 
 rm -f ${PUBKEY8} ${SIGN}
