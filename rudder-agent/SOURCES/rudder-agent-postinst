@@ -88,6 +88,9 @@ then
     /usr/bin/mkssys -s rudder-agent -p "${CFE_DIR}/bin/cf-execd" -a "-F" -u root -S -n15 -f9 -R
     /usr/sbin/mkitab "rudder-agent:23456789:once:/usr/bin/startsrc -s rudder-agent"
     # No need to tell init to re-read /etc/inittab, it does it automatically every 60 seconds
+    echo "0,5,10,15,20,25,30,35,40,45,50,55 /opt/rudder/bin/rudder agent check -q >> /var/log/rudder/agent-check/check.log 2>&1 # RUDDER CRON" >> /var/spool/cron/crontabs/root
+    # signal the change to cron daemon
+    EDITOR=/bin/true crontab -e
   elif type chkconfig > /dev/null 2>/dev/null
   then
     chkconfig --add rudder-agent
