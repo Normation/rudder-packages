@@ -18,6 +18,9 @@ case "$1" in
     install)
       dpkg-divert --add --rename --package rudder-relay /opt/rudder/etc/relayd/logging.conf
       dpkg-divert --add --rename --package rudder-relay /opt/rudder/etc/relayd/main.conf
+      dpkg-divert --add --rename --package rudder-relay /opt/rudder/etc/rudder-apache-common.conf
+      dpkg-divert --add --rename --package rudder-relay /opt/rudder/etc/rudder-apache-ssl.conf
+      dpkg-divert --add --rename --package rudder-relay /opt/rudder/etc/rudder-apache-nossl.conf
       dpkg-divert --add --rename --package rudder-relay /opt/rudder/etc/rudder-networks-24.conf
       dpkg-divert --add --rename --package rudder-relay /opt/rudder/etc/rudder-networks-policy-server-24.conf
       dpkg-divert --add --rename --package rudder-relay /opt/rudder/etc/rudder-pkg/rudder-pkg.conf
