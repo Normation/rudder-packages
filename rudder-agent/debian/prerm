@@ -18,33 +18,11 @@ set -e
 
 
 case "$1" in
-  remove|upgrade|deconfigure)
-    # Keep a backup copy of uuid.hive
-    if [ -f /opt/rudder/etc/uuid.hive ]; then
-      mkdir -p /var/backups/rudder
-      cp -f /opt/rudder/etc/uuid.hive /var/backups/rudder/uuid.hive-$(date +%Y%m%d)
-    fi
-
-    # Keep a backup copy of policy_server.dat
-    if [ -f /var/rudder/cfengine-community/policy_server.dat ]; then
-      mkdir -p /var/backups/rudder
-      cp -f /var/rudder/cfengine-community/policy_server.dat /var/backups/rudder/policy_server.dat-$(date +%Y%m%d)
-    fi
-
-    # Keep a backup copy of ppkeys
-    if [ -d /var/rudder/cfengine-community/ppkeys/ ]; then
-      mkdir -p /var/backups/rudder
-      cp -af /var/rudder/cfengine-community/ppkeys/ /var/backups/rudder/ppkeys-$(date +%Y%m%d)
-    fi
-
-    # Keep a backup copy of agent certificate
-    if [ -f /opt/rudder/etc/ssl/agent.cert ]; then
-      mkdir -p /var/backups/rudder
-      cp -f /opt/rudder/etc/ssl/agent.cert /var/backups/rudder/agent.cert-$(date +%Y%m%d)
-    fi
-
-    echo "INFO: A backup copy of Rudder agent credentials and id has been done in /var/backups/rudder"
-
+  remove)
+    /opt/rudder/share/package-scripts/rudder-agent-prerm true
+  ;;
+  upgrade|deconfigure)
+    /opt/rudder/share/package-scripts/rudder-agent-prerm false
   ;;
 
   failed-upgrade)
