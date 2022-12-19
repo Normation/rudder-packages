@@ -475,33 +475,13 @@ rm -f /etc/cron.d/rudder-agent.rpmsave
 
 set -e
 
+if [ $1 -eq 0 ]; then
+  REMOVE=true
+else
+  REMOVE=false
+fi
 # Do it during upgrade and uninstall
-
-# Keep a backup copy of uuid.hive
-if [ -f /opt/rudder/etc/uuid.hive ]; then
-  mkdir -p /var/backups/rudder
-  cp -f /opt/rudder/etc/uuid.hive /var/backups/rudder/uuid.hive-$(date +%%Y%%m%%d)
-fi
-
-# Keep a backup copy of policy_server.dat
-if [ -f /var/rudder/cfengine-community/policy_server.dat ]; then
-  mkdir -p /var/backups/rudder
-  cp -f /var/rudder/cfengine-community/policy_server.dat /var/backups/rudder/policy_server.dat-$(date +%%Y%%m%%d)
-fi
-
-# Keep a backup copy of ppkeys
-if [ -d /var/rudder/cfengine-community/ppkeys/ ]; then
-  mkdir -p /var/backups/rudder
-  cp -rf /var/rudder/cfengine-community/ppkeys/ /var/backups/rudder/ppkeys-$(date +%%Y%%m%%d)
-fi
-
-# Keep a backup copy of agent certificate
-if [ -f /opt/rudder/etc/ssl/agent.cert ]; then
-  mkdir -p /var/backups/rudder
-  cp -f /opt/rudder/etc/ssl/agent.cert /var/backups/rudder/agent.cert-$(date +%%Y%%m%%d)
-fi
-
-echo "INFO: A backup copy of Rudder agent credentials and id has been done in /var/backups/rudder"
+/opt/rudder/share/package-scripts/rudder-agent-prerm "${REMOVE}"
 
 %postun
 #=================================================
@@ -532,9 +512,7 @@ if [ $1 -eq 0 ]; then
 
   # Make sure that CFEngine is not running anymore
   for component in cf-agent cf-serverd cf-execd cf-monitord; do
-    if pid=`pidof ${component}`; then
-      kill -9 ${pid}
-    fi
+    pidof ${component} | xargs -n 1 kill -9
   done
 
 %if "%{?aix}" == ""
@@ -547,6 +525,14 @@ if [ $1 -eq 0 ]; then
   rm -f /etc/init.d/rudder-agent
   rm -f /etc/default/rudder-agent
 %else
+  # Remove the cron entry we created
+  sed '/# RUDDER CRON$/d' /var/spool/cron/crontabs/root > /tmp/rudder-installer-cron
+  mv /tmp/rudder-installer-cron /var/spool/cron/crontabs/root
+  chmod 600 /var/spool/cron/crontabs/root
+  chown root:cron /var/spool/cron/crontabs/root
+  # signal the change to cron daemon
+  EDITOR=/bin/true crontab -e
+
   # Remove the AIX inittab entry and subsystem definition
   rmssys -s rudder-agent
   rmitab rudder-agent

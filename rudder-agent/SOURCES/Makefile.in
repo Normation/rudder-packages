@@ -495,6 +495,7 @@ endif
 	# Package scripts
 	mkdir -p $(DESTDIR)/opt/rudder/share/package-scripts
 	$(INSTALL) -m 755 rudder-agent-postinst $(DESTDIR)/opt/rudder/share/package-scripts/
+	$(INSTALL) -m 755 rudder-agent-prerm $(DESTDIR)/opt/rudder/share/package-scripts/
 
 	# Rudder agent utilities
 	mkdir -p $(DESTDIR)/opt/rudder/share/commands
