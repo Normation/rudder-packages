@@ -59,9 +59,9 @@ jq_SHA256 = 1b3906e0c6dea26b5b9dcf864cc7334522f520d69543043c64b2c487e0c663ca
 # Original URL: https://cfengine-package-repos.s3.amazonaws.com/tarballs/cfengine-community-$(CFENGINE_RELEASE).tar.gz
 cfengine_RELEASE = 3.18.3
 cfengine_SHA256 = 6b7545bb0c7dc556aca713664f5d6f4af13e2f9d9585f0f07d5785ef03e3d575
-# Original URL: http://www.cpan.org/src/5.0/perl-5.22.4.tar.gz
-perl_RELEASE = 5.37.5
-perl_SHA256 = b52bed9b0f7c039367b51cd61ae1bbe89d6d93ad8b2ed9d35760b0d7e80fb93e
+# Original URL: http://www.cpan.org/src/5.0/perl-$(PERL_RELEASE).tar.gz
+perl_RELEASE = 5.36.0
+perl_SHA256 = e26085af8ac396f62add8a533c3a0ea8c8497d836f0689347ac5abd7b7a4e00a
 # Original URL: http://www.cpan.org/modules/by-module/App/App-cpanminus-1.7046.tar.gz
 cpanminus_RELEASE = 1.7046
 cpanminus_SHA256 = 3e8c9d9b44a7348f9acc917163dbfc15bd5ea72501492cea3a35b346440ff862
