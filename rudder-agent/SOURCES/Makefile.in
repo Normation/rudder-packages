@@ -80,6 +80,8 @@ DESTDIR = $(CURDIR)/target
 
 ifeq (AIX,$(OS_FAMILY))
 CC=gcc
+# Default option is missing on gcc 4.8, remove this when upgrading to newer gcc
+readline_MAKE_OPT=SHLIB_XLDFLAGS=
 endif
 
 # We are using sha1 as sha256 is not supported on RHEL3
@@ -257,7 +259,7 @@ build-libcurl: libcurl-source @openssl_DEP@ @zlib_DEP@
 build-readline: readline-source
 	# do not override flags as they don't work here
 	cd readline-source && ./configure --prefix=$(RUDDER_DIR)
-	cd readline-source && $(MAKE)
+	cd readline-source && $(MAKE) $(readline_MAKE_OPT)
 	cd readline-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
 	touch $@
 
