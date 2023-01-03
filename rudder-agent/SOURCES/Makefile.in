@@ -393,6 +393,7 @@ cleanup-build:
 ifneq (AIX,$(OS_FAMILY))
 	rm -f dependencies/opt/rudder/lib/*.a
 endif
+	rm -f dependencies/opt/rudder/lib/libreadline.*
 	rm -f dependencies/opt/rudder/lib/*.la
 	rm -rf dependencies/opt/rudder/lib/cmake
 	rm -rf dependencies/opt/rudder/lib/engines*
