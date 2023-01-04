@@ -1,0 +1,11 @@
+diff --color -ruN cfengine-source.orig/libpromises/enterprise_extension.c cfengine-source/libpromises/enterprise_extension.c
+--- cfengine-source.orig/libpromises/enterprise_extension.c	2022-11-09 17:33:57.000000000 +0100
++++ cfengine-source/libpromises/enterprise_extension.c	2023-01-04 10:32:31.399279030 +0100
+@@ -39,6 +39,7 @@
+ 
+ void *enterprise_library_open()
+ {
++    return NULL;
+     if (getenv("CFENGINE_TEST_OVERRIDE_EXTENSION_LIBRARY_DO_CLOSE") != NULL)
+     {
+         return extension_library_open(ENTERPRISE_LIBRARY_NAME);
