@@ -18,7 +18,13 @@ pipeline {
                             // linters results
                             recordIssues enabledForFailure: true, failOnError: true, sourceCodeEncoding: 'UTF-8',
                                          tool: checkStyle(pattern: '.shellcheck/*.log', reportEncoding: 'UTF-8', name: 'Shell scripts')
-
+                        }
+                        fixed {    
+                            script {
+                                new SlackNotifier().notifyResult("shell-team")
+                            }
+                        }
+                        failure {   
                             script {
                                 new SlackNotifier().notifyResult("shell-team")
                             }
