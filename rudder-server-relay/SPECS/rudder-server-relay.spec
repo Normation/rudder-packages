@@ -70,7 +70,7 @@ Requires: %(../format-dependencies rpm %{real_epoch}:%{real_version} rudder-agen
 
 ## RHEL
 %if 0%{?rhel}
-Requires: mod_ssl shadow-utils crontabs
+Requires: mod_ssl shadow-utils crontabs apr-util-bdb
 BuildRequires: selinux-policy-devel
 %endif
 
