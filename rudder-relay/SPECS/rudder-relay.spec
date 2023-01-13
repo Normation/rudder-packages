@@ -72,7 +72,7 @@ Requires: %(../format-dependencies rpm %{old_epoch}:%{real_version} rudder-agent
 
 ## RHEL
 %if 0%{?rhel}
-Requires: mod_ssl shadow-utils
+Requires: mod_ssl shadow-utils apr-util-bdb
 BuildRequires: selinux-policy-devel
 %endif
 
