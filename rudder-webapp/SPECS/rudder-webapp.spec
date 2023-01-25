@@ -71,7 +71,7 @@ Obsoletes: ncf, ncf-api-virtualenv, rudder-techniques, rudder-inventory-ldap, ru
 # Prevent reinstalling old versions
 Conflicts: ncf, ncf-api-virtualenv, rudder-techniques, rudder-inventory-ldap, rudder-inventory-endpoint, rudder-ldap, rudder-jetty
 
-BuildRequires: gcc, rsync, git
+BuildRequires: gcc, rsync
 
 # Dependencies
 Requires: %(../format-dependencies rpm %{real_epoch}:%{real_version} rudder-server-relay), %{apache}, %{apache_tools}, git-core, iproute, rsync, openssl, %{ldap_clients}, curl, acl
@@ -89,13 +89,13 @@ BuildRequires: selinux-policy-devel
 Requires: mod_ssl httpd shadow-utils
 Requires: jre-headless >= 1.8
 Requires: perl-Digest-SHA libtool-ltdl
-BuildRequires: openssl-devel libtool-ltdl-devel
+BuildRequires: openssl-devel libtool-ltdl-devel git
 %endif
 
 ## SLES
 %if 0%{?suse_version}
 Requires: apache2 pwdutils libltdl7
-BuildRequires: libopenssl-devel
+BuildRequires: libopenssl-devel git-core
 %endif
 
 %if 0%{?sle_version} && 0%{?sle_version} >= 120100 && 0%{?sle_version} < 150000
