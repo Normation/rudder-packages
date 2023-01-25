@@ -1,5 +1,5 @@
-sles-12:gcc libopenssl-devel python-devel rsync git
-sles-15:gcc libopenssl-devel python3-devel rsync git
+sles-12:gcc libopenssl-devel python-devel rsync git-core
+sles-15:gcc libopenssl-devel python3-devel rsync git-core
 rhel-7:gcc openssl-devel libtool-ltdl-devel python-devel selinux-policy-devel rsync git
 rhel-8:gcc openssl-devel libtool-ltdl-devel python3-devel selinux-policy-devel rsync git
 rust:yes

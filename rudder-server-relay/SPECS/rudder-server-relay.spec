@@ -65,13 +65,13 @@ AutoReq: 0
 AutoProv: 0
 
 ## General
-BuildRequires: pkgconfig, postgresql-devel, git
+BuildRequires: pkgconfig, postgresql-devel
 Requires: %(../format-dependencies rpm %{real_epoch}:%{real_version} rudder-agent), %{apache}, %{apache_tools}, binutils, xz, postgresql, rsync, sudo
 
 ## RHEL
 %if 0%{?rhel}
 Requires: mod_ssl shadow-utils crontabs apr-util-bdb
-BuildRequires: selinux-policy-devel
+BuildRequires: selinux-policy-devel git
 %endif
 
 %if 0%{?rhel} && 0%{?rhel} > 7
@@ -84,6 +84,7 @@ Requires: policycoreutils-python
 ## SLES
 %if 0%{?suse_version}
 Requires: pwdutils cron
+BuildRequires: git-core
 %endif
 
 # Doc for suse versioning https://en.opensuse.org/openSUSE:Packaging_for_Leap
