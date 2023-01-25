@@ -67,7 +67,7 @@ AutoProv: 0
 Obsoletes: rudder-server-relay < 7.2
 
 ## General
-BuildRequires: pkgconfig, postgresql-devel
+BuildRequires: pkgconfig, postgresql-devel, git
 Requires: %(../format-dependencies rpm %{old_epoch}:%{real_version} rudder-agent), %{apache}, %{apache_tools}, binutils, xz, postgresql, rsync, sudo
 
 ## RHEL
