@@ -88,7 +88,7 @@ Requires: %(../format-dependencies rpm %{old_epoch}:%{real_version} rudder-repor
 # rudder-external-db will not prevent installation of postgresql-server on rhel/sles
 Requires: postgresql-server >= 10.3
 
-BuildRequires: gcc, rsync
+BuildRequires: gcc, rsync, git
 
 # OS-specific dependencies
 
