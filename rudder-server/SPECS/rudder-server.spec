@@ -88,7 +88,7 @@ Requires: %(../format-dependencies rpm %{old_epoch}:%{real_version} rudder-repor
 # rudder-external-db will not prevent installation of postgresql-server on rhel/sles
 Requires: postgresql-server >= 10.3
 
-BuildRequires: gcc, rsync, git
+BuildRequires: gcc, rsync
 
 # OS-specific dependencies
 
@@ -99,14 +99,14 @@ BuildRequires: selinux-policy-devel
 Requires: mod_ssl httpd shadow-utils
 Requires: jre-11-headless
 Requires: perl-Digest-SHA libtool-ltdl
-BuildRequires: openssl-devel libtool-ltdl-devel
+BuildRequires: openssl-devel libtool-ltdl-devel git
 %endif
 
 ## SLES
 %if 0%{?suse_version}
 BuildRequires: groff
 Requires: apache2 pwdutils libltdl7
-BuildRequires: libopenssl-devel
+BuildRequires: libopenssl-devel git-core
 %endif
 
 %if 0%{?sle_version} && 0%{?sle_version} >= 150000
