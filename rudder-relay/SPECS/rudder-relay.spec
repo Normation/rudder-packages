@@ -73,7 +73,7 @@ Requires: %(../format-dependencies rpm %{old_epoch}:%{real_version} rudder-agent
 ## RHEL
 %if 0%{?rhel}
 Requires: mod_ssl shadow-utils apr-util-bdb
-BuildRequires: selinux-policy-devel git
+BuildRequires: selinux-policy-devel
 %endif
 
 %if 0%{?rhel} && 0%{?rhel} > 7
@@ -90,7 +90,6 @@ Requires: libpq
 ## SLES
 %if 0%{?suse_version}
 Requires: pwdutils
-BuildRequires: git-core
 %endif
 
 # Doc for suse versioning https://en.opensuse.org/openSUSE:Packaging_for_Leap
