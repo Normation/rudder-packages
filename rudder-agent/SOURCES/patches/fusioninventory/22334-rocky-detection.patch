@@ -1,0 +1,14 @@
+diff --git a/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/NonLSB.pm b/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/NonLSB.pm
+index f40cc51..d1397ff 100644
+--- a/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/NonLSB.pm
++++ b/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/NonLSB.pm
+@@ -42,6 +42,9 @@ my @distributions = (
+     # almalinux-release contains something like AlmaLinux release 8.5 (Arctic Sphynx)
+     [ '/etc/almalinux-release',    'AlmaLinux',                     'release ([\d.]+)', '%s' ],
+ 
++    # rocky-release contains something like Rocky Linux release 8.7 (Green Obsidian)
++    [ '/etc/rocky-release',     'RockyLinux',                 'release ([\d.]+)', '%s' ],
++
+     # centos-release contains something like "CentOS Linux release 6.0 (Final)
+     [ '/etc/centos-release',    'CentOS',                     'release ([\d.]+)', '%s' ],
+ 
