@@ -99,14 +99,14 @@ BuildRequires: selinux-policy-devel
 Requires: mod_ssl httpd shadow-utils
 Requires: jre-11-headless
 Requires: perl-Digest-SHA libtool-ltdl
-BuildRequires: openssl-devel libtool-ltdl-devel git
+BuildRequires: openssl-devel libtool-ltdl-devel
 %endif
 
 ## SLES
 %if 0%{?suse_version}
 BuildRequires: groff
 Requires: apache2 pwdutils libltdl7
-BuildRequires: libopenssl-devel git-core
+BuildRequires: libopenssl-devel
 %endif
 
 %if 0%{?sle_version} && 0%{?sle_version} >= 150000
