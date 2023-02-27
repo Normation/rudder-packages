@@ -124,14 +124,6 @@ run a Rudder relay server on a machine.
 %prep
 %setup -c
 
-# We don't know the exact version
-cd rudder-sources-*/rudder/relay/sources/
-
-# rhel7 doesn't have python 3 so we force python2 instead
-%if 0%{?rhel} == 7 || ( 0%{?suse_version} && 0%{?suse_version} < 1500 )
-find . -type f | xargs sed -i '1,1s|#!/usr/bin/python3|#!/usr/bin/python2|'
-%endif
-
 #=================================================
 # Building
 #=================================================
@@ -159,6 +151,11 @@ cd rudder-sources-*/rudder/relay/sources/
 rm -rf %{buildroot}
 
 make --debug install APACHE_VHOSTDIR=%{apache_vhost_dir} DESTDIR=%{buildroot} SELINUX=%{selinux}
+
+# rhel7 doesn't have python 3 so we force python2 instead
+%if 0%{?rhel} == 7 || ( 0%{?suse_version} && 0%{?suse_version} < 1500 )
+find %{buildroot} -type f | xargs sed -i '1,1s|#!/usr/bin/python3|#!/usr/bin/python2|'
+%endif
 
 #=================================================
 # Post Installation
