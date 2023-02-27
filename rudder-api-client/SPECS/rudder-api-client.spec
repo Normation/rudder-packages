@@ -72,11 +72,6 @@ Command line tools and python libraries to call Rudder.
 %prep
 %setup -c
 
-# rhel7 does not have python3 so we force python2 instead
-%if 0%{?rhel} == 7 || ( 0%{?suse_version} && 0%{?suse_version} < 1500 )
-find . -type f | xargs sed -i '1,1s|#!/usr/bin/python3|#!/usr/bin/python2|'
-%endif
-
 #=================================================
 # Installation
 #=================================================
@@ -84,6 +79,11 @@ find . -type f | xargs sed -i '1,1s|#!/usr/bin/python3|#!/usr/bin/python2|'
 cd rudder-sources-*/rudder-api-client/
 
 make --debug install DESTDIR=%{buildroot}
+
+# rhel7 does not have python3 so we force python2 instead
+%if 0%{?rhel} == 7 || ( 0%{?suse_version} && 0%{?suse_version} < 1500 )
+find %{buildroot} -type f | xargs sed -i '1,1s|#!/usr/bin/python3|#!/usr/bin/python2|'
+%endif
 
 #=================================================
 # Cleaning
