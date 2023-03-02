@@ -136,6 +136,8 @@ sed -i "s|^DocumentRoot /var/www$|DocumentRoot /srv/www|" apache/rudder-apache-r
 %endif
 
 %if 0%{?rhel} == 7
+# rhel7 doesn't have python 3 so we force python2 instead
+find . -type f | xargs sed -i '1,1s|#!/usr/bin/python3|#!/usr/bin/python2|'
 make --debug build SELINUX=%{selinux} PYTHON=python2
 %else
 make --debug build SELINUX=%{selinux}
@@ -151,11 +153,6 @@ cd rudder-sources-*/rudder/relay/sources/
 rm -rf %{buildroot}
 
 make --debug install APACHE_VHOSTDIR=%{apache_vhost_dir} DESTDIR=%{buildroot} SELINUX=%{selinux}
-
-# rhel7 doesn't have python 3 so we force python2 instead
-%if 0%{?rhel} == 7 || ( 0%{?suse_version} && 0%{?suse_version} < 1500 )
-find %{buildroot} -type f | xargs sed -i '1,1s|#!/usr/bin/python3|#!/usr/bin/python2|'
-%endif
 
 #=================================================
 # Post Installation
