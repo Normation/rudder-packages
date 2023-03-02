@@ -137,7 +137,8 @@ sed -i "s|^DocumentRoot /var/www$|DocumentRoot /srv/www|" apache/rudder-apache-r
 
 %if 0%{?rhel} == 7
 # rhel7 doesn't have python 3 so we force python2 instead
-find . -type f | xargs sed -i '1,1s|#!/usr/bin/python3|#!/usr/bin/python2|'
+# See #22404 to handle file with whitespace in name 
+find . -type f | xargs -d '\n' sed -i '1,1s|#!/usr/bin/python3|#!/usr/bin/python2|'
 make --debug build SELINUX=%{selinux} PYTHON=python2
 %else
 make --debug build SELINUX=%{selinux}
