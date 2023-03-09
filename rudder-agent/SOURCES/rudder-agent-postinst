@@ -39,33 +39,6 @@ then
   /bin/systemctl daemon-reload
 fi
 
-# if no conf and no server provided, try to use rudder
-if [ ! -f /var/rudder/cfengine-community/policy_server.dat ] && [ "${CFRUDDER_SERVER}" = "" ]
-then
-  # Detect if "rudder" is a valid hostname, if so, use it as the default server
-  if type getent > /dev/null 2>&1; then # glibc/linux
-    if getent hosts rudder > /dev/null; then
-      CFRUDDER_SERVER="rudder"
-    fi
-  elif type host > /dev/null 2>&1; then # aix
-    if host rudder > /dev/null 2>&1; then
-      CFRUDDER_SERVER="rudder"
-    fi
-  fi
-
-  if [ "${CFRUDDER_SERVER}" = "rudder" ]
-  then
-    echo "********************************************************************************"
-    echo "Policy server set to 'rudder' by default as it was resolvable"
-    echo "To change it, update the policy-server with your Rudder server's hostname"
-    echo "and send an inventory to newly configured policy server."
-    echo ""
-    echo "# rudder agent policy-server <ip or hostname of the server>"
-    echo "# rudder agent inventory"
-    echo "********************************************************************************"
-  fi
-fi
-
 # setup the policy server if we are asked to
 if [ "${CFRUDDER_SERVER}" != "" ]
 then
