@@ -13,6 +13,7 @@ LimitNOFILE=64000
 ExecStart=/opt/rudder/bin/rudder-jetty.sh start
 ExecStop=/opt/rudder/bin/rudder-jetty.sh stop
 SuccessExitStatus=143
+TimeoutStartSec=120s
 
 [Install]
 RequiredBy=rudder-server.service
