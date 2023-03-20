@@ -192,7 +192,7 @@ then
   # is a database is external tell it to the webapp which will tell to the agent not to mess with the local postgresql
   if [ "${HOST}" != "localhost" ]
   then
-    sed -i "\|^rudder.postgresql.local|s|.*|rudder.postgresql.local=false|" /opt/rudder/etc/rudder-web.propertie
+    sed -i "\|^rudder.postgresql.local|s|.*|rudder.postgresql.local=false|" /opt/rudder/etc/rudder-web.properties
   fi
 
   # save external db file womewhere else so that the user doesn't try to update it
