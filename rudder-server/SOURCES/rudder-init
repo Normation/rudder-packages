@@ -44,11 +44,16 @@ export PATH=${PATH}:${RUDDER_OPT}/bin
 
 # Try to get the machine FQDN, or default to the unqualified
 # one if it fails.
-if hostname -f > /dev/null 2>&1
+if command -v hostname > /dev/null
 then
-  RUDDER_HOSTNAME=$(hostname -f)
+  if hostname -f > /dev/null 2>&1
+  then
+    RUDDER_HOSTNAME=$(hostname -f)
+  else
+    RUDDER_HOSTNAME=$(hostname)
+  fi
 else
-  RUDDER_HOSTNAME=$(hostname)
+  RUDDER_HOSTNAME=$(hostnamectl hostname)
 fi
 
 # Get how many access credentials we got for LDAP and SQL in /opt/rudder/etc/rudder-web.properties
