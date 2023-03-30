@@ -108,6 +108,7 @@ else
   SQL_PASSWORD="Normation"
   SQL_SERVER="localhost"
   SQL_PORT="5432"
+  SQL_DATABASE="rudder"
 
   # We rely on .pgpass instead
   unset PGPASSWORD
@@ -608,6 +609,10 @@ upgrade_masterfiles
 
 # Upgrade database
 echo -n "INFO: Upgrading PostgreSQL DB..."
+# if the server is localhost, try to start postgresql to ensure that database schema is upgraded
+if [ "$SQL_SERVER" = "localhost" ]; then
+  systemctl start $(systemctl --no-ask-password list-unit-files --type service | awk -F'.' '{print $1}' | grep -E "^postgresql-?[0-9]*$" | tail -n 1)
+fi
 if retry_wrapper "${PSQL} -t -d ${SQL_DATABASE} -c 'select 1' >/dev/null 2>&1" "PostgreSQL";
 then
   echo " OK"
