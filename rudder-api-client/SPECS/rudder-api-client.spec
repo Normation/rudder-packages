@@ -57,7 +57,7 @@ Requires: python, python-requests, python-urllib3
 BuildRequires: python3, python3-requests
 Requires: python3, python3-requests, python3-urllib3
 %else
-## sles 15
+## sles 15 && fedora
 BuildRequires: python3, python3-requests
 Requires: python3, python3-requests, python3-docopt, python3-urllib3
 %endif

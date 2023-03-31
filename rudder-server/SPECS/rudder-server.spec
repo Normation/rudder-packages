@@ -43,7 +43,7 @@
 %define jetty_init_script       jetty-sles.sh
 %define apache_vhost_dir        %{apache}/vhosts.d
 %endif
-%if 0%{?rhel}
+%if 0%{?rhel} || 0%{?fedora}
 %define apache                  httpd
 %define apache_tools            httpd-tools
 %define htpasswd_cmd            htpasswd
@@ -115,7 +115,7 @@ Requires: jre-headless >= 11
 
 ## Openssl 1.1.1 required for openldap
 # Here rhel7 = al2 as rhel7 is not supported in Rudder anymore
-# We rely on the EPEL package for build. 
+# We rely on the EPEL package for build.
 %if 0%{?rhel} && 0%{?rhel} == 7
 BuildRequires: openssl11-devel
 Requires: openssl11
@@ -136,9 +136,14 @@ BuildRequires: python
 Requires: python, python-pyOpenSSL
 %endif
 %if 0%{?suse_version} && 0%{?suse_version} >= 1500
+Requires: python3
 BuildRequires: python3
 Requires: python3
 %endif
+%if 0%{?fedora}
+BuildRequires: python3
+%endif
+
 
 %description
 Rudder is an open source configuration management and audit solution.
@@ -165,7 +170,7 @@ export CFLAGS="$RPM_OPT_FLAGS"
 cd %{_sourcedir}
 make --debug build
 
-%if 0%{?rhel}
+%if 0%{?rhel} || 0%{?fedora}
 # Build SELinux policy package
 # Compiles rudder-webapp.te and rudder-webapp.fc into rudder-webapp.pp
 make -f /usr/share/selinux/devel/Makefile
@@ -181,7 +186,7 @@ rm -rf %{buildroot}
 cd %{_sourcedir}
 make --debug install APACHE_VHOSTDIR=%{apache_vhost_dir} DESTDIR=%{buildroot} JETTY_SCRIPT=%{jetty_init_script} APACHE_CONFDIR=%{apache_conf_dir}
 
-%if 0%{?rhel}
+%if 0%{?rhel} || 0%{?fedora}
   # Install SELinux policy
   install -m 644  rudder-webapp.pp %{buildroot}/opt/rudder/share/selinux/
   # Replace init script
@@ -264,7 +269,7 @@ fi
 set -e
 
 RUDDER_FIRST_INSTALL="false"
-%if 0%{?rhel}
+%if 0%{?rhel} || 0%{?fedora}
 # rhel does'nt initialize postgresql
 DB_NOT_INITIALIZED="true"
 %else
@@ -313,7 +318,7 @@ if ! /opt/rudder/share/package-scripts/rudder-server-postinst "${RUDDER_FIRST_IN
   /opt/rudder/bin/rudder-fix-repository-permissions  >> ${LOG_FILE}
 fi
 
-%if 0%{?rhel}
+%if 0%{?rhel} || 0%{?fedora}
 # SELinux support
 # Check "sestatus" presence, and if here tweak our installation to be
 # SELinux compliant
@@ -365,7 +370,7 @@ if [ $1 -eq 0 ]; then
   fi
 %endif
 
-%if 0%{?rhel}
+%if 0%{?rhel} || 0%{?fedora}
   if type sestatus >/dev/null 2>&1 && sestatus | grep -q "enabled"; then
     if semodule -l | grep -q rudder-webapp; then
       # Remove the rudder-webapp SELinux policy
