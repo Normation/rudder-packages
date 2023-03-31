@@ -30,7 +30,7 @@
 %define apache_vhost_dir        %{apache}/vhosts.d
 %define selinux                 false
 %endif
-%if 0%{?rhel}
+%if 0%{?rhel} || 0%{?fedora}
 %define apache                  httpd
 %define apache_tools            httpd-tools
 %define apache_group            apache
@@ -73,6 +73,11 @@ Requires: %(../format-dependencies rpm %{old_epoch}:%{real_version} rudder-agent
 ## RHEL
 %if 0%{?rhel}
 Requires: mod_ssl shadow-utils apr-util-bdb
+BuildRequires: selinux-policy-devel
+%endif
+
+%if 0%{?fedora}
+Requires: mod_ssl shadow-utils python3-policycoreutils policycoreutils-python-utils libpq
 BuildRequires: selinux-policy-devel
 %endif
 
@@ -137,7 +142,7 @@ sed -i "s|^DocumentRoot /var/www$|DocumentRoot /srv/www|" apache/rudder-apache-r
 
 %if 0%{?rhel} == 7
 # rhel7 doesn't have python 3 so we force python2 instead
-# See #22404 to handle file with whitespace in name 
+# See #22404 to handle file with whitespace in name
 find . -type f | xargs -d '\n' sed -i '1,1s|#!/usr/bin/python3|#!/usr/bin/python2|'
 make --debug build SELINUX=%{selinux} PYTHON=python2
 %else
@@ -164,7 +169,7 @@ set -e
 
 CFRUDDER_FIRST_INSTALL=$1
 
-%if 0%{?rhel}
+%if 0%{?rhel} || 0%{?fedora}
 systemctl enable %{apache} >/dev/null 2>&1
 %endif
 

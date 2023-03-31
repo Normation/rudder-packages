@@ -94,8 +94,10 @@
 # we embed openssl as system is too recent (openssl3) in this case
 %define with_openssl true
 %endif
-
-# Recent fedora has proper defaults
+%if 0%{?fedora} && 0%{?fedora} >= 34
+# we embed openssl as system is too recent (openssl3) in this case
+%define with_openssl true
+%endif
 
 # 3 - SUSE
 # Reference for suse_version : https://en.opensuse.org/openSUSE:Build_Service_cross_distribution_howto

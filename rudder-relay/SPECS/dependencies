@@ -3,4 +3,5 @@ sles-15:python3-devel python3-pip python3-lxml python3-requests pkgconfig postgr
 rhel-7:python-devel python-setuptools pythons-libs python-lxml python-requests selinux-policy-devel pkgconfig postgresql-devel
 rhel-8:python3-devel python3-pip python3-lxml python3-requests selinux-policy-devel pkgconfig postgresql-devel apr-util-bdb
 rhel-9:python3-devel python3-pip python3-lxml python3-requests selinux-policy-devel pkgconfig postgresql-devel apr-util-bdb
+al-2023:python3-devel python3-pip python3-lxml python3-requests selinux-policy-devel pkgconfig postgresql-devel
 rust:yes
