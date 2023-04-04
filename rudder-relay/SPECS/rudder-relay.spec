@@ -68,7 +68,14 @@ Obsoletes: rudder-server-relay < 7.2
 
 ## General
 BuildRequires: pkgconfig, postgresql-devel
-Requires: %(../format-dependencies rpm %{old_epoch}:%{real_version} rudder-agent), %{apache}, %{apache_tools}, binutils, xz, postgresql, rsync, sudo
+Requires: %(../format-dependencies rpm %{old_epoch}:%{real_version} rudder-agent), %{apache}, %{apache_tools}, binutils, xz, rsync, sudo
+
+# amazon linux doesn't provide postgresql, it provides postgresql15
+%if %{?amazon}
+Requires: postgresql15
+%else
+Requires: postgresql
+%endif
 
 ## RHEL
 %if 0%{?rhel}
