@@ -86,7 +86,12 @@ Requires: %(../format-dependencies rpm %{old_epoch}:%{real_version} rudder-repor
 
 # yum doesn't support installing a preferred package in a A or B situation
 # rudder-external-db will not prevent installation of postgresql-server on rhel/sles
+# amazon linux doesn't provide posrgresql-server, it provides postgresql15-server instead
+%if %{?amazon}
+Requires: postgresql15-server
+%else
 Requires: postgresql-server >= 10.3
+%endif
 
 BuildRequires: gcc, rsync, git
 
