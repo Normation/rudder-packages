@@ -98,7 +98,7 @@ BuildRequires: gcc, rsync, git
 # OS-specific dependencies
 
 ## RHEL
-%if 0%{?rhel}
+%if 0%{?rhel} || 0%{?fedora}
 BuildRequires: groff-base
 BuildRequires: selinux-policy-devel
 Requires: mod_ssl httpd shadow-utils
@@ -147,6 +147,7 @@ Requires: python3
 %endif
 %if 0%{?fedora}
 BuildRequires: python3
+Requires: python3
 %endif
 
 
