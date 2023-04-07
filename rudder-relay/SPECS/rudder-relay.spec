@@ -71,7 +71,7 @@ BuildRequires: pkgconfig, postgresql-devel
 Requires: %(../format-dependencies rpm %{old_epoch}:%{real_version} rudder-agent), %{apache}, %{apache_tools}, binutils, xz, rsync, sudo
 
 # amazon linux doesn't provide postgresql, it provides postgresql15
-%if %{?amazon}
+%if 0%{?amazon}
 Requires: postgresql15
 %else
 Requires: postgresql
