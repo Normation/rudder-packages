@@ -143,8 +143,13 @@ AutoProv: 0
 %if "%{with_perl}" == "false" && 0%{?rhel}
 BuildRequires: perl-CPAN
 %endif
+
 %if "%{with_perl}" == "false"
+%if 0%{?fedora} || 0%{?rhel} >= 8
+Requires: perl-interpreter perl-lib perl-English perl-Memoize perl-Sys-Hostname perl-File-Find
+%else
 Requires: perl
+%endif
 %endif
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
