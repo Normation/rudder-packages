@@ -142,22 +142,20 @@ AutoProv: 0
 BuildRequires: perl-CPAN
 %endif
 
-%if "%{with_perl}" == "false"
-%if 0%{?fedora}
+%if "%{with_perl}" == "false" && 0%{?fedora}
 Requires: perl-interpreter perl-lib perl-English perl-Memoize perl-Sys-Hostname perl-File-Find
 %endif
-%if 0%{?rhel} >= 9
+%if "%{with_perl}" == "false" && 0%{?rhel} >= 9
 Requires: perl-interpreter perl-lib perl-English perl-Memoize perl-Sys-Hostname perl-File-Find
 %endif
-%if 0%{?rhel} == 8
+%if "%{with_perl}" == "false" && 0%{?rhel} == 8
 Requires: perl-interpreter perl-Memoize
 %endif
-%if 0%{?rhel} < 8
+%if "%{with_perl}" == "false" && 0%{?rhel} && 0%{?rhel} < 8
 Requires: perl
 %endif
-%if 0%{?suse_version}
+%if "%{with_perl}" == "false" && 0%{?suse_version}
 Requires: perl
-%endif
 %endif
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
