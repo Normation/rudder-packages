@@ -143,13 +143,19 @@ BuildRequires: perl-CPAN
 %endif
 
 %if "%{with_perl}" == "false"
-%if 0%{?fedora} || 0%{?rhel} >= 9
+%if 0%{?fedora}
+Requires: perl-interpreter perl-lib perl-English perl-Memoize perl-Sys-Hostname perl-File-Find
+%endif
+%if 0%{?rhel} >= 9
 Requires: perl-interpreter perl-lib perl-English perl-Memoize perl-Sys-Hostname perl-File-Find
 %endif
 %if 0%{?rhel} == 8
 Requires: perl-interpreter perl-Memoize
 %endif
 %if 0%{?rhel} < 8
+Requires: perl
+%endif
+%if 0%{?suse_version}
 Requires: perl
 %endif
 %endif
