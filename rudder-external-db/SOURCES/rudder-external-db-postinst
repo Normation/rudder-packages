@@ -19,7 +19,7 @@ DB_USER="rudder"
 DB_PASSWORD="xxx"
 
 # Postgresql database name, to create it ask your database administrator or use the following command
-#    su postgres -c "psql -q -c \"CREATE DATABASE ${DB_NAME} WITH OWNER = ${DB_USER}\""
+#    su postgres -c "psql -q -c \"CREATE DATABASE ${DB_NAME} WITH OWNER = ${DB_USER} ENCODING = UTF8\""
 DB_NAME="rudder"
 
 # - true if your database administrator has already created the database structure

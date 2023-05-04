@@ -162,7 +162,7 @@ then
     CHK_PG_DB=$(su postgres -c "psql -t -c \"select count(1) from pg_catalog.pg_database where datname = '${DBNAME}'\"")
     if [ ${CHK_PG_DB} -eq 0 ]
     then
-      su postgres -c "psql -q -c \"CREATE DATABASE ${DBNAME} WITH OWNER = ${USERNAME}\"" >> ${LOG_FILE}
+      su postgres -c "psql -q -c \"CREATE DATABASE ${DBNAME} WITH OWNER = ${USERNAME} ENCODING = UTF8\"" >> ${LOG_FILE}
       POPULATE="true"
     fi
   else
