@@ -219,7 +219,7 @@ Requires: cron net-tools diffutils
 Requires: dmidecode
 %endif
 
-%%if 0%{?fedora}
+%if 0%{?fedora}
 Requires: dmidecode
 %endif
 
@@ -245,6 +245,15 @@ Requires: pmtools
 Requires: dmidecode
 %endif
 
+# We need the ps command for scripts
+
+%if 0%{?rhel} && 0%{?rhel} >= 8
+Requires: procps-ng
+%endif
+
+%if 0%{?fedora}
+Requires: procps-ng
+%endif
 
 ## ACL dependencies
 %if "%{?aix}" == ""
