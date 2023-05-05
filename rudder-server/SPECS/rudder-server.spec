@@ -102,7 +102,7 @@ BuildRequires: gcc, rsync, git
 BuildRequires: groff-base
 BuildRequires: selinux-policy-devel
 Requires: mod_ssl httpd shadow-utils
-Requires: jre-11-headless
+Requires: jre-17-headless
 Requires: perl-Digest-SHA libtool-ltdl
 BuildRequires: openssl-devel libtool-ltdl-devel
 %endif
@@ -115,7 +115,7 @@ BuildRequires: libopenssl-devel
 %endif
 
 %if 0%{?sle_version} && 0%{?sle_version} >= 150000
-Requires: jre-headless >= 11
+Requires: jre-headless >= 17
 %endif
 
 ## Openssl 1.1.1 required for openldap
