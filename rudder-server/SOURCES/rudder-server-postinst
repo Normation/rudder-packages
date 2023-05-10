@@ -47,9 +47,9 @@ then
       echo "INFO: External database detected, skipping database creation"
       CREATE_DB="false"
     else
-      USER=$(grep rudder.jdbc.username /opt/rudder/etc/rudder-web.properties)
-      CHK_PG_USER=$(su postgres -c "psql -t -c \"select count(1) from pg_user where usename = '${USERNAME}'\"")
-      if [ ${CHK_PG_DB} -ne 0 ]
+      USER=$(grep rudder.jdbc.username /opt/rudder/etc/rudder-web.properties | cut -d'=' -f2)
+      CHK_PG_USER=$(su postgres -c "psql -t -c \"select count(1) from pg_user where usename = '${USER}'\"")
+      if [ ${CHK_PG_USER} -ne 0 ]
       then
         echo "INFO: Existing database detected, skipping database creation"
         CREATE_DB="false"
@@ -167,6 +167,7 @@ then
     if [ ${CHK_PG_USER} -eq 0 ]
     then
       su postgres -c "psql -q -c \"CREATE USER ${USERNAME} WITH PASSWORD '${PASSWORD}'\"" >> ${LOG_FILE}
+      sed -i "/^RUDDER_PSQL_PASSWORD/s/.*/RUDDER_PSQL_PASSWORD:${PASSWORD}/" /opt/rudder/etc/rudder-passwords.conf
     fi
 
     # Rudder database
@@ -183,8 +184,8 @@ then
       POPULATE="true"
     fi
     # rudder-passwords default is not adapted to external db
+    sed -i "/^RUDDER_PSQL_PASSWORD/s/.*/RUDDER_PSQL_PASSWORD:${PASSWORD}/" /opt/rudder/etc/rudder-passwords.conf
   fi
-  sed -i "/^RUDDER_PSQL_PASSWORD/s/.*/RUDDER_PSQL_PASSWORD:${PASSWORD}/" /opt/rudder/etc/rudder-passwords.conf
 
   if [ "${POPULATE}" = "true" ]; then
     echo "${HOST}:5432:${DBNAME}:${USERNAME}:${PASSWORD}" > /root/.pgpass
