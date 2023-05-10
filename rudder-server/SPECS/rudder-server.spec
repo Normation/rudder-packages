@@ -90,7 +90,7 @@ Requires: %(../format-dependencies rpm %{old_epoch}:%{real_version} rudder-repor
 %if 0%{?amazon}
 Requires: postgresql15-server
 %else
-Requires: postgresql-server >= 10.3
+Requires: postgresql-server >= 13
 %endif
 
 BuildRequires: gcc, rsync, git
