@@ -93,6 +93,11 @@ ifeq (bullseye,$(OS_CODENAME))
 WITH = --with-lmdb
 STRIP_OPT = --no-automatic-dbgsym
 endif
+# Debian 12
+ifeq (bookworm,$(OS_CODENAME))
+WITH = --with-lmdb
+STRIP_OPT = --no-automatic-dbgsym
+endif
 
 # manage dependencies
 ifeq ($(findstring with-openssl,$(WITH)),)
