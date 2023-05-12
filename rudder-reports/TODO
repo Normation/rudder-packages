@@ -1,2 +1,0 @@
-Remove this package once upgrading from 7.1 is not supported anymore
-The debian part should not even be built, only rpm has problems with replacing old packages.
