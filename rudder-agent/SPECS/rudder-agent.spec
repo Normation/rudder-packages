@@ -145,7 +145,7 @@ BuildRequires: perl-CPAN
 %endif
 
 %if "%{with_perl}" == "false" && 0%{?fedora}
-Requires: perl-interpreter perl-lib perl-English perl-Memoize perl-Sys-Hostname perl-File-Find
+Requires: perl-interpreter perl-lib perl-English perl-Memoize perl-Sys-Hostname perl-File-Find perl-base perl-Digest-MD5 perl-Math-BigInt perl-Net perl-JSON-PP perl-User-pwent
 %endif
 %if "%{with_perl}" == "false" && 0%{?rhel} >= 9
 Requires: perl-interpreter perl-lib perl-English perl-Memoize perl-Sys-Hostname perl-File-Find
