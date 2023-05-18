@@ -37,22 +37,26 @@ echo "`date` - Starting rudder-server post installation script" >> ${LOG_FILE}
 
 # check if a db is configured
 CREATE_DB="true"
-if [ -f /opt/rudder/etc/rudder-web.properties ]
+# DB is not initialized on redhat at first install, create db in this case
+if [ "${DB_NOT_INITIALIZED}" = "false" ]
 then
-  if grep -q rudder.jdbc.url /opt/rudder/etc/rudder-web.properties
+  if [ -f /opt/rudder/etc/rudder-web.properties ]
   then
-    # if it is an external DB, do not run
-    if ! grep -qE 'rudder.jdbc.url=jdbc:postgresql://(localhost|127\.0\.)' /opt/rudder/etc/rudder-web.properties
+    if grep -q rudder.jdbc.url /opt/rudder/etc/rudder-web.properties
     then
-      echo "INFO: External database detected, skipping database creation"
-      CREATE_DB="false"
-    else
-      USER=$(grep rudder.jdbc.username /opt/rudder/etc/rudder-web.properties | cut -d'=' -f2)
-      CHK_PG_USER=$(su postgres -c "psql -t -c \"select count(1) from pg_user where usename = '${USER}'\"")
-      if [ ${CHK_PG_USER} -ne 0 ]
+      # if it is an external DB, do not run
+      if ! grep -qE 'rudder.jdbc.url=jdbc:postgresql://(localhost|127\.0\.)' /opt/rudder/etc/rudder-web.properties
       then
-        echo "INFO: Existing database detected, skipping database creation"
+        echo "INFO: External database detected, skipping database creation"
         CREATE_DB="false"
+      else
+        USER=$(grep rudder.jdbc.username /opt/rudder/etc/rudder-web.properties | cut -d'=' -f2)
+        CHK_PG_USER=$(su postgres -c "psql -t -c \"select count(1) from pg_user where usename = '${USER}'\"")
+        if [ ${CHK_PG_USER} -ne 0 ]
+        then
+          echo "INFO: Existing database detected, skipping database creation"
+          CREATE_DB="false"
+        fi
       fi
     fi
   fi
