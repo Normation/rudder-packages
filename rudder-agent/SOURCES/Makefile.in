@@ -66,8 +66,8 @@ perl_SHA256 = e26085af8ac396f62add8a533c3a0ea8c8497d836f0689347ac5abd7b7a4e00a
 cpanminus_RELEASE = 1.7046
 cpanminus_SHA256 = 3e8c9d9b44a7348f9acc917163dbfc15bd5ea72501492cea3a35b346440ff862
 # Original URL: https://github.com/fusioninventory/fusioninventory-agent/releases/download/2.3.19/FusionInventory-Agent-$(FUSION_RELEASE).tar.gz
-fusion_RELEASE = 2.4.3
-fusion_SHA256 = ca9d3630256303bd3ea1f158044904b53fbd7e409a6a647888e9d2c3103b45fd
+fusion_RELEASE = 2.6
+fusion_SHA256 = 83e0e350cc82781f1142e4bc8deea901324a23f9d64e8ead80102dfd680a83df
 
 #CPAN_URL = https://www.cpan.org
 CPAN_URL = $(HTTPS)://repository.rudder.io/build-dependencies/cpan/$(RUDDER_MAJOR_VERSION)

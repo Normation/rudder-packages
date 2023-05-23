@@ -1,21 +1,6 @@
-From efd10c59385cab43aac5387b4c93dce7ab095e3e Mon Sep 17 00:00:00 2001
-From: Nicolas Charles <nicolas.charles@normation.com>
-Date: Thu, 7 Mar 2019 15:01:36 +0100
-Subject: [PATCH] 14424 - Keep LSB support for inventories
-
----
- .../Agent/Task/Inventory/Linux/Distro/LSB.pm       | 46 ++++++++++++++++++++++
- .../Agent/Task/Inventory/Linux/Distro/NonLSB.pm    | 31 +++++++++++++--
- .../Agent/Task/Inventory/Linux/Distro/OSRelease.pm | 41 -------------------
- 3 files changed, 73 insertions(+), 45 deletions(-)
- create mode 100644 lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/LSB.pm
- delete mode 100644 lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/OSRelease.pm
-
-diff --git a/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/LSB.pm b/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/LSB.pm
-new file mode 100644
-index 0000000..44d26ec
---- /dev/null
-+++ b/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/LSB.pm
+diff --color -ruN fusion-source.bak/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/LSB.pm fusion-source/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/LSB.pm
+--- fusion-source.bak/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/LSB.pm	1970-01-01 01:00:00.000000000 +0100
++++ fusion-source/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/LSB.pm	2023-05-23 10:58:06.645719839 +0200
 @@ -0,0 +1,46 @@
 +package FusionInventory::Agent::Task::Inventory::Linux::Distro::LSB;
 +
@@ -63,11 +48,10 @@ index 0000000..44d26ec
 +}
 +
 +1;
-diff --git a/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/NonLSB.pm b/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/NonLSB.pm
-index 96968f5..c0afcfe 100644
---- a/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/NonLSB.pm
-+++ b/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/NonLSB.pm
-@@ -3,11 +3,10 @@ package FusionInventory::Agent::Task::Inventory::Linux::Distro::NonLSB;
+diff --color -ruN fusion-source.bak/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/NonLSB.pm fusion-source/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/NonLSB.pm
+--- fusion-source.bak/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/NonLSB.pm	2023-05-23 10:57:35.433051427 +0200
++++ fusion-source/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/NonLSB.pm	2023-05-23 10:58:06.645719839 +0200
+@@ -3,11 +3,10 @@
  use strict;
  use warnings;
  
@@ -80,7 +64,7 @@ index 96968f5..c0afcfe 100644
  
  # This array contains four items for each distribution:
  # - release file
-@@ -55,6 +54,9 @@ my @distributions = (
+@@ -55,6 +54,9 @@
      # trustix-release contains something like "Trustix Secure Linux release 2.0 (Cloud)"
      [ '/etc/trustix-release',   'Trustix',                    'release ([\d.]+)', '%s' ],
  
@@ -90,7 +74,7 @@ index 96968f5..c0afcfe 100644
      # Fallback
      [ '/etc/issue',             'Unknown Linux distribution', '([\d.]+)'        , '%s' ],
  
-@@ -64,10 +66,10 @@ my @distributions = (
+@@ -64,10 +66,10 @@
  );
  
  our $runMeIfTheseChecksFailed =
@@ -103,7 +87,7 @@ index 96968f5..c0afcfe 100644
  }
  
  sub doInventory {
-@@ -112,6 +114,27 @@ sub _getDistroData {
+@@ -112,6 +114,27 @@
          }
      }
  
@@ -131,12 +115,10 @@ index 96968f5..c0afcfe 100644
      my $data = {
          NAME      => $name,
          VERSION   => $version,
-diff --git a/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/OSRelease.pm b/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/OSRelease.pm
-deleted file mode 100644
-index 9b658a6..0000000
---- a/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/OSRelease.pm
-+++ /dev/null
-@@ -1,41 +0,0 @@
+diff --color -ruN fusion-source.bak/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/OSRelease.pm fusion-source/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/OSRelease.pm
+--- fusion-source.bak/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/OSRelease.pm	2020-08-04 09:36:42.000000000 +0200
++++ fusion-source/lib/FusionInventory/Agent/Task/Inventory/Linux/Distro/OSRelease.pm	1970-01-01 01:00:00.000000000 +0100
+@@ -1,49 +0,0 @@
 -package FusionInventory::Agent::Task::Inventory::Linux::Distro::OSRelease;
 -
 -use strict;
@@ -169,6 +151,14 @@ index 9b658a6..0000000
 -        OSNAME => $description,
 -    });
 -
+-    # Handle Debian case where version is not complete like in Ubuntu
+-    # by checking /etc/debian_version
+-    if (-r '/etc/debian_version') {
+-        my $debian_version = getFirstLine(file => '/etc/debian_version');
+-        $version = $debian_version
+-            if $debian_version && $debian_version =~ /^\d/;
+-    }
+-
 -    $inventory->setOperatingSystem({
 -        NAME      => $name,
 -        VERSION   => $version,
@@ -178,6 +168,3 @@ index 9b658a6..0000000
 -}
 -
 -1;
--- 
-2.7.4
-

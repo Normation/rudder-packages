@@ -1,22 +1,12 @@
-From 72115cf5da2e1396e8d23b698868166b241c14ee Mon Sep 17 00:00:00 2001
-From: Nicolas Charles <nicolas.charles@normation.com>
-Date: Tue, 14 May 2019 17:46:11 +0200
-Subject: [PATCH] Add timeout on df command when available
-
----
- lib/FusionInventory/Agent/Task/Inventory/Linux/Drives.pm | 10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
-
-diff --git a/lib/FusionInventory/Agent/Task/Inventory/Linux/Drives.pm b/lib/FusionInventory/Agent/Task/Inventory/Linux/Drives.pm
-index 8331d57..d43dfc4 100644
---- a/lib/FusionInventory/Agent/Task/Inventory/Linux/Drives.pm
-+++ b/lib/FusionInventory/Agent/Task/Inventory/Linux/Drives.pm
-@@ -31,12 +31,20 @@ sub doInventory {
+diff --color -ruN fusion-source.bak/lib/FusionInventory/Agent/Task/Inventory/Linux/Drives.pm fusion-source/lib/FusionInventory/Agent/Task/Inventory/Linux/Drives.pm
+--- fusion-source.bak/lib/FusionInventory/Agent/Task/Inventory/Linux/Drives.pm	2020-11-09 15:29:50.000000000 +0100
++++ fusion-source/lib/FusionInventory/Agent/Task/Inventory/Linux/Drives.pm	2023-05-23 10:54:06.561162476 +0200
+@@ -33,12 +33,20 @@
  sub _getFilesystems {
      my ($logger) = @_;
  
 +    # if timeout is available, use it for df command to avoid hanging on nfs issues
-+    my $df_command; 
++    my $df_command;
 +    if (canRun('timeout')) {
 +      $df_command = 'timeout 10 df -P -T -k';
 +    } else {
@@ -25,14 +15,11 @@ index 8331d57..d43dfc4 100644
 +
      # get filesystems list
      my @filesystems =
-         # exclude virtual file systems
-         grep { $_->{FILESYSTEM} !~ /^(tmpfs|devtmpfs|usbfs|proc|devpts|devshm|udev)$/ }
+         # exclude virtual file systems and overlay fs defined by docker
+         grep { $_->{FILESYSTEM} !~ /^(tmpfs|devtmpfs|usbfs|proc|devpts|devshm|udev)$/ && $_->{VOLUMN} !~ /^overlay$/ }
          # get all file systems
 -        getFilesystemsFromDf(logger => $logger, command => 'df -P -T -k');
 +        getFilesystemsFromDf(logger => $logger, command => $df_command);
  
      # get additional informations
      if (canRun('blkid')) {
--- 
-2.7.4
-
