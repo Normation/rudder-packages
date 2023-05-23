@@ -26,8 +26,8 @@ RUDDER_MAJOR_VERSION := $(shell echo ${RUDDER_VERSION_TO_PACKAGE} | cut -d'.' -f
 JETTY_RELEASE = 10.0.12
 JETTY_SHA256 = b2ae3170a729365e05ba9da057aee5d2654d169912efec73cddc8381ac35d516
 # Original URL: https://www.openldap.org/software/download/OpenLDAP/openldap-release/openldap-2.6.2.tgz
-OPENLDAP_RELEASE = 2.6.3
-OPENLDAP_SHA256 = d2a2a1d71df3d77396b1c16ad7502e674df446e06072b0e5a4e941c3d06c0d46
+OPENLDAP_RELEASE = 2.6.4
+OPENLDAP_SHA256 = d51704e50178430c06cf3d8aa174da66badf559747a47d920bb54b2d4aa40991
 TMP_DIR := $(shell mktemp -dq)
 RELEASE_TYPE := $(shell if echo ${RUDDER_VERSION_TO_PACKAGE} | grep -q git; then echo nightly; else echo release; fi)
 
@@ -79,7 +79,7 @@ jetty:
 	rm -rf $(TMP_DIR)
 
 	# Remove useless / demo elements from Jetty
-	# jetty 10 is clean now 
+	# jetty 10 is clean now
 	# rm -rf jetty/...
 
 	# Change jetty.sh before distincts files
