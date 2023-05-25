@@ -248,7 +248,7 @@ build-libxml2: libxml2-source @zlib_DEP@
 build-libcurl: libcurl-source @openssl_DEP@ @zlib_DEP@
 	# pkcconfig give openssl build configuration, but it point to final installation path (/opt/rudder)
 	# since we need the temporary path during build we need to add -I and -L
-	cd libcurl-source && ./configure --prefix=$(RUDDER_DIR) @LIBCURL_ARGS@ --without-libpsl --disable-tls-srp --disable-rtsp --enable-ipv6 --without-librtmp --without-ldap-lib CPPFLAGS="-I$(CURDIR)/dependencies$(RUDDER_DIR)/include" $(BUILD_FLAGS_EXE)
+	cd libcurl-source && ./configure --prefix=$(RUDDER_DIR) @LIBCURL_ARGS@ --without-nghttp2 --without-hyper --without-libpsl --disable-tls-srp --disable-rtsp --enable-ipv6 --without-librtmp --without-ldap-lib CPPFLAGS="-I$(CURDIR)/dependencies$(RUDDER_DIR)/include" $(BUILD_FLAGS_EXE)
 	# is for loading dependencies of libcurl during the build of curl
 	cd libcurl-source && $(MAKE)
 	cd libcurl-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
