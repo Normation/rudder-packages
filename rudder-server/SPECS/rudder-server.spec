@@ -115,18 +115,14 @@ Requires: jre-headless >= 11
 
 ## Openssl 1.1.1 required for openldap
 # Here rhel7 = al2 as rhel7 is not supported in Rudder anymore
-# We rely on the EPEL package for build. 
+# We rely on the EPEL package for build.
 %if 0%{?rhel} && 0%{?rhel} == 7
 BuildRequires: openssl11-devel
 Requires: openssl11
 %endif
 
 ## Python 3
-%if 0%{?rhel} && 0%{?rhel} == 7
-BuildRequires: python
-Requires: python
-%endif
-%if 0%{?rhel} && 0%{?rhel} >= 8
+%if 0%{?rhel}
 BuildRequires: python3
 Requires: python3
 %endif
