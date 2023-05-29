@@ -56,8 +56,7 @@ STRIP_OPT = --no-automatic-dbgsym
 endif
 # Ubuntu 22.04
 ifeq (jammy,$(OS_CODENAME))
-# we embed openssl as system is too recent (openssl3) in this case
-WITH = --with-openssl --with-lmdb
+WITH = --with-lmdb
 STRIP_OPT = --no-automatic-dbgsym
 BUILDDEB_OPT = -- -Zxz
 endif
@@ -95,8 +94,7 @@ STRIP_OPT = --no-automatic-dbgsym
 endif
 # Debian 12
 ifeq (bookworm,$(OS_CODENAME))
-# we embed openssl as system is too recent (openssl3) in this case
-WITH = --with-openssl --with-lmdb
+WITH = --with-lmdb
 STRIP_OPT = --no-automatic-dbgsym
 endif
 
