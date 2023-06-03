@@ -214,8 +214,8 @@ elif [ -x /usr/bin/dpkg ] && [ "$(dpkg --print-architecture)" = "i386" ] ; then
 elif [ "${CROSS_COMPILE}" = "win64" ]; then
   SSL_CONFIGURE="${PERL} ./Configure mingw64 --cross-compile-prefix=x86_64-w64-mingw32-"
 elif [ "$(uname)" = "AIX" ]; then
-  # since openssl3 aix is not properly detected
-  SSL_CONFIGURE="${PERL} ./Configure aix64-gcc"
+  # since openssl3 aix needs a spefic lib that is not used by default
+  SSL_CONFIGURE="LDFLAGS=\"-latomic\" ${PERL} ./config"
 else
   SSL_CONFIGURE="PERL=${PERL} ./config"
 fi
