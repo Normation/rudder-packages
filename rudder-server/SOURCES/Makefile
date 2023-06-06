@@ -132,7 +132,7 @@ rudder-doc:
 	mv doc-${RUDDER_MAJOR_VERSION} rudder-doc/html
 
 PATCHES_SHA = $(shell find patches/ -type f | sort | xargs sha256sum | sha256sum | awk '{print $$1}')
-CACHE_PARAMETERS = --with-env name=openldap ldap=$(OPENLDAP_SHA256) patches=$(PATCHES_SHA) release_type=$(RELEASE_TYPE)
+CACHE_PARAMETERS := --with-env name=openldap ldap=$(OPENLDAP_SHA256) patches=$(PATCHES_SHA) release_type=$(RELEASE_TYPE) build_path=$(CURDIR)
 BUILD_LDAP = $(shell ../../build-caching get openldap-source/ $(CACHE_PARAMETERS) || echo build-ldap)
 build: $(BUILD_LDAP) rudder-sources build-language rudder-doc jetty rudder.war
 	# save ldap build into cache
