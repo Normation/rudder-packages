@@ -30,7 +30,7 @@
  
 +##################################################
 +# Set default JVM parameters, to be
-+# overridden by the configuration file
++# overridden by the configuration file
 +##################################################
 +JAVA_XMX=${JAVA_XMX:-1024}
 +
@@ -41,7 +41,7 @@
      UMASK="0007"
      echo "Setting umask to ${UMASK}"
 
-+    # Checking if enough RAM is available for Jetty to use
++    # Checking if enough RAM is available for Jetty to use
 +    # Metaspace is auomanaged in JDK8+. Rudder needs 150Mo of it.
 +    checkAvailableRam $((${JAVA_XMX}+150))
 

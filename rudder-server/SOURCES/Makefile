@@ -76,6 +76,7 @@ jetty:
 	$(GET) $(TMP_DIR)/jetty.tgz https://repository.rudder.io/build-dependencies/jetty/jetty-home-$(JETTY_RELEASE).tar.gz $(JETTY_SHA256)
 	tar xzf $(TMP_DIR)/jetty.tgz -C $(TMP_DIR)
 	mv $(TMP_DIR)/jetty-home-$(JETTY_RELEASE) jetty
+	chmod -R u+w jetty
 	rm -rf $(TMP_DIR)
 
 	# Remove useless / demo elements from Jetty

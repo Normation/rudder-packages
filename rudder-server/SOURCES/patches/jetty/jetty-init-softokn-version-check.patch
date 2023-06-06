@@ -16,6 +16,6 @@
 +    then
 +      echo "nss version mismatch, your nss-softokn version (${softokn_ver}) may not be compatible with your nss version (${nss_ver}) (see https://issues.rudder.io/issues/10734)" >> /var/log/rudder/webapp/java.log
 +    fi
-     # Checking if enough RAM is available for Jetty to use
+     # Checking if enough RAM is available for Jetty to use
      checkAvailableRam $((${JAVA_XMX}+${JAVA_MAXPERMSIZE}))
  
