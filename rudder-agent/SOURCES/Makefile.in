@@ -43,7 +43,7 @@ libyaml_RELEASE = 0.2.5
 libyaml_SHA256 = c642ae9b75fee120b2d96c712538bd2cf283228d2337df2cf2988e3c02678ef4
 # Original URL: ftp://xmlsoft.org/libxml2/libxml2-2.9.7.tar.gz
 libxml2_RELEASE = 2.9.14
-libxml2_SHA256 = 60d74a257d1ccec0475e749cba2f21559e48139efba6ff28224357c7c798dfee
+libxml2_SHA256 = e8655291ee6f20c8abf57854ff0709e8b178c619001a4d850002aafc81885e17
 # Original URL: https://curl.haxx.se/download/curl-7.58.0.tar.gz
 libcurl_RELEASE = 8.1.2
 libcurl_SHA256 = 2e5a9b8fcdc095bdd2f079561f369de71c5eb3b80f00a702fbe9a8b8d9897891
