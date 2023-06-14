@@ -80,12 +80,12 @@ Requires: postgresql
 ## RHEL
 %if 0%{?rhel}
 Requires: mod_ssl shadow-utils apr-util-bdb
-BuildRequires: selinux-policy-devel
+BuildRequires: selinux-policy-devel openssl-devel
 %endif
 
 %if 0%{?fedora}
 Requires: mod_ssl shadow-utils python3-policycoreutils policycoreutils-python-utils libpq
-BuildRequires: selinux-policy-devel
+BuildRequires: selinux-policy-devel openssl-devel
 %endif
 
 %if 0%{?rhel}
@@ -104,6 +104,9 @@ Requires: pwdutils
 ## Python
 BuildRequires: python3, python3-pip, python3-lxml, python3-requests
 Requires: python3, python3-lxml, python3-requests, python3-setuptools
+
+# openssl 
+BuildRequires: libopenssl-devel
 
 %description
 Rudder is an open source configuration management and audit solution.
