@@ -2,7 +2,7 @@ Source: rudder-relay
 Section: admin
 Priority: optional
 Maintainer: Rudder Team <dev@rudder.io>
-Build-Depends: debhelper (>= 12), python3-dev, python3-setuptools, python3-pip, python3-distutils|libpython3.5-stdlib, python3-requests, python3-lxml, ca-certificates, curl, pkg-config, libpq-dev, systemd, rsync
+Build-Depends: debhelper (>= 12), python3-dev, python3-setuptools, python3-pip, python3-distutils|libpython3.5-stdlib, python3-requests, python3-lxml, ca-certificates, curl, pkg-config, libpq-dev, systemd, rsync, libssl-dev
 Standards-Version: 4.6.1
 Homepage: https://www.rudder.io
 
