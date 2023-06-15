@@ -1,7 +1,6 @@
 [Unit]
 Description=Rudder server umbrella service
 Documentation=https://docs.rudder.io
-After=syslog.target
 # Dependencies register themselves with a WantedBy/RequiredBy
 # currently they are rudder-slapd and rudder-jetty
 

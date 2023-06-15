@@ -188,7 +188,6 @@ install: build rudder-server-version initial-promises initial-ncf
 	mkdir -p $(DESTDIR)/etc/$(APACHE_VHOSTDIR)/
 	mkdir -p $(DESTDIR)/etc/$(APACHE_CONFDIR)/
 	mkdir -p $(DESTDIR)/etc/sysconfig/
-	mkdir -p $(DESTDIR)/etc/rsyslog.d
 	mkdir -p $(DESTDIR)/etc/default
 	mkdir -p $(DESTDIR)/usr/share/doc/rudder
 	mkdir -p $(DESTDIR)/usr/share/
@@ -205,7 +204,6 @@ install: build rudder-server-version initial-promises initial-ncf
 	install -m 640 slapd.conf $(DESTDIR)/opt/rudder/etc/openldap/slapd.conf
 	install -m 644 $(WEBAPPDIR)/ldap-inventory/inventory-repository/src/main/resources/ldap/inventory.schema $(DESTDIR)/opt/rudder/etc/openldap/schema/
 	install -m 644 $(CORE_RESOURCES)/ldap/rudder.schema $(DESTDIR)/opt/rudder/etc/openldap/schema/
-	install -m 644 rsyslog/rudder-slapd.conf $(DESTDIR)/etc/rsyslog.d/rudder-slapd.conf
 	install -m 644 rudder-slapd.service $(DESTDIR)/usr/lib/systemd/system/rudder-slapd.service
 	[ $$(systemctl --version | head -1 | cut -d' ' -f2) -gt 232 ] && sed -i '/\[Service\]/ r rudder-slapd-hardening' $(DESTDIR)/usr/lib/systemd/system/rudder-slapd.service || true
 

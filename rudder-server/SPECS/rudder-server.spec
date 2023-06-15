@@ -335,6 +335,8 @@ if [ $1 -eq 0 ]; then
 
   # Clean up all logrotate leftovers
   rm -rf %{_sysconfdir}/logrotate.d/rudder*
+  # Clean up all syslog leftovers
+  rm -rf %{_sysconfdir}/rsyslog.d/rudder*
 
 %if 0%{?suse_version}
   # Remove required includes in the SLES apache2 configuration
@@ -392,7 +394,6 @@ rm -rf %{buildroot}
 /opt/rudder/etc/postgresql/reportsSchema.sql
 /opt/rudder/share/package-scripts/
 %config(noreplace) /opt/rudder/etc/openldap/slapd.conf
-%config(noreplace) /etc/rsyslog.d/rudder-slapd.conf
 %config(noreplace) /opt/rudder/etc/rudder-web.properties
 %config(noreplace) /opt/rudder/etc/rudder-users.xml
 %config(noreplace) /opt/rudder/etc/logback.xml

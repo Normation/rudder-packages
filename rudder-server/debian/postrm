@@ -25,6 +25,8 @@ case "$1" in
     purge)
         # Clean up all logrotate leftovers
         rm -rf /etc/logrotate.d/rudder*
+        # Clean up all syslog leftovers
+        rm -rf /etc/rsyslog.d/rudder*
         if getent passwd rudder-slapd >/dev/null; then
           userdel rudder-slapd >/dev/null 2>&1
         fi
