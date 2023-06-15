@@ -1,6 +1,5 @@
 [Unit]
 Description=CFEngine file server
-After=syslog.target
 After=network.target
 ConditionPathExists=/var/rudder/cfengine-community/inputs/promises.cf
 ReloadPropagatedFrom=rudder-agent.service

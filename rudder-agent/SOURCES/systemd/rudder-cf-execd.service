@@ -1,6 +1,5 @@
 [Unit]
 Description=CFEngine Execution Scheduler
-After=syslog.target
 ConditionPathExists=/var/rudder/cfengine-community/inputs/promises.cf
 ConditionPathExists=!/opt/rudder/etc/disable-agent
 ReloadPropagatedFrom=rudder-agent.service

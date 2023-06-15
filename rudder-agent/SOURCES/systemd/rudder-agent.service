@@ -2,7 +2,6 @@
 Description=Rudder agent umbrella service
 Documentation=man:rudder(8)
 Documentation=https://docs.rudder.io
-After=syslog.target
 # Dependencies register themselves with a WantedBy/RequiredBy
 # currently they are rudder-cf-serverd and rudder-cf-execd
 

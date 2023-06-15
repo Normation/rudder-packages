@@ -163,7 +163,6 @@ Conflicts: rudder-agent-thin
 ## For Linux
 %if "%{?aix}" ==""
 BuildRequires: pam-devel
-Requires: syslog
 %endif
 
 ## Requirement for cpanminus
