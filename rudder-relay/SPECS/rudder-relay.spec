@@ -105,8 +105,10 @@ Requires: pwdutils
 BuildRequires: python3, python3-pip, python3-lxml, python3-requests
 Requires: python3, python3-lxml, python3-requests, python3-setuptools
 
-# openssl 
+# openssl
+%if 0%{?suse_version}
 BuildRequires: libopenssl-devel
+%endif
 
 %description
 Rudder is an open source configuration management and audit solution.
