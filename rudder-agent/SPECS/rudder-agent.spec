@@ -396,7 +396,7 @@ opt="${opt} --disable-pam"
 %if "%{with_perl}" == "true"
 opt="${opt} --with-perl"
 %else
-cpan -f -T -i Module::CoreList < /dev/null
+cpan -f -T -i Module::CoreList < /dev/null || true
 cpan -f -T -i YAML::Tiny < /dev/null
 cpan -f -T -i Module::Install < /dev/null
 %endif
