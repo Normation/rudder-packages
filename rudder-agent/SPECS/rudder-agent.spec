@@ -398,7 +398,7 @@ opt="${opt} --with-perl"
 %else
 perl -MModule::CoreList -e '' || cpan -f -T -i Module::CoreList < /dev/null || true
 perl -MYAML::Tiny -e '' || cpan -f -T -i YAML::Tiny < /dev/null
-perl -MModule::Install -e '' || cpan -f -T -i Module::Install < /dev/null
+perl -Minc::Module::Install -e '' || cpan -f -T -i Module::Install < /dev/null
 %endif
 
 # libattr libtool file is looked for in /lib64 but put in /usr/lib64 on RHEL3
