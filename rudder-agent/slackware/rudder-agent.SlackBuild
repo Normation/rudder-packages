@@ -67,12 +67,12 @@ set -e # Exit on most errors
 # then that's also acceptable.
 
 rm -rf $PKG
-mkdir -p $TMP $PKG 
+mkdir -p $TMP $PKG
 
 # Compile the application and install it into the $PKG directory
 cd ../SOURCES
-./configure --disable-pam --with-jq --with-perl --with-openssl --with-libcurl --with-augeas --with-lmdb 
-make --debug 
+./configure --disable-systemd --disable-pam --with-jq --with-perl --with-openssl --with-libcurl --with-augeas --with-lmdb
+make --debug
 make install DESTDIR=$PKG/
 cd $PKG
 
