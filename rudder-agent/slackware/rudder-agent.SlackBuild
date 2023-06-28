@@ -94,4 +94,4 @@ cp -a $CWD/rc.crond $PKG/etc/rc.d/
 # your custom contents of doinst.sh runs, then add the -p switch to
 # the makepkg command below -- see makepkg(8) for details
 cd $PKG
-/sbin/makepkg -l y -c n ${OUTPUT}/${PRGNAM}-${VERSION}-${ARCH}-${BUILD}_${TAG}.${PKGTYPE:-tgz}
+/sbin/makepkg -p -l y -c n ${OUTPUT}/${PRGNAM}-${VERSION}-${ARCH}-${BUILD}_${TAG}.${PKGTYPE:-tgz}
