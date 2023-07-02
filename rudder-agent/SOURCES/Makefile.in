@@ -224,6 +224,8 @@ build-pcre: pcre-source
 	touch $@
 
 build-openssl: openssl-source @perl_DEP@
+	# recent gcc don't include fp in armv7a
+	if [ "$(GCC_VERSION)" -ge 12 ]; then cd openssl-source && sed -i "s/armv7-a/armv7-a+fp/g" config; fi
 	# openssl doesn't support CFLAGS (it overrides its own) so we must pass them in batch to configure
 	cd openssl-source && RELEASE="" @SSL_CONFIGURE@ -fPIC $(CFLAGS) $(LDFLAGS) $(PIE_LDFLAGS) --prefix=$(RUDDER_DIR) --openssldir=$(RUDDER_DIR)/openssl shared no-idea no-rc5 no-ssl3 no-dtls no-psk no-srp no-engine enable-egd
 	cd openssl-source && $(MAKE) depend
