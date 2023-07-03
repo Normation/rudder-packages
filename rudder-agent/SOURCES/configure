@@ -260,6 +260,9 @@ if [ "${USE_PIE}" = "true" ]; then
   test_cc "PIE" "-fPIE" "-pie"
 fi
 
+# detect gcc main version
+GCC_VERSION=$(gcc -dumpversion | cut -d. -f 1)
+
 # Macro for source getting in the makefile
 source_macro() {
   name="$1"
@@ -294,6 +297,8 @@ TAR = ${TAR}
 PATCH = ${PATCH}
 SED = ${SED}
 INSTALL = ${INSTALL}
+
+GCC_VERSION = ${GCC_VERSION}
 
 LMDB_MAKEFLAGS = ${LMDB_MAKEFLAGS}
 LMDB_LDFLAGS = ${LMDB_LDFLAGS}
