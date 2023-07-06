@@ -9,8 +9,8 @@
 #
 ### BEGIN INIT INFO
 # Provides:          rudder-agent
-# Required-Start:    $remote_fs $syslog
-# Required-Stop:     $remote_fs $syslog
+# Required-Start:    $remote_fs
+# Required-Stop:     $remote_fs
 # Should-Start:      $network $time
 # Should-Stop:       $network $time
 # Default-Start:     2 3 4 5
