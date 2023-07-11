@@ -15,6 +15,7 @@
 set -e
 
 LDAP_CONF="/opt/rudder/etc/openldap/slapd.conf"
+LDAP_LOG="/var/log/rudder/ldap/"
 RUDDER_DIR="/opt/rudder/"
 LOG_FILE="/var/log/rudder/install/rudder-server-$(date +%Y%m%d%H%M%S).log"
 EXTERNAL_DB_CONF="/opt/rudder/etc/external-db.conf"
@@ -234,8 +235,14 @@ fi
 if ! getent passwd rudder-slapd >/dev/null; then
   useradd --system --gid rudder-slapd --shell /bin/false --home-dir /var/rudder/ldap --comment "Rudder LDAP server,,," rudder-slapd >> ${LOG_FILE}
 fi
+
 chown root:rudder-slapd "${LDAP_CONF}"
 chmod 640 "${LDAP_CONF}"
+
+mkdir -p "${LDAP_LOG}"
+chmod 750 "${LDAP_LOG}"
+chown rudder-slapd:root "${LDAP_LOG}"
+
 chown -R rudder-slapd:rudder-slapd /var/rudder/ldap/
 
 echo "Stopping apache before running upgrade scripts" >> ${LOG_FILE}
