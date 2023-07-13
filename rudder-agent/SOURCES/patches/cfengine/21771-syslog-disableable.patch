@@ -1,10 +1,10 @@
-diff --color -ruN cfengine-source.orig/libpromises/feature.c cfengine-source/libpromises/feature.c
---- cfengine-source.orig/libpromises/feature.c	2023-05-10 12:38:35.192123758 +0200
-+++ cfengine-source/libpromises/feature.c	2023-05-10 12:41:33.602000922 +0200
-@@ -28,6 +28,7 @@
+diff --color -ruN cfengine-source.old/libpromises/feature.c cfengine-source/libpromises/feature.c
+--- cfengine-source.old/libpromises/feature.c	2022-11-09 17:33:16.000000000 +0100
++++ cfengine-source/libpromises/feature.c	2023-07-13 17:32:45.038890742 +0200
+@@ -27,6 +27,7 @@
+ #endif
      "def_json_preparse",
      "host_specific_data_load",
-     "copyfrom_restrict_keys",
 +    "syslog_disableable",
      NULL
  };
