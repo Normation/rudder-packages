@@ -1,0 +1,13 @@
+diff --color -ruN cfengine-source.old/libntech/libutils/mustache.c cfengine-source/libntech/libutils/mustache.c
+--- cfengine-source.old/libntech/libutils/mustache.c	2022-11-09 17:33:18.000000000 +0100
++++ cfengine-source/libntech/libutils/mustache.c	2023-07-13 17:36:19.746769659 +0200
+@@ -473,7 +473,8 @@
+ 
+     if (!var)
+     {
+-        return true;
++        Log(LOG_LEVEL_ERR, "RenderVariable: {{%.*s}} mustache variable doesn't exist", content_len, content);
++        return false;
+     }
+ 
+     switch (JsonGetElementType(var))
