@@ -45,6 +45,8 @@
 %define enable_libacl true
 %define enable_pam true
 
+# NOTE: Fedora macros are also used by AL2023
+
 %if 0%{?rhel} >= 8
 # https://pagure.io/packaging-committee/issue/738
 %define __brp_mangle_shebangs /usr/bin/true
@@ -148,10 +150,10 @@ BuildRequires: perl-CPAN
 Requires: perl-interpreter perl-lib perl-English perl-Memoize perl-Sys-Hostname perl-File-Find perl-base perl-Digest-MD5 perl-Math-BigInt perl-Net perl-JSON-PP perl-User-pwent
 %endif
 %if "%{with_perl}" == "false" && 0%{?rhel} >= 9
-Requires: perl-interpreter perl-lib perl-English perl-Memoize perl-Sys-Hostname perl-File-Find
+Requires: perl-interpreter perl-lib perl-English perl-Memoize perl-Sys-Hostname perl-File-Find perl-base perl-Digest-MD5 perl-Math-BigInt perl-Net perl-JSON-PP perl-User-pwent
 %endif
 %if "%{with_perl}" == "false" && 0%{?rhel} == 8
-Requires: perl-interpreter perl-Memoize
+Requires: perl-interpreter perl-Memoize perl-JSON-PP perl-Math-BigInt perl-Digest-MD5
 %endif
 %if "%{with_perl}" == "false" && 0%{?rhel} && 0%{?rhel} < 8
 Requires: perl
