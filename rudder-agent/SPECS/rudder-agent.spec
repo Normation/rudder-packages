@@ -530,7 +530,9 @@ if [ $1 -eq 0 ]; then
 
   # Make sure that CFEngine is not running anymore
   for component in cf-agent cf-serverd cf-execd cf-monitord; do
-    pidof ${component} | xargs -n 1 kill -9
+    if pid=`pidof ${component}`; then
+      kill -9 ${pid}
+    fi
   done
 
 %if "%{?aix}" == ""
