@@ -23,7 +23,9 @@ case "$1" in
   purge|remove)
     # Make sure that CFEngine is not running anymore
     for component in cf-agent cf-serverd cf-execd cf-monitord; do
-      pidof ${component} | xargs -n 1 kill -9
+      if pid=`pidof ${component}`; then
+        kill -9 ${pid}
+      fi
     done
 
     CFRUDDER_USE_SYSTEMD="false"
