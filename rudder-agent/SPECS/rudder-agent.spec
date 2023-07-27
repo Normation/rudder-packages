@@ -532,9 +532,9 @@ if [ $1 -eq 0 ]; then
   rm -f /etc/cron.d/rudder-agent
 
   # Make sure that Rudder agent specific files have been removed
-  rm -f /etc/init.d/rudder
   rm -f /etc/init.d/rudder-agent
   rm -f /etc/default/rudder-agent
+  
 %else
   # Remove the cron entry we created
   sed '/# RUDDER CRON$/d' /var/spool/cron/crontabs/root > /tmp/rudder-installer-cron
@@ -549,9 +549,14 @@ if [ $1 -eq 0 ]; then
   rmitab rudder-agent
 %endif
 
-  # Remove UUID in any case
+  rm -fr /opt/rudder/var/fusioninventory
   rm -f /opt/rudder/etc/uuid.hive
-  rm -f %{ruddervardir}/cfengine-community/policy_server.dat
+  rm -f /opt/rudder/etc/ssl/agent.cert
+  rm -f /opt/rudder/etc/policy_server.dat
+  rm -f /var/rudder/lib/ssl/policy_server_hash
+  rm -fr /var/rudder/ncf
+  rm -fr /var/rudder/tmp
+  rm -fr /var/rudder/cfengine-community
 fi
 
 #=================================================
