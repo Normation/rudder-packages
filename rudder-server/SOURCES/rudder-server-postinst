@@ -241,6 +241,7 @@ chmod 640 "${LDAP_CONF}"
 
 mkdir -p "${LDAP_LOG}"
 chmod 750 "${LDAP_LOG}"
+touch "${LDAP_LOG}/slapd.log"
 chown -R rudder-slapd:root "${LDAP_LOG}"
 
 chown -R rudder-slapd:rudder-slapd /var/rudder/ldap/
