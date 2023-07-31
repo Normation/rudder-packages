@@ -1,3 +1,3 @@
 ProtectSystem=strict
-ReadWritePaths=/var/rudder/ldap/
+ReadWritePaths=/var/rudder/ldap/ /var/log/rudder/ldap/
 PrivateTmp=True
