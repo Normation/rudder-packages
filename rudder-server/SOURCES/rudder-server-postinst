@@ -36,37 +36,138 @@ mkdir -p /var/log/rudder/install
 echo "`date` - Starting rudder-server post installation script" >> ${LOG_FILE}
 
 
-# check if a db is configured
-CREATE_DB="true"
+LOCAL_DB="true"
 # DB is not initialized on redhat at first install, create db in this case
-if [ "${DB_NOT_INITIALIZED}" = "false" ]
+# However, on SLES, postgresql is not started at first install, so we can't check user existence before ensuring postgresql is started
+
+# check if we have a local database or not
+if [ -f /opt/rudder/etc/rudder-web.properties ]
 then
-  if [ -f /opt/rudder/etc/rudder-web.properties ]
+  if grep -q rudder.jdbc.url /opt/rudder/etc/rudder-web.properties
   then
-    if grep -q rudder.jdbc.url /opt/rudder/etc/rudder-web.properties
+    # if it is an external DB, do not run
+    if ! grep -qE 'rudder.jdbc.url=jdbc:postgresql://(localhost|127\.0\.)' /opt/rudder/etc/rudder-web.properties
     then
-      # if it is an external DB, do not run
-      if ! grep -qE 'rudder.jdbc.url=jdbc:postgresql://(localhost|127\.0\.)' /opt/rudder/etc/rudder-web.properties
-      then
-        echo "INFO: External database detected, skipping database creation"
-        CREATE_DB="false"
-      else
-        USER=$(grep rudder.jdbc.username /opt/rudder/etc/rudder-web.properties | cut -d'=' -f2)
-        CHK_PG_USER=$(su postgres -c "psql -t -c \"select count(1) from pg_user where usename = '${USER}'\"")
-        if [ ${CHK_PG_USER} -ne 0 ]
-        then
-          echo "INFO: Existing database detected, skipping database creation"
-          CREATE_DB="false"
-        fi
-      fi
+      echo "INFO: External database detected, skipping database creation"
+      echo "`date` - INFO: External database detected, skipping database creation" >> ${LOG_FILE}
+      LOCAL_DB="false"
     fi
   fi
 fi
 
-if [ "${CREATE_DB}" = "true" ]
+echo "$(date) - Starting rudder-reports post installation step" >> ${LOG_FILE}
+# In this case, we know that the database is local
+if [ "${LOCAL_DB}" = "true" ]
 then
-  echo "$(date) - Starting rudder-reports post installation step" >> ${LOG_FILE}
+  echo "$(date) - Starting local database management" >> ${LOG_FILE}
 
+  # detect service name
+  # Try with systemd
+  POSTGRESQL_SERVICE_NAME=$(systemctl list-unit-files --type service | awk -F'.' '{print $1}' | grep -E "^postgresql-?[0-9]*$" | tail -n 1)
+
+  if [ -z "${POSTGRESQL_SERVICE_NAME}" ] && ! type chkconfig >/dev/null 2>/dev/null ; then
+    # on sles 12 postgresql uses an old init file but is properly managed by systemd so this is the only place we need a workaround
+    POSTGRESQL_SERVICE_NAME=$(chkconfig 2>/dev/null | awk '{ print $1 }' | grep "postgresql" | tail -n 1)
+  fi
+
+  # If nothing try default name (should not happen)
+  if [ -z "${POSTGRESQL_SERVICE_NAME}" ]; then
+    POSTGRESQL_SERVICE_NAME="postgresql"
+  fi
+  echo "Found postgres service name: ${POSTGRESQL_SERVICE_NAME}" >> ${LOG_FILE}
+
+  # Start if necessary
+  if ! systemctl status ${POSTGRESQL_SERVICE_NAME} > /dev/null
+  then
+    # redhat doesn't initialize postgres, do it now
+    if [ "${DB_NOT_INITIALIZED}" = "true" ]; then
+      # Detecting path of postgresql-setup
+      POSTGRESQL_SETUP=$(ls -1  /usr/pgsql-*/bin/postgresql*-setup 2> /dev/null | sort -V | tail -1)
+      if [ -z "${POSTGRESQL_SETUP}" ]; then
+        POSTGRESQL_SETUP="postgresql-setup"
+      fi
+      # rhel package doesn't initialize database
+      # NOTE: if postgresql is stopped at upgrade, then this part will try to reinit the database and fail
+      echo "Initializing postgresql db (initdb)" >> ${LOG_FILE}
+      ${POSTGRESQL_SETUP} initdb >> ${LOG_FILE} 2>&1
+    fi
+    systemctl start ${POSTGRESQL_SERVICE_NAME} >> ${LOG_FILE}
+  fi
+
+  # TODO RPM only ??
+  PG_HBA_FILE=$(su postgres -c "psql -t -P format=unaligned -c 'show hba_file';")
+  if [ $? -ne 0 ]; then
+    echo "Postgresql failed to start! Halting"
+    exit 1
+  fi
+
+  #HACK: Give rights for login without unix account
+  if [ -f ${PG_HBA_FILE} ]; then
+    echo "Editing PG_HBA file ${PG_HBA_FILE}" >> ${LOG_FILE}
+    RUDDER_PG_DEFINED=`grep "rudder" ${PG_HBA_FILE} | wc -l`
+    if [ ${RUDDER_PG_DEFINED} -le 0 ]; then
+      # we cannot put at the bottom the rules
+      # Check that the defining line for file is there
+      grep -q "^# TYPE" ${PG_HBA_FILE}
+      if [ $? -eq 0 ]; then
+        sed -i  '/^# TYPE.*/a # Rudder specific access for PostgreSQL' ${PG_HBA_FILE}
+      else
+        # Put it on top
+        sed -i 1i"# Rudder specific access for PostgreSQL" ${PG_HBA_FILE}
+      fi
+      sed -i  '/^# Rudder specific access for PostgreSQL/a host    all             rudder          127.0.0.1/32            md5' ${PG_HBA_FILE}
+      sed -i  '/^# Rudder specific access for PostgreSQL/a host    all             rudder             ::1/128              md5' ${PG_HBA_FILE}
+
+      # Apply changes in PostgreSQL
+      # TODO just after a start ?
+      systemctl reload ${POSTGRESQL_SERVICE_NAME} >> ${LOG_FILE}
+    fi
+  fi
+  # ODOT
+
+  # RHEL doesn't autostart service
+  systemctl enable ${POSTGRESQL_SERVICE_NAME} >> ${LOG_FILE} 2>&1
+
+  CPT=0
+  TIMEOUT=60
+  while ! su postgres -c "psql -q --output /dev/null -c \"SELECT COUNT(*) FROM pg_catalog.pg_authid\"" >/dev/null 2>&1
+  do
+    echo -n "."
+    sleep 1
+    CPT=$((${CPT}+1))
+    if [ ${CPT} -eq ${TIMEOUT} ]
+    then
+      echo -e "\nERROR: Connection to PostgreSQL has not been established before timeout. Exiting"
+      exit 1
+    fi
+  done
+  DBNAME="rudder"
+  HOST="localhost"
+  POPULATE="false"
+
+  USERNAME="rudder"
+  PASSWORD="$(dd if=/dev/urandom count=128 bs=1 2>&1 | md5sum | cut -b-20)"
+
+  # Rudder user
+  CHK_PG_USER=$(su postgres -c "psql -t -c \"select count(1) from pg_user where usename = '${USERNAME}'\"")
+  if [ ${CHK_PG_USER} -eq 0 ]
+  then
+    su postgres -c "psql -q -c \"CREATE USER ${USERNAME} WITH PASSWORD '${PASSWORD}'\"" >> ${LOG_FILE}
+    sed -i "/^RUDDER_PSQL_PASSWORD/s/.*/RUDDER_PSQL_PASSWORD:${PASSWORD}/" /opt/rudder/etc/rudder-passwords.conf
+  fi
+
+  # Rudder database
+  CHK_PG_DB=$(su postgres -c "psql -t -c \"select count(1) from pg_catalog.pg_database where datname = '${DBNAME}'\"")
+  if [ ${CHK_PG_DB} -eq 0 ]
+  then
+    su postgres -c "psql -q -c \"CREATE DATABASE ${DBNAME} WITH OWNER = ${USERNAME} ENCODING = UTF8\"" >> ${LOG_FILE}
+    POPULATE="true"
+  fi
+else
+  ##############################
+  # we are on a remote database
+  ##############################
+  echo "$(date) - Starting remote database management" >> ${LOG_FILE}
   # use external DB file if it exists
   if [ -f "${EXTERNAL_DB_CONF}" ]; then
     . "${EXTERNAL_DB_CONF}"
@@ -74,153 +175,45 @@ then
 
   # variable from ${EXTERNAL_DB_CONF}
   if [ "${DB_NAME}" = "" ]; then
-
-    # Try with systemd
-    POSTGRESQL_SERVICE_NAME=$(systemctl list-unit-files --type service | awk -F'.' '{print $1}' | grep -E "^postgresql-?[0-9]*$" | tail -n 1)
-
-    if [ -z "${POSTGRESQL_SERVICE_NAME}" ] && ! type chkconfig >/dev/null 2>/dev/null ; then
-      # on sles 12 postgresql uses an old init file but is properly managed by systemd so this is the only place we need a workaround
-      POSTGRESQL_SERVICE_NAME=$(chkconfig 2>/dev/null | awk '{ print $1 }' | grep "postgresql" | tail -n 1)
-    fi
-
-    # If nothing try default name (should not happen)
-    if [ -z "${POSTGRESQL_SERVICE_NAME}" ]; then
-      POSTGRESQL_SERVICE_NAME="postgresql"
-    fi
-    echo "Found postgres service name: ${POSTGRESQL_SERVICE_NAME}" >> ${LOG_FILE}
-
-    # Start if necessary
-    if ! systemctl status ${POSTGRESQL_SERVICE_NAME} > /dev/null
-    then
-      # redhat doesn't initialize postgres, do it now
-      if [ "${DB_NOT_INITIALIZED}" = "true" ]; then
-        # Detecting path of postgresql-setup
-        POSTGRESQL_SETUP=$(ls -1  /usr/pgsql-*/bin/postgresql*-setup 2> /dev/null | sort -V | tail -1)
-        if [ -z "${POSTGRESQL_SETUP}" ]; then
-          POSTGRESQL_SETUP="postgresql-setup"
-        fi
-
-        # rhel package doesn't initialize database
-        echo "Initializing postgresql db (initdb)" >> ${LOG_FILE}
-        ${POSTGRESQL_SETUP} initdb >> ${LOG_FILE} 2>&1
-      fi
-      systemctl start ${POSTGRESQL_SERVICE_NAME} >> ${LOG_FILE}
-    fi
-
-    # TODO RPM only ??
-      PG_HBA_FILE=$(su postgres -c "psql -t -P format=unaligned -c 'show hba_file';")
-      if [ $? -ne 0 ]; then
-        echo "Postgresql failed to start! Halting"
-        exit 1
-      fi
-
-      #HACK: Give rights for login without unix account
-      if [ -f ${PG_HBA_FILE} ]; then
-        RUDDER_PG_DEFINED=`grep "rudder" ${PG_HBA_FILE} | wc -l`
-        if [ ${RUDDER_PG_DEFINED} -le 0 ]; then
-          # we cannot put at the bottom the rules
-          # Check that the defining line for file is there
-          grep -q "^# TYPE" ${PG_HBA_FILE}
-          if [ $? -eq 0 ]; then
-            sed -i  '/^# TYPE.*/a # Rudder specific access for PostgreSQL' ${PG_HBA_FILE}
-          else
-            # Put it on top
-            sed -i 1i"# Rudder specific access for PostgreSQL" ${PG_HBA_FILE}
-          fi
-          sed -i  '/^# Rudder specific access for PostgreSQL/a host    all             rudder          127.0.0.1/32            md5' ${PG_HBA_FILE}
-          sed -i  '/^# Rudder specific access for PostgreSQL/a host    all             rudder             ::1/128              md5' ${PG_HBA_FILE}
-
-          # Apply changes in PostgreSQL
-          # TODO just after a start ?
-          systemctl reload ${POSTGRESQL_SERVICE_NAME} >> ${LOG_FILE}
-        fi
-      fi
-    # ODOT
-
-    # RHEL doesn't autostart service
-    systemctl enable ${POSTGRESQL_SERVICE_NAME} >> ${LOG_FILE} 2>&1
-
-    CPT=0
-    TIMEOUT=60
-    while ! su postgres -c "psql -q --output /dev/null -c \"SELECT COUNT(*) FROM pg_catalog.pg_authid\"" >/dev/null 2>&1
-    do
-      echo -n "."
-      sleep 1
-      CPT=$((${CPT}+1))
-      if [ ${CPT} -eq ${TIMEOUT} ]
-      then
-        echo -e "\nERROR: Connection to PostgreSQL has not been established before timeout. Exiting"
-        exit 1
-      fi
-    done
-    DBNAME="rudder"
-    HOST="localhost"
-  else
-    DBNAME="${DB_NAME}"
-    HOST="${DB_HOST}"
+    echo "$(date) - File ${EXTERNAL_DB_CONF} does not contain valid information to connect to database, exiting" >> ${LOG_FILE}
+    exit 1
   fi
-
-  POPULATE="false"
-
-  # variable from ${EXTERNAL_DB_CONF}
-  if [ "${DB_USER}" = "" ]; then
-    USERNAME="rudder"
-    PASSWORD="$(dd if=/dev/urandom count=128 bs=1 2>&1 | md5sum | cut -b-20)"
-
-    # Rudder user
-    CHK_PG_USER=$(su postgres -c "psql -t -c \"select count(1) from pg_user where usename = '${USERNAME}'\"")
-    if [ ${CHK_PG_USER} -eq 0 ]
-    then
-      su postgres -c "psql -q -c \"CREATE USER ${USERNAME} WITH PASSWORD '${PASSWORD}'\"" >> ${LOG_FILE}
-      sed -i "/^RUDDER_PSQL_PASSWORD/s/.*/RUDDER_PSQL_PASSWORD:${PASSWORD}/" /opt/rudder/etc/rudder-passwords.conf
-    fi
-
-    # Rudder database
-    CHK_PG_DB=$(su postgres -c "psql -t -c \"select count(1) from pg_catalog.pg_database where datname = '${DBNAME}'\"")
-    if [ ${CHK_PG_DB} -eq 0 ]
-    then
-      su postgres -c "psql -q -c \"CREATE DATABASE ${DBNAME} WITH OWNER = ${USERNAME} ENCODING = UTF8\"" >> ${LOG_FILE}
-      POPULATE="true"
-    fi
-  else
-    USERNAME="${DB_USER}"
-    PASSWORD="${DB_PASSWORD}"
-    if [ "${DB_IS_POPULATED}" != "true" ]; then
-      POPULATE="true"
-    fi
-    # rudder-passwords default is not adapted to external db
-    sed -i "/^RUDDER_PSQL_PASSWORD/s/.*/RUDDER_PSQL_PASSWORD:${PASSWORD}/" /opt/rudder/etc/rudder-passwords.conf
+  USERNAME="${DB_USER}"
+  PASSWORD="${DB_PASSWORD}"
+  DBNAME="${DB_NAME}"
+  HOST="${DB_HOST}"
+  if [ "${DB_IS_POPULATED}" != "true" ]; then
+    POPULATE="true"
   fi
-
-  if [ "${POPULATE}" = "true" ]; then
-    echo "${HOST}:5432:${DBNAME}:${USERNAME}:${PASSWORD}" > /root/.pgpass
-    chmod 600 /root/.pgpass
-    sed -i "s/^ALTER database rudder /ALTER database ${DBNAME} /" /opt/rudder/etc/postgresql/reportsSchema.sql
-    psql -q -U "${USERNAME}" -h "${HOST}" -d "${DBNAME}" -f /opt/rudder/etc/postgresql/reportsSchema.sql >> ${LOG_FILE}
-  fi
-
+  # rudder-passwords default is not adapted to external db
+  sed -i "/^RUDDER_PSQL_PASSWORD/s/.*/RUDDER_PSQL_PASSWORD:${PASSWORD}/" /opt/rudder/etc/rudder-passwords.conf
   # the user has already provided credentials, do not force her to do it again
-  if [ "${DB_USER}" != "" ]; then
-    sed -i "\|^rudder.jdbc.url|s|.*|rudder.jdbc.url=jdbc:postgresql://${HOST}:5432/${DBNAME}|" /opt/rudder/etc/rudder-web.properties
-    sed -i "\|^rudder.jdbc.username|s|.*|rudder.jdbc.username=${USERNAME}|" /opt/rudder/etc/rudder-web.properties
-    sed -i "\|^rudder.jdbc.password|s|.*|rudder.jdbc.password=${PASSWORD}|" /opt/rudder/etc/rudder-web.properties
-  fi
-
-  # is a database is external tell it to the webapp which will tell to the agent not to mess with the local postgresql
+  sed -i "\|^rudder.jdbc.url|s|.*|rudder.jdbc.url=jdbc:postgresql://${HOST}:5432/${DBNAME}|" /opt/rudder/etc/rudder-web.properties
+  sed -i "\|^rudder.jdbc.username|s|.*|rudder.jdbc.username=${USERNAME}|" /opt/rudder/etc/rudder-web.properties
+  sed -i "\|^rudder.jdbc.password|s|.*|rudder.jdbc.password=${PASSWORD}|" /opt/rudder/etc/rudder-web.properties
+  # if the database is external tell it to the webapp which will tell to the agent not to mess with the local postgresql
   if [ "${HOST}" != "localhost" ]
   then
     sed -i "\|^rudder.postgresql.local|s|.*|rudder.postgresql.local=false|" /opt/rudder/etc/rudder-web.properties
   fi
-
-  # save external db file womewhere else so that the user doesn't try to update it
-  if [ -f "${EXTERNAL_DB_CONF}" ]; then
-    mkdir -p /var/backups/rudder
-    mv "${EXTERNAL_DB_CONF}" /var/backups/rudder
-  fi
-
-  echo "$(date) - Ending rudder-reports post installation step" >> ${LOG_FILE}
 fi
 
+# Populating if necessary the database
+if [ "${POPULATE}" = "true" ]; then
+  echo "$(date) - Populate the database at ${HOST}" >> ${LOG_FILE}
+  echo "${HOST}:5432:${DBNAME}:${USERNAME}:${PASSWORD}" > /root/.pgpass
+  chmod 600 /root/.pgpass
+  sed -i "s/^ALTER database rudder /ALTER database ${DBNAME} /" /opt/rudder/etc/postgresql/reportsSchema.sql
+  psql -q -U "${USERNAME}" -h "${HOST}" -d "${DBNAME}" -f /opt/rudder/etc/postgresql/reportsSchema.sql >> ${LOG_FILE}
+fi
+
+# save external db file somewhere else so that the user doesn't try to update it
+if [ -f "${EXTERNAL_DB_CONF}" ]; then
+  mkdir -p /var/backups/rudder
+  mv "${EXTERNAL_DB_CONF}" /var/backups/rudder
+fi
+
+echo "$(date) - Ending rudder-reports post installation step" >> ${LOG_FILE}
 
 
 mkdir -p /var/log/rudder/install
