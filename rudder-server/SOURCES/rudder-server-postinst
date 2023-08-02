@@ -47,8 +47,14 @@ then
     # if it is an external DB, do not run
     if ! grep -qE 'rudder.jdbc.url=jdbc:postgresql://(localhost|127\.0\.)' /opt/rudder/etc/rudder-web.properties
     then
-      echo "INFO: External database detected, skipping database creation"
-      echo "`date` - INFO: External database detected, skipping database creation" >> ${LOG_FILE}
+      echo "INFO: External database detected"
+      echo "`date` - INFO: External database detected" >> ${LOG_FILE}
+      LOCAL_DB="false"
+    fi
+    if [ -f "${EXTERNAL_DB_CONF}" ]
+    then
+      echo "INFO: External database configuration file detected"
+      echo "`date` - INFO: External database detected" >> ${LOG_FILE}
       LOCAL_DB="false"
     fi
   fi
