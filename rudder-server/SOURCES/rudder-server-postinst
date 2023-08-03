@@ -174,33 +174,40 @@ else
   ##############################
   echo "$(date) - Starting remote database management" >> ${LOG_FILE}
   # use external DB file if it exists
+  # it exists only during first install, not during upgrade
   if [ -f "${EXTERNAL_DB_CONF}" ]; then
     . "${EXTERNAL_DB_CONF}"
+
+    # variable from ${EXTERNAL_DB_CONF}
+    if [ "${DB_NAME}" = "" ]; then
+      echo "$(date) - File ${EXTERNAL_DB_CONF} does not contain valid information to connect to database, exiting" >> ${LOG_FILE}
+      exit 1
+    fi
+    USERNAME="${DB_USER}"
+    PASSWORD="${DB_PASSWORD}"
+    DBNAME="${DB_NAME}"
+    HOST="${DB_HOST}"
+    if [ "${DB_IS_POPULATED}" != "true" ]; then
+      POPULATE="true"
+    fi
+    # rudder-passwords default is not adapted to external db
+    sed -i "/^RUDDER_PSQL_PASSWORD/s/.*/RUDDER_PSQL_PASSWORD:${PASSWORD}/" /opt/rudder/etc/rudder-passwords.conf
+    # the user has already provided credentials, do not force her to do it again
+    sed -i "\|^rudder.jdbc.url|s|.*|rudder.jdbc.url=jdbc:postgresql://${HOST}:5432/${DBNAME}|" /opt/rudder/etc/rudder-web.properties
+    sed -i "\|^rudder.jdbc.username|s|.*|rudder.jdbc.username=${USERNAME}|" /opt/rudder/etc/rudder-web.properties
+    sed -i "\|^rudder.jdbc.password|s|.*|rudder.jdbc.password=${PASSWORD}|" /opt/rudder/etc/rudder-web.properties
+    # if the database is external tell it to the webapp which will tell to the agent not to mess with the local postgresql
+    if [ "${HOST}" != "localhost" ]
+    then
+      sed -i "\|^rudder.postgresql.local|s|.*|rudder.postgresql.local=false|" /opt/rudder/etc/rudder-web.properties
+    fi
+
+
+  else
+    echo "$(date) - File ${EXTERNAL_DB_CONF} does exist, database connectivity is already configured"
+    POPULATE="false"
   fi
 
-  # variable from ${EXTERNAL_DB_CONF}
-  if [ "${DB_NAME}" = "" ]; then
-    echo "$(date) - File ${EXTERNAL_DB_CONF} does not contain valid information to connect to database, exiting" >> ${LOG_FILE}
-    exit 1
-  fi
-  USERNAME="${DB_USER}"
-  PASSWORD="${DB_PASSWORD}"
-  DBNAME="${DB_NAME}"
-  HOST="${DB_HOST}"
-  if [ "${DB_IS_POPULATED}" != "true" ]; then
-    POPULATE="true"
-  fi
-  # rudder-passwords default is not adapted to external db
-  sed -i "/^RUDDER_PSQL_PASSWORD/s/.*/RUDDER_PSQL_PASSWORD:${PASSWORD}/" /opt/rudder/etc/rudder-passwords.conf
-  # the user has already provided credentials, do not force her to do it again
-  sed -i "\|^rudder.jdbc.url|s|.*|rudder.jdbc.url=jdbc:postgresql://${HOST}:5432/${DBNAME}|" /opt/rudder/etc/rudder-web.properties
-  sed -i "\|^rudder.jdbc.username|s|.*|rudder.jdbc.username=${USERNAME}|" /opt/rudder/etc/rudder-web.properties
-  sed -i "\|^rudder.jdbc.password|s|.*|rudder.jdbc.password=${PASSWORD}|" /opt/rudder/etc/rudder-web.properties
-  # if the database is external tell it to the webapp which will tell to the agent not to mess with the local postgresql
-  if [ "${HOST}" != "localhost" ]
-  then
-    sed -i "\|^rudder.postgresql.local|s|.*|rudder.postgresql.local=false|" /opt/rudder/etc/rudder-web.properties
-  fi
 fi
 
 # Populating if necessary the database
