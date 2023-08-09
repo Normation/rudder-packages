@@ -511,8 +511,8 @@ function pidof {
 if [ $1 -eq 0 ]; then
 
 %if "%{enable_systemd}" == "true"
-  systemctl stop rudder-agent || true
-  systemctl disable rudder-agent rudder-cf-execd rudder-cf-serverd || true
+  systemctl stop rudder-agent >/dev/null 2>&1 || true
+  systemctl disable rudder-agent rudder-cf-execd rudder-cf-serverd >/dev/null 2>&1 || true
   rm -f /lib/systemd/system/rudder-agent.service
   rm -f /lib/systemd/system/rudder-cf-execd.service
   rm -f /lib/systemd/system/rudder-cf-serverd.service
