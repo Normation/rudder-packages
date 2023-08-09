@@ -26,8 +26,8 @@ case "$1" in
     if readlink -f $(cut -f 1 -d "" /proc/1/cmdline | cut -f 1 -d " ") | grep -qE "/systemd$" ; then CFRUDDER_USE_SYSTEMD="true"; fi
 
     if [ "${CFRUDDER_USE_SYSTEMD}" = "true" ]; then
-      systemctl stop rudder-agent || true
-      systemctl disable rudder-agent rudder-cf-execd rudder-cf-serverd || true
+      systemctl stop rudder-agent >/dev/null 2>&1 || true
+      systemctl disable rudder-agent rudder-cf-execd rudder-cf-serverd >/dev/null 2>&1 || true
       rm -f /lib/systemd/system/rudder-agent.service
       rm -f /lib/systemd/system/rudder-cf-execd.service
       rm -f /lib/systemd/system/rudder-cf-serverd.service
