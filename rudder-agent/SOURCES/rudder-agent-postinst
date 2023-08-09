@@ -8,7 +8,19 @@ CFRUDDER_SERVER="$4"
 
 CFE_DIR="/var/rudder/cfengine-community"
 RUDDER_CMD="/opt/rudder/bin/rudder"
+UUID_FILE="/opt/rudder/etc/uuid.hive"
 LOG_FILE="/var/log/rudder/install/rudder-agent-$(date +%Y%m%d%H%M%S).log"
+
+# Do we reinstall after an uninstallation?
+# On Debian it is not detected as an installation but an update if the package was not purged,
+# but we still need to enable the services.
+#
+#  [ actual first install                 ] || [ upgrade           ]
+if [ "${CFRUDDER_FIRST_INSTALL}" = "true" ] || [ -f "${UUID_FILE}" ]; then
+  REINSTALL="false"
+else
+  REINSTALL="true"
+fi
 
 # Closing all parents fd which are inherited, otherwise it can lead to
 # a postinst unable to terminate (relevant at least on debian 7)
@@ -49,8 +61,8 @@ fi
 cp -r -f /opt/rudder/bin/cf-* ${CFE_DIR}/bin/
 cp -r -f /opt/rudder/bin/rpmvercmp ${CFE_DIR}/bin/
 
-# Setup service at first install
-if [ "${CFRUDDER_FIRST_INSTALL}" = "true" ]
+# Setup service at first install - or reinstallation after removal
+if [ "${CFRUDDER_FIRST_INSTALL}" = "true" ] || [ "${REINSTALL}" = "true" ]
 then
   # Set rudder-agent as service on OS that are not packaged to do it
   if [ "${CFRUDDER_USE_SYSTEMD}" = "true" ]
