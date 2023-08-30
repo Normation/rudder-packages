@@ -26,8 +26,8 @@ RUDDER_MAJOR_VERSION := $(shell echo ${RUDDER_VERSION_TO_PACKAGE} | cut -d'.' -f
 JETTY_RELEASE = 10.0.15
 JETTY_SHA256 = 661bc2edeafd03802557fd3a7e0cedbff784098a68d772e6b6c3d7b4c592df8e
 # Original URL: https://www.openldap.org/software/download/OpenLDAP/openldap-release/openldap-2.6.2.tgz
-OPENLDAP_RELEASE = 2.6.4
-OPENLDAP_SHA256 = d51704e50178430c06cf3d8aa174da66badf559747a47d920bb54b2d4aa40991
+OPENLDAP_RELEASE = 2.6.6
+OPENLDAP_SHA256 = 082e998cf542984d43634442dbe11da860759e510907152ea579bdc42fe39ea0
 TMP_DIR := $(shell mktemp -dq)
 RELEASE_TYPE := $(shell if echo ${RUDDER_VERSION_TO_PACKAGE} | grep -q git; then echo nightly; else echo release; fi)
 
