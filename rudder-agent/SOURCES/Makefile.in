@@ -42,8 +42,9 @@ openssl_SHA256 = a0ce69b8b97ea6a35b96875235aa453b966ba3cba8af2de23657d8b6767d653
 libyaml_RELEASE = 0.2.5
 libyaml_SHA256 = c642ae9b75fee120b2d96c712538bd2cf283228d2337df2cf2988e3c02678ef4
 # Original URL: https://download.gnome.org/sources/libxml2/2.11/libxml2-2.11.5.tar.xz
+# WARNING: we recompress the source as gzip on our server
 libxml2_RELEASE = 2.11.5
-libxml2_SHA256 = 3727b078c360ec69fa869de14bd6f75d7ee8d36987b071e6928d4720a28df3a6
+libxml2_SHA256 = 11f4bc3b89d3d505a26b3b3b5333a40be708c3c1ac4fbfaccf8af8c7b6fe7591
 # Original URL: https://curl.haxx.se/download/curl-7.58.0.tar.gz
 libcurl_RELEASE = 8.2.1
 libcurl_SHA256 = f98bdb06c0f52bdd19e63c4a77b5eb19b243bcbbd0f5b002b9f3cba7295a3a42
@@ -60,8 +61,8 @@ jq_SHA256 = 1b3906e0c6dea26b5b9dcf864cc7334522f520d69543043c64b2c487e0c663ca
 cfengine_RELEASE = 3.21.2
 cfengine_SHA256 = e3f733433ff9ad86a01513b779f646da223afed8568e8de6e89c4e5aa8c6b256
 # Original URL: http://www.cpan.org/src/5.0/perl-$(PERL_RELEASE).tar.gz
-perl_RELEASE = 5.38.0
-perl_SHA256 = 213ef58089d2f2c972ea353517dc60ec3656f050dcc027666e118b508423e517
+perl_RELEASE = 5.36.1
+perl_SHA256 = 68203665d8ece02988fc77dc92fccbb297a83a4bb4b8d07558442f978da54cc1
 # Original URL: http://www.cpan.org/modules/by-module/App/App-cpanminus-1.7046.tar.gz
 cpanminus_RELEASE = 1.7046
 cpanminus_SHA256 = 3e8c9d9b44a7348f9acc917163dbfc15bd5ea72501492cea3a35b346440ff862
