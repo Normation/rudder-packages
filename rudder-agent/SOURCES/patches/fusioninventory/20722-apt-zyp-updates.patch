@@ -54,13 +54,13 @@ index 0000000..43ee9fa
 +    my @packages;
 +    while (my $line = <$handle>) {
 +
-+	#print $line;
 +        chomp $line;
-+
-+        $line =~ /^Inst\s+([^\s:]+)(?::\S+)?\s+\[[^]\s]+\]\s+\((\S+)\s*(\S+)(\s+\[([^]\s]+)\])?\).*/ || next;
++         
++        # Inst openssh-server [1:8.2p1-4ubuntu0.8] (1:8/2p1-4ubuntu0.9 Ubuntu:20.04/focal-updates, Ubuntu:20.04/focal-security [amd64])
++        # Inst libnftables1 [1.0.6-2] (1.0.6-2+deb12u1 Debian:12.1/stable [amd64])
++        $line =~ /^Inst\s+([^\s:]+)(?::\S+)?\s+\[[^]\s]+\]\s+\((\S+)\s*([^[]+)(\s+\[([^]\s]+)\])?\).*/ || next;
 + 
 +        my ($name,$version,$source,$arch) = ($1,$2,$3,$5);
-+
 +
 +        my $kind;
 +        # Best heuristic on debian
