@@ -76,7 +76,7 @@ index 51771a9..57a7f7c 100644
 +
 +	# Select the right section in details
 +        if ($params{details} =~ /^[\S\s]*?=+\n  (\S+: )?$name [a-z ]+\n=+\n([\S\s]*?)\n=+\n/) {
-+	  #print "TOTO $2\n";
++
 +	  my $details = $2;
 +
 +	  my $cve = _extract_section($details, "CVEs");
