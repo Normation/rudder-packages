@@ -41,10 +41,9 @@ openssl_SHA256 = a0ce69b8b97ea6a35b96875235aa453b966ba3cba8af2de23657d8b6767d653
 # Original URL: http://pyyaml.org/download/libyaml/yaml-0.2.5.tar.gz
 libyaml_RELEASE = 0.2.5
 libyaml_SHA256 = c642ae9b75fee120b2d96c712538bd2cf283228d2337df2cf2988e3c02678ef4
-# Original URL: https://download.gnome.org/sources/libxml2/2.11/libxml2-2.11.5.tar.xz
-# WARNING: we recompress the source as gzip on our server
-libxml2_RELEASE = 2.11.5
-libxml2_SHA256 = 11f4bc3b89d3d505a26b3b3b5333a40be708c3c1ac4fbfaccf8af8c7b6fe7591
+# Original URL: ftp://xmlsoft.org/libxml2/libxml2-2.9.7.tar.gz
+libxml2_RELEASE = 2.9.14
+libxml2_SHA256 = e8655291ee6f20c8abf57854ff0709e8b178c619001a4d850002aafc81885e17
 # Original URL: https://curl.haxx.se/download/curl-7.58.0.tar.gz
 libcurl_RELEASE = 8.2.1
 libcurl_SHA256 = f98bdb06c0f52bdd19e63c4a77b5eb19b243bcbbd0f5b002b9f3cba7295a3a42
