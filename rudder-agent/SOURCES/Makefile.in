@@ -36,8 +36,8 @@ lmdb_SHA256 = 22054926b426c66d8f2bc22071365df6e35f3aacf19ad943bc6167d4cae3bebb
 pcre_RELEASE = 8.45
 pcre_SHA256 = 4e6ce03e0336e8b4a3d6c2b70b1c5e18590a5673a98186da90d4f33c23defc09
 # Original URL: https://www.openssl.org/source/openssl-$(OPENSSL_RELEASE).tar.gz
-openssl_RELEASE = 1.1.1v
-openssl_SHA256 = d6697e2871e77238460402e9362d47d18382b15ef9f246aba6c7bd780d38a6b0
+openssl_RELEASE = 1.1.1w
+openssl_SHA256 = cf3098950cb4d853ad95c0841f1f9c6d3dc102dccfcacd521d93925208b76ac8
 # Original URL: http://pyyaml.org/download/libyaml/yaml-0.2.5.tar.gz
 libyaml_RELEASE = 0.2.5
 libyaml_SHA256 = c642ae9b75fee120b2d96c712538bd2cf283228d2337df2cf2988e3c02678ef4
