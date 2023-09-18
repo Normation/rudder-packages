@@ -14,7 +14,7 @@ override_dh_strip:
 	dh_strip --no-automatic-dbgsym
 
 override_dh_gencontrol:
-	dh_gencontrol -- "-Vrudder:deps=$(shell ../format-dependencies dpkg $(shell dpkg-parsechangelog -SVersion) rudder-agent rudder-relay)"
+	dh_gencontrol -- "-Vrudder:deps=$(shell ../format-dependencies dpkg $(shell dpkg-parsechangelog -SVersion) rudder-agent rudder-relay rudder-api-client)"
 
 override_dh_dwz:
 
