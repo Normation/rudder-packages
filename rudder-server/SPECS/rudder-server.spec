@@ -80,7 +80,7 @@ Obsoletes: rudder-reports < 7.2
 Requires: %(../format-dependencies rpm %{old_epoch}:%{real_version} rudder-agent)
 Requires: %(../format-dependencies rpm %{real_version} rudder-relay)
 Requires: %(../format-dependencies rpm %{real_version} rudder-api-client)
-Requires: %{apache}, %{apache_tools}, git-core, iproute, rsync, openssl, %{ldap_clients}, curl, acl, zip
+Requires: %{apache}, %{apache_tools}, git-core, iproute, rsync, openssl, %{ldap_clients}, curl, acl, zip, tar
 
 # needed so that dnf install rudder-server works
 Requires: %(../format-dependencies rpm %{old_epoch}:%{real_version} rudder-reports)
