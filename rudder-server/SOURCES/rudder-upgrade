@@ -624,7 +624,9 @@ fi
 
 # Upgrade ldap properties
 echo -n "INFO: Upgrading LDAP DB..."
-# Using retry_wrapper is necessary because during an upgrade, slapd may be restarted, so we need to wait
+# starting slapd because it is stopped during upgrade
+systemctl start rudder-slapd
+# Using retry_wrapper is necessary because starting may take a bit of time, so we need to wait
 # for it to be available again
 if retry_wrapper "${LDAPSEARCH} -b '' -s base + >/dev/null 2>&1" "LDAP";
 then
