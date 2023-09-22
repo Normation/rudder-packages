@@ -1,0 +1,128 @@
+From 0ea82e8b7bfb37dd8f0b420133a4d628b8f0e63e Mon Sep 17 00:00:00 2001
+From: Alexis Mousset <alexis.mousset@rudder.io>
+Date: Thu, 14 Sep 2023 20:46:29 +0200
+Subject: [PATCH] Allow inheriting attributes using global variables in bodies
+ having local parameters.
+
+This also prevents a memory corruption when
+an attribute contains external vars but no
+local vars.
+
+Ticket: CFE-4254
+Changelog: Bodies can now inherit attributes containing global variables
+
+Signed-off-by: Alexis Mousset <alexis.mousset@rudder.io>
+(cherry picked from commit a99a1ccc342bd6104c2503ff72f5c271e15ffa3a)
+Signed-off-by: Lars Erik Wik <lars.erik.wik@northern.tech>
+---
+ libpromises/rlist.c                           | 14 ++++-
+ .../03_bodies/inherit_from_with_global_var.cf | 55 +++++++++++++++++++
+ 2 files changed, 67 insertions(+), 2 deletions(-)
+ create mode 100644 tests/acceptance/00_basics/03_bodies/inherit_from_with_global_var.cf
+
+diff --git a/libpromises/rlist.c b/libpromises/rlist.c
+index d87031f6283..6d1f13f7010 100644
+--- a/libpromises/rlist.c
++++ b/libpromises/rlist.c
+@@ -373,13 +373,14 @@ Rval RvalNewRewriter(const void *item, RvalType type, JsonElement *map)
+ 
+             Buffer *format = BufferNew();
+             StringCopy(item, buffer_from, max_size);
++            buffer_to[0] = '\0';
+ 
+             for (int iteration = 0; iteration < 10; iteration++)
+             {
+                 bool replacement_made = false;
+                 int var_start = -1;
+                 char closing_brace = 0;
+-                for (int c = 0; c < buffer_from[c]; c++)
++                for (int c = 0; buffer_from[c] != '\0'; c++)
+                 {
+                     if (buffer_from[c] == '$')
+                     {
+@@ -402,6 +403,7 @@ Rval RvalNewRewriter(const void *item, RvalType type, JsonElement *map)
+                     {
+                         char saved = buffer_from[c];
+                         buffer_from[c] = '\0';
++
+                         const char *repl = JsonObjectGetAsString(map, buffer_from + var_start + 2);
+                         buffer_from[c] = saved;
+ 
+@@ -433,7 +435,15 @@ Rval RvalNewRewriter(const void *item, RvalType type, JsonElement *map)
+                 }
+             }
+ 
+-            char *ret = xstrdup(buffer_to);
++            char* ret;
++            if (buffer_to[0] == '\0') {
++                // If nothing has been written to buffer_to, we pass the input verbatim.
++                // This function only evaluates body parameters, but the body can also reference the global
++                // context.
++                ret = xstrdup(buffer_from);
++            } else {
++                ret = xstrdup(buffer_to);
++            }
+ 
+             BufferDestroy(format);
+             free(buffer_to);
+diff --git a/tests/acceptance/00_basics/03_bodies/inherit_from_with_global_var.cf b/tests/acceptance/00_basics/03_bodies/inherit_from_with_global_var.cf
+new file mode 100644
+index 00000000000..c9dec4f368f
+--- /dev/null
++++ b/tests/acceptance/00_basics/03_bodies/inherit_from_with_global_var.cf
+@@ -0,0 +1,55 @@
++#######################################################
++#
++# Test that bodies can inherit attributes containing global variables
++#
++#######################################################
++
++body common control
++{
++      inputs => { "../../default.cf.sub" };
++      bundlesequence  => { default("$(this.promise_filename)") };
++      version => "1.0";
++}
++
++#######################################################
++
++
++bundle agent init
++{
++  vars:
++      "class" string => "_pass";
++}
++
++#######################################################
++
++body classes parent(p)
++{
++      promise_kept => { "${init.class}" };
++}
++
++body classes static(p)
++{
++      inherit_from => parent(p);
++}
++
++bundle agent test {
++  meta:
++    "description" -> { "CFE-4254" }
++      string => "Test that bodies can inherit attributes containing global variables";
++
++  vars:
++    "test" string => "test",
++          classes => static("placeholder");
++}
++
++#######################################################
++
++bundle agent check
++{
++  methods:
++    _pass:: 
++      "pass" usebundle => dcs_pass("$(this.promise_filename)");
++
++    !_pass::
++      "pass" usebundle => dcs_fail("$(this.promise_filename)");
++}
