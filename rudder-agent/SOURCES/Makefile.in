@@ -35,9 +35,10 @@ lmdb_SHA256 = d35d4f6f46313d62fd342c9dcbf574432919ce5e802d2b6cbe2ebd549821e5c4
 # Original URL: https://deac-ams.dl.sourceforge.net/project/pcre/pcre/8.45/pcre-8.45.tar.gz
 pcre_RELEASE = 8.45
 pcre_SHA256 = 4e6ce03e0336e8b4a3d6c2b70b1c5e18590a5673a98186da90d4f33c23defc09
+# We follow LTS releases
 # Original URL: https://www.openssl.org/source/openssl-$(OPENSSL_RELEASE).tar.gz
-openssl_RELEASE = 3.1.3
-openssl_SHA256 = f0316a2ebd89e7f2352976445458689f80302093788c466692fb2a188b2eacf6
+openssl_RELEASE = 3.0.11
+openssl_SHA256 = b3425d3bb4a2218d0697eb41f7fc0cdede016ed19ca49d168b78e8d947887f55
 # Original URL: http://pyyaml.org/download/libyaml/yaml-0.2.5.tar.gz
 libyaml_RELEASE = 0.2.5
 libyaml_SHA256 = c642ae9b75fee120b2d96c712538bd2cf283228d2337df2cf2988e3c02678ef4
@@ -56,6 +57,7 @@ augeas_SHA256 = 368bfdd782e4b9c7163baadd621359c82b162734864b667051ff6bcb57b9edff
 # Original URL: https://github.com/stedolan/jq/releases/download/jq-1.6/jq-1.6.tar.gz
 jq_RELEASE = 1.6
 jq_SHA256 = 1b3906e0c6dea26b5b9dcf864cc7334522f520d69543043c64b2c487e0c663ca
+# We follow LTS releases
 # Original URL: https://cfengine-package-repos.s3.amazonaws.com/tarballs/cfengine-community-$(CFENGINE_RELEASE).tar.gz
 cfengine_RELEASE = 3.21.2
 cfengine_SHA256 = e3f733433ff9ad86a01513b779f646da223afed8568e8de6e89c4e5aa8c6b256
