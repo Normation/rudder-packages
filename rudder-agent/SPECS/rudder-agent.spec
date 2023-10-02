@@ -124,6 +124,11 @@
 %define with_openssl true
 %endif
 
+
+%if "%{?force_embed_openssl}"
+%define with_openssl true
+%endif
+
 #=================================================
 # Header
 #=================================================
