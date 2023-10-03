@@ -119,6 +119,7 @@
 
 %if "%{?force_embed_openssl}"
 %define with_openssl true
+%define with_libcurl true
 %endif
 
 #=================================================
