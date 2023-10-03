@@ -116,6 +116,11 @@
 %define with_jq true
 %endif
 
+
+%if "%{?force_embed_openssl}"
+%define with_openssl true
+%endif
+
 #=================================================
 # Header
 #=================================================
