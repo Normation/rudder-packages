@@ -282,7 +282,7 @@ endif
 	cd jq-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
 	touch $@
 
-DEPS_CACHE_PARAMETERS = --with-env name=dependencies zlib=$(zlib_SHA256) lmdb=$(lmdb_SHA256) pcre=$(pcre_SHA256) openssl=$(openssl_SHA256) libyaml=$(libyaml_SHA256) libxml2=$(libxml2_SHA256) libcurl=$(libcurl_SHA256) augeas=$(augeas_SHA256) readline=$(readline_SHA256) jq=$(jq_SHA256) @CACHE_ARGS@
+DEPS_CACHE_PARAMETERS = --with-env name=dependencies configure=$(CONFIGURE_ARGS_HASH) zlib=$(zlib_SHA256) lmdb=$(lmdb_SHA256) pcre=$(pcre_SHA256) openssl=$(openssl_SHA256) libyaml=$(libyaml_SHA256) libxml2=$(libxml2_SHA256) libcurl=$(libcurl_SHA256) augeas=$(augeas_SHA256) readline=$(readline_SHA256) jq=$(jq_SHA256) @CACHE_ARGS@
 # Strictly speaking we don't need jq here but it's easier to include it in the cache
 CFENGINE_DEPS = $(shell ../../build-caching get dependencies/ $(DEPS_CACHE_PARAMETERS) || echo @lmdb_DEP@ @pcre_DEP@ @openssl_DEP@ @libyaml_DEP@ @libxml2_DEP@ @libcurl_DEP@ @augeas_DEP@ @jq_DEP@ )
 
