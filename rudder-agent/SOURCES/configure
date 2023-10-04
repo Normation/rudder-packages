@@ -3,6 +3,9 @@
 set -e
 # Overridable environment: PROXY=
 
+# will be used as build parameters fingerprint for caching
+ALL_ARGS_HASH=$(echo "$@" | openssl dgst -sha256 | cut -d" " -f2)
+
 # Dependencies defaults: use everything from system except fusion
 DEPENDENCIES="zlib lmdb pcre openssl libyaml libxml2 libcurl readline augeas jq perl fusion"
 for dep in ${DEPENDENCIES}; do
@@ -288,6 +291,7 @@ EOF
 CONFIG_VARS="
 OS_FAMILY = ${OS_FAMILY}
 
+CONFIGURE_ARGS_HASH = ${ALL_ARGS_HASH}
 HTTPS = ${HTTPS}
 CPAN_OPT = ${CPAN_OPT}
 CFENGINE_ARGS = ${CFENGINE_ARGS}
