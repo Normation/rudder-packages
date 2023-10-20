@@ -1,6 +1,6 @@
 --- jetty/bin/jetty.sh.orig	2018-08-29 09:38:33.684462836 +0200
 +++ jetty/bin/jetty.sh	2018-08-29 09:40:57.763691920 +0200
-@@ -317,6 +317,7 @@
+@@ -411,6 +411,7 @@ fi
  #####################################################
  # define start log location
  #####################################################
@@ -8,17 +8,20 @@
  if [ -z "$JETTY_START_LOG" ]
  then
    JETTY_START_LOG="$JETTY_RUN/$NAME-start.log"
-@@ -520,11 +521,11 @@
-         # FIXME: Broken solution: wordsplitting, pathname expansion, arbitrary command execution, etc.
+@@ -621,13 +622,13 @@ case "$ACTION" in
+         chown "$JETTY_USER" "$JETTY_PID"
          su - "$JETTY_USER" $SU_SHELL -c "
            cd \"$JETTY_BASE\"
--          exec ${RUN_CMD[*]} start-log-file=\"$JETTY_START_LOG\" > /dev/null &
-+          exec ${RUN_CMD[*]} start-log-file=\"$JETTY_START_LOG\" >${JETTY_START_LOG} 2>&1 &
-           disown \$!
-           echo \$! > \"$JETTY_PID\""
+-          echo ${RUN_ARGS[*]} --start-log-file=\"$JETTY_START_LOG\" | xargs ${JAVA} > /dev/null &
++          echo ${RUN_ARGS[*]} --start-log-file=\"$JETTY_START_LOG\" | xargs ${JAVA} >${JETTY_START_LOG} 2>&1 &
+           PID=\$!
+           disown \$PID"
+         (( DEBUG )) && echo "Starting: su shell (w/user $JETTY_USER) on PID $PID"
        else
--        "${RUN_CMD[@]}" > /dev/null &
-+        "${RUN_CMD[@]}" >${JETTY_START_LOG} 2>&1 &
-         disown $!
-         echo $! > "$JETTY_PID"
-       fi
+         # Startup if not switching users
+-        echo ${RUN_ARGS[*]} --start-log-file="${JETTY_START_LOG}" | xargs ${JAVA} > /dev/null &
++        echo ${RUN_ARGS[*]} --start-log-file="${JETTY_START_LOG}" | xargs ${JAVA} >${JETTY_START_LOG} 2>&1 &
+         PID=$!
+         disown $PID
+         (( DEBUG )) && echo "Starting: java command on PID $PID"
+
