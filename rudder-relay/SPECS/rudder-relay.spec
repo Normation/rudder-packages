@@ -262,6 +262,7 @@ rm -rf %{buildroot}
 /var/log/rudder/apache2/
 /usr/lib/systemd/system/rudder-relayd.service
 /opt/rudder/bin/rudder-relayd
+/opt/rudder/bin/rudder-package
 /opt/rudder/bin/rudder-pkg
 /opt/rudder/etc/rudder-pkg/rudder_plugins_key.pub
 /opt/rudder/etc/rudder-apache-relay-nossl.conf
