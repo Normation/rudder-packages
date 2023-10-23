@@ -28,8 +28,8 @@ diff --color -ruN fusion-source.bak/lib/FusionInventory/Agent/Task/Inventory/Gen
              ARCH        => $infos[1],
              VERSION     => $infos[2],
              FILESIZE    => $infos[3] =~ /^\d+$/ ? $infos[3]*1024 : 0,
-+            SOURCE_NAME => $infos[5],
-+            SOURCE_VERSION => $infos[6],
++            SOURCE_NAME => $infos[6],
++            SOURCE_VERSION => $infos[7],
              FROM        => 'deb',
              SYSTEM_CATEGORY => $infos[4]
          };
