@@ -1,21 +1,20 @@
---- jetty/bin/jetty-sles.sh	2014-11-21 18:18:10.761944184 +0100
-+++ jetty/bin/jetty-sles.sh	2014-11-21 18:17:40.897795646 +0100
-@@ -512,7 +512,7 @@
- 
-     rm -f ${JETTY_STATE}
- 
+--- jetty/bin/jetty-sles.sh
++++ jetty/bin/jetty-sles.sh
+@@ -609,7 +609,7 @@ case "$ACTION" in
+     checkAvailableRam $((${JAVA_XMX}+150))
+
+     # Startup from a service file
 -    if [ $UID -eq 0 ] && type start-stop-daemon > /dev/null 2>&1
 +    if [ "$START_STOP_DAEMON" = "1" ] && [ $UID -eq 0 ] && type start-stop-daemon > /dev/null 2>&1
      then
        unset CH_USER
        if [ -n "$JETTY_USER" ]
-@@ -570,7 +570,7 @@
- 
+@@ -681,7 +681,7 @@ case "$ACTION" in
    stop)
      echo -n "Stopping Jetty: "
+     # Stop from a service file
 -    if [ $UID -eq 0 ] && type start-stop-daemon > /dev/null 2>&1; then
 +    if [ "$START_STOP_DAEMON" = "1" ] && [ $UID -eq 0 ] && type start-stop-daemon > /dev/null 2>&1; then
        start-stop-daemon -K -p"$JETTY_PID" -d"$JETTY_HOME" -a "$JAVA" -s HUP
-       
-       TIMEOUT=30
 
+       TIMEOUT=30
