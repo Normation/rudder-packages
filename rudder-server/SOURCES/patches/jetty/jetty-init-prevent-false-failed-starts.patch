@@ -1,6 +1,20 @@
---- jetty/bin/jetty.sh
-+++ jetty/bin/jetty.sh
-@@ -551,6 +551,14 @@ case "$ACTION" in
+--- jetty/bin/jetty.sh	2017-10-20 21:09:54.213736038 +0200
++++ jetty/bin/jetty.sh_5	2017-10-20 21:18:07.960397445 +0200
+@@ -137,11 +137,11 @@ started()
+   do
+     sleep 4
+     [ -z "$(tail -1 $1 | grep STARTED 2>/dev/null)" ] || return 0
++
+     [ -z "$(tail -1 $1 | grep STOPPED 2>/dev/null)" ] || return 1
+     [ -z "$(tail -1 $1 | grep FAILED 2>/dev/null)" ] || return 1
+-    local PID=$(cat "$2" 2>/dev/null) || return 1
+-    kill -0 "$PID" 2>/dev/null || return 1
+     echo -n ". "
++
+   done
+
+   return 1;
+@@ -483,6 +483,14 @@ case "$ACTION" in
        exit
      fi
 
@@ -12,7 +26,8 @@
 +
 +    rm -f ${JETTY_STATE}
 +
-     if ! touch "$JETTY_PID"
+     if [ $UID -eq 0 ] && type start-stop-daemon > /dev/null 2>&1
      then
-       echo "** ERROR: Unable to touch file: $JETTY_PID"
+       unset CH_USER
+
 

@@ -1,20 +1,22 @@
 --- jetty/bin/jetty.sh.orig
 +++ jetty/bin/jetty.sh
-@@ -546,6 +546,9 @@ case "$ACTION" in
-     fi
-
+@@ -451,6 +451,9 @@ fi
+ case "$ACTION" in
+   start)
      echo -n "Starting Jetty: "
 +    UMASK="0007"
 +    echo "Setting umask to ${UMASK}"
 +
 
-     # Startup from a service file
-     if [ $UID -eq 0 ] && type start-stop-daemon > /dev/null 2>&1
-@@ -557,6 +560,7 @@ case "$ACTION" in
+     if (( NO_START )); then
+       echo "Not starting ${NAME} - NO_START=1";
+@@ -465,7 +468,7 @@ case "$ACTION" in
+         CH_USER="--chuid $JETTY_USER"
        fi
 
-       echo ${RUN_ARGS[@]} --start-log-file="$JETTY_START_LOG" | xargs start-stop-daemon \
-+       -k ${UMASK} \
-        --start $CH_USER \
+-      start-stop-daemon --start $CH_USER \
++      start-stop-daemon -k ${UMASK} --start $CH_USER \
         --pidfile "$JETTY_PID" \
         --chdir "$JETTY_BASE" \
+        --background \
+
