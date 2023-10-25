@@ -23,8 +23,8 @@ RUDDER_VERSION_TO_PACKAGE =
 RUDDER_MAJOR_VERSION := $(shell echo ${RUDDER_VERSION_TO_PACKAGE} | cut -d'.' -f 1-2)
 # Original URL: https://repo1.maven.org/maven2/org/eclipse/jetty/jetty-home/${JETTY_RELEASE}/jetty-home-${JETTY_RELEASE}.tar.gz
 # Jetty 11 does not support the servlet version used by Lift, we stick to Jetty 10.
-JETTY_RELEASE = 10.0.17
-JETTY_SHA256 = 1ea4676b87c186d4603c044cbaf9b77d3180f1bd62e4b09e43e9ac941f1ac2df
+JETTY_RELEASE = 10.0.12
+JETTY_SHA256 = b2ae3170a729365e05ba9da057aee5d2654d169912efec73cddc8381ac35d516
 # Original URL: https://www.openldap.org/software/download/OpenLDAP/openldap-release/openldap-2.6.2.tgz
 OPENLDAP_RELEASE = 2.6.6
 OPENLDAP_SHA256 = 082e998cf542984d43634442dbe11da860759e510907152ea579bdc42fe39ea0

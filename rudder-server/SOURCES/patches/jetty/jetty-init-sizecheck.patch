@@ -1,9 +1,9 @@
---- jetty/bin/jetty.sh.orig
-+++ jetty/bin/jetty.sh
-@@ -222,9 +222,23 @@ readConfig()
+--- jetty/bin/jetty.sh.orig	2018-08-28 17:55:24.439012644 +0200
++++ jetty/bin/jetty.sh	2018-08-28 17:58:28.054678897 +0200
+@@ -154,9 +154,23 @@
    source "$1"
  }
-
+ 
 +# Gets the memory size (Xmx+MaxPermSize) needed by Java megabytes as argument.
 +# Checks if there is enough available RAM + Swap to contain the JVM.
 +checkAvailableRam()
@@ -13,21 +13,21 @@
 +  TOTAL_MEM_NEEDED=$((((${1})*100)/90))
 +  TOTAL_MEM_AVAILABLE=$(($(free -m|awk '/^Mem:/{print $2}')+$(free -m|awk '/^Swap:/{print $2}')))
 +  if [ ${TOTAL_MEM_AVAILABLE} -le ${TOTAL_MEM_NEEDED} ]; then
-+    echo "WARNING: Not enough free memory to start Jetty (about ${TOTAL_MEM_NEEDED}MB are needed). Trying anyway, but>
++    echo "WARNING: Not enough free memory to start Jetty (about ${TOTAL_MEM_NEEDED}MB are needed). Trying anyway, but the application is likely to fail."
 +  fi
 +}
 +
  dumpEnv()
  {
-   echo "JAVA                  =  $JAVA"
-+  echo "JAVA_XMX              =  ${JAVA_XMX}"
-   echo "JAVA_OPTIONS          =  ${JAVA_OPTIONS[*]}"
-   echo "JETTY_HOME            =  $JETTY_HOME"
-   echo "JETTY_BASE            =  $JETTY_BASE"
-@@ -439,6 +453,12 @@ then
+     echo "JAVA                  =  $JAVA"
++    echo "JAVA_XMX              =  ${JAVA_XMX}"
+     echo "JAVA_OPTIONS          =  ${JAVA_OPTIONS[*]}"
+     echo "JETTY_HOME            =  $JETTY_HOME"
+     echo "JETTY_BASE            =  $JETTY_BASE"
+@@ -363,6 +377,12 @@
    done < "$JETTY_CONF"
  fi
-
+ 
 +##################################################
 +# Set default JVM parameters, to be
 +# overridden by the configuration file
@@ -37,7 +37,7 @@
  ##################################################
  # Setup JAVA if unset
  ##################################################
-@@ -549,6 +569,9 @@ case "$ACTION" in
+@@ -454,6 +474,9 @@
      UMASK="0007"
      echo "Setting umask to ${UMASK}"
 
@@ -45,6 +45,5 @@
 +    # Metaspace is auomanaged in JDK8+. Rudder needs 150Mo of it.
 +    checkAvailableRam $((${JAVA_XMX}+150))
 
-     # Startup from a service file
-     if [ $UID -eq 0 ] && type start-stop-daemon > /dev/null 2>&1
-
+     if (( NO_START )); then
+       echo "Not starting ${NAME} - NO_START=1";
