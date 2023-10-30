@@ -116,8 +116,7 @@
 %define with_jq true
 %endif
 
-
-%if "%{?force_embed_openssl}"
+%if "%{force_embed_openssl}" == "true"
 %define with_openssl true
 %define with_libcurl true
 %endif
