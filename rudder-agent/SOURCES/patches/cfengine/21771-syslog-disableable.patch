@@ -1,25 +1,11 @@
-From bea5570e5c2cc35c0bd2d25a1811385e959822cf Mon Sep 17 00:00:00 2001
-From: Nicolas Charles <nicolas.charles@normation.com>
-Date: Fri, 16 Sep 2022 13:55:53 +0200
-Subject: [PATCH] [PATCH] Add a feature to express the support for syslog
- disabling
-
----
- libpromises/feature.c | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/libpromises/feature.c b/libpromises/feature.c
-index 04e3a3a..1ca6f0e 100644
---- a/libpromises/feature.c
-+++ b/libpromises/feature.c
-@@ -28,6 +28,7 @@ static const char* features[] = {
+diff --color -ruN cfengine-source.orig/libpromises/feature.c cfengine-source/libpromises/feature.c
+--- cfengine-source.orig/libpromises/feature.c	2023-05-10 12:38:35.192123758 +0200
++++ cfengine-source/libpromises/feature.c	2023-05-10 12:41:33.602000922 +0200
+@@ -28,6 +28,7 @@
      "def_json_preparse",
-     "copyfrom_restrict_keys",
      "host_specific_data_load",
+     "copyfrom_restrict_keys",
 +    "syslog_disableable",
      NULL
  };
  
--- 
-2.37.1
-

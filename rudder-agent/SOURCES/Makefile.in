@@ -35,9 +35,10 @@ lmdb_SHA256 = 22054926b426c66d8f2bc22071365df6e35f3aacf19ad943bc6167d4cae3bebb
 # Original URL: https://deac-ams.dl.sourceforge.net/project/pcre/pcre/8.45/pcre-8.45.tar.gz
 pcre_RELEASE = 8.45
 pcre_SHA256 = 4e6ce03e0336e8b4a3d6c2b70b1c5e18590a5673a98186da90d4f33c23defc09
+# We follow LTS releases
 # Original URL: https://www.openssl.org/source/openssl-$(OPENSSL_RELEASE).tar.gz
-openssl_RELEASE = 1.1.1w
-openssl_SHA256 = cf3098950cb4d853ad95c0841f1f9c6d3dc102dccfcacd521d93925208b76ac8
+openssl_RELEASE = 3.0.12
+openssl_SHA256 = f93c9e8edde5e9166119de31755fc87b4aa34863662f67ddfcba14d0b6b69b61
 # Original URL: http://pyyaml.org/download/libyaml/yaml-0.2.5.tar.gz
 libyaml_RELEASE = 0.2.5
 libyaml_SHA256 = c642ae9b75fee120b2d96c712538bd2cf283228d2337df2cf2988e3c02678ef4
@@ -56,9 +57,10 @@ augeas_SHA256 = 321942c9cc32185e2e9cb72d0a70eea106635b50269075aca6714e3ec282cb87
 # Original URL: https://github.com/stedolan/jq/releases/download/jq-1.6/jq-1.6.tar.gz
 jq_RELEASE = 1.6
 jq_SHA256 = 1b3906e0c6dea26b5b9dcf864cc7334522f520d69543043c64b2c487e0c663ca
+# We follow LTS releases
 # Original URL: https://cfengine-package-repos.s3.amazonaws.com/tarballs/cfengine-community-$(CFENGINE_RELEASE).tar.gz
-cfengine_RELEASE = 3.18.3
-cfengine_SHA256 = 6b7545bb0c7dc556aca713664f5d6f4af13e2f9d9585f0f07d5785ef03e3d575
+cfengine_RELEASE = 3.21.2
+cfengine_SHA256 = e3f733433ff9ad86a01513b779f646da223afed8568e8de6e89c4e5aa8c6b256
 # Original URL: http://www.cpan.org/src/5.0/perl-$(PERL_RELEASE).tar.gz
 perl_RELEASE = 5.36.0
 perl_SHA256 = e26085af8ac396f62add8a533c3a0ea8c8497d836f0689347ac5abd7b7a4e00a
@@ -226,10 +228,8 @@ build-pcre: pcre-source
 	touch $@
 
 build-openssl: openssl-source @perl_DEP@
-	# recent gcc don't include fp in armv7a
-	if [ "$(GCC_VERSION)" -ge 12 ]; then cd openssl-source && sed -i "s/armv7-a/armv7-a+fp/g" config; fi
 	# openssl doesn't support CFLAGS (it overrides its own) so we must pass them in batch to configure
-	cd openssl-source && RELEASE="" @SSL_CONFIGURE@ -fPIC $(CFLAGS) $(LDFLAGS) $(PIE_LDFLAGS) --prefix=$(RUDDER_DIR) --openssldir=$(RUDDER_DIR)/openssl shared no-idea no-rc5 no-ssl3 no-dtls no-psk no-srp no-engine enable-egd no-tests
+	cd openssl-source && RELEASE="" @SSL_CONFIGURE@ -fPIC $(CFLAGS) $(LDFLAGS) $(PIE_LDFLAGS) --libdir=lib --prefix=$(RUDDER_DIR) --openssldir=$(RUDDER_DIR)/openssl shared no-idea no-rc5 no-ssl3 no-dtls no-psk no-srp no-engine enable-egd no-tests
 	cd openssl-source && $(MAKE) depend
 	cd openssl-source && $(MAKE)
 	slibclean >/dev/null 2>&1 || true
