@@ -9,6 +9,9 @@ Type=forking
 # "ulimit -v unlimited" for big memory-mapped file
 LimitAS=infinity
 LimitNOFILE=2048
+ProtectSystem=strict
+ReadWritePaths=/var/rudder/ldap/ /var/log/rudder/ldap/
+PrivateTmp=True
 ExecStart=/opt/rudder/libexec/slapd -n rudder-slapd -u rudder-slapd -f /opt/rudder/etc/openldap/slapd.conf -h "ldap://127.0.0.1:389/"
 
 [Install]
