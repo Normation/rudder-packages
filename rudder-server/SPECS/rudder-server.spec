@@ -40,6 +40,7 @@
 %define apache_tools            apache2-utils
 %define htpasswd_cmd            htpasswd2
 %define ldap_clients            openldap2-client
+%define jetty_init_script       jetty-sles.sh
 %define apache_vhost_dir        %{apache}/vhosts.d
 %endif
 %if 0%{?rhel} || 0%{?fedora}
@@ -47,6 +48,7 @@
 %define apache_tools            httpd-tools
 %define htpasswd_cmd            htpasswd
 %define ldap_clients            openldap-clients
+%define jetty_init_script       jetty-rpm.sh
 %define apache_vhost_dir        %{apache}/conf.d
 %endif
 
@@ -157,11 +159,16 @@ make -f /usr/share/selinux/devel/Makefile
 
 rm -rf %{buildroot}
 cd %{_sourcedir}
-make --debug install APACHE_VHOSTDIR=%{apache_vhost_dir} DESTDIR=%{buildroot} APACHE_CONFDIR=%{apache_conf_dir}
+make --debug install APACHE_VHOSTDIR=%{apache_vhost_dir} DESTDIR=%{buildroot} JETTY_SCRIPT=%{jetty_init_script} APACHE_CONFDIR=%{apache_conf_dir}
 
 %if 0%{?rhel} || 0%{?fedora}
   # Install SELinux policy
   install -m 644  rudder-webapp.pp %{buildroot}/opt/rudder/share/selinux/
+  # Replace init script
+  cp jetty/bin/jetty-rpm.sh jetty/bin/jetty.sh
+%else
+  # Replace init script
+  cp jetty/bin/jetty-sles.sh jetty/bin/jetty.sh
 %endif
 
 #=================================================

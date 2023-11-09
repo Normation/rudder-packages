@@ -8,10 +8,8 @@ PartOf=rudder-server.service
 
 [Service]
 Type=forking
-UMask=0007
+
 LimitNOFILE=64000
-PIDFile=/var/rudder/run/rudder-jetty.pid
-ExecStartPre=/opt/rudder/bin/rudder-jetty-pre-check.sh
 ExecStart=/opt/rudder/bin/rudder-jetty.sh start
 ExecStop=/opt/rudder/bin/rudder-jetty.sh stop
 SuccessExitStatus=143
