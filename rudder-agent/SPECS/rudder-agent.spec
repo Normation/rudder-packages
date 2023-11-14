@@ -92,14 +92,6 @@
 %define with_libcurl true
 %define with_openssl true
 %endif
-%if 0%{?rhel} && 0%{?rhel} >= 9
-# we embed openssl as system is too recent (openssl3) in this case
-%define with_openssl true
-%endif
-%if 0%{?fedora} && 0%{?fedora} >= 34
-# we embed openssl as system is too recent (openssl3) in this case
-%define with_openssl true
-%endif
 
 # 3 - SUSE
 # Reference for suse_version : https://en.opensuse.org/openSUSE:Build_Service_cross_distribution_howto
@@ -116,12 +108,12 @@
 %if 0%{?suse_version} && 0%{?suse_version} < 1500
 # augeas too old on suse < 15
 %define with_augeas true
+%define with_libcurl true
+%define with_openssl true
 %endif
 %if 0%{?suse_version} && !0%{?is_opensuse}
 # no jq on sles, only on opensuse
 %define with_jq true
-%define with_libcurl true
-%define with_openssl true
 %endif
 
 %if "%{force_embed_openssl}" == "true"
