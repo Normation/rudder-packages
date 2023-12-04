@@ -578,16 +578,16 @@ upgrade_slapdconf() {
 upgrade_plugins() {
   STEP="Upgrade all plugins"
   PLUGIN_STATUS_FILE="/tmp/rudder-plugins-upgrade"
-  if rudder package check-connection >/dev/null 2>&1 ; then
-    rudder package update  || true
-    rudder package upgrade-all || true
+  if rudder package update --check >/dev/null 2>&1 ; then
+    rudder package update || true
+    rudder package upgrade --all || true
   else
     echo "Plugins were not updated, because connection test is failing, please upgrade your plugins manually"
   fi
 
   if [ -f $PLUGIN_STATUS_FILE ]; then
-    rudder package plugin restore-status < $PLUGIN_STATUS_FILE || true
-    rudder package check-compatibility || true
+    rudder package enable --restore < $PLUGIN_STATUS_FILE || true
+    rudder package disable --incompatible || true
 
     # Finally, remove it
     rm $PLUGIN_STATUS_FILE

@@ -323,7 +323,7 @@ echo "Running upgrade script" >> ${LOG_FILE}
 /opt/rudder/bin/rudder-fix-repository-permissions >> ${LOG_FILE}
 
 echo "Running plugins upgrade scripts" >> ${LOG_FILE}
-rudder package rudder-postupgrade  || true
+rudder package upgrade --all-postinstall || true
 
 echo "Restoring file ACLs" >> ${LOG_FILE}
 cd /

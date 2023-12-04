@@ -42,9 +42,9 @@ case "$1" in
 
       [ -x /opt/rudder/sbin/slapcat ] && /opt/rudder/sbin/slapcat -b "cn=rudder-configuration" -l /var/rudder/ldap/backup/openldap-data-pre-upgrade-${TIMESTAMP}.ldif
 
-      if [ -x /opt/rudder/bin/rudder-pkg ]
+      if [ -x /opt/rudder/bin/rudder-package ]
       then
-       /opt/rudder/bin/rudder-pkg plugin save-status > /tmp/rudder-plugins-upgrade
+        rudder package enable --save > /tmp/rudder-plugins-upgrade
       else
         rudder package plugin save-status > /tmp/rudder-plugins-upgrade
       fi
