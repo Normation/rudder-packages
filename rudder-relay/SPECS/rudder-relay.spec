@@ -261,6 +261,8 @@ rm -rf %{buildroot}
 /var/rudder/lib/relay/
 /var/log/rudder/apache2/
 /usr/lib/systemd/system/rudder-relayd.service
+/usr/lib/systemd/system/rudder-package.service
+/usr/lib/systemd/system/rudder-package.timer
 /opt/rudder/bin/rudder-relayd
 /opt/rudder/bin/rudder-package
 /opt/rudder/bin/rudder-pkg
