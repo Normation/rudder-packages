@@ -139,6 +139,23 @@ Source1: Makefile
 AutoReq: 0
 AutoProv: 0
 
+# Python dependency, very old os are still to be added
+%if 0%{?rhel} >= 9
+Requires: python3
+%endif
+%if 0%{?rhel} == 8
+Requires: python or python3
+%endif
+%if 0%{?rhel} < 8
+Requires: python
+%endif
+%if 0%{?sle_version} >= 150000
+Requires: python3-base
+%endif
+%if 0%{?suse_version} < 1200
+Requires: python-base
+%endif
+
 %if "%{with_perl}" == "false" && 0%{?rhel}
 BuildRequires: perl-CPAN
 %endif
@@ -435,7 +452,7 @@ rm -f %{buildroot}/opt/rudder/bin/vzps.py
 
 # strip binaries
 %if "%{?aix}" == ""
-# already doen in makefile and file -i on aix has a different meaning
+# already done in makefile and file -i on aix has a different meaning
 find %{buildroot}/opt/rudder/bin -type f | xargs file -i | grep -E "application/x-sharedlib|application/x-executable|application/x-pie-executable" | awk -F: '{print $1}' | xargs strip
 %endif
 
