@@ -146,13 +146,13 @@ Requires: python3
 %if 0%{?rhel} == 8
 Requires: python or python3
 %endif
-%if 0%{?rhel} < 8
+%if 0%{?rhel} && 0%{?rhel} < 8
 Requires: python
 %endif
 %if 0%{?sle_version} >= 150000
 Requires: python3-base
 %endif
-%if 0%{?suse_version} < 1200
+%if 0%{?suse_version} && 0%{?suse_version} < 1200
 Requires: python-base
 %endif
 
