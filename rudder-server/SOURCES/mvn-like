@@ -28,3 +28,10 @@ else
 fi
 curl -s -o "${outfile}" "${url}"
 
+# Set a minimum size of 1Mb
+minimumsize=1000000
+actualsize=$(wc -c <"${outfile}")
+if [ ${actualsize} -le ${minimumsize} ]; then
+    echo "${outfile} size is less than 1Mb, abort build"
+    exit 1
+fi
