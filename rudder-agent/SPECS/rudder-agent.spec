@@ -144,7 +144,7 @@ AutoProv: 0
 Requires: python3
 %endif
 %if 0%{?rhel} == 8
-Requires: python or python3
+Requires: (python or python3)
 %endif
 %if 0%{?rhel} && 0%{?rhel} < 8
 Requires: python
