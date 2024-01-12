@@ -440,6 +440,7 @@ install-agent: build cleanup-build rudder-agent rudder-agent.cron debug-script/r
 	@IF_libcurl@ cp -rp dependencies/opt/rudder/bin/curl $(DESTDIR)/opt/rudder/bin/
 	@IF_jq@ cp -rp dependencies/opt/rudder/bin/jq $(DESTDIR)/opt/rudder/bin/
 	@IF_augeas@ cp -rp dependencies/opt/rudder/bin/aug* $(DESTDIR)/opt/rudder/bin/
+	@IF_openssl@ cp -rp dependencies/opt/rudder/bin/openssl $(DESTDIR)/opt/rudder/bin/
 
 	mkdir -p $(DESTDIR)/opt/rudder/share/man/man8
 	cd $(DESTDIR)/opt/rudder/bin && for binary in cf-agent cf-promises cf-key cf-execd cf-serverd cf-net cf-runagent; do \
