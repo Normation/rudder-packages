@@ -1,0 +1,68 @@
+diff --color -ruN fusion-source.bak/lib/FusionInventory/Agent/Task/Inventory/Generic/Rudder.pm fusion-source/lib/FusionInventory/Agent/Task/Inventory/Generic/Rudder.pm
+--- fusion-source.bak/lib/FusionInventory/Agent/Task/Inventory/Generic/Rudder.pm	2024-01-18 15:35:06.824200094 +0100
++++ fusion-source/lib/FusionInventory/Agent/Task/Inventory/Generic/Rudder.pm	2024-01-18 15:36:57.283194871 +0100
+@@ -11,6 +11,8 @@
+ use UNIVERSAL::require;
+ use File::stat;
+ 
++# timeout in seconds
++my $hook_timeout = 300;
+ 
+ sub isEnabled {
+     return -r getUuidFile();
+@@ -63,6 +65,23 @@
+     );
+ }
+ 
++sub eval_timeout {
++  my $command = shift;
++  my $timeout = shift;
++
++  my $result;
++  eval {
++    local $SIG{ALRM} = sub { die "timeout\n" };
++    alarm $timeout;
++    $result = `$command`;
++    alarm 0;
++  };
++  if(!defined($result)) {
++    return (-1,"");
++  }
++  return ($? >> 8,$result);
++}
++
+ sub _getCustomProperties {
+     my (%params) = @_;
+     my $logger   = $params{logger};
+@@ -87,9 +106,13 @@
+                   # -x does not make sense since the files are just interpreted by the powershell exe
+ 
+                   $logger->debug("Executing Rudder inventory hook $script_file") if $logger;
+-                  $properties =  `powershell.exe -file "$script_file"`;
+-                  my $exit_code = $? >> 8;
+-                  if ($exit_code > 0) {
++                  my $exit_code;
++                  ($exit_code, $properties) = eval_timeout("powershell.exe -file \"$script_file\"", $hook_timeout);
++                  if($exit_code == -1) {
++                      $logger->error("Script $script_file timed out") if $logger;
++                      next;
++                  }
++                  elsif ($exit_code > 0) {
+                       $logger->error("Script $script_file failed to run properly, with exit code $exit_code") if $logger;
+                       next;
+                   }
+@@ -116,8 +139,12 @@
+ 
+                   # Execute the inventory script
+                   $logger->debug2("executing $script_file") if $logger;
+-                  $properties = qx($script_file);
+-                  my $exit_code = $? >> 8;
++                  my $exit_code;
++                  ($exit_code, $properties) = eval_timeout("$script_file", $hook_timeout);
++                  if($exit_code == -1) {
++                      $logger->error("Script $script_file timed out") if $logger;
++                      next;
++                  }
+                   if ($exit_code > 0) {
+                       $logger->error("Script $script_file failed to run properly, with exit code $exit_code") if $logger;
+                       next;
