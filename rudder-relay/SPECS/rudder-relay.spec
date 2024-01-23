@@ -101,6 +101,11 @@ Requires: libpq
 Requires: pwdutils
 %endif
 
+## AL 2023
+%if 0%{?amazon}
+Requires: apr-util-db
+%endif
+
 ## Python
 BuildRequires: python3, python3-pip, python3-lxml, python3-requests
 Requires: python3, python3-lxml, python3-requests, python3-setuptools
