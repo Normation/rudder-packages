@@ -56,7 +56,7 @@
 %define _python_bytecompile_errors_terminate_build 0
 
 # don't usr-merge policies content as they will run on old systems
-%define __brp_mangle_shebangs_exclude_from %{buildroot}/usr/share/ncf %{buildroot}/opt/rudder/share/techniques
+%define __brp_mangle_shebangs_exclude_from /usr/share/ncf /opt/rudder/share/techniques
 
 #=================================================
 # Header
