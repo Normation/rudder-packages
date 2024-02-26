@@ -101,7 +101,7 @@ then
   fi
 
   # TODO RPM only ??
-  PG_HBA_FILE=$(su postgres -c "psql -t -P format=unaligned -c 'show hba_file';")
+  PG_HBA_FILE=$(su postgres -s /bin/sh -c "psql -t -P format=unaligned -c 'show hba_file';")
   if [ $? -ne 0 ]; then
     echo "Postgresql failed to start! Halting"
     exit 1
@@ -136,7 +136,7 @@ then
 
   CPT=0
   TIMEOUT=60
-  while ! su postgres -c "psql -q --output /dev/null -c \"SELECT COUNT(*) FROM pg_catalog.pg_authid\"" >/dev/null 2>&1
+  while ! su postgres -s /bin/sh -c "psql -q --output /dev/null -c \"SELECT COUNT(*) FROM pg_catalog.pg_authid\"" >/dev/null 2>&1
   do
     echo -n "."
     sleep 1
@@ -155,18 +155,18 @@ then
   PASSWORD="$(dd if=/dev/urandom count=128 bs=1 2>&1 | md5sum | cut -b-20)"
 
   # Rudder user
-  CHK_PG_USER=$(su postgres -c "psql -t -c \"select count(1) from pg_user where usename = '${USERNAME}'\"")
+  CHK_PG_USER=$(su postgres -s /bin/sh -c "psql -t -c \"select count(1) from pg_user where usename = '${USERNAME}'\"")
   if [ ${CHK_PG_USER} -eq 0 ]
   then
-    su postgres -c "psql -q -c \"CREATE USER ${USERNAME} WITH PASSWORD '${PASSWORD}'\"" >> ${LOG_FILE}
+    su postgres -s /bin/sh -c "psql -q -c \"CREATE USER ${USERNAME} WITH PASSWORD '${PASSWORD}'\"" >> ${LOG_FILE}
     sed -i "/^RUDDER_PSQL_PASSWORD/s/.*/RUDDER_PSQL_PASSWORD:${PASSWORD}/" /opt/rudder/etc/rudder-passwords.conf
   fi
 
   # Rudder database
-  CHK_PG_DB=$(su postgres -c "psql -t -c \"select count(1) from pg_catalog.pg_database where datname = '${DBNAME}'\"")
+  CHK_PG_DB=$(su postgres -s /bin/sh -c "psql -t -c \"select count(1) from pg_catalog.pg_database where datname = '${DBNAME}'\"")
   if [ ${CHK_PG_DB} -eq 0 ]
   then
-    su postgres -c "psql -q -c \"CREATE DATABASE ${DBNAME} WITH OWNER = ${USERNAME} TEMPLATE template0 ENCODING = UTF8\"" >> ${LOG_FILE}
+    su postgres -s /bin/sh -c "psql -q -c \"CREATE DATABASE ${DBNAME} WITH OWNER = ${USERNAME} TEMPLATE template0 ENCODING = UTF8\"" >> ${LOG_FILE}
     POPULATE="true"
   fi
 else
