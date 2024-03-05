@@ -76,7 +76,7 @@ EOF
 elif [ "${VERSION}" = "1.1" ]
 then
   SHORT_PUBKEY=`sed '/---/d' "${PUBKEY}" | tr -d '\n'`
-  HASH_VALUE=`openssl "${HASH}" "${FILE}" | sed "s/${HASH}(.*)= *\\(.*\\)/\\1/i"`
+  HASH_VALUE=`openssl "${HASH}" "${FILE}" | sed "s/(.*)= \\(.*\\)/\\1/"`
   # Create a signature FILE
   cat > "${FILE}.sign" <<EOF
 header=rudder-signature-v1
