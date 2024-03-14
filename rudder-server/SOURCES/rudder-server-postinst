@@ -322,15 +322,15 @@ echo "Running upgrade script" >> ${LOG_FILE}
 # Adjust permissions on /var/rudder/configuration-repository
 /opt/rudder/bin/rudder-fix-repository-permissions >> ${LOG_FILE}
 
-echo "Running plugins upgrade scripts" >> ${LOG_FILE}
-rudder package upgrade --all-postinstall || true
-
 echo "Restoring file ACLs" >> ${LOG_FILE}
 cd /
 [ -f /tmp/rudder-hooks-upgrade ] && setfacl --restore=/tmp/rudder-hooks-upgrade
 
 # Restart the webapp
 systemctl restart rudder-jetty >> ${LOG_FILE} || true
+
+echo "Running plugins upgrade scripts" >> ${LOG_FILE}
+rudder package upgrade --all-postinstall || true
 
 ## Make sure everything is ok
 if [ "${RUDDER_FIRST_INSTALL}" = "true" ]; then
