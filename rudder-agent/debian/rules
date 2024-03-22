@@ -60,6 +60,12 @@ WITH = --with-lmdb
 STRIP_OPT = --no-automatic-dbgsym
 BUILDDEB_OPT = -- -Zxz
 endif
+# Ubuntu 24.04
+ifeq (numbat,$(OS_CODENAME))
+WITH = --with-lmdb
+STRIP_OPT = --no-automatic-dbgsym
+BUILDDEB_OPT = -- -Zxz
+endif
 
 # Debian 5
 ifeq (lenny,$(OS_CODENAME))
