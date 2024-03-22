@@ -61,7 +61,7 @@ STRIP_OPT = --no-automatic-dbgsym
 BUILDDEB_OPT = -- -Zxz
 endif
 # Ubuntu 24.04
-ifeq (numbat,$(OS_CODENAME))
+ifeq (noble,$(OS_CODENAME))
 WITH = --with-lmdb
 STRIP_OPT = --no-automatic-dbgsym
 BUILDDEB_OPT = -- -Zxz
