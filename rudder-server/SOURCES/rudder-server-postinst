@@ -327,6 +327,7 @@ cd /
 [ -f /tmp/rudder-hooks-upgrade ] && setfacl --restore=/tmp/rudder-hooks-upgrade
 
 # Restart the webapp
+systemctl restart rudder-slapd >> ${LOG_FILE} || true
 systemctl restart rudder-jetty >> ${LOG_FILE} || true
 
 echo "Running plugins upgrade scripts" >> ${LOG_FILE}
