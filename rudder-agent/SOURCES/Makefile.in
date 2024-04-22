@@ -27,18 +27,18 @@ $(error RUDDER_VERSION_TO_PACKAGE has not been set)
 endif
 
 # Original URL: http://zlib.net/zlib-$(ZLIB_RELEASE).tar.gz
-zlib_RELEASE = 1.3
-zlib_SHA256 = ff0ba4c292013dbc27530b3a81e1f9a813cd39de01ca5e0f8bf355702efa593e
+zlib_RELEASE = 1.3.1
+zlib_SHA256 = 9a93b2b7dfdac77ceba5a558a580e74667dd6fede4585b91eefb60f03b72df23
 # Original URL:  https://git.openldap.org/openldap/openldap/-/archive/LMDB_$(LMDB_RELEASE)/openldap-LMDB_$(LMDB_RELEASE).tar.gz
-lmdb_RELEASE = 0.9.31
-lmdb_SHA256 = d35d4f6f46313d62fd342c9dcbf574432919ce5e802d2b6cbe2ebd549821e5c4
+lmdb_RELEASE = 0.9.32
+lmdb_SHA256 = 70d553f80968f5117f2f3d4d7f0b89cb8fb69dadc35131263a2499bb58f7d015
 # Original URL: https://deac-ams.dl.sourceforge.net/project/pcre/pcre/8.45/pcre-8.45.tar.gz
 pcre_RELEASE = 8.45
 pcre_SHA256 = 4e6ce03e0336e8b4a3d6c2b70b1c5e18590a5673a98186da90d4f33c23defc09
 # We follow LTS releases
 # Original URL: https://www.openssl.org/source/openssl-$(OPENSSL_RELEASE).tar.gz
-openssl_RELEASE = 3.0.12
-openssl_SHA256 = f93c9e8edde5e9166119de31755fc87b4aa34863662f67ddfcba14d0b6b69b61
+openssl_RELEASE = 3.0.13
+openssl_SHA256 = 88525753f79d3bec27d2fa7c66aa0b92b3aa9498dafd93d7cfa4b3780cdae313
 # Original URL: http://pyyaml.org/download/libyaml/yaml-0.2.5.tar.gz
 libyaml_RELEASE = 0.2.5
 libyaml_SHA256 = c642ae9b75fee120b2d96c712538bd2cf283228d2337df2cf2988e3c02678ef4
@@ -46,8 +46,8 @@ libyaml_SHA256 = c642ae9b75fee120b2d96c712538bd2cf283228d2337df2cf2988e3c02678ef
 libxml2_RELEASE = 2.9.14
 libxml2_SHA256 = e8655291ee6f20c8abf57854ff0709e8b178c619001a4d850002aafc81885e17
 # Original URL: https://curl.haxx.se/download/curl-7.58.0.tar.gz
-libcurl_RELEASE = 8.5.0
-libcurl_SHA256 = 05fc17ff25b793a437a0906e0484b82172a9f4de02be5ed447e0cab8c3475add
+libcurl_RELEASE = 8.7.1
+libcurl_SHA256 = f91249c87f68ea00cf27c44fdfa5a78423e41e71b7d408e5901a9896d905c495
 # Original URL: https://ftp.gnu.org/gnu/readline/readline-8.0.tar.gz
 readline_RELEASE = 8.2
 readline_SHA256 = 3feb7171f16a84ee82ca18a36d7b9be109a52c04f492a053331d7d1095007c35
@@ -55,12 +55,12 @@ readline_SHA256 = 3feb7171f16a84ee82ca18a36d7b9be109a52c04f492a053331d7d1095007c
 augeas_RELEASE = 1.14.1
 augeas_SHA256 = 368bfdd782e4b9c7163baadd621359c82b162734864b667051ff6bcb57b9edff
 # Original URL: https://github.com/stedolan/jq/releases/download/jq-1.6/jq-1.6.tar.gz
-jq_RELEASE = 1.7
-jq_SHA256 = 402a0d6975d946e6f4e484d1a84320414a0ff8eb6cf49d2c11d144d4d344db62
+jq_RELEASE = 1.7.1
+jq_SHA256 = 478c9ca129fd2e3443fe27314b455e211e0d8c60bc8ff7df703873deeee580c2
 # We follow LTS releases
 # Original URL: https://cfengine-package-repos.s3.amazonaws.com/tarballs/cfengine-community-$(CFENGINE_RELEASE).tar.gz
-cfengine_RELEASE = 3.21.3
-cfengine_SHA256 = 147b62ef3322e66fde49c2af0aa64449fb9c1ddb37c0af706357f82bc406dbd1
+cfengine_RELEASE = 3.21.4
+cfengine_SHA256 = 8fe416784af1532ab3e5414d08a7f5c329174bdcb50c31f4ac52afab3a338a0a
 # Original URL: http://www.cpan.org/src/5.0/perl-$(PERL_RELEASE).tar.gz
 perl_RELEASE = 5.36.1
 perl_SHA256 = 68203665d8ece02988fc77dc92fccbb297a83a4bb4b8d07558442f978da54cc1
