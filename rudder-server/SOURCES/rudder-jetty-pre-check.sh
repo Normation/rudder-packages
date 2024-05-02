@@ -10,7 +10,8 @@ checkAvailableRam()
   # By default, add 10% to the given needed memory size to have a safe
   # margin (leave some memory for the OS)
   TOTAL_MEM_NEEDED=$((((${1})*100)/90))
-  TOTAL_MEM_AVAILABLE=$(($(free -m|awk '/^Mem:/{print $2}')+$(free -m|awk '/^Swap:/{print $2}')))
+  # $7 is "available" memory.
+  TOTAL_MEM_AVAILABLE=$(($(free -m|awk '/^Mem:/{print $7}')+$(free -m|awk '/^Swap:/{print $2}')))
   if [ ${TOTAL_MEM_AVAILABLE} -le ${TOTAL_MEM_NEEDED} ]; then
     echo "WARNING: Not enough free memory to start Jetty (about ${TOTAL_MEM_NEEDED}MB are needed). Trying anyway, but the application is likely to fail."
   fi
