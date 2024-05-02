@@ -4,10 +4,13 @@
 
 # Memory settings
 #
-# The defaults should be enough for up to ~100 nodes
+# The defaults should be enough for up to ~100 nodes, you need to give Jetty more memory
+# in "JAVA_XMX" for larger setups.
 #
-# You may want to give Jetty a bit more memory in
-# "JAVA_XMX" for larger setups.
+# See https://docs.rudder.io/reference/current/administration/performance.html#_configure_ram_allocated_to_jetty
+# for details.
+#
+# Values are in megabytes (MB).
 #
 JAVA_XMX=1024
 JAVA_MAXPERMSIZE=256
