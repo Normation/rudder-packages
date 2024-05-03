@@ -169,6 +169,10 @@ then
     su postgres -s /bin/sh -c "psql -q -c \"CREATE DATABASE ${DBNAME} WITH OWNER = ${USERNAME} TEMPLATE template0 ENCODING = UTF8\"" >> ${LOG_FILE}
     POPULATE="true"
   fi
+  
+  # ensure rights for rudder user on database rudder, to ensure it can create or update tables
+  # necessary in some cases for postgresql 15
+  su postgres -s /bin/sh -c "psql -q -c \"GRANT ALL ON DATABASE ${DBNAME} to ${USERNAME}\""  >> ${LOG_FILE}
 else
   ##############################
   # we are on a remote database
