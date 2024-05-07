@@ -576,6 +576,9 @@ upgrade_slapdconf() {
 # Check and upgrade plugins
 ################################################################################
 upgrade_plugins() {
+  # Don't restart, it is done at the end of the postinst
+  export RUDDER_PACKAGE_DONT_RESTART=1
+
   STEP="Upgrade all plugins"
   PLUGIN_STATUS_FILE="/tmp/rudder-plugins-upgrade"
   if rudder package update --check >/dev/null 2>&1 ; then
