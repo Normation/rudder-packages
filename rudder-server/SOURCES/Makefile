@@ -113,9 +113,9 @@ rudder-sources: rudder-sources.tar.bz2
 rudder-doc:
 	# Get user manual from rudder-project.org and rename directory containing it to rudder-doc
 	$(GET) doc-${RUDDER_MAJOR_VERSION}.tar.gz https://docs.rudder.io/archives/doc-${RUDDER_MAJOR_VERSION}.tar.gz ""
-	tar -xf doc-${RUDDER_MAJOR_VERSION}.tar.gz
-	mkdir -p rudder-doc
-	mv doc-* rudder-doc/html
+	mkdir -p rudder-doc/html
+	# To ignore checking file for rudder version, useful before first release of version when doc is not bootstrapped yet ... see #24890
+	tar -xf doc-${RUDDER_MAJOR_VERSION}.tar.gz -C rudder-doc/html --strip-components 1
 
 PATCHES_SHA = $(shell find patches/ -type f | sort | xargs sha256sum | sha256sum | awk '{print $$1}')
 CACHE_PARAMETERS := --with-env name=openldap ldap=$(OPENLDAP_SHA256) patches=$(PATCHES_SHA) release_type=$(RELEASE_TYPE) build_path=$(CURDIR)
