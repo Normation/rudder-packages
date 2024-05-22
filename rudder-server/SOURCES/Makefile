@@ -115,7 +115,7 @@ rudder-doc:
 	$(GET) doc-${RUDDER_MAJOR_VERSION}.tar.gz https://docs.rudder.io/archives/doc-${RUDDER_MAJOR_VERSION}.tar.gz ""
 	tar -xf doc-${RUDDER_MAJOR_VERSION}.tar.gz
 	mkdir -p rudder-doc
-	mv doc-${RUDDER_MAJOR_VERSION} rudder-doc/html
+	mv doc-* rudder-doc/html
 
 PATCHES_SHA = $(shell find patches/ -type f | sort | xargs sha256sum | sha256sum | awk '{print $$1}')
 CACHE_PARAMETERS := --with-env name=openldap ldap=$(OPENLDAP_SHA256) patches=$(PATCHES_SHA) release_type=$(RELEASE_TYPE) build_path=$(CURDIR)
