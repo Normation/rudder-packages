@@ -284,12 +284,12 @@ endif
 
 DEPS_CACHE_PARAMETERS = --with-env name=dependencies configure=$(CONFIGURE_ARGS_HASH) zlib=$(zlib_SHA256) lmdb=$(lmdb_SHA256) pcre=$(pcre_SHA256) openssl=$(openssl_SHA256) libyaml=$(libyaml_SHA256) libxml2=$(libxml2_SHA256) libcurl=$(libcurl_SHA256) augeas=$(augeas_SHA256) readline=$(readline_SHA256) jq=$(jq_SHA256) @CACHE_ARGS@
 # Strictly speaking we don't need jq here but it's easier to include it in the cache
-CFENGINE_DEPS = $(shell ../../build-caching get dependencies/ $(DEPS_CACHE_PARAMETERS) || echo @lmdb_DEP@ @pcre_DEP@ @openssl_DEP@ @libyaml_DEP@ @libxml2_DEP@ @libcurl_DEP@ @augeas_DEP@ @jq_DEP@ )
+CFENGINE_DEPS = $(shell set -x; ../../build-caching get dependencies/ $(DEPS_CACHE_PARAMETERS) || echo @lmdb_DEP@ @pcre_DEP@ @openssl_DEP@ @libyaml_DEP@ @libxml2_DEP@ @libcurl_DEP@ @augeas_DEP@ @jq_DEP@ )
 
 # Cache cfengine build itself
 CFENGINE_PATCHES_SHA = $(shell find patches/cfengine -type f | sort | xargs openssl dgst -sha256 | openssl dgst -sha256 | awk '{print $$2}')
 CFENGINE_CACHE_PARAMETERS = $(DEPS_CACHE_PARAMETERS) cfengine=$(cfengine_SHA256) patches=$(CFENGINE_PATCHES_SHA)
-CFENGINE_BUILD = $(shell ../../build-caching get dependencies/ $(CFENGINE_CACHE_PARAMETERS) || echo build-cfengine-real)
+CFENGINE_BUILD = $(shell set -x; ../../build-caching get dependencies/ $(CFENGINE_CACHE_PARAMETERS) || echo build-cfengine-real)
 
 # Separate build-cfengine from build-cfengine-real to separately cache dependencies and cfengine+dependencies
 build-cfengine: $(CFENGINE_BUILD)
@@ -358,7 +358,7 @@ fusion-modules: @perl_DEP@ cpanminus-source
 # Cache fusion and its dependencies
 FUSION_PATCHES_SHA = $(shell find patches/fusioninventory -type f | sort | xargs openssl dgst -sha256 | openssl dgst -sha256 | awk '{print $$2}')
 FUSION_CACHE_PARAMETERS = --with-env name=fusion fusion=$(fusion_SHA256) perl=$(perl_SHA256) cpanminus=$(cpanminus_SHA256) patches=$(FUSION_PATCHES_SHA)
-FUSION_BUILD = $(shell ../../build-caching get fusion/ $(FUSION_CACHE_PARAMETERS) || echo build-fusion-real)
+FUSION_BUILD = $(shell set -x; ../../build-caching get fusion/ $(FUSION_CACHE_PARAMETERS) || echo build-fusion-real)
 # do not split cache for perl, this is probably not worth it
 build-fusion: $(FUSION_BUILD)
 	if [ "$<" != "" ]; then ../../build-caching put fusion/ $(FUSION_CACHE_PARAMETERS); fi
