@@ -39,9 +39,6 @@
 %define selinux                 true
 %endif
 
-# avoid error during byte compilation of pyc since they are removed anyway
-%define _python_bytecompile_errors_terminate_build 0
-
 #=================================================
 # Header
 #=================================================
@@ -105,10 +102,6 @@ Requires: pwdutils
 %if 0%{?amazon}
 Requires: apr-util-db
 %endif
-
-## Python
-BuildRequires: python3, python3-pip, python3-lxml, python3-requests
-Requires: python3, python3-lxml, python3-requests, python3-setuptools
 
 # openssl
 %if 0%{?suse_version}
@@ -270,10 +263,8 @@ rm -rf %{buildroot}
 /usr/lib/systemd/system/rudder-package.timer
 /opt/rudder/bin/rudder-relayd
 /opt/rudder/bin/rudder-package
-/opt/rudder/bin/rudder-pkg
-/opt/rudder/etc/rudder-pkg/rudder_plugins_key.pub
+/opt/rudder/etc/rudder-pkg/rudder_plugins_key.gpg
 /opt/rudder/etc/rudder-apache-relay-nossl.conf
-/opt/rudder/etc/rudder-pkg/rudder_plugins_key.pub
 /opt/rudder/etc/rudder-apache-relay-common.conf
 /opt/rudder/etc/rudder-apache-relay-ssl.conf
 /opt/rudder/etc/ssl/openssl.cnf
@@ -282,13 +273,6 @@ rm -rf %{buildroot}
 /opt/rudder/share/selinux/
 /opt/rudder/share/package-scripts/rudder-relay-postinst
 /opt/rudder/share/package-scripts/rudder-relay-prerm
-/opt/rudder/share/python/
-/etc/bash_completion.d/rudder-pkg.sh
-
-# Avoid having .pyo and .pyc files in our package
-# as they will always be regenerated
-%exclude %(find /opt/rudder/share/ -type f -name '*.pyc')
-%exclude %(find /opt/rudder/share/ -type f -name '*.pyo')
 
 #=================================================
 # Changelog
