@@ -441,46 +441,6 @@ upgrade_database() {
     echo " Done"
   fi
 
-  # - 6.2: Remove unused index on RudderSysEvents
-  RES=$(${PSQL} -t -d ${SQL_DATABASE} -c "select count(oid) from pg_class where lower(relname) = 'keyvalue_idx'")
-  if [ $RES -ne 0 ]; then
-    echo -n "INFO: Removing unused index on table RudderSysEvents"
-    ${PSQL} -d ${SQL_DATABASE} -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-6.1-6.2-remove-unused-index-on-ruddersysevents.sql > /dev/null
-    echo " Done"
-  fi
-
-  # - 7.0: Change the way compliance is computed
-  RES=$(${PSQL} -t -d ${SQL_DATABASE} -c "select count(oid) from pg_class where lower(relname) = 'reportsexecution_insertionid_idx'")
-  if [ $RES -ne 0 ]; then
-    echo -n "INFO: Change format of table ReportsExecution"
-    ${PSQL} -d ${SQL_DATABASE} -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-6.1-7.0-compliance_computation_change.sql > /dev/null
-    echo " Done"
-  fi
-
-  # - 7.0: Remove names historization tables
-  RES=$(${PSQL} -t -d ${SQL_DATABASE} -c "select count(oid) from pg_class where lower(relname) = 'nodes'")
-  if [ $RES -ne 0 ]; then
-    echo -n "INFO: Drop names historization tables"
-    ${PSQL} -d ${SQL_DATABASE} -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-6.x-7.0-drop-historization-table.sql > /dev/null
-    echo " Done"
-  fi
-
-  # - 7.1: Replace serial with report id in reporting tablenames historization tables
-  RES=$(${PSQL} -t -d ${SQL_DATABASE} -c "select count(*) from pg_attribute where attrelid = 'ruddersysevents'::regclass and attname = 'serial' and not attisdropped")
-  if [ $RES -ne 0 ]; then
-    echo -n "INFO: Replace serial from reporting table with reportid"
-    ${PSQL} -d ${SQL_DATABASE} -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-7.0-7.1-serial_to_reportid_change.sql > /dev/null
-    echo " Done"
-  fi
-
-  # - 7.2: Create the CampaignEvents table
-  RES=$(${PSQL} -t -d ${SQL_DATABASE} -c "select count(oid) from pg_class where lower(relname) = 'campaignevents'")
-  if [ $RES -eq 0 ]; then
-    echo -n "INFO: Create campaign events tables"
-    ${PSQL} -d ${SQL_DATABASE} -f ${RUDDER_UPGRADE_TOOLS}/dbMigration-7.1-7.2-create-campaign-table.sql > /dev/null
-    echo " Done"
-  fi
-
   # Now check the fileFormat in the eventlog
   upgrade_eventlog
 
