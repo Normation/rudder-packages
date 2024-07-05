@@ -626,35 +626,3 @@ diff --color -ruN fusion-source.orig/lib/FusionInventory/Agent/Tools/Win32.pm fu
      my $key = _getRegistryKey(
          logger  => $params{logger},
          root    => $root,
-diff --color -ruN fusion-source.orig/Makefile.PL fusion-source/Makefile.PL
---- fusion-source.orig/Makefile.PL	2024-03-05 15:14:12.946977578 +0100
-+++ fusion-source/Makefile.PL	2020-09-28 11:55:10.000000000 +0200
-@@ -74,12 +74,9 @@
- test_requires 'Test::MockObject'             => '0';
-
- # Inventory
--recommends 'DateTime'                         => '0';
--recommends 'DateTime::TimeZone'               => '0';
--recommends 'DateTime::TimeZone::Local::Unix'  => '0' if $OSNAME ne 'MSWin32';
--recommends 'DateTime::TimeZone::Local::Win32' => '0' if $OSNAME eq 'MSWin32';
--recommends 'Net::CUPS'                        => 0.60 if $OSNAME ne 'MSWin32';
--recommends 'Parse::EDID'                      => '0';
-+recommends 'DateTime'                        => '0';
-+recommends 'Net::CUPS'                       => 0.60 if $OSNAME ne 'MSWin32';
-+recommends 'Parse::EDID'                     => '0';
-
- # Deploy
- recommends 'Archive::Extract'             => '0';
-diff --color -ruN fusion-source.orig/README.md fusion-source/README.md
---- fusion-source.orig/README.md	2024-03-05 15:14:12.946977578 +0100
-+++ fusion-source/README.md	2020-08-04 09:36:42.000000000 +0200
-@@ -44,8 +44,7 @@
-
- * Net::CUPS, for printers detection
- * Parse::EDID, for EDID data parsing
--* DateTime, DateTime::TimeZone and DateTime::TimeZone::Local::{Win32,Unix}
--  for reliable timezone name extraction
-+* DateTime, for reliable timezone name extraction
-
- Optional programs:
-
