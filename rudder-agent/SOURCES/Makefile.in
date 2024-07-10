@@ -80,14 +80,6 @@ DESTDIR = $(CURDIR)/target
 
 @CONFIG_VARS@
 
-ifeq (AIX,$(OS_FAMILY))
-CC=gcc
-# Default option is missing on gcc 4.8, remove this when upgrading to newer gcc
-readline_MAKE_OPT=SHLIB_XLDFLAGS=
-endif
-
-# We are using sha1 as sha256 is not supported on RHEL3
-# Not using the sha1sum command as it is not available on AIX
 # Pass an empty string to skip hash check
 GET=get() { @_GET@ "$$1.part" "$$2" && { openssl dgst -sha256 "$$1.part" | grep -q "$$3" || { echo "Wrong checksum, aborting"; exit 1; }; } && mv "$$1.part" "$$1"; }; get
 
@@ -135,8 +127,6 @@ install: install-agent
 @augeas_SOURCE@
 
 @jq_SOURCE@
-	# this value is not propery defined on AIX (must be > 500 for c99)
-	cd jq-source && $(SED) 's/^# define _XOPEN_SOURCE$$/# define _XOPEN_SOURCE 600/' src/builtin.c > src/builtin.c.new && mv src/builtin.c.new src/builtin.c
 
 @cfengine_SOURCE@
 	# Apply patches
@@ -275,9 +265,6 @@ build-augeas: augeas-source @readline_DEP@ @libxml2_DEP@
 
 build-jq: jq-source
 	cd jq-source && ./configure --prefix=$(RUDDER_DIR) $(BUILD_FLAGS_EXE) --disable-maintainer-mode --disable-docs --with-oniguruma=builtin --disable-error-injection
-ifeq (AIX,$(OS_FAMILY))
-	cd jq-source && $(SED) 's|^onig_LDFLAGS = .*|onig_LDFLAGS = -L./modules/oniguruma/src|' Makefile > Makefile.new && mv Makefile.new Makefile
-endif
 	cd jq-source && $(MAKE)
 	cd jq-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
 	touch $@
@@ -312,9 +299,6 @@ build-cfengine-real: $(CFENGINE_DEPS) cfengine-source
 # solaris doesn't have uuidgen and needs one
 ifeq (SunOS,$(OS_FAMILY))
 	gcc -luuid rudder-uuidgen.c -o rudder-uuidgen
-endif
-ifeq (AIX,$(OS_FAMILY))
-	slibclean
 endif
 	touch $@
 
@@ -391,10 +375,7 @@ rudder-agent-version:
 
 # Do this just before generating package
 cleanup-build:
-# AIX needs .a files but not other systems
-ifneq (AIX,$(OS_FAMILY))
 	rm -f dependencies/opt/rudder/lib/*.a
-endif
 	rm -f dependencies/opt/rudder/lib/libreadline.*
 	rm -f dependencies/opt/rudder/lib/*.la
 	rm -rf dependencies/opt/rudder/lib/cmake
@@ -408,13 +389,7 @@ endif
 
 # Strip binaries
 ifeq (,$(DEBUG))
-ifeq (AIX,$(OS_FAMILY))
-	cp /opt/freeware/lib/gcc/powerpc-ibm-aix5.3.0.0/4.8.4/libgcc* dependencies/opt/rudder/lib/
-	./absolute-aix-path $(CURDIR)/dependencies/opt/rudder
-	find dependencies/opt/rudder/bin dependencies/opt/rudder/lib -type f | xargs file | grep -E "executable|shared object" | cut -f 1 -d : | /usr/bin/xargs strip || true
-else
 	find dependencies/opt/rudder/bin dependencies/opt/rudder/lib -type f -print0 | xargs -0 file | grep -E "executable|shared object" | cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null || true
-endif
 endif
 
 # install to DESTDIR
@@ -467,18 +442,14 @@ install-agent: build cleanup-build rudder-agent rudder-agent.cron debug-script/r
 	@IF_systemd@ $(INSTALL) -m 644 systemd/rudder-cf-execd.service $(DESTDIR)/lib/systemd/system/rudder-cf-execd.service
 	@IF_systemd@ $(INSTALL) -m 644 systemd/rudder-cf-serverd.service $(DESTDIR)/lib/systemd/system/rudder-cf-serverd.service
 	# Init files
-ifneq (AIX,$(OS_FAMILY))
 	@UNLESS_systemd@ mkdir -p $(DESTDIR)/etc/init.d
 	@UNLESS_systemd@ mkdir -p $(DESTDIR)/etc/default
 	@UNLESS_systemd@ $(INSTALL) -m 755 rudder-agent.init $(DESTDIR)/etc/init.d/rudder-agent
 	@UNLESS_systemd@ $(INSTALL) -m 644 rudder-agent.default $(DESTDIR)/etc/default/rudder-agent
-endif
 
 	# cron files
-ifneq (AIX,$(OS_FAMILY))
 	mkdir -p $(DESTDIR)/etc/cron.d
 	$(INSTALL) -m 644 rudder-agent.cron $(DESTDIR)/etc/cron.d/rudder-agent
-endif
 
 	# Openssl configuration
 	mkdir -p $(DESTDIR)/opt/rudder/etc/ssl
@@ -532,10 +503,8 @@ else
 endif
 
 	# Install a profile script to make manuals par of the MANPATH
-ifneq (AIX,$(OS_FAMILY))
 	mkdir -p $(DESTDIR)/etc/profile.d
 	$(INSTALL) -m 644 rudder-agent.sh $(DESTDIR)/etc/profile.d/
-endif
 
 	# install agent version file
 	mkdir -p $(DESTDIR)/opt/rudder/share/versions/

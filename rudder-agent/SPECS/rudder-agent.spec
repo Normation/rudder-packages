@@ -57,21 +57,6 @@
 %define __brp_mangle_shebangs /usr/bin/true
 %endif
 
-# 1- AIX
-%if "%{?aix}"
-%define with_zlib true
-%define with_pcre true
-%define with_openssl true
-%define with_libyaml true
-%define with_libxml2 true
-%define with_libcurl true
-%define with_augeas true
-%define with_jq true
-%define with_perl true
-%define enable_https false
-%define enable_systemd false
-%endif
-
 # 2 - RHEL & Fedora
 %if 0%{?rhel} && 0%{?rhel} <= 5
 # system perl too old on RHEL5
@@ -179,35 +164,18 @@ Requires: perl
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 # Generic requirements
-BuildRequires: gcc bison flex autoconf automake libtool
+BuildRequires: gcc bison flex autoconf automake libtool pam-devel
 Conflicts: rudder-agent-thin
 
 # Specific requirements
 
-## For Linux
-%if "%{?aix}" ==""
-BuildRequires: pam-devel
-%endif
-
 ## Requirement for cpanminus
-# RHEL >= 6 and Fedora (no OR for Fedora, not supported by old rpm, used in aix)
-%if 0%{?rhel} && 0%{?rhel} >= 6
+%if (0%{?rhel} && 0%{?rhel} >= 6) || 0%{?fedora}
 BuildRequires: perl-IPC-Cmd
 %endif
-
-%if 0%{?fedora}
-BuildRequires: perl-IPC-Cmd
-%endif
-
 
 # RHEL perl core is too minimal, we try to not add too much here
-# RHEL >= 7 and Fedora (no OR for Fedora, not supported by old rpm, used in aix)
-%if 0%{?rhel} && 0%{?rhel} >= 7
-Requires: perl-Digest
-BuildRequires: perl-Digest
-%endif
-
-%if 0%{?fedora}
+%if (0%{?rhel} && 0%{?rhel} >= 7) || 0%{?fedora} 
 Requires: perl-Digest
 BuildRequires: perl-Digest
 %endif
@@ -243,7 +211,7 @@ Requires: dmidecode
 Requires: kernel-utils
 %endif
 
-# https fails on old distro because they don't support modern certificates (namely RHEL3, aix5, sles10 and sles11)
+# https fails on old distro because they don't support modern certificates (namely RHEL3, sles10 and sles11)
 %if 0%{?rhel} && 0%{?rhel} < 6
 %define enable_https false
 %endif
@@ -271,10 +239,8 @@ Requires: procps-ng
 %endif
 
 ## ACL dependencies
-%if "%{?aix}" == ""
 BuildRequires: libacl-devel
 Requires: libacl
-%endif
 %if 0%{?rhel} && 0%{?rhel} < 4
 # libattr-devel should be a dependency of libacl-devel on RHEL3 but it's not declared
 BuildRequires: libattr-devel
@@ -312,7 +278,7 @@ Requires: curl
 %if "%{with_augeas}" == "false"
 Requires: augeas
 %endif
-%if "%{with_augeas}" == "true" && "%{?aix}" ==""
+%if "%{with_augeas}" == "true"
 BuildRequires: readline-devel
 %endif
 
@@ -328,11 +294,7 @@ BuildRequires: pcre-devel
 Requires: pcre
 %endif
 
-#### Use systemd everywhere except on: AIX, RHEL<7, SLES<12, Fedora<15
-%if "%{?aix}"
-%define enable_systemd false
-%endif
-
+#### Use systemd everywhere except on: RHEL<7, SLES<12, Fedora<15
 %if 0%{?rhel} && 0%{?rhel} < 7
 %define enable_systemd false
 %endif
@@ -387,10 +349,6 @@ opt="${opt} --with-libcurl"
 %endif
 %if "%{with_augeas}" == "true"
 opt="${opt} --with-augeas"
-# augeas on aix depends on readline
-%if "%{?aix}"
-opt="${opt} --with-readline"
-%endif
 %endif
 %if "%{with_libcurl}" == "true"
 opt="${opt} --with-libcurl"
@@ -451,10 +409,7 @@ rm -f %{buildroot}/opt/rudder/bin/vzps.py
 %endif
 
 # strip binaries
-%if "%{?aix}" == ""
-# already done in makefile and file -i on aix has a different meaning
-find %{buildroot}/opt/rudder/bin -type f | xargs file -i | grep -E "application/x-sharedlib|application/x-executable|application/x-pie-executable" | awk -F: '{print $1}' | xargs strip
-%endif
+%{buildroot}/opt/rudder/bin -type f | xargs file -i | grep -E "application/x-sharedlib|application/x-executable|application/x-pie-executable" | awk -F: '{print $1}' | xargs strip
 
 # Build a list of files to include in this package for use in the %files section below
 find %{buildroot} -type f -o -type l | sed "s,%{buildroot},," | sed "s,\.py$,\.py*," | grep -v "%{rudderdir}/etc/uuid.hive" | grep -v "/etc/bash_completion.d" | grep -v "%{ruddervardir}/cfengine-community/ppkeys" > %{_builddir}/file.list.%{name}
@@ -521,14 +476,6 @@ fi
 
 set -e
 
-%if "%{?aix}"
-# AIX doesn't have a pidof command, let's define it
-function pidof {
-  # Yeah, "grep -v grep" is ugly, but we can't use the [u]nique trick on a variable
-  ps -A | grep "$1" | grep -v grep | awk '{print $1}';
-}
-%endif
-
 # Do it only during uninstallation
 if [ $1 -eq 0 ]; then
 
@@ -548,7 +495,6 @@ if [ $1 -eq 0 ]; then
     fi
   done
 
-%if "%{?aix}" == ""
   # Remove the cron script we create at installation to prevent mail
   # flooding, re-installation surprises, and general system garbage.
   rm -f /etc/cron.d/rudder-agent
@@ -556,21 +502,6 @@ if [ $1 -eq 0 ]; then
   # Make sure that Rudder agent specific files have been removed
   rm -f /etc/init.d/rudder-agent
   rm -f /etc/default/rudder-agent
-
-%else
-  # Remove the cron entry we created
-  sed '/# RUDDER CRON$/d' /var/spool/cron/crontabs/root > /tmp/rudder-installer-cron
-  mv /tmp/rudder-installer-cron /var/spool/cron/crontabs/root
-  chmod 600 /var/spool/cron/crontabs/root
-  chown root:cron /var/spool/cron/crontabs/root
-  # signal the change to cron daemon
-  EDITOR=/bin/true crontab -e
-
-  # Remove the AIX inittab entry and subsystem definition
-  rmssys -s rudder-agent
-  rmitab rudder-agent
-%endif
-
   rm -fr /opt/rudder/var/fusioninventory
   rm -f /opt/rudder/etc/uuid.hive
   rm -f /opt/rudder/etc/ssl/agent.cert
@@ -608,12 +539,9 @@ rm -f %{_builddir}/file.list.%{name}
 %dir %{rudderlogdir}/install
 %dir %{rudderlogdir}/agent-check
 
-%if "%{?aix}" == ""
-# no init no cron and no profile with aix
 %config /etc/profile.d/rudder-agent.sh
 %if "%{enable_systemd}" == "false"
 %config(noreplace) /etc/default/rudder-agent
-%endif
 %endif
 %config /etc/bash_completion.d/rudder.sh
 

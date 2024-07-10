@@ -195,19 +195,8 @@ else
   PERL="perl"
 fi
 
-# Many unices do not have the same form of rpath and library loading
-# We leak build path here, but it is mandatory to build properly, maybe we could clean it up after building
-if [ "${OS_FAMILY}" = "AIX" ]; then
-  SYSTEM_LDFLAGS="-static-libgcc -Wl,-bsvr4 -Wl,-R/opt/rudder/lib -Wl,-R\$(CURDIR)/dependencies/opt/rudder/lib"
-elif [ "${OS_FAMILY}" = "Darwin" ]; then
-  SYSTEM_LDFLAGS=""
-  # lmdb doesn't build as is on osx
-  LMDB_LDFLAGS="-dynamiclib -install_name /opt/rudder/lib/liblmdb.dylib -compatibility_version 0 -current_version 0.9 -Wl,-single_module"
-  LMDB_MAKEFLAGS="SOEXT=.dylib"
-else
-  # solaris and linux use GNU ld and produce elf files
-  SYSTEM_LDFLAGS="-Wl,-R/opt/rudder/lib -Wl,-R\$(CURDIR)/dependencies/opt/rudder/lib"
-fi
+# linux use GNU ld and produce elf files
+SYSTEM_LDFLAGS="-Wl,-R/opt/rudder/lib -Wl,-R\$(CURDIR)/dependencies/opt/rudder/lib"
 
 # Openssl configuration
 if [ "$(./config.guess)" = "sparc-sun-solaris2.11" ]; then
@@ -218,16 +207,9 @@ elif [ -x /usr/bin/dpkg ] && [ "$(dpkg --print-architecture)" = "i386" ] ; then
   SSL_CONFIGURE="${PERL} ./Configure linux-generic32"
 elif [ "${CROSS_COMPILE}" = "win64" ]; then
   SSL_CONFIGURE="${PERL} ./Configure mingw64 --cross-compile-prefix=x86_64-w64-mingw32-"
-elif [ "$(uname)" = "AIX" ]; then
-  # since openssl3 aix needs a spefic lib that is not used by default
-  SSL_CONFIGURE="LDFLAGS=\"-latomic\" ${PERL} ./Configure aix-gcc"
 else
   SSL_CONFIGURE="PERL=${PERL} ./config"
 fi
-
-# AIX doesn't automatically unload libraries from memory (and a loaded library cannot be overwritten)
-# some older versions may remain and prevent proper linking/installing
-[ "${OS_FAMILY}" = "AIX" ] && slibclean
 
 # Test gcc flags
 test_cc() {

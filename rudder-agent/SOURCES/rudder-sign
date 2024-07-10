@@ -1,12 +1,8 @@
 #!/bin/sh
 
 # To allow Rudder to provide its own version of openssl
-# Temporary: Use the system openssl on AIX, remove after #9144
-if [ `uname -s` != 'AIX' ]
-then
-  PATH=/opt/rudder/bin:$PATH
-  export PATH
-fi
+PATH=/opt/rudder/bin:$PATH
+export PATH
 
 if type openssl 2>/dev/null >/dev/null
 then
