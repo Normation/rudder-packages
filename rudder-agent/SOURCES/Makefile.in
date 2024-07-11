@@ -26,15 +26,9 @@ ifndef RUDDER_MAJOR_VERSION
 $(error RUDDER_VERSION_TO_PACKAGE has not been set)
 endif
 
-# Original URL: http://zlib.net/zlib-$(ZLIB_RELEASE).tar.gz
-zlib_RELEASE = 1.3.1
-zlib_SHA256 = 9a93b2b7dfdac77ceba5a558a580e74667dd6fede4585b91eefb60f03b72df23
 # Original URL:  https://git.openldap.org/openldap/openldap/-/archive/LMDB_$(LMDB_RELEASE)/openldap-LMDB_$(LMDB_RELEASE).tar.gz
 lmdb_RELEASE = 0.9.32
 lmdb_SHA256 = 70d553f80968f5117f2f3d4d7f0b89cb8fb69dadc35131263a2499bb58f7d015
-# Original URL: https://deac-ams.dl.sourceforge.net/project/pcre/pcre/8.45/pcre-8.45.tar.gz
-pcre_RELEASE = 8.45
-pcre_SHA256 = 4e6ce03e0336e8b4a3d6c2b70b1c5e18590a5673a98186da90d4f33c23defc09
 # We follow LTS releases
 # Original URL: https://www.openssl.org/source/openssl-$(OPENSSL_RELEASE).tar.gz
 openssl_RELEASE = 3.0.13
@@ -104,11 +98,7 @@ install: install-agent
 # Source download and unpack #
 ##############################
 
-@zlib_SOURCE@
-
 @lmdb_SOURCE@
-
-@pcre_SOURCE@
 
 @openssl_SOURCE@
 
@@ -194,12 +184,6 @@ debug-script/rudder-debug-info:
 # Build each component #
 ########################
 
-build-zlib: zlib-source
-	cd zlib-source && $(BUILD_FLAGS_LIB) @ZLIB_ARGS@ ./configure --prefix=$(RUDDER_DIR)
-	cd zlib-source && $(MAKE) LDSHAREDLIBC=
-	cd zlib-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
-	touch $@
-
 build-lmdb: lmdb-source
 	# lmdb doesn't support CFLAGS (it overrides its own) so we pass XCFLAGS instead, that is appended to the original ones
 	# lmdb also mixes cflags and ldflags
@@ -209,12 +193,6 @@ build-lmdb: lmdb-source
 	# LMDB's Makefile does not know how to create destination files, do it ourselves
 	cd dependencies$(RUDDER_DIR) && mkdir -p bin lib include man/man1
 	cd lmdb-source/libraries/liblmdb && $(MAKE) install prefix=$(RUDDER_DIR) DESTDIR=$(CURDIR)/dependencies
-	touch $@
-
-build-pcre: pcre-source
-	cd pcre-source && ./configure --enable-utf8 --enable-unicode-properties --disable-cpp --prefix=$(RUDDER_DIR) $(BUILD_FLAGS_LIB)
-	cd pcre-source && $(MAKE)
-	cd pcre-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
 	touch $@
 
 build-openssl: openssl-source @perl_DEP@
@@ -233,13 +211,13 @@ build-libyaml: libyaml-source
 	cd libyaml-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
 	touch $@
 
-build-libxml2: libxml2-source @zlib_DEP@
+build-libxml2: libxml2-source
 	cd libxml2-source && ./configure --prefix=$(RUDDER_DIR) @LIBXML2_ARGS@ --with-xpath --with-c14n --without-catalog --without-debug --without-docbook --without-ftp --without-http --without-html --without-iconv --without-python --enable-shared --disable-static $(BUILD_FLAGS_LIB)
 	cd libxml2-source && $(MAKE)
 	cd libxml2-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
 	touch $@
 
-build-libcurl: libcurl-source @openssl_DEP@ @zlib_DEP@
+build-libcurl: libcurl-source @openssl_DEP@
 	# pkcconfig give openssl build configuration, but it point to final installation path (/opt/rudder)
 	# since we need the temporary path during build we need to add -I and -L
 	cd libcurl-source && ./configure --prefix=$(RUDDER_DIR) @LIBCURL_ARGS@ --without-nghttp2 --without-hyper --without-libpsl --disable-tls-srp --disable-rtsp --enable-ipv6 --without-librtmp --without-ldap-lib CPPFLAGS="-I$(CURDIR)/dependencies$(RUDDER_DIR)/include" $(BUILD_FLAGS_EXE)
@@ -269,9 +247,9 @@ build-jq: jq-source
 	cd jq-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
 	touch $@
 
-DEPS_CACHE_PARAMETERS = --with-env name=dependencies configure=$(CONFIGURE_ARGS_HASH) zlib=$(zlib_SHA256) lmdb=$(lmdb_SHA256) pcre=$(pcre_SHA256) openssl=$(openssl_SHA256) libyaml=$(libyaml_SHA256) libxml2=$(libxml2_SHA256) libcurl=$(libcurl_SHA256) augeas=$(augeas_SHA256) readline=$(readline_SHA256) jq=$(jq_SHA256) @CACHE_ARGS@
+DEPS_CACHE_PARAMETERS = --with-env name=dependencies configure=$(CONFIGURE_ARGS_HASH) lmdb=$(lmdb_SHA256) openssl=$(openssl_SHA256) libyaml=$(libyaml_SHA256) libxml2=$(libxml2_SHA256) libcurl=$(libcurl_SHA256) augeas=$(augeas_SHA256) readline=$(readline_SHA256) jq=$(jq_SHA256) @CACHE_ARGS@
 # Strictly speaking we don't need jq here but it's easier to include it in the cache
-CFENGINE_DEPS = $(shell set -x; ../../build-caching get dependencies/ $(DEPS_CACHE_PARAMETERS) || echo @lmdb_DEP@ @pcre_DEP@ @openssl_DEP@ @libyaml_DEP@ @libxml2_DEP@ @libcurl_DEP@ @augeas_DEP@ @jq_DEP@ )
+CFENGINE_DEPS = $(shell set -x; ../../build-caching get dependencies/ $(DEPS_CACHE_PARAMETERS) || echo @lmdb_DEP@ @openssl_DEP@ @libyaml_DEP@ @libxml2_DEP@ @libcurl_DEP@ @augeas_DEP@ @jq_DEP@ )
 
 # Cache cfengine build itself
 CFENGINE_PATCHES_SHA = $(shell find patches/cfengine -type f | sort | xargs openssl dgst -sha256 | openssl dgst -sha256 | awk '{print $$2}')
@@ -297,9 +275,6 @@ build-cfengine-real: $(CFENGINE_DEPS) cfengine-source
 	cd cfengine-source && $(MAKE)
 	cd cfengine-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
 # solaris doesn't have uuidgen and needs one
-ifeq (SunOS,$(OS_FAMILY))
-	gcc -luuid rudder-uuidgen.c -o rudder-uuidgen
-endif
 	touch $@
 
 # ---- ^ cfengine ---- v fusion ----
@@ -493,14 +468,8 @@ install-agent: build cleanup-build rudder-agent rudder-agent.cron debug-script/r
 	$(INSTALL) -m 644 rudder.8.gz $(DESTDIR)/opt/rudder/share/man/man8/
 
 	# Create a symlink to make "rudder" available as part of the default PATH
-	# /usr/bin is not writable on MacOSX
-ifeq (Darwin,$(OS_FAMILY))
-	mkdir -p $(DESTDIR)/usr/local/bin
-	ln -sf /opt/rudder/bin/rudder $(DESTDIR)/usr/local/bin/rudder
-else
 	mkdir -p $(DESTDIR)/usr/bin
 	ln -sf /opt/rudder/bin/rudder $(DESTDIR)/usr/bin/rudder
-endif
 
 	# Install a profile script to make manuals par of the MANPATH
 	mkdir -p $(DESTDIR)/etc/profile.d

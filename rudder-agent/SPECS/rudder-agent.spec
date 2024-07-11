@@ -28,9 +28,7 @@
 %define bindir               /usr/bin
 
 # Defaults
-%define with_zlib false
 %define with_lmdb true
-%define with_pcre false
 %define with_openssl false
 %define with_libyaml false
 %define with_libxml2 false
@@ -42,8 +40,6 @@
 %define enable_https true
 %define enable_pie true
 %define enable_systemd true
-%define enable_libacl true
-%define enable_pam true
 
 # NOTE: Fedora macros are also used by AL2023
 
@@ -58,13 +54,6 @@
 %endif
 
 # 2 - RHEL & Fedora
-%if 0%{?rhel} && 0%{?rhel} <= 5
-# system perl too old on RHEL5
-%define with_perl true
-%define with_libyaml true
-#libxml too old
-%define with_libxml2 true
-%endif
 %if 0%{?rhel} && 0%{?rhel} <= 6
 # PIE and PIC incompatible on old gcc
 %define enable_pie false
@@ -164,7 +153,8 @@ Requires: perl
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 # Generic requirements
-BuildRequires: gcc bison flex autoconf automake libtool pam-devel
+BuildRequires: gcc bison flex autoconf automake libtool pam-devel pcre-devel libacl-devel
+Requires: pcre libacl
 Conflicts: rudder-agent-thin
 
 # Specific requirements
@@ -175,7 +165,7 @@ BuildRequires: perl-IPC-Cmd
 %endif
 
 # RHEL perl core is too minimal, we try to not add too much here
-%if (0%{?rhel} && 0%{?rhel} >= 7) || 0%{?fedora} 
+%if (0%{?rhel} && 0%{?rhel} >= 7) || 0%{?fedora}
 Requires: perl-Digest
 BuildRequires: perl-Digest
 %endif
@@ -197,8 +187,8 @@ Requires: crontabs net-tools diffutils
 Requires: cron net-tools diffutils
 %endif
 
-# dmiecode package on RHEL4+ and fedora
-%if 0%{?rhel} && 0%{?rhel} >= 4
+# dmiecode package on RHEL and fedora
+%if 0%{?rhel}
 Requires: dmidecode
 %endif
 
@@ -206,15 +196,7 @@ Requires: dmidecode
 Requires: dmidecode
 %endif
 
-# dmiecode is provided by kernel-utils on RHEL3
-%if 0%{?rhel} && 0%{?rhel} < 4
-Requires: kernel-utils
-%endif
-
-# https fails on old distro because they don't support modern certificates (namely RHEL3, sles10 and sles11)
-%if 0%{?rhel} && 0%{?rhel} < 6
-%define enable_https false
-%endif
+# https fails on old distro because they don't support modern certificates (namely sles11)
 %if 0%{?suse_version} && 0%{?suse_version} < 1200
 %define enable_https false
 %endif
@@ -236,14 +218,6 @@ Requires: procps-ng
 
 %if 0%{?fedora}
 Requires: procps-ng
-%endif
-
-## ACL dependencies
-BuildRequires: libacl-devel
-Requires: libacl
-%if 0%{?rhel} && 0%{?rhel} < 4
-# libattr-devel should be a dependency of libacl-devel on RHEL3 but it's not declared
-BuildRequires: libattr-devel
 %endif
 
 %if "%{with_jq}" == "false"
@@ -288,12 +262,6 @@ BuildRequires: openssl-devel
 Requires: openssl
 %endif
 
-## PCRE dependencies
-%if "%{with_pcre}" == "false"
-BuildRequires: pcre-devel
-Requires: pcre
-%endif
-
 #### Use systemd everywhere except on: RHEL<7, SLES<12, Fedora<15
 %if 0%{?rhel} && 0%{?rhel} < 7
 %define enable_systemd false
@@ -326,14 +294,8 @@ cd %{_sourcedir}
 opt=""
 
 # Default is to not embed anything
-%if "%{with_zlib}" == "true"
-opt="${opt} --with-zlib"
-%endif
 %if "%{with_lmdb}" == "true"
 opt="${opt} --with-lmdb"
-%endif
-%if "%{with_pcre}" == "true"
-opt="${opt} --with-pcre"
 %endif
 %if "%{with_openssl}" == "true"
 opt="${opt} --with-openssl"
@@ -367,12 +329,6 @@ opt="${opt} --disable-pie"
 %if "%{enable_systemd}" == "false"
 opt="${opt} --disable-systemd"
 %endif
-%if "%{enable_libacl}" == "false"
-opt="${opt} --disable-libacl"
-%endif
-%if "%{enable_pam}" == "false"
-opt="${opt} --disable-pam"
-%endif
 
 %if "%{with_perl}" == "true"
 opt="${opt} --with-perl"
@@ -381,12 +337,6 @@ perl -MModule::CoreList -e '' || cpan -f -T -i Module::CoreList < /dev/null || t
 perl -MYAML::Tiny -e '' || cpan -f -T -i YAML::Tiny < /dev/null
 perl -Minc::Module::Install -e '' || cpan -f -T -i Module::Install < /dev/null
 %endif
-
-# libattr libtool file is looked for in /lib64 but put in /usr/lib64 on RHEL3
-%if 0%{?rhel} && 0%{?rhel} < 4
-cp /usr/lib64/libattr.a /usr/lib64/libattr.la /lib64 || cp /usr/lib/libattr.a /usr/lib/libattr.la /lib
-%endif
-
 
 ./configure ${opt}
 make BUILD_CFLAGS="${RPM_OPT_FLAGS}"

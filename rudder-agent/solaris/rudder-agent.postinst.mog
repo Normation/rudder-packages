@@ -1,2 +1,0 @@
-file path=var/svc/manifest/application/rudder-smf.xml owner=root group=sys mode=0644 restart_fmri=svc:/system/manifest-import:default
-file path=var/svc/manifest/application/rudder-postinst.xml owner=root group=sys mode=0644 restart_fmri=svc:/system/manifest-import:default

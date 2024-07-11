@@ -7,14 +7,14 @@ set -e
 ALL_ARGS_HASH=$(echo "$@" | openssl dgst -sha256 | cut -d" " -f2)
 
 # Dependencies defaults: use everything from system except fusion
-DEPENDENCIES="zlib lmdb pcre openssl libyaml libxml2 libcurl readline augeas jq perl fusion"
+DEPENDENCIES="lmdb openssl libyaml libxml2 libcurl readline augeas jq perl fusion"
 for dep in ${DEPENDENCIES}; do
   eval "BUILD_${dep}=false"
 done
 BUILD_fusion=true
 
 # Features defaults: things are enabled except if the unix family doesn't support it
-FEATURES="https pie systemd libacl pam"
+FEATURES="https pie systemd"
 for use in ${FEATURES}; do
   eval "USE_${use}=true"
 done
@@ -24,8 +24,6 @@ OS_FAMILY=$(uname -s)
 
 # Defaults for unix variations
 if [ "${OS_FAMILY}" != "Linux" ]; then
-  USE_libacl=false
-  USE_pam=false
   USE_systemd=false
 fi
 
@@ -176,7 +174,7 @@ fi
 # Add adequate --with statements to compilation options
 LIBCURL_ARGS="${WITH_zlib} ${WITH_openssl}"
 LIBXML2_ARGS="${WITH_zlib}"
-CFENGINE_ARGS="${WITH_libacl} ${WITH_pam} ${WITH_lmdb} ${WITH_pcre} ${WITH_openssl} ${WITH_libyaml} ${WITH_libxml2} ${WITH_libcurl}"
+CFENGINE_ARGS="--with-pam --with-pcre ${WITH_libacl} ${WITH_lmdb} ${WITH_openssl} ${WITH_libyaml} ${WITH_libxml2} ${WITH_libcurl}"
 
 # cross compilation specifics
 if [ "${CROSS_COMPILE}" = "win64" ]; then
@@ -199,10 +197,7 @@ fi
 SYSTEM_LDFLAGS="-Wl,-R/opt/rudder/lib -Wl,-R\$(CURDIR)/dependencies/opt/rudder/lib"
 
 # Openssl configuration
-if [ "$(./config.guess)" = "sparc-sun-solaris2.11" ]; then
-  # Hack needed because openssl is not guessing correctly the architecture on sparc solaris
-  SSL_CONFIGURE="${PERL} ./Configure solaris64-sparcv9-gcc"
-elif [ -x /usr/bin/dpkg ] && [ "$(dpkg --print-architecture)" = "i386" ] ; then
+if [ -x /usr/bin/dpkg ] && [ "$(dpkg --print-architecture)" = "i386" ] ; then
   # Hack needed because openssl is not guessing correctly the architecture on debian 32 bits chroot
   SSL_CONFIGURE="${PERL} ./Configure linux-generic32"
 elif [ "${CROSS_COMPILE}" = "win64" ]; then
