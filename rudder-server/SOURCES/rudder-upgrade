@@ -542,6 +542,8 @@ upgrade_plugins() {
   STEP="Upgrade all plugins"
   # Remove the user-management if exists as the feature is now builtin
   rudder package remove user-management 2>/dev/null
+  # Remove the aix plugin as AIX support was dropped
+  rudder package remove aix 2>/dev/null
   PLUGIN_STATUS_FILE="/tmp/rudder-plugins-upgrade"
   if rudder package update --check >/dev/null 2>&1 ; then
     rudder package update || true
