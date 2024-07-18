@@ -1,0 +1,13 @@
+diff --git a/libpromises/mod_custom.c b/libpromises/mod_custom.c
+index 36ddc954a..7b097274c 100644
+--- a/libpromises/mod_custom.c
++++ b/libpromises/mod_custom.c
+@@ -480,7 +480,7 @@ static PromiseModule *PromiseModule_Start(char *interpreter, char *path)
+     char command[CF_BUFSIZE];
+     if (interpreter == NULL)
+     {
+-        snprintf(command, CF_BUFSIZE, "%s", path);
++        snprintf(command, CF_BUFSIZE, "%s --cfengine", path);
+     }
+     else
+     {
