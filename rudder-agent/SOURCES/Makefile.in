@@ -26,6 +26,9 @@ ifndef RUDDER_MAJOR_VERSION
 $(error RUDDER_VERSION_TO_PACKAGE has not been set)
 endif
 
+# Original URL: http://zlib.net/zlib-$(ZLIB_RELEASE).tar.gz
+zlib_RELEASE = 1.3.1
+zlib_SHA256 = 9a93b2b7dfdac77ceba5a558a580e74667dd6fede4585b91eefb60f03b72df23
 # Original URL:  https://git.openldap.org/openldap/openldap/-/archive/LMDB_$(LMDB_RELEASE)/openldap-LMDB_$(LMDB_RELEASE).tar.gz
 lmdb_RELEASE = 0.9.32
 lmdb_SHA256 = 70d553f80968f5117f2f3d4d7f0b89cb8fb69dadc35131263a2499bb58f7d015
@@ -97,6 +100,8 @@ install: install-agent
 ##############################
 # Source download and unpack #
 ##############################
+
+@zlib_SOURCE@
 
 @lmdb_SOURCE@
 
@@ -184,6 +189,12 @@ debug-script/rudder-debug-info:
 # Build each component #
 ########################
 
+build-zlib: zlib-source
+	cd zlib-source && $(BUILD_FLAGS_LIB) @ZLIB_ARGS@ ./configure --prefix=$(RUDDER_DIR)
+	cd zlib-source && $(MAKE) LDSHAREDLIBC=
+	cd zlib-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
+	touch $@
+
 build-lmdb: lmdb-source
 	# lmdb doesn't support CFLAGS (it overrides its own) so we pass XCFLAGS instead, that is appended to the original ones
 	# lmdb also mixes cflags and ldflags
@@ -211,13 +222,13 @@ build-libyaml: libyaml-source
 	cd libyaml-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
 	touch $@
 
-build-libxml2: libxml2-source
+build-libxml2: libxml2-source @zlib_DEP@
 	cd libxml2-source && ./configure --prefix=$(RUDDER_DIR) @LIBXML2_ARGS@ --with-xpath --with-c14n --without-catalog --without-debug --without-docbook --without-ftp --without-http --without-html --without-iconv --without-python --enable-shared --disable-static $(BUILD_FLAGS_LIB)
 	cd libxml2-source && $(MAKE)
 	cd libxml2-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
 	touch $@
 
-build-libcurl: libcurl-source @openssl_DEP@
+build-libcurl: libcurl-source @openssl_DEP@ @zlib_DEP@
 	# pkcconfig give openssl build configuration, but it point to final installation path (/opt/rudder)
 	# since we need the temporary path during build we need to add -I and -L
 	cd libcurl-source && ./configure --prefix=$(RUDDER_DIR) @LIBCURL_ARGS@ --without-nghttp2 --without-hyper --without-libpsl --disable-tls-srp --disable-rtsp --enable-ipv6 --without-librtmp --without-ldap-lib CPPFLAGS="-I$(CURDIR)/dependencies$(RUDDER_DIR)/include" $(BUILD_FLAGS_EXE)
@@ -247,7 +258,7 @@ build-jq: jq-source
 	cd jq-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
 	touch $@
 
-DEPS_CACHE_PARAMETERS = --with-env name=dependencies configure=$(CONFIGURE_ARGS_HASH) lmdb=$(lmdb_SHA256) openssl=$(openssl_SHA256) libyaml=$(libyaml_SHA256) libxml2=$(libxml2_SHA256) libcurl=$(libcurl_SHA256) augeas=$(augeas_SHA256) readline=$(readline_SHA256) jq=$(jq_SHA256) @CACHE_ARGS@
+DEPS_CACHE_PARAMETERS = --with-env name=dependencies configure=$(CONFIGURE_ARGS_HASH) zlib=$(zlib_SHA256) lmdb=$(lmdb_SHA256) openssl=$(openssl_SHA256) libyaml=$(libyaml_SHA256) libxml2=$(libxml2_SHA256) libcurl=$(libcurl_SHA256) augeas=$(augeas_SHA256) readline=$(readline_SHA256) jq=$(jq_SHA256) @CACHE_ARGS@
 # Strictly speaking we don't need jq here but it's easier to include it in the cache
 CFENGINE_DEPS = $(shell set -x; ../../build-caching get dependencies/ $(DEPS_CACHE_PARAMETERS) || echo @lmdb_DEP@ @openssl_DEP@ @libyaml_DEP@ @libxml2_DEP@ @libcurl_DEP@ @augeas_DEP@ @jq_DEP@ )
 

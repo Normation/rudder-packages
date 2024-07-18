@@ -7,14 +7,14 @@ set -e
 ALL_ARGS_HASH=$(echo "$@" | openssl dgst -sha256 | cut -d" " -f2)
 
 # Dependencies defaults: use everything from system except fusion
-DEPENDENCIES="lmdb openssl libyaml libxml2 libcurl readline augeas jq perl fusion"
+DEPENDENCIES="zlib lmdb openssl libyaml libxml2 libcurl readline augeas jq perl fusion"
 for dep in ${DEPENDENCIES}; do
   eval "BUILD_${dep}=false"
 done
 BUILD_fusion=true
 
 # Features defaults: things are enabled except if the unix family doesn't support it
-FEATURES="https pie systemd"
+FEATURES="https pie systemd pam"
 for use in ${FEATURES}; do
   eval "USE_${use}=true"
 done
@@ -25,6 +25,7 @@ OS_FAMILY=$(uname -s)
 # Defaults for unix variations
 if [ "${OS_FAMILY}" != "Linux" ]; then
   USE_systemd=false
+  USE_pam=false
 fi
 
 usage() {
@@ -174,7 +175,7 @@ fi
 # Add adequate --with statements to compilation options
 LIBCURL_ARGS="${WITH_zlib} ${WITH_openssl}"
 LIBXML2_ARGS="${WITH_zlib}"
-CFENGINE_ARGS="--with-pam --with-pcre ${WITH_libacl} ${WITH_lmdb} ${WITH_openssl} ${WITH_libyaml} ${WITH_libxml2} ${WITH_libcurl}"
+CFENGINE_ARGS="--with-pcre ${WITH_pam} ${WITH_libacl} ${WITH_lmdb} ${WITH_openssl} ${WITH_libyaml} ${WITH_libxml2} ${WITH_libcurl}"
 
 # cross compilation specifics
 if [ "${CROSS_COMPILE}" = "win64" ]; then
