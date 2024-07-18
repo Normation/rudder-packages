@@ -271,6 +271,7 @@ rm -rf %{buildroot}
 /opt/rudder/share/commands/package
 /opt/rudder/share/man/man1/rudder-relayd.1.gz
 /opt/rudder/share/selinux/
+/opt/rudder/share/apache.conf
 /opt/rudder/share/package-scripts/rudder-relay-postinst
 /opt/rudder/share/package-scripts/rudder-relay-prerm
 
