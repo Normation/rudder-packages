@@ -40,6 +40,7 @@
 %define enable_https true
 %define enable_pie true
 %define enable_systemd true
+%define enable_rust true
 
 # NOTE: Fedora macros are also used by AL2023
 
@@ -59,6 +60,8 @@
 %define enable_pie false
 # no augeas or augeas too old
 %define with_augeas true
+# no rust
+%define enable_rust false
 %endif
 %if 0%{?rhel} && 0%{?rhel} < 8
 # no jq before RHEL8
@@ -78,6 +81,8 @@
 %define with_libxml2 true
 # PIE and PIC incompatible on old gcc
 %define enable_pie false
+# no rust
+%define enable_rust false
 %endif
 %if 0%{?suse_version} && 0%{?suse_version} < 1500
 # augeas too old on suse < 15
@@ -328,6 +333,9 @@ opt="${opt} --disable-pie"
 %endif
 %if "%{enable_systemd}" == "false"
 opt="${opt} --disable-systemd"
+%endif
+%if "%{enable_rust}" == "false"
+opt="${opt} --disable-rust"
 %endif
 
 %if "%{with_perl}" == "true"
