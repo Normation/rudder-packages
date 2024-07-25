@@ -198,8 +198,8 @@ ifneq (false,$(USE_RUST))
 	if ! ../../build-caching get $(RUST_TARGET)/ $${AGENT_CACHE_PARAMETERS}; then \
 		# build binaries with cargo auditable \
 		cargo install --locked cargo-auditable@0.6.1 ;\
-		cd rudder-sources/rudder/policies/module-types/directory && cargo auditable build --release --locked ;\
-		$(CURDIR)/../../build-caching put $(RUST_TARGET)/ $${AGENT_CACHE_PARAMETERS}; fi
+		cd rudder-sources/rudder/policies/module-types/directory && cargo auditable build --release --locked || exit 1;\
+		cd $(CURDIR); ../../build-caching put $(RUST_TARGET)/ $${AGENT_CACHE_PARAMETERS} || true ;\
 	fi
 endif
 	touch $@
