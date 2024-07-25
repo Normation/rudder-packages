@@ -190,18 +190,19 @@ debug-script/rudder-debug-info:
 ########################
 
 RUST_TARGET = rudder-sources/rudder/target/release
-AGENT_SOURCE_SHA = $(shell find rudder-sources/rudder/policies -type f | sort | xargs openssl dgst -sha256 | openssl dgst -sha256 | awk '{print $$2}')
-AGENT_CACHE_PARAMETERS = --with-env name=rudder-agent rudder-agent=$(AGENT_SOURCE_SHA)
-build-agent: $(shell set -x; ../../build-caching get $(RUST_TARGET)/ $(AGENT_CACHE_PARAMETERS) || echo build-agent-real)
-	if [ "$<" != "" ]; then ../../build-caching put $(RUST_TARGET)/ $(AGENT_CACHE_PARAMETERS); fi
-	touch $@
 
-build-agent-real: rudder-sources
+build-agent: rudder-sources
 ifneq (false,$(USE_RUST))
-	# build binaries with cargo auditable
-	cargo install --locked cargo-auditable@0.6.1
-	cd rudder-sources/rudder/policies/module-types/directory && cargo auditable build --release --locked
+	AGENT_SOURCE_SHA=$$(find rudder-sources/rudder/policies -type f | sort | xargs openssl dgst -sha256 | openssl   dgst -sha256 | awk '{print $$2}') ;\
+	AGENT_CACHE_PARAMETERS="--with-env name=rudder-agent $${AGENT_SOURCE_SHA}} ;\
+	if ! ../../build-caching get $(RUST_TARGET)/ $${AGENT_CACHE_PARAMETERS}; then \
+		# build binaries with cargo auditable \
+		cargo install --locked cargo-auditable@0.6.1 ;\
+		cd rudder-sources/rudder/policies/module-types/directory && cargo auditable build --release --locked ;\
+		../../build-caching put $(RUST_TARGET)/ $${AGENT_CACHE_PARAMETERS}; fi
+	fi
 endif
+	touch $@
 
 build-zlib: zlib-source
 	cd zlib-source && $(BUILD_FLAGS_LIB) @ZLIB_ARGS@ ./configure --prefix=$(RUDDER_DIR)
