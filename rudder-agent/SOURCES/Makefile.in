@@ -199,7 +199,7 @@ ifneq (false,$(USE_RUST))
 		# build binaries with cargo auditable \
 		cargo install --locked cargo-auditable@0.6.1 ;\
 		cd rudder-sources/rudder/policies/module-types/directory && cargo auditable build --release --locked ;\
-		../../build-caching put $(RUST_TARGET)/ $${AGENT_CACHE_PARAMETERS}; fi
+		$(CURDIR)/../../build-caching put $(RUST_TARGET)/ $${AGENT_CACHE_PARAMETERS}; fi
 	fi
 endif
 	touch $@
