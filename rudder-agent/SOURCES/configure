@@ -14,7 +14,7 @@ done
 BUILD_fusion=true
 
 # Features defaults: things are enabled except if the unix family doesn't support it
-FEATURES="https pie systemd pam"
+FEATURES="https pie systemd pam rust"
 for use in ${FEATURES}; do
   eval "USE_${use}=true"
 done
@@ -295,6 +295,8 @@ CFLAGS = \$(BUILD_CFLAGS) ${SECURE_CFLAGS} -I\$(CURDIR)/dependencies/opt/rudder/
 LDFLAGS = \$(BUILD_LDFLAGS) ${SECURE_LDFLAGS} ${SYSTEM_LDFLAGS} -L\$(CURDIR)/dependencies/opt/rudder/lib
 BUILD_FLAGS_EXE = CFLAGS=\"\$(CFLAGS) \$(PIE_CFLAGS)\" LDFLAGS=\"\$(LDFLAGS) \$(PIE_LDFLAGS)\"
 BUILD_FLAGS_LIB = CFLAGS=\"\$(CFLAGS)\" LDFLAGS=\"\$(LDFLAGS)\"
+
+USE_RUST = ${USE_rust}
 "
 
 # create a replacer sed expression

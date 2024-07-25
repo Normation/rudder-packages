@@ -197,9 +197,11 @@ build-agent: $(shell set -x; ../../build-caching get $(RUST_TARGET)/ $(AGENT_CAC
 	touch $@
 
 build-agent-real: rudder-sources
+ifneq (false,$(USE_RUST))
 	# build binaries with cargo auditable
 	cargo install --locked cargo-auditable@0.6.1
 	cd rudder-sources/rudder/policies/module-types/directory && cargo auditable build --release --locked
+endif
 
 build-zlib: zlib-source
 	cd zlib-source && $(BUILD_FLAGS_LIB) @ZLIB_ARGS@ ./configure --prefix=$(RUDDER_DIR)
@@ -407,7 +409,9 @@ install-agent: build cleanup-build rudder-agent rudder-agent.cron debug-script/r
 	# Binaries
 	mkdir -p $(DESTDIR)/opt/rudder/bin
 	mkdir -p $(DESTDIR)/var/rudder
+ifneq (false,$(USE_RUST))
 	$(INSTALL) -m 755 $(RUST_TARGET)/rudder-module-type-directory $(DESTDIR)/opt/rudder/bin/
+endif
 	cp -rp dependencies/var/rudder/cfengine-community $(DESTDIR)/var/rudder/
 	cp -rp dependencies/opt/rudder/bin/cf-* $(DESTDIR)/opt/rudder/bin/
 	cp -rp dependencies/opt/rudder/bin/rpmvercmp $(DESTDIR)/opt/rudder/bin/
