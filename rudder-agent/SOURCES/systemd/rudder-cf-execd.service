@@ -11,6 +11,7 @@ Environment=VERBOSITY_OPTION=
 ExecStart=/opt/rudder/bin/cf-execd --no-fork $VERBOSITY_OPTION
 ExecReload=/bin/kill -HUP $MAINPID
 Restart=always
+RestartSec=10
 KillMode=process
 
 [Install]
