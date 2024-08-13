@@ -17,19 +17,19 @@ BUILD_LDFLAGS=$(shell [ -x /usr/bin/dpkg-buildflags ] && /usr/bin/dpkg-buildflag
 OS_CODENAME := $(shell lsb_release -s -c)
 # Ubuntu 10.04
 ifeq (lucid,$(OS_CODENAME))
-WITH = --disable-rust --disable-https --disable-systemd --disable-pie --with-perl --with-jq --with-openssl --with-libcurl --with-augeas --with-lmdb
+WITH = --disable-rust --disable-apt --disable-https --disable-systemd --disable-pie --with-perl --with-jq --with-openssl --with-libcurl --with-augeas --with-lmdb
 endif
 # Ubuntu 12.04
 ifeq (precise,$(OS_CODENAME))
-WITH = --disable-rust --disable-systemd --disable-pie --with-jq --with-openssl --with-libcurl --with-augeas --with-lmdb
+WITH = --disable-rust --disable-apt --disable-systemd --disable-pie --with-jq --with-openssl --with-libcurl --with-augeas --with-lmdb
 endif
 # Ubuntu 12.10
 ifeq (quantal,$(OS_CODENAME))
-WITH = --disable-rust --disable-systemd --disable-pie --with-jq --with-openssl --with-libcurl --with-augeas --with-lmdb
+WITH = --disable-rust --disable-apt --disable-systemd --disable-pie --with-jq --with-openssl --with-libcurl --with-augeas --with-lmdb
 endif
 # Ubuntu 13.04
 ifeq (raring,$(OS_CODENAME))
-WITH = --disable-rust --disable-https --disable-systemd --disable-pie --with-jq --with-openssl --with-libcurl --with-augeas --with-lmdb
+WITH = --disable-rust --disable-apt --disable-https --disable-systemd --disable-pie --with-jq --with-openssl --with-libcurl --with-augeas --with-lmdb
 endif
 # Ubuntu 14.04
 ifeq (trusty,$(OS_CODENAME))
@@ -69,15 +69,15 @@ endif
 
 # Debian 5
 ifeq (lenny,$(OS_CODENAME))
-WITH = --disable-rust --disable-https --disable-systemd --disable-pie --with-perl --with-jq --with-openssl --with-libcurl --with-augeas --with-lmdb --with-libxml2 --with-libyaml
+WITH = --disable-rust --disable-apt --disable-https --disable-systemd --disable-pie --with-perl --with-jq --with-openssl --with-libcurl --with-augeas --with-lmdb --with-libxml2 --with-libyaml
 endif
 # Debian 6
 ifeq (squeeze,$(OS_CODENAME))
-WITH = --disable-rust --disable-https --disable-systemd --disable-pie --with-jq --with-openssl --with-libcurl --with-augeas --with-lmdb
+WITH = --disable-rust --disable-apt --disable-https --disable-systemd --disable-pie --with-jq --with-openssl --with-libcurl --with-augeas --with-lmdb
 endif
 # Debian 7
 ifeq (wheezy,$(OS_CODENAME))
-WITH = --disable-rust --disable-systemd --disable-pie --with-jq --with-openssl --with-libcurl --with-augeas --with-lmdb
+WITH = --disable-rust --disable-apt --disable-systemd --disable-pie --with-jq --with-openssl --with-libcurl --with-augeas --with-lmdb
 endif
 # Debian 8
 ifeq (jessie,$(OS_CODENAME))
@@ -131,6 +131,9 @@ DEPS := $(DEPS), liblmdb0
 endif
 ifeq ($(findstring disable-systemd,$(WITH)),)
 DEPS := $(DEPS), systemd
+endif
+ifeq ($(findstring disable-apt,$(WITH)),)
+DEPS := $(DEPS), libapt-pkg
 endif
 
 build:

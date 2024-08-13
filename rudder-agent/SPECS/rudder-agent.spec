@@ -296,7 +296,7 @@ FusionInventory.
 
 cd %{_sourcedir}
 
-opt=""
+opt="--disable-apt"
 
 # Default is to not embed anything
 %if "%{with_lmdb}" == "true"

@@ -190,17 +190,20 @@ debug-script/rudder-debug-info:
 ########################
 
 RUST_TARGET = rudder-sources/rudder/target/release
+CARGO_FEATURES=""
+ifneq (false,$(USE_APT))
+CARGO_FEATURES="--features apt"
+endif
 
 build-agent: rudder-sources
 ifneq (false,$(USE_RUST))
-	AGENT_SOURCE_SHA=$$(find rudder-sources/rudder/policies -type f | sort | xargs openssl dgst -sha256 | openssl   dgst -sha256 | awk '{print $$2}') ;\
-	AGENT_CACHE_PARAMETERS="--with-env name=rudder-agent source=$${AGENT_SOURCE_SHA}}" ;\
+	# The deps versions are in the Cargo.lock in the repo root
+	DEPS_SOURCE_SHA=$$(ls -1 rudder-sources/rudder/Cargo.* | sort | xargs openssl dgst -sha256 | openssl dgst -sha256 | awk '{print $$2}') ;\
+	AGENT_SOURCE_SHA=$$(find rudder-sources/rudder/policies -type f | sort | xargs openssl dgst -sha256 | openssl dgst -sha256 | awk '{print $$2}') ;\
+	CACHE_SHA=$$(echo "$$DEPS_SOURCE_SHA $$AGENT_SOURCE_SHA" | openssl dgst -sha256 | awk '{print $$2}') ;\
+	AGENT_CACHE_PARAMETERS="--with-env name=rudder-agent source=$${CACHE_SHA}}" ;\
 	if ! ../../build-caching get $(RUST_TARGET)/ $${AGENT_CACHE_PARAMETERS}; then \
-		# build binaries with cargo auditable \
-		if cargo install --locked cargo-auditable@0.6.1; then \
-			AUDITABLE=auditable ;\
-		fi ;\
-		cd rudder-sources/rudder/policies/module-types/directory && cargo $${AUDITABLE} build --release --locked || exit 1 ;\
+		cd rudder-sources/rudder/policies/module-types/system-updates && make build || exit 1 ;\
 		cd $(CURDIR); ../../build-caching put $(RUST_TARGET)/ $${AGENT_CACHE_PARAMETERS} || true ;\
 	fi
 endif
@@ -413,7 +416,7 @@ install-agent: build cleanup-build rudder-agent rudder-agent.cron debug-script/r
 	mkdir -p $(DESTDIR)/opt/rudder/bin
 	mkdir -p $(DESTDIR)/var/rudder
 ifneq (false,$(USE_RUST))
-	$(INSTALL) -m 755 $(RUST_TARGET)/rudder-module-type-directory $(DESTDIR)/opt/rudder/bin/
+	$(INSTALL) -m 755 $(RUST_TARGET)/rudder-module-system-updates $(DESTDIR)/opt/rudder/bin/
 endif
 	cp -rp dependencies/var/rudder/cfengine-community $(DESTDIR)/var/rudder/
 	cp -rp dependencies/opt/rudder/bin/cf-* $(DESTDIR)/opt/rudder/bin/
