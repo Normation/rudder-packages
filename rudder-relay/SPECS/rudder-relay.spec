@@ -274,6 +274,7 @@ rm -rf %{buildroot}
 /opt/rudder/share/apache.conf
 /opt/rudder/share/package-scripts/rudder-relay-postinst
 /opt/rudder/share/package-scripts/rudder-relay-prerm
+/etc/bash_completion.d/rudder-package.sh
 
 #=================================================
 # Changelog
