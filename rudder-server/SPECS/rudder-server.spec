@@ -114,11 +114,10 @@ BuildRequires: libopenssl-devel git-core
 %endif
 
 %if 0%{?sle_version} && 0%{?sle_version} >= 150000
-Requires: java-17-openjdk-headless 
+Requires: java-17-openjdk-headless
 %endif
 
 ## Python 3
-BuildRequires: python3
 Requires: python3
 
 %description

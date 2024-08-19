@@ -2,7 +2,7 @@ Source: rudder-server
 Section: admin
 Priority: optional
 Maintainer: Rudder Team <dev@rudder.io>
-Build-Depends: debhelper (>= 12), libltdl3-dev, libssl-dev, python3-dev, ca-certificates, curl, rsync
+Build-Depends: debhelper (>= 12), libltdl3-dev, libssl-dev, python3, ca-certificates, curl, rsync
 Standards-Version: 4.6.1
 Homepage: https://www.rudder.io
 
