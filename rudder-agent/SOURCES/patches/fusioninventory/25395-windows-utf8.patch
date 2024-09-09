@@ -1,0 +1,607 @@
+diff --color -ruN fusion-source.orig/lib/FusionInventory/Agent/Task/Inventory/Generic/Screen.pm fusion-source/lib/FusionInventory/Agent/Task/Inventory/Generic/Screen.pm
+--- fusion-source.orig/lib/FusionInventory/Agent/Task/Inventory/Generic/Screen.pm	2020-08-04 09:36:42.000000000 +0200
++++ fusion-source/lib/FusionInventory/Agent/Task/Inventory/Generic/Screen.pm	2024-08-30 18:26:49.835436445 +0200
+@@ -8,7 +8,6 @@
+ use English qw(-no_match_vars);
+ use MIME::Base64;
+ use UNIVERSAL::require;
+-
+ use File::Find;
+ use FusionInventory::Agent::Tools;
+ use FusionInventory::Agent::Tools::Screen;
+@@ -148,8 +147,10 @@
+ 
+     foreach my $screen (@screens) {
+         next unless $screen->{id};
+-        $screen->{edid} = getRegistryValue(
+-            path => "HKEY_LOCAL_MACHINE/SYSTEM/CurrentControlSet/Enum/$screen->{id}/Device Parameters/EDID",
++        $screen->{edid} = getNewRegistryValue(
++            root => "HKEY_LOCAL_MACHINE",
++            path => "SYSTEM/CurrentControlSet/Enum/$screen->{id}/Device Parameters",
++            keyName => "EDID",
+             logger => $params{logger}
+         );
+         $screen->{edid} =~ s/^\s+$// if $screen->{edid};
+diff --color -ruN fusion-source.orig/lib/FusionInventory/Agent/Task/Inventory/Win32/AntiVirus.pm fusion-source/lib/FusionInventory/Agent/Task/Inventory/Win32/AntiVirus.pm
+--- fusion-source.orig/lib/FusionInventory/Agent/Task/Inventory/Win32/AntiVirus.pm	2020-11-17 12:11:06.000000000 +0100
++++ fusion-source/lib/FusionInventory/Agent/Task/Inventory/Win32/AntiVirus.pm	2024-08-30 18:26:49.835436445 +0200
+@@ -201,11 +201,11 @@
+         or return;
+ 
+     my $found = first {
+-        $_->{"Data/"} && $_->{"Data/"}->{"/LastSuccessfulUpdate"}
++        $_->{"Data"} && $_->{"Data"}->{"LastSuccessfulUpdate"}
+     } values(%{$kasperskyReg});
+ 
+     if ($found) {
+-        my $lastupdate = hex2dec($found->{"Data/"}->{"/LastSuccessfulUpdate"});
++        my $lastupdate = hex2dec($found->{"Data"}->{"LastSuccessfulUpdate"});
+         if ($lastupdate && $lastupdate != 0xFFFFFFFF) {
+             my @date = localtime($lastupdate);
+             # Format BASE_VERSION as YYYYMMDD
+@@ -213,9 +213,9 @@
+                 "%04d%02d%02d",$date[5]+1900,$date[4]+1,$date[3]);
+         }
+         # Set expiration date only if we found a licence key type
+-        my $keytype = hex2dec($found->{"Data/"}->{"/LicKeyType"});
++        my $keytype = hex2dec($found->{"Data"}->{"LicKeyType"});
+         if ($keytype) {
+-            my $expiration = hex2dec($found->{"Data/"}->{"/LicDaysTillExpiration"});
++            my $expiration = hex2dec($found->{"Data"}->{"LicDaysTillExpiration"});
+             if (defined($expiration)) {
+                 my @date = localtime(time+86400*$expiration);
+                 $antivirus->{EXPIRATION} = sprintf(
+@@ -461,13 +461,10 @@
+ sub _getSoftwareRegistryKeys {
+     my ($base, $values, $callback) = @_;
+ 
+-    my $reg;
+     if (is64bit()) {
+-        $reg = getRegistryKey(
+-            path => 'HKEY_LOCAL_MACHINE/SOFTWARE/Wow6432Node/'.$base,
+-            wmiopts => { # Only used for remote WMI optimization
+-                values  => $values
+-            }
++        my $reg = getNewRegistryValues(
++            root   => "HKEY_LOCAL_MACHINE",
++            path   => 'SOFTWARE/Wow6432Node/'.$base
+         );
+         if ($reg) {
+             if ($callback) {
+@@ -478,12 +475,9 @@
+             }
+         }
+     }
+-
+-    $reg = getRegistryKey(
+-        path => 'HKEY_LOCAL_MACHINE/SOFTWARE/'.$base,
+-        wmiopts => { # Only used for remote WMI optimization
+-            values  => $values
+-        }
++    my $reg = getNewRegistryValues(
++        root   => "HKEY_LOCAL_MACHINE",
++        path   => 'SOFTWARE/'.$base
+     );
+     return ($callback && $reg) ? &{$callback}($reg) : $reg;
+ }
+diff --color -ruN fusion-source.orig/lib/FusionInventory/Agent/Task/Inventory/Win32/CPU.pm fusion-source/lib/FusionInventory/Agent/Task/Inventory/Win32/CPU.pm
+--- fusion-source.orig/lib/FusionInventory/Agent/Task/Inventory/Win32/CPU.pm	2020-08-04 09:36:42.000000000 +0200
++++ fusion-source/lib/FusionInventory/Agent/Task/Inventory/Win32/CPU.pm	2024-09-05 21:15:01.806938211 +0200
+@@ -53,12 +53,10 @@
+     my @dmidecodeInfos = $remotewmi || Win32::GetOSName() eq 'Win2003' ?
+         () : getCpusFromDmidecode();
+ 
+-    # the CPU description in WMI is false, we use the registry instead
+-    my $registryInfos = getRegistryKey(
+-        path   => "HKEY_LOCAL_MACHINE/Hardware/Description/System/CentralProcessor",
+-        wmiopts => { # Only used for remote WMI optimization
+-            values  => [ qw/Identifier ProcessorNameString VendorIdentifier/ ]
+-        }
++    my $registryInfos = getNewRegistryAll(
++        root   => "HKEY_LOCAL_MACHINE",
++        path   => "Hardware/Description/System/CentralProcessor",
++        %params
+     );
+ 
+     my $cpuId = 0;
+@@ -73,20 +71,20 @@
+     )) {
+ 
+         my $dmidecodeInfo = $dmidecodeInfos[$cpuId];
+-        my $registryInfo  = $registryInfos->{"$cpuId/"};
++        my $registryInfo  = $registryInfos->{"$cpuId"};
+ 
+         # Compute WMI threads for this CPU if not available in dmidecode, this is the case on win2003r2 with 932370 hotfix applied (see #2894)
+         my $wmi_threads   = !$dmidecodeInfo->{THREAD} && $object->{NumberOfCores} ? $object->{NumberOfLogicalProcessors}/$object->{NumberOfCores} : undef;
+ 
+         # Split CPUID from its value inside registry
+-        my @splitted_identifier = split(/ |\n/, $registryInfo->{'/Identifier'} || $object->{Manufacturer});
++        my @splitted_identifier = split(/ |\n/, $registryInfo->{Identifier} || $object->{Manufacturer});
+ 
+         my $cpu = {
+             CORE         => $dmidecodeInfo->{CORE} || $object->{NumberOfCores},
+             THREAD       => $dmidecodeInfo->{THREAD} || $wmi_threads,
+-            DESCRIPTION  => $registryInfo->{'/Identifier'} || $object->{Description},
+-            NAME         => trimWhitespace($registryInfo->{'/ProcessorNameString'} || $object->{Name}),
+-            MANUFACTURER => getCanonicalManufacturer($registryInfo->{'/VendorIdentifier'} || $object->{Manufacturer}),
++            DESCRIPTION  => $registryInfo->{Identifier}, # || $object->{Description},
++            NAME         => trimWhitespace($registryInfo->{ProcessorNameString} || $object->{Name}),
++            MANUFACTURER => getCanonicalManufacturer($registryInfo->{VendorIdentifier} || $object->{Manufacturer}),
+             SERIAL       => $dmidecodeInfo->{SERIAL} || $object->{SerialNumber},
+             SPEED        => $dmidecodeInfo->{SPEED} || $object->{MaxClockSpeed},
+             FAMILYNUMBER => $splitted_identifier[2],
+diff --color -ruN fusion-source.orig/lib/FusionInventory/Agent/Task/Inventory/Win32/License.pm fusion-source/lib/FusionInventory/Agent/Task/Inventory/Win32/License.pm
+--- fusion-source.orig/lib/FusionInventory/Agent/Task/Inventory/Win32/License.pm	2020-08-04 09:36:42.000000000 +0200
++++ fusion-source/lib/FusionInventory/Agent/Task/Inventory/Win32/License.pm	2024-08-30 18:26:49.835436445 +0200
+@@ -36,17 +36,25 @@
+ 
+     my @licenses;
+ 
+-    my $officeKey = getRegistryKey(
+-        path => "HKEY_LOCAL_MACHINE/SOFTWARE/Microsoft/Office"
++    my $officeKey = getNewRegistryAll(
++        logger => $params{logger},
++        root   => "HKEY_LOCAL_MACHINE",
++        path   => "SOFTWARE/Microsoft/Office",
++        %params
+     );
++
+     _scanOfficeLicences($officeKey) if $officeKey;
+ 
+     my $fileAdobe = 'C:\Program Files\Common Files\Adobe\Adobe PCD\cache\cache.db';
+     if (is64bit()) {
+         $fileAdobe = 'C:\Program Files (x86)\Common Files\Adobe\Adobe PCD\cache\cache.db';
+-        my $officeKey32 = getRegistryKey(
+-            path => "HKEY_LOCAL_MACHINE/SOFTWARE/Wow6432Node/Microsoft/Office"
++        my $officeKey32 = getNewRegistryAll(
++            logger => $params{logger},
++            root   => "HKEY_LOCAL_MACHINE",
++            path   => "SOFTWARE/Wow6432Node/Microsoft/Office",
++            %params
+         );
++
+         _scanOfficeLicences($officeKey32) if $officeKey32;
+     }
+ 
+@@ -128,7 +136,7 @@
+     #             └── ...
+ 
+     foreach my $versionKey (keys %{$key}) {
+-        my $registrationKey = $key->{$versionKey}->{'Registration/'};
++        my $registrationKey = $key->{$versionKey}->{Registration};
+         next unless $registrationKey;
+ 
+         foreach my $uuidKey (keys %{$registrationKey}) {
+diff --color -ruN fusion-source.orig/lib/FusionInventory/Agent/Task/Inventory/Win32/Networks.pm fusion-source/lib/FusionInventory/Agent/Task/Inventory/Win32/Networks.pm
+--- fusion-source.orig/lib/FusionInventory/Agent/Task/Inventory/Win32/Networks.pm	2020-08-04 09:36:42.000000000 +0200
++++ fusion-source/lib/FusionInventory/Agent/Task/Inventory/Win32/Networks.pm	2024-08-30 18:26:49.835436445 +0200
+@@ -44,11 +44,10 @@
+         delete $interface->{GUID};
+ 
+         # Don't reload registry keys between interfaces checks
+-        $keys = getRegistryKey(
+-            path   => "HKEY_LOCAL_MACHINE/SYSTEM/CurrentControlSet/Control/Network/{4D36E972-E325-11CE-BFC1-08002BE10318}",
+-            wmiopts => { # Only used for remote WMI optimization
+-                values  => [ qw/PnpInstanceID MediaSubType/ ]
+-            }
++        $keys = getNewRegistryAll(
++            logger => $params{logger},
++            root   => "HKEY_LOCAL_MACHINE",
++            path   => "SYSTEM/CurrentControlSet/Control/Network/{4D36E972-E325-11CE-BFC1-08002BE10318}",
+         ) unless $keys;
+ 
+         $interface->{TYPE} = _getMediaType($interface->{PNPDEVICEID}, $keys);
+@@ -77,14 +76,14 @@
+     foreach my $subkey_name (keys %{$keys}) {
+         # skip variables
+         next if $subkey_name =~ m{^/};
+-        my $subkey_connection = $keys->{$subkey_name}->{'Connection/'}
++        my $subkey_connection = $keys->{$subkey_name}->{Connection}
+             or next;
+-        my $subkey_deviceid   = $subkey_connection->{'/PnpInstanceID'}
++        my $subkey_deviceid   = $subkey_connection->{PnpInstanceID}
+             or next;
+         # Normalize PnpInstanceID
+         $subkey_deviceid =~ s/\\\\/\\/g;
+         if (lc($subkey_deviceid) eq lc($deviceid)) {
+-            $subtype = $subkey_connection->{'/MediaSubType'};
++            $subtype = $subkey_connection->{MediaSubType};
+             last;
+         }
+     }
+diff --color -ruN fusion-source.orig/lib/FusionInventory/Agent/Task/Inventory/Win32/Softwares.pm fusion-source/lib/FusionInventory/Agent/Task/Inventory/Win32/Softwares.pm
+--- fusion-source.orig/lib/FusionInventory/Agent/Task/Inventory/Win32/Softwares.pm	2020-08-04 09:36:42.000000000 +0200
++++ fusion-source/lib/FusionInventory/Agent/Task/Inventory/Win32/Softwares.pm	2024-08-30 18:26:49.835436445 +0200
+@@ -66,7 +66,8 @@
+ 
+     if ($is64bit) {
+         my $softwares32 = _getSoftwaresList(
+-            path    => "HKEY_LOCAL_MACHINE/SOFTWARE/Wow6432Node/Microsoft/Windows/CurrentVersion/Uninstall",
++		    root    => "HKEY_LOCAL_MACHINE",
++            path    => "SOFTWARE/Wow6432Node/Microsoft/Windows/CurrentVersion/Uninstall",
+             is64bit => 0
+         ) || [];
+         foreach my $software (@$softwares32) {
+@@ -120,12 +121,13 @@
+         my $userName = $userList->{$profileName}
+             or next;
+ 
+-        my $profileSoft = "HKEY_USERS/$profileName/SOFTWARE/";
++        my $profileSoft = "$profileName/SOFTWARE/";
+         $profileSoft .= is64bit() && !$is64bit ?
+                 "Wow6432Node/Microsoft/Windows/CurrentVersion/Uninstall" :
+                 "Microsoft/Windows/CurrentVersion/Uninstall";
+ 
+         my $softwares = _getSoftwaresList(
++            root      => "HKEY_USERS",
+             path      => $profileSoft,
+             is64bit   => $is64bit,
+             userid    => $profileName,
+@@ -143,22 +145,22 @@
+ sub _getUsersFromRegistry {
+     my (%params) = @_;
+ 
+-    my $profileList = getRegistryKey(
+-        path => 'HKEY_LOCAL_MACHINE/SOFTWARE/Microsoft/Windows NT/CurrentVersion/ProfileList',
+-        wmiopts => { # Only used for remote WMI optimization
+-            values  => [ qw/ProfileImagePath Sid/ ],
+-        }
++    my $profileList = getNewRegistryAll(
++        logger => $params{logger},
++        root   => "HKEY_LOCAL_MACHINE",
++        path   => "SOFTWARE/Microsoft/Windows NT/CurrentVersion/ProfileList",
++        %params
+     );
+ 
+-    next unless $profileList;
++    return unless $profileList;
+ 
+     my $userList;
+     foreach my $profileName (keys %$profileList) {
+         next unless $profileName =~ m{/$};
+         next unless length($profileName) > 10;
+ 
+-        my $profilePath = $profileList->{$profileName}{'/ProfileImagePath'};
+-        my $sid = $profileList->{$profileName}{'/Sid'};
++        my $profilePath = $profileList->{$profileName}->{ProfileImagePath};
++        my $sid = $profileList->{$profileName}->{Sid};
+         next unless $sid;
+         next unless $profilePath;
+         my $user = basename($profilePath);
+@@ -196,9 +198,7 @@
+ 
+     return unless ($OSNAME eq 'MSWin32');
+ 
+-    return unless (ref($key) eq "Win32::TieRegistry");
+-
+-    my @lastWrite = FileTimeToSystemTime($key->Information("LastWrite"));
++    my @lastWrite = FileTimeToSystemTime($key->{_lastWrite});
+ 
+     return unless (@lastWrite > 3);
+ 
+@@ -208,22 +208,25 @@
+ sub _getSoftwaresList {
+     my (%params) = @_;
+ 
+-    my $softwares = getRegistryKey(
+-        path    => "HKEY_LOCAL_MACHINE/SOFTWARE/Microsoft/Windows/CurrentVersion/Uninstall",
+-        wmiopts => { # Only used for remote WMI optimization
+-            values  => [ qw/
+-                DisplayName Comments HelpLink ReleaseType DisplayVersion
+-                Publisher URLInfoAbout UninstallString InstallDate MinorVersion
+-                MajorVersion NoRemove SystemComponent
+-                / ]
+-        },
++    my $path = "SOFTWARE/Microsoft/Windows/CurrentVersion/Uninstall";
++    my $root = "HKEY_LOCAL_MACHINE";
++    if (defined $params{path}) {
++        $path = $params{path};
++    }
++    if (defined $params{root}) {
++        $root = $params{root};
++    }
++
++    my $softwares = getNewRegistryAll(
++        logger => $params{logger},
++        root   => $root,
++        path   => $path,
+         %params
+     );
++    return unless $softwares;
+ 
+     my @list;
+ 
+-    return unless $softwares;
+-
+     foreach my $rawGuid (keys %$softwares) {
+         # skip variables
+         next if $rawGuid =~ m{^/};
+@@ -232,29 +235,25 @@
+         my $data = $softwares->{$rawGuid};
+         next unless keys %$data > 1;
+ 
+-        my $guid = $rawGuid;
+-        $guid =~ s/\/$//; # drop the tailing /
+-
+         my $software = {
+             FROM             => "registry",
+-            NAME             => encodeFromRegistry($data->{'/DisplayName'}) ||
+-                                encodeFromRegistry($guid), # folder name
+-            COMMENTS         => encodeFromRegistry($data->{'/Comments'}),
+-            HELPLINK         => encodeFromRegistry($data->{'/HelpLink'}),
+-            RELEASE_TYPE     => encodeFromRegistry($data->{'/ReleaseType'}),
+-            VERSION          => encodeFromRegistry($data->{'/DisplayVersion'}),
+-            PUBLISHER        => encodeFromRegistry($data->{'/Publisher'}),
+-            URL_INFO_ABOUT   => encodeFromRegistry($data->{'/URLInfoAbout'}),
+-            UNINSTALL_STRING => encodeFromRegistry($data->{'/UninstallString'}),
+-            INSTALLDATE      => _dateFormat($data->{'/InstallDate'}),
+-            VERSION_MINOR    => hex2dec($data->{'/MinorVersion'}),
+-            VERSION_MAJOR    => hex2dec($data->{'/MajorVersion'}),
+-            NO_REMOVE        => hex2dec($data->{'/NoRemove'}),
++            NAME             => $data->{DisplayName} || $rawGuid, # folder name
++            COMMENTS         => $data->{Comments},
++            HELPLINK         => $data->{HelpLink},
++            RELEASE_TYPE     => $data->{ReleaseType},
++            VERSION          => $data->{DisplayVersion},
++            PUBLISHER        => $data->{Publisher},
++            URL_INFO_ABOUT   => $data->{URLInfoAbout},
++            UNINSTALL_STRING => $data->{UninstallString},
++            INSTALLDATE      => _dateFormat($data->{InstallDate}),
++            VERSION_MINOR    => $data->{MinorVersion},
++            VERSION_MAJOR    => $data->{MajorVersion},
++            NO_REMOVE        => $data->{NoRemove},
+             ARCH             => $params{is64bit} ? 'x86_64' : 'i586',
+-            GUID             => $guid,
++            GUID             => $rawGuid,
+             USERNAME         => $params{username},
+             USERID           => $params{userid},
+-            SYSTEM_CATEGORY  => $data->{'/SystemComponent'} && hex2dec($data->{'/SystemComponent'}) ?
++            SYSTEM_CATEGORY  => $data->{SystemComponent} ?
+                 CATEGORY_SYSTEM_COMPONENT : CATEGORY_APPLICATION
+         };
+ 
+@@ -347,17 +346,17 @@
+         "Internet Explorer (64bit)" : "Internet Explorer";
+ 
+     # Will use key last write date as INSTALLDATE
+-    my $installedkey = getRegistryKey(
++    my $installedkey = getNewRegistryValues(
++        logger => $params{logger},
++        root   => "HKEY_LOCAL_MACHINE",
+         path   => is64bit() && !$params{is64bit} ?
+-            "HKEY_LOCAL_MACHINE/SOFTWARE/Wow6432Node/Microsoft/Internet Explorer" :
+-            "HKEY_LOCAL_MACHINE/SOFTWARE/Microsoft/Internet Explorer",
+-        wmiopts => { # Only used for remote WMI optimization
+-            values  => [ qw/svcVersion Version/ ],
+-            subkeys => 0
+-        }
++            "SOFTWARE/Wow6432Node/Microsoft/Internet Explorer" :
++            "SOFTWARE/Microsoft/Internet Explorer",
++        %params
+     );
+ 
+-    my $version = $installedkey->{"/svcVersion"} || $installedkey->{"/Version"};
++
++    my $version = $installedkey->{svcVersion} || $installedkey->{Version};
+ 
+     return unless $version; # Not installed
+ 
+diff --color -ruN fusion-source.orig/lib/FusionInventory/Agent/Tools/Win32.pm fusion-source/lib/FusionInventory/Agent/Tools/Win32.pm
+--- fusion-source.orig/lib/FusionInventory/Agent/Tools/Win32.pm	2020-08-04 09:36:42.000000000 +0200
++++ fusion-source/lib/FusionInventory/Agent/Tools/Win32.pm	2024-09-05 21:16:33.227162726 +0200
+@@ -15,7 +15,7 @@
+ use constant KEY_WOW64_32 => 0x200;
+ 
+ use Cwd;
+-use Encode;
++use Encode qw( encode decode is_utf8 );
+ use English qw(-no_match_vars);
+ use File::Temp qw(:seekable tempfile);
+ use File::Basename qw(basename);
+@@ -25,6 +25,7 @@
+     ArrayValues => 0,
+     qw/KEY_READ/
+ );
++use Win32API::Registry qw( :ALL );
+ 
+ use FusionInventory::Agent::Tools;
+ use FusionInventory::Agent::Tools::Expiration;
+@@ -50,6 +51,9 @@
+     FreeAgentMem
+     getWMIService
+     getFormatedWMIDateTime
++    getNewRegistryAll
++    getNewRegistryValue
++    getNewRegistryValues
+ );
+ 
+ my $_is64bits = undef;
+@@ -83,7 +87,7 @@
+     ## no critic (ExplicitReturnUndef)
+     return undef unless $string;
+ 
+-    return $string if Encode::is_utf8($string);
++    return $string if is_utf8($string);
+ 
+     return decode(getLocalCodepage(), $string);
+ }
+@@ -215,6 +219,165 @@
+     return @objects;
+ }
+ 
++
++############## NEW REGISTRY ##############
++
++sub getNewRegistryAll {
++    my (%params) = @_;
++
++    if (!$params{path}) {
++        $params{logger}->error(
++            "No registry value path provided"
++        ) if $params{logger};
++        return;
++    }
++    if (!$params{root}) {
++        $params{logger}->error(
++            "No registry value root provided"
++        ) if $params{logger};
++        return;
++    }
++
++    my $ret;
++
++    my $keys = getNewRegistrySubKeys(
++        logger => $params{logger},
++        root   => $params{root},
++        path   => $params{path}
++    );
++    foreach my $keyName (keys %$keys) {
++
++        my $values = getNewRegistryValues(
++            logger    => $params{logger},
++            root      => $params{root},
++            path      => $params{path}.'/'.$keyName,
++            lastwrite => $keys->{$keyName}
++        );
++        $ret->{$keyName} = $values;
++    }
++    return $ret;
++}
++
++sub getNewRegistrySubKeys {
++    my (%params) = @_;
++
++    my $ret;
++
++    my $swKey;
++    my $keyIndex = 0;
++    my $keyName;
++    my $keyLastWrite;
++
++    my $path = $params{path};
++    $path =~ s/\//\\\\/g;
++
++    my $root = _getNewRegistryRoot(
++        root => $params{root}
++    );
++
++    for (my $i=0;$i<20;$i++) {
++		if (RegOpenKeyExW($root, encode("UTF-16LE", $path), 0, KEY_ENUMERATE_SUB_KEYS, $swKey)) {
++			last;
++		}
++		# sometimes windows fails to find it own root registry, who knows why ...
++		if (regLastError() != 2) {
++			last;
++		}
++		sleep(0.2);
++	}
++
++    for ($keyIndex = 0; RegEnumKeyExW($swKey, $keyIndex, $keyName, 0, [], [], [], $keyLastWrite); $keyIndex++) {
++        $keyName =~ s/^((?:..)*)\0\0//s;
++        $ret->{decode("UTF-16LE", $keyName)} = $keyLastWrite;
++        # push @ret, decode("UTF-16LE", $keyName);
++    }
++    return $ret;
++}
++
++sub getNewRegistryValues {
++    my (%params) = @_;
++
++    my $ret;
++    my $keyIndex = 0;
++    my $keyName;
++    my $keyType;
++    my $keyValue;
++    my $swKey;
++    my $path = $params{path};
++    my $root = _getNewRegistryRoot(
++        root => $params{root}
++    );
++
++    $path =~ s/\//\\\\/g;
++
++    if (defined $params{lastwrite}) {
++        $ret->{_lastWrite} = $params{lastwrite};
++    }
++
++    RegOpenKeyExW($root, encode("UTF-16LE", $path), 0, KEY_READ, $swKey);
++
++    for ($keyIndex = 0; RegEnumValueW($swKey, $keyIndex, $keyName, 100, [], $keyType, $keyValue, 100); $keyIndex++) {
++        my $newKeyValue;
++        if ($keyType == REG_DWORD) {
++            $newKeyValue = unpack("L", $keyValue);
++        } else {
++            $keyValue =~ s/\x00$//;
++            $newKeyValue = decode("UTF-16LE", $keyValue);
++            # $newKeyValue =~ s/^((?:..)*)\0\0//s;
++        }
++        $keyName =~ s/^((?:..)*)\0\0//s;
++        $ret->{decode("UTF-16LE", $keyName)} = $newKeyValue;
++    }
++    return $ret;
++}
++
++sub getNewRegistryValue {
++    my (%params) = @_;
++
++    my $swKey;
++    my $keyType;
++    my $keyValue;
++    my $path = $params{path};
++    my $root = _getNewRegistryRoot(
++        root => $params{root}
++    );
++
++    RegOpenKeyExW($root, encode("UTF-16LE", $path), 0, KEY_READ, $swKey);
++    RegQueryValueExW($swKey, encode("UTF-16LE", $params{keyName}), [], $keyType, $keyValue, 100);
++    return $keyValue;
++
++    $keyValue =~ s/^((?:..)*)\0\0//s;
++    if ($keyType == REG_DWORD) {
++        $keyValue = unpack("L", $keyValue);
++    } else {
++        $keyValue = decode("UTF-16LE", $keyValue);
++    }
++    return $keyValue;
++}
++
++sub _getNewRegistryRoot {
++    my (%params) = @_;
++
++    my $root = $params{root};
++    if ($root eq "HKEY_CLASSES_ROOT") {
++        $root = HKEY_CLASSES_ROOT;
++    } elsif ($root eq "HKEY_CURRENT_USER") {
++        $root = HKEY_CURRENT_USER;
++    } elsif ($root eq "HKEY_LOCAL_MACHINE") {
++        $root = HKEY_LOCAL_MACHINE;
++    } elsif ($root eq "HKEY_USER") {
++        $root = HKEY_USERS;
++    }
++    return $root;
++}
++
++
++
++
++
++########## END NEW REGISTRY ##############
++
++
+ sub getRegistryValue {
+     my (%params) = @_;
+ 
+@@ -260,6 +423,13 @@
+         );
+     }
+ 
++#    return _getRegistryDynamic(
++#        logger    => $params{logger},
++#        path      => $params{path},
++#        valueName => '',
++#        withtype  => ''
++#    );
++
+     my $key = _getRegistryKey(
+         logger  => $params{logger},
+         root    => $root,
