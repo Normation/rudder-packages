@@ -1,6 +1,6 @@
 diff --color -ruN fusion-source.orig/lib/FusionInventory/Agent/Task/Inventory/Generic/Screen.pm fusion-source/lib/FusionInventory/Agent/Task/Inventory/Generic/Screen.pm
---- fusion-source.orig/lib/FusionInventory/Agent/Task/Inventory/Generic/Screen.pm	2020-08-04 09:36:42.000000000 +0200
-+++ fusion-source/lib/FusionInventory/Agent/Task/Inventory/Generic/Screen.pm	2024-08-30 18:26:49.835436445 +0200
+--- fusion-source.orig/lib/FusionInventory/Agent/Task/Inventory/Generic/Screen.pm	2024-09-23 15:01:13.652340252 +0200
++++ fusion-source/lib/FusionInventory/Agent/Task/Inventory/Generic/Screen.pm	2024-09-23 14:59:50.272172506 +0200
 @@ -8,7 +8,6 @@
  use English qw(-no_match_vars);
  use MIME::Base64;
@@ -23,8 +23,8 @@ diff --color -ruN fusion-source.orig/lib/FusionInventory/Agent/Task/Inventory/Ge
          );
          $screen->{edid} =~ s/^\s+$// if $screen->{edid};
 diff --color -ruN fusion-source.orig/lib/FusionInventory/Agent/Task/Inventory/Win32/AntiVirus.pm fusion-source/lib/FusionInventory/Agent/Task/Inventory/Win32/AntiVirus.pm
---- fusion-source.orig/lib/FusionInventory/Agent/Task/Inventory/Win32/AntiVirus.pm	2020-11-17 12:11:06.000000000 +0100
-+++ fusion-source/lib/FusionInventory/Agent/Task/Inventory/Win32/AntiVirus.pm	2024-08-30 18:26:49.835436445 +0200
+--- fusion-source.orig/lib/FusionInventory/Agent/Task/Inventory/Win32/AntiVirus.pm	2024-09-23 15:01:13.656340260 +0200
++++ fusion-source/lib/FusionInventory/Agent/Task/Inventory/Win32/AntiVirus.pm	2024-09-23 14:59:50.272172506 +0200
 @@ -201,11 +201,11 @@
          or return;
  
@@ -85,8 +85,8 @@ diff --color -ruN fusion-source.orig/lib/FusionInventory/Agent/Task/Inventory/Wi
      return ($callback && $reg) ? &{$callback}($reg) : $reg;
  }
 diff --color -ruN fusion-source.orig/lib/FusionInventory/Agent/Task/Inventory/Win32/CPU.pm fusion-source/lib/FusionInventory/Agent/Task/Inventory/Win32/CPU.pm
---- fusion-source.orig/lib/FusionInventory/Agent/Task/Inventory/Win32/CPU.pm	2020-08-04 09:36:42.000000000 +0200
-+++ fusion-source/lib/FusionInventory/Agent/Task/Inventory/Win32/CPU.pm	2024-09-05 21:15:01.806938211 +0200
+--- fusion-source.orig/lib/FusionInventory/Agent/Task/Inventory/Win32/CPU.pm	2024-09-23 15:01:13.656340260 +0200
++++ fusion-source/lib/FusionInventory/Agent/Task/Inventory/Win32/CPU.pm	2024-09-23 14:59:50.272172506 +0200
 @@ -53,12 +53,10 @@
      my @dmidecodeInfos = $remotewmi || Win32::GetOSName() eq 'Win2003' ?
          () : getCpusFromDmidecode();
@@ -131,8 +131,8 @@ diff --color -ruN fusion-source.orig/lib/FusionInventory/Agent/Task/Inventory/Wi
              SPEED        => $dmidecodeInfo->{SPEED} || $object->{MaxClockSpeed},
              FAMILYNUMBER => $splitted_identifier[2],
 diff --color -ruN fusion-source.orig/lib/FusionInventory/Agent/Task/Inventory/Win32/License.pm fusion-source/lib/FusionInventory/Agent/Task/Inventory/Win32/License.pm
---- fusion-source.orig/lib/FusionInventory/Agent/Task/Inventory/Win32/License.pm	2020-08-04 09:36:42.000000000 +0200
-+++ fusion-source/lib/FusionInventory/Agent/Task/Inventory/Win32/License.pm	2024-08-30 18:26:49.835436445 +0200
+--- fusion-source.orig/lib/FusionInventory/Agent/Task/Inventory/Win32/License.pm	2024-09-23 15:01:13.656340260 +0200
++++ fusion-source/lib/FusionInventory/Agent/Task/Inventory/Win32/License.pm	2024-09-23 14:59:50.272172506 +0200
 @@ -36,17 +36,25 @@
  
      my @licenses;
@@ -173,8 +173,8 @@ diff --color -ruN fusion-source.orig/lib/FusionInventory/Agent/Task/Inventory/Wi
  
          foreach my $uuidKey (keys %{$registrationKey}) {
 diff --color -ruN fusion-source.orig/lib/FusionInventory/Agent/Task/Inventory/Win32/Networks.pm fusion-source/lib/FusionInventory/Agent/Task/Inventory/Win32/Networks.pm
---- fusion-source.orig/lib/FusionInventory/Agent/Task/Inventory/Win32/Networks.pm	2020-08-04 09:36:42.000000000 +0200
-+++ fusion-source/lib/FusionInventory/Agent/Task/Inventory/Win32/Networks.pm	2024-08-30 18:26:49.835436445 +0200
+--- fusion-source.orig/lib/FusionInventory/Agent/Task/Inventory/Win32/Networks.pm	2024-09-23 15:01:13.656340260 +0200
++++ fusion-source/lib/FusionInventory/Agent/Task/Inventory/Win32/Networks.pm	2024-09-23 14:59:50.272172506 +0200
 @@ -44,11 +44,10 @@
          delete $interface->{GUID};
  
@@ -210,8 +210,8 @@ diff --color -ruN fusion-source.orig/lib/FusionInventory/Agent/Task/Inventory/Wi
          }
      }
 diff --color -ruN fusion-source.orig/lib/FusionInventory/Agent/Task/Inventory/Win32/Softwares.pm fusion-source/lib/FusionInventory/Agent/Task/Inventory/Win32/Softwares.pm
---- fusion-source.orig/lib/FusionInventory/Agent/Task/Inventory/Win32/Softwares.pm	2020-08-04 09:36:42.000000000 +0200
-+++ fusion-source/lib/FusionInventory/Agent/Task/Inventory/Win32/Softwares.pm	2024-08-30 18:26:49.835436445 +0200
+--- fusion-source.orig/lib/FusionInventory/Agent/Task/Inventory/Win32/Softwares.pm	2024-09-23 15:01:13.656340260 +0200
++++ fusion-source/lib/FusionInventory/Agent/Task/Inventory/Win32/Softwares.pm	2024-09-23 14:59:50.272172506 +0200
 @@ -66,7 +66,8 @@
  
      if ($is64bit) {
@@ -387,8 +387,8 @@ diff --color -ruN fusion-source.orig/lib/FusionInventory/Agent/Task/Inventory/Wi
      return unless $version; # Not installed
  
 diff --color -ruN fusion-source.orig/lib/FusionInventory/Agent/Tools/Win32.pm fusion-source/lib/FusionInventory/Agent/Tools/Win32.pm
---- fusion-source.orig/lib/FusionInventory/Agent/Tools/Win32.pm	2020-08-04 09:36:42.000000000 +0200
-+++ fusion-source/lib/FusionInventory/Agent/Tools/Win32.pm	2024-09-05 21:16:33.227162726 +0200
+--- fusion-source.orig/lib/FusionInventory/Agent/Tools/Win32.pm	2024-09-23 15:01:13.656340260 +0200
++++ fusion-source/lib/FusionInventory/Agent/Tools/Win32.pm	2024-09-23 15:07:16.856705239 +0200
 @@ -15,7 +15,7 @@
  use constant KEY_WOW64_32 => 0x200;
  
@@ -425,7 +425,7 @@ diff --color -ruN fusion-source.orig/lib/FusionInventory/Agent/Tools/Win32.pm fu
  
      return decode(getLocalCodepage(), $string);
  }
-@@ -215,6 +219,165 @@
+@@ -215,6 +219,172 @@
      return @objects;
  }
  
@@ -468,12 +468,27 @@ diff --color -ruN fusion-source.orig/lib/FusionInventory/Agent/Tools/Win32.pm fu
 +    return $ret;
 +}
 +
++sub safeRegOpenKeyExW {
++  my ($root, $path) = @_;
++  my $swKey;
++  for (my $i=0;$i<20;$i++) {
++    if (RegOpenKeyExW($root, encode("UTF-16LE", $path), 0, KEY_READ, $swKey)) {
++      return $swKey;
++    }
++    # sometimes windows fails to find it own root registry, who knows why ...
++    if (regLastError() != 2) {
++      return undef;
++    }
++    sleep(0.2);
++  }
++  return undef;
++}
++
 +sub getNewRegistrySubKeys {
 +    my (%params) = @_;
 +
 +    my $ret;
 +
-+    my $swKey;
 +    my $keyIndex = 0;
 +    my $keyName;
 +    my $keyLastWrite;
@@ -485,16 +500,8 @@ diff --color -ruN fusion-source.orig/lib/FusionInventory/Agent/Tools/Win32.pm fu
 +        root => $params{root}
 +    );
 +
-+    for (my $i=0;$i<20;$i++) {
-+		if (RegOpenKeyExW($root, encode("UTF-16LE", $path), 0, KEY_ENUMERATE_SUB_KEYS, $swKey)) {
-+			last;
-+		}
-+		# sometimes windows fails to find it own root registry, who knows why ...
-+		if (regLastError() != 2) {
-+			last;
-+		}
-+		sleep(0.2);
-+	}
++    my $swKey = safeRegOpenKeyExW($root, $path);
++    return unless $swKey;
 +
 +    for ($keyIndex = 0; RegEnumKeyExW($swKey, $keyIndex, $keyName, 0, [], [], [], $keyLastWrite); $keyIndex++) {
 +        $keyName =~ s/^((?:..)*)\0\0//s;
@@ -512,7 +519,6 @@ diff --color -ruN fusion-source.orig/lib/FusionInventory/Agent/Tools/Win32.pm fu
 +    my $keyName;
 +    my $keyType;
 +    my $keyValue;
-+    my $swKey;
 +    my $path = $params{path};
 +    my $root = _getNewRegistryRoot(
 +        root => $params{root}
@@ -524,7 +530,8 @@ diff --color -ruN fusion-source.orig/lib/FusionInventory/Agent/Tools/Win32.pm fu
 +        $ret->{_lastWrite} = $params{lastwrite};
 +    }
 +
-+    RegOpenKeyExW($root, encode("UTF-16LE", $path), 0, KEY_READ, $swKey);
++    my $swKey = safeRegOpenKeyExW($root, $path);
++    return unless $swKey;
 +
 +    for ($keyIndex = 0; RegEnumValueW($swKey, $keyIndex, $keyName, 100, [], $keyType, $keyValue, 100); $keyIndex++) {
 +        my $newKeyValue;
@@ -544,7 +551,6 @@ diff --color -ruN fusion-source.orig/lib/FusionInventory/Agent/Tools/Win32.pm fu
 +sub getNewRegistryValue {
 +    my (%params) = @_;
 +
-+    my $swKey;
 +    my $keyType;
 +    my $keyValue;
 +    my $path = $params{path};
@@ -552,7 +558,8 @@ diff --color -ruN fusion-source.orig/lib/FusionInventory/Agent/Tools/Win32.pm fu
 +        root => $params{root}
 +    );
 +
-+    RegOpenKeyExW($root, encode("UTF-16LE", $path), 0, KEY_READ, $swKey);
++    my $swKey = safeRegOpenKeyExW($root, $path);
++    return unless $swKey;
 +    RegQueryValueExW($swKey, encode("UTF-16LE", $params{keyName}), [], $keyType, $keyValue, 100);
 +    return $keyValue;
 +
@@ -591,7 +598,7 @@ diff --color -ruN fusion-source.orig/lib/FusionInventory/Agent/Tools/Win32.pm fu
  sub getRegistryValue {
      my (%params) = @_;
  
-@@ -260,6 +423,13 @@
+@@ -260,6 +430,13 @@
          );
      }
  
