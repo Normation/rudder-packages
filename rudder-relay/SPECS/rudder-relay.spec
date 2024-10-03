@@ -84,12 +84,12 @@ BuildRequires: selinux-policy-devel openssl-devel
 %endif
 
 %if 0%{?fedora}
-Requires: mod_ssl shadow-utils python3-policycoreutils policycoreutils-python-utils libpq
+Requires: mod_ssl shadow-utils python3-policycoreutils policycoreutils-python-utils libpq gnupg2
 BuildRequires: selinux-policy-devel openssl-devel
 %endif
 
 %if 0%{?rhel}
-Requires: python3-policycoreutils policycoreutils-python-utils
+Requires: python3-policycoreutils policycoreutils-python-utils gnupg2
 %endif
 
 %if 0%{?rhel} && 0%{?rhel} >= 9
@@ -98,12 +98,12 @@ Requires: libpq
 
 ## SLES
 %if 0%{?suse_version}
-Requires: pwdutils
+Requires: pwdutils gpg2
 %endif
 
 ## AL 2023
 %if 0%{?amazon}
-Requires: apr-util-db
+Requires: apr-util-db gnupg2
 %endif
 
 ## Python
