@@ -194,6 +194,7 @@ CARGO_FEATURES=""
 ifneq (false,$(USE_APT))
 CARGO_FEATURES="--features apt"
 endif
+export CARGO_FEATURES
 
 build-agent: rudder-sources
 ifneq (false,$(USE_RUST))
