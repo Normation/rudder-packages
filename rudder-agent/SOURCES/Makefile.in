@@ -192,7 +192,7 @@ debug-script/rudder-debug-info:
 RUST_TARGET = rudder-sources/rudder/target/release
 CARGO_FEATURES=""
 ifneq (false,$(USE_APT))
-CARGO_FEATURES="--features=apt"
+CARGO_FEATURES="apt"
 endif
 export CARGO_FEATURES
 
