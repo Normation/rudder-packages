@@ -106,7 +106,7 @@ endif
 
 # Disable apt feature on non-amd64 arches for now
 ifneq (amd64,$(DEB_HOST_ARCH))
-WITH = --disable-apt
+WITH = $(WITH) --disable-apt
 endif
 
 # manage dependencies
