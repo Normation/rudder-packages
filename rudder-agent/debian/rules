@@ -37,16 +37,16 @@ WITH = --disable-systemd --with-jq --with-openssl --with-libcurl --with-augeas -
 endif
 # Ubuntu 15.10
 ifeq (wily,$(OS_CODENAME))
-WITH = --with-jq --with-openssl --with-libcurl --with-augeas --with-lmdb
+WITH = --disable-apt --with-jq --with-openssl --with-libcurl --with-augeas --with-lmdb
 endif
 # Ubuntu 16.04
 ifeq (xenial,$(OS_CODENAME))
-WITH = --with-openssl --with-libcurl --with-augeas --with-lmdb
+WITH = --disable-apt --with-openssl --with-libcurl --with-augeas --with-lmdb
 STRIP_OPT = --no-automatic-dbgsym
 endif
 # Ubuntu 18.04
 ifeq (bionic,$(OS_CODENAME))
-WITH = --with-openssl --with-libcurl --with-lmdb
+WITH = --disable-apt --with-openssl --with-libcurl --with-lmdb
 STRIP_OPT = --no-automatic-dbgsym
 endif
 # Ubuntu 20.04
@@ -81,16 +81,16 @@ WITH = --disable-rust --disable-apt --disable-systemd --disable-pie --with-jq --
 endif
 # Debian 8
 ifeq (jessie,$(OS_CODENAME))
-WITH = --with-jq --with-openssl --with-libcurl --with-augeas --with-lmdb
+WITH = --disable-apt --with-jq --with-openssl --with-libcurl --with-augeas --with-lmdb
 endif
 # Debian 9
 ifeq (stretch,$(OS_CODENAME))
-WITH = --with-openssl --with-libcurl --with-lmdb
+WITH = --disable-apt --with-openssl --with-libcurl --with-lmdb
 STRIP_OPT = --no-automatic-dbgsym
 endif
 # Debian 10
 ifeq (buster,$(OS_CODENAME))
-WITH = --with-lmdb
+WITH = --disable-apt --with-lmdb
 STRIP_OPT = --no-automatic-dbgsym
 endif
 # Debian 11
@@ -102,6 +102,11 @@ endif
 ifeq (bookworm,$(OS_CODENAME))
 WITH = --with-lmdb
 STRIP_OPT = --no-automatic-dbgsym
+endif
+
+# Disable apt feature on non-amd64 arches for now
+ifneq (amd64,$(DEB_HOST_ARCH))
+WITH = --disable-apt
 endif
 
 # manage dependencies
