@@ -13,6 +13,9 @@
 BUILD_CFLAGS=$(shell [ -x /usr/bin/dpkg-buildflags ] && /usr/bin/dpkg-buildflags --get CFLAGS )
 BUILD_LDFLAGS=$(shell [ -x /usr/bin/dpkg-buildflags ] && /usr/bin/dpkg-buildflags --get LDFLAGS )
 
+# NOTE: Rust build is disabled on Debian 8 & Ubuntu 14.04 even if they could support it
+# as they don't support the system-updates modules.
+
 # add openssl to old distributions
 OS_CODENAME := $(shell lsb_release -s -c)
 # Ubuntu 10.04
