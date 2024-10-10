@@ -44,7 +44,7 @@ WITH = --disable-rust --disable-apt --with-jq --with-openssl --with-libcurl --wi
 endif
 # Ubuntu 16.04
 ifeq (xenial,$(OS_CODENAME))
-WITH = --with-openssl --with-libcurl --with-augeas --with-lmdb
+WITH = --disable-rust --disable-apt --with-openssl --with-libcurl --with-augeas --with-lmdb
 STRIP_OPT = --no-automatic-dbgsym
 endif
 # Ubuntu 18.04
@@ -88,7 +88,7 @@ WITH = --disable-rust --disable-apt --with-jq --with-openssl --with-libcurl --wi
 endif
 # Debian 9
 ifeq (stretch,$(OS_CODENAME))
-WITH = --with-openssl --with-libcurl --with-lmdb
+WITH = --disable-rust --disable-apt --with-openssl --with-libcurl --with-lmdb
 STRIP_OPT = --no-automatic-dbgsym
 endif
 # Debian 10
