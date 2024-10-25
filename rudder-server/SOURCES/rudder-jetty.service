@@ -11,8 +11,8 @@ Type=forking
 UMask=0007
 LimitNOFILE=64000
 ExecStartPre=/opt/rudder/bin/rudder-jetty-pre-check.sh
-ExecStart=/opt/rudder/bin/rudder-jetty.sh start
-ExecStop=/opt/rudder/bin/rudder-jetty.sh stop
+ExecStart=/opt/rudder/bin/rudder-jetty.sh -d start
+ExecStop=/opt/rudder/bin/rudder-jetty.sh -d stop
 SuccessExitStatus=143
 TimeoutStartSec=360s
 
