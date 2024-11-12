@@ -197,6 +197,7 @@ install: build rudder-server-version initial-promises initial-ncf
 	install -m 755 rudder-metrics-reporting $(DESTDIR)/opt/rudder/bin/
 	install -m 755 rudder-reload-cf-serverd $(DESTDIR)/opt/rudder/bin/
 	install -m 755 rudder_synchronize.py ${DESTDIR}/opt/rudder/bin/
+	install -m 755 split-vhost ${DESTDIR}/opt/rudder/bin/
 
 	install -m 644 $(WEB_RESOURCES)/demo-rudder-users.xml $(DESTDIR)/opt/rudder/etc/rudder-users.xml
 	install -m 644 $(CORE_RESOURCES)/ldap/bootstrap.ldif $(DESTDIR)/opt/rudder/share/
