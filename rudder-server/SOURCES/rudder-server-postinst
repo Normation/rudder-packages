@@ -272,6 +272,13 @@ systemctl enable rudder-server >> ${LOG_FILE} 2>&1
 echo "Initializing filesystem" >> ${LOG_FILE}
 rm -rf /usr/share/ncf/tools
 
+# Id used previously for metric reporting
+# Keep a backup just in case
+if [ -f /opt/rudder/etc/uuid.root ]; then
+  mkdir -p /var/backups/rudder
+  mv /opt/rudder/etc/uuid.root "/var/backups/rudder/uuid.root-$(date +%Y%m%d)"
+fi
+
 # Add perms on inventories
 chmod 751 /var/rudder/inventories
 

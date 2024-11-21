@@ -194,7 +194,6 @@ install: build rudder-server-version initial-promises initial-ncf
 	# Install helper scripts
 	install -m 755 rudder-init $(DESTDIR)/opt/rudder/bin/
 	install -m 755 rudder-node-to-relay $(DESTDIR)/opt/rudder/bin/
-	install -m 755 rudder-metrics-reporting $(DESTDIR)/opt/rudder/bin/
 	install -m 755 rudder-reload-cf-serverd $(DESTDIR)/opt/rudder/bin/
 	install -m 755 split-vhost ${DESTDIR}/opt/rudder/bin/
 
@@ -228,10 +227,6 @@ install: build rudder-server-version initial-promises initial-ncf
 	install -m 755 rudder-upgrade $(DESTDIR)/opt/rudder/bin/
 
 	install -m 640 rudder-passwords.conf $(DESTDIR)/opt/rudder/etc/
-
-	# Add rudder-metrics-reporting
-	install -m 755 rudder-metrics-reporting $(DESTDIR)/opt/rudder/bin/
-	install -m 644 ca-bundle.crt $(DESTDIR)/opt/rudder/share/certificates/
 
 	# Install documentation
 	cp -rf rudder-doc/html $(DESTDIR)/usr/share/doc/rudder
