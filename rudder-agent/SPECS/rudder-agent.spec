@@ -158,8 +158,8 @@ Requires: perl
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 # Generic requirements
-BuildRequires: gcc bison flex autoconf automake libtool pam-devel pcre-devel libacl-devel
-Requires: pcre libacl
+BuildRequires: gcc bison flex autoconf automake libtool pam-devel pcre2-devel libacl-devel
+Requires: pcre2 libacl
 Conflicts: rudder-agent-thin
 
 # Specific requirements

@@ -30,8 +30,8 @@ endif
 zlib_RELEASE = 1.3.1
 zlib_SHA256 = 9a93b2b7dfdac77ceba5a558a580e74667dd6fede4585b91eefb60f03b72df23
 # Original URL:  https://git.openldap.org/openldap/openldap/-/archive/LMDB_$(LMDB_RELEASE)/openldap-LMDB_$(LMDB_RELEASE).tar.gz
-lmdb_RELEASE = 0.9.32
-lmdb_SHA256 = 70d553f80968f5117f2f3d4d7f0b89cb8fb69dadc35131263a2499bb58f7d015
+lmdb_RELEASE = 0.9.33
+lmdb_SHA256 = 476801f5239c88c7de61c3390502a5d13965ecedef80105b5fb0fcb8373d1e53
 # We follow LTS releases
 # Original URL: https://www.openssl.org/source/openssl-$(OPENSSL_RELEASE).tar.gz
 openssl_RELEASE = 3.0.13

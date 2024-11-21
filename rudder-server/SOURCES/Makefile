@@ -23,11 +23,11 @@ RUDDER_VERSION_TO_PACKAGE =
 RUDDER_MAJOR_VERSION := $(shell echo ${RUDDER_VERSION_TO_PACKAGE} | cut -d'.' -f 1-2)
 # Original URL: https://repo1.maven.org/maven2/org/eclipse/jetty/jetty-home/${JETTY_RELEASE}/jetty-home-${JETTY_RELEASE}.tar.gz
 # Jetty 11 does not support the servlet version used by Lift, we stick to Jetty 10.
-JETTY_RELEASE = 11.0.23
-JETTY_SHA256 = 212b037ad79f2fda30e5a67bbdc486d41806c013b416d0eb77be359a2f0e4626
+JETTY_RELEASE = 11.0.24
+JETTY_SHA256 = 67e5ef69479dee0b721dcf588c71b97b51f9411eb23fd5145afc50191e61a239
 # Original URL: https://www.openldap.org/software/download/OpenLDAP/openldap-release/openldap-2.6.2.tgz
-OPENLDAP_RELEASE = 2.6.6
-OPENLDAP_SHA256 = 082e998cf542984d43634442dbe11da860759e510907152ea579bdc42fe39ea0
+OPENLDAP_RELEASE = 2.6.8
+OPENLDAP_SHA256 = 48969323e94e3be3b03c6a132942dcba7ef8d545f2ad35401709019f696c3c4e
 TMP_DIR := $(shell mktemp -dq)
 RELEASE_TYPE := $(shell if echo ${RUDDER_VERSION_TO_PACKAGE} | grep -q git; then echo nightly; else echo release; fi)
 
@@ -42,12 +42,6 @@ WEB_RESOURCES = $(WEBAPPDIR)/rudder/rudder-web/src/main/resources
 
 SECURE_CFLAGS = -fstack-protector-strong -D_FORTIFY_SOURCE=2 -fPIE
 SECURE_LDFLAGS = -fstack-protector-strong -Wl,-z,relro -Wl,-z,now -pie
-
-ifneq ($(wildcard /usr/include/openssl11),)
-# Needed on RHEL7/AL2 to build openldap
-OPENSSL11_LDFLAGS = -L/usr/lib64/openssl11
-OPENSSL11_CPPFLAGS = -I/usr/include/openssl11
-endif
 
 PROXY_ENV = $(if $(PROXY), http_proxy=$(PROXY))
 # Usage: $(GET) <destination_file> <url> <hash>
