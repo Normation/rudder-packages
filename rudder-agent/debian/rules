@@ -54,12 +54,12 @@ STRIP_OPT = --no-automatic-dbgsym
 endif
 # Ubuntu 20.04
 ifeq (focal,$(OS_CODENAME))
-WITH = --with-lmdb
+WITH = --with-lmdb --with-libcurl
 STRIP_OPT = --no-automatic-dbgsym
 endif
 # Ubuntu 22.04
 ifeq (jammy,$(OS_CODENAME))
-WITH = --with-lmdb
+WITH = --with-lmdb --with-libcurl
 STRIP_OPT = --no-automatic-dbgsym
 BUILDDEB_OPT = -- -Zxz
 endif
@@ -93,12 +93,12 @@ STRIP_OPT = --no-automatic-dbgsym
 endif
 # Debian 10
 ifeq (buster,$(OS_CODENAME))
-WITH = --with-lmdb
+WITH = --with-lmdb --with-libcurl
 STRIP_OPT = --no-automatic-dbgsym
 endif
 # Debian 11
 ifeq (bullseye,$(OS_CODENAME))
-WITH = --with-lmdb
+WITH = --with-lmdb --with-libcurl
 STRIP_OPT = --no-automatic-dbgsym
 endif
 # Debian 12
