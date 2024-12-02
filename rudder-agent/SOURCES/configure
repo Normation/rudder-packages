@@ -175,7 +175,7 @@ fi
 # Add adequate --with statements to compilation options
 LIBCURL_ARGS="${WITH_zlib} ${WITH_openssl}"
 LIBXML2_ARGS="${WITH_zlib}"
-CFENGINE_ARGS="--with-pcre ${WITH_pam} ${WITH_libacl} ${WITH_lmdb} ${WITH_openssl} ${WITH_libyaml} ${WITH_libxml2} ${WITH_libcurl}"
+CFENGINE_ARGS="--with-pcre2 ${WITH_pam} ${WITH_libacl} ${WITH_lmdb} ${WITH_openssl} ${WITH_libyaml} ${WITH_libxml2} ${WITH_libcurl}"
 
 # cross compilation specifics
 if [ "${CROSS_COMPILE}" = "win64" ]; then
