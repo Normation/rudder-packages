@@ -96,12 +96,12 @@
 %if 0%{?suse_version} && 0%{?suse_version} < 1500
 # augeas too old on suse < 15
 %define with_augeas true
-%define with_libcurl true
 %define with_openssl true
 %endif
 %if 0%{?suse_version} && !0%{?is_opensuse}
 # no jq on sles, only on opensuse
 %define with_jq true
+%define with_libcurl true
 %define with_pcre2 true
 %endif
 
