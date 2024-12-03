@@ -110,12 +110,14 @@ endif
 # manage dependencies
 ifeq ($(findstring with-openssl,$(WITH)),)
 DEPS := $(DEPS), openssl
+BUILD_DEPS := $(BUILD_DEPS), libssl-dev
 endif
 ifeq ($(findstring with-perl,$(WITH)),)
 DEPS := $(DEPS), libxml-treepp-perl, perl
 endif
 ifeq ($(findstring with-libcurl,$(WITH)),)
 DEPS := $(DEPS), curl
+BUILD_DEPS := $(BUILD_DEPS), libcurl4-openssl-dev
 endif
 ifeq ($(findstring with-augeas,$(WITH)),)
 DEPS := $(DEPS), augeas-tools
@@ -125,18 +127,26 @@ DEPS := $(DEPS), jq
 endif
 ifeq ($(findstring with-libyaml,$(WITH)),)
 DEPS := $(DEPS), libyaml-0-2
+BUILD_DEPS := $(BUILD_DEPS), libyaml-dev
 endif
 ifeq ($(findstring with-libxml2,$(WITH)),)
 DEPS := $(DEPS), libxml2
+BUILD_DEPS := $(BUILD_DEPS), libxml2-dev
+endif
+ifeq ($(findstring with-pcre2,$(WITH)),)
+DEPS := $(DEPS), libpcre2-8-0
+BUILD_DEPS := $(BUILD_DEPS), libpcre2-dev
 endif
 ifeq ($(findstring with-lmdb,$(WITH)),)
 DEPS := $(DEPS), liblmdb0
 endif
 ifeq ($(findstring disable-systemd,$(WITH)),)
 DEPS := $(DEPS), systemd
+BUILD_DEPS := $(BUILD_DEPS), libsystemd-dev
 endif
 ifeq ($(findstring disable-apt,$(WITH)),)
 DEPS := $(DEPS), libapt-pkg
+BUILD_DEPS := $(BUILD_DEPS), libapt-pkg-dev
 endif
 
 build:
@@ -203,7 +213,7 @@ endif
 	# LD_LIBRARY_PATH necessary to avoid libcrypto detection problems on old OSes like Ubuntu 10.04
 	# Please see https://issues.rudder.io/issues/6337 for details
 	LD_LIBRARY_PATH="$(CURDIR)/debian/tmp/opt/rudder/lib:$${LD_LIBRARY_PATH}" dh_shlibdeps -- --ignore-missing-info
-	dh_gencontrol -- "-Vrudder:deps=$(DEPS)"
+	dh_gencontrol -- "-Vrudder:deps=$(DEPS) -Vrudder:build-deps=$(BUILD_DEPS)"
 	dh_md5sums
 	dh_builddeb $(BUILDDEB_OPT)
 

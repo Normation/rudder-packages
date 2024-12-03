@@ -168,8 +168,8 @@ Requires: perl
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 # Generic requirements
-BuildRequires: gcc bison flex autoconf automake libtool pam-devel pcre2-devel libacl-devel
-Requires: pcre2 libacl
+BuildRequires: gcc bison flex autoconf automake libtool pam-devel libacl-devel
+Requires: libacl
 Conflicts: rudder-agent-thin
 
 # Specific requirements
@@ -255,6 +255,12 @@ Requires: libyaml
 %if "%{with_libxml2}" == "false"
 BuildRequires: libxml2-devel
 Requires: libxml2
+%endif
+
+## pcre build dependencies
+%if "%{with_pcre2}" == "false"
+BuildRequires: pcre2-devel
+Requires: pcre2
 %endif
 
 ## CURL dependencies
