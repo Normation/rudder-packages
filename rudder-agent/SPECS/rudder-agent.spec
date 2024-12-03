@@ -68,7 +68,7 @@
 %define with_jq true
 %define with_openssl true
 %endif
-%if 0%{?rhel} && 0%{?rhel} < 9
+%if 0%{?rhel} && 0%{?rhel} <= 9
 # need updated curl for RHEL 9 
 %define with_libcurl true
 %endif
