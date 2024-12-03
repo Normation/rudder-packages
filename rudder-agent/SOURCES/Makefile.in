@@ -45,6 +45,9 @@ libxml2_SHA256 = e8655291ee6f20c8abf57854ff0709e8b178c619001a4d850002aafc81885e1
 # Original URL: https://curl.haxx.se/download/curl-7.58.0.tar.gz
 libcurl_RELEASE = 8.11.0
 libcurl_SHA256 = 264537d90e58d2b09dddc50944baf3c38e7089151c8986715e2aaeaaf2b8118
+# Original URL: https://github.com/PCRE2Project/pcre2/releases/download/pcre2-${pcre2_RELEASE}/pcre2-${pcre2_RELEASE}.tar.gz
+pcre2_RELEASE = 10.44
+pcre2_SHA256 = 86b9cb0aa3bcb7994faa88018292bc704cdbb708e785f7c74352ff6ea7d3175b
 # Original URL: https://ftp.gnu.org/gnu/readline/readline-8.0.tar.gz
 readline_RELEASE = 8.2
 readline_SHA256 = 3feb7171f16a84ee82ca18a36d7b9be109a52c04f492a053331d7d1095007c35
@@ -116,6 +119,8 @@ install: install-agent
 	cd libxml2-source && $(SED) 's/-Wno-array-bounds//' configure > configure.new && mv configure.new configure && chmod +x configure
 
 @libcurl_SOURCE@
+
+@pcre2_SOURCE@
 
 @readline_SOURCE@
 
@@ -258,6 +263,12 @@ build-libcurl: libcurl-source @openssl_DEP@ @zlib_DEP@
 	cd libcurl-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
 	touch $@
 
+build-pcre2: pcre2-source
+	cd pcre2-source && ./configure --prefix=$(RUDDER_DIR) $(BUILD_FLAGS_LIB)
+	cd pcre2-source && $(MAKE)
+	cd pcre2-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
+	touch $@
+
 build-readline: readline-source
 	# do not override flags as they don't work here
 	cd readline-source && ./configure --prefix=$(RUDDER_DIR)
@@ -279,9 +290,9 @@ build-jq: jq-source
 	cd jq-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
 	touch $@
 
-DEPS_CACHE_PARAMETERS = --with-env name=dependencies configure=$(CONFIGURE_ARGS_HASH) zlib=$(zlib_SHA256) lmdb=$(lmdb_SHA256) openssl=$(openssl_SHA256) libyaml=$(libyaml_SHA256) libxml2=$(libxml2_SHA256) libcurl=$(libcurl_SHA256) augeas=$(augeas_SHA256) readline=$(readline_SHA256) jq=$(jq_SHA256) @CACHE_ARGS@
+DEPS_CACHE_PARAMETERS = --with-env name=dependencies configure=$(CONFIGURE_ARGS_HASH) pcre2=${pcre2_SHA256} zlib=$(zlib_SHA256) lmdb=$(lmdb_SHA256) openssl=$(openssl_SHA256) libyaml=$(libyaml_SHA256) libxml2=$(libxml2_SHA256) libcurl=$(libcurl_SHA256) augeas=$(augeas_SHA256) readline=$(readline_SHA256) jq=$(jq_SHA256) @CACHE_ARGS@
 # Strictly speaking we don't need jq here but it's easier to include it in the cache
-CFENGINE_DEPS = $(shell set -x; ../../build-caching get dependencies/ $(DEPS_CACHE_PARAMETERS) || echo @lmdb_DEP@ @openssl_DEP@ @libyaml_DEP@ @libxml2_DEP@ @libcurl_DEP@ @augeas_DEP@ @jq_DEP@ )
+CFENGINE_DEPS = $(shell set -x; ../../build-caching get dependencies/ $(DEPS_CACHE_PARAMETERS) || echo @lmdb_DEP@ @openssl_DEP@ @libyaml_DEP@ @libxml2_DEP@ @libcurl_DEP@ @pcre2_DEP@ @augeas_DEP@ @jq_DEP@ )
 
 # Cache cfengine build itself
 CFENGINE_PATCHES_SHA = $(shell find patches/cfengine -type f | sort | xargs openssl dgst -sha256 | openssl dgst -sha256 | awk '{print $$2}')

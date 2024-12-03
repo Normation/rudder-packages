@@ -32,6 +32,7 @@
 %define with_openssl false
 %define with_libyaml false
 %define with_libxml2 false
+%define with_pcre2 false
 %define with_libcurl false
 %define with_augeas false
 %define with_jq false
@@ -68,6 +69,10 @@
 %define with_jq true
 %define with_openssl true
 %endif
+%if 0%{?rhel} && 0%{?rhel} <= 8
+# need pcre2 for rhel < 8
+%define with_pcre2 true
+%endif
 %if 0%{?rhel} && 0%{?rhel} <= 9
 # need updated curl for RHEL 9 
 %define with_libcurl true
@@ -97,6 +102,7 @@
 %if 0%{?suse_version} && !0%{?is_opensuse}
 # no jq on sles, only on opensuse
 %define with_jq true
+%define with_pcre2 true
 %endif
 
 %if "%{force_embed_openssl}" == "true"
@@ -321,8 +327,8 @@ opt="${opt} --with-libcurl"
 %if "%{with_augeas}" == "true"
 opt="${opt} --with-augeas"
 %endif
-%if "%{with_libcurl}" == "true"
-opt="${opt} --with-libcurl"
+%if "%{with_pcre2}" == "true"
+opt="${opt} --with-pcre2"
 %endif
 %if "%{with_jq}" == "true"
 opt="${opt} --with-jq"
