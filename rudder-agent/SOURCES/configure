@@ -7,7 +7,7 @@ set -e
 ALL_ARGS_HASH=$(echo "$@" | openssl dgst -sha256 | cut -d" " -f2)
 
 # Dependencies defaults: use everything from system except fusion
-DEPENDENCIES="zlib lmdb openssl libyaml libxml2 libcurl readline augeas jq perl fusion"
+DEPENDENCIES="zlib lmdb openssl libyaml libxml2 libcurl pcre2 readline augeas jq perl fusion"
 for dep in ${DEPENDENCIES}; do
   eval "BUILD_${dep}=false"
 done
