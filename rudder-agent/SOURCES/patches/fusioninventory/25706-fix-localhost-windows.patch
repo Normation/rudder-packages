@@ -1,0 +1,30 @@
+diff --color -ruN fusion-source.orig/lib/FusionInventory/Agent/Task/Inventory/Generic/Rudder.pm fusion-source/lib/FusionInventory/Agent/Task/Inventory/Generic/Rudder.pm
+--- fusion-source.orig/lib/FusionInventory/Agent/Task/Inventory/Generic/Rudder.pm	2024-12-05 16:47:06.693811710 +0100
++++ fusion-source/lib/FusionInventory/Agent/Task/Inventory/Generic/Rudder.pm	2024-12-05 17:25:49.145341332 +0100
+@@ -43,6 +43,11 @@
+     my $hostname = getFirstLine(
+         logger => $logger, command => $command
+     );
++    if ($OSNAME ne 'linux' && $hostname eq 'localhost') {
++      $hostname = getFirstLine(
++          logger => $logger, command => 'powershell -NonInteractive -ExecutionPolicy ByPass "Get-WmiObject win32_computersystem | %{ $_.DNSHostName + \".\" + $_.Domain}"'
++        );
++    }
+     # Get server roles
+     my @serverRoles = _listServerRoles();
+ 
+diff --color -ruN fusion-source.orig/lib/FusionInventory/Agent/Task/Inventory/Win32/OS.pm fusion-source/lib/FusionInventory/Agent/Task/Inventory/Win32/OS.pm
+--- fusion-source.orig/lib/FusionInventory/Agent/Task/Inventory/Win32/OS.pm	2024-12-05 16:47:06.693811710 +0100
++++ fusion-source/lib/FusionInventory/Agent/Task/Inventory/Win32/OS.pm	2024-12-05 16:47:29.169888792 +0100
+@@ -73,6 +73,11 @@
+     # Finally get the name through powershell & DNS to get FQDN
+     my $command = 'powershell -NonInteractive -ExecutionPolicy ByPass "[System.Net.DNS]::GetHostByName($env:computerName)"';
+     my $hostname = getFirstLine(command => $command);
++    if ($hostname eq 'localhost') {
++      $hostname = getFirstLine(
++          command => 'powershell -NonInteractive -ExecutionPolicy ByPass "Get-WmiObject win32_computersystem | %{ $_.DNSHostName + \".\" + $_.Domain}"'
++        );
++    }
+ 
+     $hostname = getHostname(short => 1) unless ($hostname || $remotewmi);
+ 
