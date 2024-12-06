@@ -5,7 +5,7 @@
   <New id="ServerLog" class="java.io.PrintStream">
     <Arg>
       <New class="org.eclipse.jetty.util.RolloverFileOutputStream">
-        <Arg><Property name="jetty.console-capture.dir" default="/var/log/rudder/webapp" />/yyyy_mm_dd.stderrout.log
+	      <Arg><Property name="jetty.console-capture.dir" default="/var/log/rudder/webapp/jetty" />/yyyy_mm_dd.stderrout.log
         </Arg>
         <Arg type="boolean">
           <Property name="jetty.console-capture.append" default="false" />

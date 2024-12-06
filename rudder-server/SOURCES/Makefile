@@ -161,7 +161,8 @@ install: build rudder-server-version initial-promises initial-ncf
 	mkdir -p $(DESTDIR)/var/rudder/run
 	mkdir -p $(DESTDIR)/var/rudder/ldap/openldap-data
 	mkdir -p $(DESTDIR)/var/log/rudder/apache2/
-	mkdir -p $(DESTDIR)/var/log/rudder/webapp
+	mkdir -p $(DESTDIR)/var/log/rudder/webapp/jetty
+	mkdir -p $(DESTDIR)/var/log/rudder/webapp/jvm
 	mkdir -p $(DESTDIR)/var/log/rudder/ldap
 	mkdir -p $(DESTDIR)/var/rudder/run
 	mkdir -p $(DESTDIR)/etc/$(APACHE_VHOSTDIR)/
