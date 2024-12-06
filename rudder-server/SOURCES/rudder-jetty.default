@@ -45,9 +45,9 @@ JAVA_MAXPERMSIZE=256
 # You can specify alternatives options for JVM GC logs: file path, log level, rotation parameters.
 
 # Configure alternative log file path. Default is:
-#JAVA_GC_LOG_FILE="/var/log/rudder/webapp/jvm-gc.log"
+#JAVA_GC_LOG_FILE="/var/log/rudder/webapp/jvm/jvm-gc.log"
 # For example for a specific file for debug logs:
-#JAVA_GC_LOG_FILE="/var/log/rudder/webapp/jvm-gc-debug.log"
+#JAVA_GC_LOG_FILE="/var/log/rudder/webapp/jvm/jvm-gc-debug.log"
 
 # Configure log level for debug. Default gives general info about GC timing:
 #JAVA_GC_LOG="gc=info,gc+cpu=info,gc+stringdedup=info"
