@@ -137,42 +137,43 @@ rudder-server-version:
 	[ -f ../../versions ] && cat ../../versions >> $@ || true
 
 install: build rudder-server-version initial-promises initial-ncf
-	mkdir -p $(DESTDIR)/opt/rudder/etc/postgresql/
+	mkdir -p $(DESTDIR)/opt/rudder/etc/postgresql
 	mkdir -p $(DESTDIR)/usr/lib/systemd/system
-	mkdir -p $(DESTDIR)/opt/rudder/share/package-scripts/
-	mkdir -p $(DESTDIR)/opt/rudder/share/versions/
+	mkdir -p $(DESTDIR)/opt/rudder/share/package-scripts
+	mkdir -p $(DESTDIR)/opt/rudder/share/versions
 	install -m 644 rudder-sources/rudder/webapp/sources/rudder/rudder-core/src/main/resources/reportsSchema.sql $(DESTDIR)/opt/rudder/etc/postgresql/
 	install -m 644 rudder-server.service $(DESTDIR)/usr/lib/systemd/system/
 	install -m 755 rudder-server-postinst $(DESTDIR)/opt/rudder/share/package-scripts/
 	install -m 644 rudder-server-version $(DESTDIR)/opt/rudder/share/versions/
-	mkdir -p $(DESTDIR)/opt/rudder/etc/
+	mkdir -p $(DESTDIR)/opt/rudder/etc
 	mkdir -p $(DESTDIR)/opt/rudder/etc/plugins/licenses
-	mkdir -p $(DESTDIR)/opt/rudder/etc/hooks.d/
-	mkdir -p $(DESTDIR)/opt/rudder/bin/
-	mkdir -p $(DESTDIR)/opt/rudder/share/webapps/
-	mkdir -p $(DESTDIR)/opt/rudder/share/rudder-plugins/
+	mkdir -p $(DESTDIR)/opt/rudder/etc/hooks.d
+	mkdir -p $(DESTDIR)/opt/rudder/bin
+	mkdir -p $(DESTDIR)/opt/rudder/share/webapps
+	mkdir -p $(DESTDIR)/opt/rudder/share/rudder-plugins
 	mkdir -p $(DESTDIR)/opt/rudder/share/tools
-	mkdir -p $(DESTDIR)/opt/rudder/share/plugins/
-	mkdir -p $(DESTDIR)/opt/rudder/share/upgrade-tools/
-	mkdir -p $(DESTDIR)/opt/rudder/share/certificates/
-	mkdir -p $(DESTDIR)/opt/rudder/share/selinux/
-	mkdir -p $(DESTDIR)/opt/rudder/share/package-scripts/
+	mkdir -p $(DESTDIR)/opt/rudder/share/plugins
+	mkdir -p $(DESTDIR)/opt/rudder/share/upgrade-tools
+	mkdir -p $(DESTDIR)/opt/rudder/share/certificates
+	mkdir -p $(DESTDIR)/opt/rudder/share/selinux
+	mkdir -p $(DESTDIR)/opt/rudder/share/package-scripts
 	mkdir -p $(DESTDIR)/var/rudder/inventories/received
 	mkdir -p $(DESTDIR)/var/rudder/run
 	mkdir -p $(DESTDIR)/var/rudder/ldap/openldap-data
-	mkdir -p $(DESTDIR)/var/log/rudder/apache2/
-	mkdir -p $(DESTDIR)/var/log/rudder/webapp
+	mkdir -p $(DESTDIR)/var/log/rudder/apache2
+	mkdir -p $(DESTDIR)/var/log/rudder/webapp/jetty
+	mkdir -p $(DESTDIR)/var/log/rudder/webapp/jvm
+	mkdir -p $(DESTDIR)/var/log/rudder/webapp/api
 	mkdir -p $(DESTDIR)/var/log/rudder/ldap
 	mkdir -p $(DESTDIR)/var/rudder/run
 	mkdir -p $(DESTDIR)/etc/$(APACHE_VHOSTDIR)/
 	mkdir -p $(DESTDIR)/etc/$(APACHE_CONFDIR)/
-	mkdir -p $(DESTDIR)/etc/sysconfig/
+	mkdir -p $(DESTDIR)/etc/sysconfig
 	mkdir -p $(DESTDIR)/etc/default
 	mkdir -p $(DESTDIR)/usr/share/doc/rudder
-	mkdir -p $(DESTDIR)/usr/share/
-	mkdir -p $(DESTDIR)/usr/bin/
-	mkdir -p $(DESTDIR)/usr/lib/systemd/system/
-	mkdir -p $(DESTDIR)/opt/rudder/share/versions/
+	mkdir -p $(DESTDIR)/usr/bin
+	mkdir -p $(DESTDIR)/usr/lib/systemd/system
+	mkdir -p $(DESTDIR)/opt/rudder/share/versions
 
 	cd openldap-source && make $(DEBUGOPT) install DESTDIR=$(DESTDIR)
 
