@@ -64,8 +64,8 @@ AutoProv: 0
 Obsoletes: rudder-server-relay < 7.2
 
 ## General
-BuildRequires: pkgconfig, postgresql-devel
-Requires: %(../format-dependencies rpm %{old_epoch}:%{real_version} rudder-agent), %{apache}, %{apache_tools}, binutils, xz, rsync, sudo
+BuildRequires: pkgconfig, postgresql-devel, nettle-devel
+Requires: %(../format-dependencies rpm %{old_epoch}:%{real_version} rudder-agent), %{apache}, %{apache_tools}, binutils, xz, rsync, sudo, nettle
 
 # amazon linux doesn't provide postgresql, it provides postgresql15
 %if 0%{?amazon}
@@ -81,12 +81,12 @@ BuildRequires: selinux-policy-devel openssl-devel
 %endif
 
 %if 0%{?fedora}
-Requires: mod_ssl shadow-utils python3-policycoreutils policycoreutils-python-utils libpq gnupg2
+Requires: mod_ssl shadow-utils python3-policycoreutils policycoreutils-python-utils libpq
 BuildRequires: selinux-policy-devel openssl-devel
 %endif
 
 %if 0%{?rhel}
-Requires: python3-policycoreutils policycoreutils-python-utils gnupg2
+Requires: python3-policycoreutils policycoreutils-python-utils
 %endif
 
 %if 0%{?rhel} && 0%{?rhel} >= 9
@@ -95,12 +95,12 @@ Requires: libpq
 
 ## SLES
 %if 0%{?suse_version}
-Requires: pwdutils gpg2
+Requires: pwdutils
 %endif
 
 ## AL 2023
 %if 0%{?amazon}
-Requires: apr-util-db gnupg2
+Requires: apr-util-db
 %endif
 
 # openssl
