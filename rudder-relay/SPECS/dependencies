@@ -1,5 +1,5 @@
-sles-15:pkgconfig postgresql-devel libopenssl-devel
-rhel-8:selinux-policy-devel pkgconfig postgresql-devel apr-util-bdb openssl-devel
-rhel-9:selinux-policy-devel pkgconfig postgresql-devel apr-util-bdb openssl-devel
-al-2023:selinux-policy-devel pkgconfig postgresql-devel openssl-devel
+sles-15:pkgconfig postgresql-devel libopenssl-devel nettle-devel clang
+rhel-8:selinux-policy-devel pkgconfig postgresql-devel apr-util-bdb openssl-devel nettle-devel clang
+rhel-9:selinux-policy-devel pkgconfig postgresql-devel apr-util-bdb openssl-devel nettle-devel clang
+al-2023:selinux-policy-devel pkgconfig postgresql-devel openssl-devel nettle-devel clang
 rust:yes

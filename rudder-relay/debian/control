@@ -2,7 +2,7 @@ Source: rudder-relay
 Section: admin
 Priority: optional
 Maintainer: Rudder Team <dev@rudder.io>
-Build-Depends: debhelper (>= 12), ca-certificates, curl, pkg-config, libpq-dev, systemd, rsync, libssl-dev
+Build-Depends: debhelper (>= 12), ca-certificates, curl, pkg-config, libpq-dev, systemd, rsync, libssl-dev, nettle-dev, clang
 Standards-Version: 4.6.1
 Homepage: https://www.rudder.io
 
@@ -10,7 +10,7 @@ Package: rudder-relay
 Architecture: any
 Replaces: rudder-server-relay (<< 7.2)
 Breaks: rudder-server-relay (<< 7.2)
-Depends: ${shlibs:Depends}, ${misc:Depends}, ${rudder:deps}, apache2, apache2-utils, binutils, xz-utils, libpq5, systemd, sudo, gpg
+Depends: ${shlibs:Depends}, ${misc:Depends}, ${rudder:deps}, apache2, apache2-utils, binutils, xz-utils, libpq5, systemd, sudo, nettle
 Description: Configuration management and audit tool - Server relay package
  Rudder is an open source configuration management and audit solution.
  .
