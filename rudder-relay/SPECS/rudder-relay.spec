@@ -64,7 +64,7 @@ AutoProv: 0
 Obsoletes: rudder-server-relay < 7.2
 
 ## General
-BuildRequires: pkgconfig, postgresql-devel, nettle-devel
+BuildRequires: pkgconfig, postgresql-devel, nettle-devel, clang
 Requires: %(../format-dependencies rpm %{old_epoch}:%{real_version} rudder-agent), %{apache}, %{apache_tools}, binutils, xz, rsync, sudo, nettle
 
 # amazon linux doesn't provide postgresql, it provides postgresql15
