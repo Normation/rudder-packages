@@ -64,8 +64,8 @@ AutoProv: 0
 Obsoletes: rudder-server-relay < 7.2
 
 ## General
-BuildRequires: pkgconfig, postgresql-devel, nettle-devel, clang
-Requires: %(../format-dependencies rpm %{old_epoch}:%{real_version} rudder-agent), %{apache}, %{apache_tools}, binutils, xz, rsync, sudo, nettle
+BuildRequires: pkgconfig, postgresql-devel
+Requires: %(../format-dependencies rpm %{old_epoch}:%{real_version} rudder-agent), %{apache}, %{apache_tools}, binutils, xz, rsync, sudo
 
 # amazon linux doesn't provide postgresql, it provides postgresql15
 %if 0%{?amazon}
@@ -76,13 +76,13 @@ Requires: postgresql
 
 ## RHEL
 %if 0%{?rhel}
-Requires: mod_ssl shadow-utils apr-util-bdb
-BuildRequires: selinux-policy-devel openssl-devel
+Requires: mod_ssl shadow-utils apr-util-bdb nettle
+BuildRequires: selinux-policy-devel openssl-devel nettle-devel clang
 %endif
 
 %if 0%{?fedora}
-Requires: mod_ssl shadow-utils python3-policycoreutils policycoreutils-python-utils libpq
-BuildRequires: selinux-policy-devel openssl-devel
+Requires: mod_ssl shadow-utils python3-policycoreutils policycoreutils-python-utils libpq nettle
+BuildRequires: selinux-policy-devel openssl-devel nettle-devel clang
 %endif
 
 %if 0%{?rhel}
@@ -95,17 +95,13 @@ Requires: libpq
 
 ## SLES
 %if 0%{?suse_version}
-Requires: pwdutils
+Requires: pwdutils libnettle6
+BuildRequires: libopenssl-devel clang7
 %endif
 
 ## AL 2023
 %if 0%{?amazon}
 Requires: apr-util-db
-%endif
-
-# openssl
-%if 0%{?suse_version}
-BuildRequires: libopenssl-devel
 %endif
 
 %description
