@@ -9,7 +9,7 @@ Homepage: https://www.rudder.io
 
 Package: rudder-agent
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, uuid-runtime, dmidecode, cron, net-tools, diffutils, libacl1 ${rudder:deps}
+Depends: ${shlibs:Depends}, ${misc:Depends}, uuid-runtime, dmidecode, cron, net-tools, diffutils, libacl1 ${rudder:deps}, ${perl:Depends}
 Recommends: bash-completion, python3 | python
 # The dependencies below are defined in order to use rudder-agent
 # for the server. This will add capabilities to send inventories
