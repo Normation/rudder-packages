@@ -185,7 +185,9 @@ endif
 	dh_strip $(STRIP_OPT)
 	dh_compress
 	dh_fixperms -Xppkeys
-#	dh_perl
+ifeq ($(findstring with-perl,$(WITH)),)
+	dh_perl opt/rudder/
+endif
 	dh_makeshlibs
 	dh_installdeb
 	# the conffiles case
