@@ -25,6 +25,8 @@ case "$1" in
       if [ -z "${2}" ]; then
         RUDDER_FIRST_INSTALL="true"
       fi
+      LOG_FILE="/var/log/rudder/install/rudder-server-$(date +%Y%m%d).log"
+      echo "`date` - Starting rudder-server post installation script" >> ${LOG_FILE}
 
       # bring back diverts in case thay contain user modifications
       # move to avoid doing it twice
@@ -50,7 +52,6 @@ case "$1" in
         echo "   Such errors should not happen, please open an issue for this problem on "
         echo "            https://issues.rudder.io/projects/rudder/issues/new"
         echo "**************************************************************************************"
-        LOG_FILE="/var/log/rudder/install/rudder-webapp-fail-$(date +%Y%m%d%H%M%S).log"
         /opt/rudder/bin/rudder-fix-repository-permissions  >> ${LOG_FILE}
       fi
     ;;

@@ -17,7 +17,7 @@ set -e
 LDAP_CONF="/opt/rudder/etc/openldap/slapd.conf"
 LDAP_LOG="/var/log/rudder/ldap/"
 RUDDER_DIR="/opt/rudder/"
-LOG_FILE="/var/log/rudder/install/rudder-server-$(date +%Y%m%d%H%M%S).log"
+LOG_FILE="/var/log/rudder/install/rudder-server-$(date +%Y%m%d).log"
 EXTERNAL_DB_CONF="/opt/rudder/etc/external-db.conf"
 mkdir -p /var/log/rudder/install
 
@@ -33,7 +33,7 @@ fi
 
 mkdir -p /var/log/rudder/install
 
-echo "`date` - Starting rudder-server post installation script" >> ${LOG_FILE}
+echo "`date` - Starting rudder-server-postinst script" >> ${LOG_FILE}
 
 
 LOCAL_DB="true"
