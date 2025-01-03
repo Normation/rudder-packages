@@ -97,6 +97,7 @@ then
       echo "Initializing postgresql db (initdb)" >> ${LOG_FILE}
       ${POSTGRESQL_SETUP} initdb >> ${LOG_FILE} 2>&1
     fi
+    systemd-tmpfiles --create
     systemctl start ${POSTGRESQL_SERVICE_NAME} >> ${LOG_FILE}
   fi
 
