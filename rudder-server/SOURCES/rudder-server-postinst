@@ -97,6 +97,7 @@ then
       echo "Initializing postgresql db (initdb)" >> ${LOG_FILE}
       ${POSTGRESQL_SETUP} initdb >> ${LOG_FILE} 2>&1
     fi
+    # postgresql may have package /var/run/postgresql as systemd tmp files, force its creation (see https://issues.rudder.io/issues/26034)
     systemd-tmpfiles --create
     systemctl start ${POSTGRESQL_SERVICE_NAME} >> ${LOG_FILE}
   fi
