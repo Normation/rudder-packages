@@ -189,7 +189,7 @@ echo "127.0.0.1" > /var/rudder/cfengine-community/policy_server.dat
 set -e
 
 CFRUDDER_FIRST_INSTALL=$1
-LOG_FILE="/var/log/rudder/install/%{name}.log"
+LOG_FILE="/var/log/rudder/install/%{name}-$(date +%%Y%%m%%d).log"
 
 echo "`date` - Starting %{name} pre installation script" >> ${LOG_FILE}
 
@@ -246,6 +246,8 @@ DB_NOT_INITIALIZED="true"
 %else
 DB_NOT_INITIALIZED="false"
 %endif
+LOG_FILE="/var/log/rudder/install/%{name}-$(date +%%Y%%m%%d).log"
+echo "`date` - Starting %{name} post installation script" >> ${LOG_FILE}
 
 # Do this ONLY at first install
 if [ $1 -eq 1 ]
@@ -285,7 +287,6 @@ if ! /opt/rudder/share/package-scripts/rudder-server-postinst "${RUDDER_FIRST_IN
   echo "   Such errors should not happen, please open an issue for this problem on "
   echo "            https://issues.rudder.io/projects/rudder/issues/new"
   echo "**************************************************************************************"
-  LOG_FILE="/var/log/rudder/install/rudder-webapp-fail-$(date +%%Y%%m%%d%%H%%M%%S).log"
   /opt/rudder/bin/rudder-fix-repository-permissions  >> ${LOG_FILE}
 fi
 
