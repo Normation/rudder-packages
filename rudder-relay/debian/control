@@ -10,7 +10,7 @@ Package: rudder-relay
 Architecture: any
 Replaces: rudder-server-relay (<< 7.2)
 Breaks: rudder-server-relay (<< 7.2)
-Depends: ${shlibs:Depends}, ${misc:Depends}, ${rudder:deps}, apache2, apache2-utils, binutils, xz-utils, libpq5, systemd, sudo, nettle
+Depends: ${shlibs:Depends}, ${misc:Depends}, ${rudder:deps}, apache2, apache2-utils, binutils, xz-utils, libpq5, systemd, sudo, libnettle8
 Description: Configuration management and audit tool - Server relay package
  Rudder is an open source configuration management and audit solution.
  .
