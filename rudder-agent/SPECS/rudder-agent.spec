@@ -272,6 +272,7 @@ Requires: curl
 ## Augeas dependencies
 %if "%{with_augeas}" == "false"
 Requires: augeas
+BuildRequires: augeas-devel
 %endif
 %if "%{with_augeas}" == "true"
 BuildRequires: readline-devel
