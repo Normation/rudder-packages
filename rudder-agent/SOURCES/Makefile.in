@@ -210,7 +210,7 @@ ifneq (false,$(USE_RUST))
 	AGENT_CACHE_PARAMETERS="--with-env name=rudder-agent source=$${CACHE_SHA}}" ;\
 	if ! ../../build-caching get $(RUST_TARGET)/ $${AGENT_CACHE_PARAMETERS}; then \
 		cd rudder-sources/rudder/policies/module-types/system-updates && CARGO_FEATURES="${CARGO_FEATURES_SU}" make build || exit 1 ;\
-		cd rudder-sources/rudder/policies/module-types/augeas && make build || exit 1 ;\
+		cd $(CURDIR)/rudder-sources/rudder/policies/module-types/augeas && make build || exit 1 ;\
 		cd $(CURDIR); ../../build-caching put $(RUST_TARGET)/ $${AGENT_CACHE_PARAMETERS} || true ;\
 	fi
 endif
