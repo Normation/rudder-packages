@@ -88,17 +88,17 @@ WITH = --disable-rust --disable-apt --with-jq --with-openssl --with-libcurl --wi
 endif
 # Debian 9
 ifeq (stretch,$(OS_CODENAME))
-WITH = --disable-rust --disable-apt --with-openssl --with-libcurl --with-lmdb --with-pcre2
+WITH = --disable-rust --disable-apt --with-openssl --with-libcurl --with-augeas --with-lmdb --with-pcre2
 STRIP_OPT = --no-automatic-dbgsym
 endif
 # Debian 10
 ifeq (buster,$(OS_CODENAME))
-WITH = --with-lmdb --with-libcurl --with-pcre2
+WITH = --with-lmdb --with-libcurl --with-augeas --with-pcre2
 STRIP_OPT = --no-automatic-dbgsym
 endif
 # Debian 11
 ifeq (bullseye,$(OS_CODENAME))
-WITH = --with-lmdb --with-libcurl
+WITH = --with-lmdb --with-augeas --with-libcurl
 STRIP_OPT = --no-automatic-dbgsym
 endif
 # Debian 12
