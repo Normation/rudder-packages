@@ -68,13 +68,14 @@
 # no jq before RHEL8
 %define with_jq true
 %define with_openssl true
+%define with_augeas true
 %endif
 %if 0%{?rhel} && 0%{?rhel} <= 8
 # need pcre2 for rhel < 8
 %define with_pcre2 true
 %endif
 %if 0%{?rhel} && 0%{?rhel} <= 9
-# need updated curl for RHEL 9 
+# need updated curl for RHEL 9
 %define with_libcurl true
 %endif
 
@@ -95,11 +96,11 @@
 %endif
 %if 0%{?suse_version} && 0%{?suse_version} < 1500
 # augeas too old on suse < 15
-%define with_augeas true
 %define with_openssl true
 %endif
 %if 0%{?suse_version} && !0%{?is_opensuse}
 # no jq on sles, only on opensuse
+%define with_augeas true
 %define with_jq true
 %define with_libcurl true
 %define with_pcre2 true
