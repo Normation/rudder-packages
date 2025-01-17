@@ -235,12 +235,12 @@ Requires: dmidecode
 %endif
 
 # SLES12
-%if 0%{?sle_version} < 150000 && "%{enable_rust}" == "true"
+%if 0%{?suse_version} && 0%{?sle_version} < 150000 && "%{enable_rust}" == "true"
 BuildRequires: libclang
 %endif
 
 # SLES15
-%if 0%{?sle_version} >= 150000 && "%{enable_rust}" == "true"
+%if 0%{?suse_version} && 0%{?sle_version} >= 150000 && "%{enable_rust}" == "true"
 BuildRequires: clang7
 %endif
 
