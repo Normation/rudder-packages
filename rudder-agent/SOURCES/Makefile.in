@@ -206,14 +206,19 @@ MODULE_DEPS = $(shell set -x; ../../build-caching get dependencies/ $(DEPS_CACHE
 build-agent: $(MODULE_DEPS) rudder-sources
 ifneq (false,$(USE_RUST))
 	# The deps versions are in the Cargo.lock in the repo root
+	#
+	# pkg-config hack for augeas: the pkg-config file points to the prefix dir (/opt/rudder), but we build against DESTDIR.
 	DEPS_SOURCE_SHA=$$(ls -1 rudder-sources/rudder/Cargo.* | sort | xargs openssl dgst -sha256 | openssl dgst -sha256 | awk '{print $$2}') ;\
 	AGENT_SOURCE_SHA=$$(find rudder-sources/rudder/policies -type f | sort | xargs openssl dgst -sha256 | openssl dgst -sha256 | awk '{print $$2}') ;\
 	CACHE_SHA=$$(echo "$$DEPS_SOURCE_SHA $$AGENT_SOURCE_SHA" | openssl dgst -sha256 | awk '{print $$2}') ;\
 	AGENT_CACHE_PARAMETERS="--with-env name=rudder-agent source=$${CACHE_SHA}}" ;\
 	if ! ../../build-caching get $(RUST_TARGET)/ $${AGENT_CACHE_PARAMETERS}; then \
 		cd rudder-sources/rudder/policies/module-types/system-updates && CARGO_FEATURES="${CARGO_FEATURES_SU}" make build || exit 1 ;\
-		cd $(CURDIR)/rudder-sources/rudder/policies/module-types/augeas && make build || exit 1 ;\
-		cd $(CURDIR); ../../build-caching put $(RUST_TARGET)/ $${AGENT_CACHE_PARAMETERS} || true ;\
+		cp $(CURDIR)/dependencies$(RUDDER_DIR)/lib/pkgconfig/augeas.pc $(CURDIR)/dependencies$(RUDDER_DIR)/lib/pkgconfig/augeas.pc.back; \
+		sed -i 's@^prefix=.*@prefix=$(CURDIR)/dependencies$(RUDDER_DIR)@' $(CURDIR)/dependencies$(RUDDER_DIR)/lib/pkgconfig/augeas.pc; \
+		cd $(CURDIR)/rudder-sources/rudder/policies/module-types/augeas && make RUSTFLAGS="$${RUSTFLAGS} -C link-args=-Wl,-rpath,/opt/rudder/lib" PKG_CONFIG_PATH="$(CURDIR)/dependencies$(RUDDER_DIR)/lib/pkgconfig/" build || exit 1 ;\
+		cp $(CURDIR)/dependencies$(RUDDER_DIR)/lib/pkgconfig/augeas.pc.back $(CURDIR)/dependencies$(RUDDER_DIR)/lib/pkgconfig/augeas.pc; \
+		cd $(CURDIR); ../../build-caching put $(RUST_TARGET)/ $${AGENT_CACHE_PARAMETERS} || true ;\		cd $(CURDIR); ../../build-caching put $(RUST_TARGET)/ $${AGENT_CACHE_PARAMETERS} || true ;\
 	fi
 endif
 	touch $@
