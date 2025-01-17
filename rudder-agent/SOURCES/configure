@@ -14,7 +14,7 @@ done
 BUILD_fusion=true
 
 # Features defaults: things are enabled except if the unix family doesn't support it
-FEATURES="https pie systemd pam rust apt"
+FEATURES="https pie systemd pam rust apt bindgen"
 for use in ${FEATURES}; do
   eval "USE_${use}=true"
 done
