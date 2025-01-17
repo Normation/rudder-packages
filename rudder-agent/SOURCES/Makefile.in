@@ -201,6 +201,7 @@ ifneq (false,$(USE_APT))
 CARGO_FEATURES_SU="apt"
 endif
 
+MODULE_DEPS_CACHE_PARAMETERS = --with-env name=dependencies configure=$(CONFIGURE_ARGS_HASH) augeas=$(augeas_SHA256) @CACHE_ARGS@
 MODULE_DEPS = $(shell set -x; ../../build-caching get dependencies/ $(DEPS_CACHE_PARAMETERS) || echo @augeas_DEP@  )
 
 build-agent: $(MODULE_DEPS) rudder-sources
