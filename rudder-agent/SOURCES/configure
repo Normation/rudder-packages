@@ -298,6 +298,7 @@ BUILD_FLAGS_LIB = CFLAGS=\"\$(CFLAGS)\" LDFLAGS=\"\$(LDFLAGS)\"
 
 USE_RUST = ${USE_rust}
 USE_APT = ${USE_apt}
+USE_BINDGEN = ${USE_bindgen}
 "
 
 # create a replacer sed expression
