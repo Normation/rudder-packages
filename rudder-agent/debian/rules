@@ -49,12 +49,12 @@ STRIP_OPT = --no-automatic-dbgsym
 endif
 # Ubuntu 18.04
 ifeq (bionic,$(OS_CODENAME))
-WITH = --with-openssl --with-libcurl --with-lmdb --with-pcre2
+WITH = --with-openssl --with-libcurl --with-lmdb --with-pcre2 --with-augeas
 STRIP_OPT = --no-automatic-dbgsym
 endif
 # Ubuntu 20.04
 ifeq (focal,$(OS_CODENAME))
-WITH = --with-lmdb --with-libcurl --with-pcre2
+WITH = --with-lmdb --with-libcurl --with-pcre2 --with-augeas
 STRIP_OPT = --no-automatic-dbgsym
 endif
 # Ubuntu 22.04
@@ -93,12 +93,12 @@ STRIP_OPT = --no-automatic-dbgsym
 endif
 # Debian 10
 ifeq (buster,$(OS_CODENAME))
-WITH = --with-lmdb --with-libcurl --with-pcre2
+WITH = --with-lmdb --with-libcurl --with-pcre2 --with-augeas
 STRIP_OPT = --no-automatic-dbgsym
 endif
 # Debian 11
 ifeq (bullseye,$(OS_CODENAME))
-WITH = --with-lmdb --with-libcurl
+WITH = --with-lmdb --with-libcurl --with-augeas
 STRIP_OPT = --no-automatic-dbgsym
 endif
 # Debian 12

@@ -59,8 +59,6 @@
 %if 0%{?rhel} && 0%{?rhel} <= 6
 # PIE and PIC incompatible on old gcc
 %define enable_pie false
-# no augeas or augeas too old
-%define with_augeas true
 # no rust
 %define enable_rust false
 %endif
@@ -70,6 +68,8 @@
 %define with_openssl true
 %endif
 %if 0%{?rhel} && 0%{?rhel} <= 8
+# no augeas or augeas too old
+%define with_augeas true
 # need pcre2 for rhel < 8
 %define with_pcre2 true
 %endif
@@ -92,6 +92,10 @@
 %define enable_pie false
 # no rust
 %define enable_rust false
+%endif
+%if 0%{?suse_version}
+# augeas too old on all sles  for augeas module
+%define with_augeas true
 %endif
 %if 0%{?suse_version} && 0%{?suse_version} < 1500
 # augeas too old on suse < 15

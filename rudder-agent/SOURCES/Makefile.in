@@ -201,7 +201,9 @@ ifneq (false,$(USE_APT))
 CARGO_FEATURES_SU="apt"
 endif
 
-build-agent: rudder-sources
+MODULE_DEPS = $(shell set -x; ../../build-caching get dependencies/ $(DEPS_CACHE_PARAMETERS) || echo @augeas_DEP@  )
+
+build-agent: $(MODULE_DEPS) rudder-sources
 ifneq (false,$(USE_RUST))
 	# The deps versions are in the Cargo.lock in the repo root
 	DEPS_SOURCE_SHA=$$(ls -1 rudder-sources/rudder/Cargo.* | sort | xargs openssl dgst -sha256 | openssl dgst -sha256 | awk '{print $$2}') ;\
