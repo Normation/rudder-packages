@@ -445,7 +445,10 @@ install-agent: build cleanup-build rudder-agent rudder-agent.cron debug-script/r
 	mkdir -p $(DESTDIR)/var/rudder
 ifneq (false,$(USE_RUST))
 	$(INSTALL) -m 755 $(RUST_TARGET)/rudder-module-system-updates $(DESTDIR)/opt/rudder/bin/
+endif
+ifneq (false,$(USE_BINDGEN))
 	$(INSTALL) -m 755 $(RUST_TARGET)/rudder-module-augeas $(DESTDIR)/opt/rudder/bin/
+	$(INSTALL) -m 755 $(RUST_TARGET)/raugtool $(DESTDIR)/opt/rudder/bin/
 endif
 	cp -rp dependencies/var/rudder/cfengine-community $(DESTDIR)/var/rudder/
 	cp -rp dependencies/opt/rudder/bin/cf-* $(DESTDIR)/opt/rudder/bin/
