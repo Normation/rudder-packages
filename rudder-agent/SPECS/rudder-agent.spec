@@ -189,10 +189,15 @@ Requires: perl-Digest
 BuildRequires: perl-Digest
 %endif
 
+
 ## For RHEL and Fedora
 %if 0%{?rhel}
 BuildRequires: make byacc
 Requires: crontabs net-tools diffutils
+%endif
+
+%if 0%{?rhel} && "%{enable_rust}" == "true"
+BuildRequires: clang
 %endif
 
 %if 0%{?fedora}
@@ -227,6 +232,16 @@ Requires: pmtools
 
 %if 0%{?suse_version} && 0%{?suse_version} >= 1140
 Requires: dmidecode
+%endif
+
+# SLES12
+%if 0%{?suse_version} && 0%{?sle_version} < 150000 && "%{enable_rust}" == "true"
+BuildRequires: libclang
+%endif
+
+# SLES15
+%if 0%{?suse_version} && 0%{?sle_version} >= 150000 && "%{enable_rust}" == "true"
+BuildRequires: clang7
 %endif
 
 # We need the ps command for scripts
@@ -276,7 +291,7 @@ Requires: curl
 ## Augeas dependencies
 %if "%{with_augeas}" == "false"
 Requires: augeas
-BuildRequires: augeas-devel clang
+BuildRequires: augeas-devel
 %endif
 %if "%{with_augeas}" == "true"
 BuildRequires: readline-devel

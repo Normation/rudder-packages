@@ -2,7 +2,7 @@ Source: rudder-agent
 Section: admin
 Priority: optional
 Maintainer: Rudder Team <dev@rudder.io>
-Build-Depends: debhelper (>= 7), bison, gcc, flex, autoconf, automake, libtool, libpcre2-dev | aegis, libpam0g-dev, ca-certificates, perl, lsb-release, libyaml-dev, libxml2-dev, libacl1-dev, python | python3, rsync, libssl-dev, libcurl4-openssl-dev, libmodule-corelist-perl, libmodule-install-perl, libreadline-dev, pkg-config, libsystemd-dev | aegis, libapt-pkg-dev, libaugeas-dev, libclang-dev
+Build-Depends: debhelper (>= 7), bison, gcc, flex, autoconf, automake, libtool, libpcre2-dev | aegis, libpam0g-dev, ca-certificates, perl, lsb-release, libyaml-dev, libxml2-dev, libacl1-dev, python | python3, rsync, libssl-dev, libcurl4-openssl-dev, libmodule-corelist-perl, libmodule-install-perl, libreadline-dev, pkg-config, libsystemd-dev | aegis, libapt-pkg-dev, libaugeas-dev, clang
 # Hack: aegis exist on old distros (debian<8) but not on server distros (debian>=8) where we need libsystemd-dev so this will work unconditionnaly
 Standards-Version: 4.6.1
 Homepage: https://www.rudder.io
