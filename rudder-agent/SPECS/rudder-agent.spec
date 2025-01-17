@@ -42,6 +42,8 @@
 %define enable_pie true
 %define enable_systemd true
 %define enable_rust true
+%define enable_bindgen true
+
 
 # NOTE: Fedora macros are also used by AL2023
 
@@ -66,6 +68,7 @@
 # no jq before RHEL8
 %define with_jq true
 %define with_openssl true
+%define enable_bindgen false
 %endif
 %if 0%{?rhel} && 0%{?rhel} <= 8
 # no augeas or augeas too old
@@ -101,6 +104,7 @@
 # augeas too old on suse < 15
 %define with_augeas true
 %define with_openssl true
+%define enable_bindgen false
 %endif
 %if 0%{?suse_version} && !0%{?is_opensuse}
 # no jq on sles, only on opensuse
@@ -196,10 +200,6 @@ BuildRequires: make byacc
 Requires: crontabs net-tools diffutils
 %endif
 
-%if 0%{?rhel} && "%{enable_rust}" == "true"
-BuildRequires: clang
-%endif
-
 %if 0%{?fedora}
 BuildRequires: make byacc
 Requires: crontabs net-tools diffutils
@@ -234,16 +234,6 @@ Requires: pmtools
 Requires: dmidecode
 %endif
 
-# SLES12
-%if 0%{?suse_version} && 0%{?sle_version} < 150000 && "%{enable_rust}" == "true"
-BuildRequires: libclang
-%endif
-
-# SLES15
-%if 0%{?suse_version} && 0%{?sle_version} >= 150000 && "%{enable_rust}" == "true"
-BuildRequires: clang7
-%endif
-
 # We need the ps command for scripts
 
 %if 0%{?rhel} && 0%{?rhel} >= 8
@@ -256,6 +246,16 @@ Requires: procps-ng
 
 %if "%{with_jq}" == "false"
 Requires: jq
+%endif
+
+# SLES15
+%if 0%{?suse_version} && "%{enable_bindgen}" == "true"
+BuildRequires: clang7
+%endif
+
+# RHEL
+%if 0%{?rhel} && "%{enable_bindgen}" == "true"
+BuildRequires: clang
 %endif
 
 ## YAML dependencies
@@ -372,6 +372,9 @@ opt="${opt} --disable-systemd"
 %endif
 %if "%{enable_rust}" == "false"
 opt="${opt} --disable-rust"
+%endif
+%if "%{enable_bindgen}" == "false"
+opt="${opt} --disable-bindgen"
 %endif
 
 %if "%{with_perl}" == "true"
