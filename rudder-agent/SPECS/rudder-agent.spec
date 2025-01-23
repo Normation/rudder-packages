@@ -149,10 +149,10 @@ Requires: perl-interpreter perl-lib perl-English perl-Memoize perl-Sys-Hostname 
 Requires: perl-interpreter perl-Memoize perl-JSON-PP perl-Math-BigInt perl-Digest-MD5
 %endif
 %if "%{with_perl}" == "false" && 0%{?rhel} && 0%{?rhel} < 8
-Requires: perl perl-Digest-MD5
+Requires: perl(:MODULE_COMPAT_%(eval "`%{__perl} -V:version`"; echo $version)) perl-Digest-MD5
 %endif
 %if "%{with_perl}" == "false" && 0%{?suse_version}
-Requires: perl
+Requires: perl = %{perl_version}
 %endif
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
