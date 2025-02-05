@@ -275,7 +275,7 @@ source_macro() {
 ${name}-source:
 	\$(eval TMP_DIR := \$(shell mktemp -dq /tmp/rudder-${name}.XXXXXX))
 	\$(GET) \$(TMP_DIR)/${name}.tgz ${HTTPS}://repository.rudder.io/build-dependencies/${name}/${name}-\$(${name}_RELEASE).tar.gz \$(${name}_SHA256)
-	cd \$(TMP_DIR) && mkdir xxx && cd xxx && gunzip < ../${name}.tgz | ${TAR} xf -
+	cd \$(TMP_DIR) && mkdir xxx && cd xxx && gunzip < ../${name}.tgz | ${TAR} x --no-same-owner --no-same-permissions -f -
 	mv \$(TMP_DIR)/xxx/* ./${name}-source
 	rm -rf \$(TMP_DIR)
 EOF
