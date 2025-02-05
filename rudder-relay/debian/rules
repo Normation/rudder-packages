@@ -5,13 +5,13 @@
 export DH_VERBOSE=1
 
 # Disable lto flags as it breaks relayd
-export DEB_BUILD_MAINT_OPTIONS=optimize=-lto 
+export DEB_BUILD_MAINT_OPTIONS=optimize=-lto
 
 override_dh_auto_clean:
 	rm -rf BUILD
 
 override_dh_auto_build:
-	tar -xjf SOURCES/rudder-sources.tar.bz2
+	tar x --no-same-owner --no-same-permissions -f SOURCES/rudder-sources.tar.bz2
 	mkdir BUILD
 	mv rudder-sources-*/* BUILD/
 	dh_auto_build
