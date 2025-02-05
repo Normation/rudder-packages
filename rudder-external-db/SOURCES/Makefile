@@ -37,7 +37,7 @@ rudder-sources.tar.bz2:
 	$(GET) rudder-sources.tar.bz2 https://repository.rudder.io/sources/$(RUDDER_VERSION_TO_PACKAGE)/rudder-sources-$(RUDDER_VERSION_TO_PACKAGE).tar.bz2 ""
 
 rudder-sources: rudder-sources.tar.bz2
-	tar -xjf rudder-sources.tar.bz2
+	tar x --no-same-owner --no-same-permissions -f rudder-sources.tar.bz2
 	mv rudder-sources-*/ rudder-sources/
 
 build:

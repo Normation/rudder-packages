@@ -105,7 +105,7 @@ rudder-sources.tar.bz2:
 	$(GET) rudder-sources.tar.bz2 https://repository.rudder.io/sources/$(RUDDER_VERSION_TO_PACKAGE)/rudder-sources-$(RUDDER_VERSION_TO_PACKAGE).tar.bz2 ""
 
 rudder-sources: rudder-sources.tar.bz2
-	tar -xjf rudder-sources.tar.bz2
+	tar x --no-same-owner --no-same-permissions -f rudder-sources.tar.bz2
 	mv rudder-sources-*/ rudder-sources/
 	# Remove tests folders we don't want to package
 	find rudder-sources/rudder-techniques -name "tests" -type d | xargs -r rm -r
@@ -113,7 +113,7 @@ rudder-sources: rudder-sources.tar.bz2
 rudder-doc:
 	# Get user manual from rudder-project.org and rename directory containing it to rudder-doc
 	$(GET) doc-${RUDDER_MAJOR_VERSION}.tar.gz https://docs.rudder.io/archives/doc-${RUDDER_MAJOR_VERSION}.tar.gz ""
-	tar -xf doc-${RUDDER_MAJOR_VERSION}.tar.gz
+	tar x --no-same-owner --no-same-permissions -f doc-${RUDDER_MAJOR_VERSION}.tar.gz
 	mkdir -p rudder-doc
 	mv doc-${RUDDER_MAJOR_VERSION} rudder-doc/html
 
