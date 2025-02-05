@@ -151,7 +151,7 @@ rudder-sources.tar.bz2:
 	$(GET) rudder-sources.tar.bz2 $(HTTPS)://repository.rudder.io/sources/$(RUDDER_VERSION_TO_PACKAGE)/rudder-sources-$(RUDDER_VERSION_TO_PACKAGE).tar.bz2 ""
 
 rudder-sources: rudder-sources.tar.bz2
-	bunzip2 < rudder-sources.tar.bz2 | $(TAR) xf -
+	bunzip2 < rudder-sources.tar.bz2 | $(TAR) x --no-same-owner --no-same-permissions -f -
 	mv rudder-sources-$(RUDDER_VERSION_TO_PACKAGE)*/ rudder-sources/ # the '*' is needed for nightly release
 	touch rudder-sources # to make it younger than the bzip source file
 
