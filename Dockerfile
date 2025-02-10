@@ -1,4 +1,4 @@
-# rust is a debian based image with rust preinstalled
+# rust is the latest debian image with latest rust preinstalled
 FROM rust
 
 RUN apt-get update && apt-get install -y shellcheck
