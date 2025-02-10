@@ -12,6 +12,7 @@ pipeline {
                         dockerfile {
                             label 'generic-docker'
                             filename 'Dockerfile'
+                            args '-u 0:0
                         }
                     }
                     steps {
