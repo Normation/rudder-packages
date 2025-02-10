@@ -8,7 +8,13 @@ pipeline {
         stage('Tests') {
             parallel {
                 stage('shell') {
-                    agent { label 'script' }
+                    agent {
+                        dockerfile {
+                            label 'generic-docker'
+                            filename 'Dockerfile'
+                            args '-u 0:0'
+                        }
+                    }
                     steps {
                         sh script: 'typos', label: 'check typos'
                         sh script: './qa-test --shell', label: 'shell scripts lint'
@@ -19,12 +25,12 @@ pipeline {
                             recordIssues enabledForFailure: true, failOnError: true, sourceCodeEncoding: 'UTF-8',
                                          tool: checkStyle(pattern: '.shellcheck/*.log', reportEncoding: 'UTF-8', name: 'Shell scripts')
                         }
-                        fixed {    
+                        fixed {
                             script {
                                 new SlackNotifier().notifyResult("shell-team")
                             }
                         }
-                        failure {   
+                        failure {
                             script {
                                 new SlackNotifier().notifyResult("shell-team")
                             }
