@@ -398,7 +398,7 @@ endif
 
 
 ##########################################
-# Installl components #
+# Install components #
 ##########################################
 
 rudder-agent-version:

@@ -9,7 +9,7 @@ then
   echo "Usage $0 <rpm|dpkg> <version> <package> ..."
   echo ""
   echo "Expands to a list of dependencies in package specific format"
-  echo "If version is a nightly, dependencies are made on any similar nighly for all packages"
+  echo "If version is a nightly, dependencies are made on any similar nightly for all packages"
   echo "Otherwise, the dependencies are strict on this given version"
   echo ""
   exit 1
