@@ -1,7 +1,5 @@
-FROM rust:1.82
+# rust is a debian based image with rust preinstalled
+FROM rust
 
-#FROM debian:12
-#
-#RUN apt-get update && apt-get install -y shellcheck
-RUN cargo install --locked -f typos-cli
-RUN apk update && apk add shellcheck
+RUN apt-get update && apt-get install -y shellcheck
+RUN cargo install -f typos-cli
