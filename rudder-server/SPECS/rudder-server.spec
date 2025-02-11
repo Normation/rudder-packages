@@ -146,7 +146,7 @@ make --debug build
 
 %if 0%{?rhel} || 0%{?fedora}
 # Build SELinux policy package
-# Compiles rudder-webapp.te and rudder-webapp.fc into rudder-webapp.pp
+# Compiles rudder-webapp.te into rudder-webapp.pp and rudder-webapp.fc
 make -f /usr/share/selinux/devel/Makefile
 %endif
 
