@@ -123,7 +123,7 @@ cp "${APACHE_CONF}" "${APACHE_CONF}.backup"
 
 if ! grep -q "^#SINGLE_VHOST_START" "${APACHE_CONF}"
 then
-  echo "Your apache configuration ${APACHE_CONF} cannot be split, either because it is too old or beacause it has already been customized"
+  echo "Your apache configuration ${APACHE_CONF} cannot be split, either because it is too old or because it has already been customized"
   echo "Continuing will reset your current configuration to original one"
   echo -n "Please type 'yes' to start again with a default configuration: "
   read a
@@ -159,7 +159,7 @@ fi
 # Replacements
 ##############
 
-# comment original vhost and uncomment splitted one
+# comment original vhost and uncomment split one
 sed -i '/#SINGLE_VHOST_START/,/#SINGLE_VHOST_END/s/^/# /' "${APACHE_CONF}"
 sed -i '/#MULTI_VHOST_START/,/#MULTI_VHOST_END/s/^#\( \|$\)//' "${APACHE_CONF}"
 

@@ -34,7 +34,7 @@ JAVA_MAXPERMSIZE=256
 # Documentation can be found here:
 # https://docs.oracle.com/en/java/javase/11/gctuning/garbage-first-garbage-collector-tuning.html
 #
-# For example, to keep defaut GC and options but add a hint on maximum
+# For example, to keep default GC and options but add a hint on maximum
 # latency for full GC, you can use:
 #JAVA_GC="-XX:+UseG1GC
 #-XX:+UseStringDeduplication

@@ -39,7 +39,7 @@ case "$1" in
       CFRUDDER_FIRST_INSTALL=0
       if [ -z "${2}" ]; then CFRUDDER_FIRST_INSTALL=1; fi
 
-      # bring back diverts in case thay contain user modifications
+      # bring back diverts in case they contain user modifications
       # move to avoid doing it twice
       if [ -f /opt/rudder/etc/relayd/logging.conf.distrib ]; then
         mv /opt/rudder/etc/relayd/logging.conf.distrib /opt/rudder/etc/relayd/logging.conf

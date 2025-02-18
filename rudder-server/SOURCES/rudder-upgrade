@@ -44,20 +44,6 @@ trap 'anomaly_handler ${LINENO}' ERR INT TERM
 # - All versions : Check that Rudder database is able to handle backslash
 # - All versions : Check for the PostgreSQL version
 # - All versions : Create ncf technique update flag and restart at the end of the script
-# - 6.1.0        : Migrate RudderUniqueID to the template format
-# - 6.1.0        : Add indexes cn,softwareVersion,directiveId in slapd.conf
-# - 6.1.1        : Update apache conf if it does not contain technique editor conf (file not updated by packaging
-# - 6.2.0        : Remove unused index on RudderSysEvents
-# - 6.2.0~beta2  : Add software and modifyTimestamp indexes in slapd.conf
-# - 7.0.0~alpha1 : Rename property rudder.community.port into rudder.policy.distribution.port.cfengine
-# - 7.0.0~beta2  : Change the way compliance is computed - change table ReportsExecution
-# - 7.0.0~beta2  : Remove old system techniques
-# - 7.0.0~beta2  : Don't show wizard on upgrade
-# - 7.0.0~beta2  : Remove name historization tables
-# - 7.1.0~beta1  : Replace serial from ruddersysevents table with reportid
-# - 7.2.0~alpha1 : Add softwareId index in slapd.conf
-# - 7.2.0~alpha1 : Add nodeId index in slapd.conf
-# - 7.2.0~beta2  : Add the CampaignEvent table
 ####################################################################################
 
 # Some paths
@@ -239,7 +225,7 @@ ver() { printf "1%03d%03d" `echo "$1" | tr '.' ' '`; }
 # For every property file, check if the access credentials match between the property file and
 # the rudder-passwords.conf file. If not, update the properties.
 #
-# This is to prevent an upgrade failure if the properties have been resetted during a package upgrade.
+# This is to prevent an upgrade failure if the properties have been reset during a package upgrade.
 update_credentials() {
   STEP="Update credentials"
   if [ -f /opt/rudder/etc/rudder-passwords.conf ]; then
@@ -399,35 +385,8 @@ upgrade_masterfiles() {
 }
 
 ################################################################################
-# Check and update config
-################################################################################
-
-upgrade_conf_file() {
-
-  STEP="Upgrade /opt/rudder/etc/rudder-web.properties"
-  CONF_FILE="/opt/rudder/etc/rudder-web.properties"
-
-  # - 7.0.0~alpha1 : Rename property rudder.community.port into rudder.policy.distribution.port.cfengine
-  OLD_PROPERTY_NAME="rudder.community.port"
-  NEW_PROPERTY_NAME="rudder.policy.distribution.port.cfengine"
-  ATTRIBUTESET=$(grep -c "^${NEW_PROPERTY_NAME}[ \t]*=" ${CONF_FILE} || true)
-  if [ ${ATTRIBUTESET} -eq 0 ]; then
-    sed -i -e "s/${OLD_PROPERTY_NAME}/${NEW_PROPERTY_NAME}/" ${CONF_FILE}
-    echo "INFO: Configuration property '${OLD_PROPERTY_NAME}' was updated to '${NEW_PROPERTY_NAME}' in /opt/rudder/etc/rudder-web.properties"
-  fi
-
-}
-
-################################################################################
 # Check and update database
 ################################################################################
-
-# Upgrade the eventlog
-# This has been separated from the upgrade_database to be run after, as it would allow to create the indexes for eventlog if necessary
-# and have only one location for all the eventlog upgrade part
-upgrade_eventlog() {
-  :
-}
 
 # Upgrade the PostgreSQL database
 upgrade_database() {
@@ -441,46 +400,6 @@ upgrade_database() {
     echo " Done"
   fi
 
-  # Now check the fileFormat in the eventlog
-  upgrade_eventlog
-
-  # - All versions: Check for the PostgreSQL version
-  STEP="Check for the current PosgresSQL version"
-
-  # If coming from an old install (upgraded from centos7 or sles11)
-  if [ -e /var/lib/pgsql/data/PG_VERSION ]; then
-    CLUSTER_VERSION=$(cat /var/lib/pgsql/data/PG_VERSION | cut -d . -f 1-2)
-    if [ `ver ${CLUSTER_VERSION}` -lt `ver 9.2` ]; then
-      echo "ERROR: Your running PostgreSQL cluster, in version ${CLUSTER_VERSION}, is too old for Rudder 5.0+"
-      echo "ERROR: Please manually migrate your data to the newer PostgreSQL version installed with Rudder."
-    fi
-  fi
-
-  RES=$(psql -V|head -1|cut -d " " -f 3|cut -d . -f 1-2)
-  if [ `ver ${RES}` -lt `ver 9.2` ]; then
-    echo "ERROR: Your PostgreSQL version, ${RES}, is too old and will fail to work properly with Rudder 5.0+."
-    echo "ERROR: Please upgrade to at least 9.2."
-  fi
-}
-
-################################################################################
-# Check and update ldap web properties
-################################################################################
-
-# Upgrade the LDAP web properties
-upgrade_ldap_web_properties() {
-  #Pre 7.0 to 7.0: Don't show wizard at upgrade
-  LDAP_TEST_PROTOCOL=$(${LDAPSEARCH} -b "ou=Application Properties,cn=rudder-configuration" "propertyName=rudder_setup_done" | grep -c "dn: propertyName=" || true)
-  if [ ${LDAP_TEST_PROTOCOL} -eq 0 ]; then
-    ${LDAPADD} <<EOF
-dn: propertyName=rudder_setup_done,ou=Application Properties,cn=rudder-configuration
-objectClass: property
-objectClass: top
-propertyName: rudder_setup_done
-propertyValue: true
-EOF
-  fi
-
 }
 
 ################################################################################
@@ -491,20 +410,6 @@ upgrade_slapdconf() {
   STEP="Upgrade slapd configuration file"
   SLAPD_CONF="/opt/rudder/etc/openldap/slapd.conf"
   NEED_REINDEX=false
-
-  # 6.2.0~beta2:
-  # Add software and modifyTimestamp indexes in slapd.conf
-  # 7.2.0~alpha1:
-  # Add softwareId and nodeId index in slapd.conf
-  for i in "software" "modifyTimestamp" "softwareId" "nodeId"; do
-    line="index\s*${i}\s*eq"
-    INDEX_COUNT=$(grep -c "^${line}" ${SLAPD_CONF} 2>/dev/null || true)
-    if [ ${INDEX_COUNT} -eq 0 ]; then
-      echo "Adding LDAP index on attribute: ${i}"
-      sed -i "/index\s*objectClass\s*eq/a index\t${i}\teq" ${SLAPD_CONF}
-      NEED_REINDEX=true
-    fi
-  done
 
   # If user choose to replace configuration file, then /opt/rudder/etc/openldap/slapd.conf
   # already contains the index, but nothing reindexed slapd
@@ -566,7 +471,6 @@ upgrade_plugins() {
 ################################################################################
 
 update_credentials
-upgrade_conf_file
 upgrade_slapdconf
 set_git_branch
 upgrade_system_techniques
@@ -593,21 +497,8 @@ fi
 echo -n "INFO: Upgrading LDAP DB..."
 # starting slapd because it is stopped during upgrade
 systemctl start rudder-slapd
-# Using retry_wrapper is necessary because starting may take a bit of time, so we need to wait
-# for it to be available again
-if retry_wrapper "${LDAPSEARCH} -b '' -s base + >/dev/null 2>&1" "LDAP";
-then
-  echo " OK"
-  upgrade_ldap_web_properties
-else
-echo " ERROR"
-  INCOMPLETE_MIGRATION=true
-fi
 
 upgrade_plugins
-
-# 6.1.5: Flag file /opt/rudder/etc/policy-update-running is not used anymore
-rm -f /opt/rudder/etc/policy-update-running || true
 
 ################################################################################
 # End

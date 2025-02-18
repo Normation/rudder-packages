@@ -131,7 +131,7 @@ build-language:
 	cd $(LANGDIR) && make $(DEBUGOPT) build
 
 rudder-server-version:
-	# versions details from the source tarbal
+	# versions details from the source tarball
 	[ -f rudder-sources/versions ] && cp ./rudder-sources/versions $@ || echo "rudder_version=unknown" > $@
 	# version details from the ci checkout
 	[ -f ../../versions ] && cat ../../versions >> $@ || true
@@ -189,7 +189,6 @@ install: build rudder-server-version initial-promises initial-ncf
 	# Install helper scripts
 	install -m 755 rudder-init $(DESTDIR)/opt/rudder/bin/
 	install -m 755 rudder-node-to-relay $(DESTDIR)/opt/rudder/bin/
-	install -m 755 rudder-reload-cf-serverd $(DESTDIR)/opt/rudder/bin/
 	install -m 755 split-vhost ${DESTDIR}/opt/rudder/bin/
 
 	install -m 644 $(WEB_RESOURCES)/demo-rudder-users.xml $(DESTDIR)/opt/rudder/etc/rudder-users.xml
