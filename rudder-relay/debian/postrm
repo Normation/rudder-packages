@@ -21,7 +21,7 @@ set -e
 case "$1" in
     purge)
 
-        # common to all distro but cannot be done in a common script since its is *post*rm
+        # common to all distro but cannot be done in a command script since its is *post*rm
         # Restart apache since it is still using this user
         systemctl restart apache2 >/dev/null
         # remove users before groups
