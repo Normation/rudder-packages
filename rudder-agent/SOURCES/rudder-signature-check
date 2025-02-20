@@ -66,7 +66,7 @@ rm -f ${PUBKEY8} ${SIGN}
 
 if [ ${RET} -ne 0 ]
 then
-  # if there was an error give disgnostic information is possible
+  # if there was an error give diagnostic information is possible
   echo " - signature created on ${HOSTNAME:-unknown}"
   echo " - private key file created at ${KEYDATE:-unknown}"
   echo " - public key id from signature is ${KEYID:-unknown}"

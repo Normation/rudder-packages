@@ -26,7 +26,7 @@ case "$1" in
         RUDDER_FIRST_INSTALL="true"
       fi
 
-      # bring back diverts in case thay contain user modifications
+      # bring back diverts in case they contain user modifications
       # move to avoid doing it twice
       if [ -f /opt/rudder/etc/rudder-apache-webapp-ssl.conf.distrib ]; then
         mv /opt/rudder/etc/rudder-apache-webapp-ssl.conf.distrib /opt/rudder/etc/rudder-apache-webapp-ssl.conf

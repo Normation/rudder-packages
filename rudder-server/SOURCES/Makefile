@@ -137,7 +137,7 @@ build-language:
 	cd $(LANGDIR) && make $(DEBUGOPT) build
 
 rudder-server-version:
-	# versions details from the source tarbal
+	# versions details from the source tarball
 	[ -f rudder-sources/versions ] && cp ./rudder-sources/versions $@ || echo "rudder_version=unknown" > $@
 	# version details from the ci checkout
 	[ -f ../../versions ] && cat ../../versions >> $@ || true

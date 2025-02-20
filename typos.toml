@@ -1,0 +1,6 @@
+
+[files]
+extend-exclude = [ "*.reg", "*.wmi", "*.xml", "Jenkinsfile", "config.guess", "*.patch" ]
+
+[default]
+extend-ignore-re = [ "passin", "CRONd", "monitord", ".oftwares" ]
