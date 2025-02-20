@@ -239,7 +239,7 @@ ver() { printf "1%03d%03d" `echo "$1" | tr '.' ' '`; }
 # For every property file, check if the access credentials match between the property file and
 # the rudder-passwords.conf file. If not, update the properties.
 #
-# This is to prevent an upgrade failure if the properties have been resetted during a package upgrade.
+# This is to prevent an upgrade failure if the properties have been reset during a package upgrade.
 update_credentials() {
   STEP="Update credentials"
   if [ -f /opt/rudder/etc/rudder-passwords.conf ]; then

@@ -199,7 +199,7 @@ set -e
 set -e
 
 # Do it only during uninstallation
-# common to all distro but cannot be done in a commond script since its is *post*rm
+# common to all distro but cannot be done in a command script since its is *post*rm
 if [ $1 -eq 0 ]; then
   # Restart apache since it is still using this user
   systemctl restart %{apache} >/dev/null

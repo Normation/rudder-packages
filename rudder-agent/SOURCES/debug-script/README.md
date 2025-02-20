@@ -24,7 +24,7 @@ Please take a look at [tests/skel](tests/skel) for a commented test sample.
 
 The idea is quite simple: a test is basically a shell function containing scenario related to a component, named "<component>_<scenario>[_agent]", that registers itself using the global "TESTS" variable.
 
-The "_agent" suffix is optionnal and tells the test is runnable on both agents and servers, whereas without it it means the test should be run on servers only.
+The "_agent" suffix is optional and tells the test is runnable on both agents and servers, whereas without it it means the test should be run on servers only.
 
 The components classify the scenarios to let the user run only scenarios related to a component.
 Ex.: "I want to run only the tests that validate that cfengine is OK"
@@ -35,7 +35,7 @@ A test run an arbitrary series of commands to test, and outputs the result using
 * test_skipped: the test has been skipped, due to being impossible or irrelevant to run (missing tool or wrong conditions)
 
 Those functions will:
-* Output a colorized message in the terminal (followed optionnaly by a verbose comment)
+* Output a colorized message in the terminal (followed optionally by a verbose comment)
 * Output a message in the log file
 * Increment the successful/failed/skipped test counter that are displayed during the test summary at the end
 

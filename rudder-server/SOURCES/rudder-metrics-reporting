@@ -42,7 +42,7 @@ os.environ["PATH"] = "/opt/rudder/bin/" + os.pathsep + os.environ["PATH"]
 # -----
 # This tool allows to display some interstings stats
 # about the use of Rudder regarding database usage.
-# Display the number of directive compoenents,
+# Display the number of directive components,
 # directives, rules, nodes, reports by day,
 # postgres database size...
 # It also export info in json and can send them to rudder-project
@@ -58,7 +58,7 @@ os.environ["PATH"] = "/opt/rudder/bin/" + os.pathsep + os.environ["PATH"]
 def metrics():
   data = { }
 
-  # Define the versionning of the file
+  # Define the versioning of the file
   data['file_version'] = "3"
 
   # find uuid, or generate it

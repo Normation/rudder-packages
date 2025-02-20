@@ -7,7 +7,7 @@ if [ ! -f /opt/rudder/etc/rudder-web.properties ] && [ ! -f /opt/rudder/etc/exte
 then
   cat > /opt/rudder/etc/external-db.conf <<'EOF'
 # Please fill the configuration to make sure Rudder serveur will be properly installed
-# Please ask your database administrator for those informations.
+# Please ask your database administrator for those information.
 # Some commands are provided in case you need them.
 
 # Host where rudder server must connect to access the database

@@ -15,7 +15,7 @@ processutils_matchandsanitize() {
     PS_COMMAND="ps -ef"
   fi
 
-  # On all processes, grep the first entry mathing "something" (excluding grep itself) and return the result
+  # On all processes, grep the first entry matching "something" (excluding grep itself) and return the result
   # Sample output: "kegerun+  6045  5566  5 mai12 ?        01:21:15 /usr/bin/firefox"
   ${PS_COMMAND} | grep "${1}" | grep -v grep | sed -re 's,\s+, ,g'
 

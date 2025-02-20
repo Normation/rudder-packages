@@ -19,7 +19,7 @@ runtime_test() {
     do  
       # Get a last date access 
       start_exec=$(echo $i | cut -d'_' -f6)
-      # Get a last date of mofification
+      # Get a last date of modification
       date_modif=$(stat -c %Y ${LOG_PATH}/$i)
       # fet a agent runtime
       runtime_agent=$(($date_modif-$start_exec))

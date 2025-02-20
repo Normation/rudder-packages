@@ -135,7 +135,7 @@ install: install-agent
 @augeas_SOURCE@
 
 @jq_SOURCE@
-	# this value is not propery defined on AIX (must be > 500 for c99)
+	# this value is not properly defined on AIX (must be > 500 for c99)
 	cd jq-source && $(SED) 's/^# define _XOPEN_SOURCE$$/# define _XOPEN_SOURCE 600/' src/builtin.c > src/builtin.c.new && mv src/builtin.c.new src/builtin.c
 
 @cfengine_SOURCE@
@@ -380,7 +380,7 @@ endif
 
 
 ##########################################
-# Installl components #
+# Install components #
 ##########################################
 
 rudder-agent-version:

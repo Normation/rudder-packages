@@ -43,7 +43,7 @@ Options:
 
     --with-env        Automatically include OS/arch as a discriminating key/value
 
-Synopsys:
+Synopsis:
     This command manages a cache on the filesystem. This cache contains entries
     identified by a group of key,value pairs. When creating the entry, all
     key,value pairs must be provided (the cache system adds a key called 'path').
