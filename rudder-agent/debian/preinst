@@ -18,6 +18,8 @@ case "$1" in
     ;;
 
     upgrade)
+      LOG_FILE="/var/log/rudder/install/rudder-agent-$(date +%Y%m%d).log"
+      echo "`date` - Starting rudder-agent pre installation script" >> ${LOG_FILE}
     ;;
 
     abort-upgrade)
