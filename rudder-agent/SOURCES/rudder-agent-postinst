@@ -9,7 +9,7 @@ CFRUDDER_SERVER="$4"
 CFE_DIR="/var/rudder/cfengine-community"
 RUDDER_CMD="/opt/rudder/bin/rudder"
 UUID_FILE="/opt/rudder/etc/uuid.hive"
-LOG_FILE="/var/log/rudder/install/rudder-agent-$(date +%Y%m%d%H%M%S).log"
+LOG_FILE="/var/log/rudder/install/rudder-agent-$(date +%Y%m%d).log"
 
 # Do we reinstall after an uninstallation?
 # On Debian it is not detected as an installation but an update if the package was not purged,
