@@ -421,7 +421,7 @@ set -e
 CFRUDDER_FIRST_INSTALL=$1
 
 LOG_DIR="/var/log/rudder/install/"
-LOG_FILE="${LOG_DIR}/rudder-agent.log"
+LOG_FILE="${LOG_DIR}/rudder-agent-$(date +%%Y%%m%%d).log"
 
 mkdir -p "${LOG_DIR}"
 echo "`date` - Starting rudder-agent pre installation script" >> ${LOG_FILE}
