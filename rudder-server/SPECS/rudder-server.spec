@@ -208,12 +208,7 @@ if [ $1 -ne 1 ]
   # If the stops fails, it's probably because it was not started
   systemctl stop rudder-jetty >&2 > /dev/null || true
 
-  if [ -x /opt/rudder/bin/rudder-package ]
-  then
-    rudder package enable --save > /tmp/rudder-plugins-upgrade
-  else
-    rudder package plugin save-status > /tmp/rudder-plugins-upgrade
-  fi
+  rudder package enable --save > /tmp/rudder-plugins-upgrade
 
   getfacl --absolute-names --recursive /opt/rudder/etc/hooks.d/ > /tmp/rudder-hooks-upgrade
 
