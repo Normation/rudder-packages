@@ -443,6 +443,9 @@ upgrade_slapdconf() {
 upgrade_plugins() {
   # Don't restart, it is done at the end of the postinst
   export RUDDER_PACKAGE_DONT_RESTART=1
+  # Don't run the postinst scripts as some require a running webapp.
+  # It is done by the postinst script afterwards.
+  export RUDDER_PACKAGE_DONT_RUN_POSTINST=1
 
   STEP="Upgrade all plugins"
   # Remove the user-management if exists as the feature is now builtin
