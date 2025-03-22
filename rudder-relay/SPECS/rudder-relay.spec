@@ -95,7 +95,7 @@ Requires: libpq
 
 ## SLES
 %if 0%{?suse_version}
-Requires: pwdutils libnettle6
+Requires: pwdutils gpg2
 BuildRequires: libopenssl-devel clang7
 %endif
 
@@ -260,6 +260,7 @@ rm -rf %{buildroot}
 /opt/rudder/bin/rudder-relayd
 /opt/rudder/bin/rudder-package
 /opt/rudder/etc/rudder-pkg/rudder_plugins_key.gpg
+/opt/rudder/etc/rudder-pkg/rudder_plugins_key.asc
 /opt/rudder/etc/rudder-apache-relay-nossl.conf
 /opt/rudder/etc/rudder-apache-relay-common.conf
 /opt/rudder/etc/rudder-apache-relay-ssl.conf
