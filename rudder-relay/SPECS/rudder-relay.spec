@@ -76,7 +76,7 @@ Requires: postgresql
 
 ## RHEL
 %if 0%{?rhel}
-Requires: mod_ssl shadow-utils apr-util-bdb
+Requires: mod_ssl shadow-utils apr-util-bdb libpq
 BuildRequires: selinux-policy-devel openssl-devel
 %endif
 
@@ -87,10 +87,6 @@ BuildRequires: selinux-policy-devel openssl-devel
 
 %if 0%{?rhel}
 Requires: python3-policycoreutils policycoreutils-python-utils
-%endif
-
-%if 0%{?rhel} && 0%{?rhel} >= 9
-Requires: libpq
 %endif
 
 ## SLES
