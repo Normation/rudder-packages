@@ -49,7 +49,7 @@ STRIP_OPT = --no-automatic-dbgsym
 endif
 # Ubuntu 18.04
 ifeq (bionic,$(OS_CODENAME))
-WITH = --with-openssl --with-libcurl --with-lmdb --with-pcre2 --with-augeas
+WITH = --with-openssl --with-libcurl --with-augeas --with-lmdb --with-pcre2 --with-augeas
 STRIP_OPT = --no-automatic-dbgsym
 endif
 # Ubuntu 20.04
@@ -59,20 +59,20 @@ STRIP_OPT = --no-automatic-dbgsym
 endif
 # Ubuntu 22.04
 ifeq (jammy,$(OS_CODENAME))
-WITH = --with-lmdb --with-libcurl
+WITH = --with-augeas --with-lmdb --with-libcurl
 STRIP_OPT = --no-automatic-dbgsym
 BUILDDEB_OPT = -- -Zxz
 endif
 # Ubuntu 24.04
 ifeq (noble,$(OS_CODENAME))
-WITH = --with-lmdb
+WITH = --with-augeas --with-lmdb
 STRIP_OPT = --no-automatic-dbgsym
 BUILDDEB_OPT = -- -Zxz
 endif
 
 # Debian 5
 ifeq (lenny,$(OS_CODENAME))
-WITH = --disable-rust --disable-apt --disable-bindgen --disable-https --disable-systemd --disable-pie --with-perl --with-jq --with-openssl --with-libcurl --with-augeas --with-lmdb --with-libxml2 --with-libyaml --with-pcre2
+WITH = --disable-rust --disable-apt --disable-bindgen --disable-https --disable-systemd --disable-pie --with-perl --with-jq --with-openssl --with-libcurl --with-lmdb --with-libxml2 --with-libyaml --with-pcre2
 endif
 # Debian 6
 ifeq (squeeze,$(OS_CODENAME))
@@ -88,22 +88,22 @@ WITH = --disable-rust --disable-apt --disable-bindgen --with-jq --with-openssl -
 endif
 # Debian 9
 ifeq (stretch,$(OS_CODENAME))
-WITH = --disable-rust --disable-apt --disable-bindgen --with-openssl --with-libcurl --with-lmdb --with-pcre2
+WITH = --disable-rust --disable-apt --disable-bindgen --with-openssl --with-libcurl --with-augeas --with-lmdb --with-pcre2
 STRIP_OPT = --no-automatic-dbgsym
 endif
 # Debian 10
 ifeq (buster,$(OS_CODENAME))
-WITH = --with-lmdb --with-libcurl --with-pcre2 --with-augeas
+WITH = --with-augeas --with-lmdb --with-libcurl --with-pcre2 --with-augeas
 STRIP_OPT = --no-automatic-dbgsym
 endif
 # Debian 11
 ifeq (bullseye,$(OS_CODENAME))
-WITH = --with-lmdb --with-libcurl --with-augeas
+WITH = --with-augeas --with-lmdb --with-libcurl --with-augeas
 STRIP_OPT = --no-automatic-dbgsym
 endif
 # Debian 12
 ifeq (bookworm,$(OS_CODENAME))
-WITH = --with-lmdb
+WITH = --with-augeas --with-lmdb
 STRIP_OPT = --no-automatic-dbgsym
 endif
 
