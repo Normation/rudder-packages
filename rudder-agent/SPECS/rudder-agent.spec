@@ -34,7 +34,7 @@
 %define with_libxml2 false
 %define with_pcre2 false
 %define with_libcurl false
-%define with_augeas false
+%define with_augeas true
 %define with_jq false
 %define with_perl false
 # replicate defaults from configure : all features
@@ -71,8 +71,6 @@
 %define enable_bindgen false
 %endif
 %if 0%{?rhel} && 0%{?rhel} <= 8
-# no augeas or augeas too old
-%define with_augeas true
 # need pcre2 for rhel < 8
 %define with_pcre2 true
 %endif
@@ -96,13 +94,7 @@
 # no rust
 %define enable_rust false
 %endif
-%if 0%{?suse_version}
-# augeas too old on all sles  for augeas module
-%define with_augeas true
-%endif
 %if 0%{?suse_version} && 0%{?suse_version} < 1500
-# augeas too old on suse < 15
-%define with_augeas true
 %define with_openssl true
 %define enable_bindgen false
 %endif
