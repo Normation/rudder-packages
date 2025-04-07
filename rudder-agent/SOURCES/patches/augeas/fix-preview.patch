@@ -1,0 +1,88 @@
+From a5ec3a6229ba13e86eba6ab17186fe1c25218f35 Mon Sep 17 00:00:00 2001
+From: Alexis Mousset <alexis.mousset@rudder.io>
+Date: Wed, 2 Apr 2025 14:26:00 +0200
+Subject: [PATCH] Fix preview when spans are enabled
+
+---
+ src/augeas.c     |  9 +--------
+ tests/test-api.c | 40 ++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 41 insertions(+), 8 deletions(-)
+
+diff --git a/src/augeas.c b/src/augeas.c
+index 4a286dd3d..c29f5253d 100644
+--- a/src/augeas.c
++++ b/src/augeas.c
+@@ -1933,14 +1933,7 @@ tree_source(const augeas *aug, struct tree *tree) {
+         tree = tree->parent;
+ 
+     if (tree->file) {
+-        if (tree->span == NULL) {
+-            int r;
+-            r = ALLOC(tree->span);
+-            ERR_NOMEM(r < 0, aug);
+-            tree->span->filename = make_string(path_of_tree(tree));
+-            ERR_NOMEM(tree->span->filename == NULL, aug);
+-        }
+-        result = strdup(tree->span->filename->str);
++        result = path_of_tree(tree);
+         ERR_NOMEM(result == NULL, aug);
+     }
+  error:
+diff --git a/tests/test-api.c b/tests/test-api.c
+index 88a7f55ca..c8fd5fc91 100644
+--- a/tests/test-api.c
++++ b/tests/test-api.c
+@@ -890,6 +890,45 @@ static void testAugPreview(CuTest *tc) {
+     aug_close(aug);
+ }
+ 
++static void testAugPreviewSpan(CuTest *tc) {
++    struct augeas *aug;
++    int r;
++    char *s;
++    char *etc_hosts_fn = NULL;
++    FILE *hosts_fp = NULL;
++    char *hosts_txt = NULL;
++    int readsz = 0;
++
++    /* Read the original contents of the etc/hosts file */
++    if (asprintf(&etc_hosts_fn,"%s/etc/hosts",root) >=0 ) {
++        hosts_fp = fopen(etc_hosts_fn,"r");
++        if ( hosts_fp ) {
++            hosts_txt = calloc(4096,sizeof(char));
++            if ( hosts_txt ) {
++                readsz = fread(hosts_txt,sizeof(char),4096,hosts_fp);
++                *(hosts_txt+readsz) = '\0';
++            }
++            fclose(hosts_fp);
++        }
++        free(etc_hosts_fn);
++    }
++
++    aug = aug_init(root, loadpath, AUG_NO_STDINC|AUG_NO_LOAD|AUG_ENABLE_SPAN);
++    CuAssertPtrNotNull(tc, aug);
++    CuAssertIntEquals(tc, AUG_NOERROR, aug_error(aug));
++
++    r = aug_load_file(aug, "/etc/hosts");
++    CuAssertIntEquals(tc, 0, r);
++
++    r = aug_preview(aug, "/files/etc/hosts/1", &s);
++    CuAssertIntEquals(tc, 0, r);
++    CuAssertStrEquals(tc, hosts_txt, s);
++
++    free(hosts_txt);
++    free(s);
++    aug_close(aug);
++}
++
+ int main(void) {
+     char *output = NULL;
+     CuSuite* suite = CuSuiteNew();
+@@ -916,6 +955,7 @@ int main(void) {
+     SUITE_ADD_TEST(suite, testAugNs);
+     SUITE_ADD_TEST(suite, testAugSource);
+     SUITE_ADD_TEST(suite, testAugPreview);
++    SUITE_ADD_TEST(suite, testAugPreviewSpan);
+ 
+     abs_top_srcdir = getenv("abs_top_srcdir");
+     if (abs_top_srcdir == NULL)

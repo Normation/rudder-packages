@@ -293,6 +293,10 @@ build-readline: readline-source
 	touch $@
 
 build-augeas: augeas-source @readline_DEP@ @libxml2_DEP@
+	# Apply patches
+	for PATCHNAME in patches/augeas/*.patch; do echo "Applying $$PATCHNAME..."; $(PATCH) -d ./augeas-source -p1 < $$PATCHNAME || exit ; echo ""; done
+	# Make sure there were no rejects
+	test `find ./augeas-source -name \*.rej | wc -l` = 0
 	@xml2conf@ cd augeas-source && ./configure --disable-dependency-tracking --prefix=$(RUDDER_DIR) @AUGEAS_ARGS@ CPPFLAGS="-I$(CURDIR)/dependencies$(RUDDER_DIR)/include/libxml2 -I$(CURDIR)/dependencies$(RUDDER_DIR)/include" $(BUILD_FLAGS_EXE)
 	cd augeas-source && $(MAKE)
 	cd augeas-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
