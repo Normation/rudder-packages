@@ -2,14 +2,12 @@ Source: rudder-server
 Section: admin
 Priority: optional
 Maintainer: Rudder Team <dev@rudder.io>
-Build-Depends: debhelper (>= 12), libltdl3-dev, libssl-dev, python3, ca-certificates, curl, rsync
+Build-Depends: debhelper (>= 13), libltdl3-dev, libssl-dev, python3, ca-certificates, curl, rsync
 Standards-Version: 4.6.1
 Homepage: https://www.rudder.io
 
 Package: rudder-server
 Architecture: any
-Replaces: rudder-server-root (<< 7.2), rudder-webapp (<< 7.2), rudder-reports (<< 7.2)
-Breaks: rudder-server-root (<< 7.2), rudder-webapp (<< 7.2), rudder-reports (<< 7.2)
 Depends: ${shlibs:Depends}, ${misc:Depends}, ${rudder:deps}, systemd, postgresql (>=13) | rudder-external-db, iproute2, python3, apache2, apache2-utils, git-core, rsync, lsb-release, openssl, ldap-utils, postgresql-client (>=10.3), openjdk-17-jre-headless | java17-runtime-headless, curl, acl, zip, tar
 Description: Configuration management and audit tool - root server base package
  Rudder is an open source configuration management and audit solution.

@@ -26,9 +26,6 @@ ifndef RUDDER_MAJOR_VERSION
 $(error RUDDER_VERSION_TO_PACKAGE has not been set)
 endif
 
-# Original URL: http://zlib.net/zlib-$(ZLIB_RELEASE).tar.gz
-zlib_RELEASE = 1.3.1
-zlib_SHA256 = 9a93b2b7dfdac77ceba5a558a580e74667dd6fede4585b91eefb60f03b72df23
 # Original URL:  https://git.openldap.org/openldap/openldap/-/archive/LMDB_$(LMDB_RELEASE)/openldap-LMDB_$(LMDB_RELEASE).tar.gz
 lmdb_RELEASE = 0.9.33
 lmdb_SHA256 = 476801f5239c88c7de61c3390502a5d13965ecedef80105b5fb0fcb8373d1e53
@@ -36,21 +33,12 @@ lmdb_SHA256 = 476801f5239c88c7de61c3390502a5d13965ecedef80105b5fb0fcb8373d1e53
 # Original URL: https://www.openssl.org/source/openssl-$(OPENSSL_RELEASE).tar.gz
 openssl_RELEASE = 3.0.15
 openssl_SHA256 = 23c666d0edf20f14249b3d8f0368acaee9ab585b09e1de82107c66e1f3ec9533
-# Original URL: http://pyyaml.org/download/libyaml/yaml-0.2.5.tar.gz
-libyaml_RELEASE = 0.2.5
-libyaml_SHA256 = c642ae9b75fee120b2d96c712538bd2cf283228d2337df2cf2988e3c02678ef4
-# Original URL: ftp://xmlsoft.org/libxml2/libxml2-2.9.7.tar.gz
-libxml2_RELEASE = 2.9.14
-libxml2_SHA256 = e8655291ee6f20c8abf57854ff0709e8b178c619001a4d850002aafc81885e17
 # Original URL: https://curl.haxx.se/download/curl-7.58.0.tar.gz
 libcurl_RELEASE = 8.11.0
 libcurl_SHA256 = 264537d90e58d2b09dddc50944baf3c38e7089151c8986715e2aaeaaf2b8118
 # Original URL: https://github.com/PCRE2Project/pcre2/releases/download/pcre2-${pcre2_RELEASE}/pcre2-${pcre2_RELEASE}.tar.gz
 pcre2_RELEASE = 10.44
 pcre2_SHA256 = 86b9cb0aa3bcb7994faa88018292bc704cdbb708e785f7c74352ff6ea7d3175b
-# Original URL: https://ftp.gnu.org/gnu/readline/readline-8.0.tar.gz
-readline_RELEASE = 8.2
-readline_SHA256 = 3feb7171f16a84ee82ca18a36d7b9be109a52c04f492a053331d7d1095007c35
 # Original URL: http://download.augeas.net/augeas-1.12.0.tar.gz
 augeas_RELEASE = 1.14.1
 augeas_SHA256 = 368bfdd782e4b9c7163baadd621359c82b162734864b667051ff6bcb57b9edff
@@ -104,25 +92,13 @@ install: install-agent
 # Source download and unpack #
 ##############################
 
-@zlib_SOURCE@
-
 @lmdb_SOURCE@
 
 @openssl_SOURCE@
 
-@libyaml_SOURCE@
-
-@libxml2_SOURCE@
-	# patch libxml source to work with very old gcc
-	cd libxml2-source && $(SED) 's/#ifdef __GNUC__/#if __GNUC__ > 3/' ./timsort.h > ./timsort.h.new && mv ./timsort.h.new ./timsort.h
-	cd libxml2-source && $(SED) 's/-Wextra//' configure > configure.new && mv configure.new configure
-	cd libxml2-source && $(SED) 's/-Wno-array-bounds//' configure > configure.new && mv configure.new configure && chmod +x configure
-
 @libcurl_SOURCE@
 
 @pcre2_SOURCE@
-
-@readline_SOURCE@
 
 @augeas_SOURCE@
 
@@ -231,12 +207,6 @@ ifneq (false,$(USE_BINDGEN))
 endif
 	touch $@
 
-build-zlib: zlib-source
-	cd zlib-source && $(BUILD_FLAGS_LIB) @ZLIB_ARGS@ ./configure --prefix=$(RUDDER_DIR)
-	cd zlib-source && $(MAKE) LDSHAREDLIBC=
-	cd zlib-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
-	touch $@
-
 build-lmdb: lmdb-source
 	# lmdb doesn't support CFLAGS (it overrides its own) so we pass XCFLAGS instead, that is appended to the original ones
 	# lmdb also mixes cflags and ldflags
@@ -257,20 +227,7 @@ build-openssl: openssl-source @perl_DEP@
 	cd openssl-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
 	touch $@
 
-build-libyaml: libyaml-source
-	cd libyaml-source && ./configure --prefix=$(RUDDER_DIR) --enable-gettext=no $(BUILD_FLAGS_LIB)
-	cd libyaml-source && $(MAKE)
-	# install to a temporary location is needed to build cfengine
-	cd libyaml-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
-	touch $@
-
-build-libxml2: libxml2-source @zlib_DEP@
-	cd libxml2-source && ./configure --prefix=$(RUDDER_DIR) @LIBXML2_ARGS@ --with-xpath --with-c14n --without-catalog --without-debug --without-docbook --without-ftp --without-http --without-html --without-iconv --without-python --enable-shared --disable-static $(BUILD_FLAGS_LIB)
-	cd libxml2-source && $(MAKE)
-	cd libxml2-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
-	touch $@
-
-build-libcurl: libcurl-source @openssl_DEP@ @zlib_DEP@
+build-libcurl: libcurl-source @openssl_DEP@
 	# pkcconfig give openssl build configuration, but it point to final installation path (/opt/rudder)
 	# since we need the temporary path during build we need to add -I and -L
 	cd libcurl-source && ./configure --prefix=$(RUDDER_DIR) @LIBCURL_ARGS@ --without-nghttp2 --without-hyper --without-libpsl --disable-tls-srp --disable-rtsp --enable-ipv6 --without-librtmp --without-ldap-lib CPPFLAGS="-I$(CURDIR)/dependencies$(RUDDER_DIR)/include" $(BUILD_FLAGS_EXE)
@@ -285,19 +242,12 @@ build-pcre2: pcre2-source
 	cd pcre2-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
 	touch $@
 
-build-readline: readline-source
-	# do not override flags as they don't work here
-	cd readline-source && ./configure --prefix=$(RUDDER_DIR)
-	cd readline-source && $(MAKE) $(readline_MAKE_OPT)
-	cd readline-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
-	touch $@
-
-build-augeas: augeas-source @readline_DEP@ @libxml2_DEP@
+build-augeas: augeas-source
 	# Apply patches
 	for PATCHNAME in patches/augeas/*.patch; do echo "Applying $$PATCHNAME..."; $(PATCH) -d ./augeas-source -p1 < $$PATCHNAME || exit ; echo ""; done
 	# Make sure there were no rejects
 	test `find ./augeas-source -name \*.rej | wc -l` = 0
-	@xml2conf@ cd augeas-source && ./configure --disable-dependency-tracking --prefix=$(RUDDER_DIR) @AUGEAS_ARGS@ CPPFLAGS="-I$(CURDIR)/dependencies$(RUDDER_DIR)/include/libxml2 -I$(CURDIR)/dependencies$(RUDDER_DIR)/include" $(BUILD_FLAGS_EXE)
+	cd augeas-source && ./configure --disable-dependency-tracking --prefix=$(RUDDER_DIR) @AUGEAS_ARGS@ CPPFLAGS="-I$(CURDIR)/dependencies$(RUDDER_DIR)/include" $(BUILD_FLAGS_EXE)
 	cd augeas-source && $(MAKE)
 	cd augeas-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
 	# remove augeas tests
@@ -310,9 +260,9 @@ build-jq: jq-source
 	cd jq-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
 	touch $@
 
-DEPS_CACHE_PARAMETERS = --with-env name=dependencies configure=$(CONFIGURE_ARGS_HASH) pcre2=${pcre2_SHA256} zlib=$(zlib_SHA256) lmdb=$(lmdb_SHA256) openssl=$(openssl_SHA256) libyaml=$(libyaml_SHA256) libxml2=$(libxml2_SHA256) libcurl=$(libcurl_SHA256) augeas=$(augeas_SHA256) readline=$(readline_SHA256) jq=$(jq_SHA256) @CACHE_ARGS@
+DEPS_CACHE_PARAMETERS = --with-env name=dependencies configure=$(CONFIGURE_ARGS_HASH) pcre2=${pcre2_SHA256} lmdb=$(lmdb_SHA256) openssl=$(openssl_SHA256) libcurl=$(libcurl_SHA256) augeas=$(augeas_SHA256) jq=$(jq_SHA256) @CACHE_ARGS@
 # Strictly speaking we don't need jq here but it's easier to include it in the cache
-CFENGINE_DEPS = $(shell set -x; ../../build-caching get dependencies/ $(DEPS_CACHE_PARAMETERS) || echo @lmdb_DEP@ @openssl_DEP@ @libyaml_DEP@ @libxml2_DEP@ @libcurl_DEP@ @pcre2_DEP@ @augeas_DEP@ @jq_DEP@ )
+CFENGINE_DEPS = $(shell set -x; ../../build-caching get dependencies/ $(DEPS_CACHE_PARAMETERS) || echo @lmdb_DEP@ @openssl_DEP@ @libcurl_DEP@ @pcre2_DEP@ @augeas_DEP@ @jq_DEP@ )
 
 # Cache cfengine build itself
 CFENGINE_PATCHES_SHA = $(shell find patches/cfengine -type f | sort | xargs openssl dgst -sha256 | openssl dgst -sha256 | awk '{print $$2}')
@@ -328,16 +278,11 @@ build-cfengine: $(CFENGINE_BUILD)
 build-cfengine-real: $(CFENGINE_DEPS) cfengine-source
 	# save dependencies into cache if we built them
 	if [ "$<" != "cfengine-source" ]; then ../../build-caching put dependencies/ $(DEPS_CACHE_PARAMETERS); fi
-	# regenerate configure since configure.ac may have been modified by systemd patches (18889 and 18893)
-	# not needed for older os so skip it if autoconf is too old but touch files to make sure it is skipped otherwise make will try to to it automatically
-	# Crapy: remove this when 18889 and 18893 have been merged upstream
-	if type autoconf 2>/dev/null && [ $$(autoconf --version | sed -n '/^autoconf/s/[^0-9]*//gp') -ge 264 ]; then cd cfengine-source && autoreconf -Wno-portability --force --install -I m4; else touch -d+1min configure Makefile.in; fi
 	# build system tries to reload systemd by itself
 	cd cfengine-source && $(SED) 's/-systemctl daemon-reload/#-systemctl daemon-reload/' misc/Makefile.in > misc/Makefile.in.new && mv misc/Makefile.in.new misc/Makefile.in
-	cd cfengine-source && ./configure --prefix=$(RUDDER_DIR) --with-workdir=/var/rudder/cfengine-community --without-postgresql --without-mysql $(CFENGINE_ARGS) $(BUILD_FLAGS_EXE) CPPFLAGS="-I$(CURDIR)/dependencies$(RUDDER_DIR)/include/libxml2"
+	cd cfengine-source && ./configure --prefix=$(RUDDER_DIR) --with-workdir=/var/rudder/cfengine-community --without-postgresql --without-mysql $(CFENGINE_ARGS) $(BUILD_FLAGS_EXE)
 	cd cfengine-source && $(MAKE)
 	cd cfengine-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
-# solaris doesn't have uuidgen and needs one
 	touch $@
 
 # ---- ^ cfengine ---- v fusion ----
@@ -414,12 +359,10 @@ rudder-agent-version:
 # Do this just before generating package
 cleanup-build:
 	rm -f dependencies/opt/rudder/lib/*.a
-	rm -f dependencies/opt/rudder/lib/libreadline.*
 	rm -f dependencies/opt/rudder/lib/*.la
 	rm -rf dependencies/opt/rudder/lib/cmake
 	rm -rf dependencies/opt/rudder/lib/engines*
 	rm -rf dependencies/opt/rudder/lib/pkgconfig
-	rm -f dependencies/opt/rudder/lib/xml2Conf.sh
 	rm -f dependencies/opt/rudder/lib/libjq* # libjq can be removed, jq loads its lib statically
 
 # We don't use it and it takes some space

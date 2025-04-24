@@ -30,8 +30,6 @@
 # Defaults
 %define with_lmdb true
 %define with_openssl false
-%define with_libyaml false
-%define with_libxml2 false
 %define with_pcre2 false
 %define with_libcurl false
 %define with_augeas true
@@ -58,12 +56,6 @@
 %endif
 
 # 2 - RHEL & Fedora
-%if 0%{?rhel} && 0%{?rhel} <= 6
-# PIE and PIC incompatible on old gcc
-%define enable_pie false
-# no rust
-%define enable_rust false
-%endif
 %if 0%{?rhel} && 0%{?rhel} < 8
 # no jq before RHEL8
 %define with_jq true
@@ -75,25 +67,12 @@
 %define with_pcre2 true
 %endif
 %if 0%{?rhel} && 0%{?rhel} <= 9
-# need updated curl for RHEL 9 
+# need updated curl for RHEL 9
 %define with_libcurl true
 %endif
 
 
 # 3 - SUSE
-# Reference for suse_version : https://en.opensuse.org/openSUSE:Build_Service_cross_distribution_howto
-%if 0%{?suse_version} && 0%{?suse_version} < 1200
-# system perl and openssl too old on sles 10 and 11
-%define with_perl true
-# no yaml on sles 10 and 11
-%define with_libyaml true
-#libxml too old
-%define with_libxml2 true
-# PIE and PIC incompatible on old gcc
-%define enable_pie false
-# no rust
-%define enable_rust false
-%endif
 %if 0%{?suse_version} && 0%{?suse_version} < 1500
 %define with_openssl true
 %define enable_bindgen false
@@ -141,9 +120,6 @@ Requires: python
 %if 0%{?sle_version} >= 150000
 Requires: python3-base
 %endif
-%if 0%{?suse_version} && 0%{?suse_version} < 1200
-Requires: python-base
-%endif
 
 %if "%{with_perl}" == "false" && 0%{?rhel}
 BuildRequires: perl-CPAN
@@ -174,56 +150,18 @@ Conflicts: rudder-agent-thin
 
 # Specific requirements
 
+## For RHEL and Fedora
+Requires: cron net-tools diffutils dmidecode
+
+%if 0%{?rhel} || 0%{?fedora}
+BuildRequires: make byacc
+
 ## Requirement for cpanminus
-%if (0%{?rhel} && 0%{?rhel} >= 6) || 0%{?fedora}
 BuildRequires: perl-IPC-Cmd
-%endif
 
 # RHEL perl core is too minimal, we try to not add too much here
-%if (0%{?rhel} && 0%{?rhel} >= 7) || 0%{?fedora}
 Requires: perl-Digest
 BuildRequires: perl-Digest
-%endif
-
-
-## For RHEL and Fedora
-%if 0%{?rhel}
-BuildRequires: make byacc
-Requires: crontabs net-tools diffutils
-%endif
-
-%if 0%{?fedora}
-BuildRequires: make byacc
-Requires: crontabs net-tools diffutils
-%endif
-
-
-## For SLES
-%if 0%{?suse_version}
-Requires: cron net-tools diffutils
-%endif
-
-# dmiecode package on RHEL and fedora
-%if 0%{?rhel}
-Requires: dmidecode
-%endif
-
-%if 0%{?fedora}
-Requires: dmidecode
-%endif
-
-# https fails on old distro because they don't support modern certificates (namely sles11)
-%if 0%{?suse_version} && 0%{?suse_version} < 1200
-%define enable_https false
-%endif
-
-# Reference for suse_version : https://en.opensuse.org/openSUSE:Build_Service_cross_distribution_howto
-%if 0%{?suse_version} && 0%{?suse_version} < 1140
-Requires: pmtools
-%endif
-
-%if 0%{?suse_version} && 0%{?suse_version} >= 1140
-Requires: dmidecode
 %endif
 
 # We need the ps command for scripts
@@ -251,22 +189,18 @@ BuildRequires: clang
 %endif
 
 ## YAML dependencies
-%if "%{with_libyaml}" == "false"
 BuildRequires: libyaml-devel
-%endif
-%if "%{with_libyaml}" == "false" && 0%{?suse_version} && 0%{?suse_version} >= 1200
+%if 0%{?suse_version} && 0%{?suse_version} >= 1200
 Requires: libyaml-0-2
 %endif
 # no yaml on sles other than 12
-%if "%{with_libyaml}" == "false" && 0%{?suse_version} == 0
+%if 0%{?suse_version} == 0
 Requires: libyaml
 %endif
 
 ## XML dependencies
-%if "%{with_libxml2}" == "false"
 BuildRequires: libxml2-devel
 Requires: libxml2
-%endif
 
 ## pcre build dependencies
 %if "%{with_pcre2}" == "false"
@@ -295,21 +229,6 @@ BuildRequires: openssl-devel
 Requires: openssl
 %endif
 
-#### Use systemd everywhere except on: RHEL<7, SLES<12, Fedora<15
-%if 0%{?rhel} && 0%{?rhel} < 7
-%define enable_systemd false
-%endif
-
-%if 0%{?suse_version} && 0%{?suse_version} < 1315
-%define enable_systemd false
-%endif
-
-%if 0%{?fedora} && 0%{?fedora} < 15
-%define enable_systemd false
-%endif
-####
-
-
 %description
 Rudder is an open source configuration management and audit solution.
 
@@ -332,12 +251,6 @@ opt="${opt} --with-lmdb"
 %endif
 %if "%{with_openssl}" == "true"
 opt="${opt} --with-openssl"
-%endif
-%if "%{with_libyaml}" == "true"
-opt="${opt} --with-libyaml"
-%endif
-%if "%{with_libxml2}" == "true"
-opt="${opt} --with-libxml2"
 %endif
 %if "%{with_libcurl}" == "true"
 opt="${opt} --with-libcurl"

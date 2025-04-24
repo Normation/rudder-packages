@@ -61,8 +61,6 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 AutoReq: 0
 AutoProv: 0
 
-Obsoletes: rudder-server-relay < 7.2
-
 ## General
 BuildRequires: pkgconfig, postgresql-devel
 Requires: %(../format-dependencies rpm %{old_epoch}:%{real_version} rudder-agent), %{apache}, %{apache_tools}, binutils, xz, rsync, sudo
@@ -86,11 +84,7 @@ BuildRequires: selinux-policy-devel openssl-devel nettle-devel clang
 %endif
 
 %if 0%{?rhel}
-Requires: python3-policycoreutils policycoreutils-python-utils
-%endif
-
-%if 0%{?rhel} && 0%{?rhel} >= 9
-Requires: libpq
+Requires: python3-policycoreutils policycoreutils-python-utils libpq
 %endif
 
 ## SLES
