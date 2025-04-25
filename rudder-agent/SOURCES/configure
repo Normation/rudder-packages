@@ -114,13 +114,13 @@ INSTALL=$(type ginstall >/dev/null 2>&1 && echo ginstall || echo install)
 # try getter in this order: curl, fetch, wget
 if type curl >/dev/null 2>/dev/null; then
   CPAN_OPT="--curl --no-wget --no-lwp"
-  _GET="${PROXY_ENV}curl -s -L -f --cacert \$(CURDIR)/letsencrypt-root-x1.pem -o"
+  _GET="${PROXY_ENV}curl -s -L -f -o"
 elif type fetch >/dev/null 2>/dev/null; then
   CPAN_OPT=""
-  _GET="${PROXY_ENV}fetch -q --ca-cert=\$(CURDIR)/letsencrypt-root-x1.pem -o"
+  _GET="${PROXY_ENV}fetch -q -o"
 else
   CPAN_OPT="--wget"
-  _GET="${PROXY_ENV}wget -q --header=\"accept-encoding:\" --ca-certificate=\$(CURDIR)/letsencrypt-root-x1.pem -O"
+  _GET="${PROXY_ENV}wget -q --header=\"accept-encoding:\" -O"
 fi
 
 # Switch to http for very old distros
