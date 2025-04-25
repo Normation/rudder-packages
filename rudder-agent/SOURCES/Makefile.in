@@ -49,9 +49,6 @@ jq_SHA256 = 478c9ca129fd2e3443fe27314b455e211e0d8c60bc8ff7df703873deeee580c2
 # Original URL: https://cfengine-package-repos.s3.amazonaws.com/tarballs/cfengine-community-$(CFENGINE_RELEASE).tar.gz
 cfengine_RELEASE = 3.24.1
 cfengine_SHA256 = c73c3125052ddf3c6f2507a7062705104e3e1495396c71009e3ada3883751b1a
-# Original URL: http://www.cpan.org/src/5.0/perl-$(PERL_RELEASE).tar.gz
-perl_RELEASE = 5.36.1
-perl_SHA256 = 68203665d8ece02988fc77dc92fccbb297a83a4bb4b8d07558442f978da54cc1
 # Original URL: http://www.cpan.org/modules/by-module/App/App-cpanminus-1.7046.tar.gz
 cpanminus_RELEASE = 1.7046
 cpanminus_SHA256 = 3e8c9d9b44a7348f9acc917163dbfc15bd5ea72501492cea3a35b346440ff862
@@ -109,8 +106,6 @@ install: install-agent
 	for PATCHNAME in patches/cfengine/*.patch; do echo "Applying $$PATCHNAME..."; $(PATCH) -d ./cfengine-source -p1 < $$PATCHNAME || exit ; echo ""; done
 	# Make sure there were no rejects
 	test `find ./cfengine-source -name \*.rej | wc -l` = 0
-
-@perl_SOURCE@
 
 @cpanminus_SOURCE@
 
@@ -218,7 +213,7 @@ build-lmdb: lmdb-source
 	cd lmdb-source/libraries/liblmdb && $(MAKE) install prefix=$(RUDDER_DIR) DESTDIR=$(CURDIR)/dependencies
 	touch $@
 
-build-openssl: openssl-source @perl_DEP@
+build-openssl: openssl-source
 	# openssl doesn't support CFLAGS (it overrides its own) so we must pass them in batch to configure
 	cd openssl-source && RELEASE="" @SSL_CONFIGURE@ -fPIC $(CFLAGS) $(LDFLAGS) $(PIE_LDFLAGS) --libdir=lib --prefix=$(RUDDER_DIR) --openssldir=$(RUDDER_DIR)/openssl shared no-idea no-rc5 no-ssl3 no-dtls no-psk no-srp no-engine enable-egd no-tests
 	cd openssl-source && $(MAKE) depend
@@ -294,23 +289,7 @@ FUSION_MODULES = File::BOM File::Which LWP::UserAgent Net::IP Text::Template UNI
 # update sources at vir-repository with the command: /root/mirror /var/www/repos/build-dependencies/cpan/<version> $FUSION_MODULES
 # update core dependencies (for old perl versions) at normation.com with the command: ./mirror $VAR_CPAN autodie Class::C3 CPAN::Meta::Requirements CPAN::Meta::YAML Data::Dumper DateTime DateTime::Locale DateTime::TimeZone Devel::PPPort Digest::base Digest::MD5 Encode ExtUtils::CBuilder ExtUtils::Install ExtUtils::MakeMaker ExtUtils::Manifest ExtUtils::ParseXS File::BOM File::Listing File::Spec File::Temp HTTP::Cookies HTTP::Date HTTP::Lite HTTP::Negotiate HTTP::Request IO::Compress::Bzip2 IO::HTML IPC::Cmd JSON::PP List::Util Locale::Maketext::Simple Local::Win32 LWP::UserAgent Module::Build Module::CoreList Module::Implementation Module::Install Module::Load Net::Domain Params::Check parent Perl::OSType Pod::Escapes Pod::Man Pod::Simple Socket TAP::Harness Test::Harness Text::Template threads threads::shared Time::Local URI::Escape version Module::Metadata Module::Runtime ExtUtils::Constant
 
-build-perl: perl-source
-	cd perl-source && $(MAKE) distclean 2>/dev/null || true # Or this can fail on an already used source
-	cd perl-source && ./Configure -Dnoextensions=ODBM_File -Duserelocatableinc -Dusethreads -des -Dcc="gcc" -Dinstallprefix=$(RUDDER_DIR) -Dsiteprefix=$(RUDDER_DIR) -Dprefix=$(RUDDER_DIR)
-	cd perl-source && $(MAKE)
-	cd perl-source && $(MAKE) install DESTDIR=$(CURDIR)/fusion
-	# 8Mb of perldoc
-	rm -rf fusion/opt/rudder/lib/perl5/$(PERL_RELEASE)/pod
-	# 20Mb of perl manual
-	find fusion/opt/rudder/share/man -name 'perl' -exec rm -rf {} \; || true
-	# Remove 'special' files
-	find fusion -name perllocal.pod \
-	  -o -name ".packlist" \
-	  -o -name "*.bs" \
-	  | xargs rm -f
-	touch $@
-
-fusion-modules: @perl_DEP@ cpanminus-source
+fusion-modules: cpanminus-source
 	mkdir -p fusion/opt/rudder/lib/perl5
 	# --notest because tests add new Test:: dependencies that cannot be installed properly
 	MAKEFLAGS= $(PERL) $(CPANM) $(CPAN_OPT) -L $(CURDIR)/fusion/opt/rudder --from $(CPAN_URL) --notest $(FUSION_MODULES)
@@ -324,7 +303,7 @@ fusion-modules: @perl_DEP@ cpanminus-source
 
 # Cache fusion and its dependencies
 FUSION_PATCHES_SHA = $(shell find patches/fusioninventory -type f | sort | xargs openssl dgst -sha256 | openssl dgst -sha256 | awk '{print $$2}')
-FUSION_CACHE_PARAMETERS = --with-env name=fusion fusion=$(fusion_SHA256) perl=$(perl_SHA256) cpanminus=$(cpanminus_SHA256) patches=$(FUSION_PATCHES_SHA)
+FUSION_CACHE_PARAMETERS = --with-env name=fusion fusion=$(fusion_SHA256) cpanminus=$(cpanminus_SHA256) patches=$(FUSION_PATCHES_SHA)
 FUSION_BUILD = $(shell set -x; ../../build-caching get fusion/ $(FUSION_CACHE_PARAMETERS) || echo build-fusion-real)
 # do not split cache for perl, this is probably not worth it
 build-fusion: $(FUSION_BUILD)
@@ -415,7 +394,6 @@ endif
 	cp -rp dependencies/opt/rudder/lib/* $(DESTDIR)/opt/rudder/lib/
 
 	# Perl and fusion
-	@IF_perl@ cp -rp fusion/opt/rudder/bin/perl $(DESTDIR)/opt/rudder/bin/
 	@IF_fusion@ cp -rp fusion/opt/rudder/bin/fusioninventory-agent $(DESTDIR)/opt/rudder/bin/
 	[ -d fusion/opt/rudder/lib/perl5 ] && cp -rp fusion/opt/rudder/lib/perl5 $(DESTDIR)/opt/rudder/lib/
 	mkdir -p $(DESTDIR)/opt/rudder/share/

@@ -34,7 +34,6 @@
 %define with_libcurl false
 %define with_augeas true
 %define with_jq false
-%define with_perl false
 # replicate defaults from configure : all features
 %define enable_https true
 %define enable_pie true
@@ -121,23 +120,20 @@ Requires: python
 Requires: python3-base
 %endif
 
-%if "%{with_perl}" == "false" && 0%{?rhel}
+%if 0%{?rhel}
 BuildRequires: perl-CPAN
 %endif
 
-%if "%{with_perl}" == "false" && 0%{?fedora}
+%if 0%{?rhel} >= 9 || 0%{?fedora}
 Requires: perl-interpreter perl-lib perl-English perl-Memoize perl-Sys-Hostname perl-File-Find perl-base perl-Digest-MD5 perl-Math-BigInt perl-Net perl-JSON-PP perl-User-pwent
 %endif
-%if "%{with_perl}" == "false" && 0%{?rhel} >= 9
-Requires: perl-interpreter perl-lib perl-English perl-Memoize perl-Sys-Hostname perl-File-Find perl-base perl-Digest-MD5 perl-Math-BigInt perl-Net perl-JSON-PP perl-User-pwent
-%endif
-%if "%{with_perl}" == "false" && 0%{?rhel} == 8
+%if 0%{?rhel} == 8
 Requires: perl-interpreter perl-Memoize perl-JSON-PP perl-Math-BigInt perl-Digest-MD5
 %endif
-%if "%{with_perl}" == "false" && 0%{?rhel} && 0%{?rhel} < 8
+%if 0%{?rhel} && 0%{?rhel} < 8
 Requires: perl(:MODULE_COMPAT_%(eval "`%{__perl} -V:version`"; echo $version)) perl-Digest-MD5
 %endif
-%if "%{with_perl}" == "false" && 0%{?suse_version}
+%if 0%{?suse_version}
 Requires: perl = %{perl_version}
 %endif
 
@@ -282,13 +278,9 @@ opt="${opt} --disable-rust"
 opt="${opt} --disable-bindgen"
 %endif
 
-%if "%{with_perl}" == "true"
-opt="${opt} --with-perl"
-%else
 perl -MModule::CoreList -e '' || cpan -f -T -i Module::CoreList < /dev/null || true
 perl -MYAML::Tiny -e '' || cpan -f -T -i YAML::Tiny < /dev/null
 perl -Minc::Module::Install -e '' || cpan -f -T -i Module::Install < /dev/null
-%endif
 
 ./configure ${opt}
 make BUILD_CFLAGS="${RPM_OPT_FLAGS}"
@@ -301,9 +293,6 @@ make BUILD_CFLAGS="${RPM_OPT_FLAGS}"
 cd %{_sourcedir}
 
 make install DESTDIR=%{buildroot}
-
-# remove perl doc
-rm -rf %{buildroot}/opt/rudder/man %{buildroot}/opt/rudder/lib/perl5/5.22.0/pod
 
 # rhel8 do not have vzps
 %if 0%{?rhel} >= 8
