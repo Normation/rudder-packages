@@ -61,9 +61,6 @@ endif
 ifeq ($(findstring with-openssl,$(WITH)),)
 DEPS := $(DEPS), openssl
 endif
-ifeq ($(findstring with-perl,$(WITH)),)
-DEPS := $(DEPS), libxml-treepp-perl, perl
-endif
 ifeq ($(findstring with-libcurl,$(WITH)),)
 DEPS := $(DEPS), curl
 endif
@@ -93,8 +90,6 @@ install: build
 	dh_testroot
 	dh_installdirs
 	cd SOURCES && $(MAKE) install BUILD_LDFLAGS="$(BUILD_LDFLAGS)" DESTDIR=$(CURDIR)/debian/tmp
-	# remove perl doc
-	rm -rf $(CURDIR)/debian/tmp/opt/rudder/man $(CURDIR)/debian/tmp/opt/rudder/lib/perl5/5.22.0/pod
 
 # Build architecture-independent files here.
 binary-indep: install
@@ -121,9 +116,7 @@ binary-arch: install
 	dh_strip $(STRIP_OPT)
 	dh_compress
 	dh_fixperms -Xppkeys
-ifeq ($(findstring with-perl,$(WITH)),)
 	dh_perl opt/rudder/
-endif
 	dh_makeshlibs
 	dh_installdeb
 	# the conffiles case

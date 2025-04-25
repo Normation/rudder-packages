@@ -8,7 +8,7 @@ Homepage: https://www.rudder.io
 
 Package: rudder-agent
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, uuid-runtime, dmidecode, cron, net-tools, diffutils, libacl1, systemd, libapt-pkg, jq, libyaml-0-2, libxml2, ${rudder:deps}, ${perl:Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}, uuid-runtime, dmidecode, cron, net-tools, diffutils, libacl1, systemd, libapt-pkg, jq, libyaml-0-2, libxml2, ${rudder:deps}, libxml-treepp-perl, perl, ${perl:Depends}
 Recommends: bash-completion, python3 | python
 Provides: rudder-agent
 Description: Configuration management and audit tool - agent
