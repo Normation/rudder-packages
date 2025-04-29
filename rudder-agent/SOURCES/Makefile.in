@@ -172,6 +172,7 @@ ifneq (false,$(USE_APT))
 CARGO_FEATURES_SU="apt"
 endif
 
+@UNLESS_augeas@AUGEAS_DO=true
 build-agent: @augeas_DEP@ rudder-sources
 ifneq (false,$(USE_RUST))
 	# The deps versions are in the Cargo.lock in the repo root
@@ -188,7 +189,6 @@ ifneq (false,$(USE_BINDGEN))
 	# The deps versions are in the Cargo.lock in the repo root
 	# pkg-config hack for augeas: the pkg-config file points to the prefix dir (/opt/rudder), but we build against DESTDIR.
 	# needed because we cannot comment inside a multiline command
-@UNLESS_augeas@AUGEAS_DO=true
 	DEPS_SOURCE_SHA=$$(ls -1 rudder-sources/rudder/Cargo.* | sort | xargs openssl dgst -sha256 | openssl dgst -sha256 | awk '{print $$2}') ;\
 	AGENT_SOURCE_SHA=$$(find rudder-sources/rudder/policies -type f | sort | xargs openssl dgst -sha256 | openssl dgst -sha256 | awk '{print $$2}') ;\
 	CACHE_SHA=$$(echo "$$DEPS_SOURCE_SHA $$AGENT_SOURCE_SHA" | openssl dgst -sha256 | awk '{print $$2}') ;\
