@@ -12,20 +12,24 @@ diff --color -ruN fusion-source.bak/lib/FusionInventory/Agent/Inventory.pm fusio
                              NAME NO_REMOVE RELEASE_TYPE PUBLISHER
 diff --color -ruN fusion-source.bak/lib/FusionInventory/Agent/Task/Inventory/Generic/Rudder.pm fusion-source/lib/FusionInventory/Agent/Task/Inventory/Generic/Rudder.pm
 --- fusion-source.bak/lib/FusionInventory/Agent/Task/Inventory/Generic/Rudder.pm	2025-04-28 12:01:27.866413895 +0200
-+++ fusion-source/lib/FusionInventory/Agent/Task/Inventory/Generic/Rudder.pm	2025-04-28 12:02:47.122643558 +0200
-@@ -51,6 +51,11 @@
++++ fusion-source/lib/FusionInventory/Agent/Task/Inventory/Generic/Rudder.pm	2025-04-29 15:26:51.189823556 +0200
+@@ -51,6 +51,15 @@
      # Get server roles
      my @serverRoles = _listServerRoles();
  
 +    # agent version
++    my $base_path = "/opt/rudder";
++    if ($OSNAME eq 'MSWin32') {
++      $base_path = "C:/Program Files/Rudder";
++    }
 +    my $version = getFirstMatch(
-+        logger => $logger, file => "/opt/rudder/share/versions/rudder-agent-version", pattern => qr/rudder_version=(.*)/
++        logger => $logger, file => "$base_path/share/versions/rudder-agent-version", pattern => qr/rudder_version=(.*)/
 +    );
 +
      # Get agent capabilities
      my @agentCapabilities = _listAgentCapabilities();
  
-@@ -62,6 +67,7 @@
+@@ -62,6 +71,7 @@
          AGENT => \@agents,
          SERVER_ROLES => { SERVER_ROLE => \@serverRoles },
          AGENT_CAPABILITIES => { AGENT_CAPABILITY => \@agentCapabilities },
