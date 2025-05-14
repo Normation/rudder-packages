@@ -321,9 +321,6 @@ ifeq ($(INSTALL),ginstall)
 endif
 	cd fusion-source && PERL_MM_USE_DEFAULT=1 $(PERL) -I. Makefile.PL --default PREFIX=$(RUDDER_DIR)
 	cd fusion-source && $(MAKE) install DESTDIR=$(CURDIR)/fusion
-	# bug in fusion installer that doesn't set the right owner to some files
-	chown root fusion/opt/rudder/share/fusioninventory
-	chown root fusion/opt/rudder/share/fusioninventory/html
 
 
 ##########################################
