@@ -280,7 +280,7 @@ update_credentials() {
 set_git_branch() {
   STEP="Set configuration repository branch"
   if [ -d ${CONFIGURATION_REPOSITORY}/.git ];then
-    cd ${CONFIGURATION_REPOSITORY}/ && git checkout master
+    cd ${CONFIGURATION_REPOSITORY}/ && git checkout master 2>&1
   fi
 }
 
