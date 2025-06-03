@@ -100,9 +100,15 @@ BuildRequires: gcc, rsync
 BuildRequires: groff-base
 BuildRequires: selinux-policy-devel
 Requires: mod_ssl httpd shadow-utils
-Requires: jre-17-headless
 Requires: perl-Digest-SHA libtool-ltdl
 BuildRequires: openssl-devel libtool-ltdl-devel git
+%endif
+
+%if 0%{?rhel} && 0%{?rhel} <= 9
+Requires: jre-17-headless
+%endif
+%if 0%{?rhel} && 0%{?rhel} == 10 || 0%{?fedora}
+Requires: java-21-openjdk-headless
 %endif
 
 ## SLES
