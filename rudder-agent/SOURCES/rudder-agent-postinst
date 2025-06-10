@@ -57,9 +57,8 @@ then
   echo "${CFRUDDER_SERVER}" > /var/rudder/cfengine-community/policy_server.dat
 fi
 
-# Copy CFEngine binaries
-cp -r -f /opt/rudder/bin/cf-* ${CFE_DIR}/bin/
-cp -r -f /opt/rudder/bin/rpmvercmp ${CFE_DIR}/bin/
+# should not be used anymore (9.0)
+rm -r -f ${CFE_DIR}/bin/
 
 # Setup service at first install - or reinstallation after removal
 if [ "${CFRUDDER_FIRST_INSTALL}" = "true" ] || [ "${REINSTALL}" = "true" ]
