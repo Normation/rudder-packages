@@ -60,6 +60,25 @@ fi
 # should not be used anymore (9.0)
 rm -r -f ${CFE_DIR}/bin/
 
+# migrate hooks to their new place (9.0)
+OLD_HOOKS="/var/rudder/hooks.d"
+NEW_HOOKS="/opt/rudder/var/hooks.d"
+if [ -d "${OLD_HOOKS}" ]
+then
+  if [ -d "${NEW_HOOKS}" ]; then
+    mv "${OLD_HOOKS}"/* "${NEW_HOOKS}"/
+    rmdir "${OLD_HOOKS}"
+  else
+    mv "${OLD_HOOKS}" "${NEW_HOOKS}"
+  fi
+  ln -s "${NEW_HOOKS}" "${OLD_HOOKS}"
+elif [ ! -e "${OLD_HOOKS}" ]
+then
+  # hooks directory must exist to make sure it is redirected properly
+  mkdir -p "${NEW_HOOKS}"
+  ln -s "${NEW_HOOKS}" "${OLD_HOOKS}"
+fi
+
 # Setup service at first install - or reinstallation after removal
 if [ "${CFRUDDER_FIRST_INSTALL}" = "true" ] || [ "${REINSTALL}" = "true" ]
 then
