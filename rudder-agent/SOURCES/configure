@@ -216,7 +216,7 @@ if ! echo "${SECURE_CFLAGS}" | grep -q 'fstack'; then
   test_cc "SECURE" "-fstack-protector" ""
 fi
 
-test_cc "SECURE" "--fstack-clash-protection" ""
+test_cc "SECURE" "-fstack-clash-protection" ""
 
 # full relro
 if [ "${CROSS_COMPILE}" = "" ]; then
