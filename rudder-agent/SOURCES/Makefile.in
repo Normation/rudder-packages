@@ -226,7 +226,8 @@ build-openssl: openssl-source
 build-libcurl: libcurl-source @openssl_DEP@
 	# pkcconfig give openssl build configuration, but it point to final installation path (/opt/rudder)
 	# since we need the temporary path during build we need to add -I and -L
-	cd libcurl-source && ./configure --prefix=$(RUDDER_DIR) @LIBCURL_ARGS@ --without-nghttp2 --without-hyper --without-libpsl --disable-tls-srp --disable-rtsp --enable-ipv6 --without-librtmp --without-ldap-lib CPPFLAGS="-I$(CURDIR)/dependencies$(RUDDER_DIR)/include" $(BUILD_FLAGS_EXE)
+	# LDFLAGS are ignored inside configure so we need LD_LIBRARY_PATH
+	cd libcurl-source && LD_LIBRARY_PATH=$(CURDIR)/dependencies$(RUDDER_DIR)/lib ./configure --prefix=$(RUDDER_DIR) @LIBCURL_ARGS@ --without-nghttp2 --without-hyper --without-libpsl --disable-tls-srp --disable-rtsp --enable-ipv6 --without-librtmp --without-ldap-lib CPPFLAGS="-I$(CURDIR)/dependencies$(RUDDER_DIR)/include" $(BUILD_FLAGS_EXE)
 	# is for loading dependencies of libcurl during the build of curl
 	cd libcurl-source && $(MAKE)
 	cd libcurl-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
@@ -276,7 +277,7 @@ build-cfengine-real: $(CFENGINE_DEPS) cfengine-source
 	if [ "$<" != "cfengine-source" ]; then ../../build-caching put dependencies/ $(DEPS_CACHE_PARAMETERS); fi
 	# build system tries to reload systemd by itself
 	cd cfengine-source && $(SED) 's/-systemctl daemon-reload/#-systemctl daemon-reload/' misc/Makefile.in > misc/Makefile.in.new && mv misc/Makefile.in.new misc/Makefile.in
-	cd cfengine-source && ./configure --prefix=$(RUDDER_DIR) --with-workdir=/var/rudder/cfengine-community --without-postgresql --without-mysql $(CFENGINE_ARGS) $(BUILD_FLAGS_EXE)
+	cd cfengine-source && LD_LIBRARY_PATH=$(CURDIR)/dependencies$(RUDDER_DIR)/lib ./configure --prefix=$(RUDDER_DIR) --with-workdir=/var/rudder/cfengine-community --without-postgresql --without-mysql $(CFENGINE_ARGS) $(BUILD_FLAGS_EXE)
 	cd cfengine-source && $(MAKE)
 	cd cfengine-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
 	touch $@

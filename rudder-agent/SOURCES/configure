@@ -183,7 +183,7 @@ else
 fi
 
 # linux use GNU ld and produce elf files
-SYSTEM_LDFLAGS="-Wl,-R/opt/rudder/lib -Wl,-R\$(CURDIR)/dependencies/opt/rudder/lib"
+SYSTEM_LDFLAGS="-Wl,-R/opt/rudder/lib"
 
 # Openssl configuration
 if [ -x /usr/bin/dpkg ] && [ "$(dpkg --print-architecture)" = "i386" ] ; then
