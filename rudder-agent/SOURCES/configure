@@ -210,21 +210,24 @@ test_cc() {
 # Test if compiler supports hardening flags
 # test options one by one to enable as many as possible
 
-# try strong first
-test_cc "SECURE" "-fstack-protector-strong" "-fstack-protector-strong"
-
-# fallback to basic
+# try strong first, fallback to basic
+test_cc "SECURE" "-fstack-protector-strong" ""
 if ! echo "${SECURE_CFLAGS}" | grep -q 'fstack'; then
-  test_cc "SECURE" "-fstack-protector" "-fstack-protector"
+  test_cc "SECURE" "-fstack-protector" ""
 fi
+
+test_cc "SECURE" "--fstack-clash-protection" ""
 
 # full relro
 if [ "${CROSS_COMPILE}" = "" ]; then
   test_cc "SECURE" "" "-Wl,-z,relro -Wl,-z,now"
 fi
 
-# fortify source
-test_cc "SECURE" "-D_FORTIFY_SOURCE=2" ""
+# Try 3, fallback to 2
+test_cc "SECURE" "-D_FORTIFY_SOURCE=3" ""
+if ! echo "${SECURE_CFLAGS}" | grep -q 'D_FORTIFY_SOURCE'; then
+  test_cc "SECURE" "-D_FORTIFY_SOURCE=2" ""
+fi
 
 # Test if compiler supports pie flags if enabled
 if [ "${USE_PIE}" = "true" ]; then
