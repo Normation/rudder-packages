@@ -40,7 +40,7 @@ LANGDIR = rudder-sources/rudder/policies
 CORE_RESOURCES = $(WEBAPPDIR)/rudder/rudder-core/src/main/resources
 WEB_RESOURCES = $(WEBAPPDIR)/rudder/rudder-web/src/main/resources
 
-SECURE_CFLAGS = -fstack-protector-strong --fstack-clash-protection -D_FORTIFY_SOURCE=3 -fPIE
+SECURE_CFLAGS = -fstack-protector-strong -fstack-clash-protection -D_FORTIFY_SOURCE=3 -fPIE
 SECURE_LDFLAGS = -Wl,-z,relro -Wl,-z,now -pie
 
 PROXY_ENV = $(if $(PROXY), http_proxy=$(PROXY))
