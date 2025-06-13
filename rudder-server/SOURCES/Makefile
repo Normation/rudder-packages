@@ -23,11 +23,11 @@ RUDDER_VERSION_TO_PACKAGE =
 RUDDER_MAJOR_VERSION := $(shell echo ${RUDDER_VERSION_TO_PACKAGE} | cut -d'.' -f 1-2)
 # Original URL: https://repo1.maven.org/maven2/org/eclipse/jetty/jetty-home/${JETTY_RELEASE}/jetty-home-${JETTY_RELEASE}.tar.gz
 # Jetty 11 does not support the servlet version used by Lift, we stick to Jetty 10.
-JETTY_RELEASE = 11.0.24
-JETTY_SHA256 = 67e5ef69479dee0b721dcf588c71b97b51f9411eb23fd5145afc50191e61a239
+JETTY_RELEASE = 11.0.25
+JETTY_SHA256 = 29a71e28dfe2bb4402bfd8559a85d8bcded3c4af43c2188271b8c49ea70a4b3b
 # Original URL: https://www.openldap.org/software/download/OpenLDAP/openldap-release/openldap-2.6.2.tgz
-OPENLDAP_RELEASE = 2.6.8
-OPENLDAP_SHA256 = 48969323e94e3be3b03c6a132942dcba7ef8d545f2ad35401709019f696c3c4e
+OPENLDAP_RELEASE = 2.6.10
+OPENLDAP_SHA256 = c065f04aad42737aebd60b2fe4939704ac844266bc0aeaa1609f0cad987be516
 TMP_DIR := $(shell mktemp -dq)
 RELEASE_TYPE := $(shell if echo ${RUDDER_VERSION_TO_PACKAGE} | grep -q git; then echo nightly; else echo release; fi)
 

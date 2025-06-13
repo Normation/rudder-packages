@@ -31,30 +31,24 @@ lmdb_RELEASE = 0.9.33
 lmdb_SHA256 = 476801f5239c88c7de61c3390502a5d13965ecedef80105b5fb0fcb8373d1e53
 # We follow LTS releases
 # Original URL: https://www.openssl.org/source/openssl-$(OPENSSL_RELEASE).tar.gz
-openssl_RELEASE = 3.0.16
-openssl_SHA256 = 57e03c50feab5d31b152af2b764f10379aecd8ee92f16c985983ce4a99f7ef86
-# Original URL: http://pyyaml.org/download/libyaml/yaml-0.2.5.tar.gz
-libyaml_RELEASE = 0.2.5
-libyaml_SHA256 = c642ae9b75fee120b2d96c712538bd2cf283228d2337df2cf2988e3c02678ef4
-# Original URL: ftp://xmlsoft.org/libxml2/libxml2-2.9.7.tar.gz
-libxml2_RELEASE = 2.9.14
-libxml2_SHA256 = e8655291ee6f20c8abf57854ff0709e8b178c619001a4d850002aafc81885e17
+openssl_RELEASE = 3.5.0
+openssl_SHA256 = 344d0a79f1a9b08029b0744e2cc401a43f9c90acd1044d09a530b4885a8e9fc0
 # Original URL: https://curl.haxx.se/download/curl-7.58.0.tar.gz
 libcurl_RELEASE = 8.14.1
 libcurl_SHA256 = 6766ada7101d292b42b8b15681120acd68effa4a9660935853cf6d61f0d984d4
 # Original URL: https://github.com/PCRE2Project/pcre2/releases/download/pcre2-${pcre2_RELEASE}/pcre2-${pcre2_RELEASE}.tar.gz
-pcre2_RELEASE = 10.44
-pcre2_SHA256 = 86b9cb0aa3bcb7994faa88018292bc704cdbb708e785f7c74352ff6ea7d3175b
+pcre2_RELEASE = 10.45
+pcre2_SHA256 = 0e138387df7835d7403b8351e2226c1377da804e0737db0e071b48f07c9d12ee
 # Original URL: http://download.augeas.net/augeas-1.12.0.tar.gz
 augeas_RELEASE = 1.14.1
 augeas_SHA256 = 368bfdd782e4b9c7163baadd621359c82b162734864b667051ff6bcb57b9edff
 # Original URL: https://github.com/stedolan/jq/releases/download/jq-1.6/jq-1.6.tar.gz
-jq_RELEASE = 1.7.1
-jq_SHA256 = 478c9ca129fd2e3443fe27314b455e211e0d8c60bc8ff7df703873deeee580c2
+jq_RELEASE = 1.8.0
+jq_SHA256 = 91811577f91d9a6195ff50c2bffec9b72c8429dc05ec3ea022fd95c06d2b319c
 # We follow LTS releases
 # Original URL: https://cfengine-package-repos.s3.amazonaws.com/tarballs/cfengine-community-$(CFENGINE_RELEASE).tar.gz
-cfengine_RELEASE = 3.24.1
-cfengine_SHA256 = c73c3125052ddf3c6f2507a7062705104e3e1495396c71009e3ada3883751b1a
+cfengine_RELEASE = 3.24.2
+cfengine_SHA256 = 70a8499db1abfadb2b7968556539851077f104497c8ad979e6d2c0596e1c1037
 # Original URL: http://www.cpan.org/modules/by-module/App/App-cpanminus-1.7046.tar.gz
 cpanminus_RELEASE = 1.7046
 cpanminus_SHA256 = 3e8c9d9b44a7348f9acc917163dbfc15bd5ea72501492cea3a35b346440ff862
