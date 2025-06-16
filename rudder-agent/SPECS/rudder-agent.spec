@@ -158,6 +158,12 @@ BuildRequires: perl-IPC-Cmd
 # RHEL perl core is too minimal, we try to not add too much here
 Requires: perl-Digest
 BuildRequires: perl-Digest
+Requires: crontabs
+%endif
+
+## For SLES
+%if 0%{?suse_version}
+Requires: cron
 %endif
 
 # We need the ps command for scripts
