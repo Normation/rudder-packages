@@ -63,10 +63,12 @@ rm -r -f ${CFE_DIR}/bin/
 # migrate hooks to their new place (9.0)
 OLD_HOOKS="/var/rudder/hooks.d"
 NEW_HOOKS="/opt/rudder/var/hooks.d"
-if [ -d "${OLD_HOOKS}" ]
+if [ -d "${OLD_HOOKS}" ] && [ ! -L "${OLD_HOOKS}" ]
 then
   if [ -d "${NEW_HOOKS}" ]; then
-    mv "${OLD_HOOKS}"/* "${NEW_HOOKS}"/
+    if [ -n "$(ls -A ${OLD_HOOKS})" ]; then
+      mv "${OLD_HOOKS}"/* "${NEW_HOOKS}"/
+    fi
     rmdir "${OLD_HOOKS}"
   else
     mv "${OLD_HOOKS}" "${NEW_HOOKS}"
