@@ -76,7 +76,7 @@ Requires: postgresql
 
 ## RHEL
 %if 0%{?rhel}
-Requires: mod_ssl shadow-utils nettle
+Requires: mod_ssl shadow-utils nettle libpq
 BuildRequires: selinux-policy-devel openssl-devel nettle-devel clang
 %endif
 
@@ -91,10 +91,6 @@ Requires: python3-policycoreutils policycoreutils-python-utils
 
 %if 0%{?rhel} && 0%{?rhel} <= 9
 Requires: apr-util-bdb
-%endif
-
-%if 0%{?rhel} && 0%{?rhel} >= 9
-Requires: libpq
 %endif
 
 ## SLES
