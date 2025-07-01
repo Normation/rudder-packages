@@ -7,7 +7,7 @@ set -e
 ALL_ARGS_HASH=$(echo "$@" | openssl dgst -sha256 | cut -d" " -f2)
 
 # Dependencies defaults: use everything from system except fusion
-DEPENDENCIES="lmdb openssl libcurl pcre2 augeas jq perl fusion"
+DEPENDENCIES="lmdb openssl libcurl pcre2 augeas jq fusion"
 for dep in ${DEPENDENCIES}; do
   eval "BUILD_${dep}=false"
 done
@@ -176,11 +176,7 @@ else
 fi
 
 # Perl specific
-if [ "${BUILD_perl}" = "true" ]; then
-  PERL="\$(CURDIR)/fusion/opt/rudder/bin/perl"
-else
-  PERL="perl"
-fi
+PERL="perl"
 
 # linux use GNU ld and produce elf files
 SYSTEM_LDFLAGS="-Wl,-R/opt/rudder/lib"

@@ -71,7 +71,7 @@ mkdir -p $TMP $PKG
 
 # Compile the application and install it into the $PKG directory
 cd ../SOURCES
-./configure --disable-apt --disable-bindgen --disable-rust --disable-systemd --disable-pam --with-jq --with-perl --with-openssl --with-libcurl --with-augeas --with-lmdb --with-pcre2
+./configure --disable-apt --disable-bindgen --disable-rust --disable-systemd --disable-pam --with-jq --with-openssl --with-libcurl --with-augeas --with-lmdb --with-pcre2
 make --debug
 make install DESTDIR=$PKG/
 cd $PKG
