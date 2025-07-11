@@ -35,6 +35,7 @@
 %define with_libcurl false
 %define with_augeas false
 %define with_jq false
+%define with_zlib false
 %define with_perl false
 # replicate defaults from configure : all features
 %define enable_https true
@@ -60,6 +61,8 @@
 %define enable_pie false
 # no augeas or augeas too old
 %define with_augeas true
+# zlib too old since update of curl and openssl in https://github.com/Normation/rudder-packages/pull/3002
+%define with_zlib true
 # no rust
 %define enable_rust false
 %endif
@@ -79,6 +82,8 @@
 %define with_libyaml true
 #libxml too old
 %define with_libxml2 true
+# zlib too old since update of curl and openssl in https://github.com/Normation/rudder-packages/pull/3002
+%define with_zlib true
 # PIE and PIC incompatible on old gcc
 %define enable_pie false
 # no rust
@@ -322,6 +327,9 @@ opt="${opt} --with-libcurl"
 %endif
 %if "%{with_jq}" == "true"
 opt="${opt} --with-jq"
+%endif
+%if "%{with_zlib}" == "true"
+opt="${opt} --with-zlib"
 %endif
 
 # Defaults is to enable all features

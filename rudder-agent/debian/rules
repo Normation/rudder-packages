@@ -20,11 +20,11 @@ BUILD_LDFLAGS=$(shell [ -x /usr/bin/dpkg-buildflags ] && /usr/bin/dpkg-buildflag
 OS_CODENAME := $(shell lsb_release -s -c)
 # Ubuntu 10.04
 ifeq (lucid,$(OS_CODENAME))
-WITH = --disable-rust --disable-apt --disable-https --disable-systemd --disable-pie --with-perl --with-jq --with-openssl --with-libcurl --with-augeas --with-lmdb
+WITH = --disable-rust --disable-apt --disable-https --disable-systemd --disable-pie --with-perl --with-jq --with-openssl --with-libcurl --with-augeas --with-lmdb --with-zlib
 endif
 # Ubuntu 12.04
 ifeq (precise,$(OS_CODENAME))
-WITH = --disable-rust --disable-apt --disable-systemd --disable-pie --with-jq --with-openssl --with-libcurl --with-augeas --with-lmdb
+WITH = --disable-rust --disable-apt --disable-systemd --disable-pie --with-jq --with-openssl --with-libcurl --with-augeas --with-lmdb --with-zlib
 endif
 # Ubuntu 12.10
 ifeq (quantal,$(OS_CODENAME))
