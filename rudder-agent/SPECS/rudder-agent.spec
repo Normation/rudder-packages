@@ -266,6 +266,9 @@ opt="${opt} --with-pcre2"
 %if "%{with_jq}" == "true"
 opt="${opt} --with-jq"
 %endif
+%if "%{with_zlib}" == "true"
+opt="${opt} --with-zlib"
+%endif
 
 # Defaults is to enable all features
 %if "%{enable_https}" == "false"
