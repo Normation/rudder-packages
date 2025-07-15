@@ -107,8 +107,13 @@ BuildRequires: openssl-devel libtool-ltdl-devel git
 %if 0%{?rhel} && 0%{?rhel} <= 9
 Requires: jre-17-headless
 %endif
-%if 0%{?rhel} && 0%{?rhel} == 10 || 0%{?fedora}
+%if 0%{?rhel} && 0%{?rhel} == 10
 Requires: java-21-openjdk-headless
+%endif
+
+## AL2023 (also matched with fedora)
+%if 0%{?amzn2023}
+Requires: java-21-amazon-corretto-headless
 %endif
 
 ## SLES
