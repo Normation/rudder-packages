@@ -440,8 +440,7 @@ endif
 	$(INSTALL) -m 755 rudder-perl $(DESTDIR)/opt/rudder/bin/
 	$(INSTALL) -m 755 rudder-uuidgen $(DESTDIR)/opt/rudder/bin/
 	$(INSTALL) -m 755 debug-script/rudder-debug-info $(DESTDIR)/opt/rudder/bin/
-	$(INSTALL) -m 755 rudder-agent/bin/rudder $(DESTDIR)/opt/rudder/bin/
-	$(INSTALL) -m 755 rudder-agent/bin/rudder-client $(DESTDIR)/opt/rudder/bin/
+	$(INSTALL) -m 755 rudder-agent/bin/* $(DESTDIR)/opt/rudder/bin/
 
 	# Package scripts
 	mkdir -p $(DESTDIR)/opt/rudder/share/package-scripts
