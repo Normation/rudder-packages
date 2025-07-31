@@ -130,8 +130,11 @@ Requires: perl-interpreter perl-lib perl-English perl-Memoize perl-Sys-Hostname 
 %if 0%{?rhel} == 8
 Requires: perl-interpreter perl-Memoize perl-JSON-PP perl-Math-BigInt perl-Digest-MD5
 %endif
-%if 0%{?rhel} && 0%{?rhel} < 8
+%if 0%{?rhel} && 0%{?rhel} == 8
 Requires: perl(:MODULE_COMPAT_%(eval "`%{__perl} -V:version`"; echo $version)) perl-Digest-MD5
+%endif
+%if 0%{?rhel} && 0%{?rhel} < 7
+Requires: perl(:MODULE_COMPAT_%(eval "`%{__perl} -V:version`"; echo $version))
 %endif
 %if 0%{?suse_version}
 Requires: perl = %{perl_version}
