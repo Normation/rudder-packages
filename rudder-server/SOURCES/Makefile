@@ -127,7 +127,7 @@ build-ldap: openldap-source
 	cd openldap-source && make $(DEBUGOPT)
 	touch $@
 
-build-language:
+build-language: rudder-sources
 	cd $(LANGDIR) && make $(DEBUGOPT) build
 
 rudder-server-version:
