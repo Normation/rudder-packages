@@ -20,40 +20,40 @@ BUILD_LDFLAGS=$(shell [ -x /usr/bin/dpkg-buildflags ] && /usr/bin/dpkg-buildflag
 OS_CODENAME := $(shell lsb_release -s -c)
 # Ubuntu 18.04
 ifeq (bionic,$(OS_CODENAME))
-WITH = --with-openssl --with-libcurl --with-augeas --with-lmdb --with-pcre2 --with-augeas
+WITH = --disable-apt3 --with-openssl --with-libcurl --with-augeas --with-lmdb --with-pcre2 --with-augeas
 STRIP_OPT = --no-automatic-dbgsym
 endif
 # Ubuntu 20.04
 ifeq (focal,$(OS_CODENAME))
-WITH = --with-lmdb --with-libcurl --with-pcre2 --with-augeas
+WITH = --disable-apt3 --with-lmdb --with-libcurl --with-pcre2 --with-augeas
 STRIP_OPT = --no-automatic-dbgsym
 endif
 # Ubuntu 22.04
 ifeq (jammy,$(OS_CODENAME))
-WITH = --with-augeas --with-lmdb --with-libcurl
+WITH = --disable-apt3 --with-augeas --with-lmdb --with-libcurl
 STRIP_OPT = --no-automatic-dbgsym
 BUILDDEB_OPT = -- -Zxz
 endif
 # Ubuntu 24.04
 ifeq (noble,$(OS_CODENAME))
-WITH = --with-augeas --with-lmdb
+WITH = --disable-apt3 --with-augeas --with-lmdb
 STRIP_OPT = --no-automatic-dbgsym
 BUILDDEB_OPT = -- -Zxz
 endif
 
 # Debian 10
 ifeq (buster,$(OS_CODENAME))
-WITH = --with-augeas --with-lmdb --with-libcurl --with-pcre2 --with-augeas
+WITH = --disable-apt3 --with-augeas --with-lmdb --with-libcurl --with-pcre2 --with-augeas
 STRIP_OPT = --no-automatic-dbgsym
 endif
 # Debian 11
 ifeq (bullseye,$(OS_CODENAME))
-WITH = --with-augeas --with-lmdb --with-libcurl --with-augeas
+WITH = --disable-apt3 --with-augeas --with-lmdb --with-libcurl --with-augeas
 STRIP_OPT = --no-automatic-dbgsym
 endif
 # Debian 12
 ifeq (bookworm,$(OS_CODENAME))
-WITH = --with-augeas --with-lmdb
+WITH = --disable-apt3 --with-augeas --with-lmdb
 STRIP_OPT = --no-automatic-dbgsym
 endif
 # Debian 13
