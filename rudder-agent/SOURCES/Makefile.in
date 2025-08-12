@@ -198,7 +198,11 @@ RUST_TARGET = rudder-sources/rudder/target/release
 # Features for system updates
 CARGO_FEATURES_SU=""
 ifneq (false,$(USE_APT))
+ifneq (false,$(USE_APT3))
 CARGO_FEATURES_SU="apt"
+else
+CARGO_FEATURES_SU="apt-compat"
+endif
 endif
 
 @UNLESS_augeas@AUGEAS_DO=true
