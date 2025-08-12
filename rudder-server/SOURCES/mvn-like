@@ -21,7 +21,7 @@ namespace_url=$(echo "${namespace}" | tr '.' '/')
 
 if [[ "${mvn_version}" =~ SNAPSHOT ]]
 then
-  snap_version=$(curl -s ${SNAPSHOT_BASE_URL}/${namespace_url}/${name}/${mvn_version}/maven-metadata.xml sed -n '/<snapshot>/,/<.snapshot>/p' | tr -d '\n' | sed 's/.*<timestamp>\(.*\)<.timestamp>.*<buildNumber>\(.*\)<.buildNumber>.*/\1-\2/')
+  snap_version=$(curl -s ${SNAPSHOT_BASE_URL}/${namespace_url}/${name}/${mvn_version}/maven-metadata.xml | sed -n '/<snapshot>/,/<.snapshot>/p' | tr -d '\n' | sed 's/.*<timestamp>\(.*\)<.timestamp>.*<buildNumber>\(.*\)<.buildNumber>.*/\1-\2/')
   url=${SNAPSHOT_BASE_URL}/${namespace_url}/${name}/${mvn_version}/${name}-${mvn_version/SNAPSHOT/$snap_version}.war
 else
   url=${RELEASE_BASE_URL}/${namespace_url}/${name}/${mvn_version}/${name}-${mvn_version}.war
