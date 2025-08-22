@@ -1,0 +1,49 @@
+diff --color -ruN lib/FusionInventory/Agent/Task/Inventory/Generic/Rudder.pm lib.patched/FusionInventory/Agent/Task/Inventory/Generic/Rudder.pm
+--- fusion-source.bak/lib/FusionInventory/Agent/Task/Inventory/Generic/Rudder.pm	2025-08-22 15:54:12.429939985 +0200
++++ fusion-source/lib/FusionInventory/Agent/Task/Inventory/Generic/Rudder.pm	2025-08-22 15:54:11.433945026 +0200
+@@ -113,24 +113,30 @@
+         while (my $file = shift @ordered_script_list) {
+             my $script_file = $custom_properties_dir . "/" . $file;
+             my $properties;
++            my $output;
+             if (-f $script_file) {
+                 next if ($file =~ m/^\./);
+-
+                 if ($OSNAME eq 'MSWin32') {
+-                  # We assume the files are non world-writtable on windows
+-                  # -x does not make sense since the files are just interpreted by the powershell exe
+-
+-                  $logger->debug("Executing Rudder inventory hook $script_file") if $logger;
+-                  my $exit_code;
+-                  ($exit_code, $properties) = eval_timeout("powershell.exe -file \"$script_file\"", $hook_timeout);
+-                  if($exit_code == -1) {
+-                      $logger->error("Script $script_file timed out") if $logger;
+-                      next;
+-                  }
+-                  elsif ($exit_code > 0) {
+-                      $logger->error("Script $script_file failed to run properly, with exit code $exit_code") if $logger;
+-                      next;
+-                  }
++                    my $test_world_writable = 'C:\Program Files\Rudder\bin\Test-NonWorldWritable.ps1';
++                    # We assume the files are non world-writtable on windows
++                    # -x does not make sense since the files are just interpreted by the powershell exe
++                    my $is_non_world_writable;
++                    my $exit_code;
++                    ($is_non_world_writable, $output) = eval_timeout("powershell.exe -file \"$test_world_writable\" -Path \"$script_file\"", $hook_timeout);
++                    if ($is_non_world_writable == 0) {
++                        $logger->debug("Executing Rudder inventory hook $script_file") if $logger;
++                        ($exit_code, $properties) = eval_timeout("powershell.exe -file \"$script_file\"", $hook_timeout);
++                        if($exit_code == -1) {
++                            $logger->error("Script $script_file timed out") if $logger;
++                            next;
++                        } elsif ($exit_code > 0) {
++                            $logger->error("Script $script_file failed to run properly, with exit code $exit_code") if $logger;
++                            next;
++                        }
++                    } else {
++                        $logger->error("Skipping script $script_file as it is writable by a non local Administrator user") if $logger;
++                        next;
++                    }
+                 } else {
+                   # Ignore non-executable file, or folders
+                   next unless -x $script_file;
