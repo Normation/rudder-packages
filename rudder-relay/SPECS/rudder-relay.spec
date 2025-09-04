@@ -262,6 +262,7 @@ rm -rf %{buildroot}
 /opt/rudder/etc/rudder-apache-relay-nossl.conf
 /opt/rudder/etc/rudder-apache-relay-common.conf
 /opt/rudder/etc/rudder-apache-relay-ssl.conf
+/opt/rudder/etc/rudder-apache-relay-ssl.conf.j2
 /opt/rudder/etc/ssl/openssl.cnf
 /opt/rudder/share/commands/package
 /opt/rudder/share/man/man1/rudder-relayd.1.gz
