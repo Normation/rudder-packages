@@ -24,7 +24,7 @@ diff --color -ruN lib/FusionInventory/Agent/Task/Inventory/Generic/Rudder.pm lib
 -                      $logger->error("Script $script_file failed to run properly, with exit code $exit_code") if $logger;
 -                      next;
 -                  }
-+                    my $test_world_writable = 'C:\Program Files\Rudder\bin\Test-NonWorldWritable.ps1';
++                    my $test_world_writable = 'C:\Program Files\Rudder\bin\Test-WorldWritable.ps1';
 +                    # We assume the files are non world-writtable on windows
 +                    # -x does not make sense since the files are just interpreted by the powershell exe
 +                    my $is_non_world_writable;
