@@ -198,6 +198,11 @@ ifneq (false,$(USE_RUST))
 		cd rudder-sources/rudder/policies/module-types/inventory && make build || exit 1 ;\
 		cd $(CURDIR); ../../build-caching put $(RUST_TARGET)/ $${AGENT_CACHE_PARAMETERS} || true ;\
 	fi
+	AGENT_CACHE_PARAMETERS="--with-env name=rudder-agent-commands source=$${CACHE_SHA}}" ;\
+	if ! ../../build-caching get $(RUST_TARGET)/ $${AGENT_CACHE_PARAMETERS}; then \
+		cd rudder-sources/rudder/policies/module-types/commands && make build || exit 1 ;\
+		cd $(CURDIR); ../../build-caching put $(RUST_TARGET)/ $${AGENT_CACHE_PARAMETERS} || true ;\
+	fi
 endif
 ifneq (false,$(USE_BINDGEN))
 	# The deps versions are in the Cargo.lock in the repo root
@@ -385,6 +390,7 @@ install-agent: build cleanup-build rudder-agent rudder-agent.cron debug-script/r
 ifneq (false,$(USE_RUST))
 	$(INSTALL) -m 755 $(RUST_TARGET)/rudder-module-system-updates $(DESTDIR)/opt/rudder/bin/
 	$(INSTALL) -m 755 $(RUST_TARGET)/rudder-module-template $(DESTDIR)/opt/rudder/bin/
+	$(INSTALL) -m 755 $(RUST_TARGET)/rudder-module-commands $(DESTDIR)/opt/rudder/bin/
 	$(INSTALL) -m 755 $(RUST_TARGET)/rudder-module-inventory $(DESTDIR)/opt/rudder/bin/
 endif
 ifneq (false,$(USE_BINDGEN))
