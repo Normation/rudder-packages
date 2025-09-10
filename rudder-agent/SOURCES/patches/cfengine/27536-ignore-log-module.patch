@@ -1,0 +1,95 @@
+diff --git a/libpromises/mod_custom.c b/libpromises/mod_custom.c
+index 7b09727..2b25996 100644
+--- a/libpromises/mod_custom.c
++++ b/libpromises/mod_custom.c
+@@ -968,16 +968,6 @@ static bool PromiseModule_Validate(PromiseModule *module, const EvalContext *ctx
+             promiser,
+             filename,
+             line);
+-
+-        if ((n_log_msgs[LOG_LEVEL_ERR] == 0) && (n_log_msgs[LOG_LEVEL_CRIT] == 0))
+-        {
+-            Log(LOG_LEVEL_CRIT,
+-                "Bug in promise module - No error(s) logged for invalid %s promise with promiser '%s' (%s:%zu)",
+-                promise_type,
+-                promiser,
+-                filename,
+-                line);
+-        }
+     }
+ 
+     return valid;
+@@ -1036,17 +1026,6 @@ static PromiseResult PromiseModule_Evaluate(
+     const char *const filename = pp->parent_section->parent_bundle->source_path;
+     const size_t line = pp->offset.line;
+ 
+-    if (dontdo && (n_log_msgs[LOG_LEVEL_INFO] > 0))
+-    {
+-        Log(LOG_LEVEL_CRIT,
+-            "Bug in promise module - 'info:' log messages reported for %s promise with promiser '%s' (%s:%zu)"
+-            " while making changes on the system disabled",
+-            promise_type,
+-            promiser,
+-            filename,
+-            line);
+-    }
+-
+     if (result_str == NULL)
+     {
+         result = PROMISE_RESULT_FAIL;
+@@ -1086,27 +1065,6 @@ static PromiseResult PromiseModule_Evaluate(
+             "Promise with promiser '%s' was not kept by promise module '%s'",
+             promiser,
+             module->path);
+-
+-        if (!dontdo && (n_log_msgs[LOG_LEVEL_ERR] == 0) && (n_log_msgs[LOG_LEVEL_CRIT] == 0))
+-        {
+-            Log(LOG_LEVEL_CRIT,
+-                "Bug in promise module - Failed to log errors for not kept %s promise with promiser '%s' (%s:%zu)",
+-                promise_type,
+-                promiser,
+-                filename,
+-                line);
+-        }
+-        else if (dontdo &&
+-                 ((n_log_msgs[LOG_LEVEL_WARNING] + n_log_msgs[LOG_LEVEL_ERR] + n_log_msgs[LOG_LEVEL_CRIT]) == 0))
+-        {
+-            Log(LOG_LEVEL_CRIT,
+-                "Bug in promise module - Failed to log warnings for not kept %s promise with promiser '%s' (%s:%zu)"
+-                " while making changes on the system disabled",
+-                promise_type,
+-                promiser,
+-                filename,
+-                line);
+-        }
+     }
+     else if (StringEqual(result_str, "repaired"))
+     {
+@@ -1120,27 +1078,6 @@ static PromiseResult PromiseModule_Evaluate(
+             "Promise with promiser '%s' was repaired by promise module '%s'",
+             promiser,
+             module->path);
+-
+-        if (dontdo)
+-        {
+-            Log(LOG_LEVEL_CRIT,
+-                "Bug in promise module - %s promise with promiser '%s' (%s:%zu)"
+-                " repaired while making changes on the system disabled",
+-                promise_type,
+-                promiser,
+-                filename,
+-                line);
+-        }
+-
+-        if (n_log_msgs[LOG_LEVEL_INFO] == 0)
+-        {
+-            Log(LOG_LEVEL_CRIT,
+-                "Bug in promise module - Failed to log about changes made by a repaired %s promise with promiser '%s' (%s:%zu)",
+-                promise_type,
+-                promiser,
+-                filename,
+-                line);
+-        }
+     }
+     else if (StringEqual(result_str, "error"))
+     {
