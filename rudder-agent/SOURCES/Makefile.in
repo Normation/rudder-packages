@@ -203,9 +203,9 @@ ifneq (false,$(USE_RUST))
 	AGENT_SOURCE_SHA=$$(find rudder-sources/rudder/policies -type f | sort | xargs openssl dgst -sha256 | openssl dgst -sha256 | awk '{print $$2}') ;\
 	CACHE_SHA=$$(echo "$$DEPS_SOURCE_SHA $$AGENT_SOURCE_SHA" | openssl dgst -sha256 | awk '{print $$2}') ;\
 	AGENT_CACHE_PARAMETERS="--with-env name=rudder-agent source=$${CACHE_SHA}}" ;\
-	if ! ../../build-caching get $(RUST_TARGET)/ $${AGENT_CACHE_PARAMETERS}; then \
+	if ! ../../build-caching get $(RUST_TARGET)/rudder-module-system-updates $${AGENT_CACHE_PARAMETERS}; then \
 		cd rudder-sources/rudder/policies/module-types/system-updates && make build || exit 1 ;\
-		cd $(CURDIR); ../../build-caching put $(RUST_TARGET)/ $${AGENT_CACHE_PARAMETERS} || true ;\
+		cd $(CURDIR); ../../build-caching put $(RUST_TARGET)/rudder-module-system-updates $${AGENT_CACHE_PARAMETERS} || true ;\
 	fi
 endif
 	touch $@
