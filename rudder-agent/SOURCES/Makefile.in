@@ -34,8 +34,8 @@ lmdb_RELEASE = 0.9.32
 lmdb_SHA256 = 70d553f80968f5117f2f3d4d7f0b89cb8fb69dadc35131263a2499bb58f7d015
 # We follow LTS releases
 # Original URL: https://www.openssl.org/source/openssl-$(OPENSSL_RELEASE).tar.gz
-openssl_RELEASE = 3.0.16
-openssl_SHA256 = 57e03c50feab5d31b152af2b764f10379aecd8ee92f16c985983ce4a99f7ef86
+openssl_RELEASE = 3.0.17
+openssl_SHA256 = dfdd77e4ea1b57ff3a6dbde6b0bdc3f31db5ac99e7fdd4eaf9e1fbb6ec2db8ce
 # Original URL: http://pyyaml.org/download/libyaml/yaml-0.2.5.tar.gz
 libyaml_RELEASE = 0.2.5
 libyaml_SHA256 = c642ae9b75fee120b2d96c712538bd2cf283228d2337df2cf2988e3c02678ef4
@@ -43,8 +43,8 @@ libyaml_SHA256 = c642ae9b75fee120b2d96c712538bd2cf283228d2337df2cf2988e3c02678ef
 libxml2_RELEASE = 2.9.14
 libxml2_SHA256 = e8655291ee6f20c8abf57854ff0709e8b178c619001a4d850002aafc81885e17
 # Original URL: https://curl.haxx.se/download/curl-7.58.0.tar.gz
-libcurl_RELEASE = 8.14.1
-libcurl_SHA256 = 6766ada7101d292b42b8b15681120acd68effa4a9660935853cf6d61f0d984d4
+libcurl_RELEASE = 8.16.0
+libcurl_SHA256 = a21e20476e39eca5a4fc5cfb00acf84bbc1f5d8443ec3853ad14c26b3c85b970
 # Original URL: https://ftp.gnu.org/gnu/readline/readline-8.0.tar.gz
 readline_RELEASE = 8.2
 readline_SHA256 = 3feb7171f16a84ee82ca18a36d7b9be109a52c04f492a053331d7d1095007c35
