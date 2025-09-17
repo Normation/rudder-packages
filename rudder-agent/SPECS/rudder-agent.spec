@@ -148,10 +148,9 @@ Requires: libacl
 Conflicts: rudder-agent-thin
 
 # Specific requirements
+Requires: net-tools diffutils dmidecode
 
 ## For RHEL and Fedora
-Requires: cron net-tools diffutils dmidecode
-
 %if 0%{?rhel} || 0%{?fedora}
 BuildRequires: make byacc
 
