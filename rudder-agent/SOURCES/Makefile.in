@@ -31,11 +31,11 @@ lmdb_RELEASE = 0.9.33
 lmdb_SHA256 = 476801f5239c88c7de61c3390502a5d13965ecedef80105b5fb0fcb8373d1e53
 # We follow LTS releases
 # Original URL: https://www.openssl.org/source/openssl-$(OPENSSL_RELEASE).tar.gz
-openssl_RELEASE = 3.5.0
-openssl_SHA256 = 344d0a79f1a9b08029b0744e2cc401a43f9c90acd1044d09a530b4885a8e9fc0
+openssl_RELEASE = 3.5.3
+openssl_SHA256 = c9489d2abcf943cdc8329a57092331c598a402938054dc3a22218aea8a8ec3bf
 # Original URL: https://curl.haxx.se/download/curl-7.58.0.tar.gz
-libcurl_RELEASE = 8.14.1
-libcurl_SHA256 = 6766ada7101d292b42b8b15681120acd68effa4a9660935853cf6d61f0d984d4
+libcurl_RELEASE = 8.16.0
+libcurl_SHA256 = a21e20476e39eca5a4fc5cfb00acf84bbc1f5d8443ec3853ad14c26b3c85b970
 # Original URL: https://github.com/PCRE2Project/pcre2/releases/download/pcre2-${pcre2_RELEASE}/pcre2-${pcre2_RELEASE}.tar.gz
 pcre2_RELEASE = 10.45
 pcre2_SHA256 = 0e138387df7835d7403b8351e2226c1377da804e0737db0e071b48f07c9d12ee
