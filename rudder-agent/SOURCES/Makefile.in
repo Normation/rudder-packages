@@ -296,7 +296,7 @@ build-cfengine-real: $(CFENGINE_DEPS) cfengine-source
 	if [ "$<" != "cfengine-source" ]; then ../../build-caching put dependencies/ $(DEPS_CACHE_PARAMETERS); fi
 	# build system tries to reload systemd by itself
 	cd cfengine-source && $(SED) 's/-systemctl daemon-reload/#-systemctl daemon-reload/' misc/Makefile.in > misc/Makefile.in.new && mv misc/Makefile.in.new misc/Makefile.in
-	cd cfengine-source && LD_LIBRARY_PATH=$(CURDIR)/dependencies$(RUDDER_DIR)/lib ./configure --prefix=$(RUDDER_DIR) --with-workdir=/var/rudder/cfengine-community --without-postgresql --without-mysql $(CFENGINE_ARGS) $(BUILD_FLAGS_EXE)
+	cd cfengine-source && LD_LIBRARY_PATH=$(CURDIR)/dependencies$(RUDDER_DIR)/lib ./configure --prefix=$(RUDDER_DIR) --with-workdir=/var/rudder/cfengine-community --without-postgresql --without-mysql --with-libyaml --with-libcurl --with-openssl --with-libacl --with-lmdb $(CFENGINE_ARGS) $(BUILD_FLAGS_EXE)
 	cd cfengine-source && $(MAKE)
 	cd cfengine-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
 	touch $@
