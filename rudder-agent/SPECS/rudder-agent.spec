@@ -233,6 +233,11 @@ BuildRequires: openssl-devel
 Requires: openssl
 %endif
 
+%if 0%{?rhel} && "%{with_openssl}" == "true"
+# Required for openssl build script
+BuildRequires: perl-Time-Piece
+%endif
+
 %description
 Rudder is an open source configuration management and audit solution.
 
