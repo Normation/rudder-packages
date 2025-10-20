@@ -60,6 +60,9 @@ fi
 # should not be used anymore (9.0)
 rm -r -f ${CFE_DIR}/bin/
 
+# Not used since 4.3
+rm -f /etc/init.d/rudder
+
 # migrate hooks to their new place (9.0)
 OLD_HOOKS="/var/rudder/hooks.d"
 NEW_HOOKS="/opt/rudder/var/hooks.d"
