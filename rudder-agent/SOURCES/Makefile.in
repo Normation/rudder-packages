@@ -31,8 +31,8 @@ lmdb_RELEASE = 0.9.33
 lmdb_SHA256 = 476801f5239c88c7de61c3390502a5d13965ecedef80105b5fb0fcb8373d1e53
 # We follow LTS releases
 # Original URL: https://www.openssl.org/source/openssl-$(OPENSSL_RELEASE).tar.gz
-openssl_RELEASE = 3.5.3
-openssl_SHA256 = c9489d2abcf943cdc8329a57092331c598a402938054dc3a22218aea8a8ec3bf
+openssl_RELEASE = 3.5.4
+openssl_SHA256 = 967311f84955316969bdb1d8d4b983718ef42338639c621ec4c34fddef355e99
 # Original URL: https://curl.haxx.se/download/curl-7.58.0.tar.gz
 libcurl_RELEASE = 8.16.0
 libcurl_SHA256 = a21e20476e39eca5a4fc5cfb00acf84bbc1f5d8443ec3853ad14c26b3c85b970
