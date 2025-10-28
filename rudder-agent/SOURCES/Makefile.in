@@ -37,14 +37,14 @@ openssl_SHA256 = c9489d2abcf943cdc8329a57092331c598a402938054dc3a22218aea8a8ec3b
 libcurl_RELEASE = 8.16.0
 libcurl_SHA256 = a21e20476e39eca5a4fc5cfb00acf84bbc1f5d8443ec3853ad14c26b3c85b970
 # Original URL: https://github.com/PCRE2Project/pcre2/releases/download/pcre2-${pcre2_RELEASE}/pcre2-${pcre2_RELEASE}.tar.gz
-pcre2_RELEASE = 10.45
-pcre2_SHA256 = 0e138387df7835d7403b8351e2226c1377da804e0737db0e071b48f07c9d12ee
+pcre2_RELEASE = 10.47
+pcre2_SHA256 = c08ae2388ef333e8403e670ad70c0a11f1eed021fd88308d7e02f596fcd9dc16
 # Original URL: http://download.augeas.net/augeas-1.12.0.tar.gz
 augeas_RELEASE = 1.14.1
 augeas_SHA256 = 368bfdd782e4b9c7163baadd621359c82b162734864b667051ff6bcb57b9edff
 # Original URL: https://github.com/stedolan/jq/releases/download/jq-1.6/jq-1.6.tar.gz
-jq_RELEASE = 1.8.0
-jq_SHA256 = 91811577f91d9a6195ff50c2bffec9b72c8429dc05ec3ea022fd95c06d2b319c
+jq_RELEASE = 1.8.1
+jq_SHA256 = 2be64e7129cecb11d5906290eba10af694fb9e3e7f9fc208a311dc33ca837eb0
 # We follow LTS releases
 # Original URL: https://cfengine-package-repos.s3.amazonaws.com/tarballs/cfengine-community-$(CFENGINE_RELEASE).tar.gz
 cfengine_RELEASE = 3.24.2
