@@ -72,15 +72,8 @@ jetty:
 	chmod -R u+w jetty
 	rm -rf $(TMP_DIR)
 
-	# Remove useless / demo elements from Jetty
-	# jetty 10 is clean now
-	# rm -rf jetty/...
-
 	# Provide jetty's init script to the debian package's standard location
 	cp rudder-jetty.default ../debian/rudder-jetty.default
-
-	# Make sure there were no rejects
-	test `find . -name \*.rej | wc -l` = 0
 
 initial-promises: ./rudder-sources
 	rm -rf ./initial-promises/
