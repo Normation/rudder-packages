@@ -1,7 +1,7 @@
 <?xml version="1.0"  encoding="ISO-8859-1"?>
 <!DOCTYPE Configure PUBLIC "-//Jetty//Configure//EN" "http://www.eclipse.org/jetty/configure.dtd">
 
-<Configure class="org.eclipse.jetty.webapp.WebAppContext">
+<Configure class="org.eclipse.jetty.ee11.webapp.WebAppContext">
 
 	<Set name="contextPath">/rudder</Set>
 	<Set name="war">/opt/rudder/share/webapps/rudder.war</Set>
