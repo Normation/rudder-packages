@@ -1,15 +1,17 @@
-diff --color -ruN cfengine-core.old/libntech/libutils/logging.c cfengine-core/libntech/libutils/logging.c
---- cfengine-core.old/libntech/libutils/logging.c	2022-08-10 09:24:55.219272530 +0200
-+++ cfengine-core/libntech/libutils/logging.c	2022-08-10 09:25:10.535277405 +0200
-@@ -32,6 +32,7 @@
+Submodule libntech contains modified content
+diff --git a/libntech/libutils/logging.c b/libntech/libutils/logging.c
+index 03b0215..7c29c26 100644
+--- a/libntech/libutils/logging.c
++++ b/libntech/libutils/logging.c
+@@ -36,6 +36,7 @@
  #include <definitions.h>        /* CF_BUFSIZE */
- 
+
  char VPREFIX[1024] = ""; /* GLOBAL_C */
 +bool USE_SYSLOG = true;
- 
+
  static char AgentType[80] = "generic";
  static bool TIMESTAMPS = false;
-@@ -276,8 +277,10 @@
+@@ -280,8 +281,10 @@ static int LogLevelToSyslogPriority(LogLevel level)
  void LogToSystemLog(const char *msg, LogLevel level)
  {
      char logmsg[4096];
@@ -21,22 +23,35 @@ diff --color -ruN cfengine-core.old/libntech/libutils/logging.c cfengine-core/li
 +    }
  }
  #endif  /* !__MINGW32__ */
- 
-diff --color -ruN cfengine-core.old/libpromises/generic_agent.c cfengine-core/libpromises/generic_agent.c
---- cfengine-core.old/libpromises/generic_agent.c	2022-08-10 09:24:45.743269573 +0200
-+++ cfengine-core/libpromises/generic_agent.c	2022-08-10 09:25:31.711284340 +0200
-@@ -81,6 +81,8 @@
+
+@@ -321,7 +324,10 @@ void LogToSystemLogStructured(const int level, ...)
+         iov[i].iov_len = strlen(iov[i].iov_base);
+     }
+
+-    NDEBUG_UNUSED int ret = sd_journal_sendv(iov, num_pairs);
++    NDEBUG_UNUSED int ret;
++    if (USE_SYSLOG) {
++        ret = sd_journal_sendv(iov, num_pairs);
++    }
+     assert(ret == 0);
+     SeqDestroy(seq);
+     va_end(args);
+diff --git a/libpromises/generic_agent.c b/libpromises/generic_agent.c
+index 4b4b132fa..09861aa87 100644
+--- a/libpromises/generic_agent.c
++++ b/libpromises/generic_agent.c
+@@ -82,6 +82,8 @@
  #define AUGMENTS_CLASSES_REGULAR_EXPRESSIONS "regular_expressions"
  #define AUGMENTS_COMMENT_KEY "comment"
- 
+
 +extern bool USE_SYSLOG;
 +
  static pthread_once_t pid_cleanup_once = PTHREAD_ONCE_INIT; /* GLOBAL_T */
- 
+
  static char PIDFILE[CF_BUFSIZE] = ""; /* GLOBAL_C */
-@@ -2132,11 +2134,14 @@
+@@ -2197,11 +2199,14 @@ void SetFacility(const char *retval)
      Log(LOG_LEVEL_VERBOSE, "SET Syslog FACILITY = %s", retval);
- 
+
      CloseLog();
 -    OpenLog(ParseFacility(retval));
 -    SetSyslogFacility(ParseFacility(retval));
@@ -52,16 +67,17 @@ diff --color -ruN cfengine-core.old/libpromises/generic_agent.c cfengine-core/li
 +      }
      }
  }
- 
-diff --color -ruN cfengine-core.old/libpromises/mod_common.c cfengine-core/libpromises/mod_common.c
---- cfengine-core.old/libpromises/mod_common.c	2022-08-10 09:24:45.743269573 +0200
-+++ cfengine-core/libpromises/mod_common.c	2022-08-10 09:25:10.535277405 +0200
+
+diff --git a/libpromises/mod_common.c b/libpromises/mod_common.c
+index a923fb6f2..72f98cf38 100644
+--- a/libpromises/mod_common.c
++++ b/libpromises/mod_common.c
 @@ -48,7 +48,7 @@
  #include <syntax.h>
- 
+
  #define CF_LOGRANGE    "stdout|udp_syslog|(\042?[a-zA-Z]:\\\\.*)|(/.*)"
 -#define CF_FACILITY "LOG_USER,LOG_DAEMON,LOG_LOCAL0,LOG_LOCAL1,LOG_LOCAL2,LOG_LOCAL3,LOG_LOCAL4,LOG_LOCAL5,LOG_LOCAL6,LOG_LOCAL7"
 +#define CF_FACILITY "LOG_USER,LOG_DAEMON,LOG_LOCAL0,LOG_LOCAL1,LOG_LOCAL2,LOG_LOCAL3,LOG_LOCAL4,LOG_LOCAL5,LOG_LOCAL6,LOG_LOCAL7,NONE"
- 
+
  static const char *const POLICY_ERROR_VARS_CONSTRAINT_DUPLICATE_TYPE =
      "Variable contains existing data type contstraint %s, tried to "
