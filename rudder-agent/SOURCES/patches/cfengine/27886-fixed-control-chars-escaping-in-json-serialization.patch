@@ -1,0 +1,120 @@
+diff --git a/libntech/libutils/json.c b/libntech/libutils/json.c
+index 8a02fc1..74b0596 100644
+--- a/libntech/libutils/json.c
++++ b/libntech/libutils/json.c
+@@ -996,7 +996,14 @@ void JsonEncodeStringWriter(
+             WriterWriteChar(writer, 't');
+             break;
+         default:
+-            WriterWriteChar(writer, *c);
++            if (CharIsPrintableAscii(*c))
++            {
++                WriterWriteChar(writer, *c);
++            }
++            else
++            {
++                WriterWriteF(writer, "\\u%04x", (unsigned char) *c);
++            }
+         }
+     }
+ }
+@@ -1010,6 +1017,41 @@ char *JsonEncodeString(const char *const unescaped_string)
+     return StringWriterClose(writer);
+ }
+ 
++static bool HexStringToChar(const char *hex_string, char *res)
++{
++    assert(hex_string != NULL);
++
++    const int hex_len = 4;
++    if (strlen(hex_string) < hex_len)
++    {
++        return false;
++    }
++
++    char tmp[hex_len + 1];
++    memcpy(tmp, hex_string, hex_len);
++    tmp[hex_len] = '\0';
++
++    for (int i = 0; i < hex_len; ++i)
++    {
++        if (!isdigit(tmp[i]) &&
++          !(tmp[i] >= 'A' && tmp[i] <= 'F') &&
++          !(tmp[i] >= 'a' && tmp[i] <= 'f'))
++        {
++            return false;
++        }
++    }
++
++    char *end;
++    long c = strtol(tmp, &end, 16);
++    if ((*end != '\0') || (c > 255) || (c < 0))
++    {
++        return false;
++    }
++
++    *res = (unsigned char) c;
++    return true;
++}
++
+ static void JsonDecodeStringWriter(
+     const char *const escaped_string, Writer *const w)
+ {
+@@ -1046,6 +1088,19 @@ static void JsonDecodeStringWriter(
+                 WriterWriteChar(w, '\t');
+                 c++;
+                 break;
++            case 'u':
++                if (c[2] == '\0')
++                {
++                    break;
++                }
++
++                char d;
++                if (HexStringToChar(c + 2, &d))
++                {
++                    WriterWriteF(w, "%c", (unsigned char) d);
++                    c += 5;
++                }
++                break;
+             default:
+                 WriterWriteChar(w, *c);
+                 break;
+diff --git a/libntech/tests/unit/json_test.c b/libntech/tests/unit/json_test.c
+index 4dd192f..0703798 100644
+--- a/libntech/tests/unit/json_test.c
++++ b/libntech/tests/unit/json_test.c
+@@ -1846,6 +1846,33 @@ static void test_string_escape(void)
+     assert_json_strings_eq(
+         "Hello, world!\n'Blah', \"blah\".",
+         "Hello, world!\\n'Blah', \\\"blah\\\".");
++    assert_json_strings_eq(
++        "Hello blah",
++        "Hello \\u001bblah");
++
++    const char unescaped_short_hex[] = {
++        'B', 'l', 'a', 'h', '\\', 'u', '0', '0', '\0'};
++    const char escaped_short_hex[] = {
++        'B', 'l', 'a', 'h', '\\', '\\', 'u', '0', '0', '\0'};
++    assert_json_strings_eq(unescaped_short_hex, escaped_short_hex);
++
++    const char unescaped_invalid_u[] = {
++        'B', 'l', 'a', 'h', '\\', 'u', '\0'};
++    const char escaped_invalid_u[] = {
++        'B', 'l', 'a', 'h', '\\', '\\', 'u', '\0'};
++    assert_json_strings_eq(unescaped_invalid_u, escaped_invalid_u);
++
++    const char unescaped_valid_hex[] = {
++        'B', 'l', 'a', 'h', '\\', 'u', '0', '0', '1', 'b', '\0'};
++    const char escaped_valid_hex[] = {
++        'B', 'l', 'a', 'h', '\\', '\\', 'u', '0', '0', '1', 'b', '\0'};
++    assert_json_strings_eq(unescaped_valid_hex, escaped_valid_hex);
++
++    const char unescaped_invalid_hex[] = {
++        'B', 'l', 'a', 'h', '\\', 'u', '0', 'z', '1', 'b', '\0'};
++    const char escaped_invalid_hex[] = {
++        'B', 'l', 'a', 'h', '\\', '\\', 'u', '0', 'z', '1', 'b', '\0'};
++    assert_json_strings_eq(unescaped_invalid_hex, escaped_invalid_hex);
+ }
+ 
+ #define assert_json5_data_eq(_size, unescaped, escaped)           \
