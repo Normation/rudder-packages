@@ -255,8 +255,8 @@ if type sestatus >/dev/null 2>&1 && sestatus | grep -q "enabled"; then
   # Ensure inventory directories context is set by resetting
   # their context to the contexts defined in SELinux configuration,
   # including the file contexts defined in the rudder-webapp module
-  restorecon -RF /var/rudder/configuration-repository/techniques
-  restorecon -RF /var/rudder/run
+  restorecon -iRF /var/rudder/configuration-repository/techniques
+  restorecon -iRF /var/rudder/run
 fi
 %endif
 
@@ -346,7 +346,7 @@ if [ $1 -eq 0 ]; then
     if semodule -l | grep -q rudder-webapp; then
       # Remove the rudder-webapp SELinux policy
       semodule -r rudder-webapp
-      restorecon -RF /var/rudder/configuration-repository/techniques
+      restorecon -iRF /var/rudder/configuration-repository/techniques
     fi
   fi
 %endif
