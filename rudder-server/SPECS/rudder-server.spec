@@ -245,6 +245,21 @@ DB_NOT_INITIALIZED="false"
 LOG_FILE="/var/log/rudder/install/%{name}-$(date +%%Y%%m%%d).log"
 echo "`date` - Starting %{name} post installation script" >> ${LOG_FILE}
 
+%if 0%{?rhel} || 0%{?fedora}
+# SELinux support
+# Check "sestatus" presence, and if here tweak our installation to be
+# SELinux compliant
+if type sestatus >/dev/null 2>&1 && sestatus | grep -q "enabled"; then
+  # Add/Update the rudder-webapp SELinux policy
+  semodule -i /opt/rudder/share/selinux/rudder-webapp.pp
+  # Ensure inventory directories context is set by resetting
+  # their context to the contexts defined in SELinux configuration,
+  # including the file contexts defined in the rudder-webapp module
+  restorecon -RF /var/rudder/configuration-repository/techniques
+  restorecon -RF /var/rudder/run
+fi
+%endif
+
 # Do this ONLY at first install
 if [ $1 -eq 1 ]
 then
@@ -285,21 +300,6 @@ if ! /opt/rudder/share/package-scripts/rudder-server-postinst "${RUDDER_FIRST_IN
   echo "**************************************************************************************"
   /opt/rudder/bin/rudder-fix-repository-permissions  >> ${LOG_FILE}
 fi
-
-%if 0%{?rhel} || 0%{?fedora}
-# SELinux support
-# Check "sestatus" presence, and if here tweak our installation to be
-# SELinux compliant
-if type sestatus >/dev/null 2>&1 && sestatus | grep -q "enabled"; then
-  # Add/Update the rudder-webapp SELinux policy
-  semodule -i /opt/rudder/share/selinux/rudder-webapp.pp
-  # Ensure inventory directories context is set by resetting
-  # their context to the contexts defined in SELinux configuration,
-  # including the file contexts defined in the rudder-webapp module
-  restorecon -RF /var/rudder/configuration-repository/techniques
-  restorecon -RF /var/rudder/run
-fi
-%endif
 
 #=================================================
 # Pre Un-installation
