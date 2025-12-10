@@ -1,0 +1,1 @@
+/var/rudder/run(/.*)?                  gen_context(system_u:object_r:var_run_t,s0)

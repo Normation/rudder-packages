@@ -297,6 +297,7 @@ if type sestatus >/dev/null 2>&1 && sestatus | grep -q "enabled"; then
   # their context to the contexts defined in SELinux configuration,
   # including the file contexts defined in the rudder-webapp module
   restorecon -RF /var/rudder/configuration-repository/techniques
+  restorecon -RF /var/rudder/run
 fi
 %endif
 
