@@ -106,7 +106,7 @@ rudder-doc:
 PATCHES_SHA = $(shell find patches/ -type f | sort | xargs sha256sum | sha256sum | awk '{print $$1}')
 CACHE_PARAMETERS := --with-env name=openldap ldap=$(OPENLDAP_SHA256) patches=$(PATCHES_SHA) release_type=$(RELEASE_TYPE) build_path=$(CURDIR)
 BUILD_LDAP = $(shell ../../build-caching get openldap-source/ $(CACHE_PARAMETERS) || echo build-ldap)
-build: $(BUILD_LDAP) rudder-sources build-language rudder-doc jetty rudder.war
+build: $(BUILD_LDAP) rudder-sources build-rudderc rudder-doc jetty rudder.war
 	# save ldap build into cache
 	if [ "$(BUILD_LDAP)" != "" ]; then ../../build-caching put openldap-source/ $(CACHE_PARAMETERS); fi
 	touch $@
@@ -119,8 +119,8 @@ build-ldap: openldap-source
 	cd openldap-source && make $(DEBUGOPT)
 	touch $@
 
-build-language: rudder-sources
-	cd $(LANGDIR) && make $(DEBUGOPT) build
+build-rudderc: rudder-sources
+	cd $(LANGDIR) && make cargo-release BIN=rudderc
 
 rudder-server-version:
 	# versions details from the source tarball
@@ -170,7 +170,7 @@ install: build rudder-server-version initial-promises initial-ncf
 	cd openldap-source && make $(DEBUGOPT) install DESTDIR=$(DESTDIR)
 
 	# Install language
-	cd $(LANGDIR) && make $(DEBUGOPT) install DESTDIR=$(DESTDIR)
+	cd $(LANGDIR)/rudderc && make $(DEBUGOPT) install DESTDIR=$(DESTDIR)
 
 	# Install openldap
 	install -m 640 slapd.conf $(DESTDIR)/opt/rudder/etc/openldap/slapd.conf
