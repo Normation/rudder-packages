@@ -185,23 +185,23 @@ ifneq (false,$(USE_RUST))
 	CACHE_SHA=$$(echo "$$DEPS_SOURCE_SHA $$AGENT_SOURCE_SHA" | openssl dgst -sha256 | awk '{print $$2}') ;\
 	AGENT_CACHE_PARAMETERS="--with-env name=rudder-agent-system-updates source=$${CACHE_SHA}}" ;\
 	if ! ../../build-caching get $(RUST_TARGET) $${AGENT_CACHE_PARAMETERS}; then \
-		cd rudder-sources/rudder/policies/module-types/system-updates && CARGO_FEATURES="${CARGO_FEATURES_SU}" make build || exit 1 ;\
-		cd $(CURDIR); ../../build-caching put $(RUST_TARGET)/rudder-module-system-updates $${AGENT_CACHE_PARAMETERS} || true ;\
+	    make cargo-release PACKAGE=rudder-module-system-updates FEATURES="${CARGO_FEATURES_SU}" || exit 1 ;\
+		../../build-caching put $(RUST_TARGET)/rudder-module-system-updates $${AGENT_CACHE_PARAMETERS} || true ;\
 	fi ;\
 	AGENT_CACHE_PARAMETERS="--with-env name=rudder-agent-template source=$${CACHE_SHA}}" ;\
 	if ! ../../build-caching get $(RUST_TARGET) $${AGENT_CACHE_PARAMETERS}; then \
-		cd rudder-sources/rudder/policies/module-types/template && make build || exit 1 ;\
-		cd $(CURDIR); ../../build-caching put $(RUST_TARGET)/rudder-module-template $${AGENT_CACHE_PARAMETERS} || true ;\
+	    make cargo-release PACKAGE=rudder-module-template || exit 1 ;\
+		../../build-caching put $(RUST_TARGET)/rudder-module-template $${AGENT_CACHE_PARAMETERS} || true ;\
 	fi ;\
 	AGENT_CACHE_PARAMETERS="--with-env name=rudder-agent-inventory source=$${CACHE_SHA}}" ;\
 	if ! ../../build-caching get $(RUST_TARGET) $${AGENT_CACHE_PARAMETERS}; then \
-		cd rudder-sources/rudder/policies/module-types/inventory && make build || exit 1 ;\
-		cd $(CURDIR); ../../build-caching put $(RUST_TARGET)/rudder-module-inventory $${AGENT_CACHE_PARAMETERS} || true ;\
+	    make cargo-release PACKAGE=rudder-module-inventory || exit 1 ;\
+		../../build-caching put $(RUST_TARGET)/rudder-module-inventory $${AGENT_CACHE_PARAMETERS} || true ;\
 	fi
 	AGENT_CACHE_PARAMETERS="--with-env name=rudder-agent-commands source=$${CACHE_SHA}}" ;\
 	if ! ../../build-caching get $(RUST_TARGET) $${AGENT_CACHE_PARAMETERS}; then \
-		cd rudder-sources/rudder/policies/module-types/commands && make build || exit 1 ;\
-		cd $(CURDIR); ../../build-caching put $(RUST_TARGET)/rudder-module-commands $${AGENT_CACHE_PARAMETERS} || true ;\
+	    make cargo-release PACKAGE=rudder-module-commands || exit 1 ;\
+		../../build-caching put $(RUST_TARGET)/rudder-module-commands $${AGENT_CACHE_PARAMETERS} || true ;\
 	fi
 endif
 ifneq (false,$(USE_BINDGEN))
