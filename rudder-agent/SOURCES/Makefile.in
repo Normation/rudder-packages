@@ -46,8 +46,8 @@ libxml2_SHA256 = e8655291ee6f20c8abf57854ff0709e8b178c619001a4d850002aafc81885e1
 pcre2_RELEASE = 10.44
 pcre2_SHA256 = 86b9cb0aa3bcb7994faa88018292bc704cdbb708e785f7c74352ff6ea7d3175b
 # Original URL: https://curl.haxx.se/download/curl-7.58.0.tar.gz
-libcurl_RELEASE = 8.16.0
-libcurl_SHA256 = a21e20476e39eca5a4fc5cfb00acf84bbc1f5d8443ec3853ad14c26b3c85b970
+libcurl_RELEASE = 8.18.0
+libcurl_SHA256 = e9274a5f8ab5271c0e0e6762d2fce194d5f98acc568e4ce816845b2dcc0cf88f
 # Original URL: https://ftp.gnu.org/gnu/readline/readline-8.0.tar.gz
 readline_RELEASE = 8.2
 readline_SHA256 = 3feb7171f16a84ee82ca18a36d7b9be109a52c04f492a053331d7d1095007c35
