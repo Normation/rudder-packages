@@ -70,7 +70,6 @@
 %if 0%{?rhel} && 0%{?rhel} < 8
 # no jq before RHEL8
 %define with_jq true
-%define with_openssl true
 %define enable_bindgen false
 %endif
 %if 0%{?rhel} && 0%{?rhel} <= 8
@@ -80,6 +79,7 @@
 %if 0%{?rhel} && 0%{?rhel} <= 9
 # need updated curl for RHEL 9 
 %define with_libcurl true
+%define with_openssl true
 %endif
 
 
@@ -100,12 +100,12 @@
 %define enable_rust false
 %endif
 %if 0%{?suse_version} && 0%{?suse_version} < 1500
-%define with_openssl true
 %define enable_bindgen false
 %endif
 %if 0%{?suse_version} && !0%{?is_opensuse}
 # no jq on sles, only on opensuse
 %define with_jq true
+%define with_openssl true
 %define with_libcurl true
 %define with_pcre2 true
 %endif

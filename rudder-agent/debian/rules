@@ -54,12 +54,12 @@ STRIP_OPT = --no-automatic-dbgsym
 endif
 # Ubuntu 20.04
 ifeq (focal,$(OS_CODENAME))
-WITH = --disable-apt3 --with-lmdb --with-libcurl --with-pcre2 --with-augeas
+WITH = --disable-apt3 --with-lmdb --with-openssl --with-libcurl --with-pcre2 --with-augeas
 STRIP_OPT = --no-automatic-dbgsym
 endif
 # Ubuntu 22.04
 ifeq (jammy,$(OS_CODENAME))
-WITH = --disable-apt3 --with-augeas --with-lmdb --with-libcurl
+WITH = --disable-apt3 --with-augeas --with-lmdb --with-openssl --with-libcurl
 STRIP_OPT = --no-automatic-dbgsym
 BUILDDEB_OPT = -- -Zxz
 endif
@@ -93,12 +93,12 @@ STRIP_OPT = --no-automatic-dbgsym
 endif
 # Debian 10
 ifeq (buster,$(OS_CODENAME))
-WITH = --disable-apt3 --with-augeas --with-lmdb --with-libcurl --with-pcre2 --with-augeas
+WITH = --disable-apt3 --with-augeas --with-lmdb --with-openssl --with-libcurl --with-pcre2 --with-augeas
 STRIP_OPT = --no-automatic-dbgsym
 endif
 # Debian 11
 ifeq (bullseye,$(OS_CODENAME))
-WITH = --disable-apt3 --with-augeas --with-lmdb --with-libcurl --with-augeas
+WITH = --disable-apt3 --with-augeas --with-lmdb --with-openssl --with-libcurl --with-augeas
 STRIP_OPT = --no-automatic-dbgsym
 endif
 # Debian 12
