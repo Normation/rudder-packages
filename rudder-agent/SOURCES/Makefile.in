@@ -47,8 +47,8 @@ jq_RELEASE = 1.8.1
 jq_SHA256 = 2be64e7129cecb11d5906290eba10af694fb9e3e7f9fc208a311dc33ca837eb0
 # We follow LTS releases
 # Original URL: https://cfengine-package-repos.s3.amazonaws.com/tarballs/cfengine-community-$(CFENGINE_RELEASE).tar.gz
-cfengine_RELEASE = 3.24.2
-cfengine_SHA256 = 70a8499db1abfadb2b7968556539851077f104497c8ad979e6d2c0596e1c1037
+cfengine_RELEASE = 3.24.3
+cfengine_SHA256 = cba848da96290c33e055751ce67a185b475a9922c9d96496c056691a7612d27f
 # Original URL: http://www.cpan.org/modules/by-module/App/App-cpanminus-1.7046.tar.gz
 cpanminus_RELEASE = 1.7046
 cpanminus_SHA256 = 3e8c9d9b44a7348f9acc917163dbfc15bd5ea72501492cea3a35b346440ff862
