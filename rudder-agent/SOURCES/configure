@@ -199,15 +199,15 @@ fi
 SYSTEM_LDFLAGS="-Wl,-R/opt/rudder/lib -Wl,-R\$(CURDIR)/dependencies/opt/rudder/lib"
 
 # Openssl configuration
+SSL_CONFIGURE="PERL=${PERL} ./config"
 if [ -x /usr/bin/dpkg ]; then
   if [ "$(dpkg --print-architecture)" = "i386" ] || [ "$(dpkg --print-architecture)" = "armhf" ]; then
     # Hack needed because openssl is not guessing correctly the architecture on debian 32 bits containers
     SSL_CONFIGURE="${PERL} ./Configure linux-generic32"
-  elif [ "${CROSS_COMPILE}" = "win64" ]; then
-    SSL_CONFIGURE="${PERL} ./Configure mingw64 --cross-compile-prefix=x86_64-w64-mingw32-"
-  else
-    SSL_CONFIGURE="PERL=${PERL} ./config"
   fi
+fi
+if [ "${CROSS_COMPILE}" = "win64" ]; then
+  SSL_CONFIGURE="${PERL} ./Configure mingw64 --cross-compile-prefix=x86_64-w64-mingw32-"
 fi
 
 # Test gcc flags
