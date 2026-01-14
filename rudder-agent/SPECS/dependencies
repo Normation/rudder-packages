@@ -1,5 +1,6 @@
 sles-12:gcc openssl-devel bison flex autoconf automake libtool zlib-devel libbz2-devel pam-devel libyaml-devel libxml2-devel libacl-devel readline-devel systemd-devel rpm-build
 sles-15:gcc openssl-devel bison flex autoconf automake libtool zlib-devel libbz2-devel pam-devel libyaml-devel libxml2-devel libacl-devel readline-devel systemd-devel augeas-devel clang7
+sles-16:gcc openssl-devel bison flex autoconf automake libtool zlib-devel libbz2-devel pam-devel libyaml-devel libxml2-devel libacl-devel readline-devel systemd-devel augeas-devel clang
 rhel-7:gcc openssl-devel bison flex autoconf automake libtool make byacc pam-devel perl-ExtUtils-MakeMaker perl-Digest perl-IPC-Cmd zlib-devel bzip2-devel libyaml-devel libxml2-devel libacl-devel perl-CPAN readline-devel systemd-devel augeas-devel clang perl-Time-Piece
 rhel-8:gcc openssl-devel bison flex autoconf automake libtool make byacc pam-devel perl-ExtUtils-MakeMaker perl-Digest perl-IPC-Cmd zlib-devel bzip2-devel libyaml-devel libxml2-devel libacl-devel perl-CPAN readline-devel systemd-devel augeas-devel clang perl-Time-Piece
 rhel-9:gcc openssl-devel bison flex autoconf automake libtool pcre2-devel make byacc pam-devel perl-ExtUtils-MakeMaker perl-Digest perl-IPC-Cmd zlib-devel bzip2-devel libyaml-devel libxml2-devel libacl-devel perl-CPAN systemd-devel readline-devel augeas-devel clang perl-Time-Piece
