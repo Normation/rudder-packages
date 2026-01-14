@@ -75,6 +75,10 @@
 %if 0%{?suse_version} && 0%{?suse_version} < 1500
 %define enable_bindgen false
 %endif
+%if 0%{?suse_version} && 0%{?suse_version} >= 1600
+# FIXME: remove once we have proper repos with clang
+%define enable_bindgen false
+%endif
 %if 0%{?suse_version} && !0%{?is_opensuse}
 # no jq on sles, only on opensuse
 %define with_jq true
