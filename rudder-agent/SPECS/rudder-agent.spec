@@ -183,8 +183,12 @@ Requires: jq
 %endif
 
 # SLES15
-%if 0%{?suse_version} && "%{enable_bindgen}" == "true"
+%if 0%{?suse_version} && 0%{?suse_version} < 1600 && "%{enable_bindgen}" == "true"
 BuildRequires: clang7
+%endif
+# SLES16
+%if 0%{?suse_version} && 0%{?suse_version} >= 1600 && "%{enable_bindgen}" == "true"
+BuildRequires: clang
 %endif
 
 # RHEL
