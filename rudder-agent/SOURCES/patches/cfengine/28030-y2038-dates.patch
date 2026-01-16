@@ -1,42 +1,66 @@
-From 411749d98117c1cb686c2b58c65b6ebcec4082d0 Mon Sep 17 00:00:00 2001
-From: Alexis Mousset <alexis.mousset@rudder.io>
-Date: Thu, 11 Dec 2025 22:30:22 +0100
-Subject: [PATCH] Adapt date constraints to allow dates after Y2038
+commit fb9c0d01488750b70d84828485e4a726e10f9bf1
+Author: Alexis Mousset <alexis.mousset@rudder.io>
+Date:   Fri Jan 16 10:52:49 2026 +0100
 
-Detect time_t size at compile time and set the date range accordingly.
+    patch
 
-Changelog: Title
-Ticket: CFE-4620
----
- configure.ac                                  |  5 +++
- libpromises/cf3.defs.h                        |  7 +++-
- .../00_basics/03_bodies/file-select-Y2038.cf  | 34 +++++++++++++++++++
- .../03_bodies/file-select-Y2038.cf.sub        | 32 +++++++++++++++++
- 4 files changed, 77 insertions(+), 1 deletion(-)
- create mode 100644 tests/acceptance/00_basics/03_bodies/file-select-Y2038.cf
- create mode 100644 tests/acceptance/00_basics/03_bodies/file-select-Y2038.cf.sub
-
-diff --git a/configure.ac b/configure.ac
-index 347ba78f0e..ae69ca1444 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -848,6 +848,11 @@ AC_CHECK_TYPES(socklen_t, [], [], [[
- #include <sys/socket.h>
- ]])
+diff --git a/configure b/configure
+index 11cf67e..82cdb3e 100755
+--- a/configure
++++ b/configure
+@@ -16968,6 +16968,47 @@ _ACEOF
+ fi
  
-+AC_CHECK_SIZEOF(time_t)
+ 
++# The cast to long int works around a bug in the HP C Compiler
++# version HP92453-01 B.11.11.23709.GP, which incorrectly rejects
++# declarations like 'int a3[[(sizeof (unsigned char)) >= 0]];'.
++# This bug is HP SR number 8606223364.
++{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking size of time_t" >&5
++printf %s "checking size of time_t... " >&6; }
++if test ${ac_cv_sizeof_time_t+y}
++then :
++  printf %s "(cached) " >&6
++else case e in #(
++  e) if ac_fn_c_compute_int "$LINENO" "(long int) (sizeof (time_t))" "ac_cv_sizeof_time_t"        "$ac_includes_default"
++then :
++
++else case e in #(
++  e) if test "$ac_cv_type_time_t" = yes; then
++     { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: error: in '$ac_pwd':" >&5
++printf "%s\n" "$as_me: error: in '$ac_pwd':" >&2;}
++as_fn_error 77 "cannot compute sizeof (time_t)
++See 'config.log' for more details" "$LINENO" 5; }
++   else
++     ac_cv_sizeof_time_t=0
++   fi ;;
++esac
++fi
++ ;;
++esac
++fi
++{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_sizeof_time_t" >&5
++printf "%s\n" "$ac_cv_sizeof_time_t" >&6; }
++
++
++
++printf "%s\n" "#define SIZEOF_TIME_T $ac_cv_sizeof_time_t" >>confdefs.h
++
++
 +if test "x$ac_cv_sizeof_time_t" = "x8"; then
-+	AC_DEFINE(HAVE_64BIT_TIME_T, 1, [Define if time_t is 64-bit])
++
++printf "%s\n" "#define HAVE_64BIT_TIME_T 1" >>confdefs.h
++
 +fi
 +
- dnl ######################################################################
- dnl Checks for typedefs, structures, and compiler characteristics.
- dnl ######################################################################
+ 
+ { $as_echo "$as_me:${as_lineno-$LINENO}: checking for an ANSI C-conforming const" >&5
+ $as_echo_n "checking for an ANSI C-conforming const... " >&6; }
 diff --git a/libpromises/cf3.defs.h b/libpromises/cf3.defs.h
-index 63469802d1..fe02dba7c3 100644
+index 6294c92..10ce3a9 100644
 --- a/libpromises/cf3.defs.h
 +++ b/libpromises/cf3.defs.h
-@@ -562,7 +562,12 @@ typedef enum
+@@ -556,7 +556,12 @@ typedef enum
  
  #define CF_BOOL      "true,false,yes,no,on,off"
  #define CF_LINKRANGE "symlink,hardlink,relative,absolute"
@@ -52,7 +76,7 @@ index 63469802d1..fe02dba7c3 100644
   * compatibility. WARNING: internally they are stored as longs, possibly
 diff --git a/tests/acceptance/00_basics/03_bodies/file-select-Y2038.cf b/tests/acceptance/00_basics/03_bodies/file-select-Y2038.cf
 new file mode 100644
-index 0000000000..69fc0dbeb5
+index 0000000..69fc0db
 --- /dev/null
 +++ b/tests/acceptance/00_basics/03_bodies/file-select-Y2038.cf
 @@ -0,0 +1,34 @@
@@ -92,7 +116,7 @@ index 0000000000..69fc0dbeb5
 +}
 diff --git a/tests/acceptance/00_basics/03_bodies/file-select-Y2038.cf.sub b/tests/acceptance/00_basics/03_bodies/file-select-Y2038.cf.sub
 new file mode 100644
-index 0000000000..dbe58efcba
+index 0000000..dbe58ef
 --- /dev/null
 +++ b/tests/acceptance/00_basics/03_bodies/file-select-Y2038.cf.sub
 @@ -0,0 +1,32 @@

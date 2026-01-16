@@ -339,7 +339,7 @@ build-cfengine-real: $(CFENGINE_DEPS) cfengine-source
 	if type autoconf 2>/dev/null && [ $$(autoconf --version | sed -n '/^autoconf/s/[^0-9]*//gp') -ge 264 ]; then cd cfengine-source && autoreconf -Wno-portability --force --install -I m4; else touch -d+1min configure Makefile.in; fi
 	# build system tries to reload systemd by itself
 	cd cfengine-source && $(SED) 's/-systemctl daemon-reload/#-systemctl daemon-reload/' misc/Makefile.in > misc/Makefile.in.new && mv misc/Makefile.in.new misc/Makefile.in
-	cd cfengine-source && ./configure --prefix=$(RUDDER_DIR) --with-workdir=/var/rudder/cfengine-community --without-postgresql --without-mysql $(CFENGINE_ARGS) $(BUILD_FLAGS_EXE) CPPFLAGS="-I$(CURDIR)/dependencies$(RUDDER_DIR)/include/libxml2"
+	cd cfengine-source && ./configure --disable-maintainer-mode --prefix=$(RUDDER_DIR) --with-workdir=/var/rudder/cfengine-community --without-postgresql --without-mysql $(CFENGINE_ARGS) $(BUILD_FLAGS_EXE) CPPFLAGS="-I$(CURDIR)/dependencies$(RUDDER_DIR)/include/libxml2"
 	cd cfengine-source && $(MAKE)
 	cd cfengine-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
 # solaris doesn't have uuidgen and needs one
