@@ -38,16 +38,20 @@
 %if 0%{?suse_version}
 %define apache                  apache2
 %define apache_tools            apache2-utils
-%define htpasswd_cmd            htpasswd2
 %define ldap_clients            openldap2-client
 %define apache_vhost_dir        %{apache}/vhosts.d
 %endif
 %if 0%{?rhel} || 0%{?fedora}
 %define apache                  httpd
 %define apache_tools            httpd-tools
-%define htpasswd_cmd            htpasswd
 %define ldap_clients            openldap-clients
 %define apache_vhost_dir        %{apache}/conf.d
+%endif
+
+%if 0%{?suse_version} && 0%{?suse_version} <= 1500
+%define htpasswd_cmd            htpasswd2
+%else
+%define htpasswd_cmd            htpasswd
 %endif
 
 # avoid error during byte compilation of pyc since they are removed anyway
