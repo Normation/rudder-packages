@@ -237,7 +237,11 @@ BuildRequires: readline-devel
 
 ## Openssl dependencies
 %if "%{with_openssl}" == "false"
+%if 0%{?suse_version} && 0%{?suse_version} >= 1600
+BuildRequires: libopenssl-3-devel
+%else
 BuildRequires: openssl-devel
+%endif
 Requires: openssl
 %endif
 
