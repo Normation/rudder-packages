@@ -120,7 +120,7 @@ Requires: (python or python3)
 %if 0%{?rhel} && 0%{?rhel} < 8
 Requires: python
 %endif
-%if 0%{?sle_version} >= 150000
+%if 0%{?suse_version} >= 1500
 Requires: python3-base
 %endif
 
@@ -237,7 +237,11 @@ BuildRequires: readline-devel
 
 ## Openssl dependencies
 %if "%{with_openssl}" == "false"
+%if 0%{?suse_version} && 0%{?suse_version} >= 1600
+BuildRequires: libopenssl-3-devel
+%else
 BuildRequires: openssl-devel
+%endif
 Requires: openssl
 %endif
 
