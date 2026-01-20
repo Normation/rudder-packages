@@ -94,7 +94,12 @@ Requires: apr-util-bdb
 ## SLES
 %if 0%{?suse_version}
 Requires: pwdutils gpg2
+%endif
+%if 0%{?suse_version} && 0%{?suse_version} < 1600
 BuildRequires: libopenssl-devel clang7
+%endif
+%if 0%{?suse_version} && 0%{?suse_version} >= 1600
+BuildRequires: libopenssl-3-devel clang
 %endif
 
 ## AL 2023
