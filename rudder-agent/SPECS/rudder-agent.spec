@@ -209,10 +209,13 @@ Requires: libyaml
 BuildRequires: libxml2-devel
 Requires: libxml2
 
-## pcre build dependencies
-%if "%{with_pcre2}" == "false"
+## pcre2 dependencies
 BuildRequires: pcre2-devel
+%if 0%{?rhel} && "%{with_pcre2}" == "false"
 Requires: pcre2
+%endif
+%if 0%{?suse_version} && "%{with_pcre2}" == "false"
+Requires: libpcre2-8-0
 %endif
 
 ## CURL dependencies
