@@ -143,7 +143,7 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 # Generic requirements
 BuildRequires: gcc bison flex autoconf automake libtool pam-devel libacl-devel
-Requires: libacl
+Requires: libacl bzip2
 Conflicts: rudder-agent-thin
 
 # Specific requirements
