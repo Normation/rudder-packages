@@ -210,7 +210,9 @@ BuildRequires: libxml2-devel
 Requires: libxml2
 
 ## pcre2 dependencies
+%if "%{with_pcre2}" == "false"
 BuildRequires: pcre2-devel
+%endif
 %if 0%{?rhel} && "%{with_pcre2}" == "false"
 Requires: pcre2
 %endif
