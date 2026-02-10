@@ -40,6 +40,12 @@ WITH = --disable-apt3 --with-augeas --with-lmdb
 STRIP_OPT = --no-automatic-dbgsym
 BUILDDEB_OPT = -- -Zxz
 endif
+# Ubuntu 26.04
+ifeq (resolute,$(OS_CODENAME))
+WITH = --with-augeas --with-lmdb
+STRIP_OPT = --no-automatic-dbgsym
+BUILDDEB_OPT = -- -Zxz
+endif
 
 # Debian 10
 ifeq (buster,$(OS_CODENAME))
