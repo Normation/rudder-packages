@@ -491,6 +491,8 @@ endif
 	@IF_systemd@ $(INSTALL) -m 644 systemd/rudder-agent.service $(DESTDIR)/lib/systemd/system/rudder-agent.service
 	@IF_systemd@ $(INSTALL) -m 644 systemd/rudder-cf-execd.service $(DESTDIR)/lib/systemd/system/rudder-cf-execd.service
 	@IF_systemd@ $(INSTALL) -m 644 systemd/rudder-cf-serverd.service $(DESTDIR)/lib/systemd/system/rudder-cf-serverd.service
+	@IF_systemd@ mkdir -p $(DESTDIR)/lib/systemd/system-preset
+	@IF_systemd@ $(INSTALL) -m 644 systemd/85-rudder.preset $(DESTDIR)/lib/systemd/system-preset/85-rudder.preset
 	# Init files
 	@UNLESS_systemd@ mkdir -p $(DESTDIR)/etc/init.d
 	@UNLESS_systemd@ mkdir -p $(DESTDIR)/etc/default
