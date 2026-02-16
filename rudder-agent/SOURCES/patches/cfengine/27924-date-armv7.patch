@@ -1,0 +1,79 @@
+From 9420b696dd49c0c7aefb1ccbc7ff69b5269cc590 Mon Sep 17 00:00:00 2001
+From: Alexis Mousset <alexis.mousset@rudder.io>
+Date: Wed, 11 Feb 2026 20:14:00 +0100
+Subject: [PATCH] Make time_t formatting more consistent
+
+A few cases did not use %jd + intmax_t. Make these consistent.
+Also prevents a segfault on ARMv7 when %lu was used.
+---
+ cf-agent/verify_files_utils.c  | 4 ++--
+ libpromises/evalfunction.c     | 6 ++++--
+ libpromises/locks.c            | 2 +-
+ libpromises/processes_select.c | 2 +-
+ 4 files changed, 8 insertions(+), 6 deletions(-)
+
+diff --git a/cf-agent/verify_files_utils.c b/cf-agent/verify_files_utils.c
+index 2bd9ea996a..008c7ec469 100644
+--- a/cf-agent/verify_files_utils.c
++++ b/cf-agent/verify_files_utils.c
+@@ -1672,8 +1672,8 @@ bool CopyRegularFile(EvalContext *ctx, const char *source, const char *dest, con
+             if (attr->copy.backup == BACKUP_OPTION_TIMESTAMP)
+             {
+                 stampnow = time((time_t *) NULL);
+-                snprintf(stamp, CF_BUFSIZE - 1, "_%lu_%s",
+-                         CFSTARTTIME, CanonifyName(ctime(&stampnow)));
++                snprintf(stamp, CF_BUFSIZE - 1, "_%jd_%s",
++                         (intmax_t) CFSTARTTIME, CanonifyName(ctime(&stampnow)));
+ 
+                 if (!JoinSuffix(backup, sizeof(backup), stamp))
+                 {
+diff --git a/libpromises/evalfunction.c b/libpromises/evalfunction.c
+index 97bf208549..2889cc6bef 100644
+--- a/libpromises/evalfunction.c
++++ b/libpromises/evalfunction.c
+@@ -7576,6 +7576,8 @@ static FnCallResult FnCallStrftime(ARG_UNUSED EvalContext *ctx,
+                                    const FnCall *fp,
+                                    const Rlist *finalargs)
+ {
++    assert(fp != NULL);
++
+     /* begin fn-specific content */
+ 
+     char *mode = RlistScalarValue(finalargs);
+@@ -7599,8 +7601,8 @@ static FnCallResult FnCallStrftime(ARG_UNUSED EvalContext *ctx,
+     if (tm_pointer == NULL)
+     {
+         Log(LOG_LEVEL_WARNING,
+-            "Function %s, the given time stamp '%ld' was invalid. (strftime: %s)",
+-            fp->name, when, GetErrorStr());
++            "Function %s, the given time stamp '%jd' was invalid. (strftime: %s)",
++            fp->name, (intmax_t) when, GetErrorStr());
+     }
+     else if (PortablyFormatTime(buffer, sizeof(buffer),
+                                 format_string, when, tm_pointer))
+diff --git a/libpromises/locks.c b/libpromises/locks.c
+index fb0ff0392e..05cc7e4c33 100644
+--- a/libpromises/locks.c
++++ b/libpromises/locks.c
+@@ -353,7 +353,7 @@ static bool NoOrObsoleteLock(LockData *entry, ARG_UNUSED size_t entry_size, size
+     time_t now = time(NULL);
+     if ((now - entry->time) <= (time_t) *max_old)
+     {
+-        Log(LOG_LEVEL_DEBUG, "Giving time to process '%d' (holding lock for %ld s)", entry->pid, (now - entry->time));
++        Log(LOG_LEVEL_DEBUG, "Giving time to process '%d' (holding lock for %jd s)", entry->pid, (intmax_t) (now - entry->time));
+     }
+     return ((now - entry->time) > (time_t) *max_old);
+ }
+diff --git a/libpromises/processes_select.c b/libpromises/processes_select.c
+index ed4534035b..31f65420b0 100644
+--- a/libpromises/processes_select.c
++++ b/libpromises/processes_select.c
+@@ -708,7 +708,7 @@ static void MaybeFixStartTime(const char *line,
+                     fields[j], ctime(&value));
+ 
+                 free(fields[j]);
+-                xasprintf(fields + j, "%ld", value);
++                xasprintf(fields + j, "%jd", (intmax_t) value);
+             }
+         }
+         else if (fields[k])
