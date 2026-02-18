@@ -1,0 +1,3 @@
+# agent service should be enabled by default and stay like this after upgrades
+enable rudder-agent
+enable rudder-cf-execd
