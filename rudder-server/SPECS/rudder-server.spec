@@ -80,7 +80,7 @@ Obsoletes: rudder-reports < 7.2
 
 Requires: %(../format-dependencies rpm %{old_epoch}:%{real_version} rudder-agent)
 Requires: %(../format-dependencies rpm %{real_version} rudder-relay)
-Requires: %{apache}, %{apache_tools}, git-core, iproute, rsync, openssl, %{ldap_clients}, curl, acl, zip, tar
+Requires: %{apache}, %{apache_tools}, git-core, iproute, rsync, openssl, %{ldap_clients}, curl, acl, zip, tar, bzip2
 
 # yum doesn't support installing a preferred package in a A or B situation
 # rudder-external-db will not prevent installation of postgresql-server on rhel/sles
