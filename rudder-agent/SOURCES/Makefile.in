@@ -425,7 +425,6 @@ cleanup-build:
 	rm -rf dependencies/opt/rudder/lib/engines*
 	rm -rf dependencies/opt/rudder/lib/pkgconfig
 	rm -f dependencies/opt/rudder/lib/xml2Conf.sh
-	rm -f dependencies/opt/rudder/lib/libjq* # libjq can be removed, jq loads its lib statically
 
 # We don't use it and it takes some space
 	printf "#!/bin/sh\necho 'cf-monitord has been removed from Rudder agent'\nexit 1" > dependencies/opt/rudder/bin/cf-monitord
