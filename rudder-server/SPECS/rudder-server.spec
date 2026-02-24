@@ -123,8 +123,11 @@ Requires: apache2 pwdutils libltdl7
 BuildRequires: libopenssl-devel git-core
 %endif
 
-%if 0%{?sle_version} && 0%{?sle_version} >= 150000
+%if 0%{?sle_version} && 0%{?sle_version} <= 150500
 Requires: java-17-openjdk-headless
+%endif
+%if 0%{?sle_version} && 0%{?sle_version} >= 150600
+Requires: java-21-openjdk-headless
 %endif
 
 ## Python 3
