@@ -235,6 +235,15 @@ BuildRequires: augeas-devel
 BuildRequires: readline-devel
 %endif
 
+# Rsync
+BuildRequires: librsync-devel
+%if 0%{?rhel}
+Requires: librsync
+%endif
+%if 0%{?suse_version}
+Requires: librsync2
+%endif
+
 ## Openssl dependencies
 %if "%{with_openssl}" == "false"
 %if 0%{?suse_version} && 0%{?suse_version} >= 1600
