@@ -32,6 +32,7 @@
 %define with_openssl false
 %define with_pcre2 false
 %define with_libcurl false
+%define with_librsync false
 %define with_augeas true
 %define with_jq false
 # replicate defaults from configure : all features
@@ -68,6 +69,11 @@
 # need updated curl for RHEL 9
 %define with_libcurl true
 %define with_openssl true
+%endif
+
+%if 0%{?rhel}
+# lives in EPEL, we need to embed it
+%define with_librsync true
 %endif
 
 
@@ -236,12 +242,17 @@ BuildRequires: readline-devel
 %endif
 
 # Rsync
+%if "%{with_librsync}" == "false"
 BuildRequires: librsync-devel
 %if 0%{?rhel}
 Requires: librsync
 %endif
 %if 0%{?suse_version}
 Requires: librsync2
+%endif
+%endif
+%if "%{with_librsync}" == "true"
+BuildRequires: cmake
 %endif
 
 ## Openssl dependencies
@@ -284,6 +295,9 @@ opt="${opt} --with-openssl"
 %endif
 %if "%{with_libcurl}" == "true"
 opt="${opt} --with-libcurl"
+%endif
+%if "%{with_librsync}" == "true"
+opt="${opt} --with-librsync"
 %endif
 %if "%{with_augeas}" == "true"
 opt="${opt} --with-augeas"
