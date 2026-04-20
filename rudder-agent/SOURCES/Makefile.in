@@ -55,6 +55,9 @@ cpanminus_SHA256 = 3e8c9d9b44a7348f9acc917163dbfc15bd5ea72501492cea3a35b346440ff
 # Original URL: https://github.com/fusioninventory/fusioninventory-agent/releases/download/2.3.19/FusionInventory-Agent-$(FUSION_RELEASE).tar.gz
 fusion_RELEASE = 2.6
 fusion_SHA256 = 83e0e350cc82781f1142e4bc8deea901324a23f9d64e8ead80102dfd680a83df
+# Original URL: https://github.com/librsync/librsync/releases/download/v2.3.4/librsync-2.3.4.tar.gz
+librsync_RELEASE = 2.3.4
+librsync_SHA256 = a0dedf9fff66d8e29e7c25d23c1f42beda2089fb4eac1b36e6acd8a29edfbd1f
 
 #CPAN_URL = https://www.cpan.org
 CPAN_URL = $(HTTPS)://repository.rudder.io/build-dependencies/cpan/$(RUDDER_MAJOR_VERSION)
@@ -94,6 +97,8 @@ install: install-agent
 @openssl_SOURCE@
 
 @libcurl_SOURCE@
+
+@librsync_SOURCE@
 
 @pcre2_SOURCE@
 
@@ -257,6 +262,13 @@ build-libcurl: libcurl-source @openssl_DEP@
 	cd libcurl-source && $(MAKE)
 	cd libcurl-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
 	touch $@
+
+build-librsync: librsync-source
+	cd librsync-source && cmake -DCMAKE_INSTALL_PREFIX=$(RUDDER_DIR) -DCMAKE_BUILD_TYPE=Release .
+	cd librsync-source && $(MAKE)
+	cd librsync-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
+	# We only need the lib
+	rm -rf $(CURDIR)/dependencies/$(RUDDER_DIR)/bin/rdiff
 
 build-pcre2: pcre2-source
 	cd pcre2-source && ./configure --prefix=$(RUDDER_DIR) $(BUILD_FLAGS_LIB)
