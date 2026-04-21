@@ -264,7 +264,7 @@ build-libcurl: libcurl-source @openssl_DEP@
 	touch $@
 
 build-librsync: librsync-source
-	cd librsync-source && cmake -DCMAKE_INSTALL_PREFIX=$(RUDDER_DIR) -DCMAKE_BUILD_TYPE=Release .
+	cd librsync-source && cmake -DCMAKE_INSTALL_LIBDIR=lib -DCMAKE_INSTALL_PREFIX=$(RUDDER_DIR) -DCMAKE_BUILD_TYPE=Release .
 	cd librsync-source && $(MAKE)
 	cd librsync-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
 
