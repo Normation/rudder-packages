@@ -267,8 +267,6 @@ build-librsync: librsync-source
 	cd librsync-source && cmake -DCMAKE_INSTALL_PREFIX=$(RUDDER_DIR) -DCMAKE_BUILD_TYPE=Release .
 	cd librsync-source && $(MAKE)
 	cd librsync-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
-	# We only need the lib
-	rm -rf $(CURDIR)/dependencies/$(RUDDER_DIR)/bin/rdiff
 
 build-pcre2: pcre2-source
 	cd pcre2-source && ./configure --prefix=$(RUDDER_DIR) $(BUILD_FLAGS_LIB)
@@ -294,9 +292,9 @@ build-jq: jq-source
 	cd jq-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
 	touch $@
 
-DEPS_CACHE_PARAMETERS = --with-env name=dependencies configure=$(CONFIGURE_ARGS_HASH) pcre2=${pcre2_SHA256} lmdb=$(lmdb_SHA256) openssl=$(openssl_SHA256) libcurl=$(libcurl_SHA256) augeas=$(augeas_SHA256) jq=$(jq_SHA256) @CACHE_ARGS@
+DEPS_CACHE_PARAMETERS = --with-env name=dependencies configure=$(CONFIGURE_ARGS_HASH) pcre2=${pcre2_SHA256} lmdb=$(lmdb_SHA256) openssl=$(openssl_SHA256) libcurl=$(libcurl_SHA256) librsync=$(librsync_SHA256) augeas=$(augeas_SHA256) jq=$(jq_SHA256) @CACHE_ARGS@
 # Strictly speaking we don't need jq here but it's easier to include it in the cache
-CFENGINE_DEPS = $(shell set -x; ../../build-caching get dependencies/ $(DEPS_CACHE_PARAMETERS) || echo @lmdb_DEP@ @openssl_DEP@ @libcurl_DEP@ @pcre2_DEP@ @augeas_DEP@ @jq_DEP@ )
+CFENGINE_DEPS = $(shell set -x; ../../build-caching get dependencies/ $(DEPS_CACHE_PARAMETERS) || echo @lmdb_DEP@ @openssl_DEP@ @libcurl_DEP@ @librsync_DEP@ @pcre2_DEP@ @augeas_DEP@ @jq_DEP@ )
 
 # Cache cfengine build itself
 CFENGINE_PATCHES_SHA = $(shell find patches/cfengine -type f | sort | xargs openssl dgst -sha256 | openssl dgst -sha256 | awk '{print $$2}')
