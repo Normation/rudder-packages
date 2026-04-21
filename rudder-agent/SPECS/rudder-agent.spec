@@ -71,8 +71,11 @@
 %define with_openssl true
 %endif
 
-%if 0%{?rhel}
+%if 0%{?rhel} || 0%{?fedora}
 # lives in EPEL, we need to embed it
+%define with_librsync true
+%endif
+%if 0%{?suse_version} && 0%{?suse_version} < 1600
 %define with_librsync true
 %endif
 
