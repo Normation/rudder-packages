@@ -2,15 +2,15 @@
 
 # Nice hack to write in python and have a valid script working everywhere
 # vim: syntax=python
-if type python >/dev/null 2>&1
+if type python2 >/dev/null 2>&1
 then
   if python -V 2>&1 | grep "Python 2\.[0-5]" >/dev/null
   then
-    echo "Python to old" 1>&2
+    echo "Python too old" 1>&2
     [ "$1" = "put" ] && exit 0
     exit 9
   fi
-  PYTHON=python
+  PYTHON=python2
 elif type python3 >/dev/null 2>&1
 then
   PYTHON=python3
@@ -130,7 +130,16 @@ def db_save():
 
 def db_match(stored_data, query):
   """ Match a set or key,value pairs with a stored entry - strict comparison """
-  return (stored_data.keys() - {"path"} == query.keys()) and all(stored_data[k] == query[k] for k in query.keys())
+  stored_keys = stored_data.keys()
+  stored_keys.remove('path')
+  if stored_keys != query.keys():
+    return False
+  for key, value in query.items():
+    if key not in stored_data:
+      return False
+    if stored_data[key] != value:
+      return False
+  return True
 
 def db_get_entry(metadata):
   for i in range(len(DB)-1,-1,-1):
