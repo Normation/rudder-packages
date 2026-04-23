@@ -10,7 +10,7 @@ then
     [ "$1" = "put" ] && exit 0
     exit 9
   fi
-  PYTHON=python2
+  PYTHON=python
 elif type python3 >/dev/null 2>&1
 then
   PYTHON=python3
