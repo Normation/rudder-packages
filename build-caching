@@ -2,7 +2,7 @@
 
 # Nice hack to write in python and have a valid script working everywhere
 # vim: syntax=python
-if type python2 >/dev/null 2>&1
+if type python >/dev/null 2>&1
 then
   if python -V 2>&1 | grep "Python 2\.[0-5]" >/dev/null
   then
@@ -130,9 +130,9 @@ def db_save():
 
 def db_match(stored_data, query):
   """ Match a set or key,value pairs with a stored entry - strict comparison """
-  stored_keys = stored_data.keys()
+  stored_keys = set(stored_data.keys())
   stored_keys.remove('path')
-  if stored_keys != query.keys():
+  if stored_keys != set(query.keys()):
     return False
   for key, value in query.items():
     if key not in stored_data:
