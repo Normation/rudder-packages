@@ -70,7 +70,7 @@ ifeq ($(findstring with-libcurl,$(WITH)),)
 DEPS := $(DEPS), curl
 endif
 ifeq ($(findstring with-librsync,$(WITH)),)
-DEPS := $(DEPS), librsync|librsync2t64
+DEPS := $(DEPS), librsync2|librsync2t64
 endif
 ifeq ($(findstring with-augeas,$(WITH)),)
 DEPS := $(DEPS), augeas-tools
