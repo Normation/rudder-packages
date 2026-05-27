@@ -332,9 +332,9 @@ opt="${opt} --disable-rust"
 opt="${opt} --disable-bindgen"
 %endif
 
-perl -MModule::CoreList -e '' || cpan -f -T -i Module::CoreList < /dev/null || true
-perl -MYAML::Tiny -e '' || cpan -f -T -i YAML::Tiny < /dev/null
-perl -Minc::Module::Install -e '' || cpan -f -T -i Module::Install < /dev/null
+perl -MModule::CoreList -e '' || perl -MCPAN -e 'CPAN::Shell->notest("install", "Module::CoreList")' || true
+perl -MYAML::Tiny -e '' || perl -MCPAN -e 'CPAN::Shell->notest("install", "YAML::Tiny")'
+perl -Minc::Module::Install -e '' || perl -MCPAN -e 'CPAN::Shell->notest("install", "Module::Install")'
 
 ./configure ${opt}
 make BUILD_CFLAGS="${RPM_OPT_FLAGS}"
