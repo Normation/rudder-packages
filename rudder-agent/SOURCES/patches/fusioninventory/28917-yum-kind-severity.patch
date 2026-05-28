@@ -1,0 +1,64 @@
+diff --git a/lib/FusionInventory/Agent/Inventory.pm b/lib/FusionInventory/Agent/Inventory.pm
+index 626aa71..85db557 100644
+--- a/lib/FusionInventory/Agent/Inventory.pm
++++ b/lib/FusionInventory/Agent/Inventory.pm
+@@ -88,7 +88,7 @@ my %fields = (
+                             UNINSTALL_STRING URL_INFO_ABOUT VERSION
+                             VERSION_MINOR VERSION_MAJOR GUID ARCH USERNAME
+                             USERID SYSTEM_CATEGORY SOURCE_NAME SOURCE_VERSION/ ],
+-    SOFTWAREUPDATES  => [ qw/NAME VERSION ARCH FROM SOURCE KIND/ ],
++    SOFTWAREUPDATES  => [ qw/NAME VERSION ARCH FROM SOURCE KIND SEVERITY/ ],
+     SOUNDS           => [ qw/CAPTION DESCRIPTION MANUFACTURER NAME/ ],
+     STORAGES         => [ qw/DESCRIPTION DISKSIZE INTERFACE MANUFACTURER MODEL
+                             NAME TYPE SERIAL SERIALNUMBER FIRMWARE SCSI_COID
+diff --git a/lib/FusionInventory/Agent/Task/Inventory/Generic/Softwares/Yum.pm b/lib/FusionInventory/Agent/Task/Inventory/Generic/Softwares/Yum.pm
+index 51771a9..a0a15d9 100644
+--- a/lib/FusionInventory/Agent/Task/Inventory/Generic/Softwares/Yum.pm
++++ b/lib/FusionInventory/Agent/Task/Inventory/Generic/Softwares/Yum.pm
+@@ -70,18 +70,34 @@ sub _getUpdatesList {
+         my ($name,$arch,$version,$source) = ($1,$2,$3,$4);
+ 
+         my $kind;
++	my $severity;
+         if ($params{details} =~ /^\S+\s+(\S+)\s+$name-$version.$arch\s*$/m) {
+-            if ($1 =~ /\/Sec/) {
++            my $info = $1;
++
++            if ($info =~ /\/Sec/) {
+                 $kind = "security";
+-            } elsif ($1 eq "bugfix") {
++            } elsif ($info eq "bugfix") {
+                 $kind = "defect";
+-            } elsif ($1 eq "enhancement") {
+-                $kind = $1;
++            } elsif ($info eq "enhancement") {
++                $kind = $info;
+             } else {
+                 $kind = "other";
+             }
++
++	    if ($info =~ /Critical/) {
++		$severity = "critical";
++	    } elsif ($info =~ /High/) {
++		$severity = "high";
++            } elsif ($info =~ /Moderate/) {
++		$severity = "moderate";
++	    } elsif ($info =~ /Low/) {
++		$severity = "low";
++	    } else {
++	        $severity = "none";
++            }
+         } else {
+             $kind = "none";
++	    $severity = "none";
+         }
+ 
+         my $package = {
+@@ -90,6 +106,7 @@ sub _getUpdatesList {
+             VERSION     => $version,
+             FROM        => $params{from},
+             SOURCE      => $source,
++	    SEVERITY    => $severity,
+             KIND        => $kind
+         };
+ 
