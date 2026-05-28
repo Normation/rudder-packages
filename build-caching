@@ -100,6 +100,7 @@ import os
 import shutil
 import hashlib
 import platform
+import fcntl
 # manage non stdlib import
 try:
   import docopt # apt-get install python-docopt
@@ -112,21 +113,27 @@ except:
 DB = []
 CACHE_PATH = '/srv/cache/build'
 DB_FILE = CACHE_PATH + '/index.json'
+LOCK_FILE = DB_FILE + '.lock'
+TMP_FILE = DB_FILE + '.tmp'
 CONFIG_FILE = "~/.build-caching"
 
 # Indexing methods
 # We may do better with a dedicated library (but not sure)
 def db_load():
   """ Load the index file into a global variable """
-  global DB
+  global DB, _lock_fd
+  # Use a dedicated lock file as the db file gets replaced on write
+  _lock_fd = open(LOCK_FILE, "w")
+  fcntl.flock(_lock_fd, fcntl.LOCK_EX)
   if os.path.isfile(DB_FILE):
     with open(DB_FILE) as fd:
       DB = json.load(fd)
 
 def db_save():
   """ Save the index into a file """
-  with open(DB_FILE, 'w') as fd:
+  with open(TMP_FILE, "w") as fd:
     json.dump(DB, fd)
+  os.replace(TMP_FILE, DB_FILE)
 
 def db_match(stored_data, query):
   """ Match a set or key,value pairs with a stored entry - strict comparison """
