@@ -26,6 +26,9 @@ ifndef RUDDER_MAJOR_VERSION
 $(error RUDDER_VERSION_TO_PACKAGE has not been set)
 endif
 
+# Hash of the Makefile itself for proper caching
+mk_SHA256 = $(shell cat $(MAKEFILE_LIST) | sha256sum | cut -d' ' -f1)
+
 # Original URL: http://zlib.net/zlib-$(ZLIB_RELEASE).tar.gz
 zlib_RELEASE = 1.3.1
 zlib_SHA256 = 9a93b2b7dfdac77ceba5a558a580e74667dd6fede4585b91eefb60f03b72df23
@@ -212,7 +215,7 @@ ifneq (false,$(USE_RUST))
 	DEPS_SOURCE_SHA=$$(ls -1 rudder-sources/rudder/Cargo.* | sort | xargs openssl dgst -sha256 | openssl dgst -sha256 | awk '{print $$2}') ;\
 	AGENT_SOURCE_SHA=$$(find rudder-sources/rudder/policies -type f | sort | xargs openssl dgst -sha256 | openssl dgst -sha256 | awk '{print $$2}') ;\
 	CACHE_SHA=$$(echo "$$DEPS_SOURCE_SHA $$AGENT_SOURCE_SHA" | openssl dgst -sha256 | awk '{print $$2}') ;\
-	AGENT_CACHE_PARAMETERS="--with-env name=rudder-agent-system-updates source=$${CACHE_SHA}}" ;\
+	AGENT_CACHE_PARAMETERS="--with-env name=rudder-agent-system-updates source=$${CACHE_SHA}} mk=$(mk_SHA256)" ;\
 	if ! ../../build-caching get $(RUST_TARGET) $${AGENT_CACHE_PARAMETERS}; then \
 		cd rudder-sources/rudder/policies/module-types/system-updates && CARGO_FEATURES="${CARGO_FEATURES_SU}" make build || exit 1 ;\
 		cd $(CURDIR); ../../build-caching put $(RUST_TARGET)/rudder-module-system-updates $${AGENT_CACHE_PARAMETERS} || true ;\
@@ -225,7 +228,7 @@ ifneq (false,$(USE_BINDGEN))
 	DEPS_SOURCE_SHA=$$(ls -1 rudder-sources/rudder/Cargo.* | sort | xargs openssl dgst -sha256 | openssl dgst -sha256 | awk '{print $$2}') ;\
 	AGENT_SOURCE_SHA=$$(find rudder-sources/rudder/policies -type f | sort | xargs openssl dgst -sha256 | openssl dgst -sha256 | awk '{print $$2}') ;\
 	CACHE_SHA=$$(echo "$$DEPS_SOURCE_SHA $$AGENT_SOURCE_SHA" | openssl dgst -sha256 | awk '{print $$2}') ;\
-	AGENT_CACHE_PARAMETERS="--with-env name=rudder-agent-augeas source=$${CACHE_SHA}}" ;\
+	AGENT_CACHE_PARAMETERS="--with-env name=rudder-agent-augeas source=$${CACHE_SHA}} mk=$(mk_SHA256)" ;\
 	if ! ../../build-caching get $(RUST_TARGET) $${AGENT_CACHE_PARAMETERS} || ! ../../build-caching get $(RUST_TARGET)/raugtool $${AGENT_CACHE_PARAMETERS} ; then \
 		$(AUGEAS_DO) cp $(CURDIR)/dependencies$(RUDDER_DIR)/lib/pkgconfig/augeas.pc $(CURDIR)/dependencies$(RUDDER_DIR)/lib/pkgconfig/augeas.pc.back; \
 		$(AUGEAS_DO) sed -i 's@^prefix=.*@prefix=$(CURDIR)/dependencies$(RUDDER_DIR)@' $(CURDIR)/dependencies$(RUDDER_DIR)/lib/pkgconfig/augeas.pc; \
@@ -315,7 +318,7 @@ build-jq: jq-source
 	cd jq-source && $(MAKE) install DESTDIR=$(CURDIR)/dependencies
 	touch $@
 
-DEPS_CACHE_PARAMETERS = --with-env name=dependencies configure=$(CONFIGURE_ARGS_HASH) pcre2=${pcre2_SHA256} zlib=$(zlib_SHA256) lmdb=$(lmdb_SHA256) openssl=$(openssl_SHA256) libyaml=$(libyaml_SHA256) libxml2=$(libxml2_SHA256) libcurl=$(libcurl_SHA256) augeas=$(augeas_SHA256) readline=$(readline_SHA256) jq=$(jq_SHA256) @CACHE_ARGS@
+DEPS_CACHE_PARAMETERS = --with-env name=dependencies mk=$(mk_SHA256) configure=$(CONFIGURE_ARGS_HASH) pcre2=${pcre2_SHA256} zlib=$(zlib_SHA256) lmdb=$(lmdb_SHA256) openssl=$(openssl_SHA256) libyaml=$(libyaml_SHA256) libxml2=$(libxml2_SHA256) libcurl=$(libcurl_SHA256) augeas=$(augeas_SHA256) readline=$(readline_SHA256) jq=$(jq_SHA256) @CACHE_ARGS@
 # Strictly speaking we don't need jq here but it's easier to include it in the cache
 CFENGINE_DEPS = $(shell set -x; ../../build-caching get dependencies/ $(DEPS_CACHE_PARAMETERS) || echo @lmdb_DEP@ @openssl_DEP@ @libyaml_DEP@ @libxml2_DEP@ @libcurl_DEP@ @pcre2_DEP@ @augeas_DEP@ @jq_DEP@ )
 
@@ -384,7 +387,7 @@ fusion-modules: @perl_DEP@ cpanminus-source
 
 # Cache fusion and its dependencies
 FUSION_PATCHES_SHA = $(shell find patches/fusioninventory -type f | sort | xargs openssl dgst -sha256 | openssl dgst -sha256 | awk '{print $$2}')
-FUSION_CACHE_PARAMETERS = --with-env name=fusion fusion=$(fusion_SHA256) perl=$(perl_SHA256) cpanminus=$(cpanminus_SHA256) patches=$(FUSION_PATCHES_SHA)
+FUSION_CACHE_PARAMETERS = --with-env name=fusion mk=$(mk_SHA256) fusion=$(fusion_SHA256) perl=$(perl_SHA256) cpanminus=$(cpanminus_SHA256) patches=$(FUSION_PATCHES_SHA)
 FUSION_BUILD = $(shell set -x; ../../build-caching get fusion/ $(FUSION_CACHE_PARAMETERS) || echo build-fusion-real)
 # do not split cache for perl, this is probably not worth it
 build-fusion: $(FUSION_BUILD)
