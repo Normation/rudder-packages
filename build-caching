@@ -132,6 +132,8 @@ def db_match(stored_data, query):
   """ Match a set or key,value pairs with a stored entry - strict comparison """
   stored_keys = set(stored_data.keys())
   stored_keys.remove('path')
+  if "is_file" in stored_keys:
+    stored_keys.remove('is_file')
   if stored_keys != set(query.keys()):
     return False
   for key, value in query.items():
@@ -193,7 +195,7 @@ def parse_metadata(arguments):
       exit(2)
   return metadata
 
-def sync(source, destination, move=False):
+def sync(source, destination, move=False, is_file_restore=False):
   """ Synchronize a source with a destination, can use move instead of rsync while keeping rsync '/' semantic """
   if destination[-1] == '/':
     try:
@@ -207,9 +209,12 @@ def sync(source, destination, move=False):
     elif move and source[-1] != '/':
       os.rename(source, destination+'/'+os.path.basename(source))
     else:
-      ret = os.system("rsync -a '" + source + "' '" + destination + "'")
-      if ret != 0:
-        return False
+      if is_file_restore:
+        shutil.copy(source + "/" + destination, destination)
+      else:
+        ret = os.system("rsync -a '" + source + "' '" + destination + "'")
+        if ret != 0:
+          return False
   except OSError:
     return False
   return True
@@ -227,6 +232,8 @@ def put(metadata, source, move):
     exit(3)
   if entry is None:
     metadata['path'] = path
+    if os.path.isfile(source):
+      metadata['is_file'] = True
     DB.append(metadata)
     db_save()
   print("Cache saved", file=sys.stderr)
@@ -238,7 +245,11 @@ def get(metadata, destination):
     print("No such entry in the cache", file=sys.stderr)
     exit(1)
   print("Restoring cache", file=sys.stderr)
-  if not sync(entry['path'], destination):
+  if "is_file" in entry:
+    is_file = entry["is_file"]
+  else:
+    is_file = False
+  if not sync(entry['path'], destination, is_file_restore=is_file):
     print("Synchronization error, aborting!", file=sys.stderr)
     exit(3)
 
