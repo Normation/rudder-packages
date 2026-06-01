@@ -133,7 +133,7 @@ def db_save():
   """ Save the index into a file """
   with open(TMP_FILE, "w") as fd:
     json.dump(DB, fd)
-  os.replace(TMP_FILE, DB_FILE)
+  os.rename(TMP_FILE, DB_FILE)
 
 def db_match(stored_data, query):
   """ Match a set or key,value pairs with a stored entry - strict comparison """
