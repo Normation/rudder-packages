@@ -1,2 +1,7 @@
 #!/bin/sh
-perl -I /opt/rudder/lib/perl5 /opt/rudder/bin/fusioninventory-agent --config=none --no-task=Deploy "$@"
+
+if grep -q "^inventory=module" /opt/rudder/etc/agent.conf 2>/dev/null; then
+  /opt/rudder/bin/rudder-module-inventory "$@"
+else
+  perl -I /opt/rudder/lib/perl5 /opt/rudder/bin/fusioninventory-agent --config=none --no-task=Deploy "$@"
+fi

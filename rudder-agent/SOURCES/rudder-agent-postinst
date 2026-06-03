@@ -105,6 +105,12 @@ fi
 # Make sure the configuration is available in a standard place
 ln -sf "${CFE_DIR}/policy_server.dat" "/opt/rudder/etc/policy_server.dat"
 
+# Should be a conffile but we want to avoid accidental replacement on apt systems
+if [ ! -f /opt/rudder/etc/agent.conf ]
+then
+  cp /opt/rudder/share/lib/agent.conf /opt/rudder/etc/agent.conf
+fi
+
 # Ensure the modification date of the capability file is correct
 # as it is used for cache invalidation in ncf lis-compatible-inputs
 touch /opt/rudder/etc/agent-capabilities
