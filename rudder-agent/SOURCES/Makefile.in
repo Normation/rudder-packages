@@ -31,8 +31,8 @@ lmdb_RELEASE = 0.9.33
 lmdb_SHA256 = 476801f5239c88c7de61c3390502a5d13965ecedef80105b5fb0fcb8373d1e53
 # We follow LTS releases
 # Original URL: https://www.openssl.org/source/openssl-$(OPENSSL_RELEASE).tar.gz
-openssl_RELEASE = 3.5.6
-openssl_SHA256 = deae7c80cba99c4b4f940ecadb3c3338b13cb77418409238e57d7f31f2a3b736
+openssl_RELEASE = 3.5.7
+openssl_SHA256 = a8c0d28a529ca480f9f36cf5792e2cd21984552a3c8e4aa11a24aa31aeac98e8
 # Original URL: https://github.com/PCRE2Project/pcre2/releases/download/pcre2-${pcre2_RELEASE}/pcre2-${pcre2_RELEASE}.tar.gz
 pcre2_RELEASE = 10.45
 pcre2_SHA256 = 0e138387df7835d7403b8351e2226c1377da804e0737db0e071b48f07c9d12ee
