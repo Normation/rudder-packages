@@ -1,0 +1,251 @@
+--- a/lib/FusionInventory/Agent/Task/Inventory/Generic/Rudder.pm	2026-06-11 17:50:39.089665465 +0200
++++ b/lib/FusionInventory/Agent/Task/Inventory/Generic/Rudder.pm	2026-06-11 17:51:07.284067054 +0200
+@@ -63,7 +63,12 @@
+     # Get agent capabilities
+     my @agentCapabilities = _listAgentCapabilities();
+ 
+-    my $customProperties = _getCustomProperties(logger => $logger);
++    my ($hookFailures, $customProperties) = _getCustomProperties(logger => $logger);
++    if ($hookFailures > 0) {
++        $logger->error("Hook scripts failed, aborting inventory");
++        print STDERR "Hook scripts failed, aborting inventory\n";
++        exit 1;
++    }
+ 
+     my $rudder = {
+         HOSTNAME => $hostname,
+@@ -97,102 +102,143 @@
+   return ($? >> 8,$result);
+ }
+ 
++# Returns (0, $encoded) on success, (2, undef) on failure
++sub _validateJson {
++    my (%params) = @_;
++    my $script   = $params{script};
++    my $output   = $params{output};
++    my $logger   = $params{logger};
++    my $tmp_dir  = $params{tmp_dir};
++    my $package = "JSON::PP";
++    $package->require();
++    if ($EVAL_ERROR) {
++        $logger->error("Failed to load JSON module: $EVAL_ERROR") if $logger;
++        return (2, undef);
++    }
++
++    my $coder = JSON::PP->new;
++    my $encoded;
++    eval {
++        my $decoded = $coder->decode($output);
++        $encoded    = $coder->encode($decoded);
++    };
++    if ($@) {
++        $logger->error("Rudder inventoy hook $script returned invalid JSON: $@") if $logger;
++        my $filename = "$tmp_dir/inventory-json-error-" . time();
++        open(my $fh, '>', $filename);
++        print $fh $output;
++        close($fh);
++        $logger->error("Invalid JSON data stored in $filename") if $logger;
++        return (2, undef);
++    }
++    return (0, $encoded);
++}
++
++# Executes a single script on Windows and validates its JSON output.
++# Returns ($status, $output) where $status is:
++#   0  = success, valid JSON
++#   1  = execution failure
++#   2  = invalid JSON
++sub _executeHookWindows {
++    my (%params) = @_;
++    my $script   = $params{script};
++    my $logger   = $params{logger};
++    $logger->debug("Executing Rudder inventory hook $script") if $logger;
++    my ($exit_code, $output) = eval_timeout(
++        "powershell.exe -file \"$script\"",
++        $hook_timeout
++    );
++    if ($exit_code == -1) {
++        $logger->error("Script $script timed out") if $logger;
++        return (1, undef);
++    }
++    if ($exit_code > 0) {
++        $logger->error("Script $script failed with exit code $exit_code, output: $output") if $logger;
++        return (1, undef);
++    }
++    return _validateJson(script => $script, output => $output, logger => $logger, tmp_dir => 'C:\Program Files\Rudder\tmp');
++}
++# Executes a single script on UNIX and validates its JSON output.
++# Returns ($status, $output) where $status is:
++#   0  = success, valid JSON
++#   1  = execution failure
++#   2  = invalid JSON
++sub _executeHookUnix {
++    my (%params) = @_;
++    my $script   = $params{script};
++    my $logger   = $params{logger};
++
++    unless (-x $script) {
++        $logger->debug("Skipping non-executable hook $script") if $logger;
++        return (1, undef);
++    }
++
++    my $stats       = stat($script);
++    my $owner       = $stats->uid;
++    my $currentUser = $<;
++    if (($owner != 0) && ($owner != $currentUser)) {
++	$logger->error("Skipping $script: not owned by root or current user (owner: $owner)") if $logger;
++        return (1, undef);
++    }
++    my $mode = $stats->mode & 0777;
++    if (($mode & 002) || ($mode & 020)) {
++        $logger->error("Skipping $script: world or group writable") if $logger;
++        return (1, undef);
++    }
++
++    $logger->debug2("Executing Rudder inventory hook $script") if $logger;
++    my ($exit_code, $output) = eval_timeout($script, $hook_timeout);
++    if ($exit_code == -1) {
++        $logger->error("Script $script timed out") if $logger;
++        return (1, undef);
++    }
++    if ($exit_code > 0) {
++        $logger->error("Script $script failed with exit code $exit_code, output: $output") if $logger;
++        return (1, undef);
++    }
++
++    return _validateJson(script => $script, output => $output, logger => $logger, tmp_dir => '/var/rudder/tmp');
++}
++
++# Iterates all scripts in the hooks directory, executes each one
++# via the appropriate OS function, and collects results.
++# Returns ($had_errors, $json_string) where:
++#   $had_errors  is 1 if any script failed or returned invalid JSON
++#   $json_string is the assembled JSON array of successful results
+ sub _getCustomProperties {
+     my (%params) = @_;
+     my $logger   = $params{logger};
+ 
+-    my $custom_properties_dir = ($OSNAME eq 'MSWin32') ? 'C:\Program Files\Rudder\hooks.d' : '/var/rudder/hooks.d';
+-    my $custom_properties;
+-    if (-d "$custom_properties_dir") {
+-        my @custom_properties_list = ();
+-        my @ordered_script_list = ();
+-        opendir(DIR, $custom_properties_dir);
+-        # List each file in the custom_properties directory, each files being a script
+-        @ordered_script_list = sort readdir(DIR);
+-        closedir(DIR);
+-        while (my $file = shift @ordered_script_list) {
+-            my $script_file = $custom_properties_dir . "/" . $file;
+-            my $properties;
+-            if (-f $script_file) {
+-                next if ($file =~ m/^\./);
+-
+-                if ($OSNAME eq 'MSWin32') {
+-                  # We assume the files are non world-writtable on windows
+-                  # -x does not make sense since the files are just interpreted by the powershell exe
+-
+-                  $logger->debug("Executing Rudder inventory hook $script_file") if $logger;
+-                  my $exit_code;
+-                  ($exit_code, $properties) = eval_timeout("powershell.exe -file \"$script_file\"", $hook_timeout);
+-                  if($exit_code == -1) {
+-                      $logger->error("Script $script_file timed out") if $logger;
+-                      next;
+-                  }
+-                  elsif ($exit_code > 0) {
+-                      $logger->error("Script $script_file failed to run properly, with exit code $exit_code") if $logger;
+-                      next;
+-                  }
+-                } else {
+-                  # Ignore non-executable file, or folders
+-                  next unless -x $script_file;
+-                  # Check that the file is owned by current user (or root), and not world writable
+-                  my $stats = stat($script_file);
+-                  my $owner = $stats->uid;
+-                  my $currentUser = $<;
+-
+-                  # file must be owned by root or current user
+-                  if (($owner != 0) && ($owner != $currentUser)) {
+-                      $logger->error("Skipping script $script_file as it is not owned by root nor current user (owner is $owner)") if $logger;
+-                      next;
+-                  }
+-
+-                  my $retMode = $stats->mode;
+-                  $retMode = $retMode & 0777;
+-                  if (($retMode & 002) || ($retMode & 020)) {
+-                      $logger->error("Skipping script $script_file as it is world or group writable") if $logger;
+-                      next;
+-                  }
+-
+-                  # Execute the inventory script
+-                  $logger->debug2("executing $script_file") if $logger;
+-                  my $exit_code;
+-                  ($exit_code, $properties) = eval_timeout("$script_file", $hook_timeout);
+-                  if($exit_code == -1) {
+-                      $logger->error("Script $script_file timed out") if $logger;
+-                      next;
+-                  }
+-                  if ($exit_code > 0) {
+-                      $logger->error("Script $script_file failed to run properly, with exit code $exit_code") if $logger;
+-                      next;
+-                  }
+-                }
+-
+-                # check that it is valid JSON
+-                eval {
+-                    my $package = "JSON::PP";
+-                    $package->require();
+-                    if ($EVAL_ERROR) {
+-                        print STDERR
+-                            "Failed to load JSON module: ($EVAL_ERROR)\n";
+-                        next;
+-                    }
+-                    my $coder = JSON::PP->new;
+-                    my $propertiesData = $coder->decode($properties);
+-                    push @custom_properties_list, $coder->encode($propertiesData);
+-                };
+-                if ($@) {
+-                    $logger->error("Script $script_file didn't return valid JSON entry, error is:$@") if $logger;
+-                    my $rudderTmp = ($OSNAME eq 'MSWin32') ? 'C:\Program Files\Rudder\tmp' : '/var/rudder/tmp';
+-                    my $filename = "$rudderTmp/inventory-json-error-".time();
+-                    open(my $fh, '>', $filename);
+-                    print $fh $properties;
+-                    close($fh);
+-                    $logger->error("Invalid JSON data stored in $filename") if $logger;
+-                }
+-            }
++    my $dir = ($OSNAME eq 'MSWin32')
++        ? 'C:\Program Files\Rudder\hooks.d'
++        : '/var/rudder/hooks.d';
++    unless (-d $dir) {
++        $logger->debug("Hook directory $dir does not exist") if $logger;
++        return (0, "[]");
++    }
++    opendir(my $dh, $dir) or return (1, "[]");
++    my @scripts = sort readdir($dh);
++    closedir($dh);
++
++    my $executor = ($OSNAME eq 'MSWin32') ? \&_executeHookWindows : \&_executeHookUnix;
++    my @valid;
++    my $had_errors = 0;
++
++    for my $file (@scripts) {
++        next if $file =~ m/^\./;
++        my $script_file = $dir . "/" . $file;
++        next unless -f $script_file;
++        my ($status, $output) = $executor->(
++            script => $script_file,
++            logger => $logger,
++        );
++        if ($status == 0) {
++            push @valid, $output;
++        } else {
++            $had_errors++;
+         }
+-        $custom_properties = "[". join(",", @custom_properties_list) . "]";
+-   }
+-   return $custom_properties;
++    }
++    return ($had_errors, "[" . join(",", @valid) . "]");
+ }
+ 
+ 
