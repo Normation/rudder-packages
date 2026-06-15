@@ -67,18 +67,10 @@ ldap_connection() {
     LDAP_CONNECTION='ko'
   fi
 
-  # Get the naming context logged in as rudder user.
-  # Pass the bind password through a 0600 file (-y) rather than on the command
-  # line (-w), so it is never exposed in the process list to local users.
-  LDAP_PASSWORD_FILE="$(mktemp)"
-  chmod 600 "${LDAP_PASSWORD_FILE}"
-  # Use printf (no trailing newline) so the password is written verbatim.
-  printf '%s' "${LDAP_PASSWORD}" > "${LDAP_PASSWORD_FILE}"
-  COMMAND_OUTPUT=`${RUDDER_OPT}/bin/ldapsearch ${LDAP_BIND_RUDDER} -y "${LDAP_PASSWORD_FILE}" -b "" -s base namingContexts -LLL 2>&1`
-  LDAP_RUDDER_RC=${?}
-  rm -f "${LDAP_PASSWORD_FILE}"
+  # Get the naming context logged in as rudder user
+  COMMAND_OUTPUT=`${RUDDER_OPT}/bin/ldapsearch ${LDAP_BIND_RUDDER} -b "" -s base namingContexts -LLL 2>&1`
 
-  if [ ${LDAP_RUDDER_RC} -eq 0 ];
+  if [ ${?} -eq 0 ];
   then
     test_success "LDAP connection (rudder user) succeeded" "namingContexts returned ${NAMING_CONTEXT}"
   else
