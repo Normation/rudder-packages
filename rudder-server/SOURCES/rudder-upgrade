@@ -111,12 +111,6 @@ if [ -f ${RUDDER_ROLES_FILE} ]; then
 fi
 
 # Commands
-LDAP_PARAMETERS="-H ldap://${LDAP_SERVER}:${LDAP_PORT}/ -D ${LDAP_USER} -w ${LDAP_PASSWORD} -x"
-
-LDAPSEARCH="ldapsearch ${LDAP_PARAMETERS} -LLL"
-LDAPMODIFY="ldapmodify ${LDAP_PARAMETERS}"
-LDAPADD="ldapadd ${LDAP_PARAMETERS}"
-
 PSQL="psql -q -h ${SQL_SERVER} -p ${SQL_PORT} -U ${SQL_USER}"
 
 ################################################################################

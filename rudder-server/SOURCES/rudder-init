@@ -72,7 +72,12 @@ else
 fi
 
 # Commands
-LDAP_PARAMETERS="-H ldap://localhost/ -D ${LDAP_USER} -w ${LDAP_PASSWORD} -x"
+# Pass the bind password through a 0600 file (-y) rather than on the command line (-w) to prevent leak.
+LDAP_PASSWORD_FILE="$(mktemp)"
+chmod 600 "${LDAP_PASSWORD_FILE}"
+trap 'rm -f "${LDAP_PASSWORD_FILE}"' EXIT
+echo -n "${LDAP_PASSWORD}" > "${LDAP_PASSWORD_FILE}"
+LDAP_PARAMETERS="-H ldap://localhost/ -D ${LDAP_USER} -y ${LDAP_PASSWORD_FILE} -x"
 
 LDAPSEARCH="ldapsearch ${LDAP_PARAMETERS} -LLL"
 LDAPADD="ldapadd ${LDAP_PARAMETERS}"
@@ -214,6 +219,8 @@ else
   echo -n "Initializing LDAP database..."
   LDAPInit
 fi
+rm -f "${LDAP_PASSWORD_FILE}"
+
 echo " done."
 echo
 
