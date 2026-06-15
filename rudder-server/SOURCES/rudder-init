@@ -76,7 +76,7 @@ fi
 LDAP_PASSWORD_FILE="$(mktemp)"
 chmod 600 "${LDAP_PASSWORD_FILE}"
 trap 'rm -f "${LDAP_PASSWORD_FILE}"' EXIT
-echo -n "${LDAP_PASSWORD}" > "${LDAP_PASSWORD_FILE}"
+printf '%s' "${LDAP_PASSWORD}" > "${LDAP_PASSWORD_FILE}"
 LDAP_PARAMETERS="-H ldap://localhost/ -D ${LDAP_USER} -y ${LDAP_PASSWORD_FILE} -x"
 
 LDAPSEARCH="ldapsearch ${LDAP_PARAMETERS} -LLL"
