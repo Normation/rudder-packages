@@ -1,0 +1,13 @@
+diff --git a/cf-serverd/server_common.c b/cf-serverd/server_common.c
+index d6859bed2..f36f0662e 100644
+--- a/cf-serverd/server_common.c
++++ b/cf-serverd/server_common.c
+@@ -1419,7 +1419,7 @@ size_t PreprocessRequestPath(char *reqpath, size_t reqpath_size)
+         }
+         else
+         {
+-            Log(LOG_LEVEL_INFO,
++            Log(LOG_LEVEL_VERBOSE,
+                 "Failed to canonicalise filename '%s' (realpath: %s)",
+                 reqpath, GetErrorStr());
+             return (size_t) -1;
