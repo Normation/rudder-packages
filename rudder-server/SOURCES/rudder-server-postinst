@@ -154,7 +154,7 @@ then
   POPULATE="false"
 
   USERNAME="rudder"
-  PASSWORD="$(dd if=/dev/urandom count=128 bs=1 2>&1 | md5sum | cut -b-20)"
+  PASSWORD="$(dd if=/dev/urandom count=128 bs=1 2>&1 | sha256sum | cut -b-30)"
 
   # Rudder user
   CHK_PG_USER=$(su postgres -s /bin/sh -c "psql -t -c \"select count(1) from pg_user where usename = '${USERNAME}'\"")
