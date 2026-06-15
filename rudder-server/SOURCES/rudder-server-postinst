@@ -161,7 +161,7 @@ then
   if [ ${CHK_PG_USER} -eq 0 ]
   then
     su postgres -s /bin/sh -c "psql -q -c \"CREATE USER ${USERNAME} WITH PASSWORD '${PASSWORD}'\"" >> ${LOG_FILE}
-    sed -i "/^RUDDER_PSQL_PASSWORD/s/.*/RUDDER_PSQL_PASSWORD:${PASSWORD}/" /opt/rudder/etc/rudder-passwords.conf
+    sed -i -f <(printf '/^RUDDER_PSQL_PASSWORD/s/.*/RUDDER_PSQL_PASSWORD:%s/' "${PASSWORD}") /opt/rudder/etc/rudder-passwords.conf
   fi
 
   # Rudder database
@@ -198,11 +198,11 @@ else
       POPULATE="true"
     fi
     # rudder-passwords default is not adapted to external db
-    sed -i "/^RUDDER_PSQL_PASSWORD/s/.*/RUDDER_PSQL_PASSWORD:${PASSWORD}/" /opt/rudder/etc/rudder-passwords.conf
+    sed -i -f <(printf '/^RUDDER_PSQL_PASSWORD/s/.*/RUDDER_PSQL_PASSWORD:%s/' "${PASSWORD}") /opt/rudder/etc/rudder-passwords.conf
     # the user has already provided credentials, do not force her to do it again
     sed -i "\|^rudder.jdbc.url|s|.*|rudder.jdbc.url=jdbc:postgresql://${HOST}:5432/${DBNAME}|" /opt/rudder/etc/rudder-web.properties
     sed -i "\|^rudder.jdbc.username|s|.*|rudder.jdbc.username=${USERNAME}|" /opt/rudder/etc/rudder-web.properties
-    sed -i "\|^rudder.jdbc.password|s|.*|rudder.jdbc.password=${PASSWORD}|" /opt/rudder/etc/rudder-web.properties
+    sed -i -f <(printf '\\|^rudder.jdbc.password|s|.*|rudder.jdbc.password=%s|' "${PASSWORD}") /opt/rudder/etc/rudder-web.properties
     # if the database is external tell it to the webapp which will tell to the agent not to mess with the local postgresql
     if [ "${HOST}" != "localhost" ]
     then
