@@ -224,8 +224,8 @@ echo
 
 # Update the password file used by Rudder with random passwords
 echo -n "Updating Rudder password file with random passwords... "
-sed -i "s%RUDDER_WEBDAV_PASSWORD.*%RUDDER_WEBDAV_PASSWORD:$(dd if=/dev/urandom count=128 bs=1 2>&1 | md5sum | cut -b-20)%" ${RUDDER_OPT}/etc/rudder-passwords.conf
-sed -i "s%RUDDER_OPENLDAP_BIND_PASSWORD.*%RUDDER_OPENLDAP_BIND_PASSWORD:$(dd if=/dev/urandom count=128 bs=1 2>&1 | md5sum | cut -b-20)%" ${RUDDER_OPT}/etc/rudder-passwords.conf
+sed -i "s%RUDDER_WEBDAV_PASSWORD.*%RUDDER_WEBDAV_PASSWORD:$(dd if=/dev/urandom count=128 bs=1 2>&1 | sha256sum | cut -b-30)%" ${RUDDER_OPT}/etc/rudder-passwords.conf
+sed -i "s%RUDDER_OPENLDAP_BIND_PASSWORD.*%RUDDER_OPENLDAP_BIND_PASSWORD:$(dd if=/dev/urandom count=128 bs=1 2>&1 | sha256sum | cut -b-30)%" ${RUDDER_OPT}/etc/rudder-passwords.conf
 echo " done."
 
 # Delete temp files
