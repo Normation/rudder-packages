@@ -19,8 +19,8 @@ diff --color -ruN fusion-source.bak/lib/FusionInventory/Agent/Task/Inventory/Gen
          '${Section}\t' .
 -        '${Status}\n' .
 +        '${Status}\t' .
-+        '${Source}\t' .
-+        '${source:Version}\n' .
++        '${Source:Package}\t' .
++        '${Source:Version}\n' .
          '\'';
  
      my $packages = _getPackagesList(
