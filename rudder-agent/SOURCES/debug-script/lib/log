@@ -1,6 +1,0 @@
-
-# File logging functions
-
-log() {
-  [ -n "${NO_LOG}" ] || echo "${1}: ${2}`output_details ${3}`" >> "${LOG_FILE}"
-}

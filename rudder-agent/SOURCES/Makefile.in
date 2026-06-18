@@ -161,9 +161,6 @@ rudder-agent.cron: rudder-sources
 	$(SED) 's@\$${sys.workdir}@/var/rudder/cfengine-community@g' rudder-agent.cron | $(SED) 's@\$${g.rudder_base}@/opt/rudder@g' | $(SED) 's@\\&\\&@\&\&@g' | $(SED) 's@\\&1@\&1@g' > rudder-agent.cron.new
 	mv rudder-agent.cron.new rudder-agent.cron
 
-debug-script/rudder-debug-info:
-	cd debug-script && $(MAKE)
-
 
 ########################
 # Build each component #
@@ -371,7 +368,7 @@ ifeq (,$(DEBUG))
 endif
 
 # install to DESTDIR
-install-agent: build cleanup-build rudder-agent rudder-agent.cron debug-script/rudder-debug-info rudder.8.gz rudder-agent-version
+install-agent: build cleanup-build rudder-agent rudder-agent.cron rudder.8.gz rudder-agent-version
 	# Directories
 	mkdir -p $(DESTDIR)/var/rudder/cfengine-community/bin
 	mkdir -p $(DESTDIR)/var/rudder/tmp
@@ -449,7 +446,6 @@ endif
 	$(INSTALL) -m 755 vzps.py $(DESTDIR)/opt/rudder/bin/
 	$(INSTALL) -m 755 rudder-perl $(DESTDIR)/opt/rudder/bin/
 	$(INSTALL) -m 755 rudder-uuidgen $(DESTDIR)/opt/rudder/bin/
-	$(INSTALL) -m 755 debug-script/rudder-debug-info $(DESTDIR)/opt/rudder/bin/
 	$(INSTALL) -m 755 rudder-agent/bin/* $(DESTDIR)/opt/rudder/bin/
 
 	# Package scripts
@@ -499,7 +495,6 @@ clean:
 	rm -f build-*
 	rm -f rudder.8.gz rudder-agent.cron
 	rm -rf rudder-agent
-	cd debug-script && $(MAKE) clean 2>/dev/null || true
 
 # distclean should remove everything except rudder-sources.tar.bz2 since it can be brought by by external means
 distclean: clean
