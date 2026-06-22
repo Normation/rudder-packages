@@ -16,6 +16,10 @@ ExecStart=/opt/rudder/bin/rudder-jetty.sh -d start
 ExecStop=/opt/rudder/bin/rudder-jetty.sh -d stop
 SuccessExitStatus=143
 TimeoutStartSec=360s
+PrivateTmp=True
+ProtectSystem=strict
+ReadWritePaths=/opt/rudder /var/rudder /var/log/rudder
+
 
 [Install]
 RequiredBy=rudder-server.service
