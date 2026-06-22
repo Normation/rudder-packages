@@ -8,6 +8,6 @@
 
 	<Set name="extraClasspath"></Set>
 
-        <Set name="tempDirectory">/var/rudder/tmp/jetty/jetty-rudder.war.dir</Set>
+        <Set name="tempDirectory">/tmp</Set>
 
 </Configure>
