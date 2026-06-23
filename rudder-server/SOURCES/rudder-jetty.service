@@ -19,7 +19,8 @@ TimeoutStartSec=360s
 PrivateTmp=True
 ProtectSystem=strict
 ReadWritePaths=/opt/rudder /var/rudder /var/log/rudder
-
+User=rudder-webapp
+Group=rudder
 
 [Install]
 RequiredBy=rudder-server.service
