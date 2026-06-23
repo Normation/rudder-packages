@@ -38,7 +38,7 @@ echo "`date` - Starting rudder-server-postinst script" >> ${LOG_FILE}
 
 if [[ -f /opt/rudder/etc/rudder-web.properties ]]; then
   # Load the .properties lens manually and set the proper policy owner group and rootserver path
-  /opt/rudder/bin/raugtool  <<EOF >> ${LOG_FILE}
+  /opt/rudder/bin/raugtool --noautoload <<EOF >> ${LOG_FILE}
   set /augeas/load/Properties/lens Properties.lns
   set /augeas/load/Properties/incl "/opt/rudder/etc/rudder-web.properties"
   load
