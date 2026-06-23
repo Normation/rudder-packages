@@ -8,6 +8,6 @@
 
 	<Set name="extraClasspath"></Set>
 
-        <Set name="tempDirectory">/tmp</Set>
+	<Set name="tempDirectory">/tmp/webapp</Set>
 
 </Configure>
