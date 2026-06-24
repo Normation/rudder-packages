@@ -37,8 +37,8 @@ openssl_SHA256 = a8c0d28a529ca480f9f36cf5792e2cd21984552a3c8e4aa11a24aa31aeac98e
 pcre2_RELEASE = 10.47
 pcre2_SHA256 = c08ae2388ef333e8403e670ad70c0a11f1eed021fd88308d7e02f596fcd9dc16
 # Original URL: https://curl.haxx.se/download/curl-7.58.0.tar.gz
-libcurl_RELEASE = 8.20.0
-libcurl_SHA256 = fc5819cad3f9f5482669adcdc49a782c15f36d2a0715b395b06d9173593d2dc0
+libcurl_RELEASE = 8.21.0
+libcurl_SHA256 = d9b327997999045a24cda50f3983e69e51c516bd8be6ef9842fc7f99135e33bb
 # Original URL: http://download.augeas.net/augeas-1.12.0.tar.gz
 augeas_RELEASE = 1.14.1
 augeas_SHA256 = 368bfdd782e4b9c7163baadd621359c82b162734864b667051ff6bcb57b9edff
