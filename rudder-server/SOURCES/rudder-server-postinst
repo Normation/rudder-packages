@@ -19,6 +19,7 @@ LDAP_LOG="/var/log/rudder/ldap/"
 RUDDER_DIR="/opt/rudder/"
 LOG_FILE="/var/log/rudder/install/rudder-server-$(date +%Y%m%d).log"
 EXTERNAL_DB_CONF="/opt/rudder/etc/external-db.conf"
+WEBAPP_USER="rudder-webapp"
 mkdir -p /var/log/rudder/install
 
 RUDDER_FIRST_INSTALL="$1"
@@ -35,6 +36,23 @@ mkdir -p /var/log/rudder/install
 
 echo "`date` - Starting rudder-server-postinst script" >> ${LOG_FILE}
 
+if [[ -f /opt/rudder/etc/rudder-web.properties ]]; then
+  # Load the .properties lens manually and set the proper policy owner group and rootserver path
+  /opt/rudder/bin/raugtool --noautoload <<EOF >> ${LOG_FILE}
+  set /augeas/load/Properties/lens Properties.lns
+  set /augeas/load/Properties/incl "/opt/rudder/etc/rudder-web.properties"
+  load
+  set /files/opt/rudder/etc/rudder-web.properties/rudder.generated.policies.rootserver.path "/var/rudder/share/policies"
+  save
+EOF
+fi
+
+echo '#!/usr/bin/env bash
+/usr/bin/rsync -a --delete --chown=root:root /var/rudder/share/policies/ /var/rudder/cfengine-community/inputs/' > /opt/rudder/etc/hooks.d/policy-generation-finished/20-mv-policies
+
+echo 'rudder-webapp ALL = NOPASSWD: /opt/rudder/etc/hooks.d/*/*' > /etc/sudoers.d/rudder-hooks
+echo 'rudder-webapp ALL = NOPASSWD: /opt/rudder/bin/rudder package *' > /etc/sudoers.d/rudder-package
+echo 'rudder-webapp ALL = NOPASSWD: /usr/bin/rsync -a --delete --chown=root:root /var/rudder/share/policies/ /var/rudder/cfengine-community/inputs/' > /etc/sudoers.d/rudder-mv-policies
 
 LOCAL_DB="true"
 # DB is not initialized on redhat at first install, create db in this case
@@ -240,6 +258,10 @@ mkdir -p /var/log/rudder/install
 echo "$(date) - Starting rudder-webapp post installation step" >> ${LOG_FILE}
 
 echo "Creating rudder users" >> ${LOG_FILE}
+if ! getent passwd $WEBAPP_USER >/dev/null; then
+  useradd --system --gid rudder --shell /bin/false $WEBAPP_USER >> ${LOG_FILE}
+fi
+
 if ! getent group rudder-slapd >/dev/null; then
   groupadd --system rudder-slapd >> ${LOG_FILE}
 fi
