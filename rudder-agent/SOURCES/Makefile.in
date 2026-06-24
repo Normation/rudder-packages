@@ -478,6 +478,7 @@ endif
 	chmod 755 $(DESTDIR)/opt/rudder/share/lib/timestamp
 	mkdir -p $(DESTDIR)/opt/rudder/etc
 	$(INSTALL) -m 644 rudder-agent/agent-capabilities $(DESTDIR)/opt/rudder/etc/
+	$(INSTALL) -m 644 agent.conf $(DESTDIR)/opt/rudder/share/lib/agent.conf
 
 	# Bootstrap promises
 	mkdir -p $(DESTDIR)/opt/rudder/share/bootstrap-promises/

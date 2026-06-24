@@ -449,6 +449,7 @@ if [ $1 -eq 0 ]; then
   rm -f /etc/default/rudder-agent
   rm -fr /opt/rudder/var/fusioninventory
   rm -f /opt/rudder/etc/uuid.hive
+  rm -f /opt/rudder/etc/agent.conf
   rm -f /opt/rudder/etc/ssl/agent.cert
   rm -f /opt/rudder/etc/policy_server.dat
   rm -f /var/rudder/lib/ssl/policy_server_hash
