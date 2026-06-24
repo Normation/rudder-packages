@@ -47,6 +47,13 @@ if [[ -f /opt/rudder/etc/rudder-web.properties ]]; then
 EOF
 fi
 
+echo '#!/usr/bin/env bash
+/usr/bin/rsync -a --delete --chown=root:root /var/rudder/share/policies/ /var/rudder/cfengine-community/inputs/' > /opt/rudder/etc/hooks.d/policy-generation-finished/20-mv-policies
+
+echo 'rudder-webapp ALL = NOPASSWD: /opt/rudder/etc/hooks.d/*/*' > /etc/sudoers.d/rudder-hooks
+echo 'rudder-webapp ALL = NOPASSWD: /opt/rudder/bin/rudder package *' > /etc/sudoers.d/rudder-package
+echo 'rudder-webapp ALL = NOPASSWD: /usr/bin/rsync -a --delete --chown=root:root /var/rudder/share/policies/ /var/rudder/cfengine-community/inputs/' > /etc/sudoers.d/rudder-mv-policies
+
 LOCAL_DB="true"
 # DB is not initialized on redhat at first install, create db in this case
 # However, on SLES, postgresql is not started at first install, so we can't check user existence before ensuring postgresql is started
