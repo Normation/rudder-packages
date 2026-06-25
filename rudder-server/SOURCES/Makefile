@@ -19,6 +19,9 @@
 .DEFAULT_GOAL := build
 SHELL = /bin/bash
 
+# Hash of the Makefile itself for proper caching
+mk_SHA256 = $(shell cat $(MAKEFILE_LIST) | sha256sum | cut -d' ' -f1)
+
 RUDDER_VERSION_TO_PACKAGE =
 RUDDER_MAJOR_VERSION := $(shell echo ${RUDDER_VERSION_TO_PACKAGE} | cut -d'.' -f 1-2)
 # Original URL: https://repo1.maven.org/maven2/org/eclipse/jetty/jetty-home/${JETTY_RELEASE}/jetty-home-${JETTY_RELEASE}.tar.gz
@@ -112,7 +115,7 @@ rudder-doc:
 	tar x --no-same-owner --no-same-permissions -f doc-${RUDDER_MAJOR_VERSION}.tar.gz -C rudder-doc/html --strip-components 1
 
 PATCHES_SHA = $(shell find patches/ -type f | sort | xargs sha256sum | sha256sum | awk '{print $$1}')
-CACHE_PARAMETERS := --with-env name=openldap ldap=$(OPENLDAP_SHA256) patches=$(PATCHES_SHA) release_type=$(RELEASE_TYPE) build_path=$(CURDIR)
+CACHE_PARAMETERS := --with-env name=openldap mk=$(mk_SHA256) ldap=$(OPENLDAP_SHA256) patches=$(PATCHES_SHA) release_type=$(RELEASE_TYPE) build_path=$(CURDIR)
 BUILD_LDAP = $(shell ../../build-caching get openldap-source/ $(CACHE_PARAMETERS) || echo build-ldap)
 build: $(BUILD_LDAP) rudder-sources build-language rudder-doc jetty rudder.war
 	# save ldap build into cache
