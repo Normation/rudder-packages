@@ -49,6 +49,7 @@ fi
 
 echo '#!/usr/bin/env bash
 /usr/bin/rsync -a --delete --chown=root:root /var/rudder/share/policies/ /var/rudder/cfengine-community/inputs/' > /opt/rudder/etc/hooks.d/policy-generation-finished/20-mv-policies
+chmod +x /opt/rudder/etc/hooks.d/policy-generation-finished/20-mv-policies
 
 echo 'rudder-webapp ALL = NOPASSWD: /opt/rudder/etc/hooks.d/*/*' > /etc/sudoers.d/rudder-hooks
 echo 'rudder-webapp ALL = NOPASSWD: /opt/rudder/bin/rudder package *' > /etc/sudoers.d/rudder-package
@@ -68,6 +69,7 @@ chown -R rudder-webapp:rudder /opt/rudder/etc/rudder-users.xml
 chown -R rudder-webapp:rudder /var/rudder/metrics
 chown -R www-data:rudder /var/rudder/inventories
 chown -R root:rudder /var/rudder/lib/ssl
+chown rudder-webapp:rudder /opt/rudder/etc/rudder-pkg/rudder-pkg.conf
 
 LOCAL_DB="true"
 # DB is not initialized on redhat at first install, create db in this case
