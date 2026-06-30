@@ -16,7 +16,6 @@ set -e
 
 LDAP_CONF="/opt/rudder/etc/openldap/slapd.conf"
 LDAP_LOG="/var/log/rudder/ldap/"
-RUDDER_DIR="/opt/rudder/"
 LOG_FILE="/var/log/rudder/install/rudder-server-$(date +%Y%m%d).log"
 EXTERNAL_DB_CONF="/opt/rudder/etc/external-db.conf"
 WEBAPP_USER="rudder-webapp"
@@ -55,22 +54,26 @@ echo 'rudder-webapp ALL = NOPASSWD: /opt/rudder/etc/hooks.d/*/*' > /etc/sudoers.
 echo 'rudder-webapp ALL = NOPASSWD: /opt/rudder/bin/rudder package *' > /etc/sudoers.d/rudder-package
 echo 'rudder-webapp ALL = NOPASSWD: /usr/bin/rsync -a --delete --chown=root:root /var/rudder/share/policies/ /var/rudder/cfengine-community/inputs/' > /etc/sudoers.d/rudder-mv-policies
 
-chown -R rudder-webapp:rudder /var/rudder/run
-chown -R rudder-webapp:rudder /var/log/rudder
-chown rudder-webapp:rudder /var/rudder/share
-chown rudder-webapp:rudder /opt/rudder/etc/rudder-web.properties /opt/rudder/etc/instance-id
-chown -R rudder-webapp:rudder /opt/rudder/etc/rudder-web.properties.d/
-chown -R rudder-webapp:rudder /var/rudder/fact-repository/
-chown -R rudder-webapp:rudder /opt/rudder/etc/rudder-jetty-base/
-chown -R rudder-webapp:rudder /opt/rudder/etc/rudder-jetty.conf
-chown -R rudder-webapp:rudder /opt/rudder/jetty
-chown -R rudder-webapp:rudder /var/rudder/configuration-repository
-chown -R rudder-webapp:rudder /var/rudder/policy-generation-info
-chown -R rudder-webapp:rudder /opt/rudder/etc/rudder-users.xml
-chown -R rudder-webapp:rudder /var/rudder/metrics
+chown -R rudder-webapp:rudder \
+  /var/rudder/run \
+  /var/log/rudder \
+  /opt/rudder/etc/rudder-web.properties.d/ \
+  /var/rudder/fact-repository/ \
+  /opt/rudder/etc/rudder-jetty-base/ \
+  /opt/rudder/etc/rudder-jetty.conf \
+  /opt/rudder/jetty \
+  /var/rudder/configuration-repository \
+  /var/rudder/policy-generation-info \
+  /opt/rudder/etc/rudder-users.xml \
+  /var/rudder/metrics
+
 chown -R www-data:rudder /var/rudder/inventories
 chown -R root:rudder /var/rudder/lib/ssl
-chown rudder-webapp:rudder /opt/rudder/etc/rudder-pkg/rudder-pkg.conf
+chown rudder-webapp:rudder \
+  /opt/rudder/etc/rudder-pkg/rudder-pkg.conf \
+  /var/rudder/share \
+  /opt/rudder/etc/rudder-web.properties \
+  /opt/rudder/etc/instance-id
 
 LOCAL_DB="true"
 # DB is not initialized on redhat at first install, create db in this case
