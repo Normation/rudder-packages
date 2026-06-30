@@ -16,6 +16,7 @@ set -e
 
 LDAP_CONF="/opt/rudder/etc/openldap/slapd.conf"
 LDAP_LOG="/var/log/rudder/ldap/"
+RUDDER_DIR="/opt/rudder/"
 LOG_FILE="/var/log/rudder/install/rudder-server-$(date +%Y%m%d).log"
 EXTERNAL_DB_CONF="/opt/rudder/etc/external-db.conf"
 WEBAPP_USER="rudder-webapp"
