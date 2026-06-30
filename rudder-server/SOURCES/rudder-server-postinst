@@ -56,7 +56,7 @@ echo 'rudder-webapp ALL = NOPASSWD: /usr/bin/rsync -a --delete --chown=root:root
 
 chown -R rudder-webapp:rudder \
   /var/rudder/run \
-  /var/log/rudder \
+  /var/log/rudder/webapp \
   /opt/rudder/etc/rudder-web.properties.d/ \
   /var/rudder/fact-repository/ \
   /opt/rudder/etc/rudder-jetty-base/ \
