@@ -210,6 +210,7 @@ if [ $1 -ne 1 ]
   TIMESTAMP=`date +%%Y%%m%%d%%H%%M%%S`
   # Ensure backup folder exist
   mkdir -p /var/rudder/ldap/backup/
+  chmod 750 /var/rudder/ldap/backup/
 
   # We need it to be able to open big mdb memory-mapped databases
   ulimit -v unlimited
