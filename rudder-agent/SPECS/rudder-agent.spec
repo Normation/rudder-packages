@@ -481,8 +481,8 @@ rm -f %{_builddir}/file.list.%{name}
 %dir %{ruddervardir}/tools
 %dir %{ruddervardir}/reports/ready
 %dir %{ruddervardir}/lib/ssl
-%dir %{rudderlogdir}/install
-%dir %{rudderlogdir}/agent-check
+%attr(0700, -, -) %dir %{rudderlogdir}/install
+%attr(0700, -, -) %dir %{rudderlogdir}/agent-check
 
 %config /etc/profile.d/rudder-agent.sh
 %if "%{enable_systemd}" == "false"
