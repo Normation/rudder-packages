@@ -127,6 +127,10 @@ binary-arch: install
 	dh_strip $(STRIP_OPT)
 	dh_compress
 	dh_fixperms -Xppkeys
+	chmod 0700 var/log/rudder/agent-check/
+	chmod 0700 var/log/rudder/install/
+	chmod 0700 opt/rudder/etc/rudder-pkg/
+ifeq ($(findstring with-perl,$(WITH)),)
 	dh_perl opt/rudder/
 	dh_makeshlibs
 	dh_installdeb
