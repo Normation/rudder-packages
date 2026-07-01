@@ -123,7 +123,6 @@ binary-arch: install
 	dh_fixperms -Xppkeys
 	chmod 0700 debian/tmp/var/log/rudder/agent-check/
 	chmod 0700 debian/tmp/var/log/rudder/install/
-	chmod 0700 debian/tmp/opt/rudder/etc/rudder-pkg/
 ifeq ($(findstring with-perl,$(WITH)),)
 	dh_perl opt/rudder/
 	dh_makeshlibs
