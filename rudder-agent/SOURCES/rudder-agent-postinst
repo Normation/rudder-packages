@@ -139,6 +139,10 @@ then
   fi
 fi
 
+# File permissions on upgraded systems
+chmod 700 /var/log/rudder/agent-check/
+chmod 700 /var/log/rudder/install/
+
 # launch rudder agent check script, it will generate an UUID on first install or repair it if needed
 # If properly configured, this will run "agent reset" which will run "agent update" which will bootstrap then update ncf with cf-agent
 if command -v "setsid" >/dev/null 2>&1; then
