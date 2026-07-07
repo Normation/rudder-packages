@@ -136,7 +136,7 @@ Requires: perl(:MODULE_COMPAT_%(eval "`%{__perl} -V:version`"; echo $version)) p
 Requires: perl(:MODULE_COMPAT_%(eval "`%{__perl} -V:version`"; echo $version))
 %endif
 %if 0%{?suse_version} && 0%{?suse_version} >= 1600
-Requires: perl = %(eval echo %{perl_version} | awk -F. '{print $1 "." $2}')
+Requires: perl >= %(eval echo %{perl_version} | awk -F. '{print $1 "." $2}'), perl < %(eval echo %{perl_version} | awk -F. '{print $1 "." ($2+1)}')
 %endif
 %if 0%{?suse_version} && 0%{?suse_version} < 1600
 Requires: perl = %{perl_version}
