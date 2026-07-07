@@ -36,46 +36,6 @@ mkdir -p /var/log/rudder/install
 
 echo "`date` - Starting rudder-server-postinst script" >> ${LOG_FILE}
 
-if [[ -f /opt/rudder/etc/rudder-web.properties ]]; then
-  # Load the .properties lens manually and set the proper policy owner group and rootserver path
-  /opt/rudder/bin/raugtool --noautoload <<EOF >> ${LOG_FILE}
-  set /augeas/load/Properties/lens Properties.lns
-  set /augeas/load/Properties/incl "/opt/rudder/etc/rudder-web.properties"
-  load
-  set /files/opt/rudder/etc/rudder-web.properties/rudder.generated.policies.rootserver.path "/var/rudder/share/policies"
-  save
-EOF
-fi
-
-echo '#!/usr/bin/env bash
-/usr/bin/rsync -a --delete --chown=root:root /var/rudder/share/policies/ /var/rudder/cfengine-community/inputs/' > /opt/rudder/etc/hooks.d/policy-generation-finished/20-mv-policies
-chmod +x /opt/rudder/etc/hooks.d/policy-generation-finished/20-mv-policies
-
-echo 'rudder-webapp ALL = NOPASSWD: /opt/rudder/etc/hooks.d/*/*' > /etc/sudoers.d/rudder-hooks
-echo 'rudder-webapp ALL = NOPASSWD: /opt/rudder/bin/rudder package *' > /etc/sudoers.d/rudder-package
-echo 'rudder-webapp ALL = NOPASSWD: /usr/bin/rsync -a --delete --chown=root:root /var/rudder/share/policies/ /var/rudder/cfengine-community/inputs/' > /etc/sudoers.d/rudder-mv-policies
-
-chown -R rudder-webapp:rudder \
-  /var/rudder/run \
-  /var/log/rudder/webapp \
-  /opt/rudder/etc/rudder-web.properties.d/ \
-  /var/rudder/fact-repository/ \
-  /opt/rudder/etc/rudder-jetty-base/ \
-  /opt/rudder/etc/rudder-jetty.conf \
-  /opt/rudder/jetty \
-  /var/rudder/configuration-repository \
-  /var/rudder/policy-generation-info \
-  /opt/rudder/etc/rudder-users.xml \
-  /var/rudder/metrics
-
-chown -R www-data:rudder /var/rudder/inventories
-chown -R root:rudder /var/rudder/lib/ssl
-chown rudder-webapp:rudder \
-  /opt/rudder/etc/rudder-pkg/rudder-pkg.conf \
-  /var/rudder/share \
-  /opt/rudder/etc/rudder-web.properties \
-  /opt/rudder/etc/instance-id
-
 LOCAL_DB="true"
 # DB is not initialized on redhat at first install, create db in this case
 # However, on SLES, postgresql is not started at first install, so we can't check user existence before ensuring postgresql is started
@@ -307,6 +267,52 @@ systemctl stop ${APACHE} >> ${LOG_FILE}
 
 # create gitignore if it doesn't exist
 [ -f /var/rudder/configuration-repository/.gitignore ] || echo "ncf/ncf_hash_file" > /var/rudder/configuration-repository/.gitignore
+
+if [[ -f /opt/rudder/etc/rudder-web.properties ]]; then
+  # Load the .properties lens manually and set the proper policy owner group and rootserver path
+  /opt/rudder/bin/raugtool --noautoload <<EOF >> ${LOG_FILE}
+  set /augeas/load/Properties/lens Properties.lns
+  set /augeas/load/Properties/incl "/opt/rudder/etc/rudder-web.properties"
+  load
+  set /files/opt/rudder/etc/rudder-web.properties/rudder.generated.policies.rootserver.path "/var/rudder/share/policies"
+  save
+EOF
+fi
+
+echo '#!/usr/bin/env bash
+/usr/bin/rsync -a --delete --chown=root:root /var/rudder/share/policies/ /var/rudder/cfengine-community/inputs/' > /opt/rudder/etc/hooks.d/policy-generation-finished/20-mv-policies
+chmod +x /opt/rudder/etc/hooks.d/policy-generation-finished/20-mv-policies
+
+echo 'rudder-webapp ALL = NOPASSWD: /opt/rudder/etc/hooks.d/*/*' > /etc/sudoers.d/rudder-hooks
+echo 'rudder-webapp ALL = NOPASSWD: /opt/rudder/bin/rudder package *' > /etc/sudoers.d/rudder-package
+echo 'rudder-webapp ALL = NOPASSWD: /usr/bin/rsync -a --delete --chown=root\:root /var/rudder/share/policies/ /var/rudder/cfengine-community/inputs/' > /etc/sudoers.d/rudder-mv-policies
+
+chown -R rudder-webapp:rudder \
+  /var/rudder/run \
+  /var/log/rudder/webapp \
+  /opt/rudder/etc/rudder-jetty-base/ \
+  /opt/rudder/etc/rudder-jetty.conf \
+  /opt/rudder/jetty \
+  /var/rudder/configuration-repository \
+  /opt/rudder/share/webapps/ \
+  /opt/rudder/etc/rudder-users.xml
+
+chown -R www-data:rudder /var/rudder/inventories
+chown -R root:rudder /var/rudder/lib/ssl
+chown root:rudder /opt/rudder/etc/
+chown rudder-webapp:rudder \
+  /opt/rudder/etc/rudder-pkg/rudder-pkg.conf \
+  /var/rudder/share \
+  /opt/rudder/etc/rudder-web.properties
+
+mkdir -p /var/rudder/fact-repository
+chown rudder-webapp:rudder /var/rudder/fact-repository
+
+mkdir -p /opt/rudder/etc/rudder-web.properties.d/
+chown rudder-webapp:rudder /opt/rudder/etc/rudder-web.properties.d/
+
+chown root:rudder /var/rudder
+chown root:rudder -R /opt/rudder/share
 
 echo "Managing services" >> ${LOG_FILE}
 systemctl daemon-reload
