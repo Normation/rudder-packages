@@ -349,6 +349,7 @@ fi
 
 # Initialize git repository if it is missing, so permissions can be set on it afterwards
 cd /var/rudder/configuration-repository
+su -s /bin/sh rudder-webapp <<EOF
 if [ ! -d /var/rudder/configuration-repository/.git ]; then
   echo "Initializing git" >> ${LOG_FILE}
   git config --global init.defaultBranch master
@@ -362,6 +363,7 @@ if [ ! -d /var/rudder/configuration-repository/.git ]; then
   git add .
   git commit -q -m "initial commit"
 fi
+EOF
 
 if [ "${RUDDER_FIRST_INSTALL}" = "true" ]; then
   echo "Upgrading techniques" >> ${LOG_FILE}
