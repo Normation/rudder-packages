@@ -295,7 +295,8 @@ chown -R rudder-webapp:rudder \
   /opt/rudder/share/webapps/ \
   /opt/rudder/etc/rudder-users.xml
 
-chmod 710 root:rudder /var/log/rudder/install
+chown root:rudder /var/log/rudder/install
+chmod 710 /var/log/rudder/install
 chown rudder-webapp ${LOG_FILE}
 
 chown -R www-data:rudder /var/rudder/inventories
