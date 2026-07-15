@@ -100,6 +100,16 @@ else
   unset PGPASSWORD
 fi
 
+# Migrate JGit configuration to the rudder-webapp home directory
+if [ -d "/root/.config/jgit" ] && [ ! -d "/var/rudder/lib/webapp/.config/jgit" ]; then
+  mkdir -p /var/rudder/lib/webapp/.config/
+  mv /root/.config/jgit /var/rudder/lib/webapp/.config/
+  chown -R rudder-webapp:rudder /var/rudder/lib/webapp
+fi
+
+# Remove unused Java cache
+rm -rf /root/.cache.org.graalvm.polyglot /root/.cache/JNA
+
 # Override any server values with those from ${RUDDER_ROLES_FILE}, unless this is a monolithic
 # Rudder server installation (to keep using localhost)
 RUDDER_ROLES_FILE="${RUDDER_VAR}/cfengine-community/inputs/rudder-server-roles.conf"

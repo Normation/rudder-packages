@@ -20,8 +20,6 @@ RUDDER_DIR="/opt/rudder/"
 LOG_FILE="/var/log/rudder/install/rudder-server-$(date +%Y%m%d).log"
 EXTERNAL_DB_CONF="/opt/rudder/etc/external-db.conf"
 
-mkdir -p /var/log/rudder/install
-
 RUDDER_FIRST_INSTALL="$1"
 APACHE="$2"
 DB_NOT_INITIALIZED="$3"
@@ -241,7 +239,7 @@ echo "$(date) - Starting rudder-webapp post installation step" >> ${LOG_FILE}
 
 echo "Creating rudder users" >> ${LOG_FILE}
 if ! getent passwd 'rudder-webapp' >/dev/null; then
-  useradd --system --gid rudder --shell /bin/false 'rudder-webapp' >> ${LOG_FILE}
+  useradd --system --gid rudder --home-dir '/var/rudder/lib/webapp' --shell /bin/false 'rudder-webapp' >> ${LOG_FILE}
 fi
 
 if ! getent group rudder-slapd >/dev/null; then
@@ -297,6 +295,9 @@ chown -R rudder-webapp:rudder \
   /opt/rudder/share/webapps/ \
   /opt/rudder/etc/rudder-users.xml
 
+chmod 710 root:rudder /var/log/rudder/install
+chown rudder-webapp ${LOG_FILE}
+
 chown -R www-data:rudder /var/rudder/inventories
 chown -R root:rudder /var/rudder/lib/ssl
 chown root:rudder /opt/rudder/etc/
@@ -349,8 +350,8 @@ fi
 
 # Initialize git repository if it is missing, so permissions can be set on it afterwards
 cd /var/rudder/configuration-repository
-su -s /bin/sh rudder-webapp <<EOF
 if [ ! -d /var/rudder/configuration-repository/.git ]; then
+  su -s /bin/sh rudder-webapp <<EOF
   echo "Initializing git" >> ${LOG_FILE}
   git config --global init.defaultBranch master
   git init --shared=group >> ${LOG_FILE}
@@ -362,8 +363,8 @@ if [ ! -d /var/rudder/configuration-repository/.git ]; then
 
   git add .
   git commit -q -m "initial commit"
-fi
 EOF
+fi
 
 if [ "${RUDDER_FIRST_INSTALL}" = "true" ]; then
   echo "Upgrading techniques" >> ${LOG_FILE}
