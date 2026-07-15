@@ -421,6 +421,7 @@ rm -rf %{buildroot}
 %config(noreplace) /etc/sysconfig/rudder-webapp-apache
 /usr/share/doc/rudder
 /usr/share/ncf/
+%attr(0700, -, -) /var/rudder/lib/webapp/
 
 #=================================================
 # Changelog
