@@ -151,6 +151,9 @@ install: build rudder-server-version initial-promises initial-ncf
 	mkdir -p $(DESTDIR)/opt/rudder/share/package-scripts
 	mkdir -p $(DESTDIR)/var/rudder/inventories/received
 	mkdir -p $(DESTDIR)/var/rudder/run
+	mkdir -p $(DESTDIR)/var/rudder/lib/webapp
+	mkdir -p $(DESTDIR)/var/rudder/plugins
+	mkdir -p $(DESTDIR)/var/rudder/plugin-resources
 	mkdir -p $(DESTDIR)/var/rudder/ldap/openldap-data
 	mkdir -p $(DESTDIR)/var/log/rudder/apache2
 	mkdir -p $(DESTDIR)/var/log/rudder/webapp/jetty
@@ -238,9 +241,6 @@ install: build rudder-server-version initial-promises initial-ncf
 	cp -r initial-ncf/ $(DESTDIR)/opt/rudder/share/
 
 	touch $@
-
-	mkdir -p $(DESTDIR)/var/rudder/lib/webapp
-	mkdir -p $(DESTDIR)/var/rudder/plugins
 
 clean:
 	rm -rf rudder-users.xml

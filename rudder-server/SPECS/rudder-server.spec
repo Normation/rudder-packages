@@ -423,6 +423,7 @@ rm -rf %{buildroot}
 /usr/share/ncf/
 %attr(0700, -, -) /var/rudder/lib/webapp/
 %attr(0700, -, -) /var/rudder/plugins/
+%attr(0700, -, -) /var/rudder/plugin-resources/
 
 #=================================================
 # Changelog
