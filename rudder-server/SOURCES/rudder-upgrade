@@ -100,16 +100,6 @@ else
   unset PGPASSWORD
 fi
 
-# Migrate JGit configuration to the rudder-webapp home directory
-if [ -d "/root/.config/jgit" ] && [ ! -d "/var/rudder/lib/webapp/.config/jgit" ]; then
-  mkdir -p /var/rudder/lib/webapp/.config/
-  mv /root/.config/jgit /var/rudder/lib/webapp/.config/
-  chown -R rudder-webapp:rudder /var/rudder/lib/webapp
-fi
-
-# Remove unused Java cache
-rm -rf /root/.cache.org.graalvm.polyglot /root/.cache/JNA
-
 # Override any server values with those from ${RUDDER_ROLES_FILE}, unless this is a monolithic
 # Rudder server installation (to keep using localhost)
 RUDDER_ROLES_FILE="${RUDDER_VAR}/cfengine-community/inputs/rudder-server-roles.conf"
@@ -126,7 +116,6 @@ PSQL="psql -q -h ${SQL_SERVER} -p ${SQL_PORT} -U ${SQL_USER}"
 ################################################################################
 # Helper functions
 ################################################################################
-
 # Helper function
 # Function to check if a property exists in a configuration file and add it if not
 # Parameters:
@@ -176,6 +165,7 @@ update_rudder_repository_from_system_directory() {
   SRCTECHDIR="${1}"
   TRGTECHDIR="${CONFIGURATION_REPOSITORY}/${2}"
 
+su -s /bin/sh rudder-webapp <<EOF
   mkdir -p "${TRGTECHDIR}"
 
   if ! diff -Naur ${SRCTECHDIR} ${TRGTECHDIR} >/dev/null 2>&1; then
@@ -184,12 +174,13 @@ update_rudder_repository_from_system_directory() {
       cd ${CONFIGURATION_REPOSITORY}/ && git add -A ${2} && git commit -m "Upgrade system Techniques from ${SRCTECHDIR} - automatically done by rudder-upgrade script" >/dev/null 2>&1
       # Schedule a Technique library reload later because of the update
       echo "INFO: A Technique library reload is needed and has been scheduled."
-      touch /opt/rudder/etc/force_technique_reload
+      touch /var/rudder/lib/webapp/force_technique_reload
     else
       echo "WARN: Autocommit of system techniques is disabled."
       echo "Please review and commit changes, then reload technique library on your own!"
     fi
   fi
+EOF
 }
 
 # Helper function
@@ -205,11 +196,13 @@ remove_system_technique_from_system_directory() {
 
   if [ -d ${TECHDIR} ]; then
     rm -rf ${TECHDIR}
+    su -s /bin/sh rudder-webapp <<EOF
     cd ${CONFIGURATION_REPOSITORY}/ && git rm -rf ${LOCALTECHDIR} >/dev/null 2>&1
     git commit -m "Remove deprecated system Techniques ${TECHNAME} - automatically done by rudder-upgrade script" >/dev/null 2>&1
     # Schedule a Technique library reload later because of the update
     echo "INFO: A Technique library reload is needed and has been scheduled."
-    touch /opt/rudder/etc/force_technique_reload
+    touch /var/rudder/lib/webapp/force_technique_reload
+EOF
   fi
   # remove it in /opt/rudder/share/ so that subsequent rudder server upgrade-techniques don't put it back
   if [ -d ${INITTECHDIR} ]; then
@@ -284,10 +277,12 @@ update_credentials() {
 
 # Before doing anything on git, set the branch to the Technique Reference Library branch
 set_git_branch() {
+  su -s /bin/sh rudder-webapp <<EOF
   STEP="Set configuration repository branch"
   if [ -d ${CONFIGURATION_REPOSITORY}/.git ];then
     cd ${CONFIGURATION_REPOSITORY}/ && git checkout master 2>&1
   fi
+EOF
 }
 
 ################################################################################
@@ -324,11 +319,13 @@ upgrade_techniques() {
   if [ ${NB_RUDDER_UNIQUE_ID} -ne 0 ]; then
     echo -n "INFO: Enforcing that Techniques are using correct format"
     find ${CONFIGURATION_REPOSITORY}/techniques -type f \( ! -iname '*.xml' \) -print0 | xargs -0 sed -i "s/\([^&]\|^\)RudderUniqueID\([^&]\|$\)/\1\&RudderUniqueID\&\2/g"
+    su -s /bin/sh rudder-webapp <<EOF
     cd ${CONFIGURATION_REPOSITORY}/techniques && git add . >/dev/null 2>&1
     git commit -m "Upgrade Techniques to template format - automatically done by rudder-upgrade script" >/dev/null 2>&1
     # Schedule a Technique library reload later because of the update
-    touch /opt/rudder/etc/force_technique_reload
+    touch /var/rudder/lib/webapp/force_technique_reload
     echo " Done"
+EOF
   fi
 }
 
@@ -350,7 +347,7 @@ upgrade_ncf() {
   fi
 
   # All Versions: Touch ncf_update_flag_file jetty will be restarted at the end of the script
-  touch /opt/rudder/etc/force_ncf_technique_update
+  su -s /bin/sh rudder-webapp -c "touch /var/rudder/lib/webapp/force_ncf_technique_update"
 
   # Handle the case where we have an existing local method and a common method with the same name
   # Display a warning and delete local method
@@ -372,7 +369,9 @@ upgrade_ncf() {
         rm -f ${RUDDER_VAR}/ncf/local/30_generic_methods/${method}
       fi
     done
+su -s /bin/sh rudder-webapp <<EOF
     [ ${commit_needed} -eq 1 ] && git commit --allow-empty -q -m "Remove duplicate local methods - automatically done by rudder-upgrade script"
+EOF
     cd ${CURRENT}
   fi
 
@@ -386,7 +385,10 @@ upgrade_masterfiles() {
   if [ -d "${RUDDER_SHARE}/initial-promises/" ]
   then
     mkdir -p "${RUDDER_VAR}/cfengine-community/masterfiles/"
+    chown rudder-webapp:rudder "${RUDDER_VAR}/cfengine-community/masterfiles/"
+    su -s /bin/sh rudder-webapp <<EOF
     rsync --delete --ignore-times -rptgoq "${RUDDER_SHARE}/initial-promises/" "${RUDDER_VAR}/cfengine-community/masterfiles/"
+EOF
   fi
 }
 
@@ -477,10 +479,24 @@ upgrade_plugins() {
   fi
 }
 
+# Function to migrate and clean the home directory of the root user to the new rudder-webapp user
+update_root_home_directory() {
+  # Migrate JGit configuration to the rudder-webapp home directory
+  if [ -d "/root/.config/jgit" ] && [ ! -d "/var/rudder/lib/webapp/.config/jgit" ]; then
+    mkdir -p /var/rudder/lib/webapp/.config/
+    mv /root/.config/jgit /var/rudder/lib/webapp/.config/
+    chown -R rudder-webapp:rudder /var/rudder/lib/webapp
+  fi
+
+  # Remove unused Java cache
+  rm -rf /root/.cache.org.graalvm.polyglot /root/.cache/JNA
+}
+
 ################################################################################
 # Migration function calls
 ################################################################################
 
+update_root_home_directory
 update_credentials
 upgrade_slapdconf
 set_git_branch
