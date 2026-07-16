@@ -383,11 +383,15 @@ if [ $LDAPCHK -eq 0 ]; then
   /opt/rudder/bin/rudder-init no auto >> ${LOG_FILE}
 fi
 
+# Adjust permissions on /var/rudder/configuration-repository
+/opt/rudder/bin/rudder-fix-repository-permissions >> ${LOG_FILE}
+
 # Run any upgrades
 echo "Running upgrade script" >> ${LOG_FILE}
 /opt/rudder/bin/rudder-upgrade >> ${LOG_FILE}
 
-# Adjust permissions on /var/rudder/configuration-repository
+# TODO: necessary?
+# Adjust permissions on /var/rudder/configuration-repository again
 /opt/rudder/bin/rudder-fix-repository-permissions >> ${LOG_FILE}
 
 echo "Restoring file ACLs" >> ${LOG_FILE}
