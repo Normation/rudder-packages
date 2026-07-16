@@ -239,6 +239,8 @@ install: build rudder-server-version initial-promises initial-ncf
 
 	touch $@
 
+	mkdir -p $(DESTDIR)/var/rudder/lib/webapp
+
 clean:
 	rm -rf rudder-users.xml
 	rm -rf maven/
