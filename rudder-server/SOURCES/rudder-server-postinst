@@ -242,6 +242,9 @@ if ! getent passwd 'rudder-webapp' >/dev/null; then
   useradd --system --gid rudder --home-dir '/var/rudder/lib/webapp' --shell /bin/false 'rudder-webapp' >> ${LOG_FILE}
 fi
 
+chown rudder-webapp:rudder /var/rudder/lib/webapp
+chmod 750 /var/rudder/lib/webapp
+
 if ! getent group rudder-slapd >/dev/null; then
   groupadd --system rudder-slapd >> ${LOG_FILE}
 fi
