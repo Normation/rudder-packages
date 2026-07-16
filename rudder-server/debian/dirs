@@ -1,1 +1,2 @@
 var/rudder/lib/webapp
+var/rudder/plugins
