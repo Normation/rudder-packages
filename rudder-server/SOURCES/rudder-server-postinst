@@ -266,9 +266,6 @@ chown -R rudder-slapd:rudder-slapd /var/rudder/ldap/
 echo "Stopping apache before running upgrade scripts" >> ${LOG_FILE}
 systemctl stop ${APACHE} >> ${LOG_FILE}
 
-# create gitignore if it doesn't exist
-[ -f /var/rudder/configuration-repository/.gitignore ] || echo "ncf/ncf_hash_file" > /var/rudder/configuration-repository/.gitignore
-
 if [[ -f /opt/rudder/etc/rudder-web.properties ]]; then
   # Load the .properties lens manually and set the proper policy owner group and rootserver path
   /opt/rudder/bin/raugtool --noautoload <<EOF >> ${LOG_FILE}
@@ -354,21 +351,22 @@ fi
 
 # Initialize git repository if it is missing, so permissions can be set on it afterwards
 cd /var/rudder/configuration-repository
-if [ ! -d /var/rudder/configuration-repository/.git ]; then
-  su -s /bin/sh rudder-webapp <<EOF
-  echo "Initializing git" >> ${LOG_FILE}
-  git config --global init.defaultBranch master
-  git init --shared=group >> ${LOG_FILE}
+su -s /bin/sh rudder-webapp <<EOF
+  [ -f /var/rudder/configuration-repository/.gitignore ] || echo "ncf/ncf_hash_file" > /var/rudder/configuration-repository/.gitignore
+  if [ ! -d /var/rudder/configuration-repository/.git ]; then
+    echo "Initializing git" >> ${LOG_FILE}
+    git config --global init.defaultBranch master
+    git init --shared=group >> ${LOG_FILE}
 
-  # Specify default git user name and email (git will refuse to commit without them)
-  git config user.name "root user (CLI)"
-  git config user.email "root@localhost"
-  git config init.defaultBranch master
+    # Specify default git user name and email (git will refuse to commit without them)
+    git config user.name "root user (CLI)"
+    git config user.email "root@localhost"
+    git config init.defaultBranch master
 
-  git add .
-  git commit -q -m "initial commit"
+    git add .
+    git commit -q -m "initial commit"
+    fi
 EOF
-fi
 
 if [ "${RUDDER_FIRST_INSTALL}" = "true" ]; then
   echo "Upgrading techniques" >> ${LOG_FILE}
