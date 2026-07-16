@@ -345,6 +345,9 @@ upgrade_ncf() {
   if [ -x ${CONFIGURATION_REPOSITORY}/ncf/50_techniques ]; then
     chmod -R o-rwx ${CONFIGURATION_REPOSITORY}/ncf/50_techniques/
   fi
+  # TODO: fix the root cause
+  mkdir -p ${CONFIGURATION_REPOSITORY}/ncf/ 
+  chown rudder-webapp:rudder ${CONFIGURATION_REPOSITORY}/ncf/ 
 
   # All Versions: Touch ncf_update_flag_file jetty will be restarted at the end of the script
   su -s /bin/sh rudder-webapp -c "touch /var/rudder/lib/webapp/force_ncf_technique_update"
