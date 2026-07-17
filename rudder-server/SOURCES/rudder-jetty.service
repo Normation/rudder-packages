@@ -18,7 +18,7 @@ SuccessExitStatus=143
 TimeoutStartSec=360s
 PrivateTmp=True
 ProtectSystem=strict
-ReadWritePaths=/opt/rudder /var/rudder /var/log/rudder
+ReadWritePaths=/opt/rudder /var/rudder /var/log/rudder /run/sudo
 User=rudder-webapp
 Group=rudder
 
