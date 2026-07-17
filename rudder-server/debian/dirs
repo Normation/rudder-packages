@@ -1,3 +1,4 @@
 var/rudder/lib/webapp
 var/rudder/plugins
 var/rudder/plugin-resources
+var/rudder/policy-generation-info
