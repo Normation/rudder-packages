@@ -169,6 +169,7 @@ install: build rudder-server-version initial-promises initial-ncf
 	mkdir -p $(DESTDIR)/usr/bin
 	mkdir -p $(DESTDIR)/usr/lib/systemd/system
 	mkdir -p $(DESTDIR)/opt/rudder/share/versions
+	mkdir -p $(DESTDIR)/var/rudder/policy-generation-info
 
 	cd openldap-source && make $(DEBUGOPT) install DESTDIR=$(DESTDIR)
 
