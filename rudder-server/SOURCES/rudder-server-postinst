@@ -300,19 +300,25 @@ chown -R rudder-webapp:rudder \
   /var/rudder/configuration-repository \
   /opt/rudder/share/webapps/ \
   /opt/rudder/etc/rudder-users.xml \
-  /var/rudder/lib/ssl/shared
+  /var/rudder/lib/ssl/shared \
 
-chown root:rudder /var/log/rudder/install
+chown root:rudder \
+  /var/log/rudder/install \
+  /opt/rudder/etc \
+  /var/rudder \
+  /opt/rudder/etc/rudder-pkg
+
 chmod 710 /var/log/rudder/install
 chown rudder-webapp ${LOG_FILE}
 
 chown -R www-data:rudder /var/rudder/inventories
-chown -R root:rudder /var/rudder/lib/ssl
-chown root:rudder /opt/rudder/etc/
+mkdir /var/rudder/metrics
+
 chown rudder-webapp:rudder \
   /opt/rudder/etc/rudder-pkg/rudder-pkg.conf \
   /var/rudder/share \
-  /opt/rudder/etc/rudder-web.properties
+  /opt/rudder/etc/rudder-web.properties \
+  /var/rudder/metrics
 
 mkdir -p /var/rudder/fact-repository
 chown rudder-webapp:rudder /var/rudder/fact-repository
@@ -320,7 +326,6 @@ chown rudder-webapp:rudder /var/rudder/fact-repository
 mkdir -p /opt/rudder/etc/rudder-web.properties.d/
 chown rudder-webapp:rudder /opt/rudder/etc/rudder-web.properties.d/
 
-chown root:rudder /var/rudder
 chown root:rudder -R /opt/rudder/share
 
 echo "Managing services" >> ${LOG_FILE}
