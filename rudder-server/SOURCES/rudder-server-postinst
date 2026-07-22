@@ -288,7 +288,8 @@ echo 'rudder-webapp ALL = NOPASSWD: SETENV: /opt/rudder/bin/rudder relay reload 
 
 rm -f /var/rudder/lib/ssl/allnodescerts.pem
 mkdir -p /var/rudder/lib/ssl/shared
-chmod 750 /var/rudder/lib/ssl/shared
+touch /var/rudder/lib/ssl/shared/allnodescerts.pem
+chmod 750 -R /var/rudder/lib/ssl/shared
 
 chown -R rudder-webapp:rudder \
   /var/rudder/run \
