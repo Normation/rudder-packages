@@ -23,6 +23,7 @@ EXTERNAL_DB_CONF="/opt/rudder/etc/external-db.conf"
 RUDDER_FIRST_INSTALL="$1"
 APACHE="$2"
 DB_NOT_INITIALIZED="$3"
+APACHE_USER="$4"
 if [ -z "$1" ]
 then
   echo "Usage: $0 <RUDDER_FIRST_INSTALL>"
@@ -311,8 +312,9 @@ chown root:rudder \
 chmod 710 /var/log/rudder/install
 chown rudder-webapp ${LOG_FILE}
 
-chown -R www-data:rudder /var/rudder/inventories
-mkdir /var/rudder/metrics
+chown -R ${APACHE_USER}:rudder /var/rudder/inventories
+
+mkdir -p /var/rudder/metrics
 
 chown rudder-webapp:rudder \
   /opt/rudder/etc/rudder-pkg/rudder-pkg.conf \

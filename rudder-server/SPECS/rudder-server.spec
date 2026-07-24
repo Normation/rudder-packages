@@ -40,12 +40,14 @@
 %define apache_tools            apache2-utils
 %define ldap_clients            openldap2-client
 %define apache_vhost_dir        %{apache}/vhosts.d
+%define apache_user             www
 %endif
 %if 0%{?rhel} || 0%{?fedora}
 %define apache                  httpd
 %define apache_tools            httpd-tools
 %define ldap_clients            openldap-clients
 %define apache_vhost_dir        %{apache}/conf.d
+%define apache_user             apache
 %endif
 
 %if 0%{?suse_version} && 0%{?suse_version} <= 1500
@@ -292,7 +294,7 @@ then
   sed -i 's|APACHE_MODULES="${APACHE_MODULES} rewrite dav dav_fs proxy proxy_http.*|# This sources the Rudder needed by Rudder\n. /etc/sysconfig/rudder-webapp-apache|' /etc/sysconfig/apache2
 fi
 
-if ! /opt/rudder/share/package-scripts/rudder-server-postinst "${RUDDER_FIRST_INSTALL}" "%{apache}" "${DB_NOT_INITIALIZED}"; then
+if ! /opt/rudder/share/package-scripts/rudder-server-postinst "${RUDDER_FIRST_INSTALL}" "%{apache}" "${DB_NOT_INITIALIZED}" "%{apache_user}"; then
   echo "**************************************************************************************"
   echo "ERROR: rudder-server postinstall script failed !"
   echo ""
