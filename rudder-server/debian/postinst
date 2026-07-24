@@ -40,7 +40,7 @@ case "$1" in
       # those modules are webapp specific, so must be handled twice to make sure they are present at any apacke2 restart
       a2enmod rewrite headers filter deflate >/dev/null
 
-      if ! /opt/rudder/share/package-scripts/rudder-server-postinst "${RUDDER_FIRST_INSTALL}" "apache2" "false"; then
+      if ! /opt/rudder/share/package-scripts/rudder-server-postinst "${RUDDER_FIRST_INSTALL}" "apache2" "false" "www-data"; then
         echo "**************************************************************************************"
         echo "ERROR: rudder-webapp postinstall script failed !"
         echo ""
