@@ -319,9 +319,10 @@ mkdir -p /var/rudder/metrics
 
 chown rudder-webapp:rudder \
   /opt/rudder/etc/rudder-pkg/rudder-pkg.conf \
-  /var/rudder/share \
   /opt/rudder/etc/rudder-web.properties \
   /var/rudder/metrics
+
+chown -R rudder-webapp:rudder-policy-reader /var/rudder/share
 
 mkdir -p /var/rudder/fact-repository
 chown rudder-webapp:rudder /var/rudder/fact-repository
