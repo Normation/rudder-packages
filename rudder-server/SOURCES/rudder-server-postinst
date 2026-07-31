@@ -417,6 +417,7 @@ cd /
 # Restart the webapp
 systemctl restart rudder-slapd >> ${LOG_FILE} || true
 systemctl restart rudder-jetty >> ${LOG_FILE} || true
+systemctl restart ${APACHE} >> ${LOG_FILE} || true
 
 echo "Running plugins upgrade scripts" >> ${LOG_FILE}
 rudder package upgrade --all-postinstall || true
@@ -427,12 +428,5 @@ if [ "${RUDDER_FIRST_INSTALL}" = "true" ]; then
 fi
 
 echo "$(date) - Ending rudder-webapp post installation step" >> ${LOG_FILE}
-
-# apache must be started (and restarted if needed)
-systemctl restart ${APACHE} >> ${LOG_FILE}
-
-
-# We need it to be able to open big mdb memory-mapped databases
-ulimit -v unlimited
 
 echo "$(date) - Ending rudder-server post installation script" >> ${LOG_FILE}
