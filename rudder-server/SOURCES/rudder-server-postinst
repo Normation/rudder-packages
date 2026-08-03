@@ -337,7 +337,12 @@ echo "Running upgrade script" >> ${LOG_FILE}
 
 echo "Restoring file ACLs" >> ${LOG_FILE}
 cd /
-[ -f /tmp/rudder-hooks-upgrade ] && setfacl --restore=/tmp/rudder-hooks-upgrade
+# setfacl applies whatever this file names, so it must come from a directory only root can
+# write to. It is written by the preinst of this same package version, so there is no older
+# location to read; just clean up a file a pre-9.1 upgrade may have left in /tmp.
+HOOKS_ACL_FILE="/var/rudder/tmp/upgrade-hooks-acl"
+[ -f "${HOOKS_ACL_FILE}" ] && setfacl --restore="${HOOKS_ACL_FILE}"
+rm -f "${HOOKS_ACL_FILE}" /tmp/rudder-hooks-upgrade
 
 # Restart the webapp
 systemctl restart rudder-slapd >> ${LOG_FILE} || true
