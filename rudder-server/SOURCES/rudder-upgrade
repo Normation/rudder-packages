@@ -388,10 +388,7 @@ upgrade_masterfiles() {
   if [ -d "${RUDDER_SHARE}/initial-promises/" ]
   then
     mkdir -p "${RUDDER_VAR}/cfengine-community/masterfiles/"
-    chown rudder-webapp:rudder "${RUDDER_VAR}/cfengine-community/masterfiles/"
-    su -s /bin/sh rudder-webapp <<EOF
     rsync --delete --ignore-times -rptgoq "${RUDDER_SHARE}/initial-promises/" "${RUDDER_VAR}/cfengine-community/masterfiles/"
-EOF
   fi
 }
 
