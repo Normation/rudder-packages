@@ -46,9 +46,40 @@ case "$1" in
 
       [ -x /opt/rudder/sbin/slapcat ] && /opt/rudder/sbin/slapcat -b "cn=rudder-configuration" -l /var/rudder/ldap/backup/openldap-data-pre-upgrade-${TIMESTAMP}.ldif
 
-      rudder package enable --save > /tmp/rudder-plugins-upgrade
+      # Both files below are read back to drive a privileged action, so they stay in root-owned
+      # /var/rudder/tmp: the statuses decide which jars the webapp loads, the ACL dump is fed back
+      # to setfacl.
+      RUDDER_TMP="/var/rudder/tmp"
+      PLUGIN_STATUS_FILE="${RUDDER_TMP}/upgrade-plugins-status-backup"
+      PLUGIN_STATUS_LOG="${RUDDER_TMP}/upgrade-plugins-save-log"
+      HOOKS_ACL_FILE="${RUDDER_TMP}/upgrade-hooks-acl"
+      LEGACY_STATUS_FILE="/tmp/rudder-plugins-upgrade"
+      mkdir -p "${RUDDER_TMP}"
 
-      getfacl --absolute-names --recursive /opt/rudder/etc/hooks.d/ > /tmp/rudder-hooks-upgrade
+      # Here we write the list of plugins states. Two versions:
+      # - pre-9.0.9/9.1.4 were the list is written directly into /tmp/rudder-plugins-upgrade
+      #   with a message on stderr "Plugins statuses saved in ..."
+      # - later versions, were the status is written into stdout
+      #
+      # As the preinst runs on the old binary we need to handle both until 9.1 is EOL.
+      #
+      # To do so we run the save command and redirect stdout and stderr to files.
+      # Then we check the stderr for the old message:
+      # - If the old message is there and the file in /tmp looks ok (not a symlink
+      #   owned by root) we use its content
+      # - Else we use the output of the command directly.
+      rm -f "${PLUGIN_STATUS_FILE}" "${LEGACY_STATUS_FILE}"
+      (umask 077; rudder package enable --save > "${PLUGIN_STATUS_FILE}" 2> "${PLUGIN_STATUS_LOG}")
+      OLD_BINARY_STATUS_FILE=$(sed -n 's/.*Plugins statuses saved in //p' \
+        "${PLUGIN_STATUS_LOG}" | tail -n 1)
+      if [ -n "${OLD_BINARY_STATUS_FILE}" ] && [ -f "${OLD_BINARY_STATUS_FILE}" ] \
+         && [ ! -L "${OLD_BINARY_STATUS_FILE}" ] && [ -O "${OLD_BINARY_STATUS_FILE}" ]; then
+        cat "${OLD_BINARY_STATUS_FILE}" > "${PLUGIN_STATUS_FILE}"
+      fi
+      rm -f "${PLUGIN_STATUS_LOG}" "${LEGACY_STATUS_FILE}"
+
+      getfacl --absolute-names --recursive /opt/rudder/etc/hooks.d/ > "${HOOKS_ACL_FILE}"
+      chmod 600 "${HOOKS_ACL_FILE}"
 
       echo "********************************************************************************"
       echo "INFO: dpkg may ask you if you want to replace rudder-web.properties or          "
