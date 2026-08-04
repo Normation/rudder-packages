@@ -224,9 +224,29 @@ if [ $1 -ne 1 ]
   # If the stops fails, it's probably because it was not started
   systemctl stop rudder-jetty >&2 > /dev/null || true
 
-  rudder package enable --save > /tmp/rudder-plugins-upgrade
+  # Both files below are read back to drive a privileged action, so they stay in root-owned
+  # /var/rudder/tmp: the statuses decide which jars the webapp loads, the ACL dump is fed back
+  # to setfacl.
+  RUDDER_TMP="/var/rudder/tmp"
+  PLUGIN_STATUS_FILE="${RUDDER_TMP}/upgrade-plugins-status-backup"
+  PLUGIN_STATUS_LOG="${RUDDER_TMP}/upgrade-plugins-save-log"
+  HOOKS_ACL_FILE="${RUDDER_TMP}/upgrade-hooks-acl"
+  LEGACY_STATUS_FILE="/tmp/rudder-plugins-upgrade"
+  mkdir -p "${RUDDER_TMP}"
 
-  getfacl --absolute-names --recursive /opt/rudder/etc/hooks.d/ > /tmp/rudder-hooks-upgrade
+  # Identical code in rudder-server/debian/preinst, look there for explanation.
+  rm -f "${PLUGIN_STATUS_FILE}" "${LEGACY_STATUS_FILE}"
+  (umask 077; rudder package enable --save > "${PLUGIN_STATUS_FILE}" 2> "${PLUGIN_STATUS_LOG}")
+  OLD_BINARY_STATUS_FILE=$(sed -n 's/.*Plugins statuses saved in //p' \
+    "${PLUGIN_STATUS_LOG}" | tail -n 1)
+  if [ -n "${OLD_BINARY_STATUS_FILE}" ] && [ -f "${OLD_BINARY_STATUS_FILE}" ] \
+     && [ ! -L "${OLD_BINARY_STATUS_FILE}" ] && [ -O "${OLD_BINARY_STATUS_FILE}" ]; then
+    cat "${OLD_BINARY_STATUS_FILE}" > "${PLUGIN_STATUS_FILE}"
+  fi
+  rm -f "${PLUGIN_STATUS_LOG}" "${LEGACY_STATUS_FILE}"
+
+  getfacl --absolute-names --recursive /opt/rudder/etc/hooks.d/ > "${HOOKS_ACL_FILE}"
+  chmod 600 "${HOOKS_ACL_FILE}"
 else
   # make sure keys and certificate are the server ones
   [ -x /opt/rudder/bin/rudder ] && /opt/rudder/bin/rudder agent check -f -s keys

@@ -450,7 +450,8 @@ upgrade_plugins() {
   rudder package remove reporting 2>/dev/null
   # Remove the aix plugin as AIX support was dropped
   rudder package remove aix 2>/dev/null
-  PLUGIN_STATUS_FILE="/tmp/rudder-plugins-upgrade"
+  # Written by the preinst
+  PLUGIN_STATUS_FILE="/var/rudder/tmp/upgrade-plugins-status-backup"
   if rudder package update --check >/dev/null 2>&1 ; then
     rudder package update || true
     rudder package upgrade --all || true
@@ -458,12 +459,12 @@ upgrade_plugins() {
     echo "Plugins were not updated, because connection test is failing, please upgrade your plugins manually"
   fi
 
-  if [ -f $PLUGIN_STATUS_FILE ]; then
-    rudder package enable --restore < $PLUGIN_STATUS_FILE || true
+  if [ -f "${PLUGIN_STATUS_FILE}" ]; then
+    rudder package enable --restore < "${PLUGIN_STATUS_FILE}" || true
     rudder package disable --incompatible || true
 
     # Finally, remove it
-    rm $PLUGIN_STATUS_FILE
+    rm -f "${PLUGIN_STATUS_FILE}"
   fi
 }
 
