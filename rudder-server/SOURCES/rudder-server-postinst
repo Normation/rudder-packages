@@ -278,10 +278,6 @@ if [[ -f /opt/rudder/etc/rudder-web.properties ]]; then
 EOF
 fi
 
-echo '#!/usr/bin/env bash
-/usr/bin/rsync -a --delete --chown=root:root /var/rudder/share/policies/ /var/rudder/cfengine-community/inputs/' > /opt/rudder/etc/hooks.d/policy-generation-finished/20-mv-policies
-chmod +x /opt/rudder/etc/hooks.d/policy-generation-finished/20-mv-policies
-
 echo 'rudder-webapp ALL = NOPASSWD: SETENV: /opt/rudder/etc/hooks.d/*/*' > /etc/sudoers.d/rudder-hooks
 echo 'rudder-webapp ALL = NOPASSWD: SETENV: /opt/rudder/bin/rudder package *' > /etc/sudoers.d/rudder-package
 echo 'rudder-webapp ALL = NOPASSWD: SETENV: /usr/bin/rsync -a --delete --chown=root\:root /var/rudder/share/policies/ /var/rudder/cfengine-community/inputs/' > /etc/sudoers.d/rudder-mv-policies
