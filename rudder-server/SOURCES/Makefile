@@ -241,6 +241,8 @@ install: build rudder-server-version initial-promises initial-ncf
 	cp -r initial-promises/ $(DESTDIR)/opt/rudder/share/
 	cp -r initial-ncf/ $(DESTDIR)/opt/rudder/share/
 
+	install -m 644 rudder-server.sudo $(DESTDIR)/etc/sudoers.d/rudder-server
+
 	touch $@
 
 clean:
