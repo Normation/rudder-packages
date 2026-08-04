@@ -447,6 +447,7 @@ rm -rf %{buildroot}
 %attr(0700, -, -) /var/rudder/plugins/
 %attr(0700, -, -) /var/rudder/plugin-resources/
 %attr(0700, -, -) /var/rudder/policy-generation-info/
+%attr(0440, -, -) /etc/sudoers.d/rudder-server
 
 #=================================================
 # Changelog

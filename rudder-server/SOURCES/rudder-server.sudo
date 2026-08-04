@@ -1,0 +1,4 @@
+rudder-webapp ALL = NOPASSWD: SETENV: /opt/rudder/etc/hooks.d/*/*
+rudder-webapp ALL = NOPASSWD: SETENV: /usr/bin/rsync -a --delete --chown=root\:root /var/rudder/share/policies/ /var/rudder/cfengine-community/inputs/
+rudder-webapp ALL = NOPASSWD: SETENV: /opt/rudder/bin/rudder package *
+rudder-webapp ALL = NOPASSWD: SETENV: /opt/rudder/bin/rudder relay reload -p

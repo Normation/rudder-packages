@@ -245,7 +245,7 @@ rm -rf %{buildroot}
 %config(noreplace) /opt/rudder/etc/relayd/logging.conf
 # only used on SLES
 %config(noreplace) /etc/sysconfig/rudder-relay-apache
-%attr(0440, root, root) %config /etc/sudoers.d/rudder-relay
+%attr(0440, root, root) /etc/sudoers.d/rudder-relay
 %attr(700, root, root) /opt/rudder/etc/rudder-pkg/
 /var/rudder/inventories/incoming
 /var/rudder/inventories/failed
