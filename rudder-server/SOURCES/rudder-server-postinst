@@ -243,7 +243,7 @@ if ! getent passwd 'rudder-webapp' >/dev/null; then
   useradd --system --gid rudder --home-dir '/var/rudder/lib/webapp' --shell /bin/false 'rudder-webapp' >> ${LOG_FILE}
 fi
 
-chown rudder-webapp:rudder /var/rudder/lib/webapp /var/rudder/plugins /var/rudder/plugin-resources /var/rudder/policy-generation-info
+chown rudder-webapp:rudder -R /var/rudder/lib/webapp /var/rudder/plugins /var/rudder/plugin-resources /var/rudder/policy-generation-info
 chmod 700 /var/rudder/lib/webapp /var/rudder/plugins /var/rudder/plugin-resources /var/rudder/policy-generation-info
 
 if ! getent group rudder-slapd >/dev/null; then
@@ -316,7 +316,7 @@ chown rudder-webapp:rudder \
 chown -R rudder-webapp:rudder-policy-reader /var/rudder/share
 
 mkdir -p /var/rudder/fact-repository
-chown rudder-webapp:rudder /var/rudder/fact-repository
+chown rudder-webapp:rudder -R /var/rudder/fact-repository
 
 mkdir -p /opt/rudder/etc/rudder-web.properties.d/
 chown rudder-webapp:rudder /opt/rudder/etc/rudder-web.properties.d/
