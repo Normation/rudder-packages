@@ -412,7 +412,10 @@ rm -f "${HOOKS_ACL_FILE}" /tmp/rudder-hooks-upgrade
 
 # On upgrade from pre-9.1 with RPM, old Jetty 11 files are still there, preventing Jetty 12 from starting.
 # The right fix is probably not to try to start jetty before posttrans, but for now we make the minimal change to allow it to start.
-rm -f /opt/rudder/etc/rudder-jetty-base/start.ini
+# Don't remove the file as RPM would complain.
+if [ -f /opt/rudder/etc/rudder-jetty-base/start.ini ]; then
+  echo "" > /opt/rudder/etc/rudder-jetty-base/start.ini || true
+fi
 
 # Restart the webapp
 systemctl restart rudder-slapd >> ${LOG_FILE} || true
