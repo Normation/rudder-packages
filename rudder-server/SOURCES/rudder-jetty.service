@@ -7,6 +7,8 @@ ReloadPropagatedFrom=rudder-server.service
 PartOf=rudder-server.service
 
 [Service]
+User=rudder-webapp
+Group=rudder
 Type=forking
 UMask=0007
 LimitNOFILE=64000
@@ -18,9 +20,8 @@ SuccessExitStatus=143
 TimeoutStartSec=360s
 PrivateTmp=True
 ProtectSystem=strict
-ReadWritePaths=/opt/rudder /var/rudder /var/log/rudder
-User=rudder-webapp
-Group=rudder
+# The /etc/cron.d and /etc/systemd/system directories are used by plugins postinst scripts.
+ReadWritePaths=/opt/rudder /var/rudder /var/log/rudder /etc/cron.d /etc/systemd/system
 
 [Install]
 RequiredBy=rudder-server.service
