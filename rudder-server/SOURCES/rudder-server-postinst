@@ -267,17 +267,6 @@ chown -R rudder-slapd:rudder-slapd /var/rudder/ldap/
 echo "Stopping apache before running upgrade scripts" >> ${LOG_FILE}
 systemctl stop ${APACHE} >> ${LOG_FILE}
 
-if [[ -f /opt/rudder/etc/rudder-web.properties ]]; then
-  # Load the .properties lens manually and set the proper policy owner group and rootserver path
-  /opt/rudder/bin/raugtool --noautoload <<EOF >> ${LOG_FILE}
-  set /augeas/load/Properties/lens Properties.lns
-  set /augeas/load/Properties/incl "/opt/rudder/etc/rudder-web.properties"
-  load
-  set /files/opt/rudder/etc/rudder-web.properties/rudder.generated.policies.rootserver.path "/var/rudder/share/policies"
-  save
-EOF
-fi
-
 rm -f /var/rudder/lib/ssl/allnodescerts.pem
 mkdir -p /var/rudder/lib/ssl/shared
 touch /var/rudder/lib/ssl/shared/allnodescerts.pem
