@@ -272,6 +272,15 @@ mkdir -p /var/rudder/lib/ssl/shared
 touch /var/rudder/lib/ssl/shared/allnodescerts.pem
 chmod 750 -R /var/rudder/lib/ssl/shared
 
+if [ -f /opt/rudder/etc/rudder-users.xml ] && [ ! -L /opt/rudder/etc/rudder-users.xml ]; then
+  mkdir -p /opt/rudder/etc/webapp
+  mv /opt/rudder/etc/rudder-users.xml /opt/rudder/etc/webapp/rudder-users.xml
+fi
+
+if [ -f /opt/rudder/etc/webapp/rudder-users.xml ] && [ ! -L /opt/rudder/etc/rudder-users.xml ]; then
+    ln -sf /opt/rudder/etc/webapp/rudder-users.xml /opt/rudder/etc/rudder-users.xml
+fi
+
 chown -R rudder-webapp:rudder \
   /var/rudder/run \
   /var/log/rudder/webapp \
@@ -280,7 +289,7 @@ chown -R rudder-webapp:rudder \
   /opt/rudder/jetty \
   /var/rudder/configuration-repository \
   /opt/rudder/share/webapps/ \
-  /opt/rudder/etc/rudder-users.xml \
+  /opt/rudder/etc/webapp \
   /var/rudder/lib/ssl/shared \
 
 chown root:rudder \

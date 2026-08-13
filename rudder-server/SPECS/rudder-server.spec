@@ -414,7 +414,7 @@ rm -rf %{buildroot}
 /opt/rudder/share/package-scripts/
 %config(noreplace) /opt/rudder/etc/openldap/slapd.conf
 %config(noreplace) /opt/rudder/etc/rudder-web.properties
-%config(noreplace) /opt/rudder/etc/rudder-users.xml
+%config(noreplace) /opt/rudder/etc/webapp/rudder-users.xml
 %config(noreplace) /opt/rudder/etc/logback.xml
 %config(noreplace) /opt/rudder/etc/rudder-passwords.conf
 %config(noreplace) /etc/default/rudder-jetty
@@ -447,6 +447,7 @@ rm -rf %{buildroot}
 %attr(0700, -, -) /var/rudder/plugins/
 %attr(0700, -, -) /var/rudder/plugin-resources/
 %attr(0700, -, -) /var/rudder/policy-generation-info/
+%attr(0700, -, -) /opt/rudder/etc/webapp
 %attr(0440, -, -) /etc/sudoers.d/rudder-server
 
 #=================================================
