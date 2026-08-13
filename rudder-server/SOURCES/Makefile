@@ -171,6 +171,7 @@ install: build rudder-server-version initial-promises initial-ncf
 	mkdir -p $(DESTDIR)/usr/lib/systemd/system
 	mkdir -p $(DESTDIR)/opt/rudder/share/versions
 	mkdir -p $(DESTDIR)/var/rudder/policy-generation-info
+	mkdir -p $(DESTDIR)/opt/rudder/etc/webapp
 
 	cd openldap-source && make $(DEBUGOPT) install DESTDIR=$(DESTDIR)
 
@@ -188,7 +189,7 @@ install: build rudder-server-version initial-promises initial-ncf
 	install -m 755 rudder-node-to-relay $(DESTDIR)/opt/rudder/bin/
 	install -m 755 split-vhost ${DESTDIR}/opt/rudder/bin/
 
-	install -m 644 $(WEB_RESOURCES)/demo-rudder-users.xml $(DESTDIR)/opt/rudder/etc/rudder-users.xml
+	install -m 644 $(WEB_RESOURCES)/demo-rudder-users.xml $(DESTDIR)/opt/rudder/etc/webapp/rudder-users.xml
 	install -m 644 $(CORE_RESOURCES)/ldap/bootstrap.ldif $(DESTDIR)/opt/rudder/share/
 	install -m 644 $(CORE_RESOURCES)/ldap/init-policy-server.ldif $(DESTDIR)/opt/rudder/share/
 	install -m 644 $(WEB_RESOURCES)/configuration.properties.sample $(DESTDIR)/opt/rudder/etc/rudder-web.properties
