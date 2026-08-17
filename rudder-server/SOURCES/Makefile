@@ -150,6 +150,7 @@ install: build rudder-server-version initial-promises initial-ncf
 	mkdir -p $(DESTDIR)/opt/rudder/share/selinux
 	mkdir -p $(DESTDIR)/opt/rudder/share/package-scripts
 	mkdir -p $(DESTDIR)/var/rudder/inventories/received
+	mkdir -p $(DESTDIR)/var/rudder/inventories/historical
 	mkdir -p $(DESTDIR)/var/rudder/run
 	mkdir -p $(DESTDIR)/var/rudder/lib/webapp
 	mkdir -p $(DESTDIR)/var/rudder/plugins

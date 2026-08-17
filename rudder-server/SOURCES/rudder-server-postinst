@@ -338,8 +338,12 @@ if [ -f /opt/rudder/etc/uuid.root ]; then
   mv /opt/rudder/etc/uuid.root "/var/backups/rudder/uuid.root-$(date +%Y%m%d)"
 fi
 
-# Add perms on inventories
-chmod 751 /var/rudder/inventories
+# The two dirs are only managed by the webapp
+for dir in /var/rudder/inventories/received /var/rudder/inventories/historical
+do
+  chmod 700 ${dir}
+  chown rudder-webapp:rudder ${dir}
+done
 
 # Create and populate technique store
 mkdir -p /var/rudder/configuration-repository/shared-files
