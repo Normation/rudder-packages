@@ -40,7 +40,7 @@
 %define apache_tools            apache2-utils
 %define ldap_clients            openldap2-client
 %define apache_vhost_dir        %{apache}/vhosts.d
-%define apache_user             www
+%define apache_user             wwwrun
 %endif
 %if 0%{?rhel} || 0%{?fedora}
 %define apache                  httpd
@@ -433,6 +433,7 @@ rm -rf %{buildroot}
 /var/rudder/ldap/openldap-data
 /var/rudder/run
 /var/rudder/inventories/received
+/var/rudder/inventories/historical
 /var/log/rudder/ldap
 /var/log/rudder/apache2/
 /var/log/rudder/webapp/
