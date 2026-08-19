@@ -416,6 +416,9 @@ rm -f "${HOOKS_ACL_FILE}" /tmp/rudder-hooks-upgrade
 # The right fix is probably not to try to start jetty before posttrans, but for now we make the minimal change to allow it to start.
 rm -f /opt/rudder/etc/rudder-jetty-base/start.ini
 
+# This hook is removed and now disabled by default
+rm -f /opt/rudder/etc/hooks.d/policy-generation-node-ready/10-cf-promise-check
+
 # Restart the webapp
 systemctl restart rudder-slapd >> ${LOG_FILE} || true
 systemctl restart rudder-jetty >> ${LOG_FILE} || true
