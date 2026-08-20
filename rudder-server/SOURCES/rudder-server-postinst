@@ -283,14 +283,17 @@ fi
 
 chown -R rudder-webapp:rudder \
   /var/rudder/run \
-  /var/log/rudder/webapp \
-  /opt/rudder/etc/rudder-jetty-base/ \
-  /opt/rudder/etc/rudder-jetty.conf \
   /opt/rudder/jetty \
   /var/rudder/configuration-repository \
   /opt/rudder/share/webapps/ \
   /opt/rudder/etc/webapp \
-  /var/rudder/lib/ssl/shared \
+  /var/rudder/lib/ssl/shared
+
+chown -R rudder-webapp:root \
+  /var/log/rudder/webapp \
+  /opt/rudder/etc/rudder-jetty-base/ \
+  /opt/rudder/etc/rudder-jetty.conf \
+  /opt/rudder/etc/hooks.d
 
 chown root:rudder \
   /var/log/rudder/install \
