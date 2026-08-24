@@ -412,7 +412,14 @@ cd /
 # write to. It is written by the preinst of this same package version, so there is no older
 # location to read; just clean up a file a pre-9.1 upgrade may have left in /tmp.
 HOOKS_ACL_FILE="/var/rudder/tmp/upgrade-hooks-acl"
-[ -f "${HOOKS_ACL_FILE}" ] && setfacl --restore="${HOOKS_ACL_FILE}"
+
+# Filter out the old hooks from the ACL list
+[ -f "${HOOKS_ACL_FILE}" ] && awk '
+/^# file:/ {
+  keep = ($0 !~ /\/(90-change-perm|10-cf-promise-check)$/)
+}
+keep { print }
+' "${HOOKS_ACL_FILE}" > "${HOOKS_ACL_FILE}.tmp" && mv "${HOOKS_ACL_FILE}.tmp" "${HOOKS_ACL_FILE}" && setfacl --restore="${HOOKS_ACL_FILE}"
 rm -f "${HOOKS_ACL_FILE}" /tmp/rudder-hooks-upgrade
 
 # On upgrade from pre-9.1 with RPM, old Jetty 11 files are still there, preventing Jetty 12 from starting.
