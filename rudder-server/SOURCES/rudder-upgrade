@@ -372,9 +372,9 @@ upgrade_ncf() {
         rm -f ${RUDDER_VAR}/ncf/local/30_generic_methods/${method}
       fi
     done
-su -s /bin/sh rudder-webapp <<EOF
-    [ ${commit_needed} -eq 1 ] && git commit --allow-empty -q -m "Remove duplicate local methods - automatically done by rudder-upgrade script"
-EOF
+    if [ "${commit_needed}" -eq 1 ]; then
+      su -s /bin/sh rudder-webapp -c 'git commit --allow-empty -q -m "Remove duplicate local methods - automatically done by rudder-upgrade script"'
+    fi
     cd ${CURRENT}
   fi
 
