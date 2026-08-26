@@ -361,7 +361,7 @@ upgrade_ncf() {
     for method in *.cf; do
       [ -f "${method}" ] || break
       if [ -f "${RUDDER_NCF_SOURCE_DIRECTORY}/tree/30_generic_methods/${method}" ]; then
-        if su -s /bin/sh rudder-webapp "git ls-files --error-unmatch ${method} >/dev/null 2>&1"; then
+        if su -s /bin/sh rudder-webapp -c "git ls-files --error-unmatch ${method} >/dev/null 2>&1"; then
           su -s /bin/sh rudder-webapp -c "git rm \"${method}\" >/dev/null"
           commit_needed=1
           echo "WARNING: The ${method} generic method was already present in local configuration, removing it."
