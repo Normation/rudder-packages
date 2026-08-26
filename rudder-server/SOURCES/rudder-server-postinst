@@ -32,6 +32,7 @@ then
 fi
 
 mkdir -p /var/log/rudder/install
+mkdir -p /var/log/rudder/compliance
 
 echo "`date` - Starting rudder-server-postinst script" >> ${LOG_FILE}
 
@@ -233,9 +234,6 @@ fi
 
 echo "$(date) - Ending rudder-reports post installation step" >> ${LOG_FILE}
 
-
-mkdir -p /var/log/rudder/install
-
 echo "$(date) - Starting rudder-webapp post installation step" >> ${LOG_FILE}
 
 echo "Creating rudder users" >> ${LOG_FILE}
@@ -291,6 +289,7 @@ chown -R rudder-webapp:rudder \
 
 chown -R rudder-webapp:root \
   /var/log/rudder/webapp \
+  /var/log/rudder/compliance \
   /opt/rudder/etc/rudder-jetty-base/ \
   /opt/rudder/etc/rudder-jetty.conf \
   /opt/rudder/etc/hooks.d
