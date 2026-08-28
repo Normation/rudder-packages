@@ -20,6 +20,27 @@ RUDDER_DIR="/opt/rudder/"
 LOG_FILE="/var/log/rudder/install/rudder-server-$(date +%Y%m%d).log"
 EXTERNAL_DB_CONF="/opt/rudder/etc/external-db.conf"
 
+# The database password is written to several places with different quoting rules, so
+# it is kept raw and escaped once per destination, right where it is used.
+
+# `sed` reads `&` as "the whole match" and stops the replacement at the delimiter, so a
+# literal string must be escaped before being used as the replacement of an `s` command.
+# We escape `\`, `&` and both delimiters used in this script (`/` and `|`); escaping a
+# character that is not the delimiter in use is a no-op for GNU sed.
+escape_for_sed_replacement() {
+  printf '%s' "$1" | sed -e 's/[\\&/|]/\\&/g'
+}
+
+# In a java `.properties` file, a backslash starts an escape sequence, so a literal one must be doubled
+escape_for_java_properties() {
+  printf '%s' "$1" | sed -e 's/\\/\\\\/g'
+}
+
+# In `.pgpass`, `\` and the `:` field separator are escaped with a backslash.
+escape_for_pgpass() {
+  printf '%s' "$1" | sed -e 's/[\\:]/\\&/g'
+}
+
 RUDDER_FIRST_INSTALL="$1"
 APACHE="$2"
 DB_NOT_INITIALIZED="$3"
@@ -161,7 +182,7 @@ then
   if [ ${CHK_PG_USER} -eq 0 ]
   then
     su postgres -s /bin/sh -c "psql -q -c \"CREATE USER ${USERNAME} WITH PASSWORD '${PASSWORD}'\"" >> ${LOG_FILE}
-    sed -i -f <(printf '/^RUDDER_PSQL_PASSWORD/s/.*/RUDDER_PSQL_PASSWORD:%s/' "${PASSWORD}") /opt/rudder/etc/rudder-passwords.conf
+    sed -i -f <(printf '/^RUDDER_PSQL_PASSWORD/s/.*/RUDDER_PSQL_PASSWORD:%s/' "$(escape_for_sed_replacement "${PASSWORD}")") /opt/rudder/etc/rudder-passwords.conf
   fi
 
   # Rudder database
@@ -191,18 +212,26 @@ else
       exit 1
     fi
     USERNAME="${DB_USER}"
-    PASSWORD=$(echo "${DB_PASSWORD}" | sed 's/\([\\\/]\)/\\\1/g')
+    PASSWORD="${DB_PASSWORD}"
     DBNAME="${DB_NAME}"
     HOST="${DB_HOST}"
+    # Neither rudder-web.properties nor rudder-passwords.conf can hold a line break in a value: refuse it
+    case "${PASSWORD}" in
+      *[$'\n\r']*)
+        echo "$(date) - The database password set in ${EXTERNAL_DB_CONF} contains a line break, which can not be stored in /opt/rudder/etc/rudder-web.properties. Exiting" >> ${LOG_FILE}
+        exit 1
+        ;;
+    esac
     if [ "${DB_IS_POPULATED}" != "true" ]; then
       POPULATE="true"
     fi
     # rudder-passwords default is not adapted to external db
-    sed -i -f <(printf '/^RUDDER_PSQL_PASSWORD/s/.*/RUDDER_PSQL_PASSWORD:%s/' "${PASSWORD}") /opt/rudder/etc/rudder-passwords.conf
+    sed -i -f <(printf '/^RUDDER_PSQL_PASSWORD/s/.*/RUDDER_PSQL_PASSWORD:%s/' "$(escape_for_sed_replacement "${PASSWORD}")") /opt/rudder/etc/rudder-passwords.conf
     # the user has already provided credentials, do not force her to do it again
     sed -i "\|^rudder.jdbc.url|s|.*|rudder.jdbc.url=jdbc:postgresql://${HOST}:5432/${DBNAME}|" /opt/rudder/etc/rudder-web.properties
     sed -i "\|^rudder.jdbc.username|s|.*|rudder.jdbc.username=${USERNAME}|" /opt/rudder/etc/rudder-web.properties
-    sed -i -f <(printf '\\|^rudder.jdbc.password|s|.*|rudder.jdbc.password=%s|' "${PASSWORD}") /opt/rudder/etc/rudder-web.properties
+    # escaped for the properties format first, then for sed: sed removes one level
+    sed -i -f <(printf '\\|^rudder.jdbc.password|s|.*|rudder.jdbc.password=%s|' "$(escape_for_sed_replacement "$(escape_for_java_properties "${PASSWORD}")")") /opt/rudder/etc/rudder-web.properties
     # if the database is external tell it to the webapp which will tell to the agent not to mess with the local postgresql
     if [ "${HOST}" != "localhost" ]
     then
@@ -220,7 +249,7 @@ fi
 # Populating if necessary the database
 if [ "${POPULATE}" = "true" ]; then
   echo "$(date) - Populate the database at ${HOST}" >> ${LOG_FILE}
-  echo "${HOST}:5432:${DBNAME}:${USERNAME}:${PASSWORD}" > /root/.pgpass
+  echo "${HOST}:5432:${DBNAME}:${USERNAME}:$(escape_for_pgpass "${PASSWORD}")" > /root/.pgpass
   chmod 600 /root/.pgpass
   sed -i "s/^ALTER database rudder /ALTER database ${DBNAME} /" /opt/rudder/etc/postgresql/reportsSchema.sql
   psql -q -U "${USERNAME}" -h "${HOST}" -d "${DBNAME}" -f /opt/rudder/etc/postgresql/reportsSchema.sql >> ${LOG_FILE}
