@@ -337,7 +337,7 @@ chown -R ${APACHE_USER}:rudder /var/rudder/inventories
 
 mkdir -p /var/rudder/metrics
 
-chown rudder-webapp:rudder \
+chown -R rudder-webapp:rudder \
   /opt/rudder/etc/rudder-pkg/rudder-pkg.conf \
   /opt/rudder/etc/rudder-web.properties \
   /var/rudder/metrics
