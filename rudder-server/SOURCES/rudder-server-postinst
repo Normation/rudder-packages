@@ -294,6 +294,22 @@ chown -R rudder-slapd:rudder-slapd /var/rudder/ldap/
 echo "Stopping apache before running upgrade scripts" >> ${LOG_FILE}
 systemctl stop ${APACHE} >> ${LOG_FILE}
 
+echo "Restoring file ACLs" >> ${LOG_FILE}
+cd /
+# setfacl applies whatever this file names, so it must come from a directory only root can
+# write to. It is written by the preinst of this same package version, so there is no older
+# location to read; just clean up a file a pre-9.1 upgrade may have left in /tmp.
+HOOKS_ACL_FILE="/var/rudder/tmp/upgrade-hooks-acl"
+
+# Filter out the old hooks from the ACL list
+[ -f "${HOOKS_ACL_FILE}" ] && awk '
+/^# file:/ {
+  keep = ($0 !~ /\/(90-change-perm|10-cf-promise-check)$/)
+}
+keep { print }
+' "${HOOKS_ACL_FILE}" > "${HOOKS_ACL_FILE}.tmp" && mv "${HOOKS_ACL_FILE}.tmp" "${HOOKS_ACL_FILE}" && setfacl --restore="${HOOKS_ACL_FILE}"
+rm -f "${HOOKS_ACL_FILE}"
+
 rm -f /var/rudder/lib/ssl/allnodescerts.pem
 mkdir -p /var/rudder/lib/ssl/shared
 touch /var/rudder/lib/ssl/shared/allnodescerts.pem
@@ -434,21 +450,7 @@ echo "Running upgrade script" >> ${LOG_FILE}
 # Adjust permissions on /var/rudder/configuration-repository again
 /opt/rudder/bin/rudder-fix-repository-permissions >> ${LOG_FILE}
 
-echo "Restoring file ACLs" >> ${LOG_FILE}
-cd /
-# setfacl applies whatever this file names, so it must come from a directory only root can
-# write to. It is written by the preinst of this same package version, so there is no older
-# location to read; just clean up a file a pre-9.1 upgrade may have left in /tmp.
-HOOKS_ACL_FILE="/var/rudder/tmp/upgrade-hooks-acl"
-
-# Filter out the old hooks from the ACL list
-[ -f "${HOOKS_ACL_FILE}" ] && awk '
-/^# file:/ {
-  keep = ($0 !~ /\/(90-change-perm|10-cf-promise-check)$/)
-}
-keep { print }
-' "${HOOKS_ACL_FILE}" > "${HOOKS_ACL_FILE}.tmp" && mv "${HOOKS_ACL_FILE}.tmp" "${HOOKS_ACL_FILE}" && setfacl --restore="${HOOKS_ACL_FILE}"
-rm -f "${HOOKS_ACL_FILE}" /tmp/rudder-hooks-upgrade
+rm -f /tmp/rudder-hooks-upgrade
 
 # On upgrade from pre-9.1 with RPM, old Jetty 11 files are still there, preventing Jetty 12 from starting.
 # The right fix is probably not to try to start jetty before posttrans, but for now we make the minimal change to allow it to start.
