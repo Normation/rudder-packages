@@ -358,7 +358,7 @@ chown -R rudder-webapp:rudder \
   /opt/rudder/etc/rudder-web.properties \
   /var/rudder/metrics
 
-chown -R rudder-webapp:rudder-policy-reader /var/rudder/share
+chown -R rudder-webapp:rudder-policy-reader /var/rudder/share /var/rudder/backup
 
 mkdir -p /var/rudder/fact-repository
 chown rudder-webapp:rudder -R /var/rudder/fact-repository
