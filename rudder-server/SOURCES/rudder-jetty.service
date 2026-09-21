@@ -21,7 +21,7 @@ TimeoutStartSec=360s
 PrivateTmp=True
 ProtectSystem=strict
 # The /etc/cron.d and /etc/systemd/system directories are used by plugins postinst scripts.
-ReadWritePaths=/opt/rudder /var/rudder /var/log/rudder /etc/cron.d /etc/systemd/system
+ReadWritePaths=/opt/rudder /var/rudder /var/log /etc/cron.d /etc/systemd/system
 
 [Install]
 RequiredBy=rudder-server.service
