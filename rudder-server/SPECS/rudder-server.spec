@@ -167,7 +167,7 @@ make -f /usr/share/selinux/devel/Makefile
 #=================================================
 %install
 
-echo "Installing %{name} %{real_version}" >> ${LOG_FILE}
+echo "`date` - Starting %{name} %{real_version} installation" >> ${LOG_FILE}
 
 rm -rf %{buildroot}
 cd %{_sourcedir}
