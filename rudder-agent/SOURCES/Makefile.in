@@ -31,14 +31,14 @@ lmdb_RELEASE = 0.9.35
 lmdb_SHA256 = 18b021fd589d30cc08860a9550a30ae51637117451385e9581616da751326632
 # We follow LTS releases
 # Original URL: https://www.openssl.org/source/openssl-$(OPENSSL_RELEASE).tar.gz
-openssl_RELEASE = 3.5.7
-openssl_SHA256 = a8c0d28a529ca480f9f36cf5792e2cd21984552a3c8e4aa11a24aa31aeac98e8
+openssl_RELEASE = 3.5.9
+openssl_SHA256 = 603f5602e2eef00d77fbd429d34dcd5822bb301757a1bc9cdb24c670f1eb859a
 # Original URL: https://github.com/PCRE2Project/pcre2/releases/download/pcre2-${pcre2_RELEASE}/pcre2-${pcre2_RELEASE}.tar.gz
 pcre2_RELEASE = 10.47
 pcre2_SHA256 = c08ae2388ef333e8403e670ad70c0a11f1eed021fd88308d7e02f596fcd9dc16
 # Original URL: https://curl.haxx.se/download/curl-7.58.0.tar.gz
-libcurl_RELEASE = 8.21.0
-libcurl_SHA256 = d9b327997999045a24cda50f3983e69e51c516bd8be6ef9842fc7f99135e33bb
+libcurl_RELEASE = 8.22.0
+libcurl_SHA256 = d54dd598bf05927a726deb38df31c6a255ba83ff1de57c5d1464dac3ed8f44a1
 # Original URL: http://download.augeas.net/augeas-1.12.0.tar.gz
 augeas_RELEASE = 1.14.1
 augeas_SHA256 = 368bfdd782e4b9c7163baadd621359c82b162734864b667051ff6bcb57b9edff
