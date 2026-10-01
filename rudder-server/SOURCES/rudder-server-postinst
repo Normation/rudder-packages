@@ -343,9 +343,10 @@ chown root:rudder \
   /var/log/rudder/install \
   /opt/rudder/etc \
   /var/rudder \
-  /opt/rudder/etc/rudder-pkg
+  /opt/rudder/etc/rudder-pkg \
+  /var/rudder/ncf
 
-chmod 750 /opt/rudder/etc/rudder-pkg
+chmod 750 /opt/rudder/etc/rudder-pkg /var/rudder/ncf
 chmod 710 /var/log/rudder/install
 chown rudder-webapp ${LOG_FILE}
 
