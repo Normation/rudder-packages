@@ -17,9 +17,23 @@ checkAvailableRam()
   fi
 }
 
-# Get configured XMX
+# Check that the OS support C.UTF-8 so that our export in rudder-jetty.conf will be understood.
+# See: https://issues.rudder.io/issues/29869
+checkLocaleCharmap()
+{
+  CHARMAP=$(locale charmap 2>/dev/null)
+  if [ "${CHARMAP}" != "UTF-8" ]; then
+    echo "WARNING: locale '${LC_ALL}' resolves to charmap '${CHARMAP}' instead of UTF-8: it is either not a UTF-8 locale, or not available on this system."
+  fi
+}
+
+
+# Get configured XMX and locale
 . /etc/default/rudder-jetty
 
 # Checking if enough RAM is available for Jetty to use
 # Metaspace is auomanaged in JDK8+. Rudder needs 150Mo of it.
 checkAvailableRam $((${JAVA_XMX}+150))
+
+# Checking that file names will be encoded in UTF-8
+checkLocaleCharmap
