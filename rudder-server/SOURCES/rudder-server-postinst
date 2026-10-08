@@ -368,7 +368,7 @@ chown rudder-webapp:rudder -R /var/rudder/fact-repository
 mkdir -p /opt/rudder/etc/rudder-web.properties.d/
 chown rudder-webapp:rudder /opt/rudder/etc/rudder-web.properties.d/
 
-chown root:rudder -R /opt/rudder/share
+chown root:rudder -R /opt/rudder/share /var/rudder/ncf/local/
 
 echo "Managing services" >> ${LOG_FILE}
 systemctl daemon-reload
