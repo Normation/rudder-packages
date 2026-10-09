@@ -368,8 +368,11 @@ chown rudder-webapp:rudder -R /var/rudder/fact-repository
 mkdir -p /opt/rudder/etc/rudder-web.properties.d/
 chown rudder-webapp:rudder /opt/rudder/etc/rudder-web.properties.d/
 
+# The methods metadata must be readable by rudderc run by the webapp
+# The permissions are similar to those applied by the update.st agent file
 chown root:rudder -R /opt/rudder/share /var/rudder/ncf/local/
-# ncf folders permissions are fixed later in the script after being rsync-ed
+find /var/rudder/ncf/local -type d -exec chmod 750 {} +
+find /var/rudder/ncf/local -type f -exec chmod 640 {} +
 
 echo "Managing services" >> ${LOG_FILE}
 systemctl daemon-reload
@@ -403,16 +406,6 @@ if [ ! -d /var/rudder/configuration-repository/techniques ]; then
   touch /opt/rudder/etc/force_technique_reload
 fi
 
-# Start with an updated common ncf
-rsync --delete --recursive --times --exclude=50_techniques /usr/share/ncf/tree/ /var/rudder/ncf/common/
-chown -R root:root /var/rudder/ncf/common/
-find /var/rudder/ncf/common -type d -exec chmod 755 {} +
-find /var/rudder/ncf/common -type f -exec chmod 644 {} +
-# Start with an updated local ncf
-rsync --delete --recursive --times --exclude=50_techniques /var/rudder/configuration-repository/ncf/ /var/rudder/ncf/local/
-chown -R root:rudder /var/rudder/ncf/local/
-find /var/rudder/ncf/local -type d -exec chmod 750 {} +
-find /var/rudder/ncf/local -type f -exec chmod 640 {} +
 
 # Initialize git repository if it is missing, so permissions can be set on it afterwards
 cd /var/rudder/configuration-repository
