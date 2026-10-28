@@ -35,6 +35,9 @@ mkdir -p /var/log/rudder/install
 
 echo "`date` - Starting rudder-server-postinst script" >> ${LOG_FILE}
 
+if [ -f "/opt/rudder/etc/disable-agent" ]; then
+  echo "WARNING: Agent is disabled!" | tee -a ${LOG_FILE}
+fi
 
 LOCAL_DB="true"
 # DB is not initialized on redhat at first install, create db in this case
