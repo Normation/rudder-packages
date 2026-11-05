@@ -366,7 +366,7 @@ mkdir -p /var/rudder/fact-repository
 chown rudder-webapp:rudder -R /var/rudder/fact-repository
 
 mkdir -p /opt/rudder/etc/rudder-web.properties.d/
-chown rudder-webapp:rudder /opt/rudder/etc/rudder-web.properties.d/
+chown rudder-webapp:rudder -R /opt/rudder/etc/rudder-web.properties.d/
 
 # The methods metadata must be readable by rudderc run by the webapp
 # The permissions are similar to those applied by the update.st agent file
