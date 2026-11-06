@@ -123,6 +123,8 @@ then
     systemctl start ${POSTGRESQL_SERVICE_NAME} >> ${LOG_FILE}
   fi
 
+  cd /tmp # Change directory to avoid warning when using su
+
   # TODO RPM only ??
   PG_HBA_FILE=$(su postgres -s /bin/sh -c "psql -t -P format=unaligned -c 'show hba_file';")
   if [ $? -ne 0 ]; then
