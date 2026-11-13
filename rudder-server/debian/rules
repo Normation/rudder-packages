@@ -18,6 +18,10 @@ override_dh_gencontrol:
 
 override_dh_dwz:
 
+override_dh_installdeb:
+	dh_installdeb
+	sed -i "s/@PACKAGE_VERSION@/$(shell dpkg-parsechangelog -SVersion)/g" debian/rudder-server/DEBIAN/postinst
+
 # default zst on ubuntu22 is not supported on our repository
 # but xz is supported on all our supported debian based server os
 override_dh_builddeb:
