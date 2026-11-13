@@ -167,6 +167,8 @@ make -f /usr/share/selinux/devel/Makefile
 #=================================================
 %install
 
+echo "`date` - Starting %{name} %{real_version} installation" >> ${LOG_FILE}
+
 rm -rf %{buildroot}
 cd %{_sourcedir}
 make --debug install APACHE_VHOSTDIR=%{apache_vhost_dir} DESTDIR=%{buildroot} APACHE_CONFDIR=%{apache_conf_dir}
