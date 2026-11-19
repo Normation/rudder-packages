@@ -1,0 +1,17 @@
+diff -ruN a/lib/FusionInventory/Agent/Task/Inventory/Win32/OS.pm b/lib/FusionInventory/Agent/Task/Inventory/Win32/OS.pm
+--- a/lib/FusionInventory/Agent/Task/Inventory/Win32/OS.pm	2026-11-19 15:19:03.247025353 +0100
++++ b/lib/FusionInventory/Agent/Task/Inventory/Win32/OS.pm	2026-11-19 15:18:44.582118734 +0100
+@@ -97,6 +97,12 @@
+     );
+     $os->{VERSION} = $releaseid if $releaseid;
+ 
++    # Support DisplayVersion as Operating System version for Windows 10 (since version 21H1) & Windows 11
++    my $displayVersion = getRegistryValue(
++        path => 'HKEY_LOCAL_MACHINE/Software/Microsoft/Windows NT/CurrentVersion/DisplayVersion'
++    );
++    $os->{VERSION} = $displayVersion if $displayVersion;
++
+     # We want to always reset FQDN on remote wmi inventory as it was set to local
+     # agent fqdn in Generic module
+     $os->{FQDN} = $hostname if ($remotewmi);
+
