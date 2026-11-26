@@ -1,4 +1,5 @@
 Defaults:rudder-webapp !use_pty
+Defaults:rudder-webapp !requiretty
 rudder-webapp ALL = NOPASSWD: SETENV: /opt/rudder/etc/hooks.d/*/*, /opt/rudder/etc/hooks.d/*/*/*, /opt/rudder/etc/hooks.d/*/*/*/*, /opt/rudder/etc/hooks.d/*/*/*/*/*
 rudder-webapp ALL = NOPASSWD: SETENV: /opt/rudder/bin/rudder package *
 rudder-webapp ALL = NOPASSWD: SETENV: /opt/rudder/bin/rudder relay reload -p
